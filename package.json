@@ -1,6 +1,6 @@
 {
   "name": "omniroute-app",
-  "version": "0.2.73",
+  "version": "0.0.1",
   "description": "OmniRoute web dashboard",
   "private": true,
   "workspaces": [
