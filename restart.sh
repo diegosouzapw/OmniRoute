@@ -64,5 +64,52 @@ if ! kill_by_port; then
 fi
 
 echo ""
-echo "🚀 Iniciando npm run dev..."
-npm run build && npm run start
+echo "🧹 Limpando build anterior (.next)..."
+rm -rf .next
+
+echo "🔨 Fazendo build limpo..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build falhou!"
+  exit 1
+fi
+
+echo ""
+echo "🚀 Iniciando servidor na porta $PORT..."
+LOG_FILE="/tmp/omniroute.log"
+> "$LOG_FILE"
+
+npx next start --port $PORT >> "$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+
+# Ao fechar (Ctrl+C), mata o servidor e libera a porta
+cleanup() {
+  echo ""
+  echo "🛑 Parando servidor (PID: $SERVER_PID)..."
+  kill $SERVER_PID 2>/dev/null
+  wait $SERVER_PID 2>/dev/null
+  fuser -k $PORT/tcp 2>/dev/null
+  echo "✅ Servidor parado. Porta $PORT liberada."
+  exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+# Aguarda o servidor ficar pronto
+echo "⏳ Aguardando servidor iniciar (PID: $SERVER_PID)..."
+for i in $(seq 1 15); do
+  sleep 1
+  if curl -s -o /dev/null -w "" http://localhost:$PORT > /dev/null 2>&1; then
+    echo ""
+    echo "✅ Servidor rodando em http://localhost:$PORT (PID: $SERVER_PID)"
+    echo "📄 Pressione Ctrl+C para parar"
+    echo "────────────────────────────────────────"
+    break
+  fi
+  printf "."
+done
+
+# Fica mostrando os logs na tela até Ctrl+C
+tail -f "$LOG_FILE" &
+TAIL_PID=$!
+wait $SERVER_PID 2>/dev/null
+kill $TAIL_PID 2>/dev/null
