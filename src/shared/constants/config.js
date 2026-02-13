@@ -2,8 +2,8 @@ import pkg from "../../../package.json" with { type: "json" };
 
 // App configuration
 export const APP_CONFIG = {
-  name: "Endpoint Proxy",
-  description: "AI Infrastructure Management",
+  name: "OmniRoute",
+  description: "AI Gateway for Multi-Provider LLMs",
   version: pkg.version,
 };
 
