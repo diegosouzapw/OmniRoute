@@ -42,11 +42,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.bin/*
+# data and logs
 data/
 logs/*
-source/*
-.cursor/*
+
+# docs (allow specific tracked files)
 docs/*
 !docs/ARCHITECTURE.md
 !docs/CODEBASE_DOCUMENTATION.md
@@ -54,28 +54,18 @@ docs/*
 !docs/EXECUTION_CONTEXT_PROVIDER_SYNC.md
 !docs/TASK_NEBIUS_BACKEND_ENABLEMENT.md
 !docs/frontend-backend-provider-gap-report.md
+!docs/openapi.yaml
 !docs/adr/
 !docs/cli-tools/
 !docs/planning/
 !docs/improvement-plans/
 !docs/api/
-test/*
-bin/*
+
+# open-sse tests
 open-sse/test/*
-RM.vn.md
-RM.md
-cursor/*
-PUBLIC.md
-scripts/*
-Thanks.md
-PUBLIC.en.md
-PR/*
-package-lock.json
 
-
-#Ignore vscode AI rules
+# Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
-README1.md
 
 # Playwright
 test-results/

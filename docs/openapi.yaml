@@ -1,0 +1,1224 @@
+openapi: 3.1.0
+info:
+  title: OmniRoute API
+  version: 0.0.1
+  description: |
+    OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
+    endpoint that routes requests to multiple AI providers with load balancing,
+    failover, and usage tracking.
+
+    ## Base URLs
+    - **Local**: `http://localhost:20128`
+
+    ## Authentication
+    All proxy endpoints require a Bearer token (API key managed via the dashboard).
+    Management endpoints are protected when `requireLogin` is enabled.
+  contact:
+    name: OmniRoute
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:20128
+    description: Local development
+
+tags:
+  - name: Chat
+    description: OpenAI-compatible chat completions
+  - name: Messages
+    description: Anthropic-compatible messages
+  - name: Responses
+    description: OpenAI Responses API
+  - name: Embeddings
+    description: Text embedding generation
+  - name: Images
+    description: Image generation
+  - name: Models
+    description: Available model listing
+  - name: Providers
+    description: Provider connection management
+  - name: Provider Nodes
+    description: Provider node configuration
+  - name: API Keys
+    description: API key management
+  - name: Combos
+    description: Routing combo management
+  - name: Settings
+    description: Application settings
+  - name: Usage
+    description: Usage analytics and logs
+  - name: Translator
+    description: Format translation debug & testing
+  - name: CLI Tools
+    description: CLI tool configuration management
+  - name: OAuth
+    description: OAuth flows for provider authentication
+  - name: System
+    description: System management (restart, shutdown, backup)
+  - name: Pricing
+    description: Model pricing configuration
+
+paths:
+  # ─── Proxy Endpoints ──────────────────────────────────────────
+
+  /api/v1/chat/completions:
+    post:
+      tags: [Chat]
+      summary: Create chat completion
+      description: OpenAI-compatible chat completions endpoint. Routes to configured providers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatCompletionRequest"
+      responses:
+        "200":
+          description: Chat completion response (or SSE stream)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatCompletionResponse"
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          description: All upstream providers failed
+
+  /api/v1/providers/{provider}/chat/completions:
+    post:
+      tags: [Chat]
+      summary: Create chat completion (provider-specific)
+      description: Routes to a specific provider by name.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatCompletionRequest"
+      responses:
+        "200":
+          description: Chat completion response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/messages:
+    post:
+      tags: [Messages]
+      summary: Create message (Anthropic-compatible)
+      description: Anthropic Messages API endpoint. Routes to Claude providers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessagesRequest"
+      responses:
+        "200":
+          description: Message response (or SSE stream)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/messages/count_tokens:
+    post:
+      tags: [Messages]
+      summary: Count tokens for a message
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Token count
+
+  /api/v1/responses:
+    post:
+      tags: [Responses]
+      summary: Create response (OpenAI Responses API)
+      description: OpenAI Responses API endpoint.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Response object or SSE stream
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/embeddings:
+    post:
+      tags: [Embeddings]
+      summary: Create embeddings
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input, model]
+              properties:
+                input:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                model:
+                  type: string
+      responses:
+        "200":
+          description: Embedding vectors
+
+  /api/v1/providers/{provider}/embeddings:
+    post:
+      tags: [Embeddings]
+      summary: Create embeddings (provider-specific)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Embedding vectors
+
+  /api/v1/images/generations:
+    post:
+      tags: [Images]
+      summary: Generate images
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                model:
+                  type: string
+                n:
+                  type: integer
+                  default: 1
+                size:
+                  type: string
+                  default: 1024x1024
+      responses:
+        "200":
+          description: Generated images
+
+  /api/v1/providers/{provider}/images/generations:
+    post:
+      tags: [Images]
+      summary: Generate images (provider-specific)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated images
+
+  /api/v1/models:
+    get:
+      tags: [Models]
+      summary: List available models
+      description: Returns all models available across configured providers.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                    example: list
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Model"
+
+  /api/models:
+    get:
+      tags: [Models]
+      summary: List models (management)
+      responses:
+        "200":
+          description: Internal model list with aliases
+
+  /api/models/alias:
+    post:
+      tags: [Models]
+      summary: Create or update a model alias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Alias created/updated
+
+  /api/models/catalog:
+    get:
+      tags: [Models]
+      summary: Get full model catalog
+      responses:
+        "200":
+          description: Complete catalog with all providers
+
+  # ─── Management Endpoints ──────────────────────────────────────
+
+  /api/providers:
+    get:
+      tags: [Providers]
+      summary: List provider connections
+      responses:
+        "200":
+          description: Provider connection list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProviderConnection"
+    post:
+      tags: [Providers]
+      summary: Create provider connection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderConnectionCreate"
+      responses:
+        "201":
+          description: Created provider connection
+
+  /api/providers/{id}:
+    get:
+      tags: [Providers]
+      summary: Get provider connection
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Provider connection details
+        "404":
+          description: Provider not found
+    patch:
+      tags: [Providers]
+      summary: Update provider connection
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderConnectionCreate"
+      responses:
+        "200":
+          description: Updated provider
+    delete:
+      tags: [Providers]
+      summary: Delete provider connection
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Provider deleted
+
+  /api/providers/{id}/test:
+    post:
+      tags: [Providers]
+      summary: Test provider connection
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Test result
+
+  /api/providers/{id}/models:
+    get:
+      tags: [Providers]
+      summary: List models for a provider
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Provider model list
+
+  /api/providers/test-batch:
+    post:
+      tags: [Providers]
+      summary: Test multiple providers at once
+      responses:
+        "200":
+          description: Batch test results
+
+  /api/providers/validate:
+    post:
+      tags: [Providers]
+      summary: Validate provider credentials
+      responses:
+        "200":
+          description: Validation result
+
+  /api/providers/client:
+    get:
+      tags: [Providers]
+      summary: Get client-side provider info
+      responses:
+        "200":
+          description: Provider info for frontend
+
+  /api/provider-nodes:
+    get:
+      tags: [Provider Nodes]
+      summary: List provider nodes
+      responses:
+        "200":
+          description: Provider node list
+    post:
+      tags: [Provider Nodes]
+      summary: Create provider node
+      responses:
+        "201":
+          description: Created node
+
+  /api/provider-nodes/{id}:
+    patch:
+      tags: [Provider Nodes]
+      summary: Update provider node
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Updated node
+    delete:
+      tags: [Provider Nodes]
+      summary: Delete provider node
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Node deleted
+
+  /api/provider-nodes/validate:
+    post:
+      tags: [Provider Nodes]
+      summary: Validate a provider node
+      responses:
+        "200":
+          description: Validation result
+
+  /api/provider-models:
+    get:
+      tags: [Provider Nodes]
+      summary: List provider models
+      responses:
+        "200":
+          description: Provider model list
+
+  /api/keys:
+    get:
+      tags: [API Keys]
+      summary: List API keys
+      responses:
+        "200":
+          description: API key list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApiKey"
+    post:
+      tags: [API Keys]
+      summary: Create API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label:
+                  type: string
+      responses:
+        "201":
+          description: Created API key (includes full key value)
+
+  /api/keys/{id}:
+    delete:
+      tags: [API Keys]
+      summary: Delete API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Key deleted
+
+  /api/combos:
+    get:
+      tags: [Combos]
+      summary: List routing combos
+      responses:
+        "200":
+          description: Combo list
+    post:
+      tags: [Combos]
+      summary: Create routing combo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComboCreate"
+      responses:
+        "201":
+          description: Created combo
+
+  /api/combos/{id}:
+    patch:
+      tags: [Combos]
+      summary: Update combo
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Updated combo
+    delete:
+      tags: [Combos]
+      summary: Delete combo
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Combo deleted
+
+  /api/combos/metrics:
+    get:
+      tags: [Combos]
+      summary: Get combo metrics
+      responses:
+        "200":
+          description: Metrics for combos
+
+  /api/combos/test:
+    post:
+      tags: [Combos]
+      summary: Test a combo configuration
+      responses:
+        "200":
+          description: Test result
+
+  /api/settings:
+    get:
+      tags: [Settings]
+      summary: Get application settings
+      responses:
+        "200":
+          description: Current settings
+    patch:
+      tags: [Settings]
+      summary: Update settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated settings
+
+  /api/settings/combo-defaults:
+    get:
+      tags: [Settings]
+      summary: Get combo default settings
+      responses:
+        "200":
+          description: Default combo settings
+
+  /api/settings/proxy:
+    get:
+      tags: [Settings]
+      summary: Get proxy settings
+      responses:
+        "200":
+          description: Current proxy settings
+    patch:
+      tags: [Settings]
+      summary: Update proxy settings
+      responses:
+        "200":
+          description: Updated proxy settings
+
+  /api/settings/proxy/test:
+    post:
+      tags: [Settings]
+      summary: Test proxy connection
+      responses:
+        "200":
+          description: Test result
+
+  /api/settings/require-login:
+    post:
+      tags: [Settings]
+      summary: Toggle login requirement
+      responses:
+        "200":
+          description: Updated
+
+  /api/rate-limit:
+    get:
+      tags: [Settings]
+      summary: Get rate limit configuration
+      responses:
+        "200":
+          description: Rate limit settings
+
+  /api/tags:
+    get:
+      tags: [Settings]
+      summary: List all tags
+      responses:
+        "200":
+          description: Tag list
+
+  # ─── Usage & Analytics ─────────────────────────────────────────
+
+  /api/usage/analytics:
+    get:
+      tags: [Usage]
+      summary: Get usage analytics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+      responses:
+        "200":
+          description: Usage analytics data
+
+  /api/usage/call-logs:
+    get:
+      tags: [Usage]
+      summary: Get call logs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated call logs
+
+  /api/usage/call-logs/{id}:
+    get:
+      tags: [Usage]
+      summary: Get a specific call log
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Call log detail
+
+  /api/usage/{connectionId}:
+    get:
+      tags: [Usage]
+      summary: Get usage for a specific connection
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection usage data
+
+  /api/usage/history:
+    get:
+      tags: [Usage]
+      summary: Get usage history
+      responses:
+        "200":
+          description: Historical usage data
+
+  /api/usage/logs:
+    get:
+      tags: [Usage]
+      summary: Get usage logs
+      responses:
+        "200":
+          description: Usage log entries
+
+  /api/usage/proxy-logs:
+    get:
+      tags: [Usage]
+      summary: Get proxy logs
+      responses:
+        "200":
+          description: Proxy log entries
+
+  /api/usage/request-logs:
+    get:
+      tags: [Usage]
+      summary: Get request logs
+      responses:
+        "200":
+          description: Request log entries
+
+  # ─── Pricing ───────────────────────────────────────────────────
+
+  /api/pricing:
+    get:
+      tags: [Pricing]
+      summary: Get model pricing
+      responses:
+        "200":
+          description: Current pricing configuration
+    post:
+      tags: [Pricing]
+      summary: Set model pricing
+      responses:
+        "200":
+          description: Updated pricing
+
+  /api/pricing/defaults:
+    get:
+      tags: [Pricing]
+      summary: Get default pricing
+      responses:
+        "200":
+          description: Default pricing data
+
+  # ─── Translator ────────────────────────────────────────────────
+
+  /api/translator/detect:
+    post:
+      tags: [Translator]
+      summary: Detect request format
+      description: Detects the API format of a request body (OpenAI, Claude, Gemini, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: object
+      responses:
+        "200":
+          description: Detected format
+
+  /api/translator/translate:
+    post:
+      tags: [Translator]
+      summary: Translate between formats
+      description: Converts a request between API formats (e.g. Claude → OpenAI)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sourceFormat, targetFormat, body]
+              properties:
+                step:
+                  type: string
+                sourceFormat:
+                  type: string
+                targetFormat:
+                  type: string
+                provider:
+                  type: string
+                body:
+                  type: object
+      responses:
+        "200":
+          description: Translated request
+
+  /api/translator/send:
+    post:
+      tags: [Translator]
+      summary: Send translated request to provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, body]
+              properties:
+                provider:
+                  type: string
+                body:
+                  type: object
+      responses:
+        "200":
+          description: Provider response (may be SSE stream)
+
+  /api/translator/history:
+    get:
+      tags: [Translator]
+      summary: Get translation history
+      description: Returns recent translation events for the Live Monitor
+      responses:
+        "200":
+          description: Translation history entries
+
+  /api/translator/load:
+    get:
+      tags: [Translator]
+      summary: Load saved translation template
+      responses:
+        "200":
+          description: Template data
+
+  /api/translator/save:
+    post:
+      tags: [Translator]
+      summary: Save translation template
+      responses:
+        "200":
+          description: Template saved
+
+  # ─── CLI Tools ─────────────────────────────────────────────────
+
+  /api/cli-tools/backups:
+    get:
+      tags: [CLI Tools]
+      summary: List CLI tool backups
+      responses:
+        "200":
+          description: Backup list
+    post:
+      tags: [CLI Tools]
+      summary: Create CLI tool backup
+      responses:
+        "200":
+          description: Backup created
+
+  /api/cli-tools/runtime/{toolId}:
+    get:
+      tags: [CLI Tools]
+      summary: Get runtime status for a CLI tool
+      parameters:
+        - name: toolId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Runtime status
+
+  /api/cli-tools/guide-settings/{toolId}:
+    get:
+      tags: [CLI Tools]
+      summary: Get guide settings for a tool
+      parameters:
+        - name: toolId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Guide settings
+
+  # ─── OAuth ─────────────────────────────────────────────────────
+
+  /api/oauth/{provider}/{action}:
+    get:
+      tags: [OAuth]
+      summary: OAuth flow handler
+      description: Handles OAuth authorization and callback for providers
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: action
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [authorize, callback, refresh, status]
+      responses:
+        "200":
+          description: OAuth flow response
+        "302":
+          description: Redirect to provider auth page
+
+  # ─── System ────────────────────────────────────────────────────
+
+  /api/auth/login:
+    post:
+      tags: [System]
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT token returned
+        "401":
+          description: Invalid password
+
+  /api/auth/logout:
+    post:
+      tags: [System]
+      summary: Log out
+      responses:
+        "200":
+          description: Session cleared
+
+  /api/init:
+    get:
+      tags: [System]
+      summary: Initialize application
+      responses:
+        "200":
+          description: Init status
+
+  /api/restart:
+    post:
+      tags: [System]
+      summary: Restart the application
+      responses:
+        "200":
+          description: Restart initiated
+
+  /api/shutdown:
+    post:
+      tags: [System]
+      summary: Shutdown the application
+      responses:
+        "200":
+          description: Shutdown initiated
+
+  /api/db-backups:
+    get:
+      tags: [System]
+      summary: List database backups
+      responses:
+        "200":
+          description: Backup list
+    post:
+      tags: [System]
+      summary: Create database backup
+      responses:
+        "200":
+          description: Backup created
+
+  /api/storage/health:
+    get:
+      tags: [System]
+      summary: Check storage health
+      responses:
+        "200":
+          description: Storage health status
+
+  /api/sync/cloud:
+    post:
+      tags: [System]
+      summary: Sync with cloud
+      responses:
+        "200":
+          description: Sync result
+
+  /api/sync/initialize:
+    post:
+      tags: [System]
+      summary: Initialize cloud sync
+      responses:
+        "200":
+          description: Sync initialized
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key obtained from the OmniRoute dashboard
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+
+  schemas:
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model:
+          type: string
+          example: gpt-4o
+        messages:
+          type: array
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role:
+                type: string
+                enum: [system, user, assistant]
+              content:
+                type: string
+        stream:
+          type: boolean
+          default: false
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+        max_tokens:
+          type: integer
+
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          example: chat.completion
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              message:
+                type: object
+                properties:
+                  role:
+                    type: string
+                  content:
+                    type: string
+              finish_reason:
+                type: string
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+
+    MessagesRequest:
+      type: object
+      required: [model, messages, max_tokens]
+      properties:
+        model:
+          type: string
+          example: claude-sonnet-4-5-20250514
+        messages:
+          type: array
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+              content:
+                type: string
+        max_tokens:
+          type: integer
+        stream:
+          type: boolean
+          default: false
+        system:
+          type: string
+
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          example: model
+        owned_by:
+          type: string
+
+    ProviderConnection:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        isActive:
+          type: boolean
+        priority:
+          type: integer
+        testStatus:
+          type: string
+          enum: [active, error, untested]
+        createdAt:
+          type: string
+          format: date-time
+
+    ProviderConnectionCreate:
+      type: object
+      required: [provider, url]
+      properties:
+        provider:
+          type: string
+          example: openai
+        name:
+          type: string
+        url:
+          type: string
+        apiKey:
+          type: string
+        isActive:
+          type: boolean
+          default: true
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        keyPreview:
+          type: string
+          description: Last 4 characters of the key
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ComboCreate:
+      type: object
+      required: [name, model]
+      properties:
+        name:
+          type: string
+        model:
+          type: string
+        strategy:
+          type: string
+          enum: [priority, weighted, round-robin]
+          default: priority
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              connectionId:
+                type: string
+              weight:
+                type: integer
+              priority:
+                type: integer

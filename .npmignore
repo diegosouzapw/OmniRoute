@@ -7,12 +7,8 @@ data/
 src/
 docs/
 test/
-agents/
-scripts/
-worker/
-shared-sse/
-copilot-api/
-CLIProxyAPI/
+tests/
+open-sse/
 
 # Config files
 *.md
@@ -28,33 +24,3 @@ tsconfig.json
 # Build artifacts that shouldn't be published
 .next/cache/
 .next/standalone/data/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
