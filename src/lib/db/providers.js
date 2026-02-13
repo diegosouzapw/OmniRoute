@@ -51,12 +51,11 @@ export async function createProviderConnection(data) {
       )
       .get(data.provider, data.email);
   } else if (data.authType === "oauth" && !data.email) {
-    // Fallback for providers that don't return email (e.g. Codex):
-    // find the most recent failed connection for this provider to update instead of duplicating
+    // Fallback for providers that don't return email (e.g. Codex, Qwen):
+    // find the most recently updated connection for this provider to update instead of duplicating
     existing = db
       .prepare(
         `SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth'
-         AND (test_status = 'auth_failed' OR test_status = 'refresh_failed' OR test_status = 'error')
          ORDER BY updated_at DESC LIMIT 1`
       )
       .get(data.provider);
