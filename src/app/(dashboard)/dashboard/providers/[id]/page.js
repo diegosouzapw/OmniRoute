@@ -50,6 +50,7 @@ export default function ProviderDetailPage() {
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const [importingModels, setImportingModels] = useState(false);
 
   const providerInfo = providerNode
     ? {
@@ -345,6 +346,47 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const handleImportModels = async () => {
+    if (importingModels) return;
+    const activeConnection = connections.find((conn) => conn.isActive !== false);
+    if (!activeConnection) return;
+
+    setImportingModels(true);
+    try {
+      const res = await fetch(`/api/providers/${activeConnection.id}/models`);
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to import models");
+        return;
+      }
+      const fetchedModels = data.models || [];
+      if (fetchedModels.length === 0) {
+        alert("No models returned from /models.");
+        return;
+      }
+      let importedCount = 0;
+      for (const model of fetchedModels) {
+        const modelId = model.id || model.name || model.model;
+        if (!modelId) continue;
+        const parts = modelId.split("/");
+        const baseAlias = parts[parts.length - 1];
+        if (modelAliases[baseAlias]) continue;
+        await handleSetAlias(modelId, baseAlias, providerStorageAlias);
+        importedCount += 1;
+      }
+      if (importedCount === 0) {
+        alert("No new models were added (all already exist).");
+      }
+      await fetchAliases();
+    } catch (error) {
+      console.log("Error importing models:", error);
+    } finally {
+      setImportingModels(false);
+    }
+  };
+
+  const canImportModels = connections.some((conn) => conn.isActive !== false);
+
   const renderModelsSection = () => {
     if (isCompatible) {
       return (
@@ -373,30 +415,56 @@ export default function ProviderDetailPage() {
         />
       );
     }
+
+    const importButton = (
+      <div className="flex items-center gap-2 mb-4">
+        <Button
+          size="sm"
+          variant="secondary"
+          icon="download"
+          onClick={handleImportModels}
+          disabled={!canImportModels || importingModels}
+        >
+          {importingModels ? "Importing..." : "Import from /models"}
+        </Button>
+        {!canImportModels && (
+          <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+        )}
+      </div>
+    );
+
     if (models.length === 0) {
-      return <p className="text-sm text-text-muted">No models configured</p>;
+      return (
+        <div>
+          {importButton}
+          <p className="text-sm text-text-muted">No models configured</p>
+        </div>
+      );
     }
     return (
-      <div className="flex flex-wrap gap-3">
-        {models.map((model) => {
-          const fullModel = `${providerStorageAlias}/${model.id}`;
-          const oldFormatModel = `${providerId}/${model.id}`;
-          const existingAlias = Object.entries(modelAliases).find(
-            ([, m]) => m === fullModel || m === oldFormatModel
-          )?.[0];
-          return (
-            <ModelRow
-              key={model.id}
-              model={model}
-              fullModel={`${providerDisplayAlias}/${model.id}`}
-              alias={existingAlias}
-              copied={copied}
-              onCopy={copy}
-              onSetAlias={(alias) => handleSetAlias(model.id, alias, providerStorageAlias)}
-              onDeleteAlias={() => handleDeleteAlias(existingAlias)}
-            />
-          );
-        })}
+      <div>
+        {importButton}
+        <div className="flex flex-wrap gap-3">
+          {models.map((model) => {
+            const fullModel = `${providerStorageAlias}/${model.id}`;
+            const oldFormatModel = `${providerId}/${model.id}`;
+            const existingAlias = Object.entries(modelAliases).find(
+              ([, m]) => m === fullModel || m === oldFormatModel
+            )?.[0];
+            return (
+              <ModelRow
+                key={model.id}
+                model={model}
+                fullModel={`${providerDisplayAlias}/${model.id}`}
+                alias={existingAlias}
+                copied={copied}
+                onCopy={copy}
+                onSetAlias={(alias) => handleSetAlias(model.id, alias, providerStorageAlias)}
+                onDeleteAlias={() => handleDeleteAlias(existingAlias)}
+              />
+            );
+          })}
+        </div>
       </div>
     );
   };
