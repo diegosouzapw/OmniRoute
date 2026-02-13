@@ -48,7 +48,7 @@ export default function Select({
           aria-describedby={describedBy}
           className={cn(
             "w-full py-2 px-3 pr-10 text-sm text-text-main",
-            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-md appearance-none",
+            "bg-surface border border-black/10 dark:border-white/10 rounded-md appearance-none",
             "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
             "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
             "text-[16px] sm:text-sm",
@@ -57,11 +57,11 @@ export default function Select({
           )}
           {...props}
         >
-          <option value="" disabled>
+          <option value="" disabled className="bg-surface text-text-muted">
             {placeholder}
           </option>
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className="bg-surface text-text-main">
               {option.label}
             </option>
           ))}
