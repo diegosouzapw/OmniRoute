@@ -75,6 +75,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
+# Garante que a porta está livre antes de iniciar (build pode ter ocupado)
+fuser -k $PORT/tcp 2>/dev/null
+sleep 1
+
 echo "🚀 Iniciando servidor na porta $PORT..."
 LOG_FILE="/tmp/omniroute.log"
 > "$LOG_FILE"
