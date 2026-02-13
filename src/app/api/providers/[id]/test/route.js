@@ -376,11 +376,13 @@ async function testOAuthConnection(connection) {
       };
     }
 
-    // If 401/403 and we haven't tried refresh yet, try refresh now
-    // (attempt refresh for ANY provider with a refreshToken, not just those marked refreshable)
+    // If 401/403 and we haven't tried refresh yet, only attempt refresh
+    // if the token is actually expired. This prevents corrupting valid tokens
+    // when the upstream returns transient 401/403 errors (rate-limiting, etc.).
     if (
       (res.status === 401 || res.status === 403) &&
       !refreshed &&
+      isTokenExpired(connection) &&
       connection.refreshToken &&
       typeof connection.refreshToken === "string"
     ) {
@@ -405,7 +407,7 @@ async function testOAuthConnection(connection) {
           };
         }
 
-        const error = `API returned ${retryRes.status}`;
+        const error = `API returned ${retryRes.status} after token refresh`;
         return {
           valid: false,
           error,
@@ -414,7 +416,7 @@ async function testOAuthConnection(connection) {
           diagnosis: classifyFailure({ error, statusCode: retryRes.status }),
         };
       }
-      const error = "Token invalid or revoked";
+      const error = "Token expired and refresh failed";
       return {
         valid: false,
         error,
