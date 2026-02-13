@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "OmniRoute - AI Infrastructure Management",
+  title: "OmniRoute — AI Gateway for Multi-Provider LLMs",
   description:
-    "One endpoint for all your AI providers. Manage keys, monitor usage, and scale effortlessly.",
+    "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
   icons: {
     icon: "/favicon.svg",
   },
