@@ -1,0 +1,101 @@
+# ──────────────────────────────────────────────────────────────────────
+#  OmniRoute — Docker Compose
+# ──────────────────────────────────────────────────────────────────────
+#
+#  Profiles:
+#    base  → minimal image, no CLI tools
+#    cli   → CLIs installed inside the container (portable)
+#    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#
+#  Usage:
+#    docker compose --profile base up -d
+#    docker compose --profile cli up -d
+#    docker compose --profile host up -d
+#
+#  Before first run, copy .env.example → .env and edit your secrets.
+# ──────────────────────────────────────────────────────────────────────
+
+x-common: &common
+  restart: unless-stopped
+  env_file: .env
+  volumes:
+    - omniroute-data:/app/data
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "node",
+        "-e",
+        "fetch('http://127.0.0.1:20128/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
+      ]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 15s
+
+services:
+  # ── Profile: base (minimal, no CLI tools) ──────────────────────────
+  omniroute-base:
+    <<: *common
+    container_name: omniroute
+    build:
+      context: .
+      target: runner-base
+    image: omniroute:base
+    ports:
+      - "${PORT:-20128}:20128"
+    profiles:
+      - base
+
+  # ── Profile: cli (CLIs installed inside container) ─────────────────
+  omniroute-cli:
+    <<: *common
+    container_name: omniroute
+    build:
+      context: .
+      target: runner-cli
+    image: omniroute:cli
+    ports:
+      - "${PORT:-20128}:20128"
+    profiles:
+      - cli
+
+  # ── Profile: host (host-mounted CLI binaries, Linux-first) ────────
+  omniroute-host:
+    <<: *common
+    container_name: omniroute
+    build:
+      context: .
+      target: runner-base
+    image: omniroute:base
+    ports:
+      - "${PORT:-20128}:20128"
+    environment:
+      - CLI_MODE=host
+      - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
+      - CLI_CONFIG_HOME=/host-home
+      - CLI_ALLOW_CONFIG_WRITES=true
+      # Uncomment per-tool overrides as needed:
+      # - CLI_CURSOR_BIN=agent
+      # - CLI_CLINE_BIN=cline
+      # - CLI_CONTINUE_BIN=cn
+    volumes:
+      - omniroute-data:/app/data
+      # ── Host binary mounts (read-only) ──
+      # Adjust paths below to match YOUR host system.
+      - ~/.local/bin:/host-local/bin:ro
+      # Node global binaries (adjust node version path)
+      # - ~/.nvm/versions/node/v22.16.0/bin:/host-node/bin:ro
+      # ── Host config mounts (read-write) ──
+      - ~/.codex:/host-home/.codex:rw
+      - ~/.claude:/host-home/.claude:rw
+      - ~/.factory:/host-home/.factory:rw
+      - ~/.openclaw:/host-home/.openclaw:rw
+      - ~/.cursor:/host-home/.cursor:rw
+      - ~/.config/cursor:/host-home/.config/cursor:rw
+    profiles:
+      - host
+
+volumes:
+  omniroute-data:
+    name: omniroute-data

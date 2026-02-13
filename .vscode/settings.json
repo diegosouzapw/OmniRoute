@@ -1,0 +1,20 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "sonarlint.rules": {
+    "css:S4662": {
+      "level": "off"
+    },
+    "javascript:S6747": {
+      "level": "off"
+    },
+    "javascript:S7764": {
+      "level": "off"
+    },
+    "javascript:S6772": {
+      "level": "off"
+    },
+    "javascript:S3776": {
+      "level": "off"
+    }
+  }
+}

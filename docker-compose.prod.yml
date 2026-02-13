@@ -1,0 +1,47 @@
+# ──────────────────────────────────────────────────────────────────────
+#  OmniRoute — Docker Compose (Production Snapshot)
+# ──────────────────────────────────────────────────────────────────────
+#
+#  Isolated production instance running on port 20130.
+#  Keeps the app running while you continue developing locally.
+#
+#  Usage:
+#    docker compose -f docker-compose.prod.yml up -d --build
+#    docker compose -f docker-compose.prod.yml down
+#    docker compose -f docker-compose.prod.yml logs -f
+# ──────────────────────────────────────────────────────────────────────
+
+services:
+  omniroute-prod:
+    container_name: omniroute-prod
+    build:
+      context: .
+      target: runner-base
+    image: omniroute:prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=20128
+      - HOSTNAME=0.0.0.0
+      - DATA_DIR=/app/data
+    ports:
+      - "20130:20128"
+    volumes:
+      - omniroute-prod-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:20128/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  omniroute-prod-data:
+    name: omniroute-prod-data

@@ -1,0 +1,83 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+cloud/*
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+.bin/*
+data/
+logs/*
+source/*
+.cursor/*
+docs/*
+!docs/ARCHITECTURE.md
+!docs/CODEBASE_DOCUMENTATION.md
+!docs/CONTRIBUTING.md
+!docs/EXECUTION_CONTEXT_PROVIDER_SYNC.md
+!docs/TASK_NEBIUS_BACKEND_ENABLEMENT.md
+!docs/frontend-backend-provider-gap-report.md
+!docs/adr/
+!docs/cli-tools/
+!docs/planning/
+!docs/improvement-plans/
+!docs/api/
+test/*
+bin/*
+open-sse/test/*
+RM.vn.md
+RM.md
+cursor/*
+PUBLIC.md
+scripts/*
+Thanks.md
+PUBLIC.en.md
+PR/*
+package-lock.json
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
+README1.md
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

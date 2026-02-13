@@ -1,0 +1,271 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* macOS-inspired Color Palette with Terracotta Primary */
+:root {
+  /* Primary - Warm Coral/Terracotta */
+  --color-primary: #d97757;
+  --color-primary-hover: #c56243;
+
+  /* Light theme */
+  --color-bg: #fbf9f6;
+  --color-bg-alt: #f5f1ed;
+  --color-surface: #ffffff;
+  --color-sidebar: rgba(246, 246, 246, 0.8);
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-text-main: #383733;
+  --color-text-muted: #75736e;
+
+  /* Shadows - subtle macOS style */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
+  --shadow-warm: 0 2px 12px -2px rgba(217, 119, 87, 0.12);
+  --shadow-elevated: 0 12px 28px -4px rgba(60, 50, 45, 0.06);
+}
+
+.dark {
+  /* Dark theme */
+  --color-bg: #191918;
+  --color-bg-alt: #1f1f1e;
+  --color-surface: #242423;
+  --color-sidebar: rgba(30, 30, 30, 0.8);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text-main: #ecebe8;
+  --color-text-muted: #9e9d99;
+
+  /* Dark shadows - subtle macOS style */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-warm: 0 2px 12px -2px rgba(217, 119, 87, 0.15);
+  --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
+}
+
+@theme inline {
+  /* Primary */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+
+  /* Auto-switch colors (use CSS variables from :root/.dark) */
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-sidebar: var(--color-sidebar);
+  --color-border: var(--color-border);
+  --color-text-main: var(--color-text-main);
+  --color-text-muted: var(--color-text-muted);
+
+  /* Static colors (for explicit light/dark usage) */
+  --color-bg-light: #fbf9f6;
+  --color-bg-dark: #191918;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #242423;
+  --color-sidebar-light: #f0efec;
+  --color-sidebar-dark: #1f1f1e;
+  --color-border-light: #e6e4dd;
+  --color-border-dark: #333331;
+  --color-text-main-light: #383733;
+  --color-text-main-dark: #ecebe8;
+  --color-text-muted-light: #75736e;
+  --color-text-muted-dark: #9e9d99;
+
+  /* Shadows */
+  --shadow-soft: var(--shadow-soft);
+  --shadow-warm: var(--shadow-warm);
+  --shadow-elevated: var(--shadow-elevated);
+
+  /* Font - macOS system fonts */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+}
+
+/* Base styles */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(217, 119, 87, 0.2);
+  color: var(--color-primary);
+}
+
+/* Global custom scrollbar — thin, minimal, theme-aware */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.2);
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.45);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark theme scrollbar — slightly brighter thumb */
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.2) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+/* Keep .custom-scrollbar alias for backward compatibility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+}
+
+/* Hero gradient */
+.bg-hero-gradient {
+  background: linear-gradient(180deg, #f5f1ed 0%, #fefcfb 100%);
+}
+
+.dark .bg-hero-gradient {
+  background: linear-gradient(180deg, #1f1f1e 0%, #191918 100%);
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  user-select: none;
+}
+
+/* Ensure icon clicks always bubble to the parent button */
+button .material-symbols-outlined,
+[role="button"] .material-symbols-outlined {
+  pointer-events: none;
+}
+
+.material-symbols-outlined.fill-1 {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes border-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 5px rgba(217, 119, 87, 0.3),
+      0 0 10px rgba(217, 119, 87, 0.2);
+    border-color: rgba(217, 119, 87, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(217, 119, 87, 0.5),
+      0 0 20px rgba(217, 119, 87, 0.3);
+    border-color: rgba(217, 119, 87, 0.8);
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+/* macOS Vibrancy/Blur Effect */
+.bg-vibrancy {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dark .bg-vibrancy {
+  background: rgba(30, 30, 30, 0.72);
+}
+
+/* macOS Traffic Lights */
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.traffic-light.red {
+  background: #ff5f56;
+}
+
+.traffic-light.yellow {
+  background: #ffbd2e;
+}
+
+.traffic-light.green {
+  background: #27c93f;
+}
