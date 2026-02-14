@@ -23,6 +23,7 @@ import { getSettings, getCombos, getApiKeyMetadata } from "@/lib/localDb.js";
 import { resolveProxyForConnection } from "@/lib/localDb.js";
 import { logProxyEvent } from "../../lib/proxyLogger.js";
 import { logTranslationEvent } from "../../lib/translatorEvents.js";
+import { sanitizeRequest } from "../../shared/utils/inputSanitizer.js";
 
 /**
  * Handle chat completion request
@@ -36,6 +37,18 @@ export async function handleChat(request, clientRawRequest = null) {
   } catch {
     log.warn("CHAT", "Invalid JSON body");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+  }
+
+  // FASE-01: Input sanitization — prompt injection detection & PII redaction
+  const sanitizeResult = sanitizeRequest(body, log);
+  if (sanitizeResult.blocked) {
+    log.warn("SANITIZER", "Request blocked due to prompt injection", {
+      detections: sanitizeResult.detections,
+    });
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request rejected: suspicious content detected");
+  }
+  if (sanitizeResult.modified && sanitizeResult.sanitizedBody) {
+    body = sanitizeResult.sanitizedBody;
   }
 
   // Build clientRawRequest for logging (if not provided)

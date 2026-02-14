@@ -1,6 +1,10 @@
 import crypto from "crypto";
 
-const API_KEY_SECRET = process.env.API_KEY_SECRET || "endpoint-proxy-api-key-secret";
+// FASE-01: No hardcoded fallback — enforced by secretsValidator at startup
+if (!process.env.API_KEY_SECRET) {
+  console.error("[SECURITY] API_KEY_SECRET is not set. API key CRC will be insecure.");
+}
+const API_KEY_SECRET = process.env.API_KEY_SECRET;
 
 /**
  * Generate 6-char random keyId
