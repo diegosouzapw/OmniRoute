@@ -35,7 +35,18 @@ jobs:
           npm version "$VERSION" --no-git-tag-version --allow-same-version
           echo "Publishing version: $VERSION"
 
+      - name: Configure npm auth
+        run: |
+          TOKEN="${NPM_TOKEN_SECRET:-$NPM_TOKEN_VAR}"
+          if [ -z "$TOKEN" ]; then
+            echo "❌ NPM_TOKEN not found in secrets or vars"
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${TOKEN}" > ~/.npmrc
+          echo "✅ npm auth configured"
+        env:
+          NPM_TOKEN_SECRET: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN_VAR: ${{ vars.NPM_TOKEN }}
+
       - name: Publish to npm
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || vars.NPM_TOKEN }}
