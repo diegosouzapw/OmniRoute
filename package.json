@@ -1,14 +1,49 @@
 {
-  "name": "omniroute-app",
-  "version": "0.0.1",
-  "description": "OmniRoute web dashboard",
-  "private": true,
+  "name": "omniroute",
+  "version": "0.1.0",
+  "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
+  "type": "module",
+  "bin": {
+    "omniroute": "bin/omniroute.mjs"
+  },
+  "files": [
+    "bin/",
+    "app/",
+    "README.md",
+    "LICENSE"
+  ],
   "workspaces": [
     "open-sse"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ai",
+    "router",
+    "proxy",
+    "openai",
+    "claude",
+    "anthropic",
+    "gemini",
+    "fallback",
+    "cursor",
+    "cline",
+    "codex",
+    "llm",
+    "auto-fallback"
+  ],
+  "license": "MIT",
+  "author": "diegosouzapw",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diegosouzapw/OmniRoute"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute",
   "scripts": {
     "dev": "next dev --webpack --port 20128",
     "build": "next build --webpack",
+    "build:cli": "node scripts/prepublish.mjs",
     "start": "next start --port 20128",
     "lint": "eslint .",
     "test:plan3": "node --test tests/unit/plan3-p0.test.mjs",
@@ -16,6 +51,7 @@
     "test": "npm run build",
     "test:e2e": "npx playwright test",
     "check": "npm run lint && npm run test",
+    "prepublishOnly": "npm run build:cli",
     "prepare": "husky"
   },
   "dependencies": {
