@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
+import Breadcrumbs from "../Breadcrumbs";
+import NotificationToast from "../NotificationToast";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 
@@ -54,9 +56,16 @@ export default function DashboardLayout({ children }) {
       >
         <Header onMenuClick={() => setSidebarOpen(true)} />
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="max-w-7xl mx-auto">
+            <Breadcrumbs />
+            {children}
+          </div>
         </div>
       </main>
+
+      {/* Global notification toast system */}
+      <NotificationToast />
     </div>
   );
 }
+
