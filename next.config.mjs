@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},
   output: "standalone",
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["192.168.*"],

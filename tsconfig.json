@@ -34,5 +34,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "open-sse"]
+  "exclude": ["node_modules", "open-sse", "antigravity-manager-analysis"]
 }

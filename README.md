@@ -146,6 +146,12 @@ Default URLs:
 | 💾 **Cloud Sync**                | Sync config across devices                 | Same setup everywhere               |
 | 📊 **Usage Analytics**           | Track tokens, cost, trends over time       | Optimize spending                   |
 | 🌐 **Deploy Anywhere**           | Localhost, VPS, Docker, Cloudflare Workers | Flexible deployment options         |
+| 🛡️ **IP Allowlist/Blocklist**    | Restrict API access by IP address          | Security for exposed deployments    |
+| 🧠 **Thinking Budget**           | Control reasoning token budget per model   | Optimize cost vs quality            |
+| 💬 **System Prompt Injection**   | Global system prompt for all requests      | Consistent behavior across models   |
+| 📊 **Session Tracking**          | Track active sessions with fingerprinting  | Monitor connected clients           |
+| ⚡ **Rate Limiting**             | Per-account request rate management        | Prevent abuse and quota waste       |
+| 💰 **Model Pricing**             | Per-model cost tracking and calculation    | Precise usage cost analytics        |
 
 <details>
 <summary><b>📖 Feature Details</b></summary>
@@ -1217,6 +1223,11 @@ Expected behavior from recent validation:
 - Routing config: `/api/models/alias`, `/api/combos*`, `/api/keys*`, `/api/pricing`
 - Usage/logs: `/api/usage/history`, `/api/usage/logs`, `/api/usage/request-logs`, `/api/usage/[connectionId]`
 - Cloud sync: `/api/sync/cloud`, `/api/sync/initialize`, `/api/cloud/*`
+- IP filter: `/api/settings/ip-filter` (GET/PUT) — Allowlist/blocklist management
+- Thinking budget: `/api/settings/thinking-budget` (GET/PUT) — Reasoning token budget config
+- System prompt: `/api/settings/system-prompt` (GET/PUT) — Global system prompt injection
+- Sessions: `/api/sessions` (GET) — Active session tracking
+- Rate limits: `/api/rate-limits` (GET) — Per-account rate limit status
 - CLI helpers: `/api/cli-tools/claude-settings`, `/api/cli-tools/codex-settings`, `/api/cli-tools/droid-settings`, `/api/cli-tools/openclaw-settings`
   - Generic runtime status: `/api/cli-tools/runtime/[toolId]` (covers `claude`, `codex`, `droid`, `openclaw`, `cursor`, `cline`, `roo`, `continue`)
   - CLI `GET` responses expose runtime fields: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`

@@ -3,6 +3,7 @@ import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHe
 import { prepareClaudeRequest } from "./helpers/claudeHelper.js";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.js";
 import { normalizeThinkingConfig } from "../services/provider.js";
+import { applyThinkingBudget } from "../services/thinkingBudget.js";
 
 // Registry for translators.
 // NOTE: translator modules import this file and call register() at module-load time.
@@ -118,6 +119,9 @@ export function translateRequest(
   reqLogger = null
 ) {
   let result = body;
+
+  // Phase 2: Apply thinking budget control before normalization
+  result = applyThinkingBudget(result);
 
   // Normalize thinking config: remove if lastMessage is not user
   normalizeThinkingConfig(result);

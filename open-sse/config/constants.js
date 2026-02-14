@@ -113,6 +113,21 @@ export const BACKOFF_CONFIG = {
   maxLevel: 15, // Cap backoff level
 };
 
+// Configurable backoff steps for rate limits (Phase 1 — enhanced rate limiting)
+// Used for per-model lockouts with increasing severity
+export const BACKOFF_STEPS_MS = [60_000, 120_000, 300_000, 600_000, 1_200_000];
+// 1min → 2min → 5min → 10min → 20min
+
+// Structured error classification for rate limiting decisions
+export const RateLimitReason = {
+  QUOTA_EXHAUSTED: 'quota_exhausted',        // Daily/monthly quota depleted
+  RATE_LIMIT_EXCEEDED: 'rate_limit_exceeded', // RPM/RPD limits hit
+  MODEL_CAPACITY: 'model_capacity',           // Model overloaded (529, 503)
+  SERVER_ERROR: 'server_error',               // 5xx errors
+  AUTH_ERROR: 'auth_error',                   // 401, 403
+  UNKNOWN: 'unknown',
+};
+
 // Error-based cooldown times (aligned with CLIProxyAPI)
 export const COOLDOWN_MS = {
   unauthorized: 2 * 60 * 1000, // 401 → 30 min

@@ -9,6 +9,8 @@ import {
   SegmentedControl,
 } from "@/shared/components";
 import ProviderLimits from "./components/ProviderLimits";
+import SessionsTab from "./components/SessionsTab";
+import RateLimitStatus from "./components/RateLimitStatus";
 
 export default function UsagePage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -21,6 +23,7 @@ export default function UsagePage() {
           { value: "logs", label: "Logger" },
           { value: "proxy-logs", label: "Proxy" },
           { value: "limits", label: "Limits" },
+          { value: "sessions", label: "Sessions" },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -35,10 +38,14 @@ export default function UsagePage() {
       {activeTab === "logs" && <RequestLoggerV2 />}
       {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "limits" && (
-        <Suspense fallback={<CardSkeleton />}>
-          <ProviderLimits />
-        </Suspense>
+        <div className="flex flex-col gap-6">
+          <Suspense fallback={<CardSkeleton />}>
+            <ProviderLimits />
+          </Suspense>
+          <RateLimitStatus />
+        </div>
       )}
+      {activeTab === "sessions" && <SessionsTab />}
     </div>
   );
 }
