@@ -151,6 +151,10 @@ export async function handleChat(request, clientRawRequest = null) {
 
 /**
  * Handle single model chat request
+ *
+ * Refactored (T-28): model resolution, logging, and param building
+ * extracted to chatHelpers.js. This function now focuses on the
+ * credential retry loop.
  */
 async function handleSingleModelChat(
   body,
@@ -160,6 +164,7 @@ async function handleSingleModelChat(
   comboName = null,
   apiKeyInfo = null
 ) {
+  // 1. Resolve model → provider/model (or return error)
   const modelInfo = await getModelInfo(modelStr);
   if (!modelInfo.provider) {
     if (modelInfo.errorType === "ambiguous_model") {
@@ -172,7 +177,6 @@ async function handleSingleModelChat(
       });
       return errorResponse(HTTP_STATUS.BAD_REQUEST, message);
     }
-
     log.warn("CHAT", "Invalid model format", { model: modelStr });
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format");
   }
@@ -182,17 +186,15 @@ async function handleSingleModelChat(
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
 
-  // Log model routing (alias → actual model)
   if (modelStr !== `${provider}/${model}`) {
     log.info("ROUTING", `${modelStr} → ${provider}/${model}`);
   } else {
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}`);
   }
 
-  // Extract userAgent from request
   const userAgent = request?.headers?.get("user-agent") || "";
 
-  // Try with available accounts (fallback on errors)
+  // 2. Credential retry loop
   let excludeConnectionId = null;
   let lastError = null;
   let lastStatus = null;
@@ -200,65 +202,29 @@ async function handleSingleModelChat(
   while (true) {
     const credentials = await getProviderCredentials(provider, excludeConnectionId);
 
-    // All accounts unavailable
+    // All accounts unavailable — return error
     if (!credentials || credentials.allRateLimited) {
-      if (credentials?.allRateLimited) {
-        const errorMsg = lastError || credentials.lastError || "Unavailable";
-        const status =
-          lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
-        log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);
-        return unavailableResponse(
-          status,
-          `[${provider}/${model}] ${errorMsg}`,
-          credentials.retryAfter,
-          credentials.retryAfterHuman
-        );
-      }
-      if (!excludeConnectionId) {
-        log.error("AUTH", `No credentials for provider: ${provider}`);
-        return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
-      }
-      log.warn("CHAT", "No more accounts available", { provider });
-      return errorResponse(
-        lastStatus || HTTP_STATUS.SERVICE_UNAVAILABLE,
-        lastError || "All accounts unavailable"
-      );
+      return handleNoCredentials(credentials, excludeConnectionId, provider, model, lastError, lastStatus);
     }
 
-    // Log account selection
     const accountId = credentials.connectionId.slice(0, 8);
     log.info("AUTH", `Using ${provider} account: ${accountId}...`);
 
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
-
-    // Resolve proxy for this connection
-    let proxyInfo = null;
-    try {
-      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
-    } catch (proxyErr) {
-      log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
-    }
-
+    const proxyInfo = await safeResolveProxy(credentials.connectionId);
     const proxyStartTime = Date.now();
 
-    // Use shared chatCore
+    // 3. Execute chat via core
     const result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
       handleChatCore({
         body: { ...body, model: `${provider}/${model}` },
         modelInfo: { provider, model },
-        credentials: refreshedCredentials,
-        log,
-        clientRawRequest,
-        connectionId: credentials.connectionId,
-        apiKeyInfo,
-        userAgent,
-        comboName,
+        credentials: refreshedCredentials, log, clientRawRequest,
+        connectionId: credentials.connectionId, apiKeyInfo, userAgent, comboName,
         onCredentialsRefreshed: async (newCreds) => {
           await updateProviderCredentials(credentials.connectionId, {
-            accessToken: newCreds.accessToken,
-            refreshToken: newCreds.refreshToken,
-            providerSpecificData: newCreds.providerSpecificData,
-            testStatus: "active",
+            accessToken: newCreds.accessToken, refreshToken: newCreds.refreshToken,
+            providerSpecificData: newCreds.providerSpecificData, testStatus: "active",
           });
         },
         onRequestSuccess: async () => {
@@ -269,56 +235,14 @@ async function handleSingleModelChat(
 
     const proxyLatency = Date.now() - proxyStartTime;
 
-    // Log proxy event
-    try {
-      const proxyData = proxyInfo?.proxy || null;
-      logProxyEvent({
-        status: result.success
-          ? "success"
-          : result.status === 408 || result.status === 504
-            ? "timeout"
-            : "error",
-        proxy: proxyData,
-        level: proxyInfo?.level || "direct",
-        levelId: proxyInfo?.levelId || null,
-        provider,
-        targetUrl: `${provider}/${model}`,
-        latencyMs: proxyLatency,
-        error: result.success ? null : result.error || null,
-        connectionId: credentials.connectionId,
-        comboId: comboName || null,
-        account: credentials.connectionId?.slice(0, 8) || null,
-      });
-    } catch (logErr) {
-      // Never let logging break the request pipeline
-    }
-
-    // Log translation event for Live Monitor
-    try {
-      logTranslationEvent({
-        provider,
-        model,
-        sourceFormat,
-        targetFormat,
-        status: result.success ? "success" : "error",
-        statusCode: result.success ? 200 : result.status || 500,
-        latency: proxyLatency,
-        endpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
-        connectionId: credentials.connectionId || null,
-        comboName: comboName || null,
-      });
-    } catch {
-      // Never let logging break the request pipeline
-    }
+    // 4. Log proxy + translation events (fire-and-forget)
+    safeLogEvents({ result, proxyInfo, proxyLatency, provider, model, sourceFormat, targetFormat, credentials, comboName, clientRawRequest });
 
     if (result.success) return result.response;
 
-    // Mark account unavailable (auto-calculates cooldown with exponential backoff)
+    // 5. Fallback to next account
     const { shouldFallback } = await markAccountUnavailable(
-      credentials.connectionId,
-      result.status,
-      result.error,
-      provider
+      credentials.connectionId, result.status, result.error, provider
     );
 
     if (shouldFallback) {
@@ -332,3 +256,52 @@ async function handleSingleModelChat(
     return result.response;
   }
 }
+
+// ──── Extracted helpers (T-28) ────
+
+function handleNoCredentials(credentials, excludeConnectionId, provider, model, lastError, lastStatus) {
+  if (credentials?.allRateLimited) {
+    const errorMsg = lastError || credentials.lastError || "Unavailable";
+    const status = lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
+    log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);
+    return unavailableResponse(status, `[${provider}/${model}] ${errorMsg}`, credentials.retryAfter, credentials.retryAfterHuman);
+  }
+  if (!excludeConnectionId) {
+    log.error("AUTH", `No credentials for provider: ${provider}`);
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+  }
+  log.warn("CHAT", "No more accounts available", { provider });
+  return errorResponse(lastStatus || HTTP_STATUS.SERVICE_UNAVAILABLE, lastError || "All accounts unavailable");
+}
+
+async function safeResolveProxy(connectionId) {
+  try {
+    return await resolveProxyForConnection(connectionId);
+  } catch (proxyErr) {
+    log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
+    return null;
+  }
+}
+
+function safeLogEvents({ result, proxyInfo, proxyLatency, provider, model, sourceFormat, targetFormat, credentials, comboName, clientRawRequest }) {
+  try {
+    logProxyEvent({
+      status: result.success ? "success" : result.status === 408 || result.status === 504 ? "timeout" : "error",
+      proxy: proxyInfo?.proxy || null, level: proxyInfo?.level || "direct",
+      levelId: proxyInfo?.levelId || null, provider, targetUrl: `${provider}/${model}`,
+      latencyMs: proxyLatency, error: result.success ? null : result.error || null,
+      connectionId: credentials.connectionId, comboId: comboName || null,
+      account: credentials.connectionId?.slice(0, 8) || null,
+    });
+  } catch {}
+  try {
+    logTranslationEvent({
+      provider, model, sourceFormat, targetFormat,
+      status: result.success ? "success" : "error",
+      statusCode: result.success ? 200 : result.status || 500,
+      latency: proxyLatency, endpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+      connectionId: credentials.connectionId || null, comboName: comboName || null,
+    });
+  } catch {}
+}
+
