@@ -25,21 +25,36 @@ import { logProxyEvent } from "../../lib/proxyLogger.js";
 import { logTranslationEvent } from "../../lib/translatorEvents.js";
 import { sanitizeRequest } from "../../shared/utils/inputSanitizer.js";
 
+// Pipeline integration — wired modules
+import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker.js";
+import { isModelAvailable, setModelUnavailable } from "../../domain/modelAvailability.js";
+import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry.js";
+import { generateRequestId } from "../../shared/utils/requestId.js";
+import { checkBudget, recordCost } from "../../domain/costRules.js";
+import { logAuditEvent } from "../../lib/compliance/index.js";
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
  * Format detection and translation handled by translator
  */
 export async function handleChat(request, clientRawRequest = null) {
+  // Pipeline: Start request telemetry
+  const reqId = generateRequestId();
+  const telemetry = new RequestTelemetry(reqId);
+
   let body;
   try {
+    telemetry.startPhase("parse");
     body = await request.json();
+    telemetry.endPhase();
   } catch {
     log.warn("CHAT", "Invalid JSON body");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
   // FASE-01: Input sanitization — prompt injection detection & PII redaction
+  telemetry.startPhase("validate");
   const sanitizeResult = sanitizeRequest(body, log);
   if (sanitizeResult.blocked) {
     log.warn("SANITIZER", "Request blocked due to prompt injection", {
@@ -50,6 +65,7 @@ export async function handleChat(request, clientRawRequest = null) {
   if (sanitizeResult.modified && sanitizeResult.sanitizedBody) {
     body = sanitizeResult.sanitizedBody;
   }
+  telemetry.endPhase();
 
   // Build clientRawRequest for logging (if not provided)
   if (!clientRawRequest) {
@@ -109,7 +125,23 @@ export async function handleChat(request, clientRawRequest = null) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
 
+  // Pipeline: Budget check (if API key has budget limits)
+  telemetry.startPhase("policy");
+  if (apiKeyInfo?.id) {
+    try {
+      const budgetOk = checkBudget(apiKeyInfo.id);
+      if (!budgetOk.allowed) {
+        log.warn("BUDGET", `API key ${apiKeyInfo.id} exceeded budget: ${budgetOk.reason}`);
+        return errorResponse(429, budgetOk.reason || "Budget limit exceeded");
+      }
+    } catch {
+      // Budget check is best-effort — don't block on errors
+    }
+  }
+  telemetry.endPhase();
+
   // Check if model is a combo (has multiple models with fallback)
+  telemetry.startPhase("resolve");
   const combo = await getCombo(modelStr);
   if (combo) {
     log.info(
@@ -118,10 +150,18 @@ export async function handleChat(request, clientRawRequest = null) {
     );
 
     // Pre-check function: skip models where all accounts are in cooldown
-    const isModelAvailable = async (modelString) => {
+    // Uses modelAvailability module for TTL-based cooldowns
+    const checkModelAvailable = async (modelString) => {
       const parsed = parseModel(modelString);
       const provider = parsed.provider;
       if (!provider) return true; // can't determine provider, let it try
+
+      // Check domain-level availability (cooldown)
+      if (!isModelAvailable(provider, parsed.model || modelString)) {
+        log.debug("AVAILABILITY", `${provider}/${parsed.model} in cooldown, skipping`);
+        return false;
+      }
+
       const creds = await getProviderCredentials(provider);
       if (!creds || creds.allRateLimited) return false;
       return true;
@@ -132,21 +172,29 @@ export async function handleChat(request, clientRawRequest = null) {
       getSettings().catch(() => ({})),
       getCombos().catch(() => []),
     ]);
+    telemetry.endPhase();
 
-    return handleComboChat({
+    const response = await handleComboChat({
       body,
       combo,
       handleSingleModel: (b, m) =>
-        handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo),
-      isModelAvailable,
+        handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry),
+      isModelAvailable: checkModelAvailable,
       log,
       settings,
       allCombos,
     });
+
+    // Record telemetry
+    recordTelemetry(telemetry);
+    return response;
   }
+  telemetry.endPhase();
 
   // Single model request
-  return handleSingleModelChat(body, modelStr, clientRawRequest, request, null, apiKeyInfo);
+  const response = await handleSingleModelChat(body, modelStr, clientRawRequest, request, null, apiKeyInfo, telemetry);
+  recordTelemetry(telemetry);
+  return response;
 }
 
 /**
@@ -162,7 +210,8 @@ async function handleSingleModelChat(
   clientRawRequest = null,
   request = null,
   comboName = null,
-  apiKeyInfo = null
+  apiKeyInfo = null,
+  telemetry = null
 ) {
   // 1. Resolve model → provider/model (or return error)
   const modelInfo = await getModelInfo(modelStr);
@@ -192,6 +241,23 @@ async function handleSingleModelChat(
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}`);
   }
 
+  // Pipeline: Check model availability (TTL cooldown)
+  if (!isModelAvailable(provider, model)) {
+    log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
+    return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Model ${provider}/${model} is temporarily unavailable (cooldown)`, 30);
+  }
+
+  // Pipeline: Check circuit breaker for this provider
+  const breaker = getCircuitBreaker(provider, {
+    failureThreshold: 5,
+    resetTimeout: 30000,
+    onStateChange: (name, from, to) => log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+  });
+  if (!breaker.canExecute()) {
+    log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
+    return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Provider ${provider} circuit breaker is open`, 30);
+  }
+
   const userAgent = request?.headers?.get("user-agent") || "";
 
   // 2. Credential retry loop
@@ -214,31 +280,62 @@ async function handleSingleModelChat(
     const proxyInfo = await safeResolveProxy(credentials.connectionId);
     const proxyStartTime = Date.now();
 
-    // 3. Execute chat via core
-    const result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      handleChatCore({
-        body: { ...body, model: `${provider}/${model}` },
-        modelInfo: { provider, model },
-        credentials: refreshedCredentials, log, clientRawRequest,
-        connectionId: credentials.connectionId, apiKeyInfo, userAgent, comboName,
-        onCredentialsRefreshed: async (newCreds) => {
-          await updateProviderCredentials(credentials.connectionId, {
-            accessToken: newCreds.accessToken, refreshToken: newCreds.refreshToken,
-            providerSpecificData: newCreds.providerSpecificData, testStatus: "active",
-          });
-        },
-        onRequestSuccess: async () => {
-          await clearAccountError(credentials.connectionId, credentials);
-        },
-      })
-    );
+    // 3. Execute chat via core (with circuit breaker)
+    if (telemetry) telemetry.startPhase("connect");
+    let result;
+    try {
+      result = await breaker.execute(() =>
+        runWithProxyContext(proxyInfo?.proxy || null, () =>
+          handleChatCore({
+            body: { ...body, model: `${provider}/${model}` },
+            modelInfo: { provider, model },
+            credentials: refreshedCredentials, log, clientRawRequest,
+            connectionId: credentials.connectionId, apiKeyInfo, userAgent, comboName,
+            onCredentialsRefreshed: async (newCreds) => {
+              await updateProviderCredentials(credentials.connectionId, {
+                accessToken: newCreds.accessToken, refreshToken: newCreds.refreshToken,
+                providerSpecificData: newCreds.providerSpecificData, testStatus: "active",
+              });
+            },
+            onRequestSuccess: async () => {
+              await clearAccountError(credentials.connectionId, credentials);
+            },
+          })
+        )
+      );
+    } catch (cbErr) {
+      if (cbErr instanceof CircuitBreakerOpenError) {
+        log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
+        return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Provider ${provider} circuit breaker is open`, Math.ceil(cbErr.retryAfterMs / 1000));
+      }
+      throw cbErr;
+    }
+    if (telemetry) telemetry.endPhase();
 
     const proxyLatency = Date.now() - proxyStartTime;
 
     // 4. Log proxy + translation events (fire-and-forget)
     safeLogEvents({ result, proxyInfo, proxyLatency, provider, model, sourceFormat, targetFormat, credentials, comboName, clientRawRequest });
 
-    if (result.success) return result.response;
+    if (result.success) {
+      // Pipeline: Record cost on success
+      if (apiKeyInfo?.id) {
+        try {
+          const usage = result.usage || {};
+          const estimatedCost = ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0)) * 0.000001; // rough estimate
+          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+        } catch {}
+      }
+      if (telemetry) telemetry.startPhase("finalize");
+      if (telemetry) telemetry.endPhase();
+      return result.response;
+    }
+
+    // Pipeline: Mark model unavailable on repeated failures (429, 503)
+    if (result.status === 429 || result.status === 503) {
+      setModelUnavailable(provider, model, 60000, `HTTP ${result.status}`);
+      log.info("AVAILABILITY", `${provider}/${model} marked unavailable for 60s (HTTP ${result.status})`);
+    }
 
     // 5. Fallback to next account
     const { shouldFallback } = await markAccountUnavailable(
