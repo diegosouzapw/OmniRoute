@@ -12,6 +12,8 @@ import AppearanceTab from "./components/AppearanceTab";
 import ThinkingBudgetTab from "./components/ThinkingBudgetTab";
 import SystemPromptTab from "./components/SystemPromptTab";
 import PricingTab from "./components/PricingTab";
+import ComplianceTab from "./components/ComplianceTab";
+import CacheStatsCard from "./components/CacheStatsCard";
 
 const tabs = [
   { id: "general", label: "General", icon: "settings" },
@@ -20,6 +22,7 @@ const tabs = [
   { id: "routing", label: "Routing", icon: "route" },
   { id: "pricing", label: "Pricing", icon: "payments" },
   { id: "advanced", label: "Advanced", icon: "tune" },
+  { id: "compliance", label: "Compliance", icon: "policy" },
 ];
 
 export default function SettingsPage() {
@@ -85,7 +88,14 @@ export default function SettingsPage() {
 
           {activeTab === "pricing" && <PricingTab />}
 
-          {activeTab === "advanced" && <ProxyTab />}
+          {activeTab === "advanced" && (
+            <div className="flex flex-col gap-6">
+              <ProxyTab />
+              <CacheStatsCard />
+            </div>
+          )}
+
+          {activeTab === "compliance" && <ComplianceTab />}
         </div>
 
         {/* App Info */}

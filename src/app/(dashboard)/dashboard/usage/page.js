@@ -12,6 +12,8 @@ import ProviderLimits from "./components/ProviderLimits";
 import SessionsTab from "./components/SessionsTab";
 import RateLimitStatus from "./components/RateLimitStatus";
 
+import BudgetTelemetryCards from "./components/BudgetTelemetryCards";
+
 export default function UsagePage() {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -33,6 +35,7 @@ export default function UsagePage() {
       {activeTab === "overview" && (
         <Suspense fallback={<CardSkeleton />}>
           <UsageAnalytics />
+          <BudgetTelemetryCards />
         </Suspense>
       )}
       {activeTab === "logs" && <RequestLoggerV2 />}
