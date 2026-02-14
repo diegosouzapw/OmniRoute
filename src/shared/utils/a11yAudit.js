@@ -75,6 +75,7 @@ export function auditHTML(html) {
   }
 
   // Check: Dialogs without role="dialog"
+  /** @type {string[]} */
   const modals = html.match(/<div[^>]*(?:modal|dialog|overlay)[^>]*>/gi) || [];
   const modalsWithoutRole = modals.filter((m) => !m.includes('role="dialog"'));
   if (modalsWithoutRole.length > 0) {
