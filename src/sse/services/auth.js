@@ -13,18 +13,24 @@ import {
   isModelLocked,
   lockModel,
 } from "@omniroute/open-sse/services/accountFallback.js";
+import { selectAccount } from "@omniroute/open-sse/services/accountSelector.js";
 import * as log from "../utils/logger.js";
 
 // Mutex to prevent race conditions during account selection
 let selectionMutex = Promise.resolve();
 
+// Per-provider round-robin state (persists across calls for stateful strategies)
+const _selectorState = {};
+
 /**
  * Get provider credentials from localDb
  * Filters out unavailable accounts and returns the selected account based on strategy
+ * Supports: fill-first, round-robin, p2c (Power of Two Choices), random
  * @param {string} provider - Provider name
  * @param {string|null} excludeConnectionId - Connection ID to exclude (for retry with next account)
+ * @param {string|null} model - Model name (for P2C health-aware selection)
  */
-export async function getProviderCredentials(provider, excludeConnectionId = null) {
+export async function getProviderCredentials(provider, excludeConnectionId = null, model = null) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
   let resolveMutex;
@@ -121,50 +127,15 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
 
-    let connection;
-    if (strategy === "round-robin") {
-      const stickyLimit = settings.stickyRoundRobinLimit || 3;
-
-      // Sort by lastUsed (most recent first) to find current candidate
-      const byRecency = [...availableConnections].sort((a, b) => {
-        if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
-        if (!a.lastUsedAt) return 1;
-        if (!b.lastUsedAt) return -1;
-        return new Date(b.lastUsedAt) - new Date(a.lastUsedAt);
-      });
-
-      const current = byRecency[0];
-      const currentCount = current?.consecutiveUseCount || 0;
-
-      if (current && current.lastUsedAt && currentCount < stickyLimit) {
-        // Stay with current account
-        connection = current;
-        // Update lastUsedAt and increment count (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-        });
-      } else {
-        // Pick the least recently used (excluding current if possible)
-        const sortedByOldest = [...availableConnections].sort((a, b) => {
-          if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
-          if (!a.lastUsedAt) return -1;
-          if (!b.lastUsedAt) return 1;
-          return new Date(a.lastUsedAt) - new Date(b.lastUsedAt);
-        });
-
-        connection = sortedByOldest[0];
-
-        // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: 1,
-        });
-      }
-    } else {
-      // Default: fill-first (already sorted by priority in getProviderConnections)
-      connection = availableConnections[0];
-    }
+    // Use unified account selector (supports fill-first, round-robin, p2c, random)
+    if (!_selectorState[provider]) _selectorState[provider] = {};
+    const { account: connection, state: newState } = selectAccount(
+      availableConnections,
+      strategy,
+      _selectorState[provider],
+      model
+    );
+    _selectorState[provider] = newState;
 
     return {
       apiKey: connection.apiKey,

@@ -27,8 +27,14 @@ import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser
 import {
   withRateLimit,
   updateFromHeaders,
+  updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.js";
+import { compressContext } from "../services/contextManager.js";
+import { generateSessionId, touchSession } from "../services/sessionManager.js";
+import { getModelFamily } from "../services/signatureCache.js";
+import { applyThinkingBudget } from "../services/thinkingBudget.js";
+import { injectSystemPrompt } from "../services/systemPrompt.js";
 
 /**
  * Core chat handler - shared between SSE and Worker
@@ -63,6 +69,30 @@ export async function handleChatCore({
 
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
+
+  // ── Pipeline Pre-Processing ───────────────────────────────────────────────
+
+  // Generate session fingerprint for sticky routing and tracking
+  const sessionId = generateSessionId(body, { provider, connectionId });
+  if (sessionId) touchSession(sessionId, connectionId);
+
+  // Apply system prompt injection (user-configured global prompt)
+  body = injectSystemPrompt(body);
+
+  // Apply thinking budget control (Auto/Pass/Custom/Adaptive)
+  body = applyThinkingBudget(body);
+
+  // Auto-compress context if messages exceed provider token limit
+  const compression = compressContext(body, { provider, model });
+  if (compression.compressed) {
+    const removed = compression.stats?.layers?.length || 0;
+    const original = compression.stats?.original || 0;
+    const final = compression.stats?.final || 0;
+    log?.info?.("CONTEXT", `Compressed: ${original}→${final} tokens (${removed} layers applied)`);
+    body = compression.body;
+  }
+
+  // ── End Pre-Processing ────────────────────────────────────────────────────
 
   const sourceFormat = detectFormat(body);
   const endpointPath = (clientRawRequest?.endpoint || "").toLowerCase();
@@ -330,6 +360,14 @@ export async function handleChatCore({
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
+
+    // Parse rate limit info from error body (Google quotaResetDelay, OpenAI retry_after, etc.)
+    try {
+      const clonedBody = await providerResponse.clone().text();
+      updateFromResponseBody(provider, connectionId, clonedBody, statusCode, model);
+    } catch {
+      // Body may already be consumed, ignore
+    }
 
     return createErrorResult(statusCode, errMsg, retryAfterMs);
   }
