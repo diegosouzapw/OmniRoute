@@ -47,6 +47,10 @@ next-env.d.ts
 data/
 logs/*
 
+# analysis directories (generated, not tracked)
+.analysis/
+antigravity-manager-analysis/
+
 # docs (allow specific tracked files)
 docs/*
 !docs/ARCHITECTURE.md
@@ -56,6 +60,9 @@ docs/*
 !docs/TASK_NEBIUS_BACKEND_ENABLEMENT.md
 !docs/frontend-backend-provider-gap-report.md
 !docs/openapi.yaml
+!docs/PLANO-IMPLANTACAO.md
+!docs/TASKS.md
+!docs/FASE-*.md
 !docs/adr/
 !docs/cli-tools/
 !docs/planning/
