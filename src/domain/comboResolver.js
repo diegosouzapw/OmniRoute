@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Combo Resolver — FASE-09 Domain Extraction (T-46)
  *

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Policy Engine — FASE-08 LLM Proxy Advanced
  *

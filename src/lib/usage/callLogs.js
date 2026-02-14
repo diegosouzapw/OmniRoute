@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Call Logs — extracted from usageDb.js (T-15)
  *
