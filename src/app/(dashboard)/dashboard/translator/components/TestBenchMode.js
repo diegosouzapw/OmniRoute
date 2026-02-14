@@ -23,12 +23,40 @@ const SCENARIOS = [
   { id: "streaming", name: "Streaming", icon: "stream", templateId: "streaming" },
 ];
 
+const DEFAULT_MODELS = {
+  openai: "gpt-4o",
+  claude: "claude-sonnet-4-20250514",
+  gemini: "gemini-2.5-flash",
+};
+
 export default function TestBenchMode() {
   const [sourceFormat, setSourceFormat] = useState("claude");
   const [provider, setProvider] = useState("openai");
   const [providerOptions, setProviderOptions] = useState([]);
+  const [model, setModel] = useState(DEFAULT_MODELS.claude);
+  const [availableModels, setAvailableModels] = useState([]);
   const [results, setResults] = useState({});
   const [runningAll, setRunningAll] = useState(false);
+
+  // Update default model when source format changes
+  useEffect(() => {
+    setModel(DEFAULT_MODELS[sourceFormat] || "gpt-4o");
+  }, [sourceFormat]);
+
+  // Load available models
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await fetch("/api/v1/models");
+        const data = await res.json();
+        const models = (data.data || []).map((m) => m.id).sort((a, b) => a.localeCompare(b));
+        setAvailableModels(models);
+      } catch {
+        setAvailableModels([]);
+      }
+    };
+    fetchModels();
+  }, []);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -99,11 +127,16 @@ export default function TestBenchMode() {
         return;
       }
 
+      // Override model in template body with user-selected model
+      const bodyWithModel = { ...body, model };
+      // For Gemini format that uses 'contents' instead of 'messages'
+      if (body.contents) bodyWithModel.model = model;
+
       // Step 1: Translate
       const translateRes = await fetch("/api/translator/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: "direct", sourceFormat, provider, body }),
+        body: JSON.stringify({ step: "direct", sourceFormat, provider, body: bodyWithModel }),
       });
       const translateData = await translateRes.json();
 
@@ -182,50 +215,72 @@ export default function TestBenchMode() {
     <div className="space-y-5">
       {/* Controls */}
       <Card>
-        <div className="p-4 flex flex-col sm:flex-row items-end gap-4">
-          <div className="flex-1 w-full">
+        <div className="p-4 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-end gap-4">
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Source Format
+              </label>
+              <Select
+                value={sourceFormat}
+                onChange={(e) => {
+                  setSourceFormat(e.target.value);
+                  setResults({});
+                }}
+                options={[
+                  { value: "openai", label: "OpenAI" },
+                  { value: "claude", label: "Claude" },
+                  { value: "gemini", label: "Gemini" },
+                ]}
+              />
+            </div>
+            <div className="flex items-center justify-center px-2">
+              <span className="material-symbols-outlined text-[22px] text-text-muted">
+                arrow_forward
+              </span>
+            </div>
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Target Provider
+              </label>
+              <Select
+                value={provider}
+                onChange={(e) => {
+                  setProvider(e.target.value);
+                  setResults({});
+                }}
+                options={providerOptions}
+              />
+            </div>
+            <Button
+              icon="play_arrow"
+              onClick={handleRunAll}
+              loading={runningAll}
+              disabled={runningAll}
+            >
+              Run All Tests
+            </Button>
+          </div>
+          <div>
             <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Source Format
+              Model
             </label>
-            <Select
-              value={sourceFormat}
-              onChange={(e) => {
-                setSourceFormat(e.target.value);
-                setResults({});
-              }}
-              options={[
-                { value: "openai", label: "OpenAI" },
-                { value: "claude", label: "Claude" },
-                { value: "gemini", label: "Gemini" },
-              ]}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                list="testbench-model-suggestions"
+                placeholder="e.g. gpt-4o, claude-sonnet-4-20250514"
+                className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
+              />
+              <datalist id="testbench-model-suggestions">
+                {availableModels.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
+            </div>
           </div>
-          <div className="flex items-center justify-center px-2">
-            <span className="material-symbols-outlined text-[22px] text-text-muted">
-              arrow_forward
-            </span>
-          </div>
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Target Provider
-            </label>
-            <Select
-              value={provider}
-              onChange={(e) => {
-                setProvider(e.target.value);
-                setResults({});
-              }}
-              options={providerOptions}
-            />
-          </div>
-          <Button
-            icon="play_arrow"
-            onClick={handleRunAll}
-            loading={runningAll}
-            disabled={runningAll}
-          >
-            Run All Tests
-          </Button>
         </div>
       </Card>
 

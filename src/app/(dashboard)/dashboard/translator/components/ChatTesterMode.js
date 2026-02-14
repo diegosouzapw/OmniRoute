@@ -17,16 +17,45 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
  * - Left: Chat interface (send messages as a specific client format)
  * - Right: Pipeline visualization showing each translation step
  */
+const DEFAULT_MODELS = {
+  openai: "gpt-4o",
+  claude: "claude-sonnet-4-20250514",
+  gemini: "gemini-2.5-flash",
+  "openai-responses": "gpt-4o",
+};
+
 export default function ChatTesterMode() {
   const [provider, setProvider] = useState("openai");
   const [providerOptions, setProviderOptions] = useState([]);
   const [clientFormat, setClientFormat] = useState("openai");
+  const [model, setModel] = useState(DEFAULT_MODELS.openai);
+  const [availableModels, setAvailableModels] = useState([]);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [pipeline, setPipeline] = useState(null);
   const [expandedStep, setExpandedStep] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // Update default model when client format changes
+  useEffect(() => {
+    setModel(DEFAULT_MODELS[clientFormat] || "gpt-4o");
+  }, [clientFormat]);
+
+  // Load available models
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await fetch("/api/v1/models");
+        const data = await res.json();
+        const models = (data.data || []).map((m) => m.id).sort((a, b) => a.localeCompare(b));
+        setAvailableModels(models);
+      } catch {
+        setAvailableModels([]);
+      }
+    };
+    fetchModels();
+  }, []);
 
   // Load providers
   useEffect(() => {
@@ -107,14 +136,14 @@ export default function ChatTesterMode() {
       let clientRequest;
       if (clientFormat === "claude") {
         clientRequest = {
-          model: "claude-sonnet-4-20250514",
+          model,
           max_tokens: 1024,
           messages: allMessages,
           stream: true,
         };
       } else if (clientFormat === "gemini") {
         clientRequest = {
-          model: "gemini-2.5-flash",
+          model,
           contents: allMessages.map((m) => ({
             role: m.role === "assistant" ? "model" : "user",
             parts: [{ text: m.content }],
@@ -122,7 +151,7 @@ export default function ChatTesterMode() {
         };
       } else if (clientFormat === "openai-responses") {
         clientRequest = {
-          model: "gpt-4o",
+          model,
           input: allMessages.map((m) => ({
             type: "message",
             role: m.role,
@@ -132,7 +161,7 @@ export default function ChatTesterMode() {
         };
       } else {
         clientRequest = {
-          model: "gpt-4o",
+          model,
           messages: allMessages,
           stream: true,
         };
@@ -281,28 +310,50 @@ export default function ChatTesterMode() {
       <div className="space-y-4">
         {/* Controls */}
         <Card>
-          <div className="p-4 flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                Client Format
-              </label>
-              <Select
-                value={clientFormat}
-                onChange={(e) => setClientFormat(e.target.value)}
-                options={FORMAT_OPTIONS.filter((o) =>
-                  ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
-                )}
-              />
+          <div className="p-4 flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+                  Client Format
+                </label>
+                <Select
+                  value={clientFormat}
+                  onChange={(e) => setClientFormat(e.target.value)}
+                  options={FORMAT_OPTIONS.filter((o) =>
+                    ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
+                  )}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+                  Provider
+                </label>
+                <Select
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value)}
+                  options={providerOptions}
+                />
+              </div>
             </div>
-            <div className="flex-1">
+            <div>
               <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                Provider
+                Model
               </label>
-              <Select
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                options={providerOptions}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  list="model-suggestions"
+                  placeholder="e.g. gpt-4o, claude-sonnet-4-20250514"
+                  className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
+                />
+                <datalist id="model-suggestions">
+                  {availableModels.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
+              </div>
             </div>
           </div>
         </Card>
