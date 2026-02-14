@@ -2,7 +2,6 @@
 const nextConfig = {
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["192.168.*"],
-  output: "standalone",
   images: {
     unoptimized: true,
   },

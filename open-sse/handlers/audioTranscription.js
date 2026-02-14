@@ -1,0 +1,226 @@
+/**
+ * Audio Transcription Handler
+ *
+ * Handles POST /v1/audio/transcriptions (Whisper API format).
+ * Proxies multipart/form-data to upstream providers.
+ *
+ * Supported provider formats:
+ * - OpenAI/Groq: standard multipart form-data proxy
+ * - Deepgram: raw binary audio POST with model via query param
+ * - AssemblyAI: async workflow (upload → submit → poll)
+ */
+
+import { getTranscriptionProvider, parseTranscriptionModel } from "../config/audioRegistry.js";
+import { errorResponse } from "../utils/error.js";
+
+/**
+ * Build auth header for a transcription provider
+ */
+function buildAuthHeader(providerConfig, token) {
+  if (providerConfig.authHeader === "token") {
+    return { Authorization: `Token ${token}` };
+  }
+  return { Authorization: `Bearer ${token}` };
+}
+
+/**
+ * Handle Deepgram transcription (raw binary audio, model via query param)
+ */
+async function handleDeepgramTranscription(providerConfig, file, modelId, token) {
+  const url = new URL(providerConfig.baseUrl);
+  url.searchParams.set("model", modelId);
+  url.searchParams.set("smart_format", "true");
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: {
+      ...buildAuthHeader(providerConfig, token),
+      "Content-Type": file.type || "audio/wav",
+    },
+    body: arrayBuffer,
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    return new Response(errText, {
+      status: res.status,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  const data = await res.json();
+  // Transform Deepgram response to OpenAI Whisper format
+  const text = data.results?.channels?.[0]?.alternatives?.[0]?.transcript || "";
+
+  return Response.json({ text }, { headers: { "Access-Control-Allow-Origin": "*" } });
+}
+
+/**
+ * Handle AssemblyAI transcription (async: upload file → submit → poll)
+ */
+async function handleAssemblyAITranscription(providerConfig, file, modelId, token) {
+  const authHeaders = buildAuthHeader(providerConfig, token);
+
+  // Step 1: Upload the audio file
+  const arrayBuffer = await file.arrayBuffer();
+  const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
+    method: "POST",
+    headers: {
+      ...authHeaders,
+      "Content-Type": "application/octet-stream",
+    },
+    body: arrayBuffer,
+  });
+
+  if (!uploadRes.ok) {
+    const errText = await uploadRes.text();
+    return new Response(errText, {
+      status: uploadRes.status,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  const { upload_url } = await uploadRes.json();
+
+  // Step 2: Submit transcription request
+  const submitRes = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      ...authHeaders,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url: upload_url,
+      speech_models: [modelId],
+      language_detection: true,
+    }),
+  });
+
+  if (!submitRes.ok) {
+    const errText = await submitRes.text();
+    return new Response(errText, {
+      status: submitRes.status,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  const { id: transcriptId } = await submitRes.json();
+
+  // Step 3: Poll for completion (max 120s)
+  const pollUrl = `${providerConfig.baseUrl}/${transcriptId}`;
+  const maxWait = 120_000;
+  const start = Date.now();
+
+  while (Date.now() - start < maxWait) {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const pollRes = await fetch(pollUrl, { headers: authHeaders });
+    if (!pollRes.ok) continue;
+
+    const result = await pollRes.json();
+
+    if (result.status === "completed") {
+      return Response.json(
+        { text: result.text || "" },
+        { headers: { "Access-Control-Allow-Origin": "*" } }
+      );
+    }
+
+    if (result.status === "error") {
+      return errorResponse(result.error || "AssemblyAI transcription failed", 500);
+    }
+  }
+
+  return errorResponse("AssemblyAI transcription timed out after 120s", 504);
+}
+
+/**
+ * Handle audio transcription request
+ *
+ * @param {Object} options
+ * @param {FormData} options.formData - Multipart form data with file + model
+ * @param {Object} options.credentials - Provider credentials { apiKey }
+ * @returns {Response}
+ */
+export async function handleAudioTranscription({ formData, credentials }) {
+  const model = formData.get("model");
+  if (!model) {
+    return errorResponse("model is required", 400);
+  }
+
+  const file = formData.get("file");
+  if (!file) {
+    return errorResponse("file is required", 400);
+  }
+
+  const { provider: providerId, model: modelId } = parseTranscriptionModel(model);
+  const providerConfig = providerId ? getTranscriptionProvider(providerId) : null;
+
+  if (!providerConfig) {
+    return errorResponse(
+      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai`,
+      400
+    );
+  }
+
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (!token) {
+    return errorResponse(`No credentials for transcription provider: ${providerId}`, 401);
+  }
+
+  // Route to provider-specific handler
+  if (providerConfig.format === "deepgram") {
+    return handleDeepgramTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "assemblyai") {
+    return handleAssemblyAITranscription(providerConfig, file, modelId, token);
+  }
+
+  // Default: OpenAI/Groq-compatible multipart proxy
+  const upstreamForm = new FormData();
+  upstreamForm.append("file", file, file.name || "audio.wav");
+  upstreamForm.append("model", modelId);
+
+  // Forward optional parameters
+  for (const key of [
+    "language",
+    "prompt",
+    "response_format",
+    "temperature",
+    "timestamp_granularities[]",
+  ]) {
+    const val = formData.get(key);
+    if (val !== null && val !== undefined) {
+      upstreamForm.append(key, val);
+    }
+  }
+
+  try {
+    const res = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: buildAuthHeader(providerConfig, token),
+      body: upstreamForm,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return new Response(errText, {
+        status: res.status,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    const data = await res.text();
+    const contentType = res.headers.get("content-type") || "application/json";
+
+    return new Response(data, {
+      status: 200,
+      headers: { "Content-Type": contentType, "Access-Control-Allow-Origin": "*" },
+    });
+  } catch (err) {
+    return errorResponse(`Transcription request failed: ${err.message}`, 500);
+  }
+}
