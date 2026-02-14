@@ -1,7 +1,11 @@
 // Server startup script
 import initializeCloudSync from "./shared/services/initializeCloudSync.js";
+import { enforceSecrets } from "./shared/utils/secretsValidator.js";
 
 async function startServer() {
+  // FASE-01: Validate required secrets before anything else (fail-fast)
+  enforceSecrets();
+
   console.log("Starting server with cloud sync...");
 
   try {

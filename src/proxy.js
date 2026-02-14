@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "omniroute-default-secret-change-me"
-);
+// FASE-01: Fail-fast — no hardcoded fallback. Server must have JWT_SECRET configured.
+if (!process.env.JWT_SECRET) {
+  console.error("[SECURITY] JWT_SECRET is not set. Authentication will fail.");
+}
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
@@ -22,6 +25,11 @@ export async function proxy(request) {
         await jwtVerify(token, SECRET);
         return NextResponse.next();
       } catch (err) {
+        // FASE-01: Log auth errors instead of silently redirecting
+        console.error("[Middleware] auth_error: JWT verification failed:", err.message, {
+          path: pathname,
+          tokenPresent: true,
+        });
         return NextResponse.redirect(new URL("/login", request.url));
       }
     }
@@ -40,6 +48,11 @@ export async function proxy(request) {
         return NextResponse.next();
       }
     } catch (err) {
+      // FASE-01: Log settings fetch errors instead of silencing them
+      console.error("[Middleware] settings_error: Settings fetch failed:", err.message, {
+        path: pathname,
+        origin,
+      });
       // On error, require login
     }
     return NextResponse.redirect(new URL("/login", request.url));

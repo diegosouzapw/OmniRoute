@@ -51,16 +51,22 @@ export const createComboSchema = z.object({
 });
 
 // ──── Settings Schemas ────
+// FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
-export const updateSettingsSchema = z
-  .object({
-    newPassword: z.string().min(1).max(200).optional(),
-    currentPassword: z.string().max(200).optional(),
-    theme: z.string().max(50).optional(),
-    language: z.string().max(10).optional(),
-    requireLogin: z.boolean().optional(),
-  })
-  .passthrough(); // Allow extra fields for flexibility
+export const updateSettingsSchema = z.object({
+  newPassword: z.string().min(1).max(200).optional(),
+  currentPassword: z.string().max(200).optional(),
+  theme: z.string().max(50).optional(),
+  language: z.string().max(10).optional(),
+  requireLogin: z.boolean().optional(),
+  enableRequestLogs: z.boolean().optional(),
+  enableSocks5Proxy: z.boolean().optional(),
+  instanceName: z.string().max(100).optional(),
+  corsOrigins: z.string().max(500).optional(),
+  logRetentionDays: z.number().int().min(1).max(365).optional(),
+  cloudUrl: z.string().max(500).optional(),
+  baseUrl: z.string().max(500).optional(),
+});
 
 // ──── Auth Schemas ────
 
