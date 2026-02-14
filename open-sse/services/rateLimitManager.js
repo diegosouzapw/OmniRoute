@@ -8,6 +8,7 @@
  */
 
 import Bottleneck from "bottleneck";
+import { parseRetryAfterFromBody, lockModel } from "./accountFallback.js";
 
 // Store limiters keyed by "provider:connectionId" (and optionally ":model")
 const limiters = new Map();
@@ -325,3 +326,39 @@ export function getAllRateLimitStatus() {
   }
   return result;
 }
+
+/**
+ * Update rate limiter based on API response body (JSON error responses).
+ * Providers embed retry info in JSON payloads in different formats.
+ * Should be called alongside updateFromHeaders for 4xx/5xx responses.
+ *
+ * @param {string} provider - Provider ID
+ * @param {string} connectionId - Connection ID
+ * @param {string|object} responseBody - Response body (string or parsed JSON)
+ * @param {number} status - HTTP status code
+ * @param {string} model - Model name (for per-model lockouts)
+ */
+export function updateFromResponseBody(provider, connectionId, responseBody, status, model = null) {
+  if (!enabledConnections.has(connectionId)) return;
+
+  const { retryAfterMs, reason } = parseRetryAfterFromBody(responseBody);
+
+  if (retryAfterMs && retryAfterMs > 0) {
+    const limiter = getLimiter(provider, connectionId, null);
+    console.log(
+      `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — body-parsed retry: ${Math.ceil(retryAfterMs / 1000)}s (${reason})`
+    );
+
+    limiter.updateSettings({
+      reservoir: 0,
+      reservoirRefreshAmount: 60,
+      reservoirRefreshInterval: retryAfterMs,
+    });
+
+    // Also apply model-level lockout if model is known
+    if (model) {
+      lockModel(provider, connectionId, model, reason, retryAfterMs);
+    }
+  }
+}
+

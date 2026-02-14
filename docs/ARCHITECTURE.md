@@ -1,6 +1,6 @@
 # OmniRoute Architecture
 
-_Last updated: 2026-02-09_
+_Last updated: 2026-02-14_
 
 ## Executive Summary
 
@@ -20,6 +20,12 @@ Core capabilities:
 - Local persistence for providers, keys, aliases, combos, settings, pricing
 - Usage/cost tracking and request logging
 - Optional cloud sync for multi-device/state sync
+- IP allowlist/blocklist for API access control
+- Thinking budget management (passthrough/auto/custom/adaptive)
+- Global system prompt injection
+- Session tracking and fingerprinting
+- Per-account enhanced rate limiting
+- Signature-based request deduplication cache
 
 Primary runtime model:
 
@@ -129,6 +135,11 @@ Management domains:
 - Usage: `src/app/api/usage/*`
 - Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
 - CLI tooling helpers: `src/app/api/cli-tools/*`
+- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
+- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
+- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
+- Sessions: `src/app/api/sessions` (GET)
+- Rate limits: `src/app/api/rate-limits` (GET)
 
 ## 2) SSE + Translation Core
 
@@ -149,13 +160,24 @@ Main flow modules:
 - Image generation handler: `open-sse/handlers/imageGeneration.js`
 - Image provider registry: `open-sse/config/imageRegistry.js`
 
+Services (business logic):
+
+- Account selection/scoring: `open-sse/services/accountSelector.js`
+- Context lifecycle management: `open-sse/services/contextManager.js`
+- IP filter enforcement: `open-sse/services/ipFilter.js`
+- Session tracking: `open-sse/services/sessionManager.js`
+- Request deduplication: `open-sse/services/signatureCache.js`
+- System prompt injection: `open-sse/services/systemPrompt.js`
+- Thinking budget management: `open-sse/services/thinkingBudget.js`
+- Wildcard model routing: `open-sse/services/wildcardRouter.js`
+
 ## 3) Persistence Layer
 
 Primary state DB:
 
 - `src/lib/localDb.js`
 - file: `${DATA_DIR}/db.json` (or `$XDG_CONFIG_HOME/omniroute/db.json` when set, else `~/.omniroute/db.json`)
-- entities: providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**
+- entities: providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
 Usage DB:
 
@@ -399,6 +421,24 @@ erDiagram
       string global
       json providers
     }
+
+    IP_FILTER {
+      string mode
+      string[] allowlist
+      string[] blocklist
+    }
+
+    THINKING_BUDGET {
+      string mode
+      number customBudget
+      string effortLevel
+    }
+
+    SYSTEM_PROMPT {
+      boolean enabled
+      string prompt
+      string position
+    }
 ```
 
 Physical storage files:
@@ -459,6 +499,11 @@ flowchart LR
 - `src/app/api/usage/*`: usage and logs APIs
 - `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
 - `src/app/api/cli-tools/*`: local CLI config writers/checkers
+- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
+- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
+- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
+- `src/app/api/sessions`: active session listing (GET)
+- `src/app/api/rate-limits`: per-account rate limit status (GET)
 
 ### Routing and Execution Core
 

@@ -9,7 +9,19 @@ import {
   fmtCost,
   formatApiKeyLabel as maskApiKeyLabel,
 } from "@/shared/utils/formatting";
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import {
+  BarChart,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
 
 // ── Custom Tooltip for dark theme ──────────────────────────────────────────
 
@@ -214,8 +226,11 @@ export function DailyTrendChart({ dailyTrend }) {
       date: d.date.slice(5),
       Input: d.promptTokens,
       Output: d.completionTokens,
+      Cost: d.cost || 0,
     }));
   }, [dailyTrend]);
+
+  const hasCost = useMemo(() => chartData.some((d) => d.Cost > 0), [chartData]);
 
   if (!chartData.length) {
     return (
@@ -231,10 +246,10 @@ export function DailyTrendChart({ dailyTrend }) {
   return (
     <Card className="p-4 flex-1">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        Token Trend
+        Token &amp; Cost Trend
       </h3>
-      <ResponsiveContainer width="100%" height={128}>
-        <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={140}>
+        <ComposedChart data={chartData} margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="date"
             tick={{ fontSize: 9, fill: "var(--text-muted)" }}
@@ -242,8 +257,19 @@ export function DailyTrendChart({ dailyTrend }) {
             tickLine={false}
             interval={Math.max(Math.floor(chartData.length / 6), 0)}
           />
+          {hasCost && (
+            <YAxis
+              yAxisId="cost"
+              orientation="right"
+              tick={{ fontSize: 8, fill: "#f59e0b" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `$${v.toFixed(2)}`}
+              width={36}
+            />
+          )}
           <Tooltip
-            content={<DarkTooltip formatter={fmt} />}
+            content={<CostTooltip />}
             cursor={{ fill: "rgba(255,255,255,0.04)" }}
           />
           <Bar
@@ -262,7 +288,18 @@ export function DailyTrendChart({ dailyTrend }) {
             radius={[3, 3, 0, 0]}
             animationDuration={600}
           />
-        </BarChart>
+          {hasCost && (
+            <Line
+              yAxisId="cost"
+              type="monotone"
+              dataKey="Cost"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={false}
+              animationDuration={600}
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-2 text-[10px] text-text-muted">
         <span className="flex items-center gap-1">
@@ -271,8 +308,36 @@ export function DailyTrendChart({ dailyTrend }) {
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500/70" /> Output
         </span>
+        {hasCost && (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500/70" /> Cost ($)
+          </span>
+        )}
       </div>
     </Card>
+  );
+}
+
+// ── Cost-aware Tooltip ─────────────────────────────────────────────────────
+
+function CostTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
+      {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
+      {payload.map((entry, i) => (
+        <div key={i} className="flex items-center gap-1.5 text-text-muted">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span>{entry.name}:</span>
+          <span className="font-mono font-medium text-text-main">
+            {entry.name === "Cost" ? fmtCost(entry.value) : fmt(entry.value)}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -834,6 +899,12 @@ export function ModelTable({ byModel, summary }) {
               >
                 Total <SortIndicator active={sortBy === "totalTokens"} sortOrder={sortOrder} />
               </th>
+              <th
+                className="px-4 py-2.5 text-right cursor-pointer group"
+                onClick={() => toggleSort("cost")}
+              >
+                Cost <SortIndicator active={sortBy === "cost"} sortOrder={sortOrder} />
+              </th>
               <th className="px-4 py-2.5 text-right w-36">Share</th>
             </tr>
           </thead>
@@ -863,6 +934,9 @@ export function ModelTable({ byModel, summary }) {
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono font-semibold">
                   {fmt(m.totalTokens)}
+                </td>
+                <td className="px-4 py-2.5 text-right font-mono text-amber-500">
+                  {fmtCost(m.cost)}
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   <div className="flex items-center gap-2 justify-end">
@@ -911,3 +985,85 @@ export function UsageDetail({ summary }) {
     </Card>
   );
 }
+
+// ── ProviderCostDonut ──────────────────────────────────────────────────────
+
+const PROVIDER_COLORS = [
+  "#f59e0b", "#ef4444", "#8b5cf6", "#10b981", "#06b6d4",
+  "#ec4899", "#f97316", "#6366f1", "#14b8a6", "#a855f7",
+];
+
+export function ProviderCostDonut({ byProvider }) {
+  const data = useMemo(() => byProvider || [], [byProvider]);
+  const hasData = data.length > 0 && data.some((p) => p.cost > 0);
+
+  const pieData = useMemo(() => {
+    return data
+      .filter((item) => item.cost > 0)
+      .sort((a, b) => b.cost - a.cost)
+      .slice(0, 8)
+      .map((item, i) => ({
+        name: item.provider,
+        value: item.cost,
+        fill: PROVIDER_COLORS[i % PROVIDER_COLORS.length],
+      }));
+  }, [data]);
+
+  if (!hasData) {
+    return (
+      <Card className="p-4 flex-1">
+        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+          Cost by Provider
+        </h3>
+        <div className="text-center text-text-muted text-sm py-8">No cost data</div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-4 flex-1">
+      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+        Cost by Provider
+      </h3>
+      <div className="flex items-center gap-4">
+        <ResponsiveContainer width={120} height={120}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={28}
+              outerRadius={55}
+              paddingAngle={1}
+              animationDuration={600}
+            >
+              {pieData.map((entry, i) => (
+                <Cell key={i} fill={entry.fill} stroke="none" />
+              ))}
+            </Pie>
+            <Tooltip content={<DarkTooltip formatter={fmtCost} />} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          {pieData.map((seg, i) => (
+            <div key={i} className="flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: seg.fill }}
+                />
+                <span className="truncate text-text-main capitalize">{seg.name}</span>
+              </div>
+              <span className="font-mono font-medium text-amber-500 shrink-0">
+                {fmtCost(seg.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+

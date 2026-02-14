@@ -14,6 +14,7 @@ import {
   MostActiveDay7d,
   WeeklySquares7d,
   ModelTable,
+  ProviderCostDonut,
 } from "./analytics";
 
 // ============================================================================
@@ -83,8 +84,8 @@ export default function UsageAnalytics() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      {/* Summary Cards — 7 columns: tokens, input, output, cost, accounts, keys, models */}
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
         <StatCard
           icon="generating_tokens"
           label="Total Tokens"
@@ -103,6 +104,12 @@ export default function UsageAnalytics() {
           value={fmt(s.completionTokens)}
           color="text-emerald-500"
         />
+        <StatCard
+          icon="payments"
+          label="Est. Cost"
+          value={fmtCost(s.totalCost)}
+          color="text-amber-500"
+        />
         <StatCard icon="group" label="Accounts" value={s.uniqueAccounts || 0} />
         <StatCard icon="vpn_key" label="API Keys" value={s.uniqueApiKeys || 0} />
         <StatCard icon="model_training" label="Models" value={s.uniqueModels || 0} />
@@ -119,34 +126,29 @@ export default function UsageAnalytics() {
         </div>
       </div>
 
-      {/* Token Trend + Account Donut */}
+      {/* Token & Cost Trend + Provider Cost Donut */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DailyTrendChart dailyTrend={analytics?.dailyTrend} />
-        <AccountDonut byAccount={analytics?.byAccount} />
+        <ProviderCostDonut byProvider={analytics?.byProvider} />
       </div>
 
-      {/* API Key Graph + Table */}
+      {/* Account Donut + API Key Donut */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <AccountDonut byAccount={analytics?.byAccount} />
         <ApiKeyDonut byApiKey={analytics?.byApiKey} />
-        <ApiKeyTable byApiKey={analytics?.byApiKey} />
       </div>
+
+      {/* API Key Table */}
+      <ApiKeyTable byApiKey={analytics?.byApiKey} />
 
       {/* Model Breakdown Table */}
       <ModelTable byModel={analytics?.byModel} summary={s} />
 
       {/* Bottom Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold">Requests</span>
           <div className="text-lg font-bold mt-1">{fmtFull(s.totalRequests)}</div>
-        </Card>
-        <Card className="px-4 py-3 text-center">
-          <span className="text-xs text-text-muted uppercase font-semibold">Models</span>
-          <div className="text-lg font-bold mt-1">{s.uniqueModels}</div>
-        </Card>
-        <Card className="px-4 py-3 text-center">
-          <span className="text-xs text-text-muted uppercase font-semibold">Accounts</span>
-          <div className="text-lg font-bold mt-1">{s.uniqueAccounts}</div>
         </Card>
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold">Streak</span>
@@ -155,7 +157,6 @@ export default function UsageAnalytics() {
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold">Total Tokens</span>
           <div className="text-lg font-bold mt-1">{fmt(s.totalTokens)}</div>
-          <span className="text-[10px] text-text-muted">Est. {fmtCost(s.totalCost)}</span>
         </Card>
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold">Usage Cost</span>
