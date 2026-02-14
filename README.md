@@ -15,6 +15,7 @@
   
   > *This project is inspired by and originally forked from [9router](https://github.com/decolua/9router) by [decolua](https://github.com/decolua). Thank you for the incredible foundation!*
   
+  [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
   [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
   
   [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Setup](#-setup-guide)
@@ -80,6 +81,16 @@ omniroute
 
 🎉 Dashboard opens at `http://localhost:20128`
 
+**CLI Options:**
+
+| Command                 | Description                       |
+| ----------------------- | --------------------------------- |
+| `omniroute`             | Start server (default port 20128) |
+| `omniroute --port 3000` | Use custom port                   |
+| `omniroute --no-open`   | Don't auto-open browser           |
+| `omniroute --help`      | Show help                         |
+| `omniroute --version`   | Show version                      |
+
 **2. Connect a FREE provider (no signup needed):**
 
 Dashboard → Providers → Connect **Claude Code** or **Antigravity** → OAuth login → Done!
@@ -96,8 +107,6 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Settings:
 **That's it!** Start coding with FREE AI models.
 
 **Alternative: run from source (this repository):**
-
-This repository package is private (`omniroute-app`), so source/Docker execution is the expected local development path.
 
 ```bash
 cp .env.example .env
@@ -1080,7 +1089,8 @@ Types: `chat`, `embedding`, `image`. Custom models are flagged with `custom: tru
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
 - **Testing**: Playwright (E2E) + Node.js test runner (unit)
 - **Monorepo**: npm workspaces (`@omniroute/open-sse`)
-- **CI/CD**: Dependabot (weekly npm + GH Actions)
+- **CI/CD**: GitHub Actions (auto npm publish on release) + Dependabot
+- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Compliance**: `/terms` and `/privacy` pages
 
 ---
@@ -1262,6 +1272,17 @@ Thanks to all contributors who helped make OmniRoute better!
 5. Open a Pull Request
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Releasing a New Version
+
+When a new GitHub Release is created (e.g. `v0.2.0`), the package is **automatically published to npm** via GitHub Actions:
+
+```bash
+# Create a release — npm publish happens automatically
+gh release create v0.2.0 --title "v0.2.0" --generate-notes
+```
+
+The workflow syncs the version from the release tag, builds the standalone app, and publishes to npm.
 
 ---
 
