@@ -56,7 +56,13 @@ export default function APIPageClient({ machineId }) {
     const chat = allModels.filter((m) => !m.type);
     const embeddings = allModels.filter((m) => m.type === "embedding");
     const images = allModels.filter((m) => m.type === "image");
-    return { chat, embeddings, images };
+    const rerank = allModels.filter((m) => m.type === "rerank");
+    const audioTranscription = allModels.filter(
+      (m) => m.type === "audio" && m.subtype === "transcription"
+    );
+    const audioSpeech = allModels.filter((m) => m.type === "audio" && m.subtype === "speech");
+    const moderation = allModels.filter((m) => m.type === "moderation");
+    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation };
   }, [allModels]);
 
   const providerStats = useMemo(() => {
@@ -504,7 +510,21 @@ export default function APIPageClient({ machineId }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold">Available Endpoints</h2>
-            <p className="text-sm text-text-muted">{allModels.length} models across 3 endpoints</p>
+            <p className="text-sm text-text-muted">
+              {allModels.length} models across{" "}
+              {
+                [
+                  endpointData.chat,
+                  endpointData.embeddings,
+                  endpointData.images,
+                  endpointData.rerank,
+                  endpointData.audioTranscription,
+                  endpointData.audioSpeech,
+                  endpointData.moderation,
+                ].filter((a) => a.length > 0).length
+              }{" "}
+              endpoints
+            </p>
           </div>
         </div>
 
@@ -554,6 +574,78 @@ export default function APIPageClient({ machineId }) {
             models={endpointData.images}
             expanded={expandedEndpoint === "images"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")}
+            copy={copy}
+            copied={copied}
+            baseUrl={currentEndpoint}
+          />
+
+          {/* Rerank */}
+          <EndpointSection
+            icon="sort"
+            iconColor="text-amber-500"
+            iconBg="bg-amber-500/10"
+            title="Rerank"
+            path="/v1/rerank"
+            description="Rerank documents by relevance to a query"
+            models={endpointData.rerank}
+            expanded={expandedEndpoint === "rerank"}
+            onToggle={() => setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")}
+            copy={copy}
+            copied={copied}
+            baseUrl={currentEndpoint}
+          />
+
+          {/* Audio Transcription */}
+          <EndpointSection
+            icon="mic"
+            iconColor="text-rose-500"
+            iconBg="bg-rose-500/10"
+            title="Audio Transcription"
+            path="/v1/audio/transcriptions"
+            description="Transcribe audio files to text (Whisper)"
+            models={endpointData.audioTranscription}
+            expanded={expandedEndpoint === "audioTranscription"}
+            onToggle={() =>
+              setExpandedEndpoint(
+                expandedEndpoint === "audioTranscription" ? null : "audioTranscription"
+              )
+            }
+            copy={copy}
+            copied={copied}
+            baseUrl={currentEndpoint}
+          />
+
+          {/* Audio Speech (TTS) */}
+          <EndpointSection
+            icon="record_voice_over"
+            iconColor="text-cyan-500"
+            iconBg="bg-cyan-500/10"
+            title="Text to Speech"
+            path="/v1/audio/speech"
+            description="Convert text to natural-sounding speech"
+            models={endpointData.audioSpeech}
+            expanded={expandedEndpoint === "audioSpeech"}
+            onToggle={() =>
+              setExpandedEndpoint(expandedEndpoint === "audioSpeech" ? null : "audioSpeech")
+            }
+            copy={copy}
+            copied={copied}
+            baseUrl={currentEndpoint}
+          />
+
+          {/* Moderations */}
+          <EndpointSection
+            icon="shield"
+            iconColor="text-orange-500"
+            iconBg="bg-orange-500/10"
+            title="Moderations"
+            path="/v1/moderations"
+            description="Content moderation and safety classification"
+            models={endpointData.moderation}
+            expanded={expandedEndpoint === "moderation"}
+            onToggle={() =>
+              setExpandedEndpoint(expandedEndpoint === "moderation" ? null : "moderation")
+            }
             copy={copy}
             copied={copied}
             baseUrl={currentEndpoint}

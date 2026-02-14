@@ -80,6 +80,34 @@ export const IMAGE_PROVIDERS = {
     ],
     supportedSizes: ["1024x1024", "512x512"],
   },
+
+  hyperbolic: {
+    id: "hyperbolic",
+    baseUrl: "https://api.hyperbolic.xyz/v1/image/generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "hyperbolic", // custom: uses model_name, returns base64 images
+    models: [
+      { id: "SDXL1.0-base", name: "SDXL 1.0 Base" },
+      { id: "SD2", name: "Stable Diffusion 2" },
+      { id: "FLUX.1-dev", name: "FLUX.1 Dev" },
+    ],
+    supportedSizes: ["1024x1024", "512x512"],
+  },
+
+  nanobanana: {
+    id: "nanobanana",
+    baseUrl: "https://api.nanobananaapi.ai/api/v1/nanobanana/generate",
+    proUrl: "https://api.nanobananaapi.ai/api/v1/nanobanana/generate-pro",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "nanobanana", // custom format
+    models: [
+      { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
+      { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
+    ],
+    supportedSizes: ["1024x1024"],
+  },
 };
 
 /**

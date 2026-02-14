@@ -3,6 +3,9 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderConnections, getCombos, getAllCustomModels } from "@/lib/localDb";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.js";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.js";
+import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.js";
+import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.js";
+import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.js";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -201,6 +204,40 @@ export async function GET() {
         owned_by: imgModel.provider,
         type: "image",
         supported_sizes: imgModel.supportedSizes,
+      });
+    }
+
+    // Add rerank models
+    for (const rerankModel of getAllRerankModels()) {
+      models.push({
+        id: rerankModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: rerankModel.provider,
+        type: "rerank",
+      });
+    }
+
+    // Add audio models (transcription + speech)
+    for (const audioModel of getAllAudioModels()) {
+      models.push({
+        id: audioModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: audioModel.provider,
+        type: "audio",
+        subtype: audioModel.subtype,
+      });
+    }
+
+    // Add moderation models
+    for (const modModel of getAllModerationModels()) {
+      models.push({
+        id: modModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: modModel.provider,
+        type: "moderation",
       });
     }
 

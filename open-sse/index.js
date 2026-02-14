@@ -108,3 +108,34 @@ export {
   processStreamingThinkDelta,
   flushThinkBuffer,
 } from "./utils/thinkTagParser.js";
+
+// Rerank
+export { handleRerank } from "./handlers/rerank.js";
+export {
+  RERANK_PROVIDERS,
+  getRerankProvider,
+  parseRerankModel,
+  getAllRerankModels,
+} from "./config/rerankRegistry.js";
+
+// Audio (Transcription + Speech)
+export { handleAudioTranscription } from "./handlers/audioTranscription.js";
+export { handleAudioSpeech } from "./handlers/audioSpeech.js";
+export {
+  AUDIO_TRANSCRIPTION_PROVIDERS,
+  AUDIO_SPEECH_PROVIDERS,
+  getTranscriptionProvider,
+  getSpeechProvider,
+  parseTranscriptionModel,
+  parseSpeechModel,
+  getAllAudioModels,
+} from "./config/audioRegistry.js";
+
+// Moderations
+export { handleModeration } from "./handlers/moderations.js";
+export {
+  MODERATION_PROVIDERS,
+  getModerationProvider,
+  parseModerationModel,
+  getAllModerationModels,
+} from "./config/moderationRegistry.js";
