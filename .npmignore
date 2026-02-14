@@ -3,24 +3,42 @@ data/
 **/data/
 **/db.json
 
-# Development
+# Source code (pre-built app/ is published instead)
 src/
-docs/
-test/
-tests/
 open-sse/
+docs/
+tests/
+cloud/
+images/
+logs/
+scripts/
 
-# Config files
+# Config/dev files
 *.md
 !README.md
 .gitignore
+.git/
+.github/
+.husky/
+.vscode/
 .env*
-jsconfig.json
 eslint.config.mjs
+prettier.config.mjs
 postcss.config.mjs
 next.config.mjs
 tsconfig.json
+playwright.config.ts
+next-env.d.ts
 
-# Build artifacts that shouldn't be published
-.next/cache/
-.next/standalone/data/
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Misc
+restart.sh
+AGENTS.md
+
+# Build artifacts (pre-built goes inside app/)
+.next/
+node_modules/

@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["192.168.*"],
   images: {
     unoptimized: true,
   },
-  env: {
-    NEXT_PUBLIC_CLOUD_URL: "https://omniroute.dev",
-  },
+  // NEXT_PUBLIC_CLOUD_URL is set in .env — do NOT hardcode here (it overrides .env)
   webpack: (config, { isServer }) => {
     // Ignore fs/path modules in browser bundle
     if (!isServer) {
