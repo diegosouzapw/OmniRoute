@@ -36,6 +36,6 @@ jobs:
           echo "Publishing version: $VERSION"
 
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || vars.NPM_TOKEN }}
