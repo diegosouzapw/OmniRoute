@@ -103,13 +103,14 @@ export function getAuditLog(filter = {}) {
   const limit = filter.limit || 100;
   const offset = filter.offset || 0;
 
+  /** @type {any[]} */
   const rows = db
     .prepare(`SELECT * FROM audit_log ${where} ORDER BY timestamp DESC LIMIT ? OFFSET ?`)
     .all(...params, limit, offset);
 
   return rows.map((row) => ({
     ...row,
-    details: row.details ? JSON.parse(row.details) : null,
+    details: row.details ? JSON.parse(String(row.details)) : null,
   }));
 }
 
