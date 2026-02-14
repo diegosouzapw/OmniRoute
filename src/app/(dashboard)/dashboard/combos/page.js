@@ -9,6 +9,7 @@ import {
   CardSkeleton,
   ModelSelectModal,
   ProxyConfigModal,
+  EmptyState,
 } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
@@ -189,20 +190,13 @@ export default function CombosPage() {
 
       {/* Combos List */}
       {combos.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-              <span className="material-symbols-outlined text-[32px]">layers</span>
-            </div>
-            <p className="text-text-main font-medium mb-1">No combos yet</p>
-            <p className="text-sm text-text-muted mb-4">
-              Create model combos with weighted routing and fallback support
-            </p>
-            <Button icon="add" onClick={() => setShowCreateModal(true)}>
-              Create Combo
-            </Button>
-          </div>
-        </Card>
+        <EmptyState
+          icon="🧩"
+          title="No combos yet"
+          description="Create model combos with weighted routing and fallback support"
+          actionLabel="Create Combo"
+          onAction={() => setShowCreateModal(true)}
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {combos.map((combo) => (
