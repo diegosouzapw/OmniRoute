@@ -93,6 +93,7 @@ export function removeFallback(model) {
  * @returns {Record<string, FallbackEntry[]>}
  */
 export function getAllFallbackChains() {
+  /** @type {Record<string, FallbackEntry[]>} */
   const result = {};
   for (const [model, chain] of fallbackChains.entries()) {
     result[model] = chain;
