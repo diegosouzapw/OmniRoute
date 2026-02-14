@@ -11,4 +11,5 @@ export {
   WeeklySquares7d,
   ModelTable,
   UsageDetail,
+  ProviderCostDonut,
 } from "./charts";

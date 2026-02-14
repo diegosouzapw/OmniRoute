@@ -9,11 +9,16 @@ import RoutingTab from "./components/RoutingTab";
 import ComboDefaultsTab from "./components/ComboDefaultsTab";
 import ProxyTab from "./components/ProxyTab";
 import AppearanceTab from "./components/AppearanceTab";
+import ThinkingBudgetTab from "./components/ThinkingBudgetTab";
+import SystemPromptTab from "./components/SystemPromptTab";
+import PricingTab from "./components/PricingTab";
 
 const tabs = [
   { id: "general", label: "General", icon: "settings" },
+  { id: "ai", label: "AI", icon: "smart_toy" },
   { id: "security", label: "Security", icon: "shield" },
   { id: "routing", label: "Routing", icon: "route" },
+  { id: "pricing", label: "Pricing", icon: "payments" },
   { id: "advanced", label: "Advanced", icon: "tune" },
 ];
 
@@ -62,6 +67,13 @@ export default function SettingsPage() {
             </>
           )}
 
+          {activeTab === "ai" && (
+            <div className="flex flex-col gap-6">
+              <ThinkingBudgetTab />
+              <SystemPromptTab />
+            </div>
+          )}
+
           {activeTab === "security" && <SecurityTab />}
 
           {activeTab === "routing" && (
@@ -70,6 +82,8 @@ export default function SettingsPage() {
               <ComboDefaultsTab />
             </div>
           )}
+
+          {activeTab === "pricing" && <PricingTab />}
 
           {activeTab === "advanced" && <ProxyTab />}
         </div>

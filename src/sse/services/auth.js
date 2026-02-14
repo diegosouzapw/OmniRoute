@@ -10,6 +10,8 @@ import {
   getEarliestRateLimitedUntil,
   formatRetryAfter,
   checkFallbackError,
+  isModelLocked,
+  lockModel,
 } from "@omniroute/open-sse/services/accountFallback.js";
 import * as log from "../utils/logger.js";
 
@@ -185,35 +187,46 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
 
 /**
  * Mark account as unavailable — reads backoffLevel from DB, calculates cooldown with exponential backoff, saves new level
+ * @param {string} connectionId
+ * @param {number} status - HTTP status code
+ * @param {string} errorText - Error message
+ * @param {string|null} provider
+ * @param {string|null} model - Model name for per-model lockout
  * @returns {{ shouldFallback: boolean, cooldownMs: number }}
  */
-export async function markAccountUnavailable(connectionId, status, errorText, provider = null) {
+export async function markAccountUnavailable(connectionId, status, errorText, provider = null, model = null) {
   // Read current connection to get backoffLevel
   const connections = await getProviderConnections({ provider });
   const conn = connections.find((c) => c.id === connectionId);
   const backoffLevel = conn?.backoffLevel || 0;
 
-  const { shouldFallback, cooldownMs, newBackoffLevel } = checkFallbackError(
+  const { shouldFallback, cooldownMs, newBackoffLevel, reason } = checkFallbackError(
     status,
     errorText,
-    backoffLevel
+    backoffLevel,
+    model
   );
   if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
   const rateLimitedUntil = getUnavailableUntil(cooldownMs);
-  const reason = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
+  const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
 
   await updateProviderConnection(connectionId, {
     rateLimitedUntil,
     testStatus: "unavailable",
-    lastError: reason,
+    lastError: errorMsg,
     errorCode: status,
     lastErrorAt: new Date().toISOString(),
     backoffLevel: newBackoffLevel ?? backoffLevel,
   });
 
-  if (provider && status && reason) {
-    console.error(`❌ ${provider} [${status}]: ${reason}`);
+  // Per-model lockout: lock the specific model if known
+  if (provider && model && cooldownMs > 0) {
+    lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+  }
+
+  if (provider && status && errorMsg) {
+    console.error(`❌ ${provider} [${status}]: ${errorMsg}`);
   }
 
   return { shouldFallback: true, cooldownMs };

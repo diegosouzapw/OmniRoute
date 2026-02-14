@@ -8,15 +8,77 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [0.2.0] — 2026-02-14
+
+Major feature release: advanced routing services, security hardening, cost analytics dashboard, and pricing management overhaul.
+
 ### Added
 
-- Model selector with autocomplete in Chat Tester and Test Bench modes — prevents "model does not exist" errors by letting users choose available models (`c25230c`)
-- OpenAPI specification at `docs/openapi.yaml` covering all 89 API endpoints (`7abda4d`)
-- Enhanced `restart.sh` with clean build, health check, graceful shutdown (Ctrl+C), and real-time log tailing (`0db8f3d`)
+#### Open-SSE Services
+
+- **Account Selector** — intelligent provider account selection with priority and load-balancing strategies (`accountSelector.js`)
+- **Context Manager** — request context tracking and lifecycle management (`contextManager.js`)
+- **IP Filter** — allowlist/blocklist IP filtering with CIDR support (`ipFilter.js`)
+- **Session Manager** — persistent session tracking across requests (`sessionManager.js`)
+- **Signature Cache** — request signature caching for deduplication (`signatureCache.js`)
+- **System Prompt** — global system prompt injection into all chat completions (`systemPrompt.js`)
+- **Thinking Budget** — token budget management for reasoning models (`thinkingBudget.js`)
+- **Wildcard Router** — pattern-based model routing with glob matching (`wildcardRouter.js`)
+- Enhanced **Rate Limit Manager** with sliding-window algorithm and per-key quotas
+
+#### Dashboard Settings
+
+- **IP Filter** settings tab — configure allowed/blocked IPs from the UI (`IPFilterSection.js`)
+- **System Prompt** settings tab — set global system prompt injection (`SystemPromptTab.js`)
+- **Thinking Budget** settings tab — configure reasoning token budgets (`ThinkingBudgetTab.js`)
+- **Pricing Tab** — full-page redesign with provider-centric organization, inline editing, search/filter, and save/reset per provider (`PricingTab.js`)
+- **Rate Limit Status** component on Usage page (`RateLimitStatus.js`)
+- **Sessions Tab** on Usage page — view and manage active sessions (`SessionsTab.js`)
+
+#### Usage & Cost Analytics
+
+- **Cost stat card** (amber accent) prominently displayed in analytics top row
+- **Provider Cost Donut** — new chart showing cost distribution across providers
+- **Daily Cost Trend** — cost line overlay (amber) on token trend chart with secondary Y-axis
+- **Model Table Cost column** — sortable cost column in model breakdown table
+- Cost-aware tooltip formatting throughout analytics charts
+
+#### Pricing API
+
+- `/api/pricing/models` endpoint — serves merged model catalog from 3 sources: registry, custom models (DB), and pricing-only models
+- Custom model badge in pricing page for user-imported models
+- `/api/rate-limits` endpoint for rate limit configuration
+- `/api/sessions` endpoint for session management
+- `/api/settings/ip-filter`, `/api/settings/system-prompt`, `/api/settings/thinking-budget` endpoints
+
+#### Cloudflare Worker
+
+- Cloud worker module for edge deployment (`cloud/`)
+
+#### Tests
+
+- Unit tests for account selector, context manager, IP filter, enhanced rate limiting, session manager, signature cache, system prompt, thinking budget, and wildcard router (9 new test files)
+
+#### Documentation
+
+- OpenAPI specification at `docs/openapi.yaml` covering all 89 API endpoints
+- Enhanced `restart.sh` with clean build, health check, graceful shutdown (Ctrl+C), and real-time log tailing
+- Updated architecture documentation and codebase docs with new services and API routes
+- Model selector with autocomplete in Chat Tester and Test Bench modes
 
 ### Fixed
 
-- Server port collision (EADDRINUSE) during restart — now kills port before `next start` (`e4c5c0c`)
+- Server port collision (EADDRINUSE) during restart — now kills port before `next start`
+- Icon rendering corrected from `material-symbols-rounded` to `material-symbols-outlined`
+- Pricing page only showed hardcoded registry models — now includes custom/imported models
+
+### Changed
+
+- Usage analytics layout reorganized: donuts separated into logical groupings, bottom stats simplified from 6 to 4 cards
+- Daily trend chart upgraded from `BarChart` to `ComposedChart` with dual Y-axes
+- Routing tab updated with new service integrations
 
 ---
 

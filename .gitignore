@@ -72,3 +72,4 @@ open-sse/test/*
 test-results/
 playwright-report/
 blob-report/
+cloud/
