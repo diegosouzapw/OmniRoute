@@ -86,10 +86,10 @@
 
 | ID   | Descrição                                                                                                                              | Prioridade  | Deps       | Status    |
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | --------- |
-| T-30 | Criar diretório `docs/adr/` com template e ≥ 6 ADRs (SQLite, Fallback, OAuth Strategy, JS+JSDoc, Single-Tenant, Translator Registry)   | 🟡 Moderada | T-16, T-27 | Pendente  |
+| T-30 | Criar diretório `docs/adr/` com template e ≥ 6 ADRs (SQLite, Fallback, OAuth Strategy, JS+JSDoc, Single-Tenant, Translator Registry)   | 🟡 Moderada | T-16, T-27 | Concluído |
 | T-31 | Criar `CONTRIBUTING.md` na raiz (6 seções: setup, workflow, standards, testing, PR, architecture) e `.github/PULL_REQUEST_TEMPLATE.md` | 🟡 Moderada | T-26       | Concluído |
 | T-32 | Expandir `SECURITY.md` para ≥ 2KB (disclosure, scope, SLA, contact, best practices, limitations)                                       | 🟡 Moderada | T-01       | Concluído |
-| T-33 | Padronizar JSDoc em ≥ 80% das funções exportadas em módulos priorizados; ativar ESLint rule `jsdoc/require-jsdoc`                      | 🟢 Menor    | T-27       | Pendente  |
+| T-33 | Padronizar JSDoc em ≥ 80% das funções exportadas em módulos priorizados; ativar ESLint rule `jsdoc/require-jsdoc`                      | 🟢 Menor    | T-27       | Concluído |
 
 ---
 
@@ -98,11 +98,11 @@
 | ID   | Descrição                                                                                                                                           | Prioridade  | Deps | Status    |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---- | --------- |
 | T-34 | Criar Zustand store `notificationStore.js` e componente `NotificationToast.js` com 4 tipos (success, error, warning, info); integrar no layout root | 🟡 Moderada | T-29 | Concluído |
-| T-35 | Executar auditoria a11y com axe-core em 4 páginas; corrigir: `role="dialog"`, focus trap, `aria-label`, contraste WCAG AA                           | 🟡 Moderada | T-29 | Pendente  |
+| T-35 | Executar auditoria a11y com axe-core em 4 páginas; corrigir: `role="dialog"`, focus trap, `aria-label`, contraste WCAG AA                           | 🟡 Moderada | T-29 | Concluído |
 | T-36 | Criar componente `Breadcrumbs.js` com mapeamento de paths para labels amigáveis e integrar no layout do dashboard                                   | 🟡 Moderada | —    | Concluído |
 | T-37 | Criar componente `EmptyState.js` e implementar em 4 seções (Providers, Combos, Usage, Request Logger)                                               | 🟡 Moderada | —    | Concluído |
-| T-38 | Implementar reset de senha via CLI (`npx omniroute reset-password`) e documentar no README e login page                                             | 🟡 Moderada | T-01 | Pendente  |
-| T-39 | Criar testes Playwright de responsividade (viewport 375px e 768px) para Login, Dashboard, Providers, Settings                                       | 🟢 Menor    | T-14 | Pendente  |
+| T-38 | Implementar reset de senha via CLI (`npx omniroute reset-password`) e documentar no README e login page                                             | 🟡 Moderada | T-01 | Concluído |
+| T-39 | Criar testes Playwright de responsividade (viewport 375px e 768px) para Login, Dashboard, Providers, Settings                                       | 🟢 Menor    | T-14 | Concluído |
 
 ---
 
@@ -112,8 +112,8 @@
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- | ---------- | --------- |
 | T-40 | Criar Policy Engine declarativo `src/lib/policies/policyEngine.js` com 3 tipos (routing, budget, access); API CRUD e tela no dashboard                       | 🟡 Moderada   | T-19, T-24 | Concluído |
 | T-41 | Implementar cache layer LRU `src/lib/cacheLayer.js` com hash key, TTL configurável, bypass via `x-no-cache`, e endpoint `/api/cache/stats`                   | 🟠 Importante | T-25       | Concluído |
-| T-42 | Criar framework de evals `src/lib/evals/evalRunner.js` com golden set (≥10 cases), endpoints trigger/results, e scorecard no dashboard                       | 🟡 Moderada   | T-22       | Pendente  |
-| T-43 | Implementar controles de compliance: `LOG_RETENTION_DAYS` com limpeza automática, opt-out `noLog` por API key, tabela `audit_log` para ações administrativas | 🟡 Moderada   | T-15       | Pendente  |
+| T-42 | Criar framework de evals `src/lib/evals/evalRunner.js` com golden set (≥10 cases), endpoints trigger/results, e scorecard no dashboard                       | 🟡 Moderada   | T-22       | Concluído |
+| T-43 | Implementar controles de compliance: `LOG_RETENTION_DAYS` com limpeza automática, opt-out `noLog` por API key, tabela `audit_log` para ações administrativas | 🟡 Moderada   | T-15       | Concluído |
 
 ---
 
@@ -133,18 +133,8 @@
 | ------------- | ------ | ---------- | --------- |
 | 🔴 Crítica    | 11     | 11         | 0         |
 | 🟠 Importante | 12     | 12         | 0         |
-| 🟡 Moderada   | 19     | 12         | 7         |
-| 🟢 Menor      | 4      | 2          | 2         |
-| **Total**     | **46** | **37**     | **9**     |
+| 🟡 Moderada   | 19     | 19         | 0         |
+| 🟢 Menor      | 4      | 4          | 0         |
+| **Total**     | **46** | **46**     | **0**     |
 
-## Tarefas Pendentes
-
-| ID   | Fase | Descrição                         | Prioridade  |
-| ---- | ---- | --------------------------------- | ----------- |
-| T-30 | F06  | ADRs (6+ decisões arquiteturais)  | 🟡 Moderada |
-| T-33 | F06  | JSDoc coverage ≥80% + ESLint rule | 🟢 Menor    |
-| T-35 | F07  | Auditoria a11y com axe-core       | 🟡 Moderada |
-| T-38 | F07  | Password reset CLI                | 🟡 Moderada |
-| T-39 | F07  | Playwright responsive tests       | 🟢 Menor    |
-| T-42 | F08  | Eval framework (golden set)       | 🟡 Moderada |
-| T-43 | F08  | Compliance (retention, audit log) | 🟡 Moderada |
+> ✅ **Todas as 46 tarefas foram concluídas.**
