@@ -849,3 +849,15 @@ export function getRegistryEntry(provider) {
 export function getRegisteredProviders() {
   return Object.keys(REGISTRY);
 }
+
+/**
+ * Get provider category: "oauth" or "apikey"
+ * Used by the resilience layer to apply different cooldown/backoff profiles.
+ * @param {string} provider - Provider ID or alias
+ * @returns {"oauth"|"apikey"}
+ */
+export function getProviderCategory(provider) {
+  const entry = getRegistryEntry(provider);
+  if (!entry) return "apikey"; // Safe default for unknown providers
+  return entry.authType === "apikey" ? "apikey" : "oauth";
+}

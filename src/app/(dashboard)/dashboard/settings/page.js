@@ -14,12 +14,14 @@ import SystemPromptTab from "./components/SystemPromptTab";
 import PricingTab from "./components/PricingTab";
 import ComplianceTab from "./components/ComplianceTab";
 import CacheStatsCard from "./components/CacheStatsCard";
+import ResilienceTab from "./components/ResilienceTab";
 
 const tabs = [
   { id: "general", label: "General", icon: "settings" },
   { id: "ai", label: "AI", icon: "smart_toy" },
   { id: "security", label: "Security", icon: "shield" },
   { id: "routing", label: "Routing", icon: "route" },
+  { id: "resilience", label: "Resilience", icon: "electrical_services" },
   { id: "pricing", label: "Pricing", icon: "payments" },
   { id: "advanced", label: "Advanced", icon: "tune" },
   { id: "compliance", label: "Compliance", icon: "policy" },
@@ -87,6 +89,8 @@ export default function SettingsPage() {
           )}
 
           {activeTab === "pricing" && <PricingTab />}
+
+          {activeTab === "resilience" && <ResilienceTab />}
 
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">

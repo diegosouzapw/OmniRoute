@@ -120,25 +120,55 @@ export const BACKOFF_STEPS_MS = [60_000, 120_000, 300_000, 600_000, 1_200_000];
 
 // Structured error classification for rate limiting decisions
 export const RateLimitReason = {
-  QUOTA_EXHAUSTED: 'quota_exhausted',        // Daily/monthly quota depleted
-  RATE_LIMIT_EXCEEDED: 'rate_limit_exceeded', // RPM/RPD limits hit
-  MODEL_CAPACITY: 'model_capacity',           // Model overloaded (529, 503)
-  SERVER_ERROR: 'server_error',               // 5xx errors
-  AUTH_ERROR: 'auth_error',                   // 401, 403
-  UNKNOWN: 'unknown',
+  QUOTA_EXHAUSTED: "quota_exhausted", // Daily/monthly quota depleted
+  RATE_LIMIT_EXCEEDED: "rate_limit_exceeded", // RPM/RPD limits hit
+  MODEL_CAPACITY: "model_capacity", // Model overloaded (529, 503)
+  SERVER_ERROR: "server_error", // 5xx errors
+  AUTH_ERROR: "auth_error", // 401, 403
+  UNKNOWN: "unknown",
 };
 
 // Error-based cooldown times (aligned with CLIProxyAPI)
 export const COOLDOWN_MS = {
-  unauthorized: 2 * 60 * 1000, // 401 → 30 min
-  paymentRequired: 2 * 60 * 1000, // 402/403 → 30 min
+  unauthorized: 2 * 60 * 1000, // 401 → 2 min
+  paymentRequired: 2 * 60 * 1000, // 402/403 → 2 min
   notFound: 2 * 60 * 1000, // 404 → 2 minutes
-  transient: 30 * 1000, // 408/500/502/503/504 → 1 min
+  transientInitial: 5 * 1000, // 408/500/502/503/504 first hit → 5s (backoff from here)
+  transientMax: 60 * 1000, // 502/503/504 backoff ceiling → 60s
+  transient: 5 * 1000, // Legacy alias → points to transientInitial
   requestNotAllowed: 5 * 1000, // "Request not allowed" → 5 sec
   // Legacy aliases for backward compatibility
   rateLimit: 2 * 60 * 1000,
   serviceUnavailable: 2 * 1000,
   authExpired: 2 * 60 * 1000,
+};
+
+// ─── Provider Resilience Profiles ───────────────────────────────────────────
+// Separate behavior for OAuth (low-limit, session-based) vs API Key (high-limit, metered)
+export const PROVIDER_PROFILES = {
+  oauth: {
+    transientCooldown: 5000, // 5s (session tokens — short recovery)
+    rateLimitCooldown: 60000, // 60s default when no retry-after header
+    maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
+    circuitBreakerThreshold: 3, // Opens fast (low limit providers)
+    circuitBreakerReset: 60000, // 1min reset
+  },
+  apikey: {
+    transientCooldown: 3000, // 3s (API providers recover faster)
+    rateLimitCooldown: 0, // 0 = respect retry-after header from provider
+    maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
+    circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
+    circuitBreakerReset: 30000, // 30s reset
+  },
+};
+
+// Default rate limit values for API Key providers (auto-enabled safety net)
+// These are intentionally HIGH — they won't restrict normal usage.
+// Real limits are learned from provider response headers.
+export const DEFAULT_API_LIMITS = {
+  requestsPerMinute: 100, // 100 RPM (most APIs allow 60-600 RPM)
+  minTimeBetweenRequests: 200, // 200ms minimum gap
+  concurrentRequests: 10, // Max 10 parallel per provider
 };
 
 // Skip patterns - requests containing these texts will bypass provider

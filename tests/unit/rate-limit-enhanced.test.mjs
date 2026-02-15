@@ -164,10 +164,11 @@ test("checkFallbackError: server error has reason", () => {
   assert.equal(result.reason, RateLimitReason.SERVER_ERROR);
 });
 
-test("checkFallbackError: transient errors don't increase backoff level", () => {
+test("checkFallbackError: transient errors now apply exponential backoff", () => {
   const result = checkFallbackError(502, "", 5);
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.newBackoffLevel, undefined);
+  assert.equal(result.newBackoffLevel, 6); // Backoff now increments for transients
+  assert.ok(result.cooldownMs > 0, "cooldownMs should be positive");
 });
 
 // ─── Backoff Steps Tests ────────────────────────────────────────────────────
@@ -186,10 +187,10 @@ test("getBackoffDuration: caps at max step", () => {
 // ─── Exponential backoff (original) Tests ───────────────────────────────────
 
 test("getQuotaCooldown: exponential progression", () => {
-  assert.equal(getQuotaCooldown(0), 1000);      // 1s
-  assert.equal(getQuotaCooldown(1), 2000);      // 2s
-  assert.equal(getQuotaCooldown(3), 8000);      // 8s
-  assert.ok(getQuotaCooldown(20) <= 120000);    // Capped at 2min
+  assert.equal(getQuotaCooldown(0), 1000); // 1s
+  assert.equal(getQuotaCooldown(1), 2000); // 2s
+  assert.equal(getQuotaCooldown(3), 8000); // 8s
+  assert.ok(getQuotaCooldown(20) <= 120000); // Capped at 2min
 });
 
 // ─── Account Health Tests ───────────────────────────────────────────────────
