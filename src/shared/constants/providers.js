@@ -329,3 +329,10 @@ export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
 
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS = ["antigravity", "kiro", "github", "codex", "claude"];
+
+// ── Zod validation at module load (Phase 7.2) ──
+import { validateProviders } from "../validation/providerSchema.js";
+
+validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
+validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
+validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
