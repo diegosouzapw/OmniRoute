@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 // ─── Policy Engine Tests ──────────────────────────
 
-import { PolicyEngine } from "../../src/lib/policies/policyEngine.js";
+import { PolicyEngine } from "../../src/domain/policyEngine.js";
 
 test("PolicyEngine: evaluates empty policy list as allowed", () => {
   const engine = new PolicyEngine();

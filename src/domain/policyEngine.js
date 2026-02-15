@@ -108,3 +108,114 @@ export function evaluateFirstAllowed(models, baseRequest) {
   const lastVerdict = evaluateRequest({ ...baseRequest, model: models[models.length - 1] });
   return { model: null, verdict: lastVerdict };
 }
+
+// ─── Class-Based Policy Engine ───────────────────────────────────────────────
+
+/**
+ * Matches a value against a glob pattern (supports * wildcard).
+ * @param {string} pattern - Glob pattern (e.g. "gpt-*")
+ * @param {string} value - Value to test
+ * @returns {boolean}
+ */
+function globMatch(pattern, value) {
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+  return new RegExp(`^${escaped}$`).test(value);
+}
+
+/**
+ * Declarative Policy Engine — supports routing, access, and budget policies
+ * with glob-based model matching and priority ordering.
+ *
+ * @example
+ * const engine = new PolicyEngine();
+ * engine.loadPolicies([{ id: "1", name: "prefer-openai", type: "routing", enabled: true, priority: 1, conditions: { model_pattern: "gpt-*" }, actions: { prefer_provider: ["openai"] } }]);
+ * const result = engine.evaluate({ model: "gpt-4o" });
+ */
+export class PolicyEngine {
+  constructor() {
+    /** @type {Array} */
+    this._policies = [];
+  }
+
+  /** Load a full set of policies (replaces existing). */
+  loadPolicies(policies) {
+    this._policies = [...policies];
+  }
+
+  /** Add a single policy. */
+  addPolicy(policy) {
+    this._policies.push(policy);
+  }
+
+  /** Remove a policy by id. */
+  removePolicy(id) {
+    this._policies = this._policies.filter((p) => p.id !== id);
+  }
+
+  /** Get current policies. */
+  getPolicies() {
+    return [...this._policies];
+  }
+
+  /**
+   * Evaluate a request context against all loaded policies.
+   * @param {{ model: string }} context
+   * @returns {{ allowed: boolean, reason?: string, preferredProviders: string[], appliedPolicies: string[], maxTokens?: number }}
+   */
+  evaluate(context) {
+    const result = {
+      allowed: true,
+      reason: undefined,
+      preferredProviders: [],
+      appliedPolicies: [],
+      maxTokens: undefined,
+    };
+
+    const sorted = [...this._policies]
+      .filter((p) => p.enabled)
+      .sort((a, b) => a.priority - b.priority);
+
+    for (const policy of sorted) {
+      // Check model condition
+      if (policy.conditions?.model_pattern) {
+        if (!globMatch(policy.conditions.model_pattern, context.model)) {
+          continue; // Model doesn't match — skip this policy
+        }
+      }
+
+      // Apply actions based on policy type
+      switch (policy.type) {
+        case "routing":
+          if (policy.actions?.prefer_provider) {
+            result.preferredProviders.push(...policy.actions.prefer_provider);
+          }
+          result.appliedPolicies.push(policy.name);
+          break;
+
+        case "access":
+          if (policy.actions?.block_model) {
+            const blocked = policy.actions.block_model.some((pattern) =>
+              globMatch(pattern, context.model)
+            );
+            if (blocked) {
+              result.allowed = false;
+              result.reason = `Model "${context.model}" blocked by policy "${policy.name}"`;
+              result.appliedPolicies.push(policy.name);
+              return result;
+            }
+          }
+          result.appliedPolicies.push(policy.name);
+          break;
+
+        case "budget":
+          if (policy.actions?.max_tokens != null) {
+            result.maxTokens = policy.actions.max_tokens;
+          }
+          result.appliedPolicies.push(policy.name);
+          break;
+      }
+    }
+
+    return result;
+  }
+}
