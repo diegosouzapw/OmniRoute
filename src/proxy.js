@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { fetchWithTimeout } from "./shared/utils/fetchTimeout.js";
 import { generateRequestId } from "./shared/utils/requestId.js";
+import { getSettings } from "./lib/localDb.js";
 
 // FASE-01: Fail-fast — no hardcoded fallback. Server must have JWT_SECRET configured.
 if (!process.env.JWT_SECRET) {
@@ -42,25 +42,22 @@ export async function proxy(request) {
       }
     }
 
-    const origin = request.nextUrl.origin;
     try {
-      // Pipeline: Use fetchWithTimeout instead of bare fetch
-      const res = await fetchWithTimeout(`${origin}/api/settings`, { timeoutMs: 5000 });
-      const data = await res.json();
+      // Direct import — no HTTP self-fetch overhead
+      const settings = await getSettings();
       // Skip auth if login is not required
-      if (data.requireLogin === false) {
+      if (settings.requireLogin === false) {
         return response;
       }
       // Skip auth if no password has been set yet (fresh install)
       // This prevents an unresolvable loop where requireLogin=true but no password exists
-      if (!data.hasPassword) {
+      if (!settings.password) {
         return response;
       }
     } catch (err) {
       // FASE-01: Log settings fetch errors instead of silencing them
-      console.error("[Middleware] settings_error: Settings fetch failed:", err.message, {
+      console.error("[Middleware] settings_error: Settings read failed:", err.message, {
         path: pathname,
-        origin,
         requestId,
       });
       // On error, require login
@@ -79,4 +76,3 @@ export async function proxy(request) {
 export const config = {
   matcher: ["/", "/dashboard/:path*"],
 };
-

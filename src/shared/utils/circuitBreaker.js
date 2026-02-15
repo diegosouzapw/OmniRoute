@@ -8,8 +8,18 @@
  *
  * States: CLOSED → OPEN → HALF_OPEN → CLOSED
  *
+ * State is persisted in SQLite via domainState.js for restart durability.
+ *
  * @module shared/utils/circuitBreaker
  */
+
+import {
+  saveCircuitBreakerState,
+  loadCircuitBreakerState,
+  loadAllCircuitBreakerStates,
+  deleteCircuitBreakerState,
+  deleteAllCircuitBreakerStates,
+} from "../../lib/db/domainState.js";
 
 const STATE = {
   CLOSED: "CLOSED",
@@ -44,6 +54,50 @@ export class CircuitBreaker {
     this.successCount = 0;
     this.lastFailureTime = null;
     this.halfOpenAllowed = 0;
+
+    // Try to restore state from DB
+    this._restoreFromDb();
+  }
+
+  /**
+   * Restore state from SQLite if available.
+   * @private
+   */
+  _restoreFromDb() {
+    try {
+      const saved = loadCircuitBreakerState(this.name);
+      if (saved) {
+        this.state = saved.state;
+        this.failureCount = saved.failureCount;
+        this.lastFailureTime = saved.lastFailureTime;
+        if (this.state === STATE.HALF_OPEN) {
+          this.halfOpenAllowed = this.halfOpenRequests;
+        }
+      }
+    } catch {
+      // DB may not be ready yet (build phase)
+    }
+  }
+
+  /**
+   * Persist current state to SQLite.
+   * @private
+   */
+  _persistToDb() {
+    try {
+      saveCircuitBreakerState(this.name, {
+        state: this.state,
+        failureCount: this.failureCount,
+        lastFailureTime: this.lastFailureTime,
+        options: {
+          failureThreshold: this.failureThreshold,
+          resetTimeout: this.resetTimeout,
+          halfOpenRequests: this.halfOpenRequests,
+        },
+      });
+    } catch {
+      // Non-critical: in-memory still works
+    }
   }
 
   /**
@@ -123,6 +177,7 @@ export class CircuitBreaker {
     this.failureCount = 0;
     this.successCount = 0;
     this.lastFailureTime = null;
+    this._persistToDb();
   }
 
   // ─── Internal Methods ────────────────────────
@@ -135,6 +190,7 @@ export class CircuitBreaker {
     }
     // In CLOSED state, just reset failure count
     this.failureCount = 0;
+    this._persistToDb();
   }
 
   _onFailure() {
@@ -146,6 +202,7 @@ export class CircuitBreaker {
     } else if (this.failureCount >= this.failureThreshold) {
       this._transition(STATE.OPEN);
     }
+    this._persistToDb();
   }
 
   _shouldAttemptReset() {
@@ -210,7 +267,34 @@ export function getCircuitBreaker(name, options) {
  * @returns {Array<{ name: string, state: string, failureCount: number }>}
  */
 export function getAllCircuitBreakerStatuses() {
+  // Merge registry with any persisted states not yet loaded
+  try {
+    const persisted = loadAllCircuitBreakerStates();
+    for (const cb of persisted) {
+      if (!registry.has(cb.name)) {
+        // Load the breaker (will restore from DB in constructor)
+        getCircuitBreaker(cb.name);
+      }
+    }
+  } catch {
+    // Use registry only
+  }
   return Array.from(registry.values()).map((cb) => cb.getStatus());
+}
+
+/**
+ * Reset all circuit breakers (for admin/testing).
+ */
+export function resetAllCircuitBreakers() {
+  for (const cb of registry.values()) {
+    cb.reset();
+  }
+  registry.clear();
+  try {
+    deleteAllCircuitBreakerStates();
+  } catch {
+    // Non-critical
+  }
 }
 
 export { STATE };

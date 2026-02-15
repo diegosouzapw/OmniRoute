@@ -35,14 +35,16 @@ async function startServer() {
     // Log server start event to audit log
     logAuditEvent({ action: "server.start", details: { timestamp: new Date().toISOString() } });
   } catch (error) {
-    console.log("Error initializing cloud sync:", error);
+    console.error("[FATAL] Error initializing cloud sync:", error);
     process.exit(1);
   }
 }
 
 // Start the server initialization
-startServer().catch(console.log);
+startServer().catch((err) => {
+  console.error("[FATAL] Server initialization failed:", err);
+  process.exit(1);
+});
 
 // Export for use as module if needed
 export default startServer;
-

@@ -14,20 +14,22 @@ import {
   STATE,
 } from "../../src/shared/utils/circuitBreaker.js";
 
+const cbSuffix = `-${Date.now()}`;
+
 test("CircuitBreaker: starts in CLOSED state", () => {
-  const cb = new CircuitBreaker("test-closed");
+  const cb = new CircuitBreaker(`test-closed${cbSuffix}`);
   assert.equal(cb.getStatus().state, STATE.CLOSED);
 });
 
 test("CircuitBreaker: stays CLOSED on success", async () => {
-  const cb = new CircuitBreaker("test-success");
+  const cb = new CircuitBreaker(`test-success${cbSuffix}`);
   const result = await cb.execute(async () => "ok");
   assert.equal(result, "ok");
   assert.equal(cb.getStatus().state, STATE.CLOSED);
 });
 
 test("CircuitBreaker: opens after failure threshold", async () => {
-  const cb = new CircuitBreaker("test-open", { failureThreshold: 3 });
+  const cb = new CircuitBreaker(`test-open${cbSuffix}`, { failureThreshold: 3 });
 
   for (let i = 0; i < 3; i++) {
     try {
@@ -42,7 +44,10 @@ test("CircuitBreaker: opens after failure threshold", async () => {
 });
 
 test("CircuitBreaker: rejects requests when open", async () => {
-  const cb = new CircuitBreaker("test-reject", { failureThreshold: 1, resetTimeout: 60000 });
+  const cb = new CircuitBreaker(`test-reject${cbSuffix}`, {
+    failureThreshold: 1,
+    resetTimeout: 60000,
+  });
 
   try {
     await cb.execute(async () => {
@@ -57,7 +62,10 @@ test("CircuitBreaker: rejects requests when open", async () => {
 });
 
 test("CircuitBreaker: transitions to HALF_OPEN after reset timeout", async () => {
-  const cb = new CircuitBreaker("test-halfopen", { failureThreshold: 1, resetTimeout: 10 });
+  const cb = new CircuitBreaker(`test-halfopen${cbSuffix}`, {
+    failureThreshold: 1,
+    resetTimeout: 10,
+  });
 
   try {
     await cb.execute(async () => {
@@ -77,7 +85,7 @@ test("CircuitBreaker: transitions to HALF_OPEN after reset timeout", async () =>
 });
 
 test("CircuitBreaker: reset() forces back to CLOSED", () => {
-  const cb = new CircuitBreaker("test-reset", { failureThreshold: 1 });
+  const cb = new CircuitBreaker(`test-reset${cbSuffix}`, { failureThreshold: 1 });
   cb.state = STATE.OPEN;
   cb.failureCount = 5;
   cb.reset();
@@ -87,7 +95,7 @@ test("CircuitBreaker: reset() forces back to CLOSED", () => {
 
 test("CircuitBreaker: calls onStateChange callback", async () => {
   const changes = [];
-  const cb = new CircuitBreaker("test-callback", {
+  const cb = new CircuitBreaker(`test-callback${cbSuffix}`, {
     failureThreshold: 1,
     onStateChange: (name, from, to) => changes.push({ name, from, to }),
   });
@@ -133,10 +141,7 @@ test("requestTimeout: getProviderTimeout returns provider-specific value", () =>
 
 // ─── Correlation ID Tests ────────────────────────────
 
-import {
-  getCorrelationId,
-  runWithCorrelation,
-} from "../../src/shared/middleware/correlationId.js";
+import { getCorrelationId, runWithCorrelation } from "../../src/shared/middleware/correlationId.js";
 
 test("correlationId: getCorrelationId returns undefined outside context", () => {
   assert.equal(getCorrelationId(), undefined);

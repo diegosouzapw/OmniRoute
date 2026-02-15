@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+#### Phase 5 — Foundation & Security
+
+- **Domain State Persistence** — SQLite-backed persistence for 4 domain modules (fallback chains, budgets, cost history, lockout state, circuit breakers) via `domainState.js` with 5 new tables in `core.js`
+- **Write-Through Cache** — `fallbackPolicy.js`, `costRules.js`, `lockoutPolicy.js`, and `circuitBreaker.js` now use in-memory Map + SQLite write-through for state survival across restarts
+- **Race Condition Fix** — `route.js` `ensureInitialized()` replaced boolean flag with Promise-based singleton to prevent parallel initialization
+
+#### Phase 6 — Architecture Refactoring
+
+- **OAuth Provider Extraction** — Monolithic `providers.js` (1051 → 144 lines) split into 12 individual modules under `src/lib/oauth/providers/` with a thin wrapper + registry index
+- **Policy Engine** — Centralized request evaluation against lockout, budget, and fallback policies (`policyEngine.js`) with `evaluateRequest()` and `evaluateFirstAllowed()` entry points
+- **Deterministic Round-Robin** — `comboResolver.js` now uses persistent `Map<string, number>` counter per combo instead of time-based modulo
+- **Telemetry Window Accuracy** — `requestTelemetry.js` now adds `recordedAt` timestamps to history entries and accurately filters by `windowMs`
+
+#### Tests
+
+- 22 new tests: `domain-persistence.test.mjs` (16 tests), `policy-engine.test.mjs` (6 tests)
+- Test isolation fix for `observability-fase04.test.mjs` — unique CircuitBreaker names prevent DB state bleed
+- Total: **295+ tests passing** (up from 273 in v0.3.0)
+
+### Fixed
+
+- **Proxy decoupling** — `proxy.js` no longer self-fetches `/api/settings`; imports `getSettings()` directly from `localDb`
+- **Default password** — `.env.example` `INITIAL_PASSWORD` changed from `123456` → `CHANGEME`
+- **Server init error handling** — `server-init.js` now uses `console.error` + `process.exit(1)` instead of silent `console.log`
+
 ---
 
 ## [0.3.0] — 2026-02-15

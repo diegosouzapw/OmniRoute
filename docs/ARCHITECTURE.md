@@ -29,11 +29,14 @@ Core capabilities:
 - Anti-thundering herd protection with mutex locking
 - Signature-based request deduplication cache
 - Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
+- Policy engine for centralized request evaluation (lockout → budget → fallback)
 - Request telemetry with p50/p95/p99 latency aggregation
 - Correlation ID (X-Request-Id) for end-to-end tracing
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Resilience UI dashboard with real-time circuit breaker status
+- Modular OAuth providers (12 individual modules under `src/lib/oauth/providers/`)
 
 Primary runtime model:
 
@@ -198,12 +201,20 @@ Domain layer modules:
 - Fallback policy: `src/lib/domain/fallbackPolicy.js`
 - Combo resolver: `src/lib/domain/comboResolver.js`
 - Lockout policy: `src/lib/domain/lockoutPolicy.js`
+- Policy engine: `src/domain/policyEngine.js` — centralized lockout → budget → fallback evaluation
 - Error codes catalog: `src/lib/domain/errorCodes.js`
 - Request ID: `src/lib/domain/requestId.js`
 - Fetch timeout: `src/lib/domain/fetchTimeout.js`
 - Request telemetry: `src/lib/domain/requestTelemetry.js`
 - Compliance/audit: `src/lib/domain/compliance/index.js`
 - Eval runner: `src/lib/domain/evalRunner.js`
+- Domain state persistence: `src/lib/db/domainState.js` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
+
+OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
+
+- Registry index: `src/lib/oauth/providers/index.js`
+- Individual providers: `claude.js`, `codex.js`, `gemini.js`, `antigravity.js`, `iflow.js`, `qwen.js`, `kimi-coding.js`, `github.js`, `kiro.js`, `cursor.js`, `kilocode.js`, `cline.js`
+- Thin wrapper: `src/lib/oauth/providers.js` — re-exports from individual modules
 
 ## 3) Persistence Layer
 
@@ -219,6 +230,12 @@ Usage DB:
 - files: `${DATA_DIR}/usage.json`, `${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`
 - follows same base directory policy as `localDb` (`DATA_DIR`, then `XDG_CONFIG_HOME/omniroute` when set)
 - decomposed into focused sub-modules: `migrations.js`, `usageHistory.js`, `costCalculator.js`, `usageStats.js`, `callLogs.js`
+
+Domain State DB (SQLite):
+
+- `src/lib/db/domainState.js` — CRUD operations for domain state
+- Tables (created in `src/lib/db/core.js`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
 
 ## 4) Auth + Security Surfaces
 

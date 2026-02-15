@@ -13,6 +13,9 @@
  * @typedef {import('./types.js').Combo} Combo
  */
 
+/** @type {Map<string, number>} Persistent round-robin counters per combo */
+const roundRobinCounters = new Map();
+
 /**
  * Resolve which model to use from a combo based on its strategy.
  *
@@ -28,9 +31,7 @@ export function resolveComboModel(combo, context = {}) {
   }
 
   // Normalize models to { model, weight } format
-  const normalized = models.map((m) =>
-    typeof m === "string" ? { model: m, weight: 1 } : m
-  );
+  const normalized = models.map((m) => (typeof m === "string" ? { model: m, weight: 1 } : m));
 
   const strategy = combo.strategy || "priority";
 
@@ -39,9 +40,15 @@ export function resolveComboModel(combo, context = {}) {
       return { model: normalized[0].model, index: 0 };
 
     case "round-robin": {
-      // Use a simple counter based on current time + combo id hash
-      const tick = Date.now() % normalized.length;
-      return { model: normalized[tick].model, index: tick };
+      // Persistent counter per combo for deterministic round-robin
+      const comboKey = combo.id || combo.name || "default";
+      if (!roundRobinCounters.has(comboKey)) {
+        roundRobinCounters.set(comboKey, 0);
+      }
+      const counter = roundRobinCounters.get(comboKey);
+      const index = counter % normalized.length;
+      roundRobinCounters.set(comboKey, counter + 1);
+      return { model: normalized[index].model, index };
     }
 
     case "random": {
@@ -87,8 +94,6 @@ export function resolveComboModel(combo, context = {}) {
  * @returns {string[]} Remaining models in order
  */
 export function getComboFallbacks(combo, primaryIndex) {
-  const models = (combo.models || []).map((m) =>
-    typeof m === "string" ? m : m.model
-  );
+  const models = (combo.models || []).map((m) => (typeof m === "string" ? m : m.model));
   return [...models.slice(primaryIndex + 1), ...models.slice(0, primaryIndex)];
 }
