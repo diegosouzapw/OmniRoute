@@ -8,32 +8,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [0.5.0] — 2026-02-15
+
+Dashboard refinements, LLM evaluation framework, combo strategies expansion, and UI/UX polish.
+
 ### Added
+
+#### Dashboard & UI
+
+- **Shared UI Component Library** — Refactored dashboard with reusable component architecture
+- **ModelAvailabilityBadge** — New component showing model availability status per provider
+- **Landing Page Retheme** — Visual refresh with updated color palette and modern aesthetic
+- **Providers Overview Modal** — Click provider cards to view available models with copy-to-clipboard
+
+#### Combo Strategies
+
+- **Random Strategy** — Random model selection for even distribution
+- **Least-Used Strategy** — Routes to the least recently used model using combo metrics
+- **Cost-Optimized Strategy** — Leverages pricing infrastructure to route to cheapest available model
+
+#### LLM Evaluations
+
+- **Golden Set Testing** — Built-in evaluation framework with 10 test cases
+- **API Key Integration** — EvalsTab now makes real LLM calls through the proxy endpoint
+- **Provider Alias Filtering** — Enhanced model filtering with provider-aware aliases
+- **4 Match Strategies** — exact, contains, regex, and custom JS function evaluation
 
 #### Phase 5 — Foundation & Security
 
-- **Domain State Persistence** — SQLite-backed persistence for 4 domain modules (fallback chains, budgets, cost history, lockout state, circuit breakers) via `domainState.js` with 5 new tables in `core.js`
-- **Write-Through Cache** — `fallbackPolicy.js`, `costRules.js`, `lockoutPolicy.js`, and `circuitBreaker.js` now use in-memory Map + SQLite write-through for state survival across restarts
-- **Race Condition Fix** — `route.js` `ensureInitialized()` replaced boolean flag with Promise-based singleton to prevent parallel initialization
+- **Domain State Persistence** — SQLite-backed persistence for 4 domain modules via `domainState.js`
+- **Write-Through Cache** — In-memory Map + SQLite write-through for state survival across restarts
+- **Race Condition Fix** — `route.js` `ensureInitialized()` with Promise-based singleton
 
 #### Phase 6 — Architecture Refactoring
 
-- **OAuth Provider Extraction** — Monolithic `providers.js` (1051 → 144 lines) split into 12 individual modules under `src/lib/oauth/providers/` with a thin wrapper + registry index
-- **Policy Engine** — Centralized request evaluation against lockout, budget, and fallback policies (`policyEngine.js`) with `evaluateRequest()` and `evaluateFirstAllowed()` entry points
-- **Deterministic Round-Robin** — `comboResolver.js` now uses persistent `Map<string, number>` counter per combo instead of time-based modulo
-- **Telemetry Window Accuracy** — `requestTelemetry.js` now adds `recordedAt` timestamps to history entries and accurately filters by `windowMs`
+- **OAuth Provider Extraction** — `providers.js` (1051 → 144 lines) split into 12 modules
+- **Policy Engine** — Centralized request evaluation (`policyEngine.js`)
+- **Deterministic Round-Robin** — Persistent counter per combo
+- **Telemetry Window Accuracy** — `recordedAt` timestamps with accurate `windowMs` filtering
 
 #### Tests
 
-- 22 new tests: `domain-persistence.test.mjs` (16 tests), `policy-engine.test.mjs` (6 tests)
-- Test isolation fix for `observability-fase04.test.mjs` — unique CircuitBreaker names prevent DB state bleed
+- 22 new tests: `domain-persistence.test.mjs` (16), `policy-engine.test.mjs` (6)
 - Total: **295+ tests passing** (up from 273 in v0.3.0)
 
 ### Fixed
 
-- **Proxy decoupling** — `proxy.js` no longer self-fetches `/api/settings`; imports `getSettings()` directly from `localDb`
-- **Default password** — `.env.example` `INITIAL_PASSWORD` changed from `123456` → `CHANGEME`
-- **Server init error handling** — `server-init.js` now uses `console.error` + `process.exit(1)` instead of silent `console.log`
+- **Proxy decoupling** — `proxy.js` imports `getSettings()` directly from `localDb`
+- **Default password** — `.env.example` `INITIAL_PASSWORD` changed to `CHANGEME`
+- **Server init error handling** — `server-init.js` uses `console.error` + `process.exit(1)`
+- **Chat completions TypeError** — Fixed `ensureInitialized` error in API route
+- **Evals Tab** — Fixed case count display and added real LLM call integration
+- **Routing Tab** — Removed deprecated random strategy option
 
 ---
 
