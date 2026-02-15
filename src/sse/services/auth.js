@@ -18,6 +18,11 @@ import * as log from "../utils/logger.js";
 // Mutex to prevent race conditions during account selection
 let selectionMutex = Promise.resolve();
 
+// ─── Anti-Thundering Herd: per-connection mutex for markAccountUnavailable ───
+// Prevents multiple concurrent requests from marking the same connection
+// unavailable in parallel, which was the root cause of cascading 502 lockouts.
+const markMutexes = new Map();
+
 /**
  * Get provider credentials from localDb
  * Filters out unavailable accounts and returns the selected account based on strategy
@@ -194,42 +199,85 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
  * @param {string|null} model - Model name for per-model lockout
  * @returns {{ shouldFallback: boolean, cooldownMs: number }}
  */
-export async function markAccountUnavailable(connectionId, status, errorText, provider = null, model = null) {
-  // Read current connection to get backoffLevel
-  const connections = await getProviderConnections({ provider });
-  const conn = connections.find((c) => c.id === connectionId);
-  const backoffLevel = conn?.backoffLevel || 0;
-
-  const { shouldFallback, cooldownMs, newBackoffLevel, reason } = checkFallbackError(
-    status,
-    errorText,
-    backoffLevel,
-    model
+export async function markAccountUnavailable(
+  connectionId,
+  status,
+  errorText,
+  provider = null,
+  model = null
+) {
+  // ─── Anti-Thundering Herd Mutex ─────────────────────────────────
+  // Wait for any in-flight markAccountUnavailable call for the SAME connection.
+  // This prevents 5 concurrent 502s from each independently marking the account
+  // with backoffLevel 0 → 1, when only the first should.
+  const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
+  let resolveMutex;
+  markMutexes.set(
+    connectionId,
+    new Promise((resolve) => {
+      resolveMutex = resolve;
+    })
   );
-  if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
-  const rateLimitedUntil = getUnavailableUntil(cooldownMs);
-  const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
+  try {
+    await currentMutex;
 
-  await updateProviderConnection(connectionId, {
-    rateLimitedUntil,
-    testStatus: "unavailable",
-    lastError: errorMsg,
-    errorCode: status,
-    lastErrorAt: new Date().toISOString(),
-    backoffLevel: newBackoffLevel ?? backoffLevel,
-  });
+    // Read current connection to get backoffLevel
+    const connections = await getProviderConnections({ provider });
+    const conn = connections.find((c) => c.id === connectionId);
+    const backoffLevel = conn?.backoffLevel || 0;
 
-  // Per-model lockout: lock the specific model if known
-  if (provider && model && cooldownMs > 0) {
-    lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+    // ─── Anti-Thundering Herd Guard ─────────────────────────────────
+    // If this connection was ALREADY marked unavailable by a prior concurrent
+    // request (within the mutex window), skip re-marking to avoid resetting
+    // the cooldown timer or double-incrementing the backoff level.
+    if (conn?.rateLimitedUntil && new Date(conn.rateLimitedUntil).getTime() > Date.now()) {
+      log.info(
+        "AUTH",
+        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn.rateLimitedUntil}), skipping duplicate mark`
+      );
+      return {
+        shouldFallback: true,
+        cooldownMs: new Date(conn.rateLimitedUntil).getTime() - Date.now(),
+      };
+    }
+
+    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = checkFallbackError(
+      status,
+      errorText,
+      backoffLevel,
+      model,
+      provider // ← Now passes provider for profile-aware cooldowns
+    );
+    if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
+
+    const rateLimitedUntil = getUnavailableUntil(cooldownMs);
+    const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
+
+    await updateProviderConnection(connectionId, {
+      rateLimitedUntil,
+      testStatus: "unavailable",
+      lastError: errorMsg,
+      errorCode: status,
+      lastErrorAt: new Date().toISOString(),
+      backoffLevel: newBackoffLevel ?? backoffLevel,
+    });
+
+    // Per-model lockout: lock the specific model if known
+    if (provider && model && cooldownMs > 0) {
+      lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+    }
+
+    if (provider && status && errorMsg) {
+      console.error(`❌ ${provider} [${status}]: ${errorMsg}`);
+    }
+
+    return { shouldFallback: true, cooldownMs };
+  } finally {
+    if (resolveMutex) resolveMutex();
+    // Cleanup stale mutex entries (avoid memory leak)
+    markMutexes.delete(connectionId);
   }
-
-  if (provider && status && errorMsg) {
-    console.error(`❌ ${provider} [${status}]: ${errorMsg}`);
-  }
-
-  return { shouldFallback: true, cooldownMs };
 }
 
 /**

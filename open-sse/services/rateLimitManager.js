@@ -4,11 +4,14 @@
  * Creates per-provider+connection limiters that auto-learn rate limits
  * from API response headers (x-ratelimit-*, retry-after, anthropic-ratelimit-*).
  *
- * Default: DISABLED. Must be enabled per provider connection via dashboard toggle.
+ * Default: ENABLED for API key providers (safety net), DISABLED for OAuth.
+ * Can be toggled per provider connection via dashboard.
  */
 
 import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody, lockModel } from "./accountFallback.js";
+import { getProviderCategory } from "../config/providerRegistry.js";
+import { DEFAULT_API_LIMITS } from "../config/constants.js";
 
 // Store limiters keyed by "provider:connectionId" (and optionally ":model")
 const limiters = new Map();
@@ -39,15 +42,45 @@ export async function initializeRateLimits() {
   try {
     const { getProviderConnections } = await import("@/lib/localDb.js");
     const connections = await getProviderConnections();
-    let count = 0;
+    let explicitCount = 0;
+    let autoCount = 0;
+
     for (const conn of connections) {
       if (conn.rateLimitProtection) {
+        // Explicitly enabled by user
         enabledConnections.add(conn.id);
-        count++;
+        explicitCount++;
+      } else if (
+        conn.provider &&
+        getProviderCategory(conn.provider) === "apikey" &&
+        conn.isActive
+      ) {
+        // Auto-enable for API key providers (safety net)
+        enabledConnections.add(conn.id);
+        autoCount++;
+
+        // Create a pre-configured limiter with conservative defaults
+        const key = `${conn.provider}:${conn.id}`;
+        if (!limiters.has(key)) {
+          limiters.set(
+            key,
+            new Bottleneck({
+              maxConcurrent: DEFAULT_API_LIMITS.concurrentRequests,
+              minTime: DEFAULT_API_LIMITS.minTimeBetweenRequests,
+              reservoir: DEFAULT_API_LIMITS.requestsPerMinute,
+              reservoirRefreshAmount: DEFAULT_API_LIMITS.requestsPerMinute,
+              reservoirRefreshInterval: 60 * 1000, // Refresh every minute
+              id: key,
+            })
+          );
+        }
       }
     }
-    if (count > 0) {
-      console.log(`🛡️ [RATE-LIMIT] Loaded ${count} connection(s) with rate limit protection`);
+
+    if (explicitCount > 0 || autoCount > 0) {
+      console.log(
+        `🛡️ [RATE-LIMIT] Loaded ${explicitCount} explicit + ${autoCount} auto-enabled (API key) protection(s)`
+      );
     }
   } catch (err) {
     console.error("[RATE-LIMIT] Failed to load settings:", err.message);
@@ -361,4 +394,3 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
     }
   }
 }
-

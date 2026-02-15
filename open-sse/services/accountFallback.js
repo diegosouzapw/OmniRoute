@@ -1,4 +1,24 @@
-import { COOLDOWN_MS, BACKOFF_CONFIG, BACKOFF_STEPS_MS, RateLimitReason, HTTP_STATUS } from "../config/constants.js";
+import {
+  COOLDOWN_MS,
+  BACKOFF_CONFIG,
+  BACKOFF_STEPS_MS,
+  RateLimitReason,
+  HTTP_STATUS,
+  PROVIDER_PROFILES,
+} from "../config/constants.js";
+import { getProviderCategory } from "../config/providerRegistry.js";
+
+// ─── Provider Profile Helper ────────────────────────────────────────────────
+
+/**
+ * Get the resilience profile for a provider (oauth or apikey).
+ * @param {string} provider - Provider ID or alias
+ * @returns {import('../config/constants.js').PROVIDER_PROFILES['oauth']}
+ */
+export function getProviderProfile(provider) {
+  const category = getProviderCategory(provider);
+  return PROVIDER_PROFILES[category] ?? PROVIDER_PROFILES.apikey;
+}
 
 // ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
 // In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
@@ -71,7 +91,13 @@ export function getAllModelLockouts() {
   for (const [key, entry] of modelLockouts) {
     if (now <= entry.until) {
       const [provider, connectionId, model] = key.split(":");
-      active.push({ provider, connectionId, model, reason: entry.reason, remainingMs: entry.until - now });
+      active.push({
+        provider,
+        connectionId,
+        model,
+        reason: entry.reason,
+        remainingMs: entry.until - now,
+      });
     }
   }
   return active;
@@ -100,7 +126,10 @@ export function parseRetryAfterFromBody(responseBody) {
   const details = body.error?.details || body.details || [];
   for (const detail of Array.isArray(details) ? details : []) {
     if (detail.retryDelay) {
-      return { retryAfterMs: parseDelayString(detail.retryDelay), reason: RateLimitReason.RATE_LIMIT_EXCEEDED };
+      return {
+        retryAfterMs: parseDelayString(detail.retryDelay),
+        reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+      };
     }
   }
 
@@ -108,7 +137,10 @@ export function parseRetryAfterFromBody(responseBody) {
   const msg = body.error?.message || body.message || "";
   const retryMatch = msg.match(/retry\s+after\s+(\d+)\s*s/i);
   if (retryMatch) {
-    return { retryAfterMs: parseInt(retryMatch[1], 10) * 1000, reason: RateLimitReason.RATE_LIMIT_EXCEEDED };
+    return {
+      retryAfterMs: parseInt(retryMatch[1], 10) * 1000,
+      reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+    };
   }
 
   // Anthropic: error type classification
@@ -150,16 +182,32 @@ export function classifyErrorText(errorText) {
   if (!errorText) return RateLimitReason.UNKNOWN;
   const lower = String(errorText).toLowerCase();
 
-  if (lower.includes("quota exceeded") || lower.includes("quota depleted") || lower.includes("billing")) {
+  if (
+    lower.includes("quota exceeded") ||
+    lower.includes("quota depleted") ||
+    lower.includes("billing")
+  ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
-  if (lower.includes("rate limit") || lower.includes("too many requests") || lower.includes("rate_limit")) {
+  if (
+    lower.includes("rate limit") ||
+    lower.includes("too many requests") ||
+    lower.includes("rate_limit")
+  ) {
     return RateLimitReason.RATE_LIMIT_EXCEEDED;
   }
-  if (lower.includes("capacity") || lower.includes("overloaded") || lower.includes("resource exhausted")) {
+  if (
+    lower.includes("capacity") ||
+    lower.includes("overloaded") ||
+    lower.includes("resource exhausted")
+  ) {
     return RateLimitReason.MODEL_CAPACITY;
   }
-  if (lower.includes("unauthorized") || lower.includes("invalid api key") || lower.includes("authentication")) {
+  if (
+    lower.includes("unauthorized") ||
+    lower.includes("invalid api key") ||
+    lower.includes("authentication")
+  ) {
     return RateLimitReason.AUTH_ERROR;
   }
   if (lower.includes("server error") || lower.includes("internal error")) {
@@ -226,20 +274,35 @@ export function getQuotaCooldown(backoffLevel = 0) {
  * @param {string} errorText - Error message text
  * @param {number} backoffLevel - Current backoff level for exponential backoff
  * @param {string} [model] - Optional model name for model-level lockout
+ * @param {string} [provider] - Provider ID for profile-aware cooldowns
  * @returns {{ shouldFallback: boolean, cooldownMs: number, newBackoffLevel?: number, reason?: string }}
  */
-export function checkFallbackError(status, errorText, backoffLevel = 0, model = null) {
+export function checkFallbackError(
+  status,
+  errorText,
+  backoffLevel = 0,
+  model = null,
+  provider = null
+) {
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
     const errorStr = typeof errorText === "string" ? errorText : JSON.stringify(errorText);
     const lowerError = errorStr.toLowerCase();
 
     if (lowerError.includes("no credentials")) {
-      return { shouldFallback: true, cooldownMs: COOLDOWN_MS.notFound, reason: RateLimitReason.AUTH_ERROR };
+      return {
+        shouldFallback: true,
+        cooldownMs: COOLDOWN_MS.notFound,
+        reason: RateLimitReason.AUTH_ERROR,
+      };
     }
 
     if (lowerError.includes("request not allowed")) {
-      return { shouldFallback: true, cooldownMs: COOLDOWN_MS.requestNotAllowed, reason: RateLimitReason.RATE_LIMIT_EXCEEDED };
+      return {
+        shouldFallback: true,
+        cooldownMs: COOLDOWN_MS.requestNotAllowed,
+        reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+      };
     }
 
     // Rate limit keywords - exponential backoff
@@ -262,15 +325,27 @@ export function checkFallbackError(status, errorText, backoffLevel = 0, model = 
   }
 
   if (status === HTTP_STATUS.UNAUTHORIZED) {
-    return { shouldFallback: true, cooldownMs: COOLDOWN_MS.unauthorized, reason: RateLimitReason.AUTH_ERROR };
+    return {
+      shouldFallback: true,
+      cooldownMs: COOLDOWN_MS.unauthorized,
+      reason: RateLimitReason.AUTH_ERROR,
+    };
   }
 
   if (status === HTTP_STATUS.PAYMENT_REQUIRED || status === HTTP_STATUS.FORBIDDEN) {
-    return { shouldFallback: true, cooldownMs: COOLDOWN_MS.paymentRequired, reason: RateLimitReason.QUOTA_EXHAUSTED };
+    return {
+      shouldFallback: true,
+      cooldownMs: COOLDOWN_MS.paymentRequired,
+      reason: RateLimitReason.QUOTA_EXHAUSTED,
+    };
   }
 
   if (status === HTTP_STATUS.NOT_FOUND) {
-    return { shouldFallback: true, cooldownMs: COOLDOWN_MS.notFound, reason: RateLimitReason.UNKNOWN };
+    return {
+      shouldFallback: true,
+      cooldownMs: COOLDOWN_MS.notFound,
+      reason: RateLimitReason.UNKNOWN,
+    };
   }
 
   // 429 - Rate limit with exponential backoff
@@ -284,7 +359,7 @@ export function checkFallbackError(status, errorText, backoffLevel = 0, model = 
     };
   }
 
-  // Transient / server errors — DON'T increase backoff level
+  // Transient / server errors — exponential backoff with provider profile
   const transientStatuses = [
     HTTP_STATUS.NOT_ACCEPTABLE,
     HTTP_STATUS.REQUEST_TIMEOUT,
@@ -294,7 +369,17 @@ export function checkFallbackError(status, errorText, backoffLevel = 0, model = 
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ];
   if (transientStatuses.includes(status)) {
-    return { shouldFallback: true, cooldownMs: COOLDOWN_MS.transient, reason: RateLimitReason.SERVER_ERROR };
+    const profile = provider ? getProviderProfile(provider) : null;
+    const baseCooldown = profile?.transientCooldown ?? COOLDOWN_MS.transientInitial;
+    const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;
+    const cooldownMs = Math.min(baseCooldown * Math.pow(2, backoffLevel), COOLDOWN_MS.transientMax);
+    const newLevel = Math.min(backoffLevel + 1, maxLevel);
+    return {
+      shouldFallback: true,
+      cooldownMs,
+      newBackoffLevel: newLevel,
+      reason: RateLimitReason.SERVER_ERROR,
+    };
   }
 
   // 400 Bad Request - don't fallback (same request will fail on all accounts)
@@ -303,7 +388,11 @@ export function checkFallbackError(status, errorText, backoffLevel = 0, model = 
   }
 
   // All other errors - fallback with transient cooldown
-  return { shouldFallback: true, cooldownMs: COOLDOWN_MS.transient, reason: RateLimitReason.UNKNOWN };
+  return {
+    shouldFallback: true,
+    cooldownMs: COOLDOWN_MS.transient,
+    reason: RateLimitReason.UNKNOWN,
+  };
 }
 
 // ─── Account State Management ───────────────────────────────────────────────
@@ -389,11 +478,17 @@ export function resetAccountState(account) {
 /**
  * Apply error state to account
  */
-export function applyErrorState(account, status, errorText) {
+export function applyErrorState(account, status, errorText, provider = null) {
   if (!account) return account;
 
   const backoffLevel = account.backoffLevel || 0;
-  const { cooldownMs, newBackoffLevel, reason } = checkFallbackError(status, errorText, backoffLevel);
+  const { cooldownMs, newBackoffLevel, reason } = checkFallbackError(
+    status,
+    errorText,
+    backoffLevel,
+    null,
+    provider
+  );
 
   return {
     ...account,
