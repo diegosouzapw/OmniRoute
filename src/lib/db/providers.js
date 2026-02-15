@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core.js";
 import { backupDbFile } from "./backup.js";
+import { encryptConnectionFields, decryptConnectionFields } from "./encryption.js";
 
 // ──────────────── Provider Connections ────────────────
 
@@ -29,13 +30,13 @@ export async function getProviderConnections(filter = {}) {
   sql += " ORDER BY priority ASC, updated_at DESC";
 
   const rows = db.prepare(sql).all(params);
-  return rows.map((r) => cleanNulls(rowToCamel(r)));
+  return rows.map((r) => decryptConnectionFields(cleanNulls(rowToCamel(r))));
 }
 
 export async function getProviderConnectionById(id) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
-  return row ? cleanNulls(rowToCamel(row)) : null;
+  return row ? decryptConnectionFields(cleanNulls(rowToCamel(row))) : null;
 }
 
 export async function createProviderConnection(data) {
@@ -143,7 +144,7 @@ export async function createProviderConnection(data) {
     connection.providerSpecificData = data.providerSpecificData;
   }
 
-  _insertConnectionRow(db, connection);
+  _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
   _reorderConnections(db, data.provider);
   backupDbFile("pre-write");
 
@@ -285,7 +286,7 @@ export async function updateProviderConnection(id, data) {
   if (!existing) return null;
 
   const merged = { ...rowToCamel(existing), ...data, updatedAt: new Date().toISOString() };
-  _updateConnectionRow(db, id, merged);
+  _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
 
   if (data.priority !== undefined) {

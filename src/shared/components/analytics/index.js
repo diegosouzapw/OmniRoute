@@ -1,4 +1,16 @@
+/**
+ * Analytics Charts — Barrel export
+ *
+ * TODO (#5): Split charts.js into individual component files:
+ *   - StatCard.js, ActivityHeatmap.js, DailyTrendChart.js
+ *   - AccountDonut.js, ApiKeyDonut.js, ProviderCostDonut.js
+ *   - ApiKeyTable.js, ModelTable.js
+ *   - WeeklyPattern.js, MostActiveDay7d.js, WeeklySquares7d.js
+ *   - UsageDetail.js, CostTooltip.js, DarkTooltip.js, SortIndicator.js
+ */
 export {
+  DarkTooltip,
+  CostTooltip,
   SortIndicator,
   StatCard,
   ActivityHeatmap,

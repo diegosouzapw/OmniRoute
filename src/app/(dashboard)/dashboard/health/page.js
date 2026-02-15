@@ -118,6 +118,8 @@ export default function HealthPage() {
 
       {/* Status Banner */}
       <div
+        role="status"
+        aria-live="polite"
         className={`rounded-xl p-4 flex items-center gap-3 ${
           data.status === "healthy"
             ? "bg-green-500/10 border border-green-500/20"
@@ -190,7 +192,7 @@ export default function HealthPage() {
       </div>
 
       {/* Provider Health */}
-      <Card className="p-5">
+      <Card className="p-5" role="region" aria-label="Provider health status">
         <h2 className="text-lg font-semibold text-text-main mb-4 flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px] text-primary">
             health_and_safety

@@ -25,7 +25,7 @@ export async function initializeCloudSync() {
 
 // For development/testing purposes
 if (typeof require !== "undefined" && require.main === module) {
-  initializeCloudSync().catch(console.log);
+  initializeCloudSync().catch((err) => console.error("[CloudSync] init failed:", err));
 }
 
 export default initializeCloudSync;

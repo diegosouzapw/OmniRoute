@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 0.0.1
+  version: 0.4.0
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -641,11 +641,12 @@ paths:
 
   /api/tags:
     get:
-      tags: [Settings]
-      summary: List all tags
+      tags: [System]
+      summary: List Ollama-compatible model tags
+      description: Returns models in Ollama /api/tags format for Ollama client compatibility
       responses:
         "200":
-          description: Tag list
+          description: Ollama model tags
 
   # ─── Usage & Analytics ─────────────────────────────────────────
 
@@ -1016,6 +1017,173 @@ paths:
       responses:
         "200":
           description: Sync initialized
+
+  # ─── Resilience & Monitoring ────────────────────────────────────
+
+  /api/resilience:
+    get:
+      tags: [System]
+      summary: Get resilience profiles and circuit breaker states
+      responses:
+        "200":
+          description: Resilience configuration and current states
+    put:
+      tags: [System]
+      summary: Update resilience profiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated resilience profiles
+
+  /api/resilience/reset:
+    post:
+      tags: [System]
+      summary: Reset circuit breakers
+      responses:
+        "200":
+          description: Circuit breakers reset
+
+  /api/monitoring/health:
+    get:
+      tags: [System]
+      summary: System health check
+      description: Returns system health including uptime, memory, circuit breakers, rate limits
+      responses:
+        "200":
+          description: Health status
+
+  /api/rate-limits:
+    get:
+      tags: [System]
+      summary: Get per-account rate limit status
+      responses:
+        "200":
+          description: Rate limit status by account
+
+  /api/sessions:
+    get:
+      tags: [System]
+      summary: Get active sessions
+      responses:
+        "200":
+          description: Active session list
+
+  /api/cache:
+    get:
+      tags: [System]
+      summary: Get cache statistics
+      responses:
+        "200":
+          description: Semantic cache and idempotency stats
+    delete:
+      tags: [System]
+      summary: Clear all caches
+      responses:
+        "200":
+          description: Caches cleared
+
+  # ─── Evals & Policies ──────────────────────────────────────────
+
+  /api/evals:
+    get:
+      tags: [System]
+      summary: List eval suites
+      responses:
+        "200":
+          description: Eval suite list
+    post:
+      tags: [System]
+      summary: Run evaluation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Eval results
+
+  /api/policies:
+    get:
+      tags: [System]
+      summary: List routing policies
+      responses:
+        "200":
+          description: Policy list
+    post:
+      tags: [System]
+      summary: Create routing policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Created policy
+    delete:
+      tags: [System]
+      summary: Delete routing policy
+      responses:
+        "200":
+          description: Policy deleted
+
+  /api/compliance/audit-log:
+    get:
+      tags: [System]
+      summary: Get compliance audit log
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Audit log entries
+
+  # ─── v1beta (Gemini-Compatible) ─────────────────────────────────
+
+  /api/v1beta/models:
+    get:
+      tags: [Models]
+      summary: List models (Gemini format)
+      description: Returns models in Gemini v1beta format for native SDK compatibility
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Model list in Gemini format
+
+  /api/v1beta/models/{path}:
+    post:
+      tags: [Models]
+      summary: Gemini generateContent
+      description: Gemini-compatible generateContent endpoint
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated content
 
 components:
   securitySchemes:
