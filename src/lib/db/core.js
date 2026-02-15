@@ -192,6 +192,20 @@ const SCHEMA_SQL = `
     last_failure_time INTEGER,
     options TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS semantic_cache (
+    id TEXT PRIMARY KEY,
+    signature TEXT NOT NULL UNIQUE,
+    model TEXT NOT NULL,
+    prompt_hash TEXT NOT NULL,
+    response TEXT NOT NULL,
+    tokens_saved INTEGER DEFAULT 0,
+    hit_count INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_sc_sig ON semantic_cache(signature);
+  CREATE INDEX IF NOT EXISTS idx_sc_model ON semantic_cache(model);
 `;
 
 // ──────────────── Column Mapping ────────────────
