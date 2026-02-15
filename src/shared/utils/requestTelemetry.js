@@ -112,7 +112,9 @@ const history = [];
  * @param {RequestTelemetry} telemetry
  */
 export function recordTelemetry(telemetry) {
-  history.push(telemetry.getSummary());
+  const summary = telemetry.getSummary();
+  summary.recordedAt = Date.now();
+  history.push(summary);
   while (history.length > MAX_HISTORY) {
     history.shift();
   }
@@ -138,8 +140,7 @@ function percentile(sorted, p) {
 export function getTelemetrySummary(windowMs = 300000) {
   const cutoff = Date.now() - windowMs;
   const recent = history.filter((h) => {
-    // Approximate: use most recent entries
-    return true; // We don't store timestamps in history, so use all
+    return (h.recordedAt || 0) >= cutoff;
   });
 
   if (recent.length === 0) {

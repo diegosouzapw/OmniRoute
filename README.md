@@ -1100,15 +1100,15 @@ Types: `chat`, `embedding`, `image`. Custom models are flagged with `custom: tru
 - **Framework**: Next.js 16
 - **UI**: React 19 + Tailwind CSS 4
 - **Charts**: Recharts (SVG, accessible)
-- **Database**: LowDB (JSON file-based)
+- **Database**: LowDB (JSON file-based) + SQLite (domain state persistence)
 - **Streaming**: Server-Sent Events (SSE)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
-- **Testing**: Playwright (E2E) + Node.js test runner (273+ unit tests)
+- **Testing**: Playwright (E2E) + Node.js test runner (295+ unit tests)
 - **Monorepo**: npm workspaces (`@omniroute/open-sse`)
 - **CI/CD**: GitHub Actions (auto npm publish on release) + Dependabot
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Compliance**: `/terms` and `/privacy` pages + audit log
-- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd
+- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, policy engine
 - **Observability**: Request telemetry (p50/p95/p99), correlation IDs, structured error codes
 
 ---

@@ -5,8 +5,17 @@
  * Extracts account lockout logic from handleChat into a dedicated
  * domain service. Manages login attempt tracking and lockout decisions.
  *
+ * State is persisted in SQLite via domainState.js.
+ *
  * @module domain/lockoutPolicy
  */
+
+import {
+  saveLockoutState,
+  loadLockoutState,
+  deleteLockoutState,
+  loadAllLockedIdentifiers,
+} from "../lib/db/domainState.js";
 
 /**
  * @typedef {Object} LockoutConfig
@@ -15,8 +24,8 @@
  * @property {number} [attemptWindowMs=300000] - Window for counting attempts (5 min)
  */
 
-/** @type {Map<string, { attempts: number[], lockedUntil: number|null }>} */
-const lockoutState = new Map();
+/** @type {Map<string, { attempts: number[], lockedUntil: number|null }>} In-memory cache */
+const lockoutCache = new Map();
 
 /** @type {LockoutConfig} */
 const DEFAULT_CONFIG = {
@@ -26,6 +35,43 @@ const DEFAULT_CONFIG = {
 };
 
 /**
+ * Load state from DB into cache if not already cached.
+ * @param {string} identifier
+ * @returns {{ attempts: number[], lockedUntil: number|null }}
+ */
+function getState(identifier) {
+  if (lockoutCache.has(identifier)) {
+    return lockoutCache.get(identifier);
+  }
+
+  try {
+    const fromDb = loadLockoutState(identifier);
+    if (fromDb) {
+      lockoutCache.set(identifier, fromDb);
+      return fromDb;
+    }
+  } catch {
+    // DB may not be ready
+  }
+
+  return null;
+}
+
+/**
+ * Persist state to both cache and DB.
+ * @param {string} identifier
+ * @param {{ attempts: number[], lockedUntil: number|null }} state
+ */
+function persistState(identifier, state) {
+  lockoutCache.set(identifier, state);
+  try {
+    saveLockoutState(identifier, state);
+  } catch {
+    // Non-critical
+  }
+}
+
+/**
  * Check if an identifier (IP, username, API key) is currently locked out.
  *
  * @param {string} identifier - The identifier to check
@@ -33,7 +79,7 @@ const DEFAULT_CONFIG = {
  * @returns {{ locked: boolean, remainingMs?: number, attempts?: number }}
  */
 export function checkLockout(identifier, config = DEFAULT_CONFIG) {
-  const state = lockoutState.get(identifier);
+  const state = getState(identifier);
   if (!state) {
     return { locked: false, attempts: 0 };
   }
@@ -51,12 +97,14 @@ export function checkLockout(identifier, config = DEFAULT_CONFIG) {
   if (state.lockedUntil) {
     state.lockedUntil = null;
     state.attempts = [];
+    persistState(identifier, state);
   }
 
   // Count recent attempts within the window
   const windowStart = Date.now() - config.attemptWindowMs;
   const recentAttempts = state.attempts.filter((t) => t > windowStart);
   state.attempts = recentAttempts;
+  persistState(identifier, state);
 
   return { locked: false, attempts: recentAttempts.length };
 }
@@ -69,11 +117,10 @@ export function checkLockout(identifier, config = DEFAULT_CONFIG) {
  * @returns {{ locked: boolean, remainingMs?: number }}
  */
 export function recordFailedAttempt(identifier, config = DEFAULT_CONFIG) {
-  if (!lockoutState.has(identifier)) {
-    lockoutState.set(identifier, { attempts: [], lockedUntil: null });
+  let state = getState(identifier);
+  if (!state) {
+    state = { attempts: [], lockedUntil: null };
   }
-
-  const state = lockoutState.get(identifier);
 
   // Clean old attempts
   const windowStart = Date.now() - config.attemptWindowMs;
@@ -85,12 +132,14 @@ export function recordFailedAttempt(identifier, config = DEFAULT_CONFIG) {
   // Check if threshold exceeded
   if (state.attempts.length >= config.maxAttempts) {
     state.lockedUntil = Date.now() + config.lockoutDurationMs;
+    persistState(identifier, state);
     return {
       locked: true,
       remainingMs: config.lockoutDurationMs,
     };
   }
 
+  persistState(identifier, state);
   return { locked: false };
 }
 
@@ -100,7 +149,12 @@ export function recordFailedAttempt(identifier, config = DEFAULT_CONFIG) {
  * @param {string} identifier
  */
 export function recordSuccess(identifier) {
-  lockoutState.delete(identifier);
+  lockoutCache.delete(identifier);
+  try {
+    deleteLockoutState(identifier);
+  } catch {
+    // Non-critical
+  }
 }
 
 /**
@@ -109,7 +163,12 @@ export function recordSuccess(identifier) {
  * @param {string} identifier
  */
 export function forceUnlock(identifier) {
-  lockoutState.delete(identifier);
+  lockoutCache.delete(identifier);
+  try {
+    deleteLockoutState(identifier);
+  } catch {
+    // Non-critical
+  }
 }
 
 /**
@@ -119,9 +178,24 @@ export function forceUnlock(identifier) {
  */
 export function getLockedIdentifiers() {
   const now = Date.now();
-  const locked = [];
 
-  for (const [id, state] of lockoutState.entries()) {
+  // Merge cache and DB
+  try {
+    const fromDb = loadAllLockedIdentifiers();
+    for (const entry of fromDb) {
+      if (!lockoutCache.has(entry.identifier)) {
+        lockoutCache.set(entry.identifier, {
+          attempts: [],
+          lockedUntil: entry.lockedUntil,
+        });
+      }
+    }
+  } catch {
+    // Use cache only
+  }
+
+  const locked = [];
+  for (const [id, state] of lockoutCache.entries()) {
     if (state.lockedUntil && state.lockedUntil > now) {
       locked.push({
         identifier: id,

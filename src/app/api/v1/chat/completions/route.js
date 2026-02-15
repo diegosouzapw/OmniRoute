@@ -2,17 +2,18 @@ import { callCloudWithMachineId } from "@/shared/utils/cloud.js";
 import { handleChat } from "@/sse/handlers/chat.js";
 import { initTranslators } from "@omniroute/open-sse/translator/index.js";
 
-let initialized = false;
+let initPromise = null;
 
 /**
- * Initialize translators once
+ * Initialize translators once (Promise-based singleton — no race condition)
  */
-async function ensureInitialized() {
-  if (!initialized) {
-    await initTranslators();
-    initialized = true;
-    console.log("[SSE] Translators initialized");
+function ensureInitialized() {
+  if (!initPromise) {
+    initPromise = initTranslators().then(() => {
+      console.log("[SSE] Translators initialized");
+    });
   }
+  return initPromise;
 }
 
 /**

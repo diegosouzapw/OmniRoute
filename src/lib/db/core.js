@@ -156,6 +156,42 @@ const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
+
+  -- Domain State Persistence (Phase 5)
+  CREATE TABLE IF NOT EXISTS domain_fallback_chains (
+    model TEXT PRIMARY KEY,
+    chain TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS domain_budgets (
+    api_key_id TEXT PRIMARY KEY,
+    daily_limit_usd REAL NOT NULL,
+    monthly_limit_usd REAL DEFAULT 0,
+    warning_threshold REAL DEFAULT 0.8
+  );
+
+  CREATE TABLE IF NOT EXISTS domain_cost_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    api_key_id TEXT NOT NULL,
+    cost REAL NOT NULL,
+    timestamp INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_dch_key ON domain_cost_history(api_key_id);
+  CREATE INDEX IF NOT EXISTS idx_dch_ts ON domain_cost_history(timestamp);
+
+  CREATE TABLE IF NOT EXISTS domain_lockout_state (
+    identifier TEXT PRIMARY KEY,
+    attempts TEXT NOT NULL,
+    locked_until INTEGER
+  );
+
+  CREATE TABLE IF NOT EXISTS domain_circuit_breakers (
+    name TEXT PRIMARY KEY,
+    state TEXT NOT NULL DEFAULT 'CLOSED',
+    failure_count INTEGER DEFAULT 0,
+    last_failure_time INTEGER,
+    options TEXT
+  );
 `;
 
 // ──────────────── Column Mapping ────────────────

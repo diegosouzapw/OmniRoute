@@ -4,10 +4,22 @@
  * Business rules for cost management: budget thresholds,
  * quota checking, and cost summaries per API key.
  *
+ * State is persisted in SQLite via domainState.js.
+ *
  * @module domain/costRules
  */
 
 // @ts-check
+
+import {
+  saveBudget,
+  loadBudget,
+  saveCostEntry,
+  loadCostEntries,
+  deleteAllCostData,
+  deleteBudget as dbDeleteBudget,
+  deleteCostEntries,
+} from "../lib/db/domainState.js";
 
 /**
  * @typedef {Object} BudgetConfig
@@ -22,11 +34,11 @@
  * @property {number} timestamp - Unix timestamp
  */
 
-/** @type {Map<string, BudgetConfig>} API key ID → budget config */
+/** @type {Map<string, BudgetConfig>} In-memory cache for budgets */
 const budgets = new Map();
 
-/** @type {Map<string, CostEntry[]>} API key ID → cost entries */
-const costHistory = new Map();
+/** @type {boolean} */
+let _budgetsLoaded = false;
 
 /**
  * Set budget for an API key.
@@ -35,11 +47,17 @@ const costHistory = new Map();
  * @param {BudgetConfig} config
  */
 export function setBudget(apiKeyId, config) {
-  budgets.set(apiKeyId, {
+  const normalized = {
     dailyLimitUsd: config.dailyLimitUsd,
     monthlyLimitUsd: config.monthlyLimitUsd || 0,
     warningThreshold: config.warningThreshold ?? 0.8,
-  });
+  };
+  budgets.set(apiKeyId, normalized);
+  try {
+    saveBudget(apiKeyId, normalized);
+  } catch {
+    // Non-critical: in-memory still works
+  }
 }
 
 /**
@@ -49,7 +67,21 @@ export function setBudget(apiKeyId, config) {
  * @returns {BudgetConfig | null}
  */
 export function getBudget(apiKeyId) {
-  return budgets.get(apiKeyId) || null;
+  // Check in-memory cache first
+  if (budgets.has(apiKeyId)) {
+    return budgets.get(apiKeyId);
+  }
+  // Try loading from DB
+  try {
+    const fromDb = loadBudget(apiKeyId);
+    if (fromDb) {
+      budgets.set(apiKeyId, fromDb);
+      return fromDb;
+    }
+  } catch {
+    // DB may not be ready
+  }
+  return null;
 }
 
 /**
@@ -59,10 +91,12 @@ export function getBudget(apiKeyId) {
  * @param {number} cost - Cost in USD
  */
 export function recordCost(apiKeyId, cost) {
-  if (!costHistory.has(apiKeyId)) {
-    costHistory.set(apiKeyId, []);
+  const timestamp = Date.now();
+  try {
+    saveCostEntry(apiKeyId, cost, timestamp);
+  } catch {
+    // Non-critical
   }
-  costHistory.get(apiKeyId).push({ cost, timestamp: Date.now() });
 }
 
 /**
@@ -73,7 +107,7 @@ export function recordCost(apiKeyId, cost) {
  * @returns {{ allowed: boolean, reason?: string, dailyUsed: number, dailyLimit: number, warningReached: boolean }}
  */
 export function checkBudget(apiKeyId, additionalCost = 0) {
-  const budget = budgets.get(apiKeyId);
+  const budget = getBudget(apiKeyId);
   if (!budget) {
     return { allowed: true, dailyUsed: 0, dailyLimit: 0, warningReached: false };
   }
@@ -107,14 +141,16 @@ export function checkBudget(apiKeyId, additionalCost = 0) {
  * @returns {number} Total cost today in USD
  */
 export function getDailyTotal(apiKeyId) {
-  const entries = costHistory.get(apiKeyId) || [];
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const startMs = todayStart.getTime();
 
-  return entries
-    .filter((e) => e.timestamp >= startMs)
-    .reduce((sum, e) => sum + e.cost, 0);
+  try {
+    const entries = loadCostEntries(apiKeyId, startMs);
+    return entries.reduce((sum, e) => sum + e.cost, 0);
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -124,7 +160,6 @@ export function getDailyTotal(apiKeyId) {
  * @returns {{ dailyTotal: number, monthlyTotal: number, totalEntries: number, budget: BudgetConfig | null }}
  */
 export function getCostSummary(apiKeyId) {
-  const entries = costHistory.get(apiKeyId) || [];
   const now = new Date();
 
   const todayStart = new Date(now);
@@ -132,20 +167,27 @@ export function getCostSummary(apiKeyId) {
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const dailyTotal = entries
-    .filter((e) => e.timestamp >= todayStart.getTime())
-    .reduce((sum, e) => sum + e.cost, 0);
+  try {
+    const dailyEntries = loadCostEntries(apiKeyId, todayStart.getTime());
+    const monthlyEntries = loadCostEntries(apiKeyId, monthStart.getTime());
 
-  const monthlyTotal = entries
-    .filter((e) => e.timestamp >= monthStart.getTime())
-    .reduce((sum, e) => sum + e.cost, 0);
+    const dailyTotal = dailyEntries.reduce((sum, e) => sum + e.cost, 0);
+    const monthlyTotal = monthlyEntries.reduce((sum, e) => sum + e.cost, 0);
 
-  return {
-    dailyTotal,
-    monthlyTotal,
-    totalEntries: entries.length,
-    budget: budgets.get(apiKeyId) || null,
-  };
+    return {
+      dailyTotal,
+      monthlyTotal,
+      totalEntries: monthlyEntries.length,
+      budget: getBudget(apiKeyId),
+    };
+  } catch {
+    return {
+      dailyTotal: 0,
+      monthlyTotal: 0,
+      totalEntries: 0,
+      budget: getBudget(apiKeyId),
+    };
+  }
 }
 
 /**
@@ -153,5 +195,10 @@ export function getCostSummary(apiKeyId) {
  */
 export function resetCostData() {
   budgets.clear();
-  costHistory.clear();
+  _budgetsLoaded = false;
+  try {
+    deleteAllCostData();
+  } catch {
+    // Non-critical
+  }
 }
