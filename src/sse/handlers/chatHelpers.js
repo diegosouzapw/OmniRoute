@@ -12,8 +12,11 @@
  */
 
 import { getModelInfo } from "../services/model.js";
-import { detectFormat, getTargetFormat, getModelTargetFormat } from "../services/translator.js";
-import { PROVIDER_ID_TO_ALIAS } from "../services/model.js";
+import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.js";
+import {
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+} from "@omniroute/open-sse/config/providerModels.js";
 import { logProxyEvent } from "../../lib/proxyLogger.js";
 import { logTranslationEvent } from "../../lib/translatorEvents.js";
 import { updateProviderCredentials } from "../services/auth.js";
