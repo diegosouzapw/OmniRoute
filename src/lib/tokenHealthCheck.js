@@ -11,7 +11,11 @@
  */
 
 import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
-import { getAccessToken, supportsTokenRefresh } from "@omniroute/open-sse/services/tokenRefresh.js";
+import {
+  getAccessToken,
+  supportsTokenRefresh,
+  isUnrecoverableRefreshError,
+} from "@omniroute/open-sse/services/tokenRefresh.js";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -80,6 +84,10 @@ async function checkConnection(conn) {
   if (intervalMin <= 0) return;
   if (!conn.isActive) return;
   if (!conn.refreshToken || typeof conn.refreshToken !== "string") return;
+
+  // Skip connections already marked as expired (need re-auth, not retry)
+  if (conn.testStatus === "expired") return;
+
   if (!supportsTokenRefresh(conn.provider)) {
     const now = new Date().toISOString();
     await updateProviderConnection(conn.id, { lastHealthCheckAt: now });
@@ -113,6 +121,30 @@ async function checkConnection(conn) {
   });
 
   const now = new Date().toISOString();
+
+  // ─── Handle unrecoverable errors (e.g. refresh_token_reused) ───────────
+  // OpenAI Codex uses rotating one-time-use refresh tokens.
+  // Once used, the old token is permanently invalidated.
+  // Retrying will never succeed → deactivate and stop the loop.
+  if (isUnrecoverableRefreshError(result)) {
+    await updateProviderConnection(conn.id, {
+      lastHealthCheckAt: now,
+      testStatus: "expired",
+      lastError: `Refresh token consumed (${result.error}). Please re-authenticate this account.`,
+      lastErrorAt: now,
+      lastErrorType: result.error,
+      lastErrorSource: "oauth",
+      errorCode: result.error,
+      isActive: false,
+      refreshToken: null,
+    });
+    console.error(
+      `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} — ` +
+        `Refresh token is permanently invalid (${result.error}). ` +
+        `Connection deactivated. Re-authenticate to restore.`
+    );
+    return;
+  }
 
   if (result && result.accessToken) {
     // Token refreshed successfully — update DB

@@ -290,6 +290,17 @@ async function testOAuthConnection(connection) {
 
   // Check if token exists
   if (!connection.accessToken) {
+    // If the refresh token is also missing on a refreshable provider,
+    // this means re-authentication is needed (e.g. after refresh_token_reused)
+    if (config.refreshable && !connection.refreshToken) {
+      const error = "Refresh token expired. Please re-authenticate this account.";
+      return {
+        valid: false,
+        error,
+        refreshed: false,
+        diagnosis: makeDiagnosis("reauth_required", "oauth", error, "reauth_required"),
+      };
+    }
     const error = "No access token";
     return {
       valid: false,

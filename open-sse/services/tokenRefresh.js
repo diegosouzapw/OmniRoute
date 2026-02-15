@@ -328,45 +328,76 @@ export async function refreshQwenToken(refreshToken, log) {
 }
 
 /**
- * Specialized refresh for Codex (OpenAI) OAuth tokens
+ * Specialized refresh for Codex (OpenAI) OAuth tokens.
+ * OpenAI uses rotating (one-time-use) refresh tokens.
+ * Returns { error: 'refresh_token_reused' } when the token has already been consumed,
+ * so callers can stop retrying and request re-authentication.
  */
 export async function refreshCodexToken(refreshToken, log) {
-  const response = await fetch(OAUTH_ENDPOINTS.openai.token, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: PROVIDERS.codex.clientId,
-      scope: "openid profile email offline_access",
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
-      status: response.status,
-      error: errorText,
+  try {
+    const response = await fetch(OAUTH_ENDPOINTS.openai.token, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: PROVIDERS.codex.clientId,
+        scope: "openid profile email offline_access",
+      }),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      // Detect unrecoverable "refresh_token_reused" error from OpenAI
+      // This means the token was already consumed and a new one was issued.
+      // Retrying with the same token will never succeed.
+      let errorCode = null;
+      try {
+        const parsed = JSON.parse(errorText);
+        errorCode = parsed?.error?.code;
+      } catch {
+        // not JSON, ignore
+      }
+
+      if (errorCode === "refresh_token_reused") {
+        log?.error?.(
+          "TOKEN_REFRESH",
+          "Codex refresh token already used (rotating token consumed). Re-authentication required.",
+          {
+            status: response.status,
+          }
+        );
+        return { error: "refresh_token_reused" };
+      }
+
+      log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
+        status: response.status,
+        error: errorText,
+      });
+      return null;
+    }
+
+    const tokens = await response.json();
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed Codex token", {
+      hasNewAccessToken: !!tokens.access_token,
+      hasNewRefreshToken: !!tokens.refresh_token,
+      expiresIn: tokens.expires_in,
+    });
+
+    return {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token || refreshToken,
+      expiresIn: tokens.expires_in,
+    };
+  } catch (error) {
+    log?.error?.("TOKEN_REFRESH", `Network error refreshing Codex token: ${error.message}`);
     return null;
   }
-
-  const tokens = await response.json();
-
-  log?.info?.("TOKEN_REFRESH", "Successfully refreshed Codex token", {
-    hasNewAccessToken: !!tokens.access_token,
-    hasNewRefreshToken: !!tokens.refresh_token,
-    expiresIn: tokens.expires_in,
-  });
-
-  return {
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token || refreshToken,
-    expiresIn: tokens.expires_in,
-  };
 }
 
 /**
@@ -664,6 +695,15 @@ export function supportsTokenRefresh(provider) {
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];
   return !!(config?.refreshUrl || config?.tokenUrl);
+}
+
+/**
+ * Check if a refresh result indicates an unrecoverable error
+ * (e.g. the refresh token was already consumed and cannot be reused).
+ * Callers should stop retrying and request re-authentication.
+ */
+export function isUnrecoverableRefreshError(result) {
+  return result && typeof result === "object" && result.error === "refresh_token_reused";
 }
 
 /**
