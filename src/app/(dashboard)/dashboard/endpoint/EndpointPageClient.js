@@ -367,141 +367,94 @@ export default function APIPageClient({ machineId }) {
             {copied === "endpoint_url" ? "Copied!" : "Copy"}
           </Button>
         </div>
-      </Card>
 
-      {/* Quick Start */}
-      <Card>
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Quick Start</h2>
-            <p className="text-sm text-text-muted">
-              First-time setup checklist for API clients and IDE tools.
-            </p>
-          </div>
-
-          <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">1. Create API key</span>
-              <p className="text-text-muted mt-1">
-                Generate one key per environment to isolate usage and revoke safely.
-              </p>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">2. Connect provider account</span>
-              <p className="text-text-muted mt-1">
-                Configure providers in Dashboard and validate with Test Connection.
-              </p>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">3. Use endpoint</span>
-              <p className="text-text-muted mt-1">
-                Point clients to <code>{currentEndpoint}</code> and send requests to{" "}
-                <code>/chat/completions</code>.
-              </p>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">4. Monitor usage</span>
-              <p className="text-text-muted mt-1">
-                Track requests, tokens, errors, and cost in Usage and Request Logger.
-              </p>
-            </li>
-          </ol>
-
-          <div className="flex flex-wrap gap-2">
-            {quickStartLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {link.external ? "open_in_new" : "arrow_forward"}
-                </span>
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {/* API Keys */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">API Keys</h2>
-          <Button icon="add" onClick={() => setShowAddModal(true)}>
-            Create Key
-          </Button>
-        </div>
-
-        {keys.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-              <span className="material-symbols-outlined text-[32px]">vpn_key</span>
+        {/* Registered Keys — collapsible section inside API Endpoint card */}
+        <div className="border border-border rounded-lg overflow-hidden mt-4">
+          <button
+            onClick={() => setExpandedEndpoint(expandedEndpoint === "keys" ? null : "keys")}
+            className="w-full flex items-center gap-3 p-4 hover:bg-surface/50 transition-colors text-left"
+          >
+            <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 shrink-0">
+              <span className="material-symbols-outlined text-xl text-amber-500">vpn_key</span>
             </div>
-            <p className="text-text-main font-medium mb-1">No API keys yet</p>
-            <p className="text-sm text-text-muted mb-4">Create your first API key to get started</p>
-            <Button icon="add" onClick={() => setShowAddModal(true)}>
-              Create Key
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col">
-            {keys.map((key) => (
-              <div
-                key={key.id}
-                className="group flex items-center justify-between py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{key.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="text-xs text-text-muted font-mono">{key.key}</code>
-                    <button
-                      onClick={() => copy(key.key, key.id)}
-                      className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {copied === key.id ? "check" : "content_copy"}
-                      </span>
-                    </button>
-                  </div>
-                  <p className="text-xs text-text-muted mt-1">
-                    Created {new Date(key.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDeleteKey(key.id)}
-                  className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                >
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
-                </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">Registered Keys</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
+                  {keys.length} {keys.length === 1 ? "key" : "keys"}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
+              <p className="text-xs text-text-muted mt-0.5">
+                Manage API keys used to authenticate requests to this endpoint
+              </p>
+            </div>
+            <span
+              className={`material-symbols-outlined text-text-muted text-lg transition-transform ${expandedEndpoint === "keys" ? "rotate-180" : ""}`}
+            >
+              expand_more
+            </span>
+          </button>
 
-      {/* Providers Overview */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">Providers Overview</h2>
-            <p className="text-sm text-text-muted">
-              {providerStats.filter((item) => item.total > 0).length} configured of{" "}
-              {providerStats.length} available providers
-            </p>
-          </div>
-        </div>
+          {expandedEndpoint === "keys" && (
+            <div className="border-t border-border px-4 pb-4">
+              <div className="flex items-center justify-between mt-3 mb-3">
+                <p className="text-xs text-text-muted">
+                  Each key isolates usage tracking and can be revoked independently.
+                </p>
+                <Button size="sm" icon="add" onClick={() => setShowAddModal(true)}>
+                  Create Key
+                </Button>
+              </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {providerStats.map((item) => (
-            <ProviderOverviewCard
-              key={item.id}
-              item={item}
-              onClick={() => setSelectedProvider(item)}
-            />
-          ))}
+              {keys.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-3">
+                    <span className="material-symbols-outlined text-[24px]">vpn_key</span>
+                  </div>
+                  <p className="text-text-main font-medium mb-1 text-sm">No API keys yet</p>
+                  <p className="text-xs text-text-muted mb-3">
+                    Create your first API key to get started
+                  </p>
+                  <Button size="sm" icon="add" onClick={() => setShowAddModal(true)}>
+                    Create Key
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {keys.map((key) => (
+                    <div
+                      key={key.id}
+                      className="group flex items-center justify-between py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{key.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <code className="text-xs text-text-muted font-mono">{key.key}</code>
+                          <button
+                            onClick={() => copy(key.key, key.id)}
+                            className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">
+                              {copied === key.id ? "check" : "content_copy"}
+                            </span>
+                          </button>
+                        </div>
+                        <p className="text-xs text-text-muted mt-1">
+                          Created {new Date(key.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteKey(key.id)}
+                        className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 

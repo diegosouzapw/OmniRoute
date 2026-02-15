@@ -36,7 +36,7 @@
  * @typedef {Object} Combo
  * @property {string} id - Combo unique ID
  * @property {string} name - Display name
- * @property {'priority'|'round-robin'|'random'|'least-used'} strategy - Selection strategy
+ * @property {'priority'|'weighted'|'round-robin'|'random'|'least-used'|'cost-optimized'} strategy - Selection strategy
  * @property {Array<string|{model: string, weight?: number}>} models - Model entries
  * @property {boolean} [isActive] - Whether the combo is active
  */

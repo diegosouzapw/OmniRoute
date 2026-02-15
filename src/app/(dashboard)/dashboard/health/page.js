@@ -8,6 +8,8 @@
  * - Provider health (circuit breaker states)
  * - Rate limit status
  * - Active lockouts
+ * - Signature cache stats
+ * - Latency telemetry & prompt cache
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -38,6 +40,9 @@ export default function HealthPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [telemetry, setTelemetry] = useState(null);
+  const [cache, setCache] = useState(null);
+  const [signatureCache, setSignatureCache] = useState(null);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -52,11 +57,31 @@ export default function HealthPage() {
     }
   }, []);
 
+  // Fetch telemetry, cache, and signature cache stats
+  const fetchExtras = useCallback(async () => {
+    const results = await Promise.allSettled([
+      fetch("/api/telemetry/summary").then((r) => r.json()),
+      fetch("/api/cache/stats").then((r) => r.json()),
+      fetch("/api/rate-limits").then((r) => r.json()),
+    ]);
+    if (results[0].status === "fulfilled") setTelemetry(results[0].value);
+    if (results[1].status === "fulfilled") setCache(results[1].value);
+    if (results[2].status === "fulfilled" && results[2].value.cacheStats) {
+      setSignatureCache(results[2].value.cacheStats);
+    }
+  }, []);
+
   useEffect(() => {
     fetchHealth();
-    const interval = setInterval(fetchHealth, 15000);
+    fetchExtras();
+    const interval = setInterval(() => {
+      fetchHealth();
+      fetchExtras();
+    }, 15000);
     return () => clearInterval(interval);
-  }, [fetchHealth]);
+  }, [fetchHealth, fetchExtras]);
+
+  const fmtMs = (ms) => (ms != null ? `${Math.round(ms)}ms` : "—");
 
   if (!data && !error) {
     return (
@@ -107,7 +132,10 @@ export default function HealthPage() {
             </span>
           )}
           <button
-            onClick={fetchHealth}
+            onClick={() => {
+              fetchHealth();
+              fetchExtras();
+            }}
             className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
             title="Refresh"
           >
@@ -188,6 +216,109 @@ export default function HealthPage() {
           <p className="text-xs text-text-muted mt-1">
             {cbEntries.filter(([, v]) => v.state === "CLOSED").length} healthy
           </p>
+        </Card>
+      </div>
+
+      {/* Telemetry Cards — Latency & Prompt Cache */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Latency Card */}
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">speed</span>
+            Latency
+          </h3>
+          {telemetry ? (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-text-muted">p50</span>
+                <span className="font-mono">{fmtMs(telemetry.p50)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">p95</span>
+                <span className="font-mono">{fmtMs(telemetry.p95)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">p99</span>
+                <span className="font-mono">{fmtMs(telemetry.p99)}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2 mt-2">
+                <span className="text-text-muted">Total requests</span>
+                <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">No data yet</p>
+          )}
+        </Card>
+
+        {/* Prompt Cache Card */}
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">cached</span>
+            Prompt Cache
+          </h3>
+          {cache ? (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-text-muted">Entries</span>
+                <span className="font-mono">
+                  {cache.size}/{cache.maxSize}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">Hit Rate</span>
+                <span className="font-mono">{cache.hitRate?.toFixed(1) ?? 0}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">Hits / Misses</span>
+                <span className="font-mono">
+                  {cache.hits ?? 0} / {cache.misses ?? 0}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">No data yet</p>
+          )}
+        </Card>
+
+        {/* Signature Cache Card */}
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">database</span>
+            Signature Cache
+          </h3>
+          {signatureCache ? (
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Defaults", value: signatureCache.defaultCount, color: "text-text-muted" },
+                {
+                  label: "Tool",
+                  value: `${signatureCache.tool.entries}/${signatureCache.tool.patterns}`,
+                  color: "text-blue-400",
+                },
+                {
+                  label: "Family",
+                  value: `${signatureCache.family.entries}/${signatureCache.family.patterns}`,
+                  color: "text-purple-400",
+                },
+                {
+                  label: "Session",
+                  value: `${signatureCache.session.entries}/${signatureCache.session.patterns}`,
+                  color: "text-cyan-400",
+                },
+              ].map(({ label, value, color }) => (
+                <div
+                  key={label}
+                  className="text-center p-2 rounded-lg bg-surface/30 border border-border/30"
+                >
+                  <p className={`text-lg font-bold tabular-nums ${color}`}>{value}</p>
+                  <p className="text-xs text-text-muted mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">No data yet</p>
+          )}
         </Card>
       </div>
 

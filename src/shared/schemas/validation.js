@@ -38,7 +38,9 @@ export const comboNodeSchema = z.object({
 export const comboSchema = z.object({
   name: z.string().min(1, "Combo name is required").max(100),
   model: z.string().min(1, "Model pattern is required"),
-  strategy: z.enum(["priority", "weighted", "round-robin", "cost-optimized"]).default("priority"),
+  strategy: z
+    .enum(["priority", "weighted", "round-robin", "random", "least-used", "cost-optimized"])
+    .default("priority"),
   nodes: z.array(comboNodeSchema).min(1, "At least one node is required"),
   isActive: z.boolean().default(true),
   maxRetries: z.number().int().min(0).max(10).default(2),

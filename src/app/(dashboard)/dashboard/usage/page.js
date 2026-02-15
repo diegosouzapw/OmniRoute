@@ -1,59 +1,41 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import {
-  UsageAnalytics,
-  RequestLoggerV2,
-  ProxyLogger,
-  CardSkeleton,
-  SegmentedControl,
-} from "@/shared/components";
+import { RequestLoggerV2, ProxyLogger, CardSkeleton, SegmentedControl } from "@/shared/components";
 import ProviderLimits from "./components/ProviderLimits";
 import SessionsTab from "./components/SessionsTab";
 import RateLimitStatus from "./components/RateLimitStatus";
-import BudgetTelemetryCards from "./components/BudgetTelemetryCards";
 import BudgetTab from "./components/BudgetTab";
-import EvalsTab from "./components/EvalsTab";
 
 export default function UsagePage() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("limits");
 
   return (
     <div className="flex flex-col gap-6">
       <SegmentedControl
         options={[
-          { value: "overview", label: "Overview" },
+          { value: "limits", label: "Limits" },
           { value: "logs", label: "Logger" },
           { value: "proxy-logs", label: "Proxy" },
-          { value: "limits", label: "Limits" },
-          { value: "sessions", label: "Sessions" },
           { value: "budget", label: "Budget" },
-          { value: "evals", label: "Evals" },
         ]}
         value={activeTab}
         onChange={setActiveTab}
       />
 
       {/* Content */}
-      {activeTab === "overview" && (
-        <Suspense fallback={<CardSkeleton />}>
-          <UsageAnalytics />
-          <BudgetTelemetryCards />
-        </Suspense>
-      )}
-      {activeTab === "logs" && <RequestLoggerV2 />}
-      {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "limits" && (
         <div className="flex flex-col gap-6">
           <Suspense fallback={<CardSkeleton />}>
             <ProviderLimits />
           </Suspense>
           <RateLimitStatus />
+          <SessionsTab />
         </div>
       )}
-      {activeTab === "sessions" && <SessionsTab />}
+      {activeTab === "logs" && <RequestLoggerV2 />}
+      {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "budget" && <BudgetTab />}
-      {activeTab === "evals" && <EvalsTab />}
     </div>
   );
 }

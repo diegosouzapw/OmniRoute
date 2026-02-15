@@ -33,6 +33,12 @@ tags:
     description: Text embedding generation
   - name: Images
     description: Image generation
+  - name: Audio
+    description: Audio speech and transcription
+  - name: Moderations
+    description: Content moderation
+  - name: Rerank
+    description: Document reranking
   - name: Models
     description: Available model listing
   - name: Providers
@@ -57,6 +63,12 @@ tags:
     description: System management (restart, shutdown, backup)
   - name: Pricing
     description: Model pricing configuration
+  - name: Cloud
+    description: Cloud worker authentication and sync
+  - name: Fallback
+    description: Fallback chain management
+  - name: Telemetry
+    description: Telemetry and token health monitoring
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -113,6 +125,23 @@ paths:
           description: Chat completion response
         "401":
           $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/api/chat:
+    post:
+      tags: [Chat]
+      summary: Ollama-compatible chat endpoint
+      description: Provides compatibility with Ollama's /api/chat format.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Chat response (JSON or streaming)
 
   /api/v1/messages:
     post:
@@ -266,6 +295,118 @@ paths:
         "200":
           description: Generated images
 
+  /api/v1/audio/speech:
+    post:
+      tags: [Audio]
+      summary: Generate speech audio
+      description: Text-to-speech endpoint. Routes to configured TTS providers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input:
+                  type: string
+                model:
+                  type: string
+                voice:
+                  type: string
+      responses:
+        "200":
+          description: Audio data
+
+  /api/v1/audio/transcriptions:
+    post:
+      tags: [Audio]
+      summary: Transcribe audio
+      description: Audio-to-text transcription endpoint.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+      responses:
+        "200":
+          description: Transcription result
+
+  /api/v1/moderations:
+    post:
+      tags: [Moderations]
+      summary: Create moderation
+      description: Content moderation endpoint. Routes to configured moderation providers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+      responses:
+        "200":
+          description: Moderation result
+
+  /api/v1/rerank:
+    post:
+      tags: [Rerank]
+      summary: Rerank documents
+      description: Document reranking endpoint.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query, documents]
+              properties:
+                query:
+                  type: string
+                documents:
+                  type: array
+                  items:
+                    type: string
+                model:
+                  type: string
+      responses:
+        "200":
+          description: Reranked documents
+
+  /api/v1:
+    get:
+      tags: [System]
+      summary: API v1 root endpoint
+      description: Returns basic API info and status.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: API info
+
   /api/v1/models:
     get:
       tags: [Models]
@@ -318,6 +459,22 @@ paths:
       responses:
         "200":
           description: Complete catalog with all providers
+
+  /api/models/availability:
+    get:
+      tags: [Models]
+      summary: Get model availability status
+      description: Returns availability data for all configured models across providers.
+      responses:
+        "200":
+          description: Model availability map
+    post:
+      tags: [Models]
+      summary: Refresh model availability
+      description: Triggers a re-check of model availability across all providers.
+      responses:
+        "200":
+          description: Availability refreshed
 
   # ─── Management Endpoints ──────────────────────────────────────
 
@@ -631,6 +788,120 @@ paths:
         "200":
           description: Updated
 
+  /api/settings/ip-filter:
+    get:
+      tags: [Settings]
+      summary: Get IP filter configuration
+      description: Returns the current IP filter settings including blacklist, whitelist, and temp bans.
+      responses:
+        "200":
+          description: IP filter configuration
+    put:
+      tags: [Settings]
+      summary: Update IP filter configuration
+      description: |
+        Configure IP filtering with blacklist/whitelist modes, add/remove individual IPs, and manage temp bans.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                mode:
+                  type: string
+                  enum: [blacklist, whitelist]
+                blacklist:
+                  type: array
+                  items:
+                    type: string
+                whitelist:
+                  type: array
+                  items:
+                    type: string
+                addBlacklist:
+                  type: string
+                removeBlacklist:
+                  type: string
+                addWhitelist:
+                  type: string
+                removeWhitelist:
+                  type: string
+                tempBan:
+                  type: object
+                  properties:
+                    ip:
+                      type: string
+                    durationMs:
+                      type: integer
+                    reason:
+                      type: string
+                removeBan:
+                  type: string
+      responses:
+        "200":
+          description: Updated IP filter configuration
+
+  /api/settings/system-prompt:
+    get:
+      tags: [Settings]
+      summary: Get system prompt configuration
+      description: Returns the current system prompt injection settings.
+      responses:
+        "200":
+          description: System prompt configuration
+    put:
+      tags: [Settings]
+      summary: Update system prompt configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated system prompt configuration
+
+  /api/settings/thinking-budget:
+    get:
+      tags: [Settings]
+      summary: Get thinking budget configuration
+      description: Returns the current thinking/reasoning budget settings for AI models.
+      responses:
+        "200":
+          description: Thinking budget configuration
+    put:
+      tags: [Settings]
+      summary: Update thinking budget configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  description: Thinking mode (e.g., auto, manual, disabled)
+                customBudget:
+                  type: integer
+                  minimum: 0
+                  maximum: 131072
+                effortLevel:
+                  type: string
+                  enum: [none, low, medium, high]
+      responses:
+        "200":
+          description: Updated thinking budget configuration
+
   /api/rate-limit:
     get:
       tags: [Settings]
@@ -638,6 +909,18 @@ paths:
       responses:
         "200":
           description: Rate limit settings
+    post:
+      tags: [Settings]
+      summary: Update rate limit configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated rate limit settings
 
   /api/tags:
     get:
@@ -740,6 +1023,28 @@ paths:
         "200":
           description: Request log entries
 
+  /api/usage/budget:
+    get:
+      tags: [Usage]
+      summary: Get usage budget status
+      description: Returns current budget limits and consumption.
+      responses:
+        "200":
+          description: Budget status
+    post:
+      tags: [Usage]
+      summary: Configure usage budget
+      description: Set or update budget limits for usage tracking.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated budget configuration
+
   # ─── Pricing ───────────────────────────────────────────────────
 
   /api/pricing:
@@ -763,6 +1068,15 @@ paths:
       responses:
         "200":
           description: Default pricing data
+
+  /api/pricing/models:
+    get:
+      tags: [Pricing]
+      summary: Get pricing per model
+      description: Returns pricing information organized by model.
+      responses:
+        "200":
+          description: Per-model pricing data
 
   # ─── Translator ────────────────────────────────────────────────
 
@@ -901,6 +1215,246 @@ paths:
         "200":
           description: Guide settings
 
+  /api/cli-tools/antigravity-mitm:
+    get:
+      tags: [CLI Tools]
+      summary: Get Antigravity MITM proxy settings
+      responses:
+        "200":
+          description: MITM proxy configuration
+    post:
+      tags: [CLI Tools]
+      summary: Update Antigravity MITM proxy settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated MITM proxy configuration
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Antigravity MITM proxy settings
+      responses:
+        "200":
+          description: MITM proxy settings reset
+
+  /api/cli-tools/antigravity-mitm/alias:
+    get:
+      tags: [CLI Tools]
+      summary: Get Antigravity MITM alias configuration
+      responses:
+        "200":
+          description: Alias configuration
+    put:
+      tags: [CLI Tools]
+      summary: Update Antigravity MITM alias configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated alias configuration
+
+  /api/cli-tools/claude-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Claude CLI settings
+      responses:
+        "200":
+          description: Claude CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply Claude CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Claude CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Claude CLI settings
+      responses:
+        "200":
+          description: Claude CLI settings reset
+
+  /api/cli-tools/cline-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Cline CLI settings
+      responses:
+        "200":
+          description: Cline CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply Cline CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Cline CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Cline CLI settings
+      responses:
+        "200":
+          description: Cline CLI settings reset
+
+  /api/cli-tools/codex-profiles:
+    get:
+      tags: [CLI Tools]
+      summary: Get Codex profiles
+      responses:
+        "200":
+          description: Codex profile list
+    post:
+      tags: [CLI Tools]
+      summary: Create Codex profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Profile created
+    put:
+      tags: [CLI Tools]
+      summary: Update Codex profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Profile updated
+    delete:
+      tags: [CLI Tools]
+      summary: Delete Codex profile
+      responses:
+        "200":
+          description: Profile deleted
+
+  /api/cli-tools/codex-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Codex CLI settings
+      responses:
+        "200":
+          description: Codex CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply Codex CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Codex CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Codex CLI settings
+      responses:
+        "200":
+          description: Codex CLI settings reset
+
+  /api/cli-tools/droid-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Droid CLI settings
+      responses:
+        "200":
+          description: Droid CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply Droid CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Droid CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Droid CLI settings
+      responses:
+        "200":
+          description: Droid CLI settings reset
+
+  /api/cli-tools/kilo-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Kilo CLI settings
+      responses:
+        "200":
+          description: Kilo CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply Kilo CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Kilo CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset Kilo CLI settings
+      responses:
+        "200":
+          description: Kilo CLI settings reset
+
+  /api/cli-tools/openclaw-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get OpenClaw CLI settings
+      responses:
+        "200":
+          description: OpenClaw CLI configuration
+    post:
+      tags: [CLI Tools]
+      summary: Apply OpenClaw CLI settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OpenClaw CLI settings applied
+    delete:
+      tags: [CLI Tools]
+      summary: Reset OpenClaw CLI settings
+      responses:
+        "200":
+          description: OpenClaw CLI settings reset
+
   # ─── OAuth ─────────────────────────────────────────────────────
 
   /api/oauth/{provider}/{action}:
@@ -925,6 +1479,209 @@ paths:
           description: OAuth flow response
         "302":
           description: Redirect to provider auth page
+
+  /api/oauth/cursor/auto-import:
+    get:
+      tags: [OAuth]
+      summary: Auto-import Cursor OAuth credentials
+      description: Automatically detects and imports Cursor credentials from local config.
+      responses:
+        "200":
+          description: Import result
+
+  /api/oauth/cursor/import:
+    get:
+      tags: [OAuth]
+      summary: Get Cursor import status
+      responses:
+        "200":
+          description: Current import status
+    post:
+      tags: [OAuth]
+      summary: Import Cursor OAuth credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Credentials imported
+
+  /api/oauth/kiro/auto-import:
+    get:
+      tags: [OAuth]
+      summary: Auto-import Kiro OAuth credentials
+      description: Automatically detects and imports Kiro credentials from local config.
+      responses:
+        "200":
+          description: Import result
+
+  /api/oauth/kiro/import:
+    get:
+      tags: [OAuth]
+      summary: Get Kiro import status
+      responses:
+        "200":
+          description: Current import status
+    post:
+      tags: [OAuth]
+      summary: Import Kiro OAuth credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Credentials imported
+
+  /api/oauth/kiro/social-authorize:
+    get:
+      tags: [OAuth]
+      summary: Initiate Kiro social OAuth authorization
+      description: Starts the social OAuth flow for Kiro.
+      responses:
+        "302":
+          description: Redirect to OAuth provider
+
+  /api/oauth/kiro/social-exchange:
+    post:
+      tags: [OAuth]
+      summary: Exchange Kiro social OAuth token
+      description: Exchanges the authorization code for access tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Token exchange result
+
+  # ─── Cloud ─────────────────────────────────────────────────────
+
+  /api/cloud/auth:
+    post:
+      tags: [Cloud]
+      summary: Authenticate with cloud worker
+      description: Authenticates with the OmniRoute cloud worker for remote access.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Authentication result
+
+  /api/cloud/credentials/update:
+    put:
+      tags: [Cloud]
+      summary: Update cloud worker credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Credentials updated
+
+  /api/cloud/model/resolve:
+    post:
+      tags: [Cloud]
+      summary: Resolve model via cloud
+      description: Resolves a model request through the cloud worker.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Resolved model info
+
+  /api/cloud/models/alias:
+    get:
+      tags: [Cloud]
+      summary: Get cloud model aliases
+      responses:
+        "200":
+          description: Cloud model alias list
+    put:
+      tags: [Cloud]
+      summary: Update cloud model alias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Alias updated
+
+  # ─── Fallback ──────────────────────────────────────────────────
+
+  /api/fallback/chains:
+    get:
+      tags: [Fallback]
+      summary: List fallback chains
+      description: Returns all registered fallback chains for model routing.
+      responses:
+        "200":
+          description: Fallback chain list
+    post:
+      tags: [Fallback]
+      summary: Create fallback chain
+      description: Registers a fallback routing chain for a model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, chain]
+              properties:
+                model:
+                  type: string
+                chain:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      provider:
+                        type: string
+                      priority:
+                        type: integer
+                      enabled:
+                        type: boolean
+      responses:
+        "200":
+          description: Fallback chain created
+    delete:
+      tags: [Fallback]
+      summary: Delete fallback chain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model]
+              properties:
+                model:
+                  type: string
+      responses:
+        "200":
+          description: Fallback chain deleted
 
   # ─── System ────────────────────────────────────────────────────
 
@@ -1087,6 +1844,41 @@ paths:
         "200":
           description: Caches cleared
 
+  /api/cache/stats:
+    get:
+      tags: [System]
+      summary: Get detailed cache statistics
+      description: Returns detailed statistics for all cache layers.
+      responses:
+        "200":
+          description: Detailed cache stats
+    delete:
+      tags: [System]
+      summary: Clear cache statistics
+      responses:
+        "200":
+          description: Cache stats cleared
+
+  # ─── Telemetry & Token Health ───────────────────────────────────
+
+  /api/telemetry/summary:
+    get:
+      tags: [Telemetry]
+      summary: Get telemetry summary
+      description: Returns aggregated telemetry data including request metrics and performance stats.
+      responses:
+        "200":
+          description: Telemetry summary data
+
+  /api/token-health:
+    get:
+      tags: [Telemetry]
+      summary: Get token health status
+      description: Returns health status of OAuth tokens across all providers.
+      responses:
+        "200":
+          description: Token health status
+
   # ─── Evals & Policies ──────────────────────────────────────────
 
   /api/evals:
@@ -1108,6 +1900,20 @@ paths:
       responses:
         "200":
           description: Eval results
+
+  /api/evals/{suiteId}:
+    get:
+      tags: [System]
+      summary: Get eval suite details
+      parameters:
+        - name: suiteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Eval suite details
 
   /api/policies:
     get:
@@ -1377,7 +2183,7 @@ components:
           type: string
         strategy:
           type: string
-          enum: [priority, weighted, round-robin]
+          enum: [priority, weighted, round-robin, random, least-used, cost-optimized]
           default: priority
         nodes:
           type: array

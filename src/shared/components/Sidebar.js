@@ -11,10 +11,12 @@ import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 
 const navItems = [
+  { href: "/dashboard", label: "Home", icon: "home", exact: true },
   { href: "/dashboard/endpoint", label: "Endpoint", icon: "api" },
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   { href: "/dashboard/combos", label: "Combos", icon: "layers" },
   { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
+  { href: "/dashboard/analytics", label: "Analytics", icon: "analytics" },
   { href: "/dashboard/health", label: "Health", icon: "health_and_safety" },
   { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
 ];
@@ -51,9 +53,9 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
       .catch(() => {});
   }, []);
 
-  const isActive = (href) => {
-    if (href === "/dashboard/endpoint") {
-      return pathname === "/dashboard" || pathname.startsWith("/dashboard/endpoint");
+  const isActive = (href, exact) => {
+    if (exact) {
+      return pathname === href;
     }
     return pathname.startsWith(href);
   };
@@ -87,7 +89,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
   };
 
   const renderNavLink = (item) => {
-    const active = !item.external && isActive(item.href);
+    const active = !item.external && isActive(item.href, item.exact);
     const className = cn(
       "flex items-center gap-3 rounded-lg transition-all group",
       collapsed ? "justify-center px-2 py-2.5" : "px-4 py-2",
@@ -186,7 +188,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
             href="/dashboard"
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
-            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#f97815] to-[#c2590a] shrink-0">
+            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
               <span className="material-symbols-outlined text-white text-[20px]">hub</span>
             </div>
             {!collapsed && (

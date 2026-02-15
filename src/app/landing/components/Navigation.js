@@ -7,7 +7,7 @@ export default function Navigation() {
   const router = useRouter();
 
   return (
-    <nav className="fixed top-0 z-50 w-full bg-[#181411]/80 backdrop-blur-md border-b border-[#3a2f27]">
+    <nav className="fixed top-0 z-50 w-full bg-[#0B0E14]/80 backdrop-blur-md border-b border-[#2D333B]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <button
@@ -16,7 +16,7 @@ export default function Navigation() {
           onClick={() => router.push("/")}
           aria-label="Navigate to home"
         >
-          <div className="size-8 rounded bg-linear-to-br from-[#f97815] to-orange-700 flex items-center justify-center text-white">
+          <div className="size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] flex items-center justify-center text-white">
             <span className="material-symbols-outlined text-[20px]">hub</span>
           </div>
           <h2 className="text-white text-xl font-bold tracking-tight">OmniRoute</h2>
@@ -56,7 +56,7 @@ export default function Navigation() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/dashboard")}
-            className="hidden sm:flex h-9 items-center justify-center rounded-lg px-4 bg-[#f97815] hover:bg-[#e0650a] transition-all text-[#181411] text-sm font-bold shadow-[0_0_15px_rgba(249,120,21,0.4)] hover:shadow-[0_0_20px_rgba(249,120,21,0.6)]"
+            className="hidden sm:flex h-9 items-center justify-center rounded-lg px-4 bg-[#E54D5E] hover:bg-[#C93D4E] transition-all text-white text-sm font-bold shadow-[0_0_15px_rgba(229,77,94,0.4)] hover:shadow-[0_0_20px_rgba(229,77,94,0.6)]"
           >
             Get Started
           </button>
@@ -71,7 +71,7 @@ export default function Navigation() {
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#3a2f27] bg-[#181411]/95 backdrop-blur-md">
+        <div className="md:hidden border-t border-[#2D333B] bg-[#0B0E14]/95 backdrop-blur-md">
           <div className="flex flex-col gap-4 p-6">
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
@@ -103,7 +103,7 @@ export default function Navigation() {
             </a>
             <button
               onClick={() => router.push("/dashboard")}
-              className="h-9 rounded-lg bg-[#f97815] hover:bg-[#e0650a] text-[#181411] text-sm font-bold"
+              className="h-9 rounded-lg bg-[#E54D5E] hover:bg-[#C93D4E] text-white text-sm font-bold"
             >
               Get Started
             </button>

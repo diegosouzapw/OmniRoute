@@ -46,7 +46,10 @@ export const createComboSchema = z.object({
     .max(100)
     .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and ."),
   models: z.array(comboModelEntry).optional().default([]),
-  strategy: z.enum(["priority", "weighted"]).optional().default("priority"),
+  strategy: z
+    .enum(["priority", "weighted", "round-robin", "random", "least-used", "cost-optimized"])
+    .optional()
+    .default("priority"),
   config: comboConfigSchema,
 });
 

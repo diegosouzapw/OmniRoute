@@ -370,8 +370,21 @@ export default function ProviderDetailPage() {
         if (!modelId) continue;
         const parts = modelId.split("/");
         const baseAlias = parts[parts.length - 1];
-        if (modelAliases[baseAlias]) continue;
-        await handleSetAlias(modelId, baseAlias, providerStorageAlias);
+        // Save as imported (default) model in the DB
+        await fetch("/api/provider-models", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: providerId,
+            modelId,
+            modelName: model.name || modelId,
+            source: "imported",
+          }),
+        });
+        // Also create an alias for routing
+        if (!modelAliases[baseAlias]) {
+          await handleSetAlias(modelId, baseAlias, providerStorageAlias);
+        }
         importedCount += 1;
       }
       if (importedCount === 0) {

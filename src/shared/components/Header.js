@@ -72,14 +72,21 @@ const getPageInfo = (pathname) => {
       description: "Monitor your API usage, token consumption, and request logs",
       breadcrumbs: [],
     };
+  if (pathname.includes("/analytics"))
+    return {
+      title: "Analytics",
+      description: "Charts, trends, and evaluation insights",
+      breadcrumbs: [],
+    };
   if (pathname.includes("/cli-tools"))
     return { title: "CLI Tools", description: "Configure CLI tools", breadcrumbs: [] };
+  if (pathname === "/dashboard")
+    return { title: "Home", description: "Welcome to OmniRoute", breadcrumbs: [] };
   if (pathname.includes("/endpoint"))
     return { title: "Endpoint", description: "API endpoint configuration", breadcrumbs: [] };
   if (pathname.includes("/profile"))
     return { title: "Settings", description: "Manage your preferences", breadcrumbs: [] };
-  if (pathname === "/dashboard")
-    return { title: "Endpoint", description: "API endpoint configuration", breadcrumbs: [] };
+
   return { title: "", description: "", breadcrumbs: [] };
 };
 

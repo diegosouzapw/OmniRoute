@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 22]
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,7 +59,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        node-version: [18, 22]
+        node-version: [20, 22]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long

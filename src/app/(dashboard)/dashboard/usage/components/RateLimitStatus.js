@@ -11,7 +11,8 @@ export default function RateLimitStatus() {
     try {
       const res = await fetch("/api/rate-limits");
       if (res.ok) setData(await res.json());
-    } catch {} finally {
+    } catch {
+    } finally {
       setLoading(false);
     }
   }, []);
@@ -65,11 +66,14 @@ export default function RateLimitStatus() {
                            bg-orange-500/5 border border-orange-500/15"
               >
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[16px] text-orange-400">lock</span>
+                  <span className="material-symbols-outlined text-[16px] text-orange-400">
+                    lock
+                  </span>
                   <div>
                     <p className="text-sm font-medium">{lock.model}</p>
                     <p className="text-xs text-text-muted">
-                      Account: <span className="font-mono">{lock.accountId?.slice(0, 12) || "N/A"}</span>
+                      Account:{" "}
+                      <span className="font-mono">{lock.accountId?.slice(0, 12) || "N/A"}</span>
                       {lock.reason && <> — {lock.reason}</>}
                     </p>
                   </div>
@@ -82,33 +86,6 @@ export default function RateLimitStatus() {
           </div>
         )}
       </Card>
-
-      {/* Signature Cache Stats */}
-      {data.cacheStats && (
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
-              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                database
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold">Signature Cache</h3>
-          </div>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: "Defaults", value: data.cacheStats.defaultCount, color: "text-text-muted" },
-              { label: "Tool", value: `${data.cacheStats.tool.entries}/${data.cacheStats.tool.patterns}`, color: "text-blue-400" },
-              { label: "Family", value: `${data.cacheStats.family.entries}/${data.cacheStats.family.patterns}`, color: "text-purple-400" },
-              { label: "Session", value: `${data.cacheStats.session.entries}/${data.cacheStats.session.patterns}`, color: "text-cyan-400" },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="text-center p-3 rounded-lg bg-surface/30 border border-border/30">
-                <p className={`text-lg font-bold tabular-nums ${color}`}>{value}</p>
-                <p className="text-xs text-text-muted mt-0.5">{label}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
     </div>
   );
 }

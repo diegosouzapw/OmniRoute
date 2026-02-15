@@ -133,6 +133,72 @@ PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 | 🧠 **Semantic Cache**           | Two-tier cache reduces cost & latency         |
 | ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests        |
 | 📈 **Progress Tracking**        | Opt-in SSE progress events for streaming      |
+| 🧪 **LLM Evaluations**          | Golden set testing with 4 match strategies    |
+
+---
+
+## 🧪 Evaluations (Evals)
+
+OmniRoute includes a built-in evaluation framework to test LLM response quality against a golden set. Access it via **Analytics → Evals** in the dashboard.
+
+### Built-in Golden Set
+
+The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
+
+- Greetings, math, geography, code generation
+- JSON format compliance, translation, markdown
+- Safety refusal (harmful content), counting, boolean logic
+
+### How It Works
+
+1. Click **"Run Eval"** on a suite in the dashboard
+2. Each test case is sent to your proxy endpoint (`/v1/chat/completions`)
+3. Real LLM responses are collected and evaluated against expected criteria
+4. Results show pass/fail status, latency per case, and overall pass rate
+
+### Evaluation Strategies
+
+| Strategy   | Description                                      | Example                          |
+| ---------- | ------------------------------------------------ | -------------------------------- |
+| `exact`    | Output must match exactly                        | `"4"`                            |
+| `contains` | Output must contain substring (case-insensitive) | `"Paris"`                        |
+| `regex`    | Output must match regex pattern                  | `"1.*2.*3"`                      |
+| `custom`   | Custom JS function returns true/false            | `(output) => output.length > 10` |
+
+### API Usage
+
+```bash
+# List all eval suites
+curl http://localhost:20128/api/evals
+
+# Run a suite with pre-collected outputs
+curl -X POST http://localhost:20128/api/evals \
+  -H 'Content-Type: application/json' \
+  -d '{"suiteId": "golden-set", "outputs": {"gs-01": "Hello there!", "gs-02": "4"}}'
+
+# Get suite details
+curl http://localhost:20128/api/evals/golden-set
+```
+
+### Custom Suites
+
+Register custom suites programmatically via `registerSuite()` in `src/lib/evals/evalRunner.js`:
+
+```javascript
+registerSuite({
+  id: "my-suite",
+  name: "Custom Eval Suite",
+  cases: [
+    {
+      id: "c-01",
+      name: "API response",
+      model: "gpt-4o",
+      input: { messages: [{ role: "user", content: "Say OK" }] },
+      expected: { strategy: "contains", value: "OK" },
+    },
+  ],
+});
+```
 
 ---
 

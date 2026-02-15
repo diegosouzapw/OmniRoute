@@ -9,6 +9,23 @@
  */
 
 /**
+ * Normalize model name — strip provider path prefixes.
+ * Examples:
+ *   "openai/gpt-oss-120b" → "gpt-oss-120b"
+ *   "accounts/fireworks/models/gpt-oss-120b" → "gpt-oss-120b"
+ *   "deepseek-ai/DeepSeek-R1" → "DeepSeek-R1"
+ *   "gpt-oss-120b" → "gpt-oss-120b" (no-op)
+ *
+ * @param {string} model
+ * @returns {string}
+ */
+function normalizeModelName(model) {
+  if (!model || !model.includes("/")) return model;
+  const parts = model.split("/");
+  return parts[parts.length - 1];
+}
+
+/**
  * Calculate cost for a usage entry.
  *
  * @param {string} provider
@@ -21,7 +38,15 @@ export async function calculateCost(provider, model, tokens) {
 
   try {
     const { getPricingForModel } = await import("@/lib/localDb.js");
-    const pricing = await getPricingForModel(provider, model);
+
+    // Try exact match first, then normalized model name
+    let pricing = await getPricingForModel(provider, model);
+    if (!pricing) {
+      const normalized = normalizeModelName(model);
+      if (normalized !== model) {
+        pricing = await getPricingForModel(provider, normalized);
+      }
+    }
     if (!pricing) return 0;
 
     let cost = 0;
