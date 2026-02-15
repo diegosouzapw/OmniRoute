@@ -1,15 +1,76 @@
 import { NextResponse } from "next/server";
-import {
-  getAllModelLockouts,
-} from "@omniroute/open-sse/services/accountFallback.js";
+import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback.js";
 import { getCacheStats } from "@omniroute/open-sse/services/signatureCache.js";
+import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import {
+  enableRateLimitProtection,
+  disableRateLimitProtection,
+  getRateLimitStatus,
+  getAllRateLimitStatus,
+} from "@omniroute/open-sse/services/rateLimitManager.js";
 
+/**
+ * GET /api/rate-limits — Consolidated rate-limit status
+ *
+ * Returns:
+ * - Per-connection rate-limit status (protection toggle, current state)
+ * - Global overview (all providers)
+ * - Model lockouts
+ * - Signature cache stats
+ */
 export async function GET() {
   try {
+    const connections = await getProviderConnections();
+    const statuses = connections.map((conn) => ({
+      connectionId: conn.id,
+      provider: conn.provider,
+      name: conn.name || conn.email || conn.id.slice(0, 8),
+      rateLimitProtection: !!conn.rateLimitProtection,
+      ...getRateLimitStatus(conn.provider, conn.id),
+    }));
+
     const lockouts = getAllModelLockouts();
     const cacheStats = getCacheStats();
-    return NextResponse.json({ lockouts, cacheStats });
+
+    return NextResponse.json({
+      connections: statuses,
+      overview: getAllRateLimitStatus(),
+      lockouts,
+      cacheStats,
+    });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API ERROR] /api/rate-limits GET:", error);
+    return NextResponse.json({ error: "Failed to get rate limit status" }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/rate-limits — Toggle rate limit protection for a connection
+ * Body: { connectionId: string, enabled: boolean }
+ */
+export async function POST(request) {
+  try {
+    const { connectionId, enabled } = await request.json();
+
+    if (!connectionId) {
+      return NextResponse.json({ error: "Missing connectionId" }, { status: 400 });
+    }
+
+    // Update in-memory state
+    if (enabled) {
+      enableRateLimitProtection(connectionId);
+    } else {
+      disableRateLimitProtection(connectionId);
+    }
+
+    // Persist to database
+    await updateProviderConnection(connectionId, {
+      rateLimitProtection: !!enabled,
+    });
+
+    return NextResponse.json({ success: true, connectionId, enabled: !!enabled });
+  } catch (error) {
+    console.error("[API ERROR] /api/rate-limits POST:", error);
+    return NextResponse.json({ error: "Failed to toggle rate limit" }, { status: 500 });
   }
 }
