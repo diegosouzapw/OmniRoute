@@ -82,22 +82,30 @@ export default function ComboDefaultsTab() {
           <div
             role="tablist"
             aria-label="Combo strategy"
-            className="inline-flex p-0.5 rounded-md bg-black/5 dark:bg-white/5"
+            className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-black/5 dark:bg-white/5"
           >
-            {["priority", "weighted", "round-robin"].map((s) => (
+            {[
+              { value: "priority", label: "Priority", icon: "sort" },
+              { value: "weighted", label: "Weighted", icon: "percent" },
+              { value: "round-robin", label: "Round-Robin", icon: "autorenew" },
+              { value: "random", label: "Random", icon: "shuffle" },
+              { value: "least-used", label: "Least-Used", icon: "low_priority" },
+              { value: "cost-optimized", label: "Cost-Opt", icon: "savings" },
+            ].map((s) => (
               <button
-                key={s}
+                key={s.value}
                 role="tab"
-                aria-selected={comboDefaults.strategy === s}
-                onClick={() => setComboDefaults((prev) => ({ ...prev, strategy: s }))}
+                aria-selected={comboDefaults.strategy === s.value}
+                onClick={() => setComboDefaults((prev) => ({ ...prev, strategy: s.value }))}
                 className={cn(
-                  "px-3 py-1 rounded text-xs font-medium transition-all capitalize",
-                  comboDefaults.strategy === s
+                  "px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-0.5",
+                  comboDefaults.strategy === s.value
                     ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
                     : "text-text-muted hover:text-text-main"
                 )}
               >
-                {s === "round-robin" ? "Round-Robin" : s}
+                <span className="material-symbols-outlined text-[14px]">{s.icon}</span>
+                {s.label}
               </button>
             ))}
           </div>

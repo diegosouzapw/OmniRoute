@@ -1,11 +1,11 @@
 /**
  * Shared combo (model combo) handling with fallback support
- * Supports: priority (sequential), weighted (probabilistic), and round-robin (circular) strategies
+ * Supports: priority, weighted, round-robin, random, least-used, and cost-optimized strategies
  */
 
 import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.js";
 import { unavailableResponse } from "../utils/error.js";
-import { recordComboRequest } from "./comboMetrics.js";
+import { recordComboRequest, getComboMetrics } from "./comboMetrics.js";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.js";
 import * as semaphore from "./rateLimitSemaphore.js";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker.js";
@@ -151,8 +151,68 @@ function orderModelsForWeightedFallback(models, selectedModel) {
 }
 
 /**
+ * Fisher-Yates shuffle (in-place)
+ * @param {Array} arr
+ * @returns {Array} The shuffled array
+ */
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/**
+ * Sort models by pricing (cheapest first) for cost-optimized strategy
+ * @param {Array<string>} models - Model strings in "provider/model" format
+ * @returns {Promise<Array<string>>} Sorted model strings
+ */
+async function sortModelsByCost(models) {
+  try {
+    const { getPricingForModel } = await import("../../src/lib/localDb.js");
+    const withCost = await Promise.all(
+      models.map(async (modelStr) => {
+        const parsed = parseModel(modelStr);
+        const provider = parsed.provider || parsed.providerAlias || "unknown";
+        const model = parsed.model || modelStr;
+        try {
+          const pricing = await getPricingForModel(provider, model);
+          return { modelStr, cost: pricing?.input ?? Infinity };
+        } catch {
+          return { modelStr, cost: Infinity };
+        }
+      })
+    );
+    withCost.sort((a, b) => a.cost - b.cost);
+    return withCost.map((e) => e.modelStr);
+  } catch {
+    // If pricing lookup fails entirely, return original order
+    return models;
+  }
+}
+
+/**
+ * Sort models by usage count (least-used first) for least-used strategy
+ * @param {Array<string>} models - Model strings
+ * @param {string} comboName - Combo name for metrics lookup
+ * @returns {Array<string>} Sorted model strings
+ */
+function sortModelsByUsage(models, comboName) {
+  const metrics = getComboMetrics(comboName);
+  if (!metrics || !metrics.byModel) return models;
+
+  const withUsage = models.map((modelStr) => ({
+    modelStr,
+    requests: metrics.byModel[modelStr]?.requests ?? 0,
+  }));
+  withUsage.sort((a, b) => a.requests - b.requests);
+  return withUsage.map((e) => e.modelStr);
+}
+
+/**
  * Handle combo chat with fallback
- * Supports priority (sequential) and weighted (probabilistic) strategies
+ * Supports all 6 strategies: priority, weighted, round-robin, random, least-used, cost-optimized
  * @param {Object} options
  * @param {Object} options.body - Request body
  * @param {Object} options.combo - Full combo object { name, models, strategy, config }
@@ -215,7 +275,7 @@ export async function handleComboChat({
       );
     } else {
       orderedModels = flatModels;
-      log.info("COMBO", `Priority with nested resolution: ${orderedModels.length} total models`);
+      log.info("COMBO", `${strategy} with nested resolution: ${orderedModels.length} total models`);
     }
   } else if (strategy === "weighted") {
     const selected = selectWeightedModel(models);
@@ -223,6 +283,18 @@ export async function handleComboChat({
     log.info("COMBO", `Weighted selection: ${selected} (from ${models.length} models)`);
   } else {
     orderedModels = models.map((m) => normalizeModelEntry(m).model);
+  }
+
+  // Apply strategy-specific ordering
+  if (strategy === "random") {
+    orderedModels = shuffleArray([...orderedModels]);
+    log.info("COMBO", `Random shuffle: ${orderedModels.length} models`);
+  } else if (strategy === "least-used") {
+    orderedModels = sortModelsByUsage(orderedModels, combo.name);
+    log.info("COMBO", `Least-used ordering: ${orderedModels[0]} has fewest requests`);
+  } else if (strategy === "cost-optimized") {
+    orderedModels = await sortModelsByCost(orderedModels);
+    log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedModels[0]})`);
   }
 
   let lastError = null;

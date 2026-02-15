@@ -308,7 +308,13 @@ function ComboCard({
                     ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
                     : strategy === "round-robin"
                       ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                      : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                      : strategy === "random"
+                        ? "bg-purple-500/15 text-purple-600 dark:text-purple-400"
+                        : strategy === "least-used"
+                          ? "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400"
+                          : strategy === "cost-optimized"
+                            ? "bg-teal-500/15 text-teal-600 dark:text-teal-400"
+                            : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
                 }`}
               >
                 {strategy}
@@ -704,53 +710,43 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
           {/* Strategy Toggle */}
           <div>
             <label className="text-sm font-medium mb-1.5 block">Routing Strategy</label>
-            <div className="flex gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
-              <button
-                onClick={() => setStrategy("priority")}
-                className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                  strategy === "priority"
-                    ? "bg-white dark:bg-bg-main shadow-sm text-primary"
-                    : "text-text-muted hover:text-text-main"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px] align-middle mr-1">
-                  sort
-                </span>
-                Priority
-              </button>
-              <button
-                onClick={() => setStrategy("weighted")}
-                className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                  strategy === "weighted"
-                    ? "bg-white dark:bg-bg-main shadow-sm text-primary"
-                    : "text-text-muted hover:text-text-main"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px] align-middle mr-1">
-                  percent
-                </span>
-                Weighted
-              </button>
-              <button
-                onClick={() => setStrategy("round-robin")}
-                className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                  strategy === "round-robin"
-                    ? "bg-white dark:bg-bg-main shadow-sm text-primary"
-                    : "text-text-muted hover:text-text-main"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px] align-middle mr-1">
-                  autorenew
-                </span>
-                Round-Robin
-              </button>
+            <div className="grid grid-cols-3 gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
+              {[
+                { value: "priority", label: "Priority", icon: "sort" },
+                { value: "weighted", label: "Weighted", icon: "percent" },
+                { value: "round-robin", label: "Round-Robin", icon: "autorenew" },
+                { value: "random", label: "Random", icon: "shuffle" },
+                { value: "least-used", label: "Least-Used", icon: "low_priority" },
+                { value: "cost-optimized", label: "Cost-Opt", icon: "savings" },
+              ].map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => setStrategy(s.value)}
+                  className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
+                    strategy === s.value
+                      ? "bg-white dark:bg-bg-main shadow-sm text-primary"
+                      : "text-text-muted hover:text-text-main"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[14px] align-middle mr-0.5">
+                    {s.icon}
+                  </span>
+                  {s.label}
+                </button>
+              ))}
             </div>
             <p className="text-[10px] text-text-muted mt-0.5">
-              {strategy === "priority"
-                ? "Sequential fallback: tries model 1 first, then 2, etc."
-                : strategy === "weighted"
-                  ? "Distributes traffic by weight percentage with fallback"
-                  : "Circular distribution: each request goes to the next model in rotation"}
+              {
+                {
+                  priority: "Sequential fallback: tries model 1 first, then 2, etc.",
+                  weighted: "Distributes traffic by weight percentage with fallback",
+                  "round-robin":
+                    "Circular distribution: each request goes to the next model in rotation",
+                  random: "Uniform random selection, then fallback to remaining models",
+                  "least-used": "Picks the model with fewest requests, balancing load over time",
+                  "cost-optimized": "Routes to the cheapest model first based on pricing",
+                }[strategy]
+              }
             </p>
           </div>
 

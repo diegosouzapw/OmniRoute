@@ -4,13 +4,16 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardSkeleton } from "@/shared/components";
+import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { useNotificationStore } from "@/store/notificationStore";
 
 export default function HomePageClient({ machineId }) {
   const [providerConnections, setProviderConnections] = useState([]);
+  const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [baseUrl, setBaseUrl] = useState("/v1");
+  const [selectedProvider, setSelectedProvider] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -20,10 +23,17 @@ export default function HomePageClient({ machineId }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [connRes] = await Promise.all([fetch("/api/connections")]);
-      if (connRes.ok) {
-        const connData = await connRes.json();
-        setProviderConnections(connData);
+      const [provRes, modelsRes] = await Promise.all([
+        fetch("/api/providers"),
+        fetch("/api/models"),
+      ]);
+      if (provRes.ok) {
+        const provData = await provRes.json();
+        setProviderConnections(provData.connections || []);
+      }
+      if (modelsRes.ok) {
+        const modelsData = await modelsRes.json();
+        setModels(modelsData.models || []);
       }
     } catch (e) {
       console.log("Error fetching data:", e);
@@ -54,15 +64,24 @@ export default function HomePageClient({ machineId }) {
             conn.testStatus === "unavailable")
       ).length;
 
+      const providerModels = models.filter((m) => m.provider === providerId);
+
       return {
         id: providerId,
         provider: providerInfo,
         total: connections.length,
         connected,
         errors,
+        modelCount: providerModels.length,
       };
     });
-  }, [providerConnections]);
+  }, [providerConnections, models]);
+
+  // Models for selected provider
+  const selectedProviderModels = useMemo(() => {
+    if (!selectedProvider) return [];
+    return models.filter((m) => m.provider === selectedProvider.id);
+  }, [selectedProvider, models]);
 
   const quickStartLinks = [
     { label: "Documentation", href: "/docs" },
@@ -162,10 +181,23 @@ export default function HomePageClient({ machineId }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {providerStats.map((item) => (
-            <ProviderOverviewCard key={item.id} item={item} />
+            <ProviderOverviewCard
+              key={item.id}
+              item={item}
+              onClick={() => setSelectedProvider(item)}
+            />
           ))}
         </div>
       </Card>
+
+      {/* Provider Models Modal */}
+      {selectedProvider && (
+        <ProviderModelsModal
+          provider={selectedProvider}
+          models={selectedProviderModels}
+          onClose={() => setSelectedProvider(null)}
+        />
+      )}
     </div>
   );
 }
@@ -174,20 +206,20 @@ HomePageClient.propTypes = {
   machineId: PropTypes.string,
 };
 
-function ProviderOverviewCard({ item }) {
+function ProviderOverviewCard({ item, onClick }) {
   const [imgError, setImgError] = useState(false);
 
   const statusVariant =
     item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
 
   return (
-    <Link
-      href={`/dashboard/providers`}
-      className="border border-border rounded-lg p-3 hover:bg-surface/40 transition-colors"
+    <button
+      onClick={onClick}
+      className="border border-border rounded-lg p-3 hover:bg-surface/40 transition-colors text-left cursor-pointer w-full"
     >
       <div className="flex items-center gap-2.5">
         <div
-          className="size-8 rounded-lg flex items-center justify-center"
+          className="size-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${item.provider.color || "#888"}15` }}
         >
           {imgError ? (
@@ -219,9 +251,9 @@ function ProviderOverviewCard({ item }) {
           </p>
         </div>
 
-        <span className="text-xs text-text-muted">#{item.total}</span>
+        <span className="text-xs text-text-muted">#{item.modelCount}</span>
       </div>
-    </Link>
+    </button>
   );
 }
 
@@ -237,5 +269,95 @@ ProviderOverviewCard.propTypes = {
     total: PropTypes.number.isRequired,
     connected: PropTypes.number.isRequired,
     errors: PropTypes.number.isRequired,
+    modelCount: PropTypes.number.isRequired,
   }).isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+function ProviderModelsModal({ provider, models, onClose }) {
+  const [copiedModel, setCopiedModel] = useState(null);
+  const notify = useNotificationStore();
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedModel(text);
+    notify.success(`Copied: ${text}`);
+    setTimeout(() => setCopiedModel(null), 2000);
+  };
+
+  return (
+    <Modal isOpen={true} title={`${provider.provider.name} — Models`} onClose={onClose}>
+      <div className="flex flex-col gap-3">
+        {/* Summary */}
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          <span className="material-symbols-outlined text-[16px]">token</span>
+          {models.length} model{models.length !== 1 ? "s" : ""} available
+          {provider.total > 0 && (
+            <span className="ml-auto text-xs text-green-500">
+              ● {provider.connected} connection{provider.connected !== 1 ? "s" : ""} active
+            </span>
+          )}
+        </div>
+
+        {models.length === 0 ? (
+          <div className="text-center py-6">
+            <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
+              search_off
+            </span>
+            <p className="text-sm text-text-muted">No models available for this provider.</p>
+            <p className="text-xs text-text-muted mt-1">
+              Configure a connection first in{" "}
+              <Link href="/dashboard/providers" className="text-primary hover:underline">
+                Providers
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
+            {models.map((m) => (
+              <div
+                key={m.fullModel}
+                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface/50 transition-colors group"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-sm text-text-main truncate">{m.fullModel}</p>
+                  {m.alias !== m.model && (
+                    <p className="text-[10px] text-text-muted">alias: {m.alias}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleCopy(m.fullModel)}
+                  className="shrink-0 ml-2 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors opacity-0 group-hover:opacity-100"
+                  title="Copy model name"
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {copiedModel === m.fullModel ? "check" : "content_copy"}
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-2 border-t border-border">
+          <Link href={`/dashboard/providers/${provider.id}`} className="flex-1">
+            <Button variant="secondary" fullWidth size="sm">
+              <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
+              Configure Provider
+            </Button>
+          </Link>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+ProviderModelsModal.propTypes = {
+  provider: PropTypes.object.isRequired,
+  models: PropTypes.array.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
