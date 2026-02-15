@@ -5,11 +5,13 @@
  *
  * Dashboard breadcrumb navigation component. Automatically generates
  * breadcrumbs from the current path with friendly labels.
+ * Uses usePathname() internally — no props needed.
  *
  * Usage:
- *   <Breadcrumbs pathname="/dashboard/providers/add" />
+ *   <Breadcrumbs />
  */
 
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const PATH_LABELS = {
@@ -37,7 +39,8 @@ function getLabel(segment) {
   return PATH_LABELS[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
 }
 
-export default function Breadcrumbs({ pathname }) {
+export default function Breadcrumbs() {
+  const pathname = usePathname();
   if (!pathname || pathname === "/dashboard") return null;
 
   const segments = pathname.split("/").filter(Boolean);

@@ -11,8 +11,9 @@ import {
 import ProviderLimits from "./components/ProviderLimits";
 import SessionsTab from "./components/SessionsTab";
 import RateLimitStatus from "./components/RateLimitStatus";
-
 import BudgetTelemetryCards from "./components/BudgetTelemetryCards";
+import BudgetTab from "./components/BudgetTab";
+import EvalsTab from "./components/EvalsTab";
 
 export default function UsagePage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -26,6 +27,8 @@ export default function UsagePage() {
           { value: "proxy-logs", label: "Proxy" },
           { value: "limits", label: "Limits" },
           { value: "sessions", label: "Sessions" },
+          { value: "budget", label: "Budget" },
+          { value: "evals", label: "Evals" },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -49,6 +52,8 @@ export default function UsagePage() {
         </div>
       )}
       {activeTab === "sessions" && <SessionsTab />}
+      {activeTab === "budget" && <BudgetTab />}
+      {activeTab === "evals" && <EvalsTab />}
     </div>
   );
 }

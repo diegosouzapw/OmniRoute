@@ -12,6 +12,7 @@ import {
   EmptyState,
 } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { useNotificationStore } from "@/store/notificationStore";
 
 // Validate combo name: letters, numbers, -, _, /, .
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
@@ -41,6 +42,7 @@ export default function CombosPage() {
   const [testResults, setTestResults] = useState(null);
   const [testingCombo, setTestingCombo] = useState(null);
   const { copied, copy } = useCopyToClipboard();
+  const notify = useNotificationStore();
   const [proxyTargetCombo, setProxyTargetCombo] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
 
@@ -88,12 +90,13 @@ export default function CombosPage() {
       if (res.ok) {
         await fetchData();
         setShowCreateModal(false);
+        notify.success("Combo created successfully");
       } else {
         const err = await res.json();
-        alert(err.error?.message || err.error || "Failed to create combo");
+        notify.error(err.error?.message || err.error || "Failed to create combo");
       }
     } catch (error) {
-      console.log("Error creating combo:", error);
+      notify.error("Error creating combo");
     }
   };
 
@@ -107,12 +110,13 @@ export default function CombosPage() {
       if (res.ok) {
         await fetchData();
         setEditingCombo(null);
+        notify.success("Combo updated successfully");
       } else {
         const err = await res.json();
-        alert(err.error?.message || err.error || "Failed to update combo");
+        notify.error(err.error?.message || err.error || "Failed to update combo");
       }
     } catch (error) {
-      console.log("Error updating combo:", error);
+      notify.error("Error updating combo");
     }
   };
 
@@ -122,9 +126,10 @@ export default function CombosPage() {
       const res = await fetch(`/api/combos/${id}`, { method: "DELETE" });
       if (res.ok) {
         setCombos(combos.filter((c) => c.id !== id));
+        notify.success("Combo deleted");
       }
     } catch (error) {
-      console.log("Error deleting combo:", error);
+      notify.error("Error deleting combo");
     }
   };
 
@@ -161,6 +166,7 @@ export default function CombosPage() {
       setTestResults(data);
     } catch (error) {
       setTestResults({ error: "Test request failed" });
+      notify.error("Test request failed");
     }
   };
 

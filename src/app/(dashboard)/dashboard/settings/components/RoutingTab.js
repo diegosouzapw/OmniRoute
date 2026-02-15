@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { Card, Input, Toggle, Button } from "@/shared/components";
+import FallbackChainsEditor from "./FallbackChainsEditor";
 
 const STRATEGIES = [
-  { value: "fill-first", label: "Fill First", desc: "Use accounts in priority order", icon: "vertical_align_top" },
+  {
+    value: "fill-first",
+    label: "Fill First",
+    desc: "Use accounts in priority order",
+    icon: "vertical_align_top",
+  },
   { value: "round-robin", label: "Round Robin", desc: "Cycle through all accounts", icon: "loop" },
   { value: "p2c", label: "P2C", desc: "Pick 2 random, use the healthier one", icon: "balance" },
 ];
@@ -90,7 +96,9 @@ export default function RoutingTab() {
                 {s.icon}
               </span>
               <div>
-                <p className={`text-sm font-medium ${settings.fallbackStrategy === s.value ? "text-blue-400" : ""}`}>
+                <p
+                  className={`text-sm font-medium ${settings.fallbackStrategy === s.value ? "text-blue-400" : ""}`}
+                >
                   {s.label}
                 </p>
                 <p className="text-xs text-text-muted mt-0.5">{s.desc}</p>
@@ -120,7 +128,8 @@ export default function RoutingTab() {
         <p className="text-xs text-text-muted italic pt-3 border-t border-border/30 mt-3">
           {settings.fallbackStrategy === "round-robin" &&
             `Distributing requests across accounts with ${settings.stickyRoundRobinLimit || 3} calls per account.`}
-          {settings.fallbackStrategy === "fill-first" && "Using accounts in priority order (Fill First)."}
+          {settings.fallbackStrategy === "fill-first" &&
+            "Using accounts in priority order (Fill First)."}
           {settings.fallbackStrategy === "p2c" &&
             "Power of Two Choices: picks 2 random accounts and routes to the healthier one."}
         </p>
@@ -136,7 +145,9 @@ export default function RoutingTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">Model Aliases</h3>
-            <p className="text-sm text-text-muted">Wildcard patterns to remap model names • Use * and ?</p>
+            <p className="text-sm text-text-muted">
+              Wildcard patterns to remap model names • Use * and ?
+            </p>
           </div>
         </div>
 
@@ -149,7 +160,9 @@ export default function RoutingTab() {
               >
                 <div className="flex items-center gap-3 text-sm">
                   <span className="font-mono text-purple-400">{a.pattern}</span>
-                  <span className="material-symbols-outlined text-[14px] text-text-muted">arrow_forward</span>
+                  <span className="material-symbols-outlined text-[14px] text-text-muted">
+                    arrow_forward
+                  </span>
                   <span className="font-mono text-text-main">{a.target}</span>
                 </div>
                 <button
@@ -185,6 +198,9 @@ export default function RoutingTab() {
           </Button>
         </div>
       </Card>
+
+      {/* Fallback Chains */}
+      <FallbackChainsEditor />
     </div>
   );
 }
