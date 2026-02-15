@@ -29,6 +29,14 @@ import {
   updateFromHeaders,
   initializeRateLimits,
 } from "../services/rateLimitManager.js";
+import {
+  generateSignature,
+  getCachedResponse,
+  setCachedResponse,
+  isCacheable,
+} from "@/lib/semanticCache.js";
+import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer.js";
+import { createProgressTransform, wantsProgress } from "../utils/progressTracker.js";
 
 /**
  * Core chat handler - shared between SSE and Worker
@@ -61,6 +69,24 @@ export async function handleChatCore({
   const { provider, model } = modelInfo;
   const startTime = Date.now();
 
+  // ── Phase 9.2: Idempotency check ──
+  const idempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
+  const cachedIdemp = checkIdempotency(idempotencyKey);
+  if (cachedIdemp) {
+    log?.debug?.("IDEMPOTENCY", `Hit for key=${idempotencyKey?.slice(0, 12)}...`);
+    return {
+      success: true,
+      response: new Response(JSON.stringify(cachedIdemp.response), {
+        status: cachedIdemp.status,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "X-OmniRoute-Idempotent": "true",
+        },
+      }),
+    };
+  }
+
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
 
@@ -83,6 +109,25 @@ export async function handleChatCore({
 
   // Default to streaming unless client explicitly sets stream: false
   const stream = body.stream !== false;
+
+  // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
+  if (isCacheable(body, clientRawRequest?.headers)) {
+    const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
+    const cached = getCachedResponse(signature);
+    if (cached) {
+      log?.debug?.("CACHE", `Semantic cache HIT for ${model}`);
+      return {
+        success: true,
+        response: new Response(JSON.stringify(cached), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "X-OmniRoute-Cache": "HIT",
+          },
+        }),
+      };
+    }
+  }
 
   // Create request logger for this session: sourceFormat_targetFormat_model
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model);
@@ -444,12 +489,24 @@ export async function handleChatCore({
       }
     }
 
+    // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
+    if (isCacheable(body, clientRawRequest?.headers)) {
+      const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
+      const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
+      setCachedResponse(signature, model, translatedResponse, tokensSaved);
+      log?.debug?.("CACHE", `Stored response for ${model} (${tokensSaved} tokens)`);
+    }
+
+    // ── Phase 9.2: Save for idempotency ──
+    saveIdempotency(idempotencyKey, translatedResponse, 200);
+
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
+          "X-OmniRoute-Cache": "MISS",
         },
       }),
     };
@@ -546,12 +603,22 @@ export async function handleChatCore({
     );
   }
 
-  // Pipe response through transform with disconnect detection
-  const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
+  // ── Phase 9.3: Progress tracking (opt-in) ──
+  const progressEnabled = wantsProgress(clientRawRequest?.headers);
+  let finalStream;
+  if (progressEnabled) {
+    const progressTransform = createProgressTransform({ signal: streamController.signal });
+    // Chain: provider → transform → progress → client
+    const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
+    finalStream = transformedBody.pipeThrough(progressTransform);
+    responseHeaders["X-OmniRoute-Progress"] = "enabled";
+  } else {
+    finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
+  }
 
   return {
     success: true,
-    response: new Response(transformedBody, {
+    response: new Response(finalStream, {
       headers: responseHeaders,
     }),
   };
