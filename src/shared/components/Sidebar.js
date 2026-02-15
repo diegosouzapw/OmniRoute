@@ -8,6 +8,7 @@ import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/config";
 import Button from "./Button";
 import { ConfirmModal } from "./Modal";
+import CloudSyncStatus from "./CloudSyncStatus";
 
 const navItems = [
   { href: "/dashboard/endpoint", label: "Endpoint", icon: "api" },
@@ -243,6 +244,9 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
             {helpItems.map(renderNavLink)}
           </div>
         </nav>
+
+        {/* Cloud sync status indicator */}
+        <CloudSyncStatus collapsed={collapsed} />
 
         {/* Footer — Shutdown + Restart */}
         <div

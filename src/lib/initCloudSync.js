@@ -17,6 +17,6 @@ export async function ensureCloudSyncInitialized() {
 }
 
 // Auto-initialize when module loads
-ensureCloudSyncInitialized().catch(console.log);
+ensureCloudSyncInitialized().catch((err) => console.error("[CloudSync] ensure failed:", err));
 
 export default ensureCloudSyncInitialized;

@@ -23,6 +23,21 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Dependency audit
+        run: npm audit --audit-level=high --omit=dev
+      - name: Check for known vulnerabilities
+        run: npx is-my-node-vulnerable || true
+
   build:
     name: Build
     runs-on: ubuntu-latest

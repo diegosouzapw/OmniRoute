@@ -25,10 +25,7 @@ export default function GlobalError({ error, reset }) {
         )}
         <button
           onClick={reset}
-          className="px-8 py-3 rounded-[10px] text-white border-none text-sm font-semibold cursor-pointer transition-transform duration-200 shadow-[0_4px_16px_rgba(99,102,241,0.3)] hover:-translate-y-0.5"
-          style={{
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-          }}
+          className="px-8 py-3 rounded-[10px] text-white border-none text-sm font-semibold cursor-pointer transition-transform duration-200 shadow-[0_4px_16px_rgba(99,102,241,0.3)] hover:-translate-y-0.5 bg-gradient-to-br from-[#6366f1] to-[#8b5cf6]"
         >
           Try Again
         </button>

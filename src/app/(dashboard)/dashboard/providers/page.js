@@ -212,6 +212,7 @@ export default function ProvidersPage() {
                 : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
             }`}
             title="Test all OAuth connections"
+            aria-label="Test all OAuth connections"
           >
             <span className="material-symbols-outlined text-[14px]">
               {testingMode === "oauth" ? "sync" : "play_arrow"}
@@ -244,6 +245,7 @@ export default function ProvidersPage() {
                 : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
             }`}
             title="Test all Free connections"
+            aria-label="Test all Free provider connections"
           >
             <span className="material-symbols-outlined text-[14px]">
               {testingMode === "free" ? "sync" : "play_arrow"}
@@ -276,6 +278,7 @@ export default function ProvidersPage() {
                 : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
             }`}
             title="Test all API Key connections"
+            aria-label="Test all API Key connections"
           >
             <span className="material-symbols-outlined text-[14px]">
               {testingMode === "apikey" ? "sync" : "play_arrow"}
@@ -386,6 +389,7 @@ export default function ProvidersPage() {
               <button
                 onClick={() => setTestResults(null)}
                 className="p-1 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+                aria-label="Close test results"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
