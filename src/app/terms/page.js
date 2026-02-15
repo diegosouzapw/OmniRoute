@@ -97,7 +97,7 @@ export default function TermsPage() {
           <p>
             Questions? Visit our{" "}
             <a
-              href="https://github.com/decolua/omniroute"
+              href="https://github.com/diegosouzapw/OmniRoute"
               className="text-primary hover:underline"
               target="_blank"
               rel="noopener noreferrer"

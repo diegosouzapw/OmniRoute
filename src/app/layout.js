@@ -14,6 +14,7 @@ export const metadata = {
     "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.svg",
   },
 };
 

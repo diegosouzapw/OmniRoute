@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 
 export default function HomePageClient({ machineId }) {
@@ -68,6 +68,13 @@ export default function HomePageClient({ machineId }) {
       const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
       const providerModels = models.filter((m) => providerKeys.has(m.provider));
 
+      // Determine auth type
+      const authType = FREE_PROVIDERS[providerId]
+        ? "free"
+        : OAUTH_PROVIDERS[providerId]
+          ? "oauth"
+          : "apikey";
+
       return {
         id: providerId,
         provider: providerInfo,
@@ -75,6 +82,7 @@ export default function HomePageClient({ machineId }) {
         connected,
         errors,
         modelCount: providerModels.length,
+        authType,
       };
     });
   }, [providerConnections, models]);
@@ -89,10 +97,18 @@ export default function HomePageClient({ machineId }) {
   }, [selectedProvider, models]);
 
   const quickStartLinks = [
-    { label: "Documentation", href: "/docs" },
-    { label: "OpenAI API compatibility", href: "/docs#api-reference" },
-    { label: "Cherry/Codex compatibility", href: "/docs#client-compatibility" },
-    { label: "Report issue", href: "https://github.com/decolua/omniroute/issues", external: true },
+    { label: "Documentation", href: "/docs", icon: "menu_book" },
+    { label: "Providers", href: "/dashboard/providers", icon: "dns" },
+    { label: "Combos", href: "/dashboard/combos", icon: "layers" },
+    { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
+    { label: "Health Monitor", href: "/dashboard/health", icon: "health_and_safety" },
+    { label: "CLI Tools", href: "/dashboard/cli-tools", icon: "terminal" },
+    {
+      label: "Report issue",
+      href: "https://github.com/diegosouzapw/OmniRoute/issues",
+      external: true,
+      icon: "bug_report",
+    },
   ];
 
   if (loading) {
@@ -110,39 +126,87 @@ export default function HomePageClient({ machineId }) {
     <div className="flex flex-col gap-8">
       {/* Quick Start */}
       <Card>
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Quick Start</h2>
-            <p className="text-sm text-text-muted">
-              First-time setup checklist for API clients and IDE tools.
-            </p>
+        <div className="flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Quick Start</h2>
+              <p className="text-sm text-text-muted">
+                Get up and running in 4 steps. Connect providers, route models, monitor everything.
+              </p>
+            </div>
+            <Link
+              href="/docs"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">menu_book</span>
+              Full Docs
+            </Link>
           </div>
 
           <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">1. Create API key</span>
-              <p className="text-text-muted mt-1">
-                Generate one key per environment to isolate usage and revoke safely.
-              </p>
+            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+                <span className="material-symbols-outlined text-[18px]">key</span>
+              </div>
+              <div>
+                <span className="font-semibold">1. Create API key</span>
+                <p className="text-text-muted mt-0.5">
+                  Go to{" "}
+                  <Link href="/dashboard/settings" className="text-primary hover:underline">
+                    Settings
+                  </Link>{" "}
+                  → API Keys. Generate one key per environment.
+                </p>
+              </div>
             </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">2. Connect provider account</span>
-              <p className="text-text-muted mt-1">
-                Configure providers in Dashboard and validate with Test Connection.
-              </p>
+            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
+                <span className="material-symbols-outlined text-[18px]">dns</span>
+              </div>
+              <div>
+                <span className="font-semibold">2. Connect providers</span>
+                <p className="text-text-muted mt-0.5">
+                  Add accounts in{" "}
+                  <Link href="/dashboard/providers" className="text-primary hover:underline">
+                    Providers
+                  </Link>
+                  . Supports OAuth, API Key, and free tiers.
+                </p>
+              </div>
             </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">3. Use endpoint</span>
-              <p className="text-text-muted mt-1">
-                Point clients to <code>{currentEndpoint}</code> and send requests to{" "}
-                <code>/chat/completions</code>.
-              </p>
+            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+                <span className="material-symbols-outlined text-[18px]">link</span>
+              </div>
+              <div>
+                <span className="font-semibold">3. Point your client</span>
+                <p className="text-text-muted mt-0.5">
+                  Set base URL to{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-surface text-xs font-mono">
+                    {currentEndpoint}
+                  </code>{" "}
+                  in your IDE or API client.
+                </p>
+              </div>
             </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-3">
-              <span className="font-semibold">4. Monitor usage</span>
-              <p className="text-text-muted mt-1">
-                Track requests, tokens, errors, and cost in Usage and Request Logger.
-              </p>
+            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
+                <span className="material-symbols-outlined text-[18px]">analytics</span>
+              </div>
+              <div>
+                <span className="font-semibold">4. Monitor & optimize</span>
+                <p className="text-text-muted mt-0.5">
+                  Track tokens, cost and errors in{" "}
+                  <Link href="/dashboard/usage" className="text-primary hover:underline">
+                    Usage
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/dashboard/analytics" className="text-primary hover:underline">
+                    Analytics
+                  </Link>
+                  .
+                </p>
+              </div>
             </li>
           </ol>
 
@@ -156,7 +220,7 @@ export default function HomePageClient({ machineId }) {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
               >
                 <span className="material-symbols-outlined text-[14px]">
-                  {link.external ? "open_in_new" : "arrow_forward"}
+                  {link.icon || (link.external ? "open_in_new" : "arrow_forward")}
                 </span>
                 {link.label}
               </a>
@@ -175,13 +239,26 @@ export default function HomePageClient({ machineId }) {
               {providerStats.length} available providers
             </p>
           </div>
-          <Link
-            href="/dashboard/providers"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-          >
-            <span className="material-symbols-outlined text-[14px]">settings</span>
-            Manage Providers
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-3 text-[11px] text-text-muted">
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-green-500" /> Free
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-blue-500" /> OAuth
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-amber-500" /> API Key
+              </span>
+            </div>
+            <Link
+              href="/dashboard/providers"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">settings</span>
+              Manage
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -217,6 +294,13 @@ function ProviderOverviewCard({ item, onClick }) {
   const statusVariant =
     item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
 
+  const authTypeConfig = {
+    free: { color: "bg-green-500", label: "Free" },
+    oauth: { color: "bg-blue-500", label: "OAuth" },
+    apikey: { color: "bg-amber-500", label: "API Key" },
+  };
+  const authInfo = authTypeConfig[item.authType] || authTypeConfig.apikey;
+
   return (
     <button
       onClick={onClick}
@@ -248,7 +332,13 @@ function ProviderOverviewCard({ item, onClick }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate">{item.provider.name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-semibold truncate">{item.provider.name}</p>
+            <span
+              className={`size-2 rounded-full ${authInfo.color} shrink-0`}
+              title={authInfo.label}
+            />
+          </div>
           <p className={`text-xs ${statusVariant}`}>
             {item.total === 0
               ? "Not configured"
@@ -256,7 +346,10 @@ function ProviderOverviewCard({ item, onClick }) {
           </p>
         </div>
 
-        <span className="text-xs text-text-muted">#{item.modelCount}</span>
+        <div className="text-right shrink-0">
+          <p className="text-xs font-medium text-text-main">{item.modelCount}</p>
+          <p className="text-[10px] text-text-muted">models</p>
+        </div>
       </div>
     </button>
   );
@@ -275,6 +368,7 @@ ProviderOverviewCard.propTypes = {
     connected: PropTypes.number.isRequired,
     errors: PropTypes.number.isRequired,
     modelCount: PropTypes.number.isRequired,
+    authType: PropTypes.string.isRequired,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
 };

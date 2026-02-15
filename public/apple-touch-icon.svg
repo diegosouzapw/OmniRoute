@@ -1,0 +1,26 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="180" height="180" rx="36" fill="url(#gradient)" />
+    <!-- Central node -->
+    <circle cx="90" cy="90" r="17" fill="white" />
+    <!-- Outer nodes -->
+    <circle cx="45" cy="45" r="11" fill="white" />
+    <circle cx="135" cy="45" r="11" fill="white" />
+    <circle cx="45" cy="135" r="11" fill="white" />
+    <circle cx="135" cy="135" r="11" fill="white" />
+    <circle cx="90" cy="28" r="8.5" fill="white" />
+    <circle cx="90" cy="152" r="8.5" fill="white" />
+    <!-- Connection lines -->
+    <line x1="90" y1="73" x2="45" y2="45" stroke="white" stroke-width="6.5" stroke-linecap="round" />
+    <line x1="90" y1="73" x2="135" y2="45" stroke="white" stroke-width="6.5" stroke-linecap="round" />
+    <line x1="90" y1="107" x2="45" y2="135" stroke="white" stroke-width="6.5" stroke-linecap="round" />
+    <line x1="90" y1="107" x2="135" y2="135" stroke="white" stroke-width="6.5"
+        stroke-linecap="round" />
+    <line x1="90" y1="73" x2="90" y2="28" stroke="white" stroke-width="6.5" stroke-linecap="round" />
+    <line x1="90" y1="107" x2="90" y2="152" stroke="white" stroke-width="6.5" stroke-linecap="round" />
+    <defs>
+        <linearGradient id="gradient" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#E54D5E" />
+            <stop offset="1" stop-color="#C93D4E" />
+        </linearGradient>
+    </defs>
+</svg>

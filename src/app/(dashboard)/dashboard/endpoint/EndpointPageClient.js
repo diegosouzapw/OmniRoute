@@ -309,7 +309,11 @@ export default function APIPageClient({ machineId }) {
     { label: "Documentation", href: "/docs" },
     { label: "OpenAI API compatibility", href: "/docs#api-reference" },
     { label: "Cherry/Codex compatibility", href: "/docs#client-compatibility" },
-    { label: "Report issue", href: "https://github.com/decolua/omniroute/issues", external: true },
+    {
+      label: "Report issue",
+      href: "https://github.com/diegosouzapw/OmniRoute/issues",
+      external: true,
+    },
   ];
 
   return (

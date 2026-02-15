@@ -7,23 +7,27 @@ const footerLinks = {
   product: [
     { label: "Features", href: "#features" },
     { label: "Pricing", href: "#pricing" },
-    { label: "Changelog", href: "https://github.com/decolua/omniroute/releases", external: true },
+    {
+      label: "Changelog",
+      href: "https://github.com/diegosouzapw/OmniRoute/releases",
+      external: true,
+    },
   ],
   resources: [
     { label: "Documentation", href: "/docs" },
     { label: "API Reference", href: "/docs#api-reference" },
     {
       label: "Help Center",
-      href: "https://github.com/decolua/omniroute/discussions",
+      href: "https://github.com/diegosouzapw/OmniRoute/discussions",
       external: true,
     },
   ],
   company: [
-    { label: "About", href: "https://github.com/decolua/omniroute", external: true },
-    { label: "Blog", href: "https://github.com/decolua/omniroute/releases", external: true },
+    { label: "About", href: "https://github.com/diegosouzapw/OmniRoute", external: true },
+    { label: "Blog", href: "https://github.com/diegosouzapw/OmniRoute/releases", external: true },
     {
       label: "Contact",
-      href: "https://github.com/decolua/omniroute/issues/new/choose",
+      href: "https://github.com/diegosouzapw/OmniRoute/issues/new/choose",
       external: true,
     },
     { label: "Terms", href: "/terms" },
@@ -76,7 +80,7 @@ export default function Footer() {
             {/* Social links */}
             <div className="flex gap-4">
               <a
-                href="https://github.com/decolua/omniroute/discussions"
+                href="https://github.com/diegosouzapw/OmniRoute/discussions"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-primary transition-colors"
@@ -87,7 +91,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://github.com/decolua/omniroute"
+                href="https://github.com/diegosouzapw/OmniRoute"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-primary transition-colors"
@@ -147,7 +151,7 @@ export default function Footer() {
               Privacy
             </Link>
             <a
-              href="https://github.com/decolua/omniroute/blob/main/LICENSE"
+              href="https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors"

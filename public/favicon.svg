@@ -1,11 +1,25 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="32" height="32" rx="6" fill="url(#gradient)"/>
-  <text x="16" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">9</text>
+  <!-- Central node -->
+  <circle cx="16" cy="16" r="3" fill="white"/>
+  <!-- Outer nodes -->
+  <circle cx="8" cy="8" r="2" fill="white"/>
+  <circle cx="24" cy="8" r="2" fill="white"/>
+  <circle cx="8" cy="24" r="2" fill="white"/>
+  <circle cx="24" cy="24" r="2" fill="white"/>
+  <circle cx="16" cy="5" r="1.5" fill="white"/>
+  <circle cx="16" cy="27" r="1.5" fill="white"/>
+  <!-- Connection lines -->
+  <line x1="16" y1="13" x2="8" y2="8" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="16" y1="13" x2="24" y2="8" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="16" y1="19" x2="8" y2="24" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="16" y1="19" x2="24" y2="24" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="16" y1="13" x2="16" y2="5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="16" y1="19" x2="16" y2="27" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
   <defs>
     <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f97815"/>
-      <stop offset="1" stop-color="#c2590a"/>
+      <stop stop-color="#E54D5E"/>
+      <stop offset="1" stop-color="#C93D4E"/>
     </linearGradient>
   </defs>
 </svg>
-

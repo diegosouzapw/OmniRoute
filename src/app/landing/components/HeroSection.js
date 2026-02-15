@@ -32,7 +32,7 @@ export default function HeroSection() {
             Get Started
           </button>
           <a
-            href="https://github.com/decolua/omniroute"
+            href="https://github.com/diegosouzapw/OmniRoute"
             target="_blank"
             rel="noopener noreferrer"
             className="h-12 px-8 rounded-lg border border-[#2D333B] bg-[#111520] hover:bg-[#2D333B] text-white text-base font-bold transition-all flex items-center gap-2"

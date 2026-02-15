@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,7 +18,7 @@ export default function Navigation() {
           aria-label="Navigate to home"
         >
           <div className="size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] flex items-center justify-center text-white">
-            <span className="material-symbols-outlined text-[20px]">hub</span>
+            <OmniRouteLogo size={20} className="text-white" />
           </div>
           <h2 className="text-white text-xl font-bold tracking-tight">OmniRoute</h2>
         </button>
@@ -44,7 +45,7 @@ export default function Navigation() {
           </a>
           <a
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-1"
-            href="https://github.com/decolua/omniroute"
+            href="https://github.com/diegosouzapw/OmniRoute"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -95,7 +96,7 @@ export default function Navigation() {
             </a>
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
-              href="https://github.com/decolua/omniroute"
+              href="https://github.com/diegosouzapw/OmniRoute"
               target="_blank"
               rel="noopener noreferrer"
             >

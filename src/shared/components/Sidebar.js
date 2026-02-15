@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/config";
+import OmniRouteLogo from "./OmniRouteLogo";
 import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
@@ -189,7 +190,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
             <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
-              <span className="material-symbols-outlined text-white text-[20px]">hub</span>
+              <OmniRouteLogo size={20} className="text-white" />
             </div>
             {!collapsed && (
               <div className="flex flex-col">

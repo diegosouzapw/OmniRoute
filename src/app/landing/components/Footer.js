@@ -1,4 +1,5 @@
 "use client";
+import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
 
 export default function Footer() {
   return (
@@ -9,7 +10,7 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="size-6 rounded bg-[#E54D5E] flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-[16px]">hub</span>
+                <OmniRouteLogo size={16} className="text-white" />
               </div>
               <h3 className="text-white text-lg font-bold">OmniRoute</h3>
             </div>
@@ -20,7 +21,7 @@ export default function Footer() {
             <div className="flex gap-4">
               <a
                 className="text-gray-400 hover:text-white transition-colors"
-                href="https://github.com/decolua/omniroute"
+                href="https://github.com/diegosouzapw/OmniRoute"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -46,7 +47,7 @@ export default function Footer() {
             </a>
             <a
               className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
-              href="https://github.com/decolua/omniroute/releases"
+              href="https://github.com/diegosouzapw/OmniRoute/releases"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -65,7 +66,7 @@ export default function Footer() {
             </a>
             <a
               className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
-              href="https://github.com/decolua/omniroute"
+              href="https://github.com/diegosouzapw/OmniRoute"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -86,7 +87,7 @@ export default function Footer() {
             <h4 className="font-bold text-white">Legal</h4>
             <a
               className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
-              href="https://github.com/decolua/omniroute/blob/main/LICENSE"
+              href="https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -101,7 +102,7 @@ export default function Footer() {
           <div className="flex gap-6">
             <a
               className="text-gray-600 hover:text-white text-sm transition-colors"
-              href="https://github.com/decolua/omniroute"
+              href="https://github.com/diegosouzapw/OmniRoute"
               target="_blank"
               rel="noopener noreferrer"
             >
