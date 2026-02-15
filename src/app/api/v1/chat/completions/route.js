@@ -9,7 +9,7 @@ let initPromise = null;
  */
 function ensureInitialized() {
   if (!initPromise) {
-    initPromise = initTranslators().then(() => {
+    initPromise = Promise.resolve(initTranslators()).then(() => {
       console.log("[SSE] Translators initialized");
     });
   }
