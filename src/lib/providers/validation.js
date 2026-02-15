@@ -187,6 +187,68 @@ async function validateGeminiLikeProvider({ apiKey, baseUrl }) {
   return { valid: false, error: `Validation failed: ${response.status}` };
 }
 
+// ── Specialty providers (non-standard APIs) ──
+
+async function validateDeepgramProvider({ apiKey }) {
+  try {
+    const response = await fetch("https://api.deepgram.com/v1/auth/token", {
+      method: "GET",
+      headers: { Authorization: `Token ${apiKey}` },
+    });
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
+async function validateAssemblyAIProvider({ apiKey }) {
+  try {
+    const response = await fetch("https://api.assemblyai.com/v2/transcript?limit=1", {
+      method: "GET",
+      headers: {
+        Authorization: apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
+async function validateNanoBananaProvider({ apiKey }) {
+  try {
+    // NanoBanana doesn't expose a lightweight validation endpoint,
+    // so we send a minimal generate request that will succeed or fail on auth.
+    const response = await fetch("https://api.nanobananaapi.ai/api/v1/nanobanana/generate", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: "test",
+        model: "nanobanana-flash",
+      }),
+    });
+    // Auth errors → 401/403; anything else (even 400 bad request) means auth passed
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: true, error: null };
+  } catch (error) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -256,6 +318,21 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (isAnthropicCompatibleProvider(provider)) {
     try {
       return await validateAnthropicCompatibleProvider({ apiKey, providerSpecificData });
+    } catch (error) {
+      return { valid: false, error: error.message || "Validation failed", unsupported: false };
+    }
+  }
+
+  // ── Specialty provider validation ──
+  const SPECIALTY_VALIDATORS = {
+    deepgram: validateDeepgramProvider,
+    assemblyai: validateAssemblyAIProvider,
+    nanobanana: validateNanoBananaProvider,
+  };
+
+  if (SPECIALTY_VALIDATORS[provider]) {
+    try {
+      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
     } catch (error) {
       return { valid: false, error: error.message || "Validation failed", unsupported: false };
     }

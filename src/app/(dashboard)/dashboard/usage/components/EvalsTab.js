@@ -3,7 +3,8 @@
 /**
  * EvalsTab — Batch F
  *
- * Lists evaluation suites, runs evals, and shows results.
+ * Lists evaluation suites, runs evals against real LLM endpoints,
+ * and shows results.
  * API: GET/POST /api/evals, GET /api/evals/[suiteId]
  */
 
@@ -15,6 +16,7 @@ export default function EvalsTab() {
   const [suites, setSuites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(null);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [results, setResults] = useState({});
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
@@ -38,34 +40,83 @@ export default function EvalsTab() {
     fetchSuites();
   }, [fetchSuites]);
 
-  const handleRunEval = async (suite) => {
-    setRunning(suite.id);
+  /**
+   * Call the proxy LLM endpoint for a single eval case.
+   * Returns the assistant's response text.
+   */
+  const callLLM = async (evalCase) => {
     try {
+      const res = await fetch("/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: evalCase.model || "gpt-4o",
+          messages: evalCase.input?.messages || [],
+          max_tokens: 512,
+          stream: false,
+        }),
+      });
+      if (!res.ok) {
+        return `[ERROR: HTTP ${res.status}]`;
+      }
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || "[No content returned]";
+    } catch (err) {
+      return `[ERROR: ${err.message}]`;
+    }
+  };
+
+  /**
+   * Run all cases: call LLM for each, then submit outputs for evaluation.
+   */
+  const handleRunEval = async (suite) => {
+    const cases = suite.cases || [];
+    if (cases.length === 0) {
+      notify.warning("No test cases defined for this suite");
+      return;
+    }
+
+    setRunning(suite.id);
+    setProgress({ current: 0, total: cases.length });
+
+    try {
+      // Step 1: Call LLM for each case and collect outputs
+      const outputs = {};
+      for (let i = 0; i < cases.length; i++) {
+        setProgress({ current: i + 1, total: cases.length });
+        const response = await callLLM(cases[i]);
+        outputs[cases[i].id] = response;
+      }
+
+      // Step 2: Submit outputs for evaluation
       const res = await fetch("/api/evals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           suiteId: suite.id,
-          outputs: {},
+          outputs,
         }),
       });
       const data = await res.json();
       setResults((prev) => ({ ...prev, [suite.id]: data }));
-      if (data.passed !== undefined) {
-        const total = (data.passed || 0) + (data.failed || 0);
-        if (data.failed === 0) {
-          notify.success(`All ${total} cases passed`, `Eval: ${suite.name}`);
+
+      // Notify with results
+      if (data.summary) {
+        const { passed, failed, total } = data.summary;
+        if (failed === 0) {
+          notify.success(`All ${total} cases passed ✅`, `Eval: ${suite.name}`);
         } else {
-          notify.warning(
-            `${data.passed}/${total} passed, ${data.failed} failed`,
-            `Eval: ${suite.name}`
-          );
+          notify.warning(`${passed}/${total} passed, ${failed} failed`, `Eval: ${suite.name}`);
         }
       }
+
+      // Auto-expand to show results
+      setExpanded(suite.id);
     } catch {
       notify.error("Eval run failed");
     } finally {
       setRunning(null);
+      setProgress({ current: 0, total: 0 });
     }
   };
 
@@ -97,10 +148,10 @@ export default function EvalsTab() {
   }
 
   const RESULT_COLUMNS = [
-    { key: "caseId", label: "Case" },
+    { key: "caseName", label: "Case" },
     { key: "status", label: "Status" },
-    { key: "expected", label: "Expected" },
-    { key: "actual", label: "Actual" },
+    { key: "durationMs", label: "Latency" },
+    { key: "details", label: "Details" },
   ];
 
   return (
@@ -110,7 +161,12 @@ export default function EvalsTab() {
           <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500">
             <span className="material-symbols-outlined text-[20px]">science</span>
           </div>
-          <h3 className="text-lg font-semibold">Evaluation Suites</h3>
+          <div>
+            <h3 className="text-lg font-semibold">Evaluation Suites</h3>
+            <p className="text-xs text-text-muted">
+              Run test cases against your LLM endpoints to validate response quality
+            </p>
+          </div>
         </div>
 
         <FilterBar
@@ -127,7 +183,7 @@ export default function EvalsTab() {
             const suiteResult = results[suite.id];
             const isRunning = running === suite.id;
             const isExpanded = expanded === suite.id;
-            const caseCount = suite.cases?.length || 0;
+            const caseCount = suite.cases?.length || suite.caseCount || 0;
 
             return (
               <div key={suite.id} className="border border-border/30 rounded-lg overflow-hidden">
@@ -143,30 +199,62 @@ export default function EvalsTab() {
                       <p className="text-sm font-medium text-text-main">{suite.name || suite.id}</p>
                       <p className="text-xs text-text-muted">
                         {caseCount} case{caseCount !== 1 ? "s" : ""}
-                        {suiteResult && (
+                        {suite.description && <span className="ml-1">— {suite.description}</span>}
+                        {suiteResult?.summary && (
                           <span className="ml-2">
-                            • Last run: {suiteResult.passed || 0} ✅ {suiteResult.failed || 0} ❌
+                            • Last run: {suiteResult.summary.passed || 0} ✅{" "}
+                            {suiteResult.summary.failed || 0} ❌ ({suiteResult.summary.passRate}%)
                           </span>
                         )}
                       </p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRunEval(suite);
-                    }}
-                    loading={isRunning}
-                    disabled={isRunning}
-                  >
-                    {isRunning ? "Running..." : "Run Eval"}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    {isRunning && progress.total > 0 && (
+                      <span className="text-xs text-text-muted font-mono tabular-nums">
+                        {progress.current}/{progress.total}
+                      </span>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRunEval(suite);
+                      }}
+                      loading={isRunning}
+                      disabled={isRunning}
+                    >
+                      {isRunning ? `Running ${progress.current}/${progress.total}...` : "Run Eval"}
+                    </Button>
+                  </div>
                 </div>
 
                 {isExpanded && suiteResult?.results && (
                   <div className="border-t border-border/20 p-4">
+                    {/* Summary bar */}
+                    {suiteResult.summary && (
+                      <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-surface/30 border border-border/20">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-lg font-bold ${
+                              suiteResult.summary.passRate === 100
+                                ? "text-emerald-400"
+                                : suiteResult.summary.passRate >= 80
+                                  ? "text-amber-400"
+                                  : "text-red-400"
+                            }`}
+                          >
+                            {suiteResult.summary.passRate}%
+                          </span>
+                          <span className="text-xs text-text-muted">pass rate</span>
+                        </div>
+                        <div className="text-xs text-text-muted">
+                          {suiteResult.summary.passed} passed · {suiteResult.summary.failed} failed
+                          · {suiteResult.summary.total} total
+                        </div>
+                      </div>
+                    )}
                     <DataTable
                       columns={RESULT_COLUMNS}
                       data={suiteResult.results.map((r, i) => ({
@@ -181,15 +269,32 @@ export default function EvalsTab() {
                             <span className="text-red-400">❌ Failed</span>
                           );
                         }
+                        if (col.key === "durationMs") {
+                          return (
+                            <span className="text-text-muted text-xs font-mono">
+                              {row.durationMs != null ? `${row.durationMs}ms` : "—"}
+                            </span>
+                          );
+                        }
+                        if (col.key === "details") {
+                          const d = row.details || {};
+                          return (
+                            <span className="text-text-muted text-xs truncate max-w-[300px] block">
+                              {d.searchTerm
+                                ? `Contains: "${d.searchTerm}"`
+                                : d.pattern
+                                  ? `Regex: ${d.pattern}`
+                                  : d.expected
+                                    ? `Expected: "${String(d.expected).slice(0, 50)}"`
+                                    : row.error || "—"}
+                            </span>
+                          );
+                        }
                         return (
-                          <span className="text-text-muted text-xs truncate max-w-[200px] block">
-                            {typeof row[col.key] === "object"
-                              ? JSON.stringify(row[col.key])
-                              : row[col.key] || "—"}
-                          </span>
+                          <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
                         );
                       }}
-                      maxHeight="300px"
+                      maxHeight="400px"
                       emptyMessage="No results yet"
                     />
                   </div>

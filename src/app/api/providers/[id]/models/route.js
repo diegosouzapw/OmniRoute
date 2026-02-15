@@ -5,6 +5,26 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 
+// Providers that return hardcoded models (no remote /models API)
+const STATIC_MODEL_PROVIDERS = {
+  deepgram: () => [
+    { id: "nova-3", name: "Nova 3 (Transcription)" },
+    { id: "nova-2", name: "Nova 2 (Transcription)" },
+    { id: "whisper-large", name: "Whisper Large (Transcription)" },
+    { id: "aura-asteria-en", name: "Aura Asteria EN (TTS)" },
+    { id: "aura-luna-en", name: "Aura Luna EN (TTS)" },
+    { id: "aura-stella-en", name: "Aura Stella EN (TTS)" },
+  ],
+  assemblyai: () => [
+    { id: "universal-3-pro", name: "Universal 3 Pro (Transcription)" },
+    { id: "universal-2", name: "Universal 2 (Transcription)" },
+  ],
+  nanobanana: () => [
+    { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
+    { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
+  ],
+};
+
 // Provider models endpoints configuration
 const PROVIDER_MODELS_CONFIG = {
   claude: {
@@ -269,6 +289,16 @@ export async function GET(request, { params }) {
         provider: connection.provider,
         connectionId: connection.id,
         models,
+      });
+    }
+
+    // Static model providers (no remote /models API)
+    const staticModelsFn = STATIC_MODEL_PROVIDERS[connection.provider];
+    if (staticModelsFn) {
+      return NextResponse.json({
+        provider: connection.provider,
+        connectionId: connection.id,
+        models: staticModelsFn(),
       });
     }
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -277,6 +278,12 @@ ProviderOverviewCard.propTypes = {
 function ProviderModelsModal({ provider, models, onClose }) {
   const [copiedModel, setCopiedModel] = useState(null);
   const notify = useNotificationStore();
+  const router = useRouter();
+
+  const navigateTo = (path) => {
+    onClose();
+    router.push(path);
+  };
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -307,9 +314,12 @@ function ProviderModelsModal({ provider, models, onClose }) {
             <p className="text-sm text-text-muted">No models available for this provider.</p>
             <p className="text-xs text-text-muted mt-1">
               Configure a connection first in{" "}
-              <Link href="/dashboard/providers" className="text-primary hover:underline">
+              <button
+                onClick={() => navigateTo("/dashboard/providers")}
+                className="text-primary hover:underline cursor-pointer"
+              >
                 Providers
-              </Link>
+              </button>
             </p>
           </div>
         ) : (
@@ -341,12 +351,16 @@ function ProviderModelsModal({ provider, models, onClose }) {
 
         {/* Actions */}
         <div className="flex gap-2 pt-2 border-t border-border">
-          <Link href={`/dashboard/providers/${provider.id}`} className="flex-1">
-            <Button variant="secondary" fullWidth size="sm">
-              <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
-              Configure Provider
-            </Button>
-          </Link>
+          <Button
+            variant="secondary"
+            fullWidth
+            size="sm"
+            onClick={() => navigateTo(`/dashboard/providers/${provider.id}`)}
+            className="flex-1"
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
+            Configure Provider
+          </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close
           </Button>

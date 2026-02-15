@@ -32,7 +32,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { provider, modelId, modelName } = body;
+    const { provider, modelId, modelName, source } = body;
 
     if (!provider || !modelId) {
       return Response.json(
@@ -41,7 +41,7 @@ export async function POST(request) {
       );
     }
 
-    const model = await addCustomModel(provider, modelId, modelName);
+    const model = await addCustomModel(provider, modelId, modelName, source || "manual");
     return Response.json({ model });
   } catch (error) {
     return Response.json(

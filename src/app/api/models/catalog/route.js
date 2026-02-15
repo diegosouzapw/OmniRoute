@@ -74,7 +74,7 @@ export async function GET() {
       });
     }
 
-    // Custom models
+    // Custom models (from DB)
     for (const [providerId, models] of Object.entries(customModelsMap)) {
       const alias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
       if (!catalog[alias]) {
@@ -89,11 +89,13 @@ export async function GET() {
         const fullId = `${alias}/${model.id}`;
         // Skip duplicates
         if (catalog[alias].models.some((m) => m.id === fullId)) continue;
+        // Imported models are treated as default (not custom)
+        const isCustom = model.source !== "imported";
         catalog[alias].models.push({
           id: fullId,
           name: model.name || model.id,
           type: "chat",
-          custom: true,
+          custom: isCustom,
         });
       }
     }
