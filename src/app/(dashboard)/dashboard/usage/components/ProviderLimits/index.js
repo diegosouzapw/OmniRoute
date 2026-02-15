@@ -350,10 +350,10 @@ export default function ProviderLimits() {
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
               style={{
                 border: active
-                  ? "1px solid var(--primary, #f97815)"
+                  ? "1px solid var(--primary, #E54D5E)"
                   : "1px solid rgba(255,255,255,0.12)",
                 background: active ? "rgba(249,120,21,0.14)" : "transparent",
-                color: active ? "var(--primary, #f97815)" : "var(--text-muted)",
+                color: active ? "var(--primary, #E54D5E)" : "var(--text-muted)",
               }}
             >
               <span>{tier.label}</span>

@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
-import ModelAvailabilityPanel from "./components/ModelAvailabilityPanel";
+import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
 function getStatusDisplay(connected, error, errorCode) {
@@ -203,22 +203,25 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">OAuth Providers</h2>
-          <button
-            onClick={() => handleBatchTest("oauth")}
-            disabled={!!testingMode}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              testingMode === "oauth"
-                ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-            }`}
-            title="Test all OAuth connections"
-            aria-label="Test all OAuth connections"
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {testingMode === "oauth" ? "sync" : "play_arrow"}
-            </span>
-            {testingMode === "oauth" ? "Testing..." : "Test All"}
-          </button>
+          <div className="flex items-center gap-2">
+            <ModelAvailabilityBadge />
+            <button
+              onClick={() => handleBatchTest("oauth")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "oauth"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title="Test all OAuth connections"
+              aria-label="Test all OAuth connections"
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "oauth" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "oauth" ? "Testing..." : "Test All"}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Object.entries(OAUTH_PROVIDERS).map(([key, info]) => (
@@ -400,9 +403,6 @@ export default function ProvidersPage() {
           </div>
         </div>
       )}
-
-      {/* Model Availability */}
-      <ModelAvailabilityPanel />
     </div>
   );
 }

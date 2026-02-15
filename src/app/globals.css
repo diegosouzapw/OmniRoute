@@ -3,40 +3,40 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* macOS-inspired Color Palette with Terracotta Primary */
+/* OpenClaw × ClawHub Color Palette */
 :root {
-  /* Primary - Warm Coral/Terracotta */
-  --color-primary: #d97757;
-  --color-primary-hover: #c56243;
+  /* Primary - Coral Red (OpenClaw) */
+  --color-primary: #e54d5e;
+  --color-primary-hover: #c93d4e;
 
   /* Light theme */
-  --color-bg: #fbf9f6;
-  --color-bg-alt: #f5f1ed;
+  --color-bg: #f9f9fb;
+  --color-bg-alt: #f0f0f5;
   --color-surface: #ffffff;
-  --color-sidebar: rgba(246, 246, 246, 0.8);
-  --color-border: rgba(0, 0, 0, 0.1);
-  --color-text-main: #383733;
-  --color-text-muted: #75736e;
+  --color-sidebar: rgba(245, 245, 250, 0.8);
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-text-main: #1a1a2e;
+  --color-text-muted: #71717a;
 
-  /* Shadows - subtle macOS style */
+  /* Shadows */
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
-  --shadow-warm: 0 2px 12px -2px rgba(217, 119, 87, 0.12);
-  --shadow-elevated: 0 12px 28px -4px rgba(60, 50, 45, 0.06);
+  --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.12);
+  --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
 }
 
 .dark {
-  /* Dark theme */
-  --color-bg: #191918;
-  --color-bg-alt: #1f1f1e;
-  --color-surface: #242423;
-  --color-sidebar: rgba(30, 30, 30, 0.8);
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-text-main: #ecebe8;
-  --color-text-muted: #9e9d99;
+  /* Dark theme (ClawHub deep) */
+  --color-bg: #0b0e14;
+  --color-bg-alt: #111520;
+  --color-surface: #161b22;
+  --color-sidebar: rgba(16, 20, 30, 0.8);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-main: #e6e6ef;
+  --color-text-muted: #a1a1aa;
 
-  /* Dark shadows - subtle macOS style */
+  /* Dark shadows */
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-warm: 0 2px 12px -2px rgba(217, 119, 87, 0.15);
+  --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.15);
   --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
 }
 
@@ -54,18 +54,18 @@
   --color-text-muted: var(--color-text-muted);
 
   /* Static colors (for explicit light/dark usage) */
-  --color-bg-light: #fbf9f6;
-  --color-bg-dark: #191918;
+  --color-bg-light: #f9f9fb;
+  --color-bg-dark: #0b0e14;
   --color-surface-light: #ffffff;
-  --color-surface-dark: #242423;
-  --color-sidebar-light: #f0efec;
-  --color-sidebar-dark: #1f1f1e;
-  --color-border-light: #e6e4dd;
-  --color-border-dark: #333331;
-  --color-text-main-light: #383733;
-  --color-text-main-dark: #ecebe8;
-  --color-text-muted-light: #75736e;
-  --color-text-muted-dark: #9e9d99;
+  --color-surface-dark: #161b22;
+  --color-sidebar-light: #ededf2;
+  --color-sidebar-dark: #111520;
+  --color-border-light: #e2e2ea;
+  --color-border-dark: #2d333b;
+  --color-text-main-light: #1a1a2e;
+  --color-text-main-dark: #e6e6ef;
+  --color-text-muted-light: #71717a;
+  --color-text-muted-dark: #a1a1aa;
 
   /* Shadows */
   --shadow-soft: var(--shadow-soft);
@@ -88,7 +88,7 @@ body {
 
 /* Selection */
 ::selection {
-  background-color: rgba(217, 119, 87, 0.2);
+  background-color: rgba(229, 77, 94, 0.2);
   color: var(--color-primary);
 }
 
@@ -142,11 +142,11 @@ body {
 
 /* Hero gradient */
 .bg-hero-gradient {
-  background: linear-gradient(180deg, #f5f1ed 0%, #fefcfb 100%);
+  background: linear-gradient(180deg, #f0f0f5 0%, #f9f9fb 100%);
 }
 
 .dark .bg-hero-gradient {
-  background: linear-gradient(180deg, #1f1f1e 0%, #191918 100%);
+  background: linear-gradient(180deg, #111520 0%, #0b0e14 100%);
 }
 
 /* Material Symbols */
@@ -219,15 +219,15 @@ button .material-symbols-outlined,
   0%,
   100% {
     box-shadow:
-      0 0 5px rgba(217, 119, 87, 0.3),
-      0 0 10px rgba(217, 119, 87, 0.2);
-    border-color: rgba(217, 119, 87, 0.5);
+      0 0 5px rgba(229, 77, 94, 0.3),
+      0 0 10px rgba(229, 77, 94, 0.2);
+    border-color: rgba(229, 77, 94, 0.5);
   }
   50% {
     box-shadow:
-      0 0 10px rgba(217, 119, 87, 0.5),
-      0 0 20px rgba(217, 119, 87, 0.3);
-    border-color: rgba(217, 119, 87, 0.8);
+      0 0 10px rgba(229, 77, 94, 0.5),
+      0 0 20px rgba(229, 77, 94, 0.3);
+    border-color: rgba(229, 77, 94, 0.8);
   }
 }
 
@@ -243,7 +243,7 @@ button .material-symbols-outlined,
 }
 
 .dark .bg-vibrancy {
-  background: rgba(30, 30, 30, 0.72);
+  background: rgba(16, 20, 30, 0.72);
 }
 
 /* macOS Traffic Lights */

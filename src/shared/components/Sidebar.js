@@ -188,7 +188,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
             href="/dashboard"
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
-            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#f97815] to-[#c2590a] shrink-0">
+            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
               <span className="material-symbols-outlined text-white text-[20px]">hub</span>
             </div>
             {!collapsed && (

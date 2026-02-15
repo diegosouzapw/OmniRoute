@@ -249,7 +249,10 @@ export function DailyTrendChart({ dailyTrend }) {
         Token &amp; Cost Trend
       </h3>
       <ResponsiveContainer width="100%" height={140}>
-        <ComposedChart data={chartData} margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}>
+        <ComposedChart
+          data={chartData}
+          margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}
+        >
           <XAxis
             dataKey="date"
             tick={{ fontSize: 9, fill: "var(--text-muted)" }}
@@ -268,10 +271,7 @@ export function DailyTrendChart({ dailyTrend }) {
               width={36}
             />
           )}
-          <Tooltip
-            content={<CostTooltip />}
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
-          />
+          <Tooltip content={<CostTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
           <Bar
             dataKey="Input"
             stackId="a"
@@ -782,7 +782,7 @@ export function WeeklySquares7d({ activityMap }) {
   function getSquareStyle(intensity) {
     if (intensity === 0) return { background: "rgba(255,255,255,0.04)" };
     const opacity = 0.15 + intensity * 0.75;
-    return { background: `rgba(217, 119, 87, ${opacity.toFixed(2)})` };
+    return { background: `rgba(229, 77, 94, ${opacity.toFixed(2)})` };
   }
 
   return (
@@ -989,8 +989,16 @@ export function UsageDetail({ summary }) {
 // ── ProviderCostDonut ──────────────────────────────────────────────────────
 
 const PROVIDER_COLORS = [
-  "#f59e0b", "#ef4444", "#8b5cf6", "#10b981", "#06b6d4",
-  "#ec4899", "#f97316", "#6366f1", "#14b8a6", "#a855f7",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#10b981",
+  "#06b6d4",
+  "#ec4899",
+  "#f97316",
+  "#6366f1",
+  "#14b8a6",
+  "#a855f7",
 ];
 
 export function ProviderCostDonut({ byProvider }) {
@@ -1066,4 +1074,3 @@ export function ProviderCostDonut({ byProvider }) {
     </Card>
   );
 }
-
