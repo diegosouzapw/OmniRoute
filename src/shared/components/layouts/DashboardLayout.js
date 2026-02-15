@@ -5,6 +5,7 @@ import Sidebar from "../Sidebar";
 import Header from "../Header";
 import Breadcrumbs from "../Breadcrumbs";
 import NotificationToast from "../NotificationToast";
+import MaintenanceBanner from "../MaintenanceBanner";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 
@@ -55,6 +56,7 @@ export default function DashboardLayout({ children }) {
         className="flex flex-col flex-1 h-full min-w-0 relative transition-colors duration-300"
       >
         <Header onMenuClick={() => setSidebarOpen(true)} />
+        <MaintenanceBanner />
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
           <div className="max-w-7xl mx-auto">
             <Breadcrumbs />
@@ -68,4 +70,3 @@ export default function DashboardLayout({ children }) {
     </div>
   );
 }
-

@@ -14,6 +14,7 @@ const navItems = [
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   { href: "/dashboard/combos", label: "Combos", icon: "layers" },
   { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
+  { href: "/dashboard/health", label: "Health", icon: "health_and_safety" },
   { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
 ];
 
@@ -25,7 +26,7 @@ const systemItems = [{ href: "/dashboard/settings", label: "Settings", icon: "se
 const helpItems = [
   { href: "/docs", label: "Docs", icon: "menu_book" },
   {
-    href: "https://github.com/decolua/omniroute/issues",
+    href: "https://github.com/diegosouzapw/OmniRoute/issues",
     label: "Issues",
     icon: "bug_report",
     external: true,
