@@ -14,6 +14,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 
 export default function EvalsTab() {
   const [suites, setSuites] = useState([]);
+  const [apiKey, setApiKey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
@@ -36,9 +37,22 @@ export default function EvalsTab() {
     }
   }, []);
 
+  const fetchApiKey = useCallback(async () => {
+    try {
+      const res = await fetch("/api/keys");
+      if (!res.ok) return;
+      const data = await res.json();
+      const firstKey = data?.keys?.[0]?.key || null;
+      setApiKey(firstKey);
+    } catch {
+      // silent
+    }
+  }, []);
+
   useEffect(() => {
     fetchSuites();
-  }, [fetchSuites]);
+    fetchApiKey();
+  }, [fetchSuites, fetchApiKey]);
 
   /**
    * Call the proxy LLM endpoint for a single eval case.
@@ -46,9 +60,12 @@ export default function EvalsTab() {
    */
   const callLLM = async (evalCase) => {
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+
       const res = await fetch("/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           model: evalCase.model || "gpt-4o",
           messages: evalCase.input?.messages || [],

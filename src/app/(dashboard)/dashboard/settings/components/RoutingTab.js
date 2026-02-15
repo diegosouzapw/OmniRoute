@@ -13,7 +13,6 @@ const STRATEGIES = [
   },
   { value: "round-robin", label: "Round Robin", desc: "Cycle through all accounts", icon: "loop" },
   { value: "p2c", label: "P2C", desc: "Pick 2 random, use the healthier one", icon: "balance" },
-  { value: "random", label: "Random", desc: "Pick a random account each request", icon: "shuffle" },
 ];
 
 export default function RoutingTab() {
@@ -77,7 +76,7 @@ export default function RoutingTab() {
           <h3 className="text-lg font-semibold">Routing Strategy</h3>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           {STRATEGIES.map((s) => (
             <button
               key={s.value}
@@ -133,8 +132,6 @@ export default function RoutingTab() {
             "Using accounts in priority order (Fill First)."}
           {settings.fallbackStrategy === "p2c" &&
             "Power of Two Choices: picks 2 random accounts and routes to the healthier one."}
-          {settings.fallbackStrategy === "random" &&
-            "Picks a random account for each request — simple uniform distribution."}
         </p>
       </Card>
 

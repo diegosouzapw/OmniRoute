@@ -65,7 +65,8 @@ export default function HomePageClient({ machineId }) {
             conn.testStatus === "unavailable")
       ).length;
 
-      const providerModels = models.filter((m) => m.provider === providerId);
+      const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
+      const providerModels = models.filter((m) => providerKeys.has(m.provider));
 
       return {
         id: providerId,
@@ -81,7 +82,10 @@ export default function HomePageClient({ machineId }) {
   // Models for selected provider
   const selectedProviderModels = useMemo(() => {
     if (!selectedProvider) return [];
-    return models.filter((m) => m.provider === selectedProvider.id);
+    const providerKeys = new Set(
+      [selectedProvider.id, selectedProvider.provider?.alias].filter(Boolean)
+    );
+    return models.filter((m) => providerKeys.has(m.provider));
   }, [selectedProvider, models]);
 
   const quickStartLinks = [
