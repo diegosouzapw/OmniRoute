@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import PropTypes from "prop-types";
 import { ThemeToggle } from "@/shared/components";
+import TokenHealthBadge from "./TokenHealthBadge";
 import {
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
@@ -169,6 +170,9 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
       <div className="flex items-center gap-3 ml-auto">
         {/* Theme toggle */}
         <ThemeToggle />
+
+        {/* Token health */}
+        <TokenHealthBadge />
 
         {/* Logout button */}
         <button

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import IPFilterSection from "./IPFilterSection";
+import PoliciesPanel from "./PoliciesPanel";
 
 export default function SecurityTab() {
   const [settings, setSettings] = useState({ requireLogin: false, hasPassword: false });
@@ -146,6 +147,7 @@ export default function SecurityTab() {
         </div>
       </Card>
       <IPFilterSection />
+      <PoliciesPanel />
     </div>
   );
 }

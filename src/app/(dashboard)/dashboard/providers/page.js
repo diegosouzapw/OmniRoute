@@ -12,6 +12,8 @@ import {
 } from "@/shared/constants/providers";
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
+import { useNotificationStore } from "@/store/notificationStore";
+import ModelAvailabilityPanel from "./components/ModelAvailabilityPanel";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
 function getStatusDisplay(connected, error, errorCode) {
@@ -85,6 +87,7 @@ export default function ProvidersPage() {
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [testingMode, setTestingMode] = useState(null);
   const [testResults, setTestResults] = useState(null);
+  const notify = useNotificationStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,8 +156,14 @@ export default function ProvidersPage() {
       });
       const data = await res.json();
       setTestResults(data);
+      if (data.summary) {
+        const { passed, failed, total } = data.summary;
+        if (failed === 0) notify.success(`All ${total} tests passed`);
+        else notify.warning(`${passed}/${total} passed, ${failed} failed`);
+      }
     } catch (error) {
       setTestResults({ error: "Test request failed" });
+      notify.error("Provider test failed");
     } finally {
       setTestingMode(null);
     }
@@ -387,6 +396,9 @@ export default function ProvidersPage() {
           </div>
         </div>
       )}
+
+      {/* Model Availability */}
+      <ModelAvailabilityPanel />
     </div>
   );
 }

@@ -1,12 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, DataTable } from "@/shared/components";
+import { useState, useEffect, useCallback } from "react";
+import { Card, DataTable, FilterBar, ColumnToggle } from "@/shared/components";
+import { useNotificationStore } from "@/store/notificationStore";
+
+const ALL_COLUMNS = [
+  { key: "timestamp", label: "Time" },
+  { key: "action", label: "Action" },
+  { key: "actor", label: "Actor" },
+  { key: "details", label: "Details" },
+];
 
 export default function ComplianceTab() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+  const [visibleCols, setVisibleCols] = useState({
+    timestamp: true,
+    action: true,
+    actor: true,
+    details: true,
+  });
+  const notify = useNotificationStore();
 
   useEffect(() => {
     fetch("/api/compliance/audit-log?limit=100")
@@ -15,16 +31,61 @@ export default function ComplianceTab() {
         setLogs(Array.isArray(data) ? data : data.logs || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        notify.error("Failed to load audit log");
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const actionOptions = [...new Set(logs.map((l) => l.action).filter(Boolean))];
+  const actorOptions = [...new Set(logs.map((l) => l.actor).filter(Boolean))];
+
+  const filtered = logs.filter((l) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const matchesSearch =
+        l.action?.toLowerCase().includes(q) ||
+        l.actor?.toLowerCase().includes(q) ||
+        (l.details && JSON.stringify(l.details).toLowerCase().includes(q));
+      if (!matchesSearch) return false;
+    }
+    if (filters.action && l.action !== filters.action) return false;
+    if (filters.actor && l.actor !== filters.actor) return false;
+    return true;
+  });
+
+  const columns = ALL_COLUMNS.filter((c) => visibleCols[c.key]);
+
+  const handleToggleCol = useCallback((key) => {
+    setVisibleCols((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const filtered = filter
-    ? logs.filter(
-        (l) =>
-          l.action?.toLowerCase().includes(filter.toLowerCase()) ||
-          l.actor?.toLowerCase().includes(filter.toLowerCase())
-      )
-    : logs;
+  const renderCell = useCallback((row, col) => {
+    switch (col.key) {
+      case "timestamp":
+        return (
+          <span className="font-mono text-xs text-text-muted whitespace-nowrap">
+            {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
+          </span>
+        );
+      case "action":
+        return (
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
+            {row.action || "—"}
+          </span>
+        );
+      case "actor":
+        return <span className="text-text-main">{row.actor || "system"}</span>;
+      case "details":
+        return (
+          <span className="text-text-muted text-xs max-w-xs truncate block">
+            {row.details ? JSON.stringify(row.details) : "—"}
+          </span>
+        );
+      default:
+        return row[col.key] || "—";
+    }
+  }, []);
 
   return (
     <Card className="p-6">
@@ -33,51 +94,30 @@ export default function ComplianceTab() {
           <span className="material-symbols-outlined text-[20px]">policy</span>
           Audit Log
         </h3>
-        <input
-          type="text"
-          placeholder="Filter by action or actor..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-1.5 text-sm rounded-lg bg-black/5 dark:bg-white/5 border border-border text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
-        />
+        <ColumnToggle columns={ALL_COLUMNS} visible={visibleCols} onToggle={handleToggleCol} />
       </div>
 
-      {loading ? (
-        <p className="text-sm text-text-muted">Loading audit log…</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-text-muted">No audit events found.</p>
-      ) : (
-        <div className="overflow-auto max-h-96 rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-bg border-b border-border">
-              <tr>
-                <th className="text-left px-3 py-2 text-text-muted font-medium">Time</th>
-                <th className="text-left px-3 py-2 text-text-muted font-medium">Action</th>
-                <th className="text-left px-3 py-2 text-text-muted font-medium">Actor</th>
-                <th className="text-left px-3 py-2 text-text-muted font-medium">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((log, i) => (
-                <tr key={i} className="border-b border-border/50 hover:bg-black/5 dark:hover:bg-white/5">
-                  <td className="px-3 py-2 text-text-muted font-mono text-xs whitespace-nowrap">
-                    {log.timestamp ? new Date(log.timestamp).toLocaleString() : "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
-                      {log.action || "—"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-text-main">{log.actor || "system"}</td>
-                  <td className="px-3 py-2 text-text-muted text-xs max-w-xs truncate">
-                    {log.details ? JSON.stringify(log.details) : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <FilterBar
+        searchValue={search}
+        onSearchChange={setSearch}
+        placeholder="Search audit logs..."
+        filters={[
+          { key: "action", label: "Action", options: actionOptions },
+          { key: "actor", label: "Actor", options: actorOptions },
+        ]}
+        activeFilters={filters}
+        onFilterChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
+      />
+
+      <DataTable
+        columns={columns}
+        data={filtered}
+        renderCell={renderCell}
+        loading={loading}
+        maxHeight="400px"
+        emptyIcon="📋"
+        emptyMessage="No audit events found"
+      />
     </Card>
   );
 }
