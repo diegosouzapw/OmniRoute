@@ -130,28 +130,38 @@ Default URLs:
 
 ## 💡 Key Features
 
-| Feature                          | What It Does                               | Why It Matters                      |
-| -------------------------------- | ------------------------------------------ | ----------------------------------- |
-| 🎯 **Smart 3-Tier Fallback**     | Auto-route: Subscription → Cheap → Free    | Never stop coding, zero downtime    |
-| 📊 **Real-Time Quota Tracking**  | Live token count + reset countdown         | Maximize subscription value         |
-| 🔄 **Format Translation**        | OpenAI ↔ Claude ↔ Gemini seamless          | Works with any CLI tool             |
-| 👥 **Multi-Account Support**     | Multiple accounts per provider             | Load balancing + redundancy         |
-| 🔄 **Auto Token Refresh**        | OAuth tokens refresh automatically         | No manual re-login needed           |
-| 🎨 **Custom Combos**             | Create unlimited model combinations        | Tailor fallback to your needs       |
-| 🧩 **Custom Models**             | Add any model ID to any provider           | No app update needed for new models |
-| 🛣️ **Dedicated Provider Routes** | Per-provider API endpoints                 | Direct routing, model validation    |
-| 🌐 **Network Proxy**             | Hierarchical outbound proxy + env fallback | Works behind firewalls/VPNs         |
-| 📋 **Model Catalog API**         | All models grouped by provider + type      | Discover available models easily    |
-| 📝 **Request Logging**           | Debug mode with full request/response logs | Troubleshoot issues easily          |
-| 💾 **Cloud Sync**                | Sync config across devices                 | Same setup everywhere               |
-| 📊 **Usage Analytics**           | Track tokens, cost, trends over time       | Optimize spending                   |
-| 🌐 **Deploy Anywhere**           | Localhost, VPS, Docker, Cloudflare Workers | Flexible deployment options         |
-| 🛡️ **IP Allowlist/Blocklist**    | Restrict API access by IP address          | Security for exposed deployments    |
-| 🧠 **Thinking Budget**           | Control reasoning token budget per model   | Optimize cost vs quality            |
-| 💬 **System Prompt Injection**   | Global system prompt for all requests      | Consistent behavior across models   |
-| 📊 **Session Tracking**          | Track active sessions with fingerprinting  | Monitor connected clients           |
-| ⚡ **Rate Limiting**             | Per-account request rate management        | Prevent abuse and quota waste       |
-| 💰 **Model Pricing**             | Per-model cost tracking and calculation    | Precise usage cost analytics        |
+| Feature                             | What It Does                                  | Why It Matters                      |
+| ----------------------------------- | --------------------------------------------- | ----------------------------------- |
+| 🎯 **Smart 3-Tier Fallback**        | Auto-route: Subscription → Cheap → Free       | Never stop coding, zero downtime    |
+| 📊 **Real-Time Quota Tracking**     | Live token count + reset countdown            | Maximize subscription value         |
+| 🔄 **Format Translation**           | OpenAI ↔ Claude ↔ Gemini seamless             | Works with any CLI tool             |
+| 👥 **Multi-Account Support**        | Multiple accounts per provider                | Load balancing + redundancy         |
+| 🔄 **Auto Token Refresh**           | OAuth tokens refresh automatically            | No manual re-login needed           |
+| 🎨 **Custom Combos**                | Create unlimited model combinations           | Tailor fallback to your needs       |
+| 🧩 **Custom Models**                | Add any model ID to any provider              | No app update needed for new models |
+| 🛣️ **Dedicated Provider Routes**    | Per-provider API endpoints                    | Direct routing, model validation    |
+| 🌐 **Network Proxy**                | Hierarchical outbound proxy + env fallback    | Works behind firewalls/VPNs         |
+| 📋 **Model Catalog API**            | All models grouped by provider + type         | Discover available models easily    |
+| 📝 **Request Logging**              | Debug mode with full request/response logs    | Troubleshoot issues easily          |
+| 💾 **Cloud Sync**                   | Sync config across devices                    | Same setup everywhere               |
+| 📊 **Usage Analytics**              | Track tokens, cost, trends over time          | Optimize spending                   |
+| 🌐 **Deploy Anywhere**              | Localhost, VPS, Docker, Cloudflare Workers    | Flexible deployment options         |
+| 🛡️ **IP Allowlist/Blocklist**       | Restrict API access by IP address             | Security for exposed deployments    |
+| 🧠 **Thinking Budget**              | Control reasoning token budget per model      | Optimize cost vs quality            |
+| 💬 **System Prompt Injection**      | Global system prompt for all requests         | Consistent behavior across models   |
+| 📊 **Session Tracking**             | Track active sessions with fingerprinting     | Monitor connected clients           |
+| ⚡ **Rate Limiting**                | Per-account request rate management           | Prevent abuse and quota waste       |
+| 💰 **Model Pricing**                | Per-model cost tracking and calculation       | Precise usage cost analytics        |
+| 🔌 **Circuit Breaker**              | Auto-open/close per-provider with cooldowns   | Prevent cascading failures          |
+| 🛡️ **Anti-Thundering Herd**         | Mutex + auto rate-limit for API key providers | Prevent parallel stampede           |
+| 📊 **Provider Resilience Profiles** | OAuth vs API key differentiated cooldowns     | Smarter error recovery              |
+| 🎛️ **Resilience UI**                | Real-time circuit breaker status + reset      | Monitor and control resilience      |
+| 💵 **Cost Budgets**                 | Per-API-key daily/monthly budget limits       | Prevent unexpected spending         |
+| 📈 **Request Telemetry**            | 7-phase lifecycle with p50/p95/p99 latency    | Performance monitoring              |
+| 🔍 **Correlation IDs**              | End-to-end request tracing via X-Request-Id   | Debug complex request flows         |
+| 📋 **Compliance Audit Log**         | Filterable audit trail with opt-out per key   | Regulatory compliance               |
+| 🏗️ **Model Availability**           | TTL-based cooldown tracking per model         | Intelligent model health tracking   |
+| 🔄 **Eval Framework**               | 4 strategies + golden set for LLM evaluation  | Quality assurance for models        |
 
 <details>
 <summary><b>📖 Feature Details</b></summary>
@@ -1093,11 +1103,13 @@ Types: `chat`, `embedding`, `image`. Custom models are flagged with `custom: tru
 - **Database**: LowDB (JSON file-based)
 - **Streaming**: Server-Sent Events (SSE)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
-- **Testing**: Playwright (E2E) + Node.js test runner (unit)
+- **Testing**: Playwright (E2E) + Node.js test runner (273+ unit tests)
 - **Monorepo**: npm workspaces (`@omniroute/open-sse`)
 - **CI/CD**: GitHub Actions (auto npm publish on release) + Dependabot
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Compliance**: `/terms` and `/privacy` pages
+- **Compliance**: `/terms` and `/privacy` pages + audit log
+- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd
+- **Observability**: Request telemetry (p50/p95/p99), correlation IDs, structured error codes
 
 ---
 
@@ -1286,11 +1298,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ### Releasing a New Version
 
-When a new GitHub Release is created (e.g. `v0.2.0`), the package is **automatically published to npm** via GitHub Actions:
+When a new GitHub Release is created (e.g. `v0.3.0`), the package is **automatically published to npm** via GitHub Actions:
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.2.0 --title "v0.2.0" --generate-notes
+gh release create v0.3.0 --title "v0.3.0" --generate-notes
 ```
 
 The workflow syncs the version from the release tag, builds the standalone app, and publishes to npm.

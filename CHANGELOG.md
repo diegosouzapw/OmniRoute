@@ -10,6 +10,115 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] — 2026-02-15
+
+Major release: security hardening, domain layer architecture, pipeline integration, full frontend coverage, and resilience overhaul with circuit breaker, anti-thundering herd, and Resilience UI.
+
+### Added
+
+#### Security Hardening (FASE-01 to FASE-09)
+
+- **FASE-01 to FASE-06** — Core security hardening across authentication, input validation, and access control
+- **FASE-07 to FASE-09** — Advanced features including enhanced monitoring, security audit improvements, and operational hardening
+
+#### Domain Layer & Infrastructure
+
+- **Model Availability** — TTL-based cooldown tracking per model (`modelAvailability.js`)
+- **Cost Rules** — Per-API-key budget management with daily/monthly limits (`costRules.js`)
+- **Fallback Policy** — Declarative fallback chain routing with CRUD API (`fallbackPolicy.js`)
+- **Error Codes Catalog** — 24 standardized error codes in 6 categories with `createErrorResponse` helper (`errorCodes.js`)
+- **Correlation ID** — AsyncLocalStorage-based `x-request-id` propagation for end-to-end tracing (`requestId.js`)
+- **Fetch Timeout** — AbortController wrapper with configurable `FETCH_TIMEOUT_MS` (`fetchTimeout.js`)
+- **Combo Resolver** — Priority/round-robin/random/least-used strategies (`comboResolver.js`)
+- **Lockout Policy** — Sliding window lockout with force-unlock capability (`lockoutPolicy.js`)
+- **Request Telemetry** — 7-phase lifecycle tracking with p50/p95/p99 latency aggregation (`requestTelemetry.js`)
+
+#### Pipeline Wiring (7 Backend Modules)
+
+- **Circuit Breaker** integration into request pipeline for provider resilience
+- **Model Availability** wired with TTL cooldowns for per-model health tracking
+- **Request Telemetry** lifecycle tracking across 7 phases
+- **Cost Rules** budget check and cost recording per request
+- **Compliance** audit logging with `noLog` opt-out per API key
+- **Fetch Timeout** via `fetchWithTimeout` replacing bare `fetch()` in proxy
+- **Request ID** (`X-Request-Id` header) for end-to-end tracing
+
+#### 9 New API Routes
+
+- `/api/cache/stats` — GET cache stats, DELETE flush
+- `/api/models/availability` — GET availability report, POST clear cooldown
+- `/api/telemetry/summary` — GET p50/p95/p99 latency metrics
+- `/api/usage/budget` — GET cost summary, POST set budget per key
+- `/api/fallback/chains` — GET/POST/DELETE fallback chain management
+- `/api/compliance/audit-log` — GET filterable audit log
+- `/api/evals` — GET list suites, POST run suite
+- `/api/evals/[suiteId]` — GET suite details
+- `/api/policies` — GET circuit breaker + lockout status, POST force-unlock
+
+#### Frontend — 100% Backend API Coverage (7 Batches)
+
+- **Batch 1** — Pipeline wiring integration verified across all backend modules
+- **Batch 2** — 9 API routes created for backend module access
+- **Batch 3** — 6 shared UI components exported (Breadcrumbs, EmptyState, NotificationToast, FilterBar, ColumnToggle, DataTable) + `notificationStore` wired into layout
+- **Batch 4** — Usage page: BudgetTelemetryCards (latency p50/p95/p99, cache, system health); Settings page: ComplianceTab (audit log), CacheStatsCard (prompt cache + flush); Combos page: EmptyState component
+- **Batch 5** — Integration-wiring tests: 44 tests across 12 suites verifying all batches
+- **Batch 6** — Frontend now covers every backend API surface
+- **Batch 7** — Final wiring and verification pass
+
+#### Refactoring & Decomposition
+
+- **usageDb.js** decomposed from 969 → 40 lines into 5 focused modules: `migrations.js`, `usageHistory.js`, `costCalculator.js`, `usageStats.js`, `callLogs.js`
+- **handleSingleModelChat** decomposed from 183 → 80 lines with extracted helpers (`handleNoCredentials`, `safeResolveProxy`, `safeLogEvents`)
+- **Shared UI primitives** extracted: FilterBar, ColumnToggle, DataTable (3230 total lines)
+
+#### Rate Limit Overhaul (4 Phases)
+
+- **Phase 1** — Provider-specific resilience profiles (OAuth vs API key), exponential backoff (5s→60s), default API limits (100 RPM, 200ms minTime)
+- **Phase 2** — Circuit breaker integration in combo pipeline with `canExecute()` checks, early exit when all models are OPEN, semaphore marking for 502/503/504
+- **Phase 3** — Anti-thundering herd: mutex on `markAccountUnavailable`, auto rate-limit for API key providers with elevated defaults
+- **Phase 4** — Resilience UI tab in settings with 3 cards: ProviderProfilesCard, CircuitBreakerCard (real-time, auto-refresh 5s, reset), RateLimitOverviewCard
+- `/api/resilience` — GET (full state) + PATCH (save profiles)
+- `/api/resilience/reset` — POST (reset breakers + cooldowns)
+
+#### ADRs & Quality
+
+- **6 Architecture Decision Records**: SQLite, Fallback Strategy, OAuth, JS+JSDoc, Single-Tenant, Translator Registry
+- **Accessibility audit** — WCAG AA checker with aria-label, dialog role, alt text, label validation (`a11yAudit.js`)
+- **Password Reset CLI** — Interactive admin password reset tool (`bin/reset-password.mjs`)
+- **Playwright E2E specs** — Responsive viewport tests (375/768/1280) across 4 pages
+- **Eval Framework** — 4 strategies (exact, contains, regex, custom) + 10-case golden set (`evalRunner.js`)
+- **Compliance module** — audit_log table, `noLog` opt-out per API key, `LOG_RETENTION_DAYS` cleanup
+
+#### Tests
+
+- **63 new tests** for rate limit overhaul: error-classification, combo-circuit-breaker, thundering-herd
+- **44 integration-wiring tests** across 12 suites
+- **31 domain layer tests** for model availability, cost rules, error codes, request ID, fetch timeout
+- **13 UX/telemetry tests** for error pages, breadcrumbs, empty states, telemetry, domain extraction
+- **25 batch-B tests** for ADRs, eval framework, compliance, a11y, CLI, Playwright specs
+- Total: **273+ tests passing** (up from ~144 in v0.2.0)
+
+#### Documentation
+
+- **JSDoc** coverage added to all new modules (100% exported functions documented)
+- `@ts-check` added to 8 critical files
+
+### Fixed
+
+- **ESLint v10 → v9 downgrade** for `eslint-config-next` compatibility — rewrote flat config, removed `defineConfig`/`globalIgnores` (ESLint 10-only APIs)
+- **Unrecoverable refresh token errors** — detect `refresh_token_reused` and similar errors, mark connections as expired requiring re-authentication
+- **Record type annotation** added to `getAllFallbackChains` result
+- **`.gitignore` cleanup** — added `.analysis/` and `antigravity-manager-analysis/`, whitelisted FASE docs
+
+### Changed
+
+- **Error pages** — Custom 404 and global error boundary with gradient design and dev details
+- **Combo page** — Inline empty state replaced with EmptyState component
+- **Layout** — Breadcrumbs rendered between Header and content, NotificationToast as global fixed overlay
+- **Proxy module** — bare `fetch()` replaced with `fetchWithTimeout` (5s timeout) + `X-Request-Id` header
+
+---
+
 ## [0.2.0] — 2026-02-14
 
 Major feature release: advanced routing services, security hardening, cost analytics dashboard, and pricing management overhaul.

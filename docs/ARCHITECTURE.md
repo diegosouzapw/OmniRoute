@@ -1,6 +1,6 @@
 # OmniRoute Architecture
 
-_Last updated: 2026-02-14_
+_Last updated: 2026-02-15_
 
 ## Executive Summary
 
@@ -24,8 +24,16 @@ Core capabilities:
 - Thinking budget management (passthrough/auto/custom/adaptive)
 - Global system prompt injection
 - Session tracking and fingerprinting
-- Per-account enhanced rate limiting
+- Per-account enhanced rate limiting with provider-specific profiles
+- Circuit breaker pattern for provider resilience
+- Anti-thundering herd protection with mutex locking
 - Signature-based request deduplication cache
+- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Request telemetry with p50/p95/p99 latency aggregation
+- Correlation ID (X-Request-Id) for end-to-end tracing
+- Compliance audit logging with opt-out per API key
+- Eval framework for LLM quality assurance
+- Resilience UI dashboard with real-time circuit breaker status
 
 Primary runtime model:
 
@@ -140,6 +148,16 @@ Management domains:
 - System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
 - Sessions: `src/app/api/sessions` (GET)
 - Rate limits: `src/app/api/rate-limits` (GET)
+- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
+- Model availability: `src/app/api/models/availability` (GET/POST)
+- Telemetry: `src/app/api/telemetry/summary` (GET)
+- Budget: `src/app/api/usage/budget` (GET/POST)
+- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Compliance audit: `src/app/api/compliance/audit-log` (GET)
+- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Policies: `src/app/api/policies` (GET/POST)
 
 ## 2) SSE + Translation Core
 
@@ -170,6 +188,22 @@ Services (business logic):
 - System prompt injection: `open-sse/services/systemPrompt.js`
 - Thinking budget management: `open-sse/services/thinkingBudget.js`
 - Wildcard model routing: `open-sse/services/wildcardRouter.js`
+- Rate limit management: `open-sse/services/rateLimitManager.js`
+- Circuit breaker: `open-sse/services/circuitBreaker.js`
+
+Domain layer modules:
+
+- Model availability: `src/lib/domain/modelAvailability.js`
+- Cost rules/budgets: `src/lib/domain/costRules.js`
+- Fallback policy: `src/lib/domain/fallbackPolicy.js`
+- Combo resolver: `src/lib/domain/comboResolver.js`
+- Lockout policy: `src/lib/domain/lockoutPolicy.js`
+- Error codes catalog: `src/lib/domain/errorCodes.js`
+- Request ID: `src/lib/domain/requestId.js`
+- Fetch timeout: `src/lib/domain/fetchTimeout.js`
+- Request telemetry: `src/lib/domain/requestTelemetry.js`
+- Compliance/audit: `src/lib/domain/compliance/index.js`
+- Eval runner: `src/lib/domain/evalRunner.js`
 
 ## 3) Persistence Layer
 
@@ -184,6 +218,7 @@ Usage DB:
 - `src/lib/usageDb.js`
 - files: `${DATA_DIR}/usage.json`, `${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`
 - follows same base directory policy as `localDb` (`DATA_DIR`, then `XDG_CONFIG_HOME/omniroute` when set)
+- decomposed into focused sub-modules: `migrations.js`, `usageHistory.js`, `costCalculator.js`, `usageStats.js`, `callLogs.js`
 
 ## 4) Auth + Security Surfaces
 
