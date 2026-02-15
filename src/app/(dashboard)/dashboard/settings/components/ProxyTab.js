@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Button, ProxyConfigModal } from "@/shared/components";
 
 export default function ProxyTab() {
   const [proxyModalOpen, setProxyModalOpen] = useState(false);
   const [globalProxy, setGlobalProxy] = useState(null);
+  const mountedRef = useRef(true);
 
   const loadGlobalProxy = async () => {
     try {
@@ -18,7 +19,21 @@ export default function ProxyTab() {
   };
 
   useEffect(() => {
-    loadGlobalProxy();
+    mountedRef.current = true;
+    async function init() {
+      try {
+        const res = await fetch("/api/settings/proxy?level=global");
+        if (!mountedRef.current) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (mountedRef.current) setGlobalProxy(data.proxy || null);
+        }
+      } catch {}
+    }
+    init();
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   return (

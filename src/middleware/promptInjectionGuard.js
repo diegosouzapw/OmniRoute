@@ -1,4 +1,3 @@
-// @ts-check
 /**
  * Prompt Injection Guard — Express/Next.js middleware
  *
@@ -30,7 +29,7 @@ export function createInjectionGuard(options = {}) {
    * Check a request body for prompt injection.
    *
    * @param {Object} body - The parsed request body
-   * @returns {{ blocked: boolean, result: import("../shared/utils/inputSanitizer.js").SanitizeResult }}
+   * @returns {{ blocked: boolean, result: Object }}
    */
   return function guardRequest(body) {
     if (!body || typeof body !== "object") {
