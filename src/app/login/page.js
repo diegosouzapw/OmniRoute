@@ -111,6 +111,12 @@ export default function LoginPage() {
             <p className="text-xs text-center text-text-muted mt-2">
               Default password is <code className="bg-sidebar px-1 rounded">123456</code>
             </p>
+
+            <p className="text-xs text-center mt-1">
+              <a href="/forgot-password" className="text-primary hover:underline">
+                Forgot password?
+              </a>
+            </p>
           </form>
         </Card>
       </div>
