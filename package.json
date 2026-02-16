@@ -40,7 +40,7 @@
     "type": "git",
     "url": "https://github.com/diegosouzapw/OmniRoute"
   },
-  "homepage": "https://github.com/diegosouzapw/OmniRoute",
+  "homepage": "https://omniroute.online",
   "scripts": {
     "dev": "next dev --webpack --port 20128",
     "build": "next build --webpack",
