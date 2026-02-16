@@ -139,6 +139,21 @@ export default function ProxyLogDetail({ log, onClose }) {
                 <div className="text-sm text-text-muted">—</div>
               )}
             </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                TLS Fingerprint
+              </div>
+              {log.tlsFingerprint ? (
+                <span
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+                  style={{ backgroundColor: "rgba(6, 182, 212, 0.15)", color: "#22d3ee" }}
+                >
+                  <span style={{ fontSize: "12px" }}>🔒</span> Chrome 124
+                </span>
+              ) : (
+                <div className="text-sm text-text-muted">Direct (native)</div>
+              )}
+            </div>
             <div className="col-span-2">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                 Target URL

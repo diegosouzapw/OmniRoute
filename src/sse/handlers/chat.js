@@ -16,7 +16,11 @@ import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.js";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.js";
+import {
+  runWithProxyContext,
+  runWithTlsTracking,
+  isTlsFingerprintActive,
+} from "@omniroute/open-sse/utils/proxyFetch.js";
 import * as log from "../utils/logger.js";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh.js";
 import { getSettings, getCombos, getApiKeyMetadata } from "@/lib/localDb.js";
@@ -192,7 +196,15 @@ export async function handleChat(request, clientRawRequest = null) {
   telemetry.endPhase();
 
   // Single model request
-  const response = await handleSingleModelChat(body, modelStr, clientRawRequest, request, null, apiKeyInfo, telemetry);
+  const response = await handleSingleModelChat(
+    body,
+    modelStr,
+    clientRawRequest,
+    request,
+    null,
+    apiKeyInfo,
+    telemetry
+  );
   recordTelemetry(telemetry);
   return response;
 }
@@ -244,7 +256,11 @@ async function handleSingleModelChat(
   // Pipeline: Check model availability (TTL cooldown)
   if (!isModelAvailable(provider, model)) {
     log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
-    return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Model ${provider}/${model} is temporarily unavailable (cooldown)`, 30);
+    return unavailableResponse(
+      HTTP_STATUS.SERVICE_UNAVAILABLE,
+      `Model ${provider}/${model} is temporarily unavailable (cooldown)`,
+      30
+    );
   }
 
   // Pipeline: Check circuit breaker for this provider
@@ -255,7 +271,11 @@ async function handleSingleModelChat(
   });
   if (!breaker.canExecute()) {
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
-    return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Provider ${provider} circuit breaker is open`, 30);
+    return unavailableResponse(
+      HTTP_STATUS.SERVICE_UNAVAILABLE,
+      `Provider ${provider} circuit breaker is open`,
+      30
+    );
   }
 
   const userAgent = request?.headers?.get("user-agent") || "";
@@ -270,7 +290,14 @@ async function handleSingleModelChat(
 
     // All accounts unavailable — return error
     if (!credentials || credentials.allRateLimited) {
-      return handleNoCredentials(credentials, excludeConnectionId, provider, model, lastError, lastStatus);
+      return handleNoCredentials(
+        credentials,
+        excludeConnectionId,
+        provider,
+        model,
+        lastError,
+        lastStatus
+      );
     }
 
     const accountId = credentials.connectionId.slice(0, 8);
@@ -283,30 +310,52 @@ async function handleSingleModelChat(
     // 3. Execute chat via core (with circuit breaker)
     if (telemetry) telemetry.startPhase("connect");
     let result;
+    let tlsFingerprintUsed = false;
     try {
-      result = await breaker.execute(() =>
+      const chatFn = () =>
         runWithProxyContext(proxyInfo?.proxy || null, () =>
           handleChatCore({
             body: { ...body, model: `${provider}/${model}` },
             modelInfo: { provider, model },
-            credentials: refreshedCredentials, log, clientRawRequest,
-            connectionId: credentials.connectionId, apiKeyInfo, userAgent, comboName,
+            credentials: refreshedCredentials,
+            log,
+            clientRawRequest,
+            connectionId: credentials.connectionId,
+            apiKeyInfo,
+            userAgent,
+            comboName,
             onCredentialsRefreshed: async (newCreds) => {
               await updateProviderCredentials(credentials.connectionId, {
-                accessToken: newCreds.accessToken, refreshToken: newCreds.refreshToken,
-                providerSpecificData: newCreds.providerSpecificData, testStatus: "active",
+                accessToken: newCreds.accessToken,
+                refreshToken: newCreds.refreshToken,
+                providerSpecificData: newCreds.providerSpecificData,
+                testStatus: "active",
               });
             },
             onRequestSuccess: async () => {
               await clearAccountError(credentials.connectionId, credentials);
             },
           })
-        )
-      );
+        );
+
+      // Wrap with TLS tracking when no proxy and TLS fingerprint is active
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await breaker.execute(async () => {
+          return await runWithTlsTracking(chatFn);
+        });
+        result = tracked.result;
+        tlsFingerprintUsed = tracked.tlsFingerprintUsed;
+      } else {
+        result = await breaker.execute(chatFn);
+      }
     } catch (cbErr) {
       if (cbErr instanceof CircuitBreakerOpenError) {
         log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
-        return unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, `Provider ${provider} circuit breaker is open`, Math.ceil(cbErr.retryAfterMs / 1000));
+        return unavailableResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          `Provider ${provider} circuit breaker is open`,
+          Math.ceil(cbErr.retryAfterMs / 1000)
+        );
       }
       throw cbErr;
     }
@@ -315,14 +364,27 @@ async function handleSingleModelChat(
     const proxyLatency = Date.now() - proxyStartTime;
 
     // 4. Log proxy + translation events (fire-and-forget)
-    safeLogEvents({ result, proxyInfo, proxyLatency, provider, model, sourceFormat, targetFormat, credentials, comboName, clientRawRequest });
+    safeLogEvents({
+      result,
+      proxyInfo,
+      proxyLatency,
+      provider,
+      model,
+      sourceFormat,
+      targetFormat,
+      credentials,
+      comboName,
+      clientRawRequest,
+      tlsFingerprintUsed,
+    });
 
     if (result.success) {
       // Pipeline: Record cost on success
       if (apiKeyInfo?.id) {
         try {
           const usage = result.usage || {};
-          const estimatedCost = ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0)) * 0.000001; // rough estimate
+          const estimatedCost =
+            ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0)) * 0.000001; // rough estimate
           if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
         } catch {}
       }
@@ -334,12 +396,18 @@ async function handleSingleModelChat(
     // Pipeline: Mark model unavailable on repeated failures (429, 503)
     if (result.status === 429 || result.status === 503) {
       setModelUnavailable(provider, model, 60000, `HTTP ${result.status}`);
-      log.info("AVAILABILITY", `${provider}/${model} marked unavailable for 60s (HTTP ${result.status})`);
+      log.info(
+        "AVAILABILITY",
+        `${provider}/${model} marked unavailable for 60s (HTTP ${result.status})`
+      );
     }
 
     // 5. Fallback to next account
     const { shouldFallback } = await markAccountUnavailable(
-      credentials.connectionId, result.status, result.error, provider
+      credentials.connectionId,
+      result.status,
+      result.error,
+      provider
     );
 
     if (shouldFallback) {
@@ -356,19 +424,35 @@ async function handleSingleModelChat(
 
 // ──── Extracted helpers (T-28) ────
 
-function handleNoCredentials(credentials, excludeConnectionId, provider, model, lastError, lastStatus) {
+function handleNoCredentials(
+  credentials,
+  excludeConnectionId,
+  provider,
+  model,
+  lastError,
+  lastStatus
+) {
   if (credentials?.allRateLimited) {
     const errorMsg = lastError || credentials.lastError || "Unavailable";
-    const status = lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
+    const status =
+      lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
     log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);
-    return unavailableResponse(status, `[${provider}/${model}] ${errorMsg}`, credentials.retryAfter, credentials.retryAfterHuman);
+    return unavailableResponse(
+      status,
+      `[${provider}/${model}] ${errorMsg}`,
+      credentials.retryAfter,
+      credentials.retryAfterHuman
+    );
   }
   if (!excludeConnectionId) {
     log.error("AUTH", `No credentials for provider: ${provider}`);
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
   }
   log.warn("CHAT", "No more accounts available", { provider });
-  return errorResponse(lastStatus || HTTP_STATUS.SERVICE_UNAVAILABLE, lastError || "All accounts unavailable");
+  return errorResponse(
+    lastStatus || HTTP_STATUS.SERVICE_UNAVAILABLE,
+    lastError || "All accounts unavailable"
+  );
 }
 
 async function safeResolveProxy(connectionId) {
@@ -380,25 +464,51 @@ async function safeResolveProxy(connectionId) {
   }
 }
 
-function safeLogEvents({ result, proxyInfo, proxyLatency, provider, model, sourceFormat, targetFormat, credentials, comboName, clientRawRequest }) {
+function safeLogEvents({
+  result,
+  proxyInfo,
+  proxyLatency,
+  provider,
+  model,
+  sourceFormat,
+  targetFormat,
+  credentials,
+  comboName,
+  clientRawRequest,
+  tlsFingerprintUsed = false,
+}) {
   try {
     logProxyEvent({
-      status: result.success ? "success" : result.status === 408 || result.status === 504 ? "timeout" : "error",
-      proxy: proxyInfo?.proxy || null, level: proxyInfo?.level || "direct",
-      levelId: proxyInfo?.levelId || null, provider, targetUrl: `${provider}/${model}`,
-      latencyMs: proxyLatency, error: result.success ? null : result.error || null,
-      connectionId: credentials.connectionId, comboId: comboName || null,
+      status: result.success
+        ? "success"
+        : result.status === 408 || result.status === 504
+          ? "timeout"
+          : "error",
+      proxy: proxyInfo?.proxy || null,
+      level: proxyInfo?.level || "direct",
+      levelId: proxyInfo?.levelId || null,
+      provider,
+      targetUrl: `${provider}/${model}`,
+      latencyMs: proxyLatency,
+      error: result.success ? null : result.error || null,
+      connectionId: credentials.connectionId,
+      comboId: comboName || null,
       account: credentials.connectionId?.slice(0, 8) || null,
+      tlsFingerprint: tlsFingerprintUsed,
     });
   } catch {}
   try {
     logTranslationEvent({
-      provider, model, sourceFormat, targetFormat,
+      provider,
+      model,
+      sourceFormat,
+      targetFormat,
       status: result.success ? "success" : "error",
       statusCode: result.success ? 200 : result.status || 500,
-      latency: proxyLatency, endpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
-      connectionId: credentials.connectionId || null, comboName: comboName || null,
+      latency: proxyLatency,
+      endpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+      connectionId: credentials.connectionId || null,
+      comboName: comboName || null,
     });
   } catch {}
 }
-

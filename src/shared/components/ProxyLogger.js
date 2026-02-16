@@ -25,6 +25,7 @@ const STATUS_FILTERS = [
 const COLUMNS = [
   { key: "status", label: "Status" },
   { key: "proxy", label: "Proxy" },
+  { key: "tls", label: "TLS" },
   { key: "type", label: "Type" },
   { key: "level", label: "Level" },
   { key: "provider", label: "Provider" },
@@ -141,6 +142,7 @@ export default function ProxyLogger() {
   const errorCount = logs.filter((l) => l.status === "error").length;
   const timeoutCount = logs.filter((l) => l.status === "timeout").length;
   const directCount = logs.filter((l) => l.level === "direct").length;
+  const tlsCount = logs.filter((l) => l.tlsFingerprint).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -241,6 +243,11 @@ export default function ProxyLogger() {
           {directCount > 0 && (
             <span className="px-2 py-1 rounded bg-gray-500/10 text-gray-400 font-mono">
               {directCount} direct
+            </span>
+          )}
+          {tlsCount > 0 && (
+            <span className="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 font-mono">
+              🔒 {tlsCount} TLS
             </span>
           )}
         </div>
@@ -369,6 +376,11 @@ export default function ProxyLogger() {
                       Proxy
                     </th>
                   )}
+                  {visibleColumns.tls && (
+                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                      TLS
+                    </th>
+                  )}
                   {visibleColumns.type && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
                       Type
@@ -441,6 +453,24 @@ export default function ProxyLogger() {
                       {visibleColumns.proxy && (
                         <td className="px-3 py-2 font-mono text-[11px] text-primary">
                           {log.proxy ? `${log.proxy.host}:${log.proxy.port}` : "—"}
+                        </td>
+                      )}
+                      {visibleColumns.tls && (
+                        <td className="px-3 py-2">
+                          {log.tlsFingerprint ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase"
+                              style={{
+                                backgroundColor: "rgba(6, 182, 212, 0.15)",
+                                color: "#22d3ee",
+                              }}
+                              title="Chrome 124 TLS Fingerprint"
+                            >
+                              <span style={{ fontSize: "10px" }}>🔒</span> TLS
+                            </span>
+                          ) : (
+                            <span className="text-text-muted text-[10px]">—</span>
+                          )}
                         </td>
                       )}
                       {visibleColumns.type && (

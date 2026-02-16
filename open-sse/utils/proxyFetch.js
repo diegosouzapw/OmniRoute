@@ -5,6 +5,14 @@ import {
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.js";
+import tlsClient from "./tlsClient.js";
+
+function isTlsFingerprintEnabled() {
+  return process.env.ENABLE_TLS_FINGERPRINT === "true";
+}
+
+/** Per-request tracking of whether TLS fingerprint was used */
+const tlsFingerprintContext = new AsyncLocalStorage();
 
 const isCloud = typeof caches !== "undefined" && typeof caches === "object";
 const PATCH_STATE_KEY = Symbol.for("omniroute.proxyFetch.state");
@@ -135,6 +143,21 @@ async function patchedFetch(input, options = {}) {
   const { source, proxyUrl } = resolved;
 
   if (!proxyUrl) {
+    // TLS fingerprint spoofing for direct connections (no proxy configured)
+    if (isTlsFingerprintEnabled() && tlsClient.available) {
+      try {
+        const store = tlsFingerprintContext.getStore();
+        if (store) store.used = true;
+        return await tlsClient.fetch(targetUrl, options);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `[ProxyFetch] TLS fingerprint failed, falling back to native fetch: ${message}`
+        );
+        const store = tlsFingerprintContext.getStore();
+        if (store) store.used = false;
+      }
+    }
     return originalFetch(input, options);
   }
 
@@ -151,6 +174,21 @@ async function patchedFetch(input, options = {}) {
 if (!isCloud && !patchState.isPatched) {
   globalThis.fetch = patchedFetch;
   patchState.isPatched = true;
+}
+
+/**
+ * Run a function with TLS fingerprint tracking context.
+ * After fn completes, returns { result, tlsFingerprintUsed }.
+ */
+export async function runWithTlsTracking(fn) {
+  const store = { used: false };
+  const result = await tlsFingerprintContext.run(store, fn);
+  return { result, tlsFingerprintUsed: store.used };
+}
+
+/** Check if TLS fingerprint is enabled and available */
+export function isTlsFingerprintActive() {
+  return isTlsFingerprintEnabled() && tlsClient.available;
 }
 
 export default isCloud ? originalFetch : patchedFetch;
