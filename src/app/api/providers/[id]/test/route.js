@@ -502,89 +502,102 @@ async function testApiKeyConnection(connection) {
   };
 }
 
+/**
+ * Core test logic — reusable by test-batch without HTTP self-calls.
+ * @param {string} connectionId
+ * @returns {Promise<object>} Test result (same shape as the JSON response)
+ */
+export async function testSingleConnection(connectionId) {
+  const connection = await getProviderConnectionById(connectionId);
+
+  if (!connection) {
+    return { valid: false, error: "Connection not found", diagnosis: null, latencyMs: 0 };
+  }
+
+  let result;
+  const startTime = Date.now();
+  const runtime = await getProviderRuntimeStatus(connection.provider);
+
+  if (runtime?.diagnosis) {
+    result = {
+      valid: false,
+      error: runtime.error,
+      refreshed: false,
+      diagnosis: runtime.diagnosis,
+    };
+  } else if (connection.authType === "apikey") {
+    result = await testApiKeyConnection(connection);
+  } else {
+    result = await testOAuthConnection(connection);
+  }
+
+  const latencyMs = Date.now() - startTime;
+
+  // Build update data
+  const now = new Date().toISOString();
+  const diagnosis =
+    result.diagnosis ||
+    (result.valid
+      ? makeDiagnosis("ok", "local", null, null)
+      : classifyFailure({ error: result.error, statusCode: result.statusCode }));
+
+  const updateData = {
+    testStatus: result.valid ? "active" : "error",
+    lastError: result.valid ? null : result.error,
+    lastErrorAt: result.valid ? null : now,
+    lastTested: now,
+    lastErrorType: result.valid ? null : diagnosis.type,
+    lastErrorSource: result.valid ? null : diagnosis.source,
+    errorCode: result.valid ? null : diagnosis.code || result.statusCode || null,
+    rateLimitedUntil: result.valid ? null : connection.rateLimitedUntil || null,
+  };
+
+  if (result.valid) {
+    updateData.backoffLevel = 0;
+  }
+
+  // If token was refreshed, update tokens in DB
+  if (result.refreshed && result.newTokens) {
+    updateData.accessToken = result.newTokens.accessToken;
+    if (result.newTokens.refreshToken) {
+      updateData.refreshToken = result.newTokens.refreshToken;
+    }
+    if (result.newTokens.expiresIn) {
+      updateData.expiresAt = new Date(Date.now() + result.newTokens.expiresIn * 1000).toISOString();
+    }
+  }
+
+  // Update status in db
+  await updateProviderConnection(connectionId, updateData);
+
+  // Sync to cloud if token was refreshed
+  if (result.refreshed) {
+    await syncToCloudIfEnabled();
+  }
+
+  return {
+    valid: result.valid,
+    error: result.error,
+    refreshed: result.refreshed || false,
+    diagnosis,
+    latencyMs,
+    statusCode: result.statusCode || null,
+    runtime: runtime || null,
+    testedAt: now,
+  };
+}
+
 // POST /api/providers/[id]/test - Test connection
 export async function POST(request, { params }) {
   try {
     const { id } = await params;
-    const connection = await getProviderConnectionById(id);
+    const data = await testSingleConnection(id);
 
-    if (!connection) {
+    if (data.error === "Connection not found") {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    let result;
-    const startTime = Date.now();
-    const runtime = await getProviderRuntimeStatus(connection.provider);
-
-    if (runtime?.diagnosis) {
-      result = {
-        valid: false,
-        error: runtime.error,
-        refreshed: false,
-        diagnosis: runtime.diagnosis,
-      };
-    } else if (connection.authType === "apikey") {
-      result = await testApiKeyConnection(connection);
-    } else {
-      result = await testOAuthConnection(connection);
-    }
-
-    const latencyMs = Date.now() - startTime;
-
-    // Build update data
-    const now = new Date().toISOString();
-    const diagnosis =
-      result.diagnosis ||
-      (result.valid
-        ? makeDiagnosis("ok", "local", null, null)
-        : classifyFailure({ error: result.error, statusCode: result.statusCode }));
-
-    const updateData = {
-      testStatus: result.valid ? "active" : "error",
-      lastError: result.valid ? null : result.error,
-      lastErrorAt: result.valid ? null : now,
-      lastTested: now,
-      lastErrorType: result.valid ? null : diagnosis.type,
-      lastErrorSource: result.valid ? null : diagnosis.source,
-      errorCode: result.valid ? null : diagnosis.code || result.statusCode || null,
-      rateLimitedUntil: result.valid ? null : connection.rateLimitedUntil || null,
-    };
-
-    if (result.valid) {
-      updateData.backoffLevel = 0;
-    }
-
-    // If token was refreshed, update tokens in DB
-    if (result.refreshed && result.newTokens) {
-      updateData.accessToken = result.newTokens.accessToken;
-      if (result.newTokens.refreshToken) {
-        updateData.refreshToken = result.newTokens.refreshToken;
-      }
-      if (result.newTokens.expiresIn) {
-        updateData.expiresAt = new Date(
-          Date.now() + result.newTokens.expiresIn * 1000
-        ).toISOString();
-      }
-    }
-
-    // Update status in db
-    await updateProviderConnection(id, updateData);
-
-    // Sync to cloud if token was refreshed
-    if (result.refreshed) {
-      await syncToCloudIfEnabled();
-    }
-
-    return NextResponse.json({
-      valid: result.valid,
-      error: result.error,
-      refreshed: result.refreshed || false,
-      diagnosis,
-      latencyMs,
-      statusCode: result.statusCode || null,
-      runtime: runtime || null,
-      testedAt: now,
-    });
+    return NextResponse.json(data);
   } catch (error) {
     console.log("Error testing connection:", error);
     return NextResponse.json({ error: "Test failed" }, { status: 500 });

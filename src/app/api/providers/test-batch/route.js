@@ -7,6 +7,7 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
+import { testSingleConnection } from "../[id]/test/route";
 
 // Determine auth type group for a provider id
 function getAuthGroup(providerId) {
@@ -73,43 +74,33 @@ export async function POST(request) {
       });
     }
 
-    // Test each connection sequentially via internal API call
+    // Test each connection sequentially via direct function call (no HTTP self-call)
     const results = [];
-    const baseUrl = request.nextUrl.origin;
 
     for (const conn of connectionsToTest) {
-      const startTime = Date.now();
       try {
-        const res = await fetch(`${baseUrl}/api/providers/${conn.id}/test`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(20000),
-        });
-        const data = await res.json();
-        const latencyMs = data.latencyMs || Date.now() - startTime;
-
+        const data = await testSingleConnection(conn.id);
         results.push({
           provider: conn.provider,
           connectionId: conn.id,
           connectionName: conn.name || conn.email || conn.provider,
           authType: conn.authType || getAuthGroup(conn.provider),
           valid: data.valid,
-          latencyMs,
+          latencyMs: data.latencyMs || 0,
           error: data.error || null,
           diagnosis: data.diagnosis || null,
           statusCode: data.statusCode || null,
           testedAt: data.testedAt || new Date().toISOString(),
         });
       } catch (error) {
-        const latencyMs = Date.now() - startTime;
         results.push({
           provider: conn.provider,
           connectionId: conn.id,
           connectionName: conn.name || conn.email || conn.provider,
           authType: conn.authType || getAuthGroup(conn.provider),
           valid: false,
-          latencyMs,
-          error: error.name === "TimeoutError" ? "Timeout (20s)" : error.message,
+          latencyMs: 0,
+          error: error.message,
           diagnosis: { type: "network_error", source: "local", code: null, message: error.message },
           statusCode: null,
           testedAt: new Date().toISOString(),
