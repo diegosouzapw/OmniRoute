@@ -6,6 +6,8 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.js";
+import { saveCallLog } from "@/lib/usageDb.js";
+import { logProxyEvent } from "@/lib/proxyLogger.js";
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -574,6 +576,40 @@ export async function testSingleConnection(connectionId) {
   if (result.refreshed) {
     await syncToCloudIfEnabled();
   }
+
+  // Log to Logger tab (call_logs table)
+  try {
+    saveCallLog({
+      method: "POST",
+      path: "/api/providers/test",
+      status: result.valid ? 200 : result.statusCode || 401,
+      model: "connection-test",
+      provider: connection.provider,
+      connectionId,
+      duration: latencyMs,
+      error: result.valid ? null : result.error || null,
+      sourceFormat: "test",
+      targetFormat: "test",
+    }).catch(() => {});
+  } catch {}
+
+  // Log to Proxy tab (proxy_logs table)
+  try {
+    logProxyEvent({
+      status: result.valid ? "success" : "error",
+      proxy: null,
+      level: "provider-test",
+      levelId: null,
+      provider: connection.provider,
+      targetUrl: `${connection.provider}/connection-test`,
+      latencyMs,
+      error: result.valid ? null : result.error || null,
+      connectionId,
+      comboId: null,
+      account: connectionId?.slice(0, 8) || null,
+      tlsFingerprint: false,
+    });
+  } catch {}
 
   return {
     valid: result.valid,
