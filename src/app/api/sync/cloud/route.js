@@ -7,6 +7,53 @@ import path from "path";
 import os from "os";
 
 /**
+ * GET /api/sync/cloud
+ * Returns current cloud sync status for sidebar indicator
+ */
+export async function GET() {
+  try {
+    const { isCloudEnabled } = await import("@/lib/db/settings.js");
+    const enabled = await isCloudEnabled();
+
+    if (!enabled) {
+      return NextResponse.json({ enabled: false });
+    }
+
+    // Cloud is enabled — try to verify connection
+    const machineId = await getConsistentMachineId();
+    const keys = await getApiKeys();
+    const apiKey = keys[0]?.key;
+
+    if (!apiKey || !CLOUD_URL) {
+      return NextResponse.json({ enabled: true, connected: false });
+    }
+
+    try {
+      const pingRes = await fetchWithTimeout(
+        `${CLOUD_URL}/${machineId}/v1/verify`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+        },
+        5000
+      );
+      return NextResponse.json({
+        enabled: true,
+        connected: pingRes.ok,
+        lastSync: new Date().toISOString(),
+      });
+    } catch {
+      return NextResponse.json({ enabled: true, connected: false });
+    }
+  } catch (error) {
+    return NextResponse.json({ enabled: false, error: error.message }, { status: 500 });
+  }
+}
+
+/**
  * POST /api/sync/cloud
  * Sync data with Cloud
  */

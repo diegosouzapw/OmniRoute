@@ -443,46 +443,135 @@ export default function HealthPage() {
       </Card>
 
       {/* Rate Limit Status */}
-      {rateLimitStatus && Object.keys(rateLimitStatus).length > 0 && (
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold text-text-main mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px] text-amber-500">speed</span>
-            Rate Limit Status
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-text-muted text-left border-b border-white/5">
-                  <th className="pb-2 font-medium">Provider</th>
-                  <th className="pb-2 font-medium">Status</th>
-                  <th className="pb-2 font-medium">Requests</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(rateLimitStatus).map(([provider, status]) => (
-                  <tr key={provider} className="border-b border-white/5 last:border-0">
-                    <td className="py-2 text-text-main">{provider}</td>
-                    <td className="py-2">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          status.limited
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-green-500/10 text-green-400"
-                        }`}
-                      >
-                        {status.limited ? "Limited" : "OK"}
-                      </span>
-                    </td>
-                    <td className="py-2 text-text-muted">
-                      {status.requestsInWindow || 0} / {status.limit || "∞"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
+      {rateLimitStatus &&
+        Object.keys(rateLimitStatus).length > 0 &&
+        (() => {
+          // Parse rate limit keys ("provider:connectionId" or "provider:connectionId:model")
+          const parseKey = (key) => {
+            const parts = key.split(":");
+            const providerId = parts[0];
+            const connectionId = parts[1] || "";
+            const model = parts.slice(2).join(":") || null;
+
+            // Resolve friendly name
+            let displayName;
+            let providerInfo = AI_PROVIDERS[providerId];
+
+            if (providerId.startsWith("openai-compatible-")) {
+              const customName = providerId.replace("openai-compatible-", "");
+              displayName = `OpenAI Compatible`;
+              providerInfo = { color: "#10A37F", textIcon: "OC" };
+              if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
+              else if (customName) displayName += ` (${customName})`;
+            } else if (providerId.startsWith("anthropic-compatible-")) {
+              const customName = providerId.replace("anthropic-compatible-", "");
+              displayName = `Anthropic Compatible`;
+              providerInfo = { color: "#D97757", textIcon: "AC" };
+              if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
+              else if (customName) displayName += ` (${customName})`;
+            } else {
+              displayName = providerInfo?.name || providerId;
+            }
+
+            return { providerId, displayName, providerInfo, connectionId, model };
+          };
+
+          // Group entries by provider for a cleaner display
+          const entries = Object.entries(rateLimitStatus).map(([key, status]) => ({
+            key,
+            ...parseKey(key),
+            status,
+          }));
+
+          // Sort: active (queued/running > 0) first, then alphabetically
+          entries.sort((a, b) => {
+            const aActive = (a.status.queued || 0) + (a.status.running || 0);
+            const bActive = (b.status.queued || 0) + (b.status.running || 0);
+            if (aActive !== bActive) return bActive - aActive;
+            return a.displayName.localeCompare(b.displayName);
+          });
+
+          return (
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px] text-amber-500">
+                    speed
+                  </span>
+                  Rate Limit Status
+                </h2>
+                <span className="text-xs text-text-muted">
+                  {entries.length} active limiter{entries.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {entries.map(({ key, displayName, providerInfo, connectionId, model, status }) => {
+                  const isActive = (status.queued || 0) + (status.running || 0) > 0;
+                  const isQueued = (status.queued || 0) > 0;
+                  return (
+                    <div
+                      key={key}
+                      className={`rounded-lg p-3 border transition-colors ${
+                        isQueued
+                          ? "bg-amber-500/5 border-amber-500/20"
+                          : isActive
+                            ? "bg-blue-500/5 border-blue-500/15"
+                            : "bg-surface/30 border-white/5"
+                      }`}
+                      title={key}
+                    >
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div
+                          className="size-7 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold"
+                          style={{
+                            backgroundColor: `${providerInfo?.color || "#888"}15`,
+                            color: providerInfo?.color || "#888",
+                          }}
+                        >
+                          {providerInfo?.textIcon || displayName.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-text-main truncate">
+                            {displayName}
+                          </p>
+                          {connectionId && (
+                            <p className="text-[10px] text-text-muted font-mono truncate">
+                              {connectionId.length > 12
+                                ? connectionId.slice(0, 8) + "…"
+                                : connectionId}
+                              {model && <span className="ml-1 text-text-muted/60">· {model}</span>}
+                            </p>
+                          )}
+                        </div>
+                        <span
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            isQueued
+                              ? "bg-amber-500/15 text-amber-400"
+                              : isActive
+                                ? "bg-blue-500/15 text-blue-400"
+                                : "bg-green-500/10 text-green-400"
+                          }`}
+                        >
+                          {isQueued ? "Queued" : isActive ? "Active" : "OK"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">schedule</span>
+                          {status.queued || 0} queued
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">play_arrow</span>
+                          {status.running || 0} running
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          );
+        })()}
 
       {/* Active Lockouts */}
       {lockoutEntries.length > 0 && (

@@ -28,11 +28,13 @@ export default function CLIToolsPageClient({ machineId }) {
   const [modelMappings, setModelMappings] = useState({});
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
+  const [toolStatuses, setToolStatuses] = useState({});
 
   useEffect(() => {
     fetchConnections();
     loadCloudSettings();
     fetchApiKeys();
+    fetchToolStatuses();
   }, []);
 
   const loadCloudSettings = async () => {
@@ -56,6 +58,18 @@ export default function CLIToolsPageClient({ machineId }) {
       }
     } catch (error) {
       console.log("Error fetching API keys:", error);
+    }
+  };
+
+  const fetchToolStatuses = async () => {
+    try {
+      const res = await fetch("/api/cli-tools/status");
+      if (res.ok) {
+        const data = await res.json();
+        setToolStatuses(data || {});
+      }
+    } catch (error) {
+      console.log("Error fetching CLI tool statuses:", error);
     }
   };
 
@@ -152,6 +166,7 @@ export default function CLIToolsPageClient({ machineId }) {
       onToggle: () => setExpandedTool(expandedTool === toolId ? null : toolId),
       baseUrl: getBaseUrl(),
       apiKeys,
+      batchStatus: toolStatuses[toolId] || null,
     };
 
     switch (toolId) {

@@ -15,6 +15,7 @@ export default function KiloToolCard({
   apiKeys,
   activeProviders,
   cloudEnabled,
+  batchStatus,
 }) {
   const [kiloStatus, setKiloStatus] = useState(null);
   const [checkingKilo, setCheckingKilo] = useState(false);
@@ -41,6 +42,9 @@ export default function KiloToolCard({
   };
 
   const configStatus = getConfigStatus();
+
+  // Use batch status as fallback when card hasn't been expanded yet
+  const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   useEffect(() => {
     if (apiKeys?.length > 0 && !selectedApiKey) {
@@ -70,7 +74,7 @@ export default function KiloToolCard({
 
   const fetchBackups = async () => {
     try {
-      const res = await fetch("/api/cli-tools/backups?toolId=kilo");
+      const res = await fetch("/api/cli-tools/backups?tool=kilo");
       if (res.ok) {
         const data = await res.json();
         setBackups(data.backups || []);
@@ -86,7 +90,7 @@ export default function KiloToolCard({
       const res = await fetch("/api/cli-tools/backups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toolId: "kilo", backupId }),
+        body: JSON.stringify({ tool: "kilo", backupId }),
       });
       if (res.ok) {
         setMessage({ type: "success", text: "Backup restored! Reloading status..." });
@@ -200,7 +204,7 @@ export default function KiloToolCard({
         text: "Not configured",
       },
     };
-    const badge = badges[configStatus];
+    const badge = badges[effectiveConfigStatus];
     if (!badge) return null;
     return (
       <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${badge.class}`}>

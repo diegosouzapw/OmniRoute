@@ -247,73 +247,139 @@ export default function EvalsTab() {
                   </div>
                 </div>
 
-                {isExpanded && suiteResult?.results && (
+                {isExpanded && (
                   <div className="border-t border-border/20 p-4">
-                    {/* Summary bar */}
-                    {suiteResult.summary && (
-                      <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-surface/30 border border-border/20">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-lg font-bold ${
-                              suiteResult.summary.passRate === 100
-                                ? "text-emerald-400"
-                                : suiteResult.summary.passRate >= 80
-                                  ? "text-amber-400"
-                                  : "text-red-400"
-                            }`}
-                          >
-                            {suiteResult.summary.passRate}%
+                    {suiteResult?.results ? (
+                      <>
+                        {/* Summary bar */}
+                        {suiteResult.summary && (
+                          <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-surface/30 border border-border/20">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-lg font-bold ${
+                                  suiteResult.summary.passRate === 100
+                                    ? "text-emerald-400"
+                                    : suiteResult.summary.passRate >= 80
+                                      ? "text-amber-400"
+                                      : "text-red-400"
+                                }`}
+                              >
+                                {suiteResult.summary.passRate}%
+                              </span>
+                              <span className="text-xs text-text-muted">pass rate</span>
+                            </div>
+                            <div className="text-xs text-text-muted">
+                              {suiteResult.summary.passed} passed · {suiteResult.summary.failed}{" "}
+                              failed · {suiteResult.summary.total} total
+                            </div>
+                          </div>
+                        )}
+                        <DataTable
+                          columns={RESULT_COLUMNS}
+                          data={suiteResult.results.map((r, i) => ({
+                            ...r,
+                            id: r.caseId || i,
+                          }))}
+                          renderCell={(row, col) => {
+                            if (col.key === "status") {
+                              return row.passed ? (
+                                <span className="text-emerald-400">✅ Passed</span>
+                              ) : (
+                                <span className="text-red-400">❌ Failed</span>
+                              );
+                            }
+                            if (col.key === "durationMs") {
+                              return (
+                                <span className="text-text-muted text-xs font-mono">
+                                  {row.durationMs != null ? `${row.durationMs}ms` : "—"}
+                                </span>
+                              );
+                            }
+                            if (col.key === "details") {
+                              const d = row.details || {};
+                              return (
+                                <span className="text-text-muted text-xs truncate max-w-[300px] block">
+                                  {d.searchTerm
+                                    ? `Contains: "${d.searchTerm}"`
+                                    : d.pattern
+                                      ? `Regex: ${d.pattern}`
+                                      : d.expected
+                                        ? `Expected: "${String(d.expected).slice(0, 50)}"`
+                                        : row.error || "—"}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
+                            );
+                          }}
+                          maxHeight="400px"
+                          emptyMessage="No results yet"
+                        />
+                      </>
+                    ) : (
+                      /* Show test cases before running eval */
+                      <>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="material-symbols-outlined text-[16px] text-text-muted">
+                            checklist
                           </span>
-                          <span className="text-xs text-text-muted">pass rate</span>
+                          <span className="text-xs text-text-muted font-medium">
+                            Test Cases ({(suite.cases || []).length})
+                          </span>
                         </div>
-                        <div className="text-xs text-text-muted">
-                          {suiteResult.summary.passed} passed · {suiteResult.summary.failed} failed
-                          · {suiteResult.summary.total} total
-                        </div>
-                      </div>
+                        <DataTable
+                          columns={[
+                            { key: "name", label: "Case" },
+                            { key: "model", label: "Model" },
+                            { key: "strategy", label: "Strategy" },
+                            { key: "expected", label: "Expected" },
+                          ]}
+                          data={(suite.cases || []).map((c, i) => ({
+                            id: c.id || i,
+                            name: c.name,
+                            model: c.model || "—",
+                            strategy: c.expected?.strategy || "—",
+                            expected: c.expected?.value
+                              ? String(c.expected.value).slice(0, 80)
+                              : "—",
+                          }))}
+                          renderCell={(row, col) => {
+                            if (col.key === "strategy") {
+                              const colorMap = {
+                                contains: "text-sky-400",
+                                exact: "text-emerald-400",
+                                regex: "text-amber-400",
+                                custom: "text-violet-400",
+                              };
+                              return (
+                                <span
+                                  className={`text-xs font-mono ${colorMap[row.strategy] || "text-text-muted"}`}
+                                >
+                                  {row.strategy}
+                                </span>
+                              );
+                            }
+                            if (col.key === "expected") {
+                              return (
+                                <span className="text-text-muted text-xs font-mono truncate max-w-[300px] block">
+                                  {row.expected}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
+                            );
+                          }}
+                          maxHeight="400px"
+                          emptyMessage="No test cases defined"
+                        />
+                        <p className="text-xs text-text-muted mt-3 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[14px]">info</span>
+                          Click &quot;Run Eval&quot; to execute all cases against your LLM endpoint
+                        </p>
+                      </>
                     )}
-                    <DataTable
-                      columns={RESULT_COLUMNS}
-                      data={suiteResult.results.map((r, i) => ({
-                        ...r,
-                        id: r.caseId || i,
-                      }))}
-                      renderCell={(row, col) => {
-                        if (col.key === "status") {
-                          return row.passed ? (
-                            <span className="text-emerald-400">✅ Passed</span>
-                          ) : (
-                            <span className="text-red-400">❌ Failed</span>
-                          );
-                        }
-                        if (col.key === "durationMs") {
-                          return (
-                            <span className="text-text-muted text-xs font-mono">
-                              {row.durationMs != null ? `${row.durationMs}ms` : "—"}
-                            </span>
-                          );
-                        }
-                        if (col.key === "details") {
-                          const d = row.details || {};
-                          return (
-                            <span className="text-text-muted text-xs truncate max-w-[300px] block">
-                              {d.searchTerm
-                                ? `Contains: "${d.searchTerm}"`
-                                : d.pattern
-                                  ? `Regex: ${d.pattern}`
-                                  : d.expected
-                                    ? `Expected: "${String(d.expected).slice(0, 50)}"`
-                                    : row.error || "—"}
-                            </span>
-                          );
-                        }
-                        return (
-                          <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
-                        );
-                      }}
-                      maxHeight="400px"
-                      emptyMessage="No results yet"
-                    />
                   </div>
                 )}
               </div>
