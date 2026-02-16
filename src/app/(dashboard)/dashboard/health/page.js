@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -324,38 +325,120 @@ export default function HealthPage() {
 
       {/* Provider Health */}
       <Card className="p-5" role="region" aria-label="Provider health status">
-        <h2 className="text-lg font-semibold text-text-main mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px] text-primary">
-            health_and_safety
-          </span>
-          Provider Health
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-primary">
+              health_and_safety
+            </span>
+            Provider Health
+          </h2>
+          {cbEntries.length > 0 && (
+            <div className="flex items-center gap-3 text-xs text-text-muted">
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-green-500" /> Healthy
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-amber-500" /> Recovering
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-2 rounded-full bg-red-500" /> Down
+              </span>
+            </div>
+          )}
+        </div>
         {cbEntries.length === 0 ? (
           <p className="text-sm text-text-muted text-center py-4">
             No circuit breaker data available. Make some requests first.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {cbEntries.map(([provider, cb]) => {
-              const style = CB_COLORS[cb.state] || CB_COLORS.CLOSED;
-              return (
-                <div key={provider} className={`rounded-lg p-3 ${style.bg} border border-white/5`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-text-main">{provider}</span>
-                    <span className={`text-xs font-semibold ${style.text}`}>{style.label}</span>
+          (() => {
+            const unhealthy = cbEntries.filter(([, cb]) => cb.state !== "CLOSED");
+            const healthy = cbEntries.filter(([, cb]) => cb.state === "CLOSED");
+            return (
+              <div className="space-y-4">
+                {/* Unhealthy providers first */}
+                {unhealthy.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-red-400 uppercase tracking-wide">
+                      Issues Detected
+                    </p>
+                    {unhealthy.map(([provider, cb]) => {
+                      const style = CB_COLORS[cb.state] || CB_COLORS.OPEN;
+                      const providerInfo = AI_PROVIDERS[provider];
+                      const displayName = providerInfo?.name || provider;
+                      return (
+                        <div
+                          key={provider}
+                          className={`rounded-lg p-3 ${style.bg} border border-white/5 flex items-center gap-3`}
+                        >
+                          <div
+                            className="size-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold"
+                            style={{
+                              backgroundColor: `${providerInfo?.color || "#888"}15`,
+                              color: providerInfo?.color || "#888",
+                            }}
+                          >
+                            {providerInfo?.textIcon || provider.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-text-main truncate">
+                                {displayName}
+                              </span>
+                              <span
+                                className={`text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
+                              >
+                                {style.label}
+                              </span>
+                            </div>
+                            <div className="text-xs text-text-muted mt-0.5">
+                              {cb.failures} failure{cb.failures !== 1 ? "s" : ""}
+                              {cb.lastFailure && (
+                                <span className="ml-2">
+                                  · Last: {new Date(cb.lastFailure).toLocaleTimeString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="text-xs text-text-muted">
-                    Failures: {cb.failures || 0}
-                    {cb.lastFailure && (
-                      <span className="ml-2">
-                        Last: {new Date(cb.lastFailure).toLocaleTimeString()}
-                      </span>
+                )}
+
+                {/* Healthy providers in compact grid */}
+                {healthy.length > 0 && (
+                  <div>
+                    {unhealthy.length > 0 && (
+                      <p className="text-xs font-medium text-green-400 uppercase tracking-wide mb-2">
+                        Operational
+                      </p>
                     )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                      {healthy.map(([provider]) => {
+                        const providerInfo = AI_PROVIDERS[provider];
+                        const displayName = providerInfo?.name || provider;
+                        return (
+                          <div
+                            key={provider}
+                            className="rounded-lg p-2.5 bg-green-500/5 border border-white/5 flex items-center gap-2"
+                          >
+                            <span className="size-2 rounded-full bg-green-500 shrink-0" />
+                            <span
+                              className="text-xs font-medium text-text-main truncate"
+                              title={displayName}
+                            >
+                              {displayName}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                )}
+              </div>
+            );
+          })()
         )}
       </Card>
 

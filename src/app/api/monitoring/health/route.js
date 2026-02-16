@@ -31,14 +31,15 @@ export async function GET() {
       platform: process.platform,
     };
 
-    // Provider health summary
+    // Provider health summary (circuitBreakers is an Array of { name, state, ... })
     const providerHealth = {};
-    for (const [key, cb] of Object.entries(circuitBreakers)) {
-      providerHealth[key] = {
+    for (const cb of circuitBreakers) {
+      // Skip test circuit breakers (leftover from unit tests)
+      if (cb.name.startsWith("test-") || cb.name.startsWith("test_")) continue;
+      providerHealth[cb.name] = {
         state: cb.state,
-        failures: cb.failures,
-        lastFailure: cb.lastFailure,
-        nextRetry: cb.nextRetry,
+        failures: cb.failureCount || 0,
+        lastFailure: cb.lastFailureTime,
       };
     }
 

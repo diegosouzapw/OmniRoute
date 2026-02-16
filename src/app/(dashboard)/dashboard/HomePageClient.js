@@ -15,6 +15,7 @@ export default function HomePageClient({ machineId }) {
   const [loading, setLoading] = useState(true);
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
+  const [providerMetrics, setProviderMetrics] = useState({});
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -24,9 +25,10 @@ export default function HomePageClient({ machineId }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [provRes, modelsRes] = await Promise.all([
+      const [provRes, modelsRes, metricsRes] = await Promise.all([
         fetch("/api/providers"),
         fetch("/api/models"),
+        fetch("/api/provider-metrics"),
       ]);
       if (provRes.ok) {
         const provData = await provRes.json();
@@ -35,6 +37,10 @@ export default function HomePageClient({ machineId }) {
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
         setModels(modelsData.models || []);
+      }
+      if (metricsRes.ok) {
+        const metricsData = await metricsRes.json();
+        setProviderMetrics(metricsData.metrics || {});
       }
     } catch (e) {
       console.log("Error fetching data:", e);
@@ -266,6 +272,7 @@ export default function HomePageClient({ machineId }) {
             <ProviderOverviewCard
               key={item.id}
               item={item}
+              metrics={providerMetrics[item.provider.alias] || providerMetrics[item.id]}
               onClick={() => setSelectedProvider(item)}
             />
           ))}
@@ -288,7 +295,7 @@ HomePageClient.propTypes = {
   machineId: PropTypes.string,
 };
 
-function ProviderOverviewCard({ item, onClick }) {
+function ProviderOverviewCard({ item, metrics, onClick }) {
   const [imgError, setImgError] = useState(false);
 
   const statusVariant =
@@ -344,6 +351,16 @@ function ProviderOverviewCard({ item, onClick }) {
               ? "Not configured"
               : `${item.connected} active · ${item.errors} error`}
           </p>
+          {metrics && metrics.totalRequests > 0 && (
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[10px] text-text-muted">
+                <span className="text-emerald-500">{metrics.totalSuccesses}</span>/
+                {metrics.totalRequests} reqs
+              </span>
+              <span className="text-[10px] text-text-muted">{metrics.successRate}%</span>
+              <span className="text-[10px] text-text-muted">~{metrics.avgLatencyMs}ms</span>
+            </div>
+          )}
         </div>
 
         <div className="text-right shrink-0">
@@ -363,6 +380,7 @@ ProviderOverviewCard.propTypes = {
       name: PropTypes.string.isRequired,
       color: PropTypes.string,
       textIcon: PropTypes.string,
+      alias: PropTypes.string,
     }).isRequired,
     total: PropTypes.number.isRequired,
     connected: PropTypes.number.isRequired,
@@ -370,6 +388,12 @@ ProviderOverviewCard.propTypes = {
     modelCount: PropTypes.number.isRequired,
     authType: PropTypes.string.isRequired,
   }).isRequired,
+  metrics: PropTypes.shape({
+    totalRequests: PropTypes.number,
+    totalSuccesses: PropTypes.number,
+    successRate: PropTypes.number,
+    avgLatencyMs: PropTypes.number,
+  }),
   onClick: PropTypes.func.isRequired,
 };
 

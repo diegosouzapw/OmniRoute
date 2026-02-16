@@ -10,6 +10,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.6.0] — 2026-02-16
+
+Provider metrics, cost analytics page, health enhancements, and visual rebrand.
+
+### Added
+
+#### Dashboard & UI
+
+- **Costs Page** — New dedicated `/dashboard/costs` page with cost analytics and breakdown
+- **Provider Metrics API** — New `/api/provider-metrics` endpoint exposing per-provider usage metrics
+- **Health Provider Status** — Enhanced health page with detailed provider status display and configuration indicators
+- **Model Import for Passthrough Providers** — Model import now saves as default (non-custom) for passthrough providers (Deepgram, AssemblyAI, NanoBanana)
+
+#### Visual & Branding
+
+- **App Icon Redesign** — New network node graph icon with updated color scheme reflecting "Modern Tech Warmth" aesthetic
+
+### Fixed
+
+- **Provider Metrics Display** — Providers page now shows real-time usage metrics per provider
+- **Home Page Providers Overview** — Enhanced provider card display on dashboard home
+
+---
+
 ## [0.5.0] — 2026-02-15
 
 Dashboard refinements, LLM evaluation framework, combo strategies expansion, and UI/UX polish.

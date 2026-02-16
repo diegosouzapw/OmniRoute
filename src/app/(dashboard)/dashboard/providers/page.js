@@ -202,7 +202,9 @@ export default function ProvidersPage() {
       {/* OAuth Providers */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">OAuth Providers</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            OAuth Providers <span className="size-2.5 rounded-full bg-blue-500" title="OAuth" />
+          </h2>
           <div className="flex items-center gap-2">
             <ModelAvailabilityBadge />
             <button
@@ -230,6 +232,7 @@ export default function ProvidersPage() {
               providerId={key}
               provider={info}
               stats={getProviderStats(key, "oauth")}
+              authType="oauth"
             />
           ))}
         </div>
@@ -238,7 +241,9 @@ export default function ProvidersPage() {
       {/* Free Providers */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Free Providers</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            Free Providers <span className="size-2.5 rounded-full bg-green-500" title="Free" />
+          </h2>
           <button
             onClick={() => handleBatchTest("free")}
             disabled={!!testingMode}
@@ -263,6 +268,7 @@ export default function ProvidersPage() {
               providerId={key}
               provider={info}
               stats={getProviderStats(key, "oauth")}
+              authType="free"
             />
           ))}
         </div>
@@ -271,7 +277,10 @@ export default function ProvidersPage() {
       {/* API Key Providers — fixed list */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">API Key Providers</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            API Key Providers{" "}
+            <span className="size-2.5 rounded-full bg-amber-500" title="API Key" />
+          </h2>
           <button
             onClick={() => handleBatchTest("apikey")}
             disabled={!!testingMode}
@@ -296,6 +305,7 @@ export default function ProvidersPage() {
               providerId={key}
               provider={info}
               stats={getProviderStats(key, "apikey")}
+              authType="apikey"
             />
           ))}
         </div>
@@ -304,7 +314,10 @@ export default function ProvidersPage() {
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">API Key Compatible Providers</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            API Key Compatible Providers{" "}
+            <span className="size-2.5 rounded-full bg-orange-500" title="Compatible" />
+          </h2>
           <div className="flex gap-2">
             {(compatibleProviders.length > 0 || anthropicCompatibleProviders.length > 0) && (
               <button
@@ -355,6 +368,7 @@ export default function ProvidersPage() {
                 providerId={info.id}
                 provider={info}
                 stats={getProviderStats(info.id, "apikey")}
+                authType="compatible"
               />
             ))}
           </div>
@@ -407,9 +421,17 @@ export default function ProvidersPage() {
   );
 }
 
-function ProviderCard({ providerId, provider, stats }) {
+function ProviderCard({ providerId, provider, stats, authType }) {
   const { connected, error, errorCode, errorTime } = stats;
   const [imgError, setImgError] = useState(false);
+
+  const dotColors = {
+    free: "bg-green-500",
+    oauth: "bg-blue-500",
+    apikey: "bg-amber-500",
+    compatible: "bg-orange-500",
+  };
+  const dotLabels = { free: "Free", oauth: "OAuth", apikey: "API Key", compatible: "Compatible" };
 
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group">
@@ -440,7 +462,13 @@ function ProviderCard({ providerId, provider, stats }) {
               )}
             </div>
             <div>
-              <h3 className="font-semibold">{provider.name}</h3>
+              <h3 className="font-semibold flex items-center gap-1.5">
+                {provider.name}
+                <span
+                  className={`size-2 rounded-full ${dotColors[authType] || dotColors.oauth} shrink-0`}
+                  title={dotLabels[authType] || "OAuth"}
+                />
+              </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {getStatusDisplay(connected, error, errorCode)}
                 {errorTime && <span className="text-text-muted">• {errorTime}</span>}
@@ -470,14 +498,23 @@ ProviderCard.propTypes = {
     errorCode: PropTypes.string,
     errorTime: PropTypes.string,
   }).isRequired,
+  authType: PropTypes.string,
 };
 
 // API Key providers - use image with textIcon fallback (same as OAuth providers)
-function ApiKeyProviderCard({ providerId, provider, stats }) {
+function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
   const { connected, error, errorCode, errorTime } = stats;
   const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
   const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
   const [imgError, setImgError] = useState(false);
+
+  const dotColors = {
+    free: "bg-green-500",
+    oauth: "bg-blue-500",
+    apikey: "bg-amber-500",
+    compatible: "bg-orange-500",
+  };
+  const dotLabels = { free: "Free", oauth: "OAuth", apikey: "API Key", compatible: "Compatible" };
 
   // Determine icon path: OpenAI Compatible providers use specialized icons
   const getIconPath = () => {
@@ -519,7 +556,13 @@ function ApiKeyProviderCard({ providerId, provider, stats }) {
               )}
             </div>
             <div>
-              <h3 className="font-semibold">{provider.name}</h3>
+              <h3 className="font-semibold flex items-center gap-1.5">
+                {provider.name}
+                <span
+                  className={`size-2 rounded-full ${dotColors[authType] || dotColors.apikey} shrink-0`}
+                  title={dotLabels[authType] || "API Key"}
+                />
+              </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {getStatusDisplay(connected, error, errorCode)}
                 {isCompatible && (
@@ -560,6 +603,7 @@ ApiKeyProviderCard.propTypes = {
     errorCode: PropTypes.string,
     errorTime: PropTypes.string,
   }).isRequired,
+  authType: PropTypes.string,
 };
 
 function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
