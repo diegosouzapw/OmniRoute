@@ -5,7 +5,7 @@
   
   **Never stop coding. Auto-route to FREE & cheap AI models with smart fallback.**
   
-  **28 Providers • Embeddings • Image Generation • Think Tag Parsing**
+  **36+ Providers • Embeddings • Image Generation • Think Tag Parsing**
   
   **Free AI Provider for OpenClaw.**
   
@@ -18,8 +18,9 @@
   [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
   [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
   [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
+  [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
   
-  [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation)
+  [🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation)
 </div>
 
 ---
@@ -259,6 +260,7 @@ registerSuite({
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
 - **Testing**: Node.js test runner (320+ unit tests)
 - **CI/CD**: GitHub Actions (auto npm publish on release)
+- **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd
@@ -275,11 +277,13 @@ registerSuite({
 | [Architecture](docs/ARCHITECTURE.md)       | System architecture and internals              |
 | [Contributing](CONTRIBUTING.md)            | Development setup and guidelines               |
 | [OpenAPI Spec](docs/openapi.yaml)          | OpenAPI 3.0 specification                      |
+| [Security Policy](SECURITY.md)             | Vulnerability reporting and security practices |
 
 ---
 
 ## 📧 Support
 
+- **Website**: [omniroute.online](https://omniroute.online)
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **Original Project**: [9router by decolua](https://github.com/decolua/9router)
@@ -304,7 +308,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.7.0 --title "v0.7.0" --generate-notes
+gh release create v0.8.0 --title "v0.8.0" --generate-notes
 ```
 
 ---
@@ -323,4 +327,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 <div align="center">
   <sub>Built with ❤️ for developers who code 24/7</sub>
+  <br/>
+  <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
