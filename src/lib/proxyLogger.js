@@ -1,14 +1,64 @@
 /**
- * Proxy Logger — In-memory ring buffer for proxy events
- * Mirrors the call-log pattern used by RequestLoggerV2
+ * Proxy Logger — Hybrid in-memory + SQLite persistence
+ *
+ * Keeps a fast in-memory ring buffer for real-time dashboard AND
+ * persists to SQLite so logs survive server restarts.
+ *
+ * Pattern follows callLogs.js (T-15 decomposition).
  */
 import { v4 as uuidv4 } from "uuid";
+import { getDbInstance, isCloud, isBuildPhase } from "./db/core.js";
+
+const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
 const MAX_ENTRIES = 500;
 const proxyLogs = [];
 
+// ──────────────── Startup: hydrate from DB ────────────────
+
+function loadFromDb() {
+  if (!shouldPersistToDisk) return;
+  try {
+    const db = getDbInstance();
+    const rows = db
+      .prepare("SELECT * FROM proxy_logs ORDER BY timestamp DESC LIMIT ?")
+      .all(MAX_ENTRIES);
+
+    for (const row of rows) {
+      proxyLogs.push({
+        id: row.id,
+        timestamp: row.timestamp,
+        status: row.status || "success",
+        proxy: row.proxy_host
+          ? { type: row.proxy_type, host: row.proxy_host, port: row.proxy_port }
+          : null,
+        level: row.level || "direct",
+        levelId: row.level_id || null,
+        provider: row.provider || null,
+        targetUrl: row.target_url || null,
+        publicIp: row.public_ip || null,
+        latencyMs: row.latency_ms || 0,
+        error: row.error || null,
+        connectionId: row.connection_id || null,
+        comboId: row.combo_id || null,
+        account: row.account || null,
+        tlsFingerprint: row.tls_fingerprint === 1,
+      });
+    }
+
+    if (proxyLogs.length > 0) {
+      console.log(`[proxyLogger] Loaded ${proxyLogs.length} proxy logs from SQLite`);
+    }
+  } catch (err) {
+    console.warn("[proxyLogger] Failed to load from DB:", err.message);
+  }
+}
+
+loadFromDb();
+
+// ──────────────── Log a proxy event ────────────────
+
 /**
- * Log a proxy event
  * @param {Object} entry
  * @param {"success"|"error"|"timeout"} entry.status
  * @param {Object} entry.proxy - { type, host, port }
@@ -21,6 +71,7 @@ const proxyLogs = [];
  * @param {string} [entry.error]
  * @param {string} [entry.connectionId]
  * @param {string} [entry.comboId]
+ * @param {boolean} [entry.tlsFingerprint]
  */
 export function logProxyEvent(entry) {
   const log = {
@@ -41,26 +92,65 @@ export function logProxyEvent(entry) {
     tlsFingerprint: entry.tlsFingerprint || false,
   };
 
-  proxyLogs.unshift(log); // newest first
-
-  // Trim to max
+  // 1. In-memory ring buffer (newest first)
+  proxyLogs.unshift(log);
   if (proxyLogs.length > MAX_ENTRIES) {
     proxyLogs.length = MAX_ENTRIES;
+  }
+
+  // 2. Persist to SQLite
+  if (shouldPersistToDisk) {
+    try {
+      const db = getDbInstance();
+      db.prepare(
+        `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
+          level, level_id, provider, target_url, public_ip, latency_ms, error,
+          connection_id, combo_id, account, tls_fingerprint)
+        VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
+          @level, @levelId, @provider, @targetUrl, @publicIp, @latencyMs, @error,
+          @connectionId, @comboId, @account, @tlsFingerprint)`
+      ).run({
+        id: log.id,
+        timestamp: log.timestamp,
+        status: log.status,
+        proxyType: log.proxy?.type || null,
+        proxyHost: log.proxy?.host || null,
+        proxyPort: log.proxy?.port || null,
+        level: log.level,
+        levelId: log.levelId,
+        provider: log.provider,
+        targetUrl: log.targetUrl,
+        publicIp: log.publicIp,
+        latencyMs: log.latencyMs,
+        error: log.error,
+        connectionId: log.connectionId,
+        comboId: log.comboId,
+        account: log.account,
+        tlsFingerprint: log.tlsFingerprint ? 1 : 0,
+      });
+
+      // Trim old entries
+      const count = db.prepare("SELECT COUNT(*) as cnt FROM proxy_logs").get()?.cnt || 0;
+      if (count > MAX_ENTRIES) {
+        db.prepare(
+          `DELETE FROM proxy_logs WHERE id IN (
+            SELECT id FROM proxy_logs ORDER BY timestamp ASC LIMIT ?
+          )`
+        ).run(count - MAX_ENTRIES);
+      }
+    } catch (err) {
+      console.warn("[proxyLogger] Failed to persist:", err.message);
+    }
   }
 
   return log;
 }
 
+// ──────────────── Query ────────────────
+
 /**
- * Get proxy logs with optional filters
- * @param {Object} filters
- * @param {string} [filters.status] - "success"|"error"|"timeout"
- * @param {string} [filters.type] - "http"|"https"|"socks5"
- * @param {string} [filters.provider]
- * @param {string} [filters.level] - "key"|"combo"|"provider"|"global"|"direct"
- * @param {string} [filters.search] - free text search
- * @param {number} [filters.limit] - max results (default 300)
- * @returns {Array}
+ * Get proxy logs with optional filters.
+ * Reads from in-memory for speed (already hydrated from DB on startup).
  */
 export function getProxyLogs(filters = {}) {
   let logs = [...proxyLogs];
@@ -103,16 +193,23 @@ export function getProxyLogs(filters = {}) {
   return logs.slice(0, limit);
 }
 
-/**
- * Clear all proxy logs
- */
+// ──────────────── Clear ────────────────
+
 export function clearProxyLogs() {
   proxyLogs.length = 0;
+
+  if (shouldPersistToDisk) {
+    try {
+      const db = getDbInstance();
+      db.prepare("DELETE FROM proxy_logs").run();
+    } catch (err) {
+      console.warn("[proxyLogger] Failed to clear DB:", err.message);
+    }
+  }
 }
 
-/**
- * Get proxy log stats
- */
+// ──────────────── Stats ────────────────
+
 export function getProxyLogStats() {
   const total = proxyLogs.length;
   const success = proxyLogs.filter((l) => l.status === "success").length;
