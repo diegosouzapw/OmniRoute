@@ -30,7 +30,8 @@ const CLI_TOOLS = {
     defaultCommand: "droid",
     envBinKey: "CLI_DROID_BIN",
     requiresBinary: true,
-    healthcheckTimeoutMs: 4000,
+    // Droid CLI can be slow on some environments; 4s was causing false negatives.
+    healthcheckTimeoutMs: 8000,
     paths: {
       settings: ".factory/settings.json",
     },

@@ -15,6 +15,7 @@ export default function ClineToolCard({
   apiKeys,
   activeProviders,
   cloudEnabled,
+  batchStatus,
 }) {
   const [clineStatus, setClineStatus] = useState(null);
   const [checkingCline, setCheckingCline] = useState(false);
@@ -45,6 +46,9 @@ export default function ClineToolCard({
   };
 
   const configStatus = getConfigStatus();
+
+  // Use batch status as fallback when card hasn't been expanded yet
+  const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   useEffect(() => {
     if (apiKeys?.length > 0 && !selectedApiKey) {
@@ -84,7 +88,7 @@ export default function ClineToolCard({
 
   const fetchBackups = async () => {
     try {
-      const res = await fetch("/api/cli-tools/backups?toolId=cline");
+      const res = await fetch("/api/cli-tools/backups?tool=cline");
       if (res.ok) {
         const data = await res.json();
         setBackups(data.backups || []);
@@ -100,7 +104,7 @@ export default function ClineToolCard({
       const res = await fetch("/api/cli-tools/backups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toolId: "cline", backupId }),
+        body: JSON.stringify({ tool: "cline", backupId }),
       });
       if (res.ok) {
         setMessage({ type: "success", text: "Backup restored! Reloading status..." });
@@ -215,7 +219,7 @@ export default function ClineToolCard({
       },
       other: { class: "bg-blue-500/10 text-blue-600 dark:text-blue-400", text: "Custom config" },
     };
-    const badge = badges[configStatus];
+    const badge = badges[effectiveConfigStatus];
     if (!badge) return null;
     return (
       <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${badge.class}`}>

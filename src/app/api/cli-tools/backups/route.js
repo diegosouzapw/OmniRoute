@@ -4,13 +4,13 @@ import { NextResponse } from "next/server";
 import { listBackups, restoreBackup, deleteBackup } from "@/shared/services/backupService";
 import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
 
-const VALID_TOOLS = ["claude", "codex", "droid", "openclaw"];
+const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo"];
 
 // GET /api/cli-tools/backups?tool=claude — list backups
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const tool = searchParams.get("tool");
+    const tool = searchParams.get("tool") || searchParams.get("toolId");
 
     if (tool && !VALID_TOOLS.includes(tool)) {
       return NextResponse.json({ error: `Invalid tool: ${tool}` }, { status: 400 });
@@ -41,7 +41,9 @@ export async function POST(request) {
       return NextResponse.json({ error: writeGuard }, { status: 403 });
     }
 
-    const { tool, backupId } = await request.json();
+    const body = await request.json();
+    const tool = body.tool || body.toolId;
+    const backupId = body.backupId;
 
     if (!tool || !backupId) {
       return NextResponse.json({ error: "tool and backupId are required" }, { status: 400 });
@@ -69,7 +71,9 @@ export async function POST(request) {
 // DELETE /api/cli-tools/backups { tool, backupId } — delete a backup
 export async function DELETE(request) {
   try {
-    const { tool, backupId } = await request.json();
+    const body = await request.json();
+    const tool = body.tool || body.toolId;
+    const backupId = body.backupId;
 
     if (!tool || !backupId) {
       return NextResponse.json({ error: "tool and backupId are required" }, { status: 400 });

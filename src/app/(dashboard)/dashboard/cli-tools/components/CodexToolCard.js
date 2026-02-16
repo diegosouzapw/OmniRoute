@@ -12,6 +12,7 @@ export default function CodexToolCard({
   apiKeys,
   activeProviders,
   cloudEnabled,
+  batchStatus,
 }) {
   const [codexStatus, setCodexStatus] = useState(null);
   const [checkingCodex, setCheckingCodex] = useState(false);
@@ -81,6 +82,9 @@ export default function CodexToolCard({
   };
 
   const configStatus = getConfigStatus();
+
+  // Use batch status as fallback when card hasn't been expanded yet
+  const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || `${baseUrl}/v1`;
@@ -329,17 +333,17 @@ wire_api = "responses"
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-sm">{tool.name}</h3>
-              {configStatus === "configured" && (
+              {effectiveConfigStatus === "configured" && (
                 <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
                   Connected
                 </span>
               )}
-              {configStatus === "not_configured" && (
+              {effectiveConfigStatus === "not_configured" && (
                 <span className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full">
                   Not configured
                 </span>
               )}
-              {configStatus === "other" && (
+              {effectiveConfigStatus === "other" && (
                 <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full">
                   Other
                 </span>

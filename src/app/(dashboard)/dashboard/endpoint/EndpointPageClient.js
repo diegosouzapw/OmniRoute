@@ -28,7 +28,8 @@ export default function APIPageClient({ machineId }) {
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(null);
-  const [syncStep, setSyncStep] = useState(""); // "syncing" | "verifying" | "disabling" | ""
+  const [syncStep, setSyncStep] = useState(""); // "syncing" | "verifying" | "disabling" | "done" | ""
+  const [modalSuccess, setModalSuccess] = useState(false); // show success state in modal before closing
   const [selectedProvider, setSelectedProvider] = useState(null); // for provider models popup
 
   const { copied, copy } = useCopyToClipboard();
@@ -158,31 +159,64 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  // Auto-dismiss cloudStatus after 5s
+  useEffect(() => {
+    if (cloudStatus) {
+      const timer = setTimeout(() => setCloudStatus(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [cloudStatus]);
+
+  const dispatchCloudChange = () => {
+    globalThis.dispatchEvent(new Event("cloud-status-changed"));
+  };
+
   const handleEnableCloud = async () => {
     setCloudSyncing(true);
+    setModalSuccess(false);
     setSyncStep("syncing");
     try {
       const { ok, data } = await postCloudAction("enable");
       if (ok) {
         setSyncStep("verifying");
 
+        // Brief delay so user sees the verifying step
+        await new Promise((r) => setTimeout(r, 600));
+
         if (data.verified) {
           setCloudEnabled(true);
-          setCloudStatus({ type: "success", message: "Cloud Proxy connected and verified!" });
+          setSyncStep("done");
+          setModalSuccess(true);
+          setCloudSyncing(false);
+          dispatchCloudChange();
+
+          // Show success in modal for a moment, then close
+          await new Promise((r) => setTimeout(r, 1200));
           setShowCloudModal(false);
+          setModalSuccess(false);
+          setCloudStatus({ type: "success", message: "Cloud Proxy connected and verified!" });
         } else {
           setCloudEnabled(true);
+          setSyncStep("done");
+          setModalSuccess(true);
+          setCloudSyncing(false);
+          dispatchCloudChange();
+
+          await new Promise((r) => setTimeout(r, 1200));
+          setShowCloudModal(false);
+          setModalSuccess(false);
           setCloudStatus({
             type: "warning",
-            message: data.verifyError || "Connected but verification failed",
+            message: data.verifyError || "Connected but verification pending",
           });
-          setShowCloudModal(false);
         }
 
         // Refresh keys list if new key was created
         if (data.createdKey) {
           await fetchData();
         }
+        // Reload settings to ensure fresh state
+        await loadCloudSettings();
       } else {
         setCloudStatus({ type: "error", message: data.error || "Failed to enable cloud" });
       }
@@ -209,8 +243,10 @@ export default function APIPageClient({ machineId }) {
 
       if (ok) {
         setCloudEnabled(false);
-        setCloudStatus({ type: "success", message: "Cloud disabled" });
+        setCloudStatus({ type: "success", message: "Cloud disabled successfully" });
         setShowDisableModal(false);
+        dispatchCloudChange();
+        await loadCloudSettings();
       } else {
         setCloudStatus({ type: "error", message: data.error || "Failed to disable cloud" });
       }
@@ -355,6 +391,34 @@ export default function APIPageClient({ machineId }) {
             )}
           </div>
         </div>
+
+        {/* Cloud Status Toast */}
+        {cloudStatus && (
+          <div
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg mb-4 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300 ${
+              cloudStatus.type === "success"
+                ? "bg-green-500/10 border border-green-500/30 text-green-400"
+                : cloudStatus.type === "warning"
+                  ? "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+                  : "bg-red-500/10 border border-red-500/30 text-red-400"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {cloudStatus.type === "success"
+                ? "check_circle"
+                : cloudStatus.type === "warning"
+                  ? "warning"
+                  : "error"}
+            </span>
+            <span className="flex-1">{cloudStatus.message}</span>
+            <button
+              onClick={() => setCloudStatus(null)}
+              className="p-0.5 hover:bg-white/10 rounded transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          </div>
+        )}
 
         {/* Endpoint URL */}
         <div className="flex gap-2 mb-3">
@@ -704,29 +768,51 @@ export default function APIPageClient({ machineId }) {
             </ul>
           </div>
 
-          {/* Sync Progress */}
-          {cloudSyncing && (
-            <div className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/30 rounded-lg">
-              <span className="material-symbols-outlined animate-spin text-primary">
-                progress_activity
-              </span>
+          {/* Sync Progress / Success */}
+          {(cloudSyncing || modalSuccess) && (
+            <div
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ${
+                modalSuccess
+                  ? "bg-green-500/10 border-green-500/30"
+                  : "bg-primary/10 border-primary/30"
+              }`}
+            >
+              {modalSuccess ? (
+                <span className="material-symbols-outlined text-green-500 text-xl">
+                  check_circle
+                </span>
+              ) : (
+                <span className="material-symbols-outlined animate-spin text-primary">
+                  progress_activity
+                </span>
+              )}
               <div className="flex-1">
-                <p className="text-sm font-medium text-primary">
-                  {syncStep === "syncing" && "Syncing data to cloud..."}
-                  {syncStep === "verifying" && "Verifying connection..."}
+                <p
+                  className={`text-sm font-medium ${
+                    modalSuccess ? "text-green-500" : "text-primary"
+                  }`}
+                >
+                  {modalSuccess && "Cloud Proxy connected!"}
+                  {!modalSuccess && syncStep === "syncing" && "Connecting to cloud..."}
+                  {!modalSuccess && syncStep === "verifying" && "Verifying connection..."}
                 </p>
               </div>
             </div>
           )}
 
           <div className="flex gap-2">
-            <Button onClick={handleEnableCloud} fullWidth disabled={cloudSyncing}>
+            <Button onClick={handleEnableCloud} fullWidth disabled={cloudSyncing || modalSuccess}>
               {cloudSyncing ? (
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined animate-spin text-sm">
                     progress_activity
                   </span>
-                  {syncStep === "syncing" ? "Syncing..." : "Verifying..."}
+                  {syncStep === "syncing" ? "Connecting..." : "Verifying..."}
+                </span>
+              ) : modalSuccess ? (
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">check</span>
+                  Connected!
                 </span>
               ) : (
                 "Enable Cloud"
@@ -736,7 +822,7 @@ export default function APIPageClient({ machineId }) {
               onClick={() => setShowCloudModal(false)}
               variant="ghost"
               fullWidth
-              disabled={cloudSyncing}
+              disabled={cloudSyncing || modalSuccess}
             >
               Cancel
             </Button>
