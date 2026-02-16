@@ -11,7 +11,6 @@ import ProxyTab from "./components/ProxyTab";
 import AppearanceTab from "./components/AppearanceTab";
 import ThinkingBudgetTab from "./components/ThinkingBudgetTab";
 import SystemPromptTab from "./components/SystemPromptTab";
-import PricingTab from "./components/PricingTab";
 import ComplianceTab from "./components/ComplianceTab";
 import CacheStatsCard from "./components/CacheStatsCard";
 import ResilienceTab from "./components/ResilienceTab";
@@ -22,7 +21,6 @@ const tabs = [
   { id: "security", label: "Security", icon: "shield" },
   { id: "routing", label: "Routing", icon: "route" },
   { id: "resilience", label: "Resilience", icon: "electrical_services" },
-  { id: "pricing", label: "Pricing", icon: "payments" },
   { id: "advanced", label: "Advanced", icon: "tune" },
   { id: "compliance", label: "Compliance", icon: "policy" },
 ];
@@ -87,8 +85,6 @@ export default function SettingsPage() {
               <ComboDefaultsTab />
             </div>
           )}
-
-          {activeTab === "pricing" && <PricingTab />}
 
           {activeTab === "resilience" && <ResilienceTab />}
 

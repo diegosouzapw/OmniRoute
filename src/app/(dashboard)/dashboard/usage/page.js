@@ -5,19 +5,17 @@ import { RequestLoggerV2, ProxyLogger, CardSkeleton, SegmentedControl } from "@/
 import ProviderLimits from "./components/ProviderLimits";
 import SessionsTab from "./components/SessionsTab";
 import RateLimitStatus from "./components/RateLimitStatus";
-import BudgetTab from "./components/BudgetTab";
 
 export default function UsagePage() {
-  const [activeTab, setActiveTab] = useState("limits");
+  const [activeTab, setActiveTab] = useState("logs");
 
   return (
     <div className="flex flex-col gap-6">
       <SegmentedControl
         options={[
-          { value: "limits", label: "Limits" },
           { value: "logs", label: "Logger" },
           { value: "proxy-logs", label: "Proxy" },
-          { value: "budget", label: "Budget" },
+          { value: "limits", label: "Limits" },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -35,7 +33,6 @@ export default function UsagePage() {
       )}
       {activeTab === "logs" && <RequestLoggerV2 />}
       {activeTab === "proxy-logs" && <ProxyLogger />}
-      {activeTab === "budget" && <BudgetTab />}
     </div>
   );
 }

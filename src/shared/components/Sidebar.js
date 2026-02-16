@@ -17,6 +17,7 @@ const navItems = [
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   { href: "/dashboard/combos", label: "Combos", icon: "layers" },
   { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
+  { href: "/dashboard/costs", label: "Costs", icon: "account_balance_wallet" },
   { href: "/dashboard/analytics", label: "Analytics", icon: "analytics" },
   { href: "/dashboard/health", label: "Health", icon: "health_and_safety" },
   { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
