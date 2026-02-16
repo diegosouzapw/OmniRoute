@@ -277,6 +277,7 @@ registerSuite({
 | [Architecture](docs/ARCHITECTURE.md)       | System architecture and internals              |
 | [Contributing](CONTRIBUTING.md)            | Development setup and guidelines               |
 | [OpenAPI Spec](docs/openapi.yaml)          | OpenAPI 3.0 specification                      |
+| [Security Policy](SECURITY.md)             | Vulnerability reporting and security practices |
 
 ---
 

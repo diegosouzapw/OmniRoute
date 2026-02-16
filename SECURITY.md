@@ -5,7 +5,7 @@
 If you discover a security vulnerability in OmniRoute, please report it responsibly:
 
 1. **DO NOT** open a public GitHub issue
-2. Email: **security@omniroute.dev** (or use GitHub Security Advisories)
+2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
 3. Include: description, reproduction steps, and potential impact
 
 ## Response Timeline
@@ -20,9 +20,9 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 | Version | Support Status |
 | ------- | -------------- |
-| 0.4.x   | ✅ Active      |
-| 0.3.x   | ✅ Active      |
-| < 0.3.0 | ❌ Unsupported |
+| 0.7.x   | ✅ Active      |
+| 0.6.x   | ✅ Security    |
+| < 0.6.0 | ❌ Unsupported |
 
 ## Security Best Practices
 
