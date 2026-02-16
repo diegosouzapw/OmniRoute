@@ -16,6 +16,7 @@
   > *This project is inspired by and originally forked from [9router](https://github.com/decolua/9router) by [decolua](https://github.com/decolua). Thank you for the incredible foundation!*
   
   [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
+  [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
   [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
   
   [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation)
@@ -110,6 +111,53 @@ cp .env.example .env
 npm install
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
+
+---
+
+## 🐳 Docker
+
+OmniRoute is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
+
+**Quick run:**
+
+```bash
+docker run -d \
+  --name omniroute \
+  --restart unless-stopped \
+  -p 20128:20128 \
+  -v omniroute-data:/app/data \
+  diegosouzapw/omniroute:latest
+```
+
+**With environment file:**
+
+```bash
+# Copy and edit .env first
+cp .env.example .env
+
+docker run -d \
+  --name omniroute \
+  --restart unless-stopped \
+  --env-file .env \
+  -p 20128:20128 \
+  -v omniroute-data:/app/data \
+  diegosouzapw/omniroute:latest
+```
+
+**Using Docker Compose:**
+
+```bash
+# Base profile (no CLI tools)
+docker compose --profile base up -d
+
+# CLI profile (Claude Code, Codex, OpenClaw built-in)
+docker compose --profile cli up -d
+```
+
+| Image                    | Tag      | Size   | Description           |
+| ------------------------ | -------- | ------ | --------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
+| `diegosouzapw/omniroute` | `0.6.0`  | ~250MB | Current version       |
 
 ---
 
@@ -212,6 +260,7 @@ registerSuite({
 - **Testing**: Node.js test runner (320+ unit tests)
 - **CI/CD**: GitHub Actions (auto npm publish on release)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
+- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd
 
 ---
@@ -255,7 +304,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.6.0 --title "v0.6.0" --generate-notes
+gh release create v0.7.0 --title "v0.7.0" --generate-notes
 ```
 
 ---
