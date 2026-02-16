@@ -38,6 +38,7 @@ export function logProxyEvent(entry) {
     connectionId: entry.connectionId || null,
     comboId: entry.comboId || null,
     account: entry.account || null,
+    tlsFingerprint: entry.tlsFingerprint || false,
   };
 
   proxyLogs.unshift(log); // newest first
