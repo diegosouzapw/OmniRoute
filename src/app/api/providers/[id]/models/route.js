@@ -23,6 +23,13 @@ const STATIC_MODEL_PROVIDERS = {
     { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
     { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
   ],
+  perplexity: () => [
+    { id: "sonar", name: "Sonar (Fast Search)" },
+    { id: "sonar-pro", name: "Sonar Pro (Advanced Search)" },
+    { id: "sonar-reasoning", name: "Sonar Reasoning (CoT + Search)" },
+    { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro (Advanced CoT + Search)" },
+    { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
+  ],
 };
 
 // Provider models endpoints configuration
@@ -142,14 +149,7 @@ const PROVIDER_MODELS_CONFIG = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  perplexity: {
-    url: "https://api.perplexity.ai/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+
   together: {
     url: "https://api.together.xyz/v1/models",
     method: "GET",

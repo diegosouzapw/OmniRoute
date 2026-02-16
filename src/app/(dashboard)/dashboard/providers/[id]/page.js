@@ -418,14 +418,30 @@ export default function ProviderDetailPage() {
     }
     if (providerInfo.passthroughModels) {
       return (
-        <PassthroughModelsSection
-          providerAlias={providerAlias}
-          modelAliases={modelAliases}
-          copied={copied}
-          onCopy={copy}
-          onSetAlias={handleSetAlias}
-          onDeleteAlias={handleDeleteAlias}
-        />
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="download"
+              onClick={handleImportModels}
+              disabled={!canImportModels || importingModels}
+            >
+              {importingModels ? "Importing..." : "Import from /models"}
+            </Button>
+            {!canImportModels && (
+              <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+            )}
+          </div>
+          <PassthroughModelsSection
+            providerAlias={providerAlias}
+            modelAliases={modelAliases}
+            copied={copied}
+            onCopy={copy}
+            onSetAlias={handleSetAlias}
+            onDeleteAlias={handleDeleteAlias}
+          />
+        </div>
       );
     }
 
@@ -717,9 +733,7 @@ export default function ProviderDetailPage() {
 
       {/* Models */}
       <Card>
-        <h2 className="text-lg font-semibold mb-4">
-          {providerInfo.passthroughModels ? "Model Aliases" : "Available Models"}
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">Available Models</h2>
         {renderModelsSection()}
 
         {/* Custom Models — available for ALL providers */}
