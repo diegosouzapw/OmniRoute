@@ -157,6 +157,29 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
 
+  CREATE TABLE IF NOT EXISTS proxy_logs (
+    id TEXT PRIMARY KEY,
+    timestamp TEXT NOT NULL,
+    status TEXT,
+    proxy_type TEXT,
+    proxy_host TEXT,
+    proxy_port INTEGER,
+    level TEXT,
+    level_id TEXT,
+    provider TEXT,
+    target_url TEXT,
+    public_ip TEXT,
+    latency_ms INTEGER DEFAULT 0,
+    error TEXT,
+    connection_id TEXT,
+    combo_id TEXT,
+    account TEXT,
+    tls_fingerprint INTEGER DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_pl_timestamp ON proxy_logs(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_pl_status ON proxy_logs(status);
+  CREATE INDEX IF NOT EXISTS idx_pl_provider ON proxy_logs(provider);
+
   -- Domain State Persistence (Phase 5)
   CREATE TABLE IF NOT EXISTS domain_fallback_chains (
     model TEXT PRIMARY KEY,
