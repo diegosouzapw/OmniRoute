@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] — 2026-02-16
+
+### Added
+
+- 🌐 **Official website** — [omniroute.online](https://omniroute.online) live with static site on Akamai VM + Cloudflare proxy
+- 🛡️ **Comprehensive SECURITY.md** — Full codebase audit documenting 10+ security features (AES-256-GCM, prompt injection guard, PII redaction, circuit breaker, etc.)
+- 📖 **Documentation tracking** — `USER_GUIDE.md`, `API_REFERENCE.md`, `TROUBLESHOOTING.md` now tracked in git
+- 🏷️ **Website badge** — Official website badge and links in README, npm, and Docker Hub
+- 🔗 **36+ providers** — Updated provider count across documentation
+
+### Changed
+
+- 📦 **npm homepage** — Points to `omniroute.online` instead of GitHub
+- 🐳 **Docker OCI labels** — Added `org.opencontainers.image.url` for Docker Hub
+- 🔒 **Security policy** — Updated supported versions, replaced email with GitHub Security Advisories
+
+---
+
 ## [0.7.0] — 2026-02-16
 
 ### Added
@@ -125,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.8.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.4.0...v0.5.0

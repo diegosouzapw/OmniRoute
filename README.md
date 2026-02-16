@@ -308,7 +308,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.7.0 --title "v0.7.0" --generate-notes
+gh release create v0.8.0 --title "v0.8.0" --generate-notes
 ```
 
 ---
