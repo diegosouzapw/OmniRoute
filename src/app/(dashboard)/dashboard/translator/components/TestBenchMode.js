@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { EXAMPLE_TEMPLATES, FORMAT_META } from "../exampleTemplates";
-import {
-  AI_PROVIDERS,
-  OPENAI_COMPATIBLE_PREFIX,
-  ANTHROPIC_COMPATIBLE_PREFIX,
-} from "@/shared/constants/providers";
+import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
+import { useProviderOptions } from "../hooks/useProviderOptions";
+import { useAvailableModels } from "../hooks/useAvailableModels";
 
 /**
  * Test Bench Mode:
  * Run translation + send scenarios between providers to validate compatibility.
+ *
+ * How it works:
+ * Predefined scenarios (Simple Chat, Tool Calling, etc.) are loaded from example templates,
+ * translated from the source format to the target provider, and sent to the provider API.
+ * Results show pass/fail, latency, and chunk count, with a compatibility percentage.
  */
 
 const SCENARIOS = [
@@ -23,92 +25,18 @@ const SCENARIOS = [
   { id: "streaming", name: "Streaming", icon: "stream", templateId: "streaming" },
 ];
 
-const DEFAULT_MODELS = {
-  openai: "gpt-4o",
-  claude: "claude-sonnet-4-20250514",
-  gemini: "gemini-2.5-flash",
-};
-
 export default function TestBenchMode() {
   const [sourceFormat, setSourceFormat] = useState("claude");
-  const [provider, setProvider] = useState("openai");
-  const [providerOptions, setProviderOptions] = useState([]);
-  const [model, setModel] = useState(DEFAULT_MODELS.claude);
-  const [availableModels, setAvailableModels] = useState([]);
+  const { provider, setProvider, providerOptions } = useProviderOptions("openai");
+  const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
   const [results, setResults] = useState({});
   const [runningAll, setRunningAll] = useState(false);
 
-  // Update default model when source format changes
+  // Pick a smart default model when source format changes or models finish loading
   useEffect(() => {
-    setModel(DEFAULT_MODELS[sourceFormat] || "gpt-4o");
-  }, [sourceFormat]);
-
-  // Load available models
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const res = await fetch("/api/v1/models");
-        const data = await res.json();
-        const models = (data.data || []).map((m) => m.id).sort((a, b) => a.localeCompare(b));
-        setAvailableModels(models);
-      } catch {
-        setAvailableModels([]);
-      }
-    };
-    fetchModels();
-  }, []);
-
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const [connRes, nodesRes] = await Promise.all([
-          fetch("/api/providers"),
-          fetch("/api/provider-nodes"),
-        ]);
-        const [connData, nodesData] = await Promise.all([connRes.json(), nodesRes.json()]);
-        const nodeMap = new Map((nodesData.nodes || []).map((n) => [n.id, n]));
-        const activeProviders = new Set(
-          (connData.connections || []).filter((c) => c.isActive !== false).map((c) => c.provider)
-        );
-        const options = [...activeProviders]
-          .map((pid) => {
-            const info = AI_PROVIDERS[pid];
-            const node = nodeMap.get(pid);
-            let label = info?.name || node?.name || pid;
-            if (!info && pid.startsWith(OPENAI_COMPATIBLE_PREFIX))
-              label = node?.name || "OpenAI Compatible";
-            if (!info && pid.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
-              label = node?.name || "Anthropic Compatible";
-            return { value: pid, label };
-          })
-          .sort((a, b) => a.label.localeCompare(b.label));
-        const nextOptions =
-          options.length > 0
-            ? options
-            : Object.entries(AI_PROVIDERS).map(([id, info]) => ({ value: id, label: info.name }));
-        setProviderOptions(nextOptions);
-        if (nextOptions.length > 0) {
-          setProvider((current) =>
-            nextOptions.some((opt) => opt.value === current) ? current : nextOptions[0].value
-          );
-        }
-      } catch {
-        const fallbackOptions = Object.entries(AI_PROVIDERS).map(([id, info]) => ({
-          value: id,
-          label: info.name,
-        }));
-        setProviderOptions(fallbackOptions);
-        if (fallbackOptions.length > 0) {
-          setProvider((current) =>
-            fallbackOptions.some((opt) => opt.value === current)
-              ? current
-              : fallbackOptions[0].value
-          );
-        }
-      }
-    };
-    fetchProviders();
-  }, []);
+    const picked = pickModelForFormat(sourceFormat);
+    if (picked) setModel(picked);
+  }, [sourceFormat, pickModelForFormat, setModel]);
 
   const runScenario = async (scenario) => {
     setResults((prev) => ({ ...prev, [scenario.id]: { status: "running" } }));
@@ -213,6 +141,22 @@ export default function TestBenchMode() {
 
   return (
     <div className="space-y-5">
+      {/* Info Banner */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
+        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
+          info
+        </span>
+        <div>
+          <p className="font-medium text-text-main mb-0.5">Compatibility Tester</p>
+          <p>
+            Run predefined scenarios (Simple Chat, Tool Calling, etc.) to verify translation and
+            provider compatibility. Select a source format and target provider, then run all tests
+            to see a compatibility percentage. Use this to find which features work across
+            providers.
+          </p>
+        </div>
+      </div>
+
       {/* Controls */}
       <Card>
         <div className="p-4 flex flex-col gap-4">
@@ -227,11 +171,9 @@ export default function TestBenchMode() {
                   setSourceFormat(e.target.value);
                   setResults({});
                 }}
-                options={[
-                  { value: "openai", label: "OpenAI" },
-                  { value: "claude", label: "Claude" },
-                  { value: "gemini", label: "Gemini" },
-                ]}
+                options={FORMAT_OPTIONS.filter((o) =>
+                  ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
+                )}
               />
             </div>
             <div className="flex items-center justify-center px-2">
@@ -271,7 +213,7 @@ export default function TestBenchMode() {
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 list="testbench-model-suggestions"
-                placeholder="e.g. gpt-4o, claude-sonnet-4-20250514"
+                placeholder="Select or type a model name..."
                 className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
               />
               <datalist id="testbench-model-suggestions">

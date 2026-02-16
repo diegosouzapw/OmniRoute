@@ -9,7 +9,7 @@ import { calculateCost } from "@/lib/usageDb.js";
 
 /**
  * Compute date range boundaries
- * @param {string} range - "7d" | "30d" | "90d" | "ytd" | "all"
+ * @param {string} range - "1d" | "7d" | "30d" | "90d" | "ytd" | "all"
  * @returns {{ start: Date, end: Date }}
  */
 function getDateRange(range) {
@@ -17,6 +17,10 @@ function getDateRange(range) {
   let start;
 
   switch (range) {
+    case "1d":
+      start = new Date(end);
+      start.setDate(start.getDate() - 1);
+      break;
     case "7d":
       start = new Date(end);
       start.setDate(start.getDate() - 7);

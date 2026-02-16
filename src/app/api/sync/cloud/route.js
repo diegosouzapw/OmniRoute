@@ -66,15 +66,22 @@ export async function POST(request) {
     const machineId = await getConsistentMachineId();
 
     switch (action) {
-      case "enable":
-        await updateSettings({ cloudEnabled: true });
-        // Auto create key if none exists
+      case "enable": {
+        // Auto create key if none exists (before sync, so it's included in sync data)
         const keys = await getApiKeys();
         let createdKey = null;
         if (keys.length === 0) {
           createdKey = await createApiKey("Default Key", machineId);
         }
-        return syncAndVerify(machineId, createdKey?.key, keys);
+        // Sync first — only enable if sync succeeds
+        const enableResult = await syncAndVerify(machineId, createdKey?.key, keys);
+        const enableBody = await enableResult.clone().json().catch(() => ({}));
+        // Only persist cloudEnabled if sync succeeded (body.success exists)
+        if (enableBody.success) {
+          await updateSettings({ cloudEnabled: true });
+        }
+        return enableResult;
+      }
       case "sync": {
         const syncResult = await syncToCloud(machineId);
         if (syncResult.error) {
@@ -95,16 +102,19 @@ export async function POST(request) {
 }
 
 /**
- * Sync and verify connection with ping
+ * Sync and verify connection with ping (retry on verify)
  */
 async function syncAndVerify(machineId, createdKey, existingKeys) {
   // Step 1: Sync data to cloud
   const syncResult = await syncToCloud(machineId, createdKey);
   if (syncResult.error) {
-    return NextResponse.json(syncResult, { status: 502 });
+    return NextResponse.json(
+      { error: `Cloud sync failed: ${syncResult.error}` },
+      { status: 502 }
+    );
   }
 
-  // Step 2: Verify connection by pinging the cloud
+  // Step 2: Verify connection by pinging the cloud (with retry)
   const apiKey = createdKey || existingKeys[0]?.key;
   if (!apiKey) {
     return NextResponse.json({
@@ -114,34 +124,48 @@ async function syncAndVerify(machineId, createdKey, existingKeys) {
     });
   }
 
-  try {
-    const pingResponse = await fetchWithTimeout(`${CLOUD_URL}/${machineId}/v1/verify`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-    });
+  // Retry verify up to 2 times with a delay (cloud may need a moment after sync)
+  const MAX_VERIFY_ATTEMPTS = 2;
+  const VERIFY_RETRY_DELAY_MS = 1500;
+  let lastVerifyError = null;
 
-    if (pingResponse.ok) {
-      return NextResponse.json({
-        ...syncResult,
-        verified: true,
-      });
-    } else {
-      return NextResponse.json({
-        ...syncResult,
-        verified: false,
-        verifyError: `Ping failed: ${pingResponse.status}`,
-      });
+  for (let attempt = 1; attempt <= MAX_VERIFY_ATTEMPTS; attempt++) {
+    try {
+      const pingResponse = await fetchWithTimeout(
+        `${CLOUD_URL}/${machineId}/v1/verify`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+        },
+        5000
+      );
+
+      if (pingResponse.ok) {
+        return NextResponse.json({
+          ...syncResult,
+          verified: true,
+        });
+      }
+      lastVerifyError = `Ping failed: ${pingResponse.status}`;
+    } catch (error) {
+      lastVerifyError = error?.name === "AbortError" ? "Verify timeout" : error.message;
     }
-  } catch (error) {
-    return NextResponse.json({
-      ...syncResult,
-      verified: false,
-      verifyError: error.message,
-    });
+
+    // Wait before retry (except on last attempt)
+    if (attempt < MAX_VERIFY_ATTEMPTS) {
+      await new Promise((r) => setTimeout(r, VERIFY_RETRY_DELAY_MS));
+    }
   }
+
+  // Sync succeeded but verify failed — still return success with warning
+  return NextResponse.json({
+    ...syncResult,
+    verified: false,
+    verifyError: lastVerifyError || "Verification failed after retries",
+  });
 }
 
 /**

@@ -13,6 +13,7 @@ export default function DefaultToolCard({
   apiKeys,
   activeProviders = [],
   cloudEnabled = false,
+  batchStatus,
 }) {
   const [copiedField, setCopiedField] = useState(null);
   const [showModelModal, setShowModelModal] = useState(false);
@@ -483,23 +484,48 @@ export default function DefaultToolCard({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-sm">{tool.name}</h3>
-              {runtimeStatus && !runtimeStatus.error && (
-                <span
-                  className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
-                    runtimeStatus.reason === "not_required"
-                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                      : runtimeStatus.installed && runtimeStatus.runnable
-                        ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                        : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
-                  }`}
-                >
-                  {runtimeStatus.reason === "not_required"
-                    ? "Guide"
-                    : runtimeStatus.installed && runtimeStatus.runnable
-                      ? "Detected"
-                      : "Not ready"}
-                </span>
-              )}
+              {(() => {
+                // Use runtime status if available (after expanding), otherwise use batch status
+                const rs = runtimeStatus;
+                const bs = batchStatus;
+                const isGuide = rs?.reason === "not_required" || tool.configType === "guide";
+                const isDetected = rs ? rs.installed && rs.runnable : bs?.installed && bs?.runnable;
+                const isInstalled = rs ? rs.installed : bs?.installed;
+
+                if (isGuide) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <span className="size-1.5 rounded-full bg-blue-500" />
+                      Guide
+                    </span>
+                  );
+                }
+                if (isDetected) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                      <span className="size-1.5 rounded-full bg-green-500" />
+                      Detected
+                    </span>
+                  );
+                }
+                if (isInstalled === false && (rs || bs)) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-zinc-500/10 text-zinc-500 dark:text-zinc-400">
+                      <span className="size-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                      Not installed
+                    </span>
+                  );
+                }
+                if (isInstalled && !isDetected && (rs || bs)) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                      <span className="size-1.5 rounded-full bg-yellow-500" />
+                      Not ready
+                    </span>
+                  );
+                }
+                return null;
+              })()}
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>
           </div>

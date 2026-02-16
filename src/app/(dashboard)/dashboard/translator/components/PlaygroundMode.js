@@ -65,12 +65,6 @@ export default function PlaygroundMode() {
           step: "direct",
           sourceFormat,
           targetFormat,
-          provider:
-            targetFormat === "claude"
-              ? "anthropic"
-              : targetFormat === "gemini"
-                ? "google"
-                : "openai",
           body: parsed,
         }),
       });
@@ -114,6 +108,20 @@ export default function PlaygroundMode() {
 
   return (
     <div className="space-y-5">
+      {/* Info Banner */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
+        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
+          info
+        </span>
+        <div>
+          <p className="font-medium text-text-main mb-0.5">Format Converter</p>
+          <p>
+            Paste or type a JSON request body. The translator will auto-detect the source format and
+            convert it to the target format. Use this to debug how OmniRoute translates requests
+            between formats (OpenAI ↔ Claude ↔ Gemini ↔ Responses API).
+          </p>
+        </div>
+      </div>
       {/* Format Controls Bar */}
       <Card>
         <div className="p-4 flex flex-col sm:flex-row items-center gap-4">

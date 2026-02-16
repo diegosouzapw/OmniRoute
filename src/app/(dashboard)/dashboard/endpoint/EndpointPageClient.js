@@ -176,38 +176,33 @@ export default function APIPageClient({ machineId }) {
     setModalSuccess(false);
     setSyncStep("syncing");
     try {
-      const { ok, data } = await postCloudAction("enable");
+      const { ok, status, data } = await postCloudAction("enable");
       if (ok) {
         setSyncStep("verifying");
 
         // Brief delay so user sees the verifying step
         await new Promise((r) => setTimeout(r, 600));
 
-        if (data.verified) {
-          setCloudEnabled(true);
-          setSyncStep("done");
-          setModalSuccess(true);
-          setCloudSyncing(false);
-          dispatchCloudChange();
+        // Sync succeeded — mark as enabled regardless of verify result
+        setCloudEnabled(true);
+        setSyncStep("done");
+        setModalSuccess(true);
+        setCloudSyncing(false);
+        dispatchCloudChange();
 
-          // Show success in modal for a moment, then close
-          await new Promise((r) => setTimeout(r, 1200));
-          setShowCloudModal(false);
-          setModalSuccess(false);
+        // Show success in modal for a moment, then close
+        await new Promise((r) => setTimeout(r, 1200));
+        setShowCloudModal(false);
+        setModalSuccess(false);
+
+        if (data.verified) {
           setCloudStatus({ type: "success", message: "Cloud Proxy connected and verified!" });
         } else {
-          setCloudEnabled(true);
-          setSyncStep("done");
-          setModalSuccess(true);
-          setCloudSyncing(false);
-          dispatchCloudChange();
-
-          await new Promise((r) => setTimeout(r, 1200));
-          setShowCloudModal(false);
-          setModalSuccess(false);
           setCloudStatus({
             type: "warning",
-            message: data.verifyError || "Connected but verification pending",
+            message: data.verifyError
+              ? `Connected — verification pending: ${data.verifyError}`
+              : "Connected — verification pending",
           });
         }
 
@@ -218,10 +213,18 @@ export default function APIPageClient({ machineId }) {
         // Reload settings to ensure fresh state
         await loadCloudSettings();
       } else {
-        setCloudStatus({ type: "error", message: data.error || "Failed to enable cloud" });
+        // Sync failed — provide a helpful error message
+        let errorMessage = data.error || "Failed to enable cloud";
+        if (status === 502 || status === 408) {
+          errorMessage =
+            "Could not reach cloud worker. Make sure the cloud service is running (npm run dev in /cloud).";
+        }
+        setCloudStatus({ type: "error", message: errorMessage });
+        setShowCloudModal(false);
       }
     } catch (error) {
-      setCloudStatus({ type: "error", message: error.message });
+      setCloudStatus({ type: "error", message: error.message || "Connection failed" });
+      setShowCloudModal(false);
     } finally {
       setCloudSyncing(false);
       setSyncStep("");

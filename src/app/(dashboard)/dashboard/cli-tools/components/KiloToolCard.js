@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
+import CliStatusBadge from "./CliStatusBadge";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
@@ -192,27 +193,6 @@ export default function KiloToolCard({
     setShowManualConfigModal(false);
   };
 
-  const renderStatusBadge = () => {
-    if (!cliReady) return null;
-    const badges = {
-      configured: {
-        class: "bg-green-500/10 text-green-600 dark:text-green-400",
-        text: "Connected",
-      },
-      not_configured: {
-        class: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-        text: "Not configured",
-      },
-    };
-    const badge = badges[effectiveConfigStatus];
-    if (!badge) return null;
-    return (
-      <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${badge.class}`}>
-        {badge.text}
-      </span>
-    );
-  };
-
   return (
     <Card padding="sm" className="overflow-hidden">
       <div className="flex items-center justify-between hover:cursor-pointer" onClick={onToggle}>
@@ -239,7 +219,10 @@ export default function KiloToolCard({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-sm">{tool.name}</h3>
-              {renderStatusBadge()}
+              <CliStatusBadge
+                effectiveConfigStatus={effectiveConfigStatus}
+                batchStatus={batchStatus}
+              />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>
           </div>

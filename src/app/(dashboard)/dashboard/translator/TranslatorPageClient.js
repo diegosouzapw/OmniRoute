@@ -27,7 +27,7 @@ export default function TranslatorPageClient() {
             Translator Playground
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Debug, test, and visualize API format translations
+            Debug, test, and visualize how OmniRoute translates API requests between providers
           </p>
         </div>
         <SegmentedControl options={MODES} value={mode} onChange={setMode} size="md" />

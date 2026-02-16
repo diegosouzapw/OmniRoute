@@ -49,6 +49,23 @@ export default function LiveMonitorMode() {
 
   return (
     <div className="space-y-5">
+      {/* Info Banner */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
+        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
+          info
+        </span>
+        <div>
+          <p className="font-medium text-text-main mb-0.5">Real-Time Translation Activity</p>
+          <p>
+            Shows translation events as API calls flow through OmniRoute. Events come from the
+            in-memory buffer (resets on restart). Use{" "}
+            <strong className="text-text-main">Chat Tester</strong>,{" "}
+            <strong className="text-text-main">Test Bench</strong>, or external API calls to
+            generate events.
+          </p>
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard icon="translate" label="Total Translations" value={events.length} color="blue" />
@@ -99,11 +116,26 @@ export default function LiveMonitorMode() {
                 monitoring
               </span>
               <p className="text-sm font-medium mb-1">No translations yet</p>
-              <p className="text-xs">
-                Translations will appear here as requests flow through the proxy.
+              <p className="text-xs text-center max-w-sm">
+                Translation events appear here as requests flow through OmniRoute. Use any of these
+                methods to generate events:
               </p>
-              <p className="text-xs mt-2">
-                Make API calls to your OmniRoute endpoints to see live translation data.
+              <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
+                  Chat Tester tab
+                </span>
+                <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
+                  Test Bench tab
+                </span>
+                <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
+                  External API calls
+                </span>
+                <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
+                  IDE/CLI integrations
+                </span>
+              </div>
+              <p className="text-[10px] mt-3 text-text-muted/70">
+                Note: Events are stored in-memory and reset when the server restarts.
               </p>
             </div>
           ) : (

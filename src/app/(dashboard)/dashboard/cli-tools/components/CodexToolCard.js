@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
+import CliStatusBadge from "./CliStatusBadge";
 
 export default function CodexToolCard({
   tool,
@@ -333,21 +334,10 @@ wire_api = "responses"
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-sm">{tool.name}</h3>
-              {effectiveConfigStatus === "configured" && (
-                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
-                  Connected
-                </span>
-              )}
-              {effectiveConfigStatus === "not_configured" && (
-                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full">
-                  Not configured
-                </span>
-              )}
-              {effectiveConfigStatus === "other" && (
-                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full">
-                  Other
-                </span>
-              )}
+              <CliStatusBadge
+                effectiveConfigStatus={effectiveConfigStatus}
+                batchStatus={batchStatus}
+              />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>
           </div>
