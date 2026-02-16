@@ -80,3 +80,5 @@ test-results/
 playwright-report/
 blob-report/
 cloud/
+omnirouteCloud/
+omnirouteSite/

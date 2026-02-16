@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({
       ...safeSettings,
       enableRequestLogs,
-      hasPassword: !!password,
+      hasPassword: !!password || !!process.env.INITIAL_PASSWORD,
     });
   } catch (error) {
     console.log("Error getting settings:", error);

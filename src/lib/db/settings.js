@@ -15,6 +15,20 @@ export async function getSettings() {
   for (const row of rows) {
     settings[row.key] = JSON.parse(row.value);
   }
+
+  // Auto-complete onboarding for pre-configured deployments (Docker/VM)
+  // If INITIAL_PASSWORD is set via env, this is a headless deploy — skip the wizard
+  if (!settings.setupComplete && process.env.INITIAL_PASSWORD) {
+    settings.setupComplete = true;
+    settings.requireLogin = true;
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'setupComplete', 'true')"
+    ).run();
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'requireLogin', 'true')"
+    ).run();
+  }
+
   return settings;
 }
 
