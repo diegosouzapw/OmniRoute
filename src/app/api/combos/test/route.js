@@ -99,9 +99,12 @@ export async function POST(request) {
 }
 
 /**
- * Get the base URL for internal requests
+ * Get the base URL for internal requests (VPS-safe: respects reverse proxy headers)
  */
 function getBaseUrl(request) {
+  const fwdHost = request.headers.get("x-forwarded-host");
+  const fwdProto = request.headers.get("x-forwarded-proto") || "https";
+  if (fwdHost) return `${fwdProto}://${fwdHost}`;
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
