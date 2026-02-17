@@ -242,7 +242,7 @@ docker compose --profile cli up -d
 | Image                    | Tag      | Taille | Description             |
 | ------------------------ | -------- | ------ | ----------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Dernière version stable |
-| `diegosouzapw/omniroute` | `0.8.8`  | ~250MB | Version actuelle        |
+| `diegosouzapw/omniroute` | `0.9.0`  | ~250MB | Version actuelle        |
 
 ---
 
@@ -892,7 +892,7 @@ Le « OmniRoute Golden Set » préchargé contient 10 cas de test :
 **Le test de connexion affiche « Invalid » pour les fournisseurs compatibles OpenAI**
 
 - Beaucoup de fournisseurs n'exposent pas le point de terminaison `/models`
-- OmniRoute v0.8.8+ inclut une validation de secours via chat completions
+- OmniRoute v0.9.0+ inclut une validation de secours via chat completions
 - Assurez-vous que l'URL de base inclut le suffixe `/v1`
 
 </details>
@@ -902,7 +902,7 @@ Le « OmniRoute Golden Set » préchargé contient 10 cas de test :
 ## 🛠️ Stack technologique
 
 - **Runtime** : Node.js 20+
-- **Langage** : TypeScript 5.9 — **100% TypeScript** dans `src/` et `open-sse/` (v0.8.8)
+- **Langage** : TypeScript 5.9 — **100% TypeScript** dans `src/` et `open-sse/` (v0.9.0)
 - **Framework** : Next.js 16 + React 19 + Tailwind CSS 4
 - **Base de données** : LowDB (JSON) + SQLite (état du domaine + logs proxy)
 - **Streaming** : Server-Sent Events (SSE)
@@ -957,7 +957,7 @@ Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour les directives détaillées.
 
 ```bash
 # Créer un release — la publication npm est automatique
-gh release create v0.8.8 --title "v0.8.8" --generate-notes
+gh release create v0.9.0 --title "v0.9.0" --generate-notes
 ```
 
 ---

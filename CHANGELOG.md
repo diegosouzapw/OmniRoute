@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] — 2026-02-17
+
+### Added
+
+- 🌐 **Full multilingual README support** — Complete translations of README.md into 7 languages: Portuguese (pt-BR), Spanish (es), Russian (ru), Chinese Simplified (zh-CN), German (de), French (fr), Italian (it)
+- 🤖 **Agent showcase grid** — Modernized header with visual grid showcasing 10 AI coding agents (OpenClaw, NanoBot, PicoClaw, ZeroClaw, IronClaw, OpenCode, Codex CLI, Claude Code, Gemini CLI, Kilo Code)
+- 🖼️ **Provider logos** — Added logo assets for OpenClaw, NanoBot, PicoClaw, ZeroClaw, IronClaw, OpenCode
+- 🔌 **OpenAI-compatible provider validation fix** — Fallback validation via chat completions for providers that don't expose `/models` endpoint
+- 🛡️ **Red shield badges** — Replaced plain ❌ emoji with styled badge icons across all README files
+
+---
+
 ## [0.8.8] — 2026-02-17
 
 ### Added
@@ -223,6 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.9.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.8...v0.9.0
 [0.8.8]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.5...v0.8.8
 [0.8.5]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.0...v0.8.5
 [0.8.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.7.0...v0.8.0
