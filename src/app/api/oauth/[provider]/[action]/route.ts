@@ -23,7 +23,7 @@ if (!globalThis.__codexCallbackState) {
 
 // GET /api/oauth/[provider]/authorize - Generate auth URL
 // GET /api/oauth/[provider]/device-code - Request device code (for device_code flow)
-export async function GET(request, { params }) {
+export async function GET(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
   try {
     const { provider, action } = await params;
     const { searchParams } = new URL(request.url);
@@ -68,7 +68,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.log("OAuth GET error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
@@ -76,7 +76,7 @@ export async function GET(request, { params }) {
  * Start Codex callback server on port 1455
  * Returns the auth URL and stores codeVerifier for later exchange
  */
-async function handleStartCallbackServer(provider, searchParams) {
+async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
   if (provider !== "codex") {
     return NextResponse.json(
       { error: "Callback server only supported for codex" },
@@ -135,13 +135,13 @@ async function handleStartCallbackServer(provider, searchParams) {
       serverPort: port,
     });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
 // POST /api/oauth/[provider]/exchange - Exchange code for tokens and save
 // POST /api/oauth/[provider]/poll - Poll for token (device_code flow)
-export async function POST(request, { params }) {
+export async function POST(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
   try {
     const { provider, action } = await params;
     const body = await request.json();
@@ -320,7 +320,7 @@ export async function POST(request, { params }) {
             displayName: connection.displayName,
           },
         });
-      } catch (exchangeErr) {
+      } catch (exchangeErr: any) {
         return NextResponse.json({ success: false, error: exchangeErr.message }, { status: 500 });
       }
     }
@@ -328,7 +328,7 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.log("OAuth POST error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 

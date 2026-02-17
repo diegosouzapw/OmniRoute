@@ -15,8 +15,8 @@ const getCodexAuthPath = () => getCliConfigPaths("codex").auth;
 const getCodexDir = () => path.dirname(getCodexConfigPath());
 
 // Parse TOML config to object (simple parser for codex config)
-const parseToml = (content) => {
-  const result = { _root: {}, _sections: {} };
+const parseToml = (content: string) => {
+  const result: Record<string, any> = { _root: {}, _sections: {} };
   let currentSection = "_root";
 
   content.split("\n").forEach((line) => {
@@ -55,8 +55,8 @@ const parseToml = (content) => {
 };
 
 // Convert parsed object back to TOML string
-const toToml = (parsed) => {
-  let lines = [];
+const toToml = (parsed: Record<string, any>) => {
+  let lines: string[] = [];
 
   // Root level keys
   Object.entries(parsed._root).forEach(([key, value]) => {
@@ -81,14 +81,14 @@ const readConfig = async () => {
     const configPath = getCodexConfigPath();
     const content = await fs.readFile(configPath, "utf-8");
     return content;
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
 };
 
 // Check if config has OmniRoute settings
-const hasOmniRouteConfig = (config) => {
+const hasOmniRouteConfig = (config: string | null) => {
   if (!config) return false;
   return (
     config.includes('model_provider = "omniroute"') ||
@@ -137,7 +137,7 @@ export async function GET() {
 }
 
 // POST - Update OmniRoute settings (merge with existing config)
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {
@@ -164,7 +164,7 @@ export async function POST(request) {
     await createMultiBackup("codex", [configPath, authPath]);
 
     // Read and parse existing config
-    let parsed = { _root: {}, _sections: {} };
+    let parsed: Record<string, any> = { _root: {}, _sections: {} };
     try {
       const existingConfig = await fs.readFile(configPath, "utf-8");
       parsed = parseToml(existingConfig);
@@ -190,7 +190,7 @@ export async function POST(request) {
     await fs.writeFile(configPath, configContent);
 
     // Update auth.json with OPENAI_API_KEY (Codex reads this first)
-    let authData = {};
+    let authData: Record<string, any> = {};
     try {
       const existingAuth = await fs.readFile(authPath, "utf-8");
       authData = JSON.parse(existingAuth);
@@ -226,11 +226,11 @@ export async function DELETE() {
     await createMultiBackup("codex", [configPath, getCodexAuthPath()]);
 
     // Read and parse existing config
-    let parsed = { _root: {}, _sections: {} };
+    let parsed: Record<string, any> = { _root: {}, _sections: {} };
     try {
       const existingConfig = await fs.readFile(configPath, "utf-8");
       parsed = parseToml(existingConfig);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return NextResponse.json({
           success: true,
