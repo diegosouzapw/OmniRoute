@@ -5,7 +5,7 @@ const {
   injectSystemPrompt,
   setSystemPromptConfig,
   getSystemPromptConfig,
-} = await import("../../open-sse/services/systemPrompt.js");
+} = await import("../../open-sse/services/systemPrompt.ts");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 

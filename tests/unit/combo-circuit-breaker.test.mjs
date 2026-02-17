@@ -5,9 +5,9 @@ import assert from "node:assert/strict";
 const { CircuitBreaker, getCircuitBreaker, getAllCircuitBreakerStatuses, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
-const { handleComboChat, getComboFromData } = await import("../../open-sse/services/combo.js");
+const { handleComboChat, getComboFromData } = await import("../../open-sse/services/combo.ts");
 
-const { PROVIDER_PROFILES } = await import("../../open-sse/config/constants.js");
+const { PROVIDER_PROFILES } = await import("../../open-sse/config/constants.ts");
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

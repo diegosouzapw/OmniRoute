@@ -6,7 +6,7 @@ const {
   getSpecificity,
   resolveWildcardAlias,
   resolveModel,
-} = await import("../../open-sse/services/wildcardRouter.js");
+} = await import("../../open-sse/services/wildcardRouter.ts");
 
 // ─── wildcardMatch ──────────────────────────────────────────────────────────
 

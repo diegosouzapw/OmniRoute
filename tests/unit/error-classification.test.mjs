@@ -2,12 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { checkFallbackError, getProviderProfile } =
-  await import("../../open-sse/services/accountFallback.js");
+  await import("../../open-sse/services/accountFallback.ts");
 
-const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.js");
+const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.ts");
 
 const { COOLDOWN_MS, PROVIDER_PROFILES, RateLimitReason } =
-  await import("../../open-sse/config/constants.js");
+  await import("../../open-sse/config/constants.ts");
 
 // ─── Provider Category Tests ────────────────────────────────────────────────
 

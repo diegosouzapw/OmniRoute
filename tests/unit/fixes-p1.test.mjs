@@ -12,9 +12,9 @@ const backupDb = await import("../../src/lib/db/backup.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const tokenRefresh = await import("../../open-sse/services/tokenRefresh.js");
-const proxyFetch = await import("../../open-sse/utils/proxyFetch.js");
-const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.js");
+const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
+const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
+const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
 const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
 
