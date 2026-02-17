@@ -167,32 +167,32 @@ Management domains:
 Main flow modules:
 
 - Entry: `src/sse/handlers/chat.ts`
-- Core orchestration: `open-sse/handlers/chatCore.js`
+- Core orchestration: `open-sse/handlers/chatCore.ts`
 - Provider execution adapters: `open-sse/executors/*`
-- Format detection/provider config: `open-sse/services/provider.js`
-- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.js`
-- Account fallback logic: `open-sse/services/accountFallback.js`
-- Translation registry: `open-sse/translator/index.js`
-- Stream transformations: `open-sse/utils/stream.js`, `open-sse/utils/streamHandler.js`
-- Usage extraction/normalization: `open-sse/utils/usageTracking.js`
-- Think tag parser: `open-sse/utils/thinkTagParser.js`
-- Embedding handler: `open-sse/handlers/embeddings.js`
-- Embedding provider registry: `open-sse/config/embeddingRegistry.js`
-- Image generation handler: `open-sse/handlers/imageGeneration.js`
-- Image provider registry: `open-sse/config/imageRegistry.js`
+- Format detection/provider config: `open-sse/services/provider.ts`
+- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Account fallback logic: `open-sse/services/accountFallback.ts`
+- Translation registry: `open-sse/translator/index.ts`
+- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
+- Think tag parser: `open-sse/utils/thinkTagParser.ts`
+- Embedding handler: `open-sse/handlers/embeddings.ts`
+- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
+- Image generation handler: `open-sse/handlers/imageGeneration.ts`
+- Image provider registry: `open-sse/config/imageRegistry.ts`
 
 Services (business logic):
 
-- Account selection/scoring: `open-sse/services/accountSelector.js`
-- Context lifecycle management: `open-sse/services/contextManager.js`
-- IP filter enforcement: `open-sse/services/ipFilter.js`
-- Session tracking: `open-sse/services/sessionManager.js`
-- Request deduplication: `open-sse/services/signatureCache.js`
-- System prompt injection: `open-sse/services/systemPrompt.js`
-- Thinking budget management: `open-sse/services/thinkingBudget.js`
-- Wildcard model routing: `open-sse/services/wildcardRouter.js`
-- Rate limit management: `open-sse/services/rateLimitManager.js`
-- Circuit breaker: `open-sse/services/circuitBreaker.js`
+- Account selection/scoring: `open-sse/services/accountSelector.ts`
+- Context lifecycle management: `open-sse/services/contextManager.ts`
+- IP filter enforcement: `open-sse/services/ipFilter.ts`
+- Session tracking: `open-sse/services/sessionManager.ts`
+- Request deduplication: `open-sse/services/signatureCache.ts`
+- System prompt injection: `open-sse/services/systemPrompt.ts`
+- Thinking budget management: `open-sse/services/thinkingBudget.ts`
+- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
+- Rate limit management: `open-sse/services/rateLimitManager.ts`
+- Circuit breaker: `open-sse/services/circuitBreaker.ts`
 
 Domain layer modules:
 
@@ -242,7 +242,7 @@ Domain State DB (SQLite):
 - Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
 - API key generation/verification: `src/shared/utils/apiKey.ts`
 - Provider secrets persisted in `providerConnections` entries
-- Outbound proxy support via `open-sse/utils/proxyFetch.js` (env vars) and `open-sse/utils/networkProxy.js` (configurable per-provider or global)
+- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
 
 ## 5) Cloud Sync
 
@@ -327,7 +327,7 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.js` using status codes and error-message heuristics.
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics.
 
 ## OAuth Onboarding and Token Refresh Lifecycle
 
@@ -359,7 +359,7 @@ sequenceDiagram
     Test-->>UI: validation result
 ```
 
-Refresh during live traffic is executed inside `open-sse/handlers/chatCore.js` via executor `refreshCredentials()`.
+Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
 
 ## Cloud Sync Lifecycle (Enable / Sync / Disable)
 
@@ -560,15 +560,15 @@ flowchart LR
 ### Routing and Execution Core
 
 - `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
-- `open-sse/handlers/chatCore.js`: translation, executor dispatch, retry/refresh handling, stream setup
+- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
 - `open-sse/executors/*`: provider-specific network and format behavior
 
 ### Translation Registry and Format Converters
 
-- `open-sse/translator/index.js`: translator registry and orchestration
+- `open-sse/translator/index.ts`: translator registry and orchestration
 - Request translators: `open-sse/translator/request/*`
 - Response translators: `open-sse/translator/response/*`
-- Format constants: `open-sse/translator/formats.js`
+- Format constants: `open-sse/translator/formats.ts`
 
 ### Persistence
 
@@ -577,7 +577,7 @@ flowchart LR
 
 ## Provider Executor Coverage (Strategy Pattern)
 
-Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.js`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
+Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
 
 | Executor              | Provider(s)                                                                                                                                                  | Special Handling                                                     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
@@ -650,10 +650,10 @@ Translations are selected dynamically based on source payload shape and provider
 | -------------------------------------------------- | ------------------ | ---------------------------------------------------- |
 | `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                           |
 | `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                         |
-| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.js`              |
-| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.js`                    |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`              |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                    |
 | `GET /v1/embeddings`                               | Model listing      | API route                                            |
-| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.js`               |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`               |
 | `GET /v1/images/generations`                       | Model listing      | API route                                            |
 | `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation         |
 | `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation         |
@@ -668,11 +668,11 @@ Translations are selected dynamically based on source payload shape and provider
 
 ## Bypass Handler
 
-The bypass handler (`open-sse/utils/bypassHandler.js`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
 
 ## Request Logger Pipeline
 
-The request logger (`open-sse/utils/requestLogger.js`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
 
 ```
 1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
@@ -746,7 +746,7 @@ Environment variables actively used by code:
 ## Known Architectural Notes
 
 1. `usageDb` and `localDb` now share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
-2. `/api/v1/route.js` returns a static model list and is not the main models source used by `/v1/models`.
+2. `/api/v1/route.ts` returns a static model list and is not the main models source used by `/v1/models`.
 3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
 4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
