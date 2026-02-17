@@ -25,23 +25,32 @@ const STATE = {
   CLOSED: "CLOSED",
   OPEN: "OPEN",
   HALF_OPEN: "HALF_OPEN",
-};
+} as const;
 
-/**
- * @typedef {Object} CircuitBreakerOptions
- * @property {number} [failureThreshold=5] - Failures before opening
- * @property {number} [resetTimeout=30000] - Time (ms) before trying half-open
- * @property {number} [halfOpenRequests=1] - Requests allowed in half-open state
- * @property {Function} [onStateChange] - Callback when state changes
- * @property {Function} [isFailure] - Custom failure detection (default: thrown errors)
- */
+type CircuitState = (typeof STATE)[keyof typeof STATE];
+
+interface CircuitBreakerOptions {
+  failureThreshold?: number;
+  resetTimeout?: number;
+  halfOpenRequests?: number;
+  onStateChange?: ((name: string, oldState: string, newState: string) => void) | null;
+  isFailure?: (error: unknown) => boolean;
+}
 
 export class CircuitBreaker {
-  /**
-   * @param {string} name - Circuit breaker name (e.g. provider ID)
-   * @param {CircuitBreakerOptions} options
-   */
-  constructor(name, options = {}) {
+  name: string;
+  failureThreshold: number;
+  resetTimeout: number;
+  halfOpenRequests: number;
+  onStateChange: ((name: string, oldState: string, newState: string) => void) | null;
+  isFailure: (error: unknown) => boolean;
+  state: CircuitState;
+  failureCount: number;
+  successCount: number;
+  lastFailureTime: number | null;
+  halfOpenAllowed: number;
+
+  constructor(name: string, options: CircuitBreakerOptions = {}) {
     this.name = name;
     this.failureThreshold = options.failureThreshold ?? 5;
     this.resetTimeout = options.resetTimeout ?? 30000;
@@ -231,12 +240,10 @@ export class CircuitBreaker {
  * Error thrown when circuit breaker is open.
  */
 export class CircuitBreakerOpenError extends Error {
-  /**
-   * @param {string} message
-   * @param {string} circuitName
-   * @param {number} retryAfterMs
-   */
-  constructor(message, circuitName, retryAfterMs) {
+  circuitName: string;
+  retryAfterMs: number;
+
+  constructor(message: string, circuitName: string, retryAfterMs: number) {
     super(message);
     this.name = "CircuitBreakerOpenError";
     this.circuitName = circuitName;
@@ -246,20 +253,13 @@ export class CircuitBreakerOpenError extends Error {
 
 // ─── Circuit Breaker Registry ────────────────────
 
-const registry = new Map();
+const registry = new Map<string, CircuitBreaker>();
 
-/**
- * Get or create a circuit breaker by name.
- *
- * @param {string} name - Circuit breaker identifier (e.g. provider ID)
- * @param {CircuitBreakerOptions} [options] - Options (only used on creation)
- * @returns {CircuitBreaker}
- */
-export function getCircuitBreaker(name, options) {
+export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (!registry.has(name)) {
     registry.set(name, new CircuitBreaker(name, options));
   }
-  return registry.get(name);
+  return registry.get(name)!;
 }
 
 /**

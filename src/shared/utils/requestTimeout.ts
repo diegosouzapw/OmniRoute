@@ -7,22 +7,13 @@
  * @module shared/utils/requestTimeout
  */
 
-/**
- * @typedef {Object} TimeoutOptions
- * @property {number} [timeoutMs=30000] - Timeout in milliseconds
- * @property {string} [label='Request'] - Label for error messages
- * @property {AbortSignal} [signal] - Pre-existing abort signal to merge
- */
+interface TimeoutOptions {
+  timeoutMs?: number;
+  label?: string;
+  signal?: AbortSignal;
+}
 
-/**
- * Execute a fetch with timeout.
- *
- * @param {string} url - URL to fetch
- * @param {RequestInit & TimeoutOptions} options - Fetch options plus timeout config
- * @returns {Promise<Response>}
- * @throws {Error} With name 'TimeoutError' if request times out
- */
-export async function fetchWithTimeout(url, options = {}) {
+export async function fetchWithTimeout(url: string, options: RequestInit & TimeoutOptions = {}) {
   const { timeoutMs = 30000, label = "Request", signal: externalSignal, ...fetchOptions } = options;
 
   const controller = new AbortController();
@@ -42,9 +33,9 @@ export async function fetchWithTimeout(url, options = {}) {
       signal: controller.signal,
     });
     return response;
-  } catch (error) {
+  } catch (error: any) {
     if (error.name === "AbortError" || controller.signal.aborted) {
-      const timeoutError = new Error(`${label} timed out after ${timeoutMs}ms`);
+      const timeoutError: any = new Error(`${label} timed out after ${timeoutMs}ms`);
       timeoutError.name = "TimeoutError";
       timeoutError.originalUrl = url;
       timeoutError.timeoutMs = timeoutMs;
@@ -66,10 +57,10 @@ export async function fetchWithTimeout(url, options = {}) {
  * @returns {Promise<T>}
  * @throws {Error} With name 'TimeoutError' if operation times out
  */
-export async function withTimeout(fn, timeoutMs, label = "Operation") {
-  return new Promise((resolve, reject) => {
+export async function withTimeout<T>(fn: () => Promise<T>, timeoutMs: number, label = "Operation"): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      const error = new Error(`${label} timed out after ${timeoutMs}ms`);
+      const error: any = new Error(`${label} timed out after ${timeoutMs}ms`);
       error.name = "TimeoutError";
       error.timeoutMs = timeoutMs;
       reject(error);
@@ -90,7 +81,7 @@ export async function withTimeout(fn, timeoutMs, label = "Operation") {
 /**
  * Default provider timeouts (ms).
  */
-export const PROVIDER_TIMEOUTS = {
+export const PROVIDER_TIMEOUTS: Record<string, number> = {
   openai: 60000,
   claude: 90000, // Claude can be slower for long outputs
   gemini: 60000,
@@ -104,12 +95,6 @@ export const PROVIDER_TIMEOUTS = {
   default: 60000,
 };
 
-/**
- * Get the timeout for a specific provider.
- *
- * @param {string} provider - Provider identifier
- * @returns {number} Timeout in milliseconds
- */
-export function getProviderTimeout(provider) {
+export function getProviderTimeout(provider: string): number {
   return PROVIDER_TIMEOUTS[provider] || PROVIDER_TIMEOUTS.default;
 }

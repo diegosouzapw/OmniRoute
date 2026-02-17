@@ -16,10 +16,26 @@ export const STREAM_STATES = {
   COMPLETED: "completed",
   FAILED: "failed",
   CANCELLED: "cancelled",
-};
+} as const;
+
+type StreamState = (typeof STREAM_STATES)[keyof typeof STREAM_STATES];
+
+interface StreamTransition {
+  from: string;
+  to: string;
+  at: number;
+  elapsed: number;
+  [key: string]: unknown;
+}
+
+interface StreamMetadata {
+  model?: string;
+  provider?: string;
+  [key: string]: unknown;
+}
 
 // Valid state transitions
-const VALID_TRANSITIONS = {
+const VALID_TRANSITIONS: Record<string, string[]> = {
   [STREAM_STATES.INITIALIZED]: [STREAM_STATES.CONNECTING, STREAM_STATES.CANCELLED],
   [STREAM_STATES.CONNECTING]: [
     STREAM_STATES.STREAMING,
@@ -40,11 +56,18 @@ const VALID_TRANSITIONS = {
  * Tracks the lifecycle of a single SSE stream.
  */
 export class StreamTracker {
-  /**
-   * @param {string} requestId - Unique request identifier
-   * @param {Object} [metadata] - Additional metadata (model, provider, etc.)
-   */
-  constructor(requestId, metadata = {}) {
+  requestId: string;
+  state: StreamState;
+  metadata: StreamMetadata;
+  transitions: StreamTransition[];
+  startedAt: number;
+  completedAt: number | null;
+  firstChunkAt: number | null;
+  chunkCount: number;
+  totalBytes: number;
+  error: string | null;
+
+  constructor(requestId: string, metadata: StreamMetadata = {}) {
     this.requestId = requestId;
     this.state = STREAM_STATES.INITIALIZED;
     this.metadata = metadata;
@@ -141,19 +164,17 @@ export class StreamTracker {
    * Whether the stream is in a terminal state.
    * @returns {boolean}
    */
-  isTerminal() {
-    return [STREAM_STATES.COMPLETED, STREAM_STATES.FAILED, STREAM_STATES.CANCELLED].includes(
-      this.state
-    );
+  isTerminal(): boolean {
+    const terminalStates: string[] = [STREAM_STATES.COMPLETED, STREAM_STATES.FAILED, STREAM_STATES.CANCELLED];
+    return terminalStates.includes(this.state);
   }
 }
 
 // ─── Active Stream Registry ─────────────────
 
-/** @type {Map<string, StreamTracker>} */
-const activeStreams = new Map();
+const activeStreams = new Map<string, StreamTracker>();
 const MAX_COMPLETED_HISTORY = 100;
-const completedStreams = [];
+const completedStreams: ReturnType<StreamTracker["getSummary"]>[] = [];
 
 /**
  * Create and register a new stream tracker.

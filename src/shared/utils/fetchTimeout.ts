@@ -12,15 +12,11 @@
 const DEFAULT_TIMEOUT_MS = 120000; // 2 minutes
 const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "", 10) || DEFAULT_TIMEOUT_MS;
 
-/**
- * Fetch with automatic timeout via AbortController.
- *
- * @param {string | URL} url - URL to fetch
- * @param {RequestInit & { timeoutMs?: number }} [options] - Fetch options + optional timeoutMs
- * @returns {Promise<Response>}
- * @throws {Error} With name "AbortError" on timeout
- */
-export async function fetchWithTimeout(url, options = {}) {
+interface FetchTimeoutOptions extends RequestInit {
+  timeoutMs?: number;
+}
+
+export async function fetchWithTimeout(url: string | URL, options: FetchTimeoutOptions = {}) {
   const { timeoutMs = FETCH_TIMEOUT_MS, signal: externalSignal, ...fetchOptions } = options;
 
   const controller = new AbortController();
@@ -41,7 +37,7 @@ export async function fetchWithTimeout(url, options = {}) {
       signal: controller.signal,
     });
     return response;
-  } catch (error) {
+  } catch (error: any) {
     if (error.name === "AbortError") {
       throw new FetchTimeoutError(
         `Request to ${url} timed out after ${timeoutMs}ms`,
@@ -59,12 +55,10 @@ export async function fetchWithTimeout(url, options = {}) {
  * Error thrown on fetch timeout.
  */
 export class FetchTimeoutError extends Error {
-  /**
-   * @param {string} message
-   * @param {number} timeoutMs
-   * @param {string} url
-   */
-  constructor(message, timeoutMs, url) {
+  timeoutMs: number;
+  url: string;
+
+  constructor(message: string, timeoutMs: number, url: string) {
     super(message);
     this.name = "FetchTimeoutError";
     this.timeoutMs = timeoutMs;
