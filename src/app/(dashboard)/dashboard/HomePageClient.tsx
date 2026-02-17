@@ -204,7 +204,7 @@ export default function HomePageClient({ machineId }) {
                 <p className="text-text-muted mt-0.5">
                   Track tokens, cost and errors in{" "}
                   <Link href="/dashboard/usage" className="text-primary hover:underline">
-                    Usage
+                    Request Logs
                   </Link>{" "}
                   and{" "}
                   <Link href="/dashboard/analytics" className="text-primary hover:underline">

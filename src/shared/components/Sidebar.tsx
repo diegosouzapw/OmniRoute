@@ -16,9 +16,10 @@ const navItems = [
   { href: "/dashboard/endpoint", label: "Endpoint", icon: "api" },
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   { href: "/dashboard/combos", label: "Combos", icon: "layers" },
-  { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
+  { href: "/dashboard/usage", label: "Request Logs", icon: "receipt_long" },
   { href: "/dashboard/costs", label: "Costs", icon: "account_balance_wallet" },
   { href: "/dashboard/analytics", label: "Analytics", icon: "analytics" },
+  { href: "/dashboard/limits", label: "Limits & Quotas", icon: "tune" },
   { href: "/dashboard/health", label: "Health", icon: "health_and_safety" },
   { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
 ];
@@ -38,7 +39,15 @@ const helpItems = [
   },
 ];
 
-export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }: { onClose?: any; collapsed?: boolean; onToggleCollapse?: any }) {
+export default function Sidebar({
+  onClose,
+  collapsed = false,
+  onToggleCollapse,
+}: {
+  onClose?: any;
+  collapsed?: boolean;
+  onToggleCollapse?: any;
+}) {
   const pathname = usePathname();
   const [showShutdownModal, setShowShutdownModal] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
