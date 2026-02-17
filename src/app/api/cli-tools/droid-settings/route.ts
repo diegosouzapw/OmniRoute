@@ -19,14 +19,14 @@ const readSettings = async () => {
     const settingsPath = getDroidSettingsPath();
     const content = await fs.readFile(settingsPath, "utf-8");
     return JSON.parse(content);
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
 };
 
 // Check if settings has OmniRoute customModels
-const hasOmniRouteConfig = (settings) => {
+const hasOmniRouteConfig = (settings: any) => {
   if (!settings || !settings.customModels) return false;
   return settings.customModels.some((m) => m.id === "custom:OmniRoute-0");
 };
@@ -72,7 +72,7 @@ export async function GET() {
 }
 
 // POST - Update OmniRoute customModels (merge with existing settings)
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {
@@ -95,7 +95,7 @@ export async function POST(request) {
     await createBackup("droid", settingsPath);
 
     // Read existing settings or create new
-    let settings = {};
+    let settings: Record<string, any> = {};
     try {
       const existingSettings = await fs.readFile(settingsPath, "utf-8");
       settings = JSON.parse(existingSettings);
@@ -157,11 +157,11 @@ export async function DELETE() {
     await createBackup("droid", settingsPath);
 
     // Read existing settings
-    let settings = {};
+    let settings: Record<string, any> = {};
     try {
       const existingSettings = await fs.readFile(settingsPath, "utf-8");
       settings = JSON.parse(existingSettings);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return NextResponse.json({
           success: true,

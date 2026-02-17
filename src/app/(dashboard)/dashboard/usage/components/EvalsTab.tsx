@@ -60,7 +60,7 @@ export default function EvalsTab() {
    */
   const callLLM = async (evalCase) => {
     try {
-      const headers = { "Content-Type": "application/json" };
+      const headers: any = { "Content-Type": "application/json" };
       if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
       const res = await fetch("/v1/chat/completions", {
@@ -193,7 +193,9 @@ export default function EvalsTab() {
           filters={[]}
           activeFilters={{}}
           onFilterChange={() => {}}
-        />
+        >
+          {null}
+        </FilterBar>
 
         <div className="flex flex-col gap-3 mt-4">
           {filtered.map((suite) => {
@@ -299,18 +301,18 @@ export default function EvalsTab() {
                               const d = row.details || {};
                               return (
                                 <span className="text-text-muted text-xs truncate max-w-[300px] block">
-                                  {d.searchTerm
-                                    ? `Contains: "${d.searchTerm}"`
-                                    : d.pattern
-                                      ? `Regex: ${d.pattern}`
-                                      : d.expected
-                                        ? `Expected: "${String(d.expected).slice(0, 50)}"`
-                                        : row.error || "—"}
+                                  {String((d as any).searchTerm
+                                    ? `Contains: "${(d as any).searchTerm}"`
+                                    : (d as any).pattern
+                                      ? `Regex: ${(d as any).pattern}`
+                                      : (d as any).expected
+                                        ? `Expected: "${String((d as any).expected).slice(0, 50)}"`
+                                        : row.error || "—")}
                                 </span>
                               );
                             }
                             return (
-                              <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
+                              <span className="text-sm text-text-main">{(row as any)[col.key] || "—"}</span>
                             );
                           }}
                           maxHeight="400px"
@@ -354,21 +356,21 @@ export default function EvalsTab() {
                               };
                               return (
                                 <span
-                                  className={`text-xs font-mono ${colorMap[row.strategy] || "text-text-muted"}`}
+                                  className={`text-xs font-mono ${(colorMap as any)[(row as any).strategy] || "text-text-muted"}`}
                                 >
-                                  {row.strategy}
+                                  {(row as any).strategy}
                                 </span>
                               );
                             }
                             if (col.key === "expected") {
                               return (
                                 <span className="text-text-muted text-xs font-mono truncate max-w-[300px] block">
-                                  {row.expected}
+                                  {(row as any).expected}
                                 </span>
                               );
                             }
                             return (
-                              <span className="text-sm text-text-main">{row[col.key] || "—"}</span>
+                              <span className="text-sm text-text-main">{(row as any)[col.key] || "—"}</span>
                             );
                           }}
                           maxHeight="400px"

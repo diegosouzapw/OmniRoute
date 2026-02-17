@@ -8,14 +8,16 @@ import { OAUTH_TIMEOUT } from "../constants/oauth";
  * Generic OAuth Authorization Code Flow with PKCE
  */
 export class OAuthService {
-  constructor(config) {
+  config: any;
+
+  constructor(config: any) {
     this.config = config;
   }
 
   /**
    * Build authorization URL
    */
-  buildAuthUrl(redirectUri, state, codeChallenge, extraParams = {}) {
+  buildAuthUrl(redirectUri: string, state: string, codeChallenge: string, extraParams: Record<string, string> = {}) {
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: "code",
@@ -32,11 +34,11 @@ export class OAuthService {
   /**
    * Start local server and wait for callback
    */
-  async startAuthFlow(authUrl, providerName) {
+  async startAuthFlow(authUrl: string | null, providerName: string) {
     const spinner = createSpinner("Starting local server...").start();
 
     // Start local server for callback
-    let callbackParams = null;
+    let callbackParams: any = null;
     const { port, close } = await startLocalServer((params) => {
       callbackParams = params;
     });
@@ -60,7 +62,7 @@ export class OAuthService {
             if (callbackParams) {
               clearInterval(checkInterval);
               clearTimeout(timeout);
-              resolve();
+              resolve(undefined);
             }
           }, 100);
         });
@@ -85,9 +87,9 @@ export class OAuthService {
    * Exchange authorization code for tokens
    */
   async exchangeCode(
-    code,
-    redirectUri,
-    codeVerifier,
+    code: string,
+    redirectUri: string,
+    codeVerifier: string,
     contentType = "application/x-www-form-urlencoded"
   ) {
     const body =
@@ -127,7 +129,7 @@ export class OAuthService {
   /**
    * Complete OAuth flow
    */
-  async authenticate(providerName, buildAuthUrlFn) {
+  async authenticate(providerName: string, buildAuthUrlFn: (redirectUri: string, state: string, codeChallenge: string) => string) {
     // Generate PKCE
     const { codeVerifier, codeChallenge, state } = generatePKCE();
 

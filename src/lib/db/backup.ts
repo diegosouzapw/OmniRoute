@@ -127,7 +127,7 @@ export async function listDbBackups() {
       let connectionCount = 0;
       try {
         const backupDb = new Database(filePath, { readonly: true });
-        const row = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get();
+        const row: any = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get();
         connectionCount = row?.cnt || 0;
         backupDb.close();
       } catch {

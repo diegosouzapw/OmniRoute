@@ -16,7 +16,7 @@ const STRATEGIES = [
 ];
 
 export default function RoutingTab() {
-  const [settings, setSettings] = useState({ fallbackStrategy: "fill-first" });
+  const [settings, setSettings] = useState<any>({ fallbackStrategy: "fill-first" });
   const [loading, setLoading] = useState(true);
   const [aliases, setAliases] = useState([]);
   const [newPattern, setNewPattern] = useState("");

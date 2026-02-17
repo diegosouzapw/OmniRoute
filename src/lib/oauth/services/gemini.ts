@@ -10,6 +10,8 @@ import { spinner as createSpinner } from "../utils/ui";
  * Uses standard OAuth2 Authorization Code flow (no PKCE)
  */
 export class GeminiCLIService {
+  config: any;
+
   constructor() {
     this.config = GEMINI_CONFIG;
   }
@@ -17,7 +19,7 @@ export class GeminiCLIService {
   /**
    * Build Gemini CLI authorization URL
    */
-  buildAuthUrl(redirectUri, state) {
+  buildAuthUrl(redirectUri: string, state: string) {
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: "code",
@@ -34,7 +36,7 @@ export class GeminiCLIService {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCode(code, redirectUri) {
+  async exchangeCode(code: string, redirectUri: string) {
     const response = await fetch(this.config.tokenUrl, {
       method: "POST",
       headers: {
@@ -61,7 +63,7 @@ export class GeminiCLIService {
   /**
    * Fetch project ID from Google Cloud Code Assist
    */
-  async fetchProjectId(accessToken) {
+  async fetchProjectId(accessToken: string) {
     const response = await fetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
       method: "POST",
       headers: {
@@ -109,7 +111,7 @@ export class GeminiCLIService {
   /**
    * Get user info from Google
    */
-  async getUserInfo(accessToken) {
+  async getUserInfo(accessToken: string) {
     const response = await fetch(`${this.config.userInfoUrl}?alt=json`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -128,7 +130,7 @@ export class GeminiCLIService {
   /**
    * Save Gemini CLI tokens to server
    */
-  async saveTokens(tokens, userInfo, projectId) {
+  async saveTokens(tokens: any, userInfo: any, projectId: string) {
     const { server, token, userId } = getServerCredentials();
 
     const response = await fetch(`${server}/api/cli/providers/gemini-cli`, {
@@ -166,7 +168,7 @@ export class GeminiCLIService {
       spinner.text = "Starting local server...";
 
       // Start local server for callback
-      let callbackParams = null;
+      let callbackParams: any = null;
       const { port, close } = await startLocalServer((params) => {
         callbackParams = params;
       });
@@ -198,7 +200,7 @@ export class GeminiCLIService {
           if (callbackParams) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
-            resolve();
+            resolve(undefined);
           }
         }, 100);
       });
@@ -237,7 +239,7 @@ export class GeminiCLIService {
         `Gemini CLI connected successfully! (${userInfo.email}, Project: ${projectId})`
       );
       return true;
-    } catch (error) {
+    } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
       throw error;
     }

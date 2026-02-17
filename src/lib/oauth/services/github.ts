@@ -144,7 +144,7 @@ export class GitHubService extends OAuthService {
   /**
    * Complete GitHub Copilot authentication flow
    */
-  async authenticate() {
+  async authenticate(): Promise<any> {
     try {
       // Get device code
       const deviceResponse = await this.getDeviceCode();

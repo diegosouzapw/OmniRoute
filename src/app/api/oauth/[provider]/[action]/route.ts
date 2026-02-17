@@ -23,7 +23,7 @@ if (!globalThis.__codexCallbackState) {
 
 // GET /api/oauth/[provider]/authorize - Generate auth URL
 // GET /api/oauth/[provider]/device-code - Request device code (for device_code flow)
-export async function GET(request, { params }) {
+export async function GET(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
   try {
     const { provider, action } = await params;
     const { searchParams } = new URL(request.url);
@@ -49,7 +49,7 @@ export async function GET(request, { params }) {
       let deviceData;
       if (provider === "github" || provider === "kiro" || provider === "kilocode") {
         // GitHub, Kiro, and KiloCode don't use PKCE for device code
-        deviceData = await requestDeviceCode(provider);
+        deviceData = await (requestDeviceCode as any)(provider);
       } else {
         // Qwen and other providers use PKCE
         deviceData = await requestDeviceCode(provider, authData.codeChallenge);
@@ -68,7 +68,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.log("OAuth GET error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
@@ -76,7 +76,7 @@ export async function GET(request, { params }) {
  * Start Codex callback server on port 1455
  * Returns the auth URL and stores codeVerifier for later exchange
  */
-async function handleStartCallbackServer(provider, searchParams) {
+async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
   if (provider !== "codex") {
     return NextResponse.json(
       { error: "Callback server only supported for codex" },
@@ -135,13 +135,13 @@ async function handleStartCallbackServer(provider, searchParams) {
       serverPort: port,
     });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
 // POST /api/oauth/[provider]/exchange - Exchange code for tokens and save
 // POST /api/oauth/[provider]/poll - Poll for token (device_code flow)
-export async function POST(request, { params }) {
+export async function POST(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
   try {
     const { provider, action } = await params;
     const body = await request.json();
@@ -157,7 +157,7 @@ export async function POST(request, { params }) {
       const tokenData = await exchangeTokens(provider, code, redirectUri, codeVerifier, state);
 
       // Save to database
-      const connection = await createProviderConnection({
+      const connection: any = await createProviderConnection({
         provider,
         authType: "oauth",
         ...tokenData,
@@ -191,21 +191,21 @@ export async function POST(request, { params }) {
       // For providers that don't use PKCE (like GitHub, Kiro, Kimi Coding), don't pass codeVerifier
       let result;
       if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
-        result = await pollForToken(provider, deviceCode);
+        result = await (pollForToken as any)(provider, deviceCode);
       } else if (provider === "kiro") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
-        result = await pollForToken(provider, deviceCode, null, extraData);
+        result = await (pollForToken as any)(provider, deviceCode, null, extraData);
       } else {
         // Qwen and other providers use PKCE
         if (!codeVerifier) {
           return NextResponse.json({ error: "Missing code verifier" }, { status: 400 });
         }
-        result = await pollForToken(provider, deviceCode, codeVerifier);
+        result = await (pollForToken as any)(provider, deviceCode, codeVerifier);
       }
 
       if (result.success) {
         // Save to database
-        const connection = await createProviderConnection({
+        const connection: any = await createProviderConnection({
           provider,
           authType: "oauth",
           ...result.tokens,
@@ -299,7 +299,7 @@ export async function POST(request, { params }) {
         );
 
         // Save to database
-        const connection = await createProviderConnection({
+        const connection: any = await createProviderConnection({
           provider,
           authType: "oauth",
           ...tokenData,
@@ -320,7 +320,7 @@ export async function POST(request, { params }) {
             displayName: connection.displayName,
           },
         });
-      } catch (exchangeErr) {
+      } catch (exchangeErr: any) {
         return NextResponse.json({ success: false, error: exchangeErr.message }, { status: 500 });
       }
     }
@@ -328,7 +328,7 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.log("OAuth POST error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 

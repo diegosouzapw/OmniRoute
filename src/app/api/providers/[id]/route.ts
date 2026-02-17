@@ -9,7 +9,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 
 // GET /api/providers/[id] - Get single connection
-export async function GET(request, { params }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const connection = await getProviderConnectionById(id);
@@ -19,7 +19,7 @@ export async function GET(request, { params }) {
     }
 
     // Hide sensitive fields
-    const result = { ...connection };
+    const result: Record<string, any> = { ...connection };
     delete result.apiKey;
     delete result.accessToken;
     delete result.refreshToken;
@@ -33,7 +33,7 @@ export async function GET(request, { params }) {
 }
 
 // PUT /api/providers/[id] - Update connection
-export async function PUT(request, { params }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -60,7 +60,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    const updateData = {};
+    const updateData: Record<string, any> = {};
     if (name !== undefined) updateData.name = name;
     if (priority !== undefined) updateData.priority = priority;
     if (globalPriority !== undefined) updateData.globalPriority = globalPriority;
@@ -80,7 +80,7 @@ export async function PUT(request, { params }) {
     const updated = await updateProviderConnection(id, updateData);
 
     // Hide sensitive fields
-    const result = { ...updated };
+    const result: Record<string, any> = { ...updated };
     delete result.apiKey;
     delete result.accessToken;
     delete result.refreshToken;
@@ -97,7 +97,7 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE /api/providers/[id] - Delete connection
-export async function DELETE(request, { params }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 

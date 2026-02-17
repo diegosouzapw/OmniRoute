@@ -85,3 +85,6 @@ blob-report/
 cloud/
 omnirouteCloud/
 omnirouteSite/
+
+# Security Analysis (standalone project with own git)
+security-analysis/

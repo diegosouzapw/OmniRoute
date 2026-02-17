@@ -8,7 +8,7 @@ import { syncToCloud } from "@/lib/cloudSync";
  * POST /api/oauth/kiro/import
  * Import and validate refresh token from Kiro IDE
  */
-export async function POST(request) {
+export async function POST(request: any) {
   try {
     const { refreshToken } = await request.json();
 
@@ -25,7 +25,7 @@ export async function POST(request) {
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
 
     // Save to database
-    const connection = await createProviderConnection({
+    const connection: any = await createProviderConnection({
       provider: "kiro",
       authType: "oauth",
       accessToken: tokenData.accessToken,
@@ -51,7 +51,7 @@ export async function POST(request) {
         email: connection.email,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("Kiro import token error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

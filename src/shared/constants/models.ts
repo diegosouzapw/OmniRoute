@@ -16,7 +16,7 @@ import { PROVIDER_MODELS as MODELS } from "@omniroute/open-sse/config/providerMo
 // Providers that accept any model (passthrough)
 const PASSTHROUGH_PROVIDERS = new Set(
   Object.entries(AI_PROVIDERS)
-    .filter(([, p]) => p.passthroughModels)
+    .filter(([, p]) => (p as any).passthroughModels)
     .map(([key]) => key)
 );
 

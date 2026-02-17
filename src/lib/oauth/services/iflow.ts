@@ -10,6 +10,8 @@ import { spinner as createSpinner } from "../utils/ui";
  * Uses Authorization Code flow with Basic Auth
  */
 export class IFlowService {
+  config: any;
+
   constructor() {
     this.config = IFLOW_CONFIG;
   }
@@ -17,7 +19,7 @@ export class IFlowService {
   /**
    * Build iFlow authorization URL
    */
-  buildAuthUrl(redirectUri, state) {
+  buildAuthUrl(redirectUri: string, state: string) {
     const params = new URLSearchParams({
       loginMethod: this.config.extraParams.loginMethod,
       type: this.config.extraParams.type,
@@ -32,7 +34,7 @@ export class IFlowService {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCode(code, redirectUri) {
+  async exchangeCode(code: string, redirectUri: string) {
     // Create Basic Auth header
     const basicAuth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString(
       "base64"
@@ -65,7 +67,7 @@ export class IFlowService {
   /**
    * Get user info from iFlow
    */
-  async getUserInfo(accessToken) {
+  async getUserInfo(accessToken: string) {
     const response = await fetch(
       `${this.config.userInfoUrl}?accessToken=${encodeURIComponent(accessToken)}`,
       {
@@ -92,7 +94,7 @@ export class IFlowService {
   /**
    * Save iFlow tokens to server
    */
-  async saveTokens(tokens, userInfo) {
+  async saveTokens(tokens: any, userInfo: any) {
     const { server, token, userId } = getServerCredentials();
 
     const response = await fetch(`${server}/api/cli/providers/iflow`, {
@@ -129,7 +131,7 @@ export class IFlowService {
       spinner.text = "Starting local server...";
 
       // Start local server for callback
-      let callbackParams = null;
+      let callbackParams: any = null;
       const { port, close } = await startLocalServer((params) => {
         callbackParams = params;
       });
@@ -161,7 +163,7 @@ export class IFlowService {
           if (callbackParams) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
-            resolve();
+            resolve(undefined);
           }
         }, 100);
       });
@@ -193,7 +195,7 @@ export class IFlowService {
 
       spinner.succeed(`iFlow connected successfully! (${userInfo.email || userInfo.phone})`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
       throw error;
     }

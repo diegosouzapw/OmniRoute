@@ -1151,7 +1151,7 @@ function EndpointSection({
       if (!map[owner]) map[owner] = [];
       map[owner].push(m);
     }
-    return Object.entries(map).sort((a, b) => b[1].length - a[1].length);
+    return Object.entries(map).sort((a: any, b: any) => (b[1] as any).length - (a[1] as any).length);
   }, [models]);
 
   const resolveProvider = (id) => AI_PROVIDERS[id] || getProviderByAlias(id);
@@ -1216,10 +1216,10 @@ function EndpointSection({
                   <span className="text-xs font-semibold text-text-main">
                     {providerName(providerId)}
                   </span>
-                  <span className="text-xs text-text-muted">({providerModels.length})</span>
+                  <span className="text-xs text-text-muted">({(providerModels as any).length})</span>
                 </div>
                 <div className="ml-5 flex flex-wrap gap-1.5">
-                  {providerModels.map((m) => (
+                  {(providerModels as any).map((m) => (
                     <span
                       key={m.id}
                       className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"

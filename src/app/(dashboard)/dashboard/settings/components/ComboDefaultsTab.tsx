@@ -5,7 +5,7 @@ import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 
 export default function ComboDefaultsTab() {
-  const [comboDefaults, setComboDefaults] = useState({
+  const [comboDefaults, setComboDefaults] = useState<any>({
     strategy: "priority",
     maxRetries: 1,
     retryDelayMs: 2000,
@@ -15,7 +15,7 @@ export default function ComboDefaultsTab() {
     maxComboDepth: 3,
     trackMetrics: true,
   });
-  const [providerOverrides, setProviderOverrides] = useState({});
+  const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [newOverrideProvider, setNewOverrideProvider] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -210,7 +210,7 @@ export default function ComboDefaultsTab() {
             Override timeout and retries per provider. Provider settings override global defaults.
           </p>
 
-          {Object.entries(providerOverrides).map(([provider, config]) => (
+          {Object.entries(providerOverrides).map(([provider, config]: [string, any]) => (
             <div
               key={provider}
               className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]"

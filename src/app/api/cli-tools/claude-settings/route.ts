@@ -19,7 +19,7 @@ const readSettings = async () => {
     const settingsPath = getClaudeSettingsPath();
     const content = await fs.readFile(settingsPath, "utf-8");
     return JSON.parse(content);
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") {
       return null;
     }
@@ -69,7 +69,7 @@ export async function GET() {
 }
 
 // POST - Backup old fields and write new settings
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {
@@ -92,11 +92,11 @@ export async function POST(request) {
     await createBackup("claude", settingsPath);
 
     // Read current settings
-    let currentSettings = {};
+    let currentSettings: Record<string, any> = {};
     try {
       const content = await fs.readFile(settingsPath, "utf-8");
       currentSettings = JSON.parse(content);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== "ENOENT") {
         throw error;
       }
@@ -152,11 +152,11 @@ export async function DELETE() {
     const settingsPath = getClaudeSettingsPath();
 
     // Read current settings
-    let currentSettings = {};
+    let currentSettings: Record<string, any> = {};
     try {
       const content = await fs.readFile(settingsPath, "utf-8");
       currentSettings = JSON.parse(content);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return NextResponse.json({
           success: true,

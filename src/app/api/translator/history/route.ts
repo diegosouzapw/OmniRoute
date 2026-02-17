@@ -10,7 +10,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit");
-    const { events, total } = getTranslationEvents(limit);
+    const { events, total } = getTranslationEvents(limit ? Number(limit) : undefined);
 
     return NextResponse.json({ success: true, events, total });
   } catch (error) {

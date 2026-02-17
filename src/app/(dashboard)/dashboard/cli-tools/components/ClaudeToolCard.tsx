@@ -127,7 +127,7 @@ export default function ClaudeToolCard({
     setApplying(true);
     setMessage(null);
     try {
-      const env = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
+      const env: any = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
 
       // Get key from dropdown, fallback to first key or sk_omniroute for localhost
       const keyToUse =

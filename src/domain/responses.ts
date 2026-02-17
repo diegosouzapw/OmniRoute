@@ -15,7 +15,7 @@
  * @param {Object} [headers={}] - Additional headers
  * @returns {Response}
  */
-export function successResponse(data, status = 200, headers = {}) {
+export function successResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -34,7 +34,7 @@ export function successResponse(data, status = 200, headers = {}) {
  * @param {Object} [details] - Additional error details
  * @returns {Response}
  */
-export function apiErrorResponse(status, code, message, details) {
+export function apiErrorResponse(status: number, code: string, message: string, details?: unknown) {
   return new Response(
     JSON.stringify({
       error: {
@@ -58,7 +58,7 @@ export function apiErrorResponse(status, code, message, details) {
  * @param {Object} [details] - Validation details
  * @returns {Response}
  */
-export function badRequest(message, details) {
+export function badRequest(message: string, details?: unknown) {
   return apiErrorResponse(400, "BAD_REQUEST", message, details);
 }
 
@@ -98,7 +98,7 @@ export function notFound(resource = "Resource") {
  * @param {string} message - Conflict description
  * @returns {Response}
  */
-export function conflict(message) {
+export function conflict(message: string) {
   return apiErrorResponse(409, "CONFLICT", message);
 }
 

@@ -8,22 +8,37 @@
  * @module shared/utils/streamTracker
  */
 
-/**
- * @typedef {Object} StreamMetrics
- * @property {number} startTime - Timestamp when stream started
- * @property {number} firstTokenTime - Time to first token (ms)
- * @property {number} totalTokens - Total tokens received
- * @property {number} totalChunks - Total SSE chunks received
- * @property {number} elapsedMs - Total elapsed time (ms)
- * @property {number} tokensPerSecond - Current throughput
- * @property {boolean} complete - Whether stream is complete
- * @property {string|null} error - Error message if any
- * @property {string|null} finishReason - Stop reason from provider
- */
+export interface StreamMetrics {
+  startTime: number;
+  firstTokenTime: number;
+  totalTokens: number;
+  totalChunks: number;
+  elapsedMs: number;
+  tokensPerSecond: number;
+  complete: boolean;
+  error: string | null;
+  finishReason: string | null;
+}
+
+interface StreamTrackerOptions {
+  onProgress?: (metrics: StreamMetrics) => void;
+  progressIntervalMs?: number;
+}
 
 export class StreamTracker {
-  /** @param {{ onProgress?: (metrics: StreamMetrics) => void, progressIntervalMs?: number }} [options={}] */
-  constructor(options = {}) {
+  private _onProgress: ((metrics: StreamMetrics) => void) | null;
+  private _progressIntervalMs: number;
+  private _startTime: number;
+  private _firstTokenTime: number;
+  private _totalTokens: number;
+  private _totalChunks: number;
+  private _complete: boolean;
+  private _error: string | null;
+  private _finishReason: string | null;
+  private _lastProgressAt: number;
+  private _buffer: string;
+
+  constructor(options: StreamTrackerOptions = {}) {
     this._onProgress = options.onProgress || null;
     this._progressIntervalMs = options.progressIntervalMs || 500;
 

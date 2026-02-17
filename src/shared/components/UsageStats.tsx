@@ -8,7 +8,7 @@ import Badge from "./Badge";
 import { CardSkeleton } from "./Loading";
 import { fmtFull, fmtCost } from "@/shared/utils/formatting";
 
-function SortIcon({ field, currentSort, currentOrder }) {
+function SortIcon({ field, currentSort, currentOrder }: { field: string; currentSort: string; currentOrder: string }) {
   if (currentSort !== field) return <span className="ml-1 opacity-20">↕</span>;
   return <span className="ml-1">{currentOrder === "asc" ? "↑" : "↓"}</span>;
 }
@@ -19,7 +19,7 @@ SortIcon.propTypes = {
   currentOrder: PropTypes.string.isRequired,
 };
 
-function MiniBarGraph({ data, colorClass = "bg-primary" }) {
+function MiniBarGraph({ data, colorClass = "bg-primary" }: { data: number[]; colorClass?: string }) {
   const max = Math.max(...data, 1);
   return (
     <div className="flex items-end gap-1 h-8 w-24">
@@ -47,14 +47,14 @@ export default function UsageStats() {
   const sortBy = searchParams.get("sortBy") || "rawModel";
   const sortOrder = searchParams.get("sortOrder") || "asc";
 
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [viewMode, setViewMode] = useState("tokens"); // 'tokens' or 'costs'
   const [refreshInterval, setRefreshInterval] = useState(5000); // Start with 5s
   const prevTotalRequestsRef = useRef(0);
 
-  const toggleSort = (field) => {
+  const toggleSort = (field: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (sortBy === field) {
       params.set("sortOrder", sortOrder === "asc" ? "desc" : "asc");
@@ -66,9 +66,9 @@ export default function UsageStats() {
   };
 
   const sortData = useCallback(
-    (dataMap, pendingMap = {}) => {
+    (dataMap: Record<string, any>, pendingMap: Record<string, any> = {}) => {
       return Object.entries(dataMap || {})
-        .map(([key, data]) => {
+        .map(([key, data]: [string, any]) => {
           const totalTokens = (data.promptTokens || 0) + (data.completionTokens || 0);
           const totalCost = data.cost || 0;
 
@@ -111,9 +111,9 @@ export default function UsageStats() {
   const sortedAccounts = useMemo(() => {
     // For accounts, pendingMap is by connectionId, but dataMap is by accountKey
     // We need to map connectionId pending counts to accountKeys
-    const accountPendingMap = {};
+    const accountPendingMap: Record<string, any> = {};
     if (stats?.pending?.byAccount) {
-      Object.entries(stats.byAccount || {}).forEach(([accountKey, data]) => {
+      Object.entries(stats.byAccount || {}).forEach(([accountKey, data]: [string, any]) => {
         const connPending = stats.pending.byAccount[data.connectionId];
         if (connPending) {
           // Get modelKey (rawModel (provider))
@@ -125,7 +125,7 @@ export default function UsageStats() {
     return sortData(stats?.byAccount, accountPendingMap);
   }, [stats?.byAccount, stats?.pending?.byAccount, sortData]);
 
-  const fetchStats = useCallback(async (showLoading = true) => {
+  const fetchStats = useCallback(async (showLoading = true): Promise<void> => {
     if (showLoading) setLoading(true);
     try {
       const res = await fetch("/api/usage/history");
@@ -156,7 +156,7 @@ export default function UsageStats() {
   }, [fetchStats]);
 
   useEffect(() => {
-    let intervalId;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
     let isPageVisible = true;
 
     // Page Visibility API - pause when tab is hidden
@@ -191,16 +191,16 @@ export default function UsageStats() {
   if (!stats) return <div className="text-text-muted">Failed to load usage statistics.</div>;
 
   // Format number with commas — delegated to shared module
-  const fmt = (n) => fmtFull(n);
+  const fmt = (n: number) => fmtFull(n);
 
   // Format cost with dollar sign and 2 decimals — delegated to shared module
 
   // Time format for "Last Used"
-  const fmtTime = (iso) => {
+  const fmtTime = (iso: string) => {
     if (!iso) return "Never";
     const date = new Date(iso);
     const now = new Date();
-    const diffMs = now - date;
+    const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 1) return "Just now";
@@ -459,7 +459,7 @@ export default function UsageStats() {
                     {data.rawModel}
                   </td>
                   <td className="px-6 py-3">
-                    <Badge variant={data.pending > 0 ? "primary" : "neutral"} size="sm">
+                    <Badge variant={data.pending > 0 ? "primary" : "default"} size="sm">
                       {data.provider}
                     </Badge>
                   </td>
@@ -625,7 +625,7 @@ export default function UsageStats() {
                     {data.rawModel}
                   </td>
                   <td className="px-6 py-3">
-                    <Badge variant={data.pending > 0 ? "primary" : "neutral"} size="sm">
+                    <Badge variant={data.pending > 0 ? "primary" : "default"} size="sm">
                       {data.provider}
                     </Badge>
                   </td>

@@ -17,7 +17,7 @@ export const codex = {
       state: state,
     };
     const queryString = Object.entries(params)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value as string)}`)
       .join("&");
     return `${config.authorizeUrl}?${queryString}`;
   },

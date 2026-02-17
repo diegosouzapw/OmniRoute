@@ -9,24 +9,33 @@
  * @module shared/utils/requestTelemetry
  */
 
-/**
- * @typedef {Object} PhaseTiming
- * @property {string} phase - Phase name
- * @property {number} startMs - Start time (relative to request start)
- * @property {number} endMs - End time (relative to request start)
- * @property {number} durationMs - Duration in ms
- */
+interface PhaseTiming {
+  phase: string;
+  startMs: number;
+  endMs: number;
+  durationMs: number;
+  [key: string]: unknown;
+}
 
-const PHASES = ["parse", "validate", "policy", "resolve", "connect", "stream", "finalize"];
+const PHASES = ["parse", "validate", "policy", "resolve", "connect", "stream", "finalize"] as const;
+
+interface TelemetrySummary {
+  requestId: string;
+  totalMs: number;
+  phases: PhaseTiming[];
+  recordedAt?: number;
+}
 
 export class RequestTelemetry {
-  /**
-   * @param {string} requestId
-   */
-  constructor(requestId) {
+  requestId: string;
+  startTime: number;
+  phases: PhaseTiming[];
+  private _currentPhase: string | null;
+  private _phaseStart: number | null;
+
+  constructor(requestId: string) {
     this.requestId = requestId;
     this.startTime = Date.now();
-    /** @type {PhaseTiming[]} */
     this.phases = [];
     this._currentPhase = null;
     this._phaseStart = null;

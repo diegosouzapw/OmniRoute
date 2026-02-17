@@ -38,7 +38,7 @@ const helpItems = [
   },
 ];
 
-export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }) {
+export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }: { onClose?: any; collapsed?: boolean; onToggleCollapse?: any }) {
   const pathname = usePathname();
   const [showShutdownModal, setShowShutdownModal] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);

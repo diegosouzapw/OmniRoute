@@ -245,6 +245,7 @@ export default function CombosPage() {
         onClose={() => setShowCreateModal(false)}
         onSave={handleCreate}
         activeProviders={activeProviders}
+        combo={null}
       />
 
       {/* Edit Modal */}
@@ -665,7 +666,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     if (!validateName(name)) return;
     setSaving(true);
 
-    const saveData = {
+    const saveData: any = {
       name: name.trim(),
       models: strategy === "weighted" ? models : models.map((m) => m.model),
       strategy,
@@ -1022,6 +1023,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         activeProviders={activeProviders}
         modelAliases={modelAliases}
         title="Add Model to Combo"
+        selectedModel={null}
       />
     </>
   );

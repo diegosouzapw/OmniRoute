@@ -11,7 +11,7 @@ export async function GET(request) {
     const aliases = await getMitmAlias(toolName || undefined);
     return NextResponse.json({ aliases });
   } catch (error) {
-    console.log("Error fetching MITM aliases:", error.message);
+    console.log("Error fetching MITM aliases:", (error as any).message);
     return NextResponse.json({ error: "Failed to fetch aliases" }, { status: 500 });
   }
 }
@@ -25,17 +25,17 @@ export async function PUT(request) {
       return NextResponse.json({ error: "tool and mappings required" }, { status: 400 });
     }
 
-    const filtered = {};
+    const filtered: Record<string, string> = {};
     for (const [alias, model] of Object.entries(mappings)) {
-      if (model && model.trim()) {
-        filtered[alias] = model.trim();
+      if (model && (model as string).trim()) {
+        filtered[alias] = (model as string).trim();
       }
     }
 
     await setMitmAliasAll(tool, filtered);
     return NextResponse.json({ success: true, aliases: filtered });
   } catch (error) {
-    console.log("Error saving MITM aliases:", error.message);
+    console.log("Error saving MITM aliases:", (error as any).message);
     return NextResponse.json({ error: "Failed to save aliases" }, { status: 500 });
   }
 }

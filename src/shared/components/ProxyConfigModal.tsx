@@ -33,7 +33,7 @@ const LEVEL_LABELS = {
  * @param {string} [props.levelLabel] — display name for the level
  * @param {Function} [props.onSaved] — callback after save
  */
-export default function ProxyConfigModal({ isOpen, onClose, level, levelId, levelLabel, onSaved }) {
+export default function ProxyConfigModal({ isOpen, onClose, level, levelId, levelLabel, onSaved }: { isOpen: any; onClose: any; level: any; levelId?: any; levelLabel?: any; onSaved?: any }) {
   const [proxyType, setProxyType] = useState(PROXY_TYPES[0]?.value || "http");
   const [host, setHost] = useState("");
   const [port, setPort] = useState("");

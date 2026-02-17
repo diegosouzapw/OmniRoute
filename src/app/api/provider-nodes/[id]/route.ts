@@ -9,12 +9,12 @@ import {
 } from "@/models";
 
 // PUT /api/provider-nodes/[id] - Update provider node
-export async function PUT(request, { params }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
     const { name, prefix, apiType, baseUrl } = body;
-    const node = await getProviderNodeById(id);
+    const node: any = await getProviderNodeById(id);
 
     if (!node) {
       return NextResponse.json({ error: "Provider node not found" }, { status: 404 });
@@ -50,7 +50,7 @@ export async function PUT(request, { params }) {
       }
     }
 
-    const updates = {
+    const updates: Record<string, any> = {
       name: name.trim(),
       prefix: prefix.trim(),
       baseUrl: sanitizedBaseUrl,
@@ -85,7 +85,7 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE /api/provider-nodes/[id] - Delete provider node and its connections
-export async function DELETE(request, { params }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const node = await getProviderNodeById(id);

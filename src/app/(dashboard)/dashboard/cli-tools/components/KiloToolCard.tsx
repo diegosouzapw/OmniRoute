@@ -443,17 +443,18 @@ export default function KiloToolCard({
         activeProviders={activeProviders}
         title="Select Model for Kilo Code"
       />
-      <ManualConfigModal
-        isOpen={showManualConfigModal}
-        onClose={() => setShowManualConfigModal(false)}
-        onApply={handleManualConfig}
-        currentConfig={{
-          model: selectedModel,
-          apiKey: selectedApiKey,
-          baseUrl: customBaseUrl || baseUrl,
-        }}
-        title="Kilo Code Manual Configuration"
-      />
+      {showManualConfigModal && (
+        <ManualConfigModal
+          isOpen={showManualConfigModal}
+          onClose={() => setShowManualConfigModal(false)}
+          title="Kilo Code Manual Configuration"
+          {...{onApply: handleManualConfig, currentConfig: {
+            model: selectedModel,
+            apiKey: selectedApiKey,
+            baseUrl: customBaseUrl || baseUrl,
+          }} as any}
+        />
+      )}
     </Card>
   );
 }

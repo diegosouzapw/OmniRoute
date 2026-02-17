@@ -136,7 +136,7 @@ export default function ProvidersPage() {
 
     // Get latest error info
     const latestError = errorConns.sort(
-      (a, b) => new Date(b.lastErrorAt || 0) - new Date(a.lastErrorAt || 0)
+      (a: any, b: any) => (new Date(b.lastErrorAt || 0) as any) - (new Date(a.lastErrorAt || 0) as any)
     )[0];
     const errorCode = latestError ? getConnectionErrorTag(latestError) : null;
     const errorTime = latestError?.lastErrorAt ? getRelativeTime(latestError.lastErrorAt) : null;

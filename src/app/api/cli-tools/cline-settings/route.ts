@@ -16,7 +16,7 @@ const readGlobalState = async () => {
   try {
     const content = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
     return JSON.parse(content);
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
@@ -27,14 +27,14 @@ const readSecrets = async () => {
   try {
     const content = await fs.readFile(SECRETS_PATH, "utf-8");
     return JSON.parse(content);
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") return {};
     throw error;
   }
 };
 
 // Check if OmniRoute is configured as OpenAI-compatible provider
-const hasOmniRouteConfig = (globalState) => {
+const hasOmniRouteConfig = (globalState: any) => {
   if (!globalState) return false;
   const isOpenAi =
     globalState.actModeApiProvider === "openai" || globalState.planModeApiProvider === "openai";
@@ -96,7 +96,7 @@ export async function GET() {
 }
 
 // POST - Configure Cline to use OmniRoute as OpenAI-compatible provider
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {
@@ -117,7 +117,7 @@ export async function POST(request) {
     await createBackup("cline", SECRETS_PATH);
 
     // Read existing globalState or create new
-    let globalState = {};
+    let globalState: Record<string, any> = {};
     try {
       const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
       globalState = JSON.parse(existing);
@@ -139,7 +139,7 @@ export async function POST(request) {
     await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
 
     // Write API key to secrets
-    let secrets = {};
+    let secrets: Record<string, any> = {};
     try {
       const existing = await fs.readFile(SECRETS_PATH, "utf-8");
       secrets = JSON.parse(existing);
@@ -175,11 +175,11 @@ export async function DELETE() {
     await createBackup("cline", SECRETS_PATH);
 
     // Read existing state
-    let globalState = {};
+    let globalState: Record<string, any> = {};
     try {
       const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
       globalState = JSON.parse(existing);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return NextResponse.json({ success: true, message: "No settings file to reset" });
       }
@@ -199,7 +199,7 @@ export async function DELETE() {
     await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
 
     // Remove API key from secrets
-    let secrets = {};
+    let secrets: Record<string, any> = {};
     try {
       const existing = await fs.readFile(SECRETS_PATH, "utf-8");
       secrets = JSON.parse(existing);

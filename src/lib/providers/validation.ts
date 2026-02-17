@@ -7,11 +7,11 @@ import {
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
 
-function normalizeBaseUrl(baseUrl) {
+function normalizeBaseUrl(baseUrl: string) {
   return (baseUrl || "").trim().replace(/\/$/, "");
 }
 
-function addModelsSuffix(baseUrl) {
+function addModelsSuffix(baseUrl: string) {
   const normalized = normalizeBaseUrl(baseUrl);
   if (!normalized) return "";
 
@@ -25,13 +25,13 @@ function addModelsSuffix(baseUrl) {
   return `${normalized}/models`;
 }
 
-function resolveBaseUrl(entry, providerSpecificData = {}) {
+function resolveBaseUrl(entry: any, providerSpecificData: any = {}) {
   if (providerSpecificData?.baseUrl) return normalizeBaseUrl(providerSpecificData.baseUrl);
   if (entry?.baseUrl) return normalizeBaseUrl(entry.baseUrl);
   return "";
 }
 
-function resolveChatUrl(provider, baseUrl, providerSpecificData = {}) {
+function resolveChatUrl(provider: string, baseUrl: string, providerSpecificData: any = {}) {
   const normalized = normalizeBaseUrl(baseUrl);
   if (!normalized) return "";
 
@@ -57,7 +57,7 @@ function resolveChatUrl(provider, baseUrl, providerSpecificData = {}) {
   return normalized;
 }
 
-function buildBearerHeaders(apiKey) {
+function buildBearerHeaders(apiKey: string) {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
@@ -130,7 +130,7 @@ async function validateOpenAILikeProvider({
   return { valid: true, error: null };
 }
 
-async function validateAnthropicLikeProvider({ apiKey, baseUrl, modelId, headers = {} }) {
+async function validateAnthropicLikeProvider({ apiKey, baseUrl, modelId, headers = {} }: any) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
@@ -165,7 +165,7 @@ async function validateAnthropicLikeProvider({ apiKey, baseUrl, modelId, headers
   return { valid: true, error: null };
 }
 
-async function validateGeminiLikeProvider({ apiKey, baseUrl }) {
+async function validateGeminiLikeProvider({ apiKey, baseUrl }: any) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
@@ -189,7 +189,7 @@ async function validateGeminiLikeProvider({ apiKey, baseUrl }) {
 
 // ── Specialty providers (non-standard APIs) ──
 
-async function validateDeepgramProvider({ apiKey }) {
+async function validateDeepgramProvider({ apiKey }: any) {
   try {
     const response = await fetch("https://api.deepgram.com/v1/auth/token", {
       method: "GET",
@@ -200,12 +200,12 @@ async function validateDeepgramProvider({ apiKey }) {
       return { valid: false, error: "Invalid API key" };
     }
     return { valid: false, error: `Validation failed: ${response.status}` };
-  } catch (error) {
+  } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed" };
   }
 }
 
-async function validateAssemblyAIProvider({ apiKey }) {
+async function validateAssemblyAIProvider({ apiKey }: any) {
   try {
     const response = await fetch("https://api.assemblyai.com/v2/transcript?limit=1", {
       method: "GET",
@@ -219,12 +219,12 @@ async function validateAssemblyAIProvider({ apiKey }) {
       return { valid: false, error: "Invalid API key" };
     }
     return { valid: false, error: `Validation failed: ${response.status}` };
-  } catch (error) {
+  } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed" };
   }
 }
 
-async function validateNanoBananaProvider({ apiKey }) {
+async function validateNanoBananaProvider({ apiKey }: any) {
   try {
     // NanoBanana doesn't expose a lightweight validation endpoint,
     // so we send a minimal generate request that will succeed or fail on auth.
@@ -244,12 +244,12 @@ async function validateNanoBananaProvider({ apiKey }) {
       return { valid: false, error: "Invalid API key" };
     }
     return { valid: true, error: null };
-  } catch (error) {
+  } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed" };
   }
 }
 
-async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }) {
+async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
@@ -271,7 +271,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   return { valid: false, error: `Validation failed: ${response.status}` };
 }
 
-async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificData = {} }) {
+async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   let baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
@@ -302,7 +302,7 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
   return { valid: false, error: `Validation failed: ${response.status}` };
 }
 
-export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }) {
+export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   if (!provider || !apiKey) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
@@ -310,7 +310,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (isOpenAICompatibleProvider(provider)) {
     try {
       return await validateOpenAICompatibleProvider({ apiKey, providerSpecificData });
-    } catch (error) {
+    } catch (error: any) {
       return { valid: false, error: error.message || "Validation failed", unsupported: false };
     }
   }
@@ -318,7 +318,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (isAnthropicCompatibleProvider(provider)) {
     try {
       return await validateAnthropicCompatibleProvider({ apiKey, providerSpecificData });
-    } catch (error) {
+    } catch (error: any) {
       return { valid: false, error: error.message || "Validation failed", unsupported: false };
     }
   }
@@ -333,7 +333,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (SPECIALTY_VALIDATORS[provider]) {
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
-    } catch (error) {
+    } catch (error: any) {
       return { valid: false, error: error.message || "Validation failed", unsupported: false };
     }
   }
@@ -385,7 +385,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
 
     return { valid: false, error: "Provider validation not supported", unsupported: true };
-  } catch (error) {
+  } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed", unsupported: false };
   }
 }

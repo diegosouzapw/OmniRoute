@@ -23,8 +23,8 @@ function supportedTypesMessage() {
   return isSocks5Enabled() ? "http, https, or socks5" : "http or https";
 }
 
-function createInvalidProxyError(message) {
-  const error = new Error(message);
+function createInvalidProxyError(message: string) {
+  const error: any = new Error(message);
   error.status = 400;
   error.type = "invalid_request";
   return error;

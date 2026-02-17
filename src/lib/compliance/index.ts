@@ -52,7 +52,7 @@ export function initAuditLog() {
  * @param {Object|string} [entry.details] - Additional details
  * @param {string} [entry.ipAddress] - Client IP
  */
-export function logAuditEvent(entry) {
+export function logAuditEvent(entry: { action: string; actor?: string; target?: string; details?: unknown; ipAddress?: string }) {
   const db = getDb();
   if (!db) return;
 
@@ -83,12 +83,12 @@ export function logAuditEvent(entry) {
  * @param {number} [filter.offset=0] - Pagination offset
  * @returns {Array<{ id: number, timestamp: string, action: string, actor: string, target: string, details: any, ip_address: string }>}
  */
-export function getAuditLog(filter = {}) {
+export function getAuditLog(filter: { action?: string; actor?: string; limit?: number; offset?: number } = {}) {
   const db = getDb();
   if (!db) return [];
 
-  const conditions = [];
-  const params = [];
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
 
   if (filter.action) {
     conditions.push("action = ?");
@@ -125,7 +125,7 @@ const noLogKeys = new Set();
  * @param {string} apiKeyId
  * @param {boolean} noLog
  */
-export function setNoLog(apiKeyId, noLog) {
+export function setNoLog(apiKeyId: string, noLog: boolean) {
   if (noLog) {
     noLogKeys.add(apiKeyId);
   } else {
@@ -139,7 +139,7 @@ export function setNoLog(apiKeyId, noLog) {
  * @param {string} apiKeyId
  * @returns {boolean}
  */
-export function isNoLog(apiKeyId) {
+export function isNoLog(apiKeyId: string) {
   return noLogKeys.has(apiKeyId);
 }
 

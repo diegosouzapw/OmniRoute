@@ -114,7 +114,7 @@ export default function SystemStorageTab() {
     if (!isoString) return null;
     const now = new Date();
     const then = new Date(isoString);
-    const diffMs = now - then;
+    const diffMs = (now as any) - (then as any);
     const diffMin = Math.floor(diffMs / 60000);
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;

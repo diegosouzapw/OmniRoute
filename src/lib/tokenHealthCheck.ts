@@ -148,7 +148,7 @@ async function checkConnection(conn) {
 
   if (result && result.accessToken) {
     // Token refreshed successfully — update DB
-    const updateData = {
+    const updateData: any = {
       accessToken: result.accessToken,
       lastHealthCheckAt: now,
       testStatus: "active",

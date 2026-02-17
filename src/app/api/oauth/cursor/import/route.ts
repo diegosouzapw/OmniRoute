@@ -12,7 +12,7 @@ import { syncToCloud } from "@/lib/cloudSync";
  * - accessToken: string - Access token from cursorAuth/accessToken
  * - machineId: string - Machine ID from storage.serviceMachineId
  */
-export async function POST(request) {
+export async function POST(request: any) {
   try {
     const { accessToken, machineId } = await request.json();
 
@@ -33,7 +33,7 @@ export async function POST(request) {
     const userInfo = cursorService.extractUserInfo(tokenData.accessToken);
 
     // Save to database
-    const connection = await createProviderConnection({
+    const connection: any = await createProviderConnection({
       provider: "cursor",
       authType: "oauth",
       accessToken: tokenData.accessToken,
@@ -60,7 +60,7 @@ export async function POST(request) {
         email: connection.email,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("Cursor import token error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

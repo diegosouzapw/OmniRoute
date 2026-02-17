@@ -7,10 +7,10 @@ import { URL } from "url";
  * @param {number} fixedPort - Optional fixed port number (default: random)
  * @returns {Promise<{server: http.Server, port: number, close: Function}>}
  */
-export function startLocalServer(onCallback, fixedPort = null) {
+export function startLocalServer(onCallback: (params: Record<string, string>) => void, fixedPort: number | null = null): Promise<{ server: any; port: number; close: () => void }> {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
-      const url = new URL(req.url, `http://localhost`);
+      const url = new URL(req.url || "/", `http://localhost`);
 
       if (url.pathname === "/callback" || url.pathname === "/auth/callback") {
         const params = Object.fromEntries(url.searchParams);
@@ -67,15 +67,15 @@ export function startLocalServer(onCallback, fixedPort = null) {
     // Listen on fixed port or find available port
     const portToUse = fixedPort || 0;
     server.listen(portToUse, "127.0.0.1", () => {
-      const { port } = server.address();
+      const addr = server.address() as { port: number };
       resolve({
         server,
-        port,
+        port: addr.port,
         close: () => server.close(),
       });
     });
 
-    server.on("error", (err) => {
+    server.on("error", (err: any) => {
       if (err.code === "EADDRINUSE" && fixedPort) {
         reject(
           new Error(
@@ -105,7 +105,7 @@ export function waitForCallback(timeoutMs = 300000) {
       }
     }, timeoutMs);
 
-    const onCallback = (params) => {
+    const onCallback = (params: Record<string, string>) => {
       if (!resolved) {
         resolved = true;
         clearTimeout(timeout);
@@ -114,6 +114,6 @@ export function waitForCallback(timeoutMs = 300000) {
     };
 
     // Return the callback function
-    resolve.__onCallback = onCallback;
+    (resolve as any).__onCallback = onCallback;
   });
 }

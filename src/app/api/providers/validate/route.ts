@@ -19,7 +19,7 @@ export async function POST(request) {
     let providerSpecificData = {};
 
     if (isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider)) {
-      const node = await getProviderNodeById(provider);
+      const node: any = await getProviderNodeById(provider);
       if (!node) {
         const typeName = isOpenAICompatibleProvider(provider) ? "OpenAI" : "Anthropic";
         return NextResponse.json(
