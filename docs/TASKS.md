@@ -63,23 +63,23 @@
 
 ### Settings Page
 
-- [ ] `settings/page.js` — Adicionar tab "Resilience" (icon: `health_and_safety`) entre Routing e Pricing
+- [ ] `settings/page.tsx` — Adicionar tab "Resilience" (icon: `health_and_safety`) entre Routing e Pricing
 
 ### Novos Componentes
 
-- [ ] Criar `ResilienceTab.js` — Layout com 3 cards
-- [ ] Criar `ProviderProfilesCard.js` — Toggle OAuth/API Key, inputs para cooldowns
-- [ ] Criar `CircuitBreakerCard.js` — Status real-time per-provider, auto-refresh 5s, botão reset
-- [ ] Criar `RateLimitOverviewCard.js` — Tabela providers × accounts × cooldown
+- [ ] Criar `ResilienceTab.tsx` — Layout com 3 cards
+- [ ] Criar `ProviderProfilesCard.tsx` — Toggle OAuth/API Key, inputs para cooldowns
+- [ ] Criar `CircuitBreakerCard.tsx` — Status real-time per-provider, auto-refresh 5s, botão reset
+- [ ] Criar `RateLimitOverviewCard.tsx` — Tabela providers × accounts × cooldown
 
 ### API Routes
 
-- [ ] Criar `api/resilience/route.js` — GET (estado completo) + PATCH (salvar perfis)
-- [ ] Criar `api/resilience/reset/route.js` — POST (resetar breakers + cooldowns)
+- [ ] Criar `api/resilience/route.ts` — GET (estado completo) + PATCH (salvar perfis)
+- [ ] Criar `api/resilience/reset/route.ts` — POST (resetar breakers + cooldowns)
 
 ### Migração
 
-- [ ] Avaliar se `PoliciesPanel.js` pode ser removido ou simplificado após nova aba
+- [ ] Avaliar se `PoliciesPanel.tsx` pode ser removido ou simplificado após nova aba
 
 ---
 

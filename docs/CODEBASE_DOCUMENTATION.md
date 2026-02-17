@@ -450,7 +450,7 @@ logs/
 | Directory     | Purpose                                                                |
 | ------------- | ---------------------------------------------------------------------- |
 | `src/app/`    | Web UI, API routes, Express middleware, OAuth callback handlers        |
-| `src/lib/`    | Database access (`localDb.js`, `usageDb.js`), authentication, shared   |
+| `src/lib/`    | Database access (`localDb.ts`, `usageDb.ts`), authentication, shared   |
 | `src/mitm/`   | Man-in-the-middle proxy utilities for intercepting provider traffic    |
 | `src/models/` | Database model definitions                                             |
 | `src/shared/` | Wrappers around open-sse functions (provider, stream, error, etc.)     |

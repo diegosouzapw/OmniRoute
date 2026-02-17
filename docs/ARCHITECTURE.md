@@ -1,6 +1,6 @@
 # OmniRoute Architecture
 
-_Last updated: 2026-02-15_
+_Last updated: 2026-02-17_
 
 ## Executive Summary
 
@@ -120,18 +120,18 @@ Main directories:
 
 Important compatibility routes:
 
-- `src/app/api/v1/chat/completions/route.js`
-- `src/app/api/v1/messages/route.js`
-- `src/app/api/v1/responses/route.js`
-- `src/app/api/v1/models/route.js` — includes custom models with `custom: true`
-- `src/app/api/v1/embeddings/route.js` — embedding generation (6 providers)
-- `src/app/api/v1/images/generations/route.js` — image generation (4+ providers incl. Antigravity/Nebius)
-- `src/app/api/v1/messages/count_tokens/route.js`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.js` — dedicated per-provider chat
-- `src/app/api/v1/providers/[provider]/embeddings/route.js` — dedicated per-provider embeddings
-- `src/app/api/v1/providers/[provider]/images/generations/route.js` — dedicated per-provider images
-- `src/app/api/v1beta/models/route.js`
-- `src/app/api/v1beta/models/[...path]/route.js`
+- `src/app/api/v1/chat/completions/route.ts`
+- `src/app/api/v1/messages/route.ts`
+- `src/app/api/v1/responses/route.ts`
+- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
+- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
+- `src/app/api/v1/messages/count_tokens/route.ts`
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
+- `src/app/api/v1beta/models/route.ts`
+- `src/app/api/v1beta/models/[...path]/route.ts`
 
 Management domains:
 
@@ -166,11 +166,11 @@ Management domains:
 
 Main flow modules:
 
-- Entry: `src/sse/handlers/chat.js`
+- Entry: `src/sse/handlers/chat.ts`
 - Core orchestration: `open-sse/handlers/chatCore.js`
 - Provider execution adapters: `open-sse/executors/*`
 - Format detection/provider config: `open-sse/services/provider.js`
-- Model parse/resolve: `src/sse/services/model.js`, `open-sse/services/model.js`
+- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.js`
 - Account fallback logic: `open-sse/services/accountFallback.js`
 - Translation registry: `open-sse/translator/index.js`
 - Stream transformations: `open-sse/utils/stream.js`, `open-sse/utils/streamHandler.js`
@@ -196,59 +196,59 @@ Services (business logic):
 
 Domain layer modules:
 
-- Model availability: `src/lib/domain/modelAvailability.js`
-- Cost rules/budgets: `src/lib/domain/costRules.js`
-- Fallback policy: `src/lib/domain/fallbackPolicy.js`
-- Combo resolver: `src/lib/domain/comboResolver.js`
-- Lockout policy: `src/lib/domain/lockoutPolicy.js`
-- Policy engine: `src/domain/policyEngine.js` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.js`
-- Request ID: `src/lib/domain/requestId.js`
-- Fetch timeout: `src/lib/domain/fetchTimeout.js`
-- Request telemetry: `src/lib/domain/requestTelemetry.js`
-- Compliance/audit: `src/lib/domain/compliance/index.js`
-- Eval runner: `src/lib/domain/evalRunner.js`
-- Domain state persistence: `src/lib/db/domainState.js` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
+- Model availability: `src/lib/domain/modelAvailability.ts`
+- Cost rules/budgets: `src/lib/domain/costRules.ts`
+- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
+- Combo resolver: `src/lib/domain/comboResolver.ts`
+- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
+- Error codes catalog: `src/lib/domain/errorCodes.ts`
+- Request ID: `src/lib/domain/requestId.ts`
+- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
+- Request telemetry: `src/lib/domain/requestTelemetry.ts`
+- Compliance/audit: `src/lib/domain/compliance/index.ts`
+- Eval runner: `src/lib/domain/evalRunner.ts`
+- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
 OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
 
-- Registry index: `src/lib/oauth/providers/index.js`
-- Individual providers: `claude.js`, `codex.js`, `gemini.js`, `antigravity.js`, `iflow.js`, `qwen.js`, `kimi-coding.js`, `github.js`, `kiro.js`, `cursor.js`, `kilocode.js`, `cline.js`
-- Thin wrapper: `src/lib/oauth/providers.js` — re-exports from individual modules
+- Registry index: `src/lib/oauth/providers/index.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
 ## 3) Persistence Layer
 
 Primary state DB:
 
-- `src/lib/localDb.js`
+- `src/lib/localDb.ts`
 - file: `${DATA_DIR}/db.json` (or `$XDG_CONFIG_HOME/omniroute/db.json` when set, else `~/.omniroute/db.json`)
 - entities: providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
 Usage DB:
 
-- `src/lib/usageDb.js`
+- `src/lib/usageDb.ts`
 - files: `${DATA_DIR}/usage.json`, `${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`
 - follows same base directory policy as `localDb` (`DATA_DIR`, then `XDG_CONFIG_HOME/omniroute` when set)
-- decomposed into focused sub-modules: `migrations.js`, `usageHistory.js`, `costCalculator.js`, `usageStats.js`, `callLogs.js`
+- decomposed into focused sub-modules: `migrations.ts`, `usageHistory.ts`, `costCalculator.ts`, `usageStats.ts`, `callLogs.ts`
 
 Domain State DB (SQLite):
 
-- `src/lib/db/domainState.js` — CRUD operations for domain state
-- Tables (created in `src/lib/db/core.js`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- `src/lib/db/domainState.ts` — CRUD operations for domain state
+- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
 - Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
 
 ## 4) Auth + Security Surfaces
 
-- Dashboard cookie auth: `src/proxy.js`, `src/app/api/auth/login/route.js`
-- API key generation/verification: `src/shared/utils/apiKey.js`
+- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- API key generation/verification: `src/shared/utils/apiKey.ts`
 - Provider secrets persisted in `providerConnections` entries
 - Outbound proxy support via `open-sse/utils/proxyFetch.js` (env vars) and `open-sse/utils/networkProxy.js` (configurable per-provider or global)
 
 ## 5) Cloud Sync
 
-- Scheduler init: `src/lib/initCloudSync.js`, `src/shared/services/initializeCloudSync.js`
-- Periodic task: `src/shared/services/cloudSyncScheduler.js`
-- Control route: `src/app/api/sync/cloud/route.js`
+- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`
+- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
+- Control route: `src/app/api/sync/cloud/route.ts`
 
 ## Request Lifecycle (`/v1/chat/completions`)
 
@@ -559,7 +559,7 @@ flowchart LR
 
 ### Routing and Execution Core
 
-- `src/sse/handlers/chat.js`: request parse, combo handling, account selection loop
+- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
 - `open-sse/handlers/chatCore.js`: translation, executor dispatch, retry/refresh handling, stream setup
 - `open-sse/executors/*`: provider-specific network and format behavior
 
@@ -572,8 +572,8 @@ flowchart LR
 
 ### Persistence
 
-- `src/lib/localDb.js`: persistent config/state
-- `src/lib/usageDb.js`: usage history and rolling request logs
+- `src/lib/localDb.ts`: persistent config/state
+- `src/lib/usageDb.ts`: usage history and rolling request logs
 
 ## Provider Executor Coverage (Strategy Pattern)
 
@@ -648,7 +648,7 @@ Translations are selected dynamically based on source payload shape and provider
 
 | Endpoint                                           | Format             | Handler                                              |
 | -------------------------------------------------- | ------------------ | ---------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.js`                           |
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                           |
 | `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                         |
 | `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.js`              |
 | `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.js`                    |
@@ -714,7 +714,7 @@ Files are written to `<repo>/logs/<session>/` for each request session.
 
 Runtime visibility sources:
 
-- console logs from `src/sse/utils/logger.js`
+- console logs from `src/sse/utils/logger.ts`
 - per-request usage aggregates in `usage.json`
 - textual request status log in `log.txt`
 - optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
@@ -751,7 +751,7 @@ Environment variables actively used by code:
 4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
 6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive visualizations (bar charts, donut charts).
-7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:plan3`.
+7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:plan3`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
 
 ## Operational Verification Checklist
 

@@ -123,7 +123,7 @@ npm run lint
 npm run check
 ```
 
-Current test status: **320+ unit tests** covering:
+Current test status: **368+ unit tests** covering:
 
 - Provider translators and format conversion
 - Rate limiting, circuit breaker, and resilience
@@ -138,7 +138,7 @@ Current test status: **320+ unit tests** covering:
 
 - **ESLint** — Run `npm run lint` before committing
 - **Prettier** — Auto-formatted via `lint-staged` on commit
-- **JSDoc** — Document public functions with `@param`, `@returns`, `@throws`
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; document with TSDoc (`@param`, `@returns`, `@throws`)
 - **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
 - **Zod validation** — Use Zod schemas for API input validation
 
@@ -147,34 +147,34 @@ Current test status: **320+ unit tests** covering:
 ## Project Structure
 
 ```
-src/
+src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js App Router
-│   ├── (dashboard)/        # Dashboard pages
-│   ├── api/                # API routes
-│   └── login/              # Auth pages
-├── domain/                 # Domain types and response helpers
-├── lib/                    # Core business logic
+│   ├── (dashboard)/        # Dashboard pages (.tsx)
+│   ├── api/                # API routes (.ts)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Domain types and response helpers (.ts)
+├── lib/                    # Core business logic (.ts)
 │   ├── db/                 # SQLite database layer
 │   ├── oauth/              # OAuth services per provider
-│   ├── cacheLayer.js       # LRU cache
-│   ├── semanticCache.js    # Semantic response cache
-│   ├── idempotencyLayer.js # Request deduplication
-│   └── localDb.js          # LowDB (JSON) storage
+│   ├── cacheLayer.ts       # LRU cache
+│   ├── semanticCache.ts    # Semantic response cache
+│   ├── idempotencyLayer.ts # Request deduplication
+│   └── localDb.ts          # LowDB (JSON) storage
 ├── shared/
-│   ├── components/         # React components
+│   ├── components/         # React components (.tsx)
 │   ├── middleware/          # Correlation IDs, etc.
 │   ├── utils/              # Circuit breaker, sanitizer, etc.
 │   └── validation/         # Zod schemas
-└── sse/                    # SSE chat handlers
+└── sse/                    # SSE chat handlers (.ts)
 
-open-sse/                   # @omniroute/open-sse workspace
+open-sse/                   # @omniroute/open-sse workspace (JavaScript)
 ├── handlers/               # chatCore.js — main request handler
 ├── services/               # Rate limit, fallback
 ├── translators/            # Format converters (OpenAI ↔ Claude ↔ Gemini)
 └── utils/                  # Progress tracker, stream helpers
 
 tests/
-├── unit/                   # Node.js test runner
+├── unit/                   # Node.js test runner (.test.mjs)
 └── e2e/                    # Playwright tests
 
 docs/                       # Documentation
@@ -191,10 +191,10 @@ docs/                       # Documentation
 
 ### Step 1: OAuth Service (if using OAuth)
 
-Create `src/lib/oauth/services/your-provider.js` extending `OAuthService`:
+Create `src/lib/oauth/services/your-provider.ts` extending `OAuthService`:
 
-```javascript
-import { OAuthService } from "../OAuthService.js";
+```typescript
+import { OAuthService } from "../OAuthService";
 
 export class YourProviderService extends OAuthService {
   constructor() {
@@ -211,16 +211,16 @@ export class YourProviderService extends OAuthService {
 
 ### Step 2: Register Provider
 
-Add to `src/lib/oauth/providers.js`:
+Add to `src/lib/oauth/providers.ts`:
 
-```javascript
-import { YourProviderService } from "./services/your-provider.js";
+```typescript
+import { YourProviderService } from "./services/your-provider";
 // Add to the providers map
 ```
 
 ### Step 3: Add Constants
 
-Add provider constants in `src/lib/providerConstants.js`:
+Add provider constants in `src/lib/providerConstants.ts`:
 
 - Provider prefix (e.g., `yp/`)
 - Default models
@@ -232,7 +232,7 @@ Create translator in `open-sse/translators/` if the provider uses a custom API f
 
 ### Step 5: Add Timeout
 
-Add request timeout configuration in `src/shared/utils/requestTimeout.js`.
+Add request timeout configuration in `src/shared/utils/requestTimeout.ts`.
 
 ### Step 6: Add Tests
 
@@ -249,7 +249,7 @@ Write unit tests in `tests/unit/` covering at minimum:
 - [ ] Tests pass (`npm test`)
 - [ ] Linting passes (`npm run lint`)
 - [ ] Build succeeds (`npm run build`)
-- [ ] JSDoc added for new public functions
+- [ ] TypeScript types added for new public functions and interfaces
 - [ ] No hardcoded secrets or fallback values
 - [ ] CHANGELOG updated (if user-facing change)
 - [ ] Documentation updated (if applicable)

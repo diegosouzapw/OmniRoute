@@ -8,6 +8,7 @@ Unified AI proxy/router — route any LLM through one endpoint. Multi-provider s
 ## Stack
 
 - **Runtime**: Next.js 16 (App Router), Node.js, ES Modules
+- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal package
 - **Styling**: Tailwind CSS v4
@@ -21,15 +22,15 @@ All persistence uses SQLite through domain-specific modules:
 
 | Module         | Responsibility                             |
 | -------------- | ------------------------------------------ |
-| `core.js`      | SQLite engine, migrations, WAL, encryption |
-| `providers.js` | Provider connections & nodes               |
-| `models.js`    | Model aliases, MITM aliases, custom models |
-| `combos.js`    | Combo configurations                       |
-| `apiKeys.js`   | API key management & validation            |
-| `settings.js`  | Settings, pricing, proxy config            |
-| `backup.js`    | Backup / restore operations                |
+| `core.ts`      | SQLite engine, migrations, WAL, encryption |
+| `providers.ts` | Provider connections & nodes               |
+| `models.ts`    | Model aliases, MITM aliases, custom models |
+| `combos.ts`    | Combo configurations                       |
+| `apiKeys.ts`   | API key management & validation            |
+| `settings.ts`  | Settings, pricing, proxy config            |
+| `backup.ts`    | Backup / restore operations                |
 
-`src/lib/localDb.js` is a **re-export layer only** — all 27+ consumers import from it,
+`src/lib/localDb.ts` is a **re-export layer only** — all 27+ consumers import from it,
 but the real logic lives in `src/lib/db/`.
 
 ### Request Pipeline (`open-sse/`)
@@ -49,25 +50,25 @@ Translation between provider formats: `open-sse/translator/`
 ### OAuth & Tokens (`src/lib/oauth/`)
 
 18 modules handling OAuth flows, token refresh, and provider credentials.
-Default credentials are hardcoded in `src/lib/oauth/constants/oauth.js`,
+Default credentials are hardcoded in `src/lib/oauth/constants/oauth.ts`,
 overridable via env vars or `data/provider-credentials.json`.
 
 ### Supporting Systems
 
 | System                     | Location                                          |
 | -------------------------- | ------------------------------------------------- |
-| Usage tracking & analytics | `src/lib/usageDb.js`, `src/lib/usageAnalytics.js` |
-| Token health checks        | `src/lib/tokenHealthCheck.js`                     |
-| Cloud sync                 | `src/lib/cloudSync.js`                            |
-| Proxy logging              | `src/lib/proxyLogger.js`                          |
-| Data paths resolution      | `src/lib/dataPaths.js`                            |
+| Usage tracking & analytics | `src/lib/usageDb.ts`, `src/lib/usageAnalytics.ts` |
+| Token health checks        | `src/lib/tokenHealthCheck.ts`                     |
+| Cloud sync                 | `src/lib/cloudSync.ts`                            |
+| Proxy logging              | `src/lib/proxyLogger.ts`                          |
+| Data paths resolution      | `src/lib/dataPaths.ts`                            |
 
 ### Adding a New Provider
 
-1. Register in `src/shared/constants/providers.js`
+1. Register in `src/shared/constants/providers.ts`
 2. Add executor in `open-sse/executors/`
 3. Add translator rules in `open-sse/translator/` (if non-OpenAI format)
-4. Add OAuth config in `src/lib/oauth/constants/oauth.js` (if OAuth-based)
+4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` (if OAuth-based)
 
 ## Review Focus
 
@@ -83,7 +84,7 @@ overridable via env vars or `data/provider-credentials.json`.
 - DB operations go through `src/lib/db/` modules, never raw SQL in routes
 - Provider requests flow through `open-sse/handlers/`
 - Translations use `open-sse/translator/` modules
-- `localDb.js` is re-exports only — add new functions to the proper `db/*.js` module
+- `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module
 
 ### Code Quality
 

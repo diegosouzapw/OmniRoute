@@ -231,9 +231,9 @@ curl http://localhost:20128/api/evals/golden-set
 
 ### Custom Suites
 
-Register custom suites programmatically via `registerSuite()` in `src/lib/evals/evalRunner.js`:
+Register custom suites programmatically via `registerSuite()` in `src/lib/evals/evalRunner.ts`:
 
-```javascript
+```typescript
 registerSuite({
   id: "my-suite",
   name: "Custom Eval Suite",
@@ -254,11 +254,12 @@ registerSuite({
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
+- **Language**: TypeScript 5.9 (src/) + JavaScript (open-sse/)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state)
 - **Streaming**: Server-Sent Events (SSE)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
-- **Testing**: Node.js test runner (320+ unit tests)
+- **Testing**: Node.js test runner (368+ unit tests)
 - **CI/CD**: GitHub Actions (auto npm publish on release)
 - **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
