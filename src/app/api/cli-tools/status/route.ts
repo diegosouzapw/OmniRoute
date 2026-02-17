@@ -1,8 +1,48 @@
 "use server";
 
 import { NextResponse } from "next/server";
-import { getCliRuntimeStatus, CLI_TOOL_IDS } from "@/shared/services/cliRuntime";
+import fs from "fs/promises";
+import {
+  getCliRuntimeStatus,
+  CLI_TOOL_IDS,
+  getCliPrimaryConfigPath,
+} from "@/shared/services/cliRuntime";
 import { getAllCliToolLastConfigured } from "@/lib/db/cliToolState";
+
+// Check if a tool has OmniRoute configured by reading its config file directly
+// This replaces the expensive self-referential HTTP calls to /api/cli-tools/*-settings
+async function checkToolConfigStatus(toolId: string): Promise<string> {
+  try {
+    const configPath = getCliPrimaryConfigPath(toolId);
+    if (!configPath) return "unknown";
+
+    const content = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(content);
+
+    // Each tool stores OmniRoute config differently
+    switch (toolId) {
+      case "claude":
+        return config?.env?.ANTHROPIC_BASE_URL ? "configured" : "not_configured";
+      case "codex":
+        return config?.providers?.omniroute || config?.providers?.["openai-compatible"]
+          ? "configured"
+          : "not_configured";
+      case "droid":
+      case "openclaw":
+      case "cline":
+      case "kilo":
+        // Generic check: look for any OmniRoute-related URL in the config
+        const configStr = JSON.stringify(config).toLowerCase();
+        return configStr.includes("omniroute") || configStr.includes("20128")
+          ? "configured"
+          : "not_configured";
+      default:
+        return "unknown";
+    }
+  } catch {
+    return "not_configured";
+  }
+}
 
 /**
  * GET /api/cli-tools/status
@@ -13,6 +53,7 @@ export async function GET() {
   try {
     const statuses = {};
 
+    // Run all runtime checks in parallel
     await Promise.all(
       CLI_TOOL_IDS.map(async (toolId) => {
         try {
@@ -34,7 +75,7 @@ export async function GET() {
       })
     );
 
-    // Now fetch configStatus for the 6 tools that have settings endpoints
+    // Check config status for installed+runnable tools via direct file reads
     const settingsTools = ["claude", "codex", "droid", "openclaw", "cline", "kilo"];
 
     await Promise.all(
@@ -43,19 +84,7 @@ export async function GET() {
           statuses[toolId].configStatus = "not_installed";
           return;
         }
-        try {
-          const settingsRes = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:20128"}/api/cli-tools/${toolId}-settings`
-          );
-          if (settingsRes.ok) {
-            const data = await settingsRes.json();
-            statuses[toolId].configStatus = data.hasOmniRoute ? "configured" : "not_configured";
-          } else {
-            statuses[toolId].configStatus = "unknown";
-          }
-        } catch {
-          statuses[toolId].configStatus = "unknown";
-        }
+        statuses[toolId].configStatus = await checkToolConfigStatus(toolId);
       })
     );
 
