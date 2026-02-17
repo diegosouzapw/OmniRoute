@@ -2,6 +2,16 @@
 
 import { cn } from "@/shared/utils/cn";
 
+interface ToggleProps {
+  checked?: boolean;
+  onChange?: (checked: boolean) => void;
+  label?: string;
+  description?: string;
+  disabled?: boolean;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
 export default function Toggle({
   checked = false,
   onChange,
@@ -10,7 +20,7 @@ export default function Toggle({
   disabled = false,
   size = "md",
   className,
-}) {
+}: ToggleProps) {
   const sizes = {
     sm: {
       track: "w-8 h-4",

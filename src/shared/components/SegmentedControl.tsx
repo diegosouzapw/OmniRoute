@@ -2,6 +2,21 @@
 
 import { cn } from "@/shared/utils/cn";
 
+interface SegmentedOption {
+  value: string;
+  label: string;
+  icon?: string;
+}
+
+interface SegmentedControlProps {
+  options?: SegmentedOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+  "aria-label"?: string;
+}
+
 export default function SegmentedControl({
   options = [],
   value,
@@ -9,7 +24,7 @@ export default function SegmentedControl({
   size = "md",
   className,
   "aria-label": ariaLabel,
-}) {
+}: SegmentedControlProps) {
   const sizes = {
     sm: "h-7 text-xs",
     md: "h-9 text-sm",

@@ -264,7 +264,7 @@ export default function OpenClawToolCard({
               className="size-8 object-contain rounded-lg"
               sizes="32px"
               onError={(e) => {
-                e.target.style.display = "none";
+                (e.currentTarget as HTMLElement).style.display = "none";
               }}
             />
           </div>

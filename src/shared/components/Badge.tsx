@@ -17,6 +17,15 @@ const sizes = {
   lg: "px-3 py-1.5 text-sm",
 };
 
+interface BadgeProps {
+  children?: React.ReactNode;
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+  dot?: boolean;
+  icon?: React.ReactNode;
+  className?: string;
+}
+
 export default function Badge({
   children,
   variant = "default",
@@ -24,7 +33,7 @@ export default function Badge({
   dot = false,
   icon,
   className,
-}) {
+}: BadgeProps) {
   return (
     <span
       className={cn(

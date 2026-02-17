@@ -11,16 +11,16 @@
 
 import { useState, useRef, useCallback } from "react";
 
-/**
- * @param {object} props
- * @param {React.ReactNode} props.children - Element to wrap
- * @param {string} props.content - Tooltip text
- * @param {"top"|"bottom"|"left"|"right"} [props.position="top"] - Position
- * @param {string} [props.className] - Additional className for wrapper
- */
-export default function Tooltip({ children, content, position = "top", className = "" }) {
+interface TooltipProps {
+  children: React.ReactNode;
+  content?: string;
+  position?: "top" | "bottom" | "left" | "right";
+  className?: string;
+}
+
+export default function Tooltip({ children, content, position = "top", className = "" }: TooltipProps) {
   const [visible, setVisible] = useState(false);
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = useCallback(() => {
     clearTimeout(timeoutRef.current);

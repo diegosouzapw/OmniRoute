@@ -632,12 +632,12 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     e.dataTransfer.setData("text/plain", index.toString());
     // Make drag image slightly transparent
     if (e.target) {
-      setTimeout(() => (e.target.style.opacity = "0.5"), 0);
+      setTimeout(() => ((e.currentTarget as HTMLElement).style.opacity = "0.5"), 0);
     }
   };
 
   const handleDragEnd = (e) => {
-    if (e.target) e.target.style.opacity = "1";
+    if (e.target) (e.currentTarget as HTMLElement).style.opacity = "1";
     setDragIndex(null);
     setDragOverIndex(null);
   };

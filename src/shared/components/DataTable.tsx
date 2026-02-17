@@ -20,6 +20,30 @@
  *   />
  */
 
+interface DataTableColumn {
+  key: string;
+  label: string;
+  maxWidth?: string;
+}
+
+interface DataTableRow {
+  id?: string | number;
+  [key: string]: unknown;
+}
+
+interface DataTableProps {
+  columns?: DataTableColumn[];
+  data?: DataTableRow[];
+  renderCell: (row: DataTableRow, column: DataTableColumn) => React.ReactNode;
+  renderHeader?: (column: DataTableColumn) => React.ReactNode;
+  onRowClick?: (row: DataTableRow) => void;
+  selectedId?: string | number;
+  loading?: boolean;
+  maxHeight?: string;
+  emptyIcon?: string;
+  emptyMessage?: string;
+}
+
 export default function DataTable({
   columns = [],
   data = [],
@@ -31,7 +55,7 @@ export default function DataTable({
   maxHeight = "calc(100vh - 320px)",
   emptyIcon = "📭",
   emptyMessage = "No data found",
-}) {
+}: DataTableProps) {
   if (loading) {
     return (
       <div

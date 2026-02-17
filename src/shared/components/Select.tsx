@@ -3,6 +3,20 @@
 import { useId } from "react";
 import { cn } from "@/shared/utils/cn";
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+  label?: React.ReactNode;
+  options?: SelectOption[];
+  placeholder?: string;
+  error?: React.ReactNode;
+  hint?: React.ReactNode;
+  selectClassName?: string;
+}
+
 export default function Select({
   label,
   options = [],
@@ -17,7 +31,7 @@ export default function Select({
   selectClassName,
   id: externalId,
   ...props
-}) {
+}: SelectProps) {
   const generatedId = useId();
   const selectId = externalId || generatedId;
   const errorId = error ? `${selectId}-error` : undefined;

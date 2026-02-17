@@ -16,13 +16,21 @@
  *   />
  */
 
+interface EmptyStateProps {
+  icon?: string;
+  title?: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: (() => void) | null;
+}
+
 export default function EmptyState({
   icon = "📭",
   title = "Nothing here yet",
   description = "",
   actionLabel = "",
   onAction = null,
-}) {
+}: EmptyStateProps) {
   return (
     <div
       style={{
@@ -87,12 +95,12 @@ export default function EmptyState({
             transition: "all 0.2s ease",
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = "rgba(99, 102, 241, 0.25)";
-            e.target.style.transform = "translateY(-1px)";
+            (e.currentTarget as HTMLElement).style.background = "rgba(99, 102, 241, 0.25)";
+            (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = "rgba(99, 102, 241, 0.15)";
-            e.target.style.transform = "translateY(0)";
+            (e.currentTarget as HTMLElement).style.background = "rgba(99, 102, 241, 0.15)";
+            (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
           }}
         >
           {actionLabel}

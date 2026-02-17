@@ -85,8 +85,8 @@ export default function Breadcrumbs() {
                 textDecoration: "none",
                 transition: "color 0.15s",
               }}
-              onMouseEnter={(e) => (e.target.style.color = "var(--accent, #818cf8)")}
-              onMouseLeave={(e) => (e.target.style.color = "var(--text-secondary, #888)")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--accent, #818cf8)")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary, #888)")}
             >
               {crumb.label}
             </Link>

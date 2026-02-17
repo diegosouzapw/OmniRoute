@@ -3,6 +3,14 @@
 import { useId } from "react";
 import { cn } from "@/shared/utils/cn";
 
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  label?: React.ReactNode;
+  error?: React.ReactNode;
+  hint?: React.ReactNode;
+  icon?: string;
+  inputClassName?: string;
+}
+
 export default function Input({
   label,
   type = "text",
@@ -18,7 +26,7 @@ export default function Input({
   inputClassName,
   id: externalId,
   ...props
-}) {
+}: InputProps) {
   const generatedId = useId();
   const inputId = externalId || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
