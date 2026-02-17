@@ -3,9 +3,9 @@
  * Converts Chat Completions to Codex Responses API format
  */
 
-import { handleChatCore } from "./chatCore.js";
-import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.js";
-import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.js";
+import { handleChatCore } from "./chatCore.ts";
+import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
+import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
 
 /**
  * Handle /v1/responses request

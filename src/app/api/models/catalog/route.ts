@@ -1,7 +1,7 @@
 import { getProviderConnections, getAllCustomModels } from "@/lib/localDb";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.js";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.js";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { AI_PROVIDERS, ALIAS_TO_ID } from "@/shared/constants/providers";
 
 /**

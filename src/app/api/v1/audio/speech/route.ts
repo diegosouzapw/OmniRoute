@@ -1,8 +1,8 @@
-import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.js";
+import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseSpeechModel } from "@omniroute/open-sse/config/audioRegistry.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+import { parseSpeechModel } from "@omniroute/open-sse/config/audioRegistry.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 
 /**
  * Handle CORS preflight

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.js";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getAllCustomModels, getPricing } from "@/lib/localDb";
 
 /**

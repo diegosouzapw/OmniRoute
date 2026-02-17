@@ -1,7 +1,7 @@
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { getMachineId } from "@/shared/utils/machine";
-import { getUsageForProvider } from "@omniroute/open-sse/services/usage.js";
-import { getExecutor } from "@omniroute/open-sse/executors/index.js";
+import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { syncToCloud } from "@/lib/cloudSync";
 
 /**

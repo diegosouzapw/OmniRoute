@@ -1,8 +1,8 @@
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.js";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.js";
+import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import * as log from "@/sse/utils/logger";
 
 /**

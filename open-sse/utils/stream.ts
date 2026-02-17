@@ -1,5 +1,5 @@
-import { translateResponse, initState } from "../translator/index.js";
-import { FORMATS } from "../translator/formats.js";
+import { translateResponse, initState } from "../translator/index.ts";
+import { FORMATS } from "../translator/formats.ts";
 import { trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
 import {
   extractUsage,
@@ -9,9 +9,9 @@ import {
   addBufferToUsage,
   filterUsageForFormat,
   COLORS,
-} from "./usageTracking.js";
-import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.js";
-import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.js";
+} from "./usageTracking.ts";
+import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
+import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 
 export { COLORS, formatSSE };
 

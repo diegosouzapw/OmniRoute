@@ -1,5 +1,5 @@
-import { PROVIDERS } from "../config/constants.js";
-import { getRegistryEntry } from "../config/providerRegistry.js";
+import { PROVIDERS } from "../config/constants.ts";
+import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 const OPENAI_COMPATIBLE_DEFAULTS = {

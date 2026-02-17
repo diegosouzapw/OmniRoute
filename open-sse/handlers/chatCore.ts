@@ -1,34 +1,34 @@
-import { detectFormat, getTargetFormat } from "../services/provider.js";
-import { translateRequest, needsTranslation } from "../translator/index.js";
-import { FORMATS } from "../translator/formats.js";
+import { detectFormat, getTargetFormat } from "../services/provider.ts";
+import { translateRequest, needsTranslation } from "../translator/index.ts";
+import { FORMATS } from "../translator/formats.ts";
 import {
   createSSETransformStreamWithLogger,
   createPassthroughStreamWithLogger,
   COLORS,
-} from "../utils/stream.js";
-import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.js";
-import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.js";
-import { refreshWithRetry } from "../services/tokenRefresh.js";
-import { createRequestLogger } from "../utils/requestLogger.js";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.js";
-import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.js";
-import { HTTP_STATUS } from "../config/constants.js";
-import { handleBypassRequest } from "../utils/bypassHandler.js";
+} from "../utils/stream.ts";
+import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
+import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
+import { refreshWithRetry } from "../services/tokenRefresh.ts";
+import { createRequestLogger } from "../utils/requestLogger.ts";
+import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
+import { HTTP_STATUS } from "../config/constants.ts";
+import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
   trackPendingRequest,
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
-import { getExecutor } from "../executors/index.js";
-import { translateNonStreamingResponse } from "./responseTranslator.js";
-import { extractUsageFromResponse } from "./usageExtractor.js";
-import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.js";
+import { getExecutor } from "../executors/index.ts";
+import { translateNonStreamingResponse } from "./responseTranslator.ts";
+import { extractUsageFromResponse } from "./usageExtractor.ts";
+import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.ts";
 import {
   withRateLimit,
   updateFromHeaders,
   initializeRateLimits,
-} from "../services/rateLimitManager.js";
+} from "../services/rateLimitManager.ts";
 import {
   generateSignature,
   getCachedResponse,
@@ -36,7 +36,7 @@ import {
   isCacheable,
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
-import { createProgressTransform, wantsProgress } from "../utils/progressTracker.js";
+import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
 
 /**
  * Core chat handler - shared between SSE and Worker

@@ -1,4 +1,4 @@
-import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.js";
+import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 
 /**
  * BaseExecutor - Base class for provider executors.

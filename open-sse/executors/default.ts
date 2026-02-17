@@ -1,6 +1,6 @@
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.js";
-import { getAccessToken } from "../services/tokenRefresh.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { getAccessToken } from "../services/tokenRefresh.ts";
 
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {

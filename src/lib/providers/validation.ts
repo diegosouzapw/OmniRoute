@@ -1,4 +1,4 @@
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.js";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,

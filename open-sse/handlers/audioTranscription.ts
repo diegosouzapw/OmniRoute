@@ -10,8 +10,8 @@
  * - AssemblyAI: async workflow (upload → submit → poll)
  */
 
-import { getTranscriptionProvider, parseTranscriptionModel } from "../config/audioRegistry.js";
-import { errorResponse } from "../utils/error.js";
+import { getTranscriptionProvider, parseTranscriptionModel } from "../config/audioRegistry.ts";
+import { errorResponse } from "../utils/error.ts";
 
 /**
  * Build auth header for a transcription provider

@@ -6,21 +6,21 @@ import {
   isValidApiKey,
 } from "../services/auth";
 import { getModelInfo, getCombo } from "../services/model";
-import { parseModel } from "@omniroute/open-sse/services/model.js";
-import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.js";
-import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.js";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.js";
-import { handleComboChat } from "@omniroute/open-sse/services/combo.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+import { parseModel } from "@omniroute/open-sse/services/model.ts";
+import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
+import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
+import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
-} from "@omniroute/open-sse/config/providerModels.js";
+} from "@omniroute/open-sse/config/providerModels.ts";
 import {
   runWithProxyContext,
   runWithTlsTracking,
   isTlsFingerprintActive,
-} from "@omniroute/open-sse/utils/proxyFetch.js";
+} from "@omniroute/open-sse/utils/proxyFetch.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh";
 import { getSettings, getCombos, getApiKeyMetadata } from "@/lib/localDb";

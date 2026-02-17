@@ -8,7 +8,7 @@ import {
   removeFromWhitelist,
   tempBanIP,
   removeTempBan,
-} from "@omniroute/open-sse/services/ipFilter.js";
+} from "@omniroute/open-sse/services/ipFilter.ts";
 
 export async function GET() {
   try {

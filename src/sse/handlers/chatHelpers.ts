@@ -12,11 +12,11 @@
  */
 
 import { getModelInfo } from "../services/model";
-import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.js";
+import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
-} from "@omniroute/open-sse/config/providerModels.js";
+} from "@omniroute/open-sse/config/providerModels.ts";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 // updateProviderCredentials is dynamically imported from ../services/auth when needed

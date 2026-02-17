@@ -1,6 +1,6 @@
-import { BaseExecutor } from "./base.js";
-import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.js";
-import { PROVIDERS } from "../config/constants.js";
+import { BaseExecutor } from "./base.ts";
+import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
+import { PROVIDERS } from "../config/constants.ts";
 
 /**
  * Codex Executor - handles OpenAI Codex API (Responses API format)

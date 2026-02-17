@@ -3,13 +3,13 @@
  * Supports: priority, weighted, round-robin, random, least-used, and cost-optimized strategies
  */
 
-import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.js";
-import { unavailableResponse } from "../utils/error.js";
-import { recordComboRequest, getComboMetrics } from "./comboMetrics.js";
-import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.js";
-import * as semaphore from "./rateLimitSemaphore.js";
+import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
+import { unavailableResponse } from "../utils/error.ts";
+import { recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
+import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
+import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
-import { parseModel } from "./model.js";
+import { parseModel } from "./model.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];

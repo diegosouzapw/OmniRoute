@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 
 const MAX_RETRY_AFTER_MS = 10000;
 

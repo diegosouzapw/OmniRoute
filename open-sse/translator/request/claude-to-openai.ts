@@ -1,6 +1,6 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
-import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
+import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 
 // Convert Claude request to OpenAI format
 export function claudeToOpenAIRequest(model, body, stream) {

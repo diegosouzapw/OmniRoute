@@ -5,8 +5,8 @@
  * Routes to the appropriate provider based on the model prefix or lookup.
  */
 
-import { getRerankProvider, parseRerankModel } from "../config/rerankRegistry.js";
-import { errorResponse } from "../utils/error.js";
+import { getRerankProvider, parseRerankModel } from "../config/rerankRegistry.ts";
+import { errorResponse } from "../utils/error.ts";
 
 /**
  * Build authorization header for a rerank provider

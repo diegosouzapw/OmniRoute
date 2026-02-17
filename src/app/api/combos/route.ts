@@ -3,7 +3,7 @@ import { getCombos, createCombo, getComboByName, isCloudEnabled } from "@/lib/lo
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createComboSchema, validateBody } from "@/shared/validation/schemas";
-import { validateComboDAG } from "@omniroute/open-sse/services/combo.js";
+import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 
 // GET /api/combos - Get all combos
 export async function GET() {

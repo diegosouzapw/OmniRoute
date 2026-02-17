@@ -1,5 +1,5 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
 
 // Create OpenAI chunk helper
 function createChunk(state, delta, finishReason = null) {

@@ -1,7 +1,7 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
-import { DEFAULT_SAFETY_SETTINGS, tryParseJSON } from "../helpers/geminiHelper.js";
-import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
+import { DEFAULT_SAFETY_SETTINGS, tryParseJSON } from "../helpers/geminiHelper.ts";
+import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 
 /**
  * Direct Claude → Gemini request translator.

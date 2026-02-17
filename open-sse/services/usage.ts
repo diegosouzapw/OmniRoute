@@ -2,7 +2,7 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { PROVIDERS } from "../config/constants.js";
+import { PROVIDERS } from "../config/constants.ts";
 
 // GitHub API config
 const GITHUB_CONFIG = {

@@ -1,4 +1,4 @@
-import { loadProviderCredentials } from "./credentialLoader.js";
+import { loadProviderCredentials } from "./credentialLoader.ts";
 
 // Timeout for non-streaming fetch requests (ms). Prevents stalled connections.
 export const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "120000", 10);
@@ -9,7 +9,7 @@ export const STREAM_IDLE_TIMEOUT_MS = parseInt(process.env.STREAM_IDLE_TIMEOUT_M
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
 // Use provider-credentials.json or env vars to override in production.
-import { generateLegacyProviders } from "./providerRegistry.js";
+import { generateLegacyProviders } from "./providerRegistry.ts";
 
 export const PROVIDERS = generateLegacyProviders();
 

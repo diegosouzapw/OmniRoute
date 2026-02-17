@@ -11,7 +11,7 @@
  * expects its native format and normalization would lose format-specific metadata.
  */
 
-import { FORMATS } from "../translator/formats.js";
+import { FORMATS } from "../translator/formats.ts";
 
 // Parse SSE data line
 export function parseSSELine(line) {

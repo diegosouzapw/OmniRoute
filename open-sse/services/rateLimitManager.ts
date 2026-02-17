@@ -9,9 +9,9 @@
  */
 
 import Bottleneck from "bottleneck";
-import { parseRetryAfterFromBody, lockModel } from "./accountFallback.js";
-import { getProviderCategory } from "../config/providerRegistry.js";
-import { DEFAULT_API_LIMITS } from "../config/constants.js";
+import { parseRetryAfterFromBody, lockModel } from "./accountFallback.ts";
+import { getProviderCategory } from "../config/providerRegistry.ts";
+import { DEFAULT_API_LIMITS } from "../config/constants.ts";
 
 // Store limiters keyed by "provider:connectionId" (and optionally ":model")
 const limiters = new Map();

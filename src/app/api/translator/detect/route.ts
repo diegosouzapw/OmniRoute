@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { detectFormat } from "@omniroute/open-sse/services/provider.js";
+import { detectFormat } from "@omniroute/open-sse/services/provider.ts";
 
 /**
  * POST /api/translator/detect

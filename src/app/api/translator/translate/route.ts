@@ -4,9 +4,9 @@ import {
   getTargetFormat,
   buildProviderUrl,
   buildProviderHeaders,
-} from "@omniroute/open-sse/services/provider.js";
-import { translateRequest } from "@omniroute/open-sse/translator/index.js";
-import { FORMATS } from "@omniroute/open-sse/translator/formats.js";
+} from "@omniroute/open-sse/services/provider.ts";
+import { translateRequest } from "@omniroute/open-sse/translator/index.ts";
+import { FORMATS } from "@omniroute/open-sse/translator/formats.ts";
 import { getProviderConnections } from "@/lib/localDb";
 
 export async function POST(request) {

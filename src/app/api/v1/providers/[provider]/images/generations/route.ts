@@ -1,8 +1,8 @@
-import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.js";
+import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 

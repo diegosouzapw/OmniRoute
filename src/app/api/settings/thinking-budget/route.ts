@@ -4,7 +4,7 @@ import {
   setThinkingBudgetConfig,
   getThinkingBudgetConfig,
   ThinkingMode,
-} from "@omniroute/open-sse/services/thinkingBudget.js";
+} from "@omniroute/open-sse/services/thinkingBudget.ts";
 
 export async function GET() {
   try {

@@ -3,7 +3,7 @@
  */
 
 import { saveRequestUsage, appendRequestLog } from "@/lib/usageDb";
-import { FORMATS } from "../translator/formats.js";
+import { FORMATS } from "../translator/formats.ts";
 
 // ANSI color codes
 export const COLORS = {

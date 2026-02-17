@@ -1,9 +1,9 @@
-import { FORMATS } from "./formats.js";
-import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.js";
-import { prepareClaudeRequest } from "./helpers/claudeHelper.js";
-import { filterToOpenAIFormat } from "./helpers/openaiHelper.js";
-import { normalizeThinkingConfig } from "../services/provider.js";
-import { applyThinkingBudget } from "../services/thinkingBudget.js";
+import { FORMATS } from "./formats.ts";
+import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.ts";
+import { prepareClaudeRequest } from "./helpers/claudeHelper.ts";
+import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import { normalizeThinkingConfig } from "../services/provider.ts";
+import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 
 // Registry for translators.
 // NOTE: translator modules import this file and call register() at module-load time.
@@ -88,24 +88,24 @@ export function register(from, to, requestFn, responseFn) {
 }
 
 // Translator modules self-register via register() on import
-import "./request/claude-to-openai.js";
-import "./request/openai-to-claude.js";
-import "./request/gemini-to-openai.js";
-import "./request/openai-to-gemini.js";
-import "./request/antigravity-to-openai.js";
-import "./request/openai-responses.js";
-import "./request/openai-to-kiro.js";
-import "./request/openai-to-cursor.js";
-import "./request/claude-to-gemini.js";
+import "./request/claude-to-openai.ts";
+import "./request/openai-to-claude.ts";
+import "./request/gemini-to-openai.ts";
+import "./request/openai-to-gemini.ts";
+import "./request/antigravity-to-openai.ts";
+import "./request/openai-responses.ts";
+import "./request/openai-to-kiro.ts";
+import "./request/openai-to-cursor.ts";
+import "./request/claude-to-gemini.ts";
 
-import "./response/claude-to-openai.js";
-import "./response/openai-to-claude.js";
-import "./response/gemini-to-openai.js";
-import "./response/gemini-to-claude.js";
-import "./response/openai-to-antigravity.js";
-import "./response/openai-responses.js";
-import "./response/kiro-to-openai.js";
-import "./response/cursor-to-openai.js";
+import "./response/claude-to-openai.ts";
+import "./response/openai-to-claude.ts";
+import "./response/gemini-to-openai.ts";
+import "./response/gemini-to-claude.ts";
+import "./response/openai-to-antigravity.ts";
+import "./response/openai-responses.ts";
+import "./response/kiro-to-openai.ts";
+import "./response/cursor-to-openai.ts";
 
 // Translate request: source -> openai -> target
 export function translateRequest(

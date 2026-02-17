@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getActiveSessions,
   getActiveSessionCount,
-} from "@omniroute/open-sse/services/sessionManager.js";
+} from "@omniroute/open-sse/services/sessionManager.ts";
 
 export async function GET() {
   try {

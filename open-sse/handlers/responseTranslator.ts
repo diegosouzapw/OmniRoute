@@ -1,4 +1,4 @@
-import { FORMATS } from "../translator/formats.js";
+import { FORMATS } from "../translator/formats.ts";
 
 /**
  * Translate non-streaming response to OpenAI format

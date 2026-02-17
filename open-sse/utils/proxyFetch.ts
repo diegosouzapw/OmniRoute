@@ -4,8 +4,8 @@ import {
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
-} from "./proxyDispatcher.js";
-import tlsClient from "./tlsClient.js";
+} from "./proxyDispatcher.ts";
+import tlsClient from "./tlsClient.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";

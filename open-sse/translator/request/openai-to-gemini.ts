@@ -1,8 +1,8 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
-import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.js";
-import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.js";
-import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
+import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
+import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
+import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
 
 function generateUUID() {
   return crypto.randomUUID();
@@ -17,7 +17,7 @@ import {
   generateSessionId,
   generateProjectId,
   cleanJSONSchemaForAntigravity,
-} from "../helpers/geminiHelper.js";
+} from "../helpers/geminiHelper.ts";
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(model, body, stream) {
