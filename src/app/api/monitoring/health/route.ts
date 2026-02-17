@@ -12,8 +12,7 @@ export async function GET() {
   try {
     const { getAllCircuitBreakerStatuses } =
       await import("@/../../src/shared/utils/circuitBreaker");
-    const { getAllRateLimitStatus } =
-      await import("@omniroute/open-sse/services/rateLimitManager");
+    const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
 
     const settings = await getSettings();
@@ -55,5 +54,34 @@ export async function GET() {
   } catch (error) {
     console.error("[API] GET /api/monitoring/health error:", error);
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/monitoring/health — Reset all circuit breakers
+ *
+ * Resets all provider circuit breakers to CLOSED state,
+ * clearing failure counts and persisted state.
+ */
+export async function DELETE() {
+  try {
+    const { resetAllCircuitBreakers, getAllCircuitBreakerStatuses } =
+      await import("@/../../src/shared/utils/circuitBreaker");
+
+    const before = getAllCircuitBreakerStatuses();
+    const resetCount = before.length;
+
+    resetAllCircuitBreakers();
+
+    console.log(`[API] DELETE /api/monitoring/health — Reset ${resetCount} circuit breakers`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Reset ${resetCount} circuit breaker(s) to healthy state`,
+      resetCount,
+    });
+  } catch (error) {
+    console.error("[API] DELETE /api/monitoring/health error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

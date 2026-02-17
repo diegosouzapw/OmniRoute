@@ -44,6 +44,7 @@ export default function HealthPage() {
   const [telemetry, setTelemetry] = useState(null);
   const [cache, setCache] = useState(null);
   const [signatureCache, setSignatureCache] = useState(null);
+  const [resetting, setResetting] = useState(false);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -81,6 +82,27 @@ export default function HealthPage() {
     }, 15000);
     return () => clearInterval(interval);
   }, [fetchHealth, fetchExtras]);
+
+  const handleResetHealth = async () => {
+    if (
+      !confirm(
+        "Reset all circuit breakers to healthy state? This will clear all failure counts and restore all providers to operational status."
+      )
+    )
+      return;
+    setResetting(true);
+    try {
+      const res = await fetch("/api/monitoring/health", { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Refresh health data immediately
+      await fetchHealth();
+      await fetchExtras();
+    } catch (err) {
+      console.error("Failed to reset health:", err);
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const fmtMs = (ms) => (ms != null ? `${Math.round(ms)}ms` : "—");
 
@@ -332,19 +354,47 @@ export default function HealthPage() {
             </span>
             Provider Health
           </h2>
-          {cbEntries.length > 0 && (
-            <div className="flex items-center gap-3 text-xs text-text-muted">
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-green-500" /> Healthy
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-amber-500" /> Recovering
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-red-500" /> Down
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {cbEntries.some(([, cb]: [string, any]) => cb.state !== "CLOSED") && (
+              <button
+                onClick={handleResetHealth}
+                disabled={resetting}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  resetting
+                    ? "bg-surface/50 text-text-muted cursor-wait"
+                    : "bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border border-red-500/20"
+                }`}
+                title="Reset all circuit breakers to healthy state"
+              >
+                {resetting ? (
+                  <>
+                    <span className="material-symbols-outlined text-[14px] animate-spin">
+                      progress_activity
+                    </span>
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[14px]">restart_alt</span>
+                    Reset All
+                  </>
+                )}
+              </button>
+            )}
+            {cbEntries.length > 0 && (
+              <div className="flex items-center gap-3 text-xs text-text-muted">
+                <span className="flex items-center gap-1">
+                  <span className="size-2 rounded-full bg-green-500" /> Healthy
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="size-2 rounded-full bg-amber-500" /> Recovering
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="size-2 rounded-full bg-red-500" /> Down
+                </span>
+              </div>
+            )}
+          </div>
         </div>
         {cbEntries.length === 0 ? (
           <p className="text-sm text-text-muted text-center py-4">
@@ -505,69 +555,75 @@ export default function HealthPage() {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {entries.map(({ key, displayName, providerInfo, connectionId, model, status }: any) => {
-                  const isActive = (status.queued || 0) + (status.running || 0) > 0;
-                  const isQueued = (status.queued || 0) > 0;
-                  return (
-                    <div
-                      key={key}
-                      className={`rounded-lg p-3 border transition-colors ${
-                        isQueued
-                          ? "bg-amber-500/5 border-amber-500/20"
-                          : isActive
-                            ? "bg-blue-500/5 border-blue-500/15"
-                            : "bg-surface/30 border-white/5"
-                      }`}
-                      title={key}
-                    >
-                      <div className="flex items-center gap-2.5 mb-2">
-                        <div
-                          className="size-7 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold"
-                          style={{
-                            backgroundColor: `${providerInfo?.color || "#888"}15`,
-                            color: providerInfo?.color || "#888",
-                          }}
-                        >
-                          {providerInfo?.textIcon || displayName.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-text-main truncate">
-                            {displayName}
-                          </p>
-                          {connectionId && (
-                            <p className="text-[10px] text-text-muted font-mono truncate">
-                              {connectionId.length > 12
-                                ? connectionId.slice(0, 8) + "…"
-                                : connectionId}
-                              {model && <span className="ml-1 text-text-muted/60">· {model}</span>}
+                {entries.map(
+                  ({ key, displayName, providerInfo, connectionId, model, status }: any) => {
+                    const isActive = (status.queued || 0) + (status.running || 0) > 0;
+                    const isQueued = (status.queued || 0) > 0;
+                    return (
+                      <div
+                        key={key}
+                        className={`rounded-lg p-3 border transition-colors ${
+                          isQueued
+                            ? "bg-amber-500/5 border-amber-500/20"
+                            : isActive
+                              ? "bg-blue-500/5 border-blue-500/15"
+                              : "bg-surface/30 border-white/5"
+                        }`}
+                        title={key}
+                      >
+                        <div className="flex items-center gap-2.5 mb-2">
+                          <div
+                            className="size-7 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold"
+                            style={{
+                              backgroundColor: `${providerInfo?.color || "#888"}15`,
+                              color: providerInfo?.color || "#888",
+                            }}
+                          >
+                            {providerInfo?.textIcon || displayName.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text-main truncate">
+                              {displayName}
                             </p>
-                          )}
+                            {connectionId && (
+                              <p className="text-[10px] text-text-muted font-mono truncate">
+                                {connectionId.length > 12
+                                  ? connectionId.slice(0, 8) + "…"
+                                  : connectionId}
+                                {model && (
+                                  <span className="ml-1 text-text-muted/60">· {model}</span>
+                                )}
+                              </p>
+                            )}
+                          </div>
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              isQueued
+                                ? "bg-amber-500/15 text-amber-400"
+                                : isActive
+                                  ? "bg-blue-500/15 text-blue-400"
+                                  : "bg-green-500/10 text-green-400"
+                            }`}
+                          >
+                            {isQueued ? "Queued" : isActive ? "Active" : "OK"}
+                          </span>
                         </div>
-                        <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                            isQueued
-                              ? "bg-amber-500/15 text-amber-400"
-                              : isActive
-                                ? "bg-blue-500/15 text-blue-400"
-                                : "bg-green-500/10 text-green-400"
-                          }`}
-                        >
-                          {isQueued ? "Queued" : isActive ? "Active" : "OK"}
-                        </span>
+                        <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">schedule</span>
+                            {status.queued || 0} queued
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">
+                              play_arrow
+                            </span>
+                            {status.running || 0} running
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-text-muted">
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">schedule</span>
-                          {status.queued || 0} queued
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">play_arrow</span>
-                          {status.running || 0} running
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
             </Card>
           );
