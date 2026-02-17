@@ -121,12 +121,10 @@ function convertGeminiContent(content) {
   }
 
   if (toolCalls.length > 0) {
-    const result = { role: "assistant" };
+    const result: Record<string, any> = { role: "assistant" };
     if (parts.length > 0) {
-      // @ts-ignore
       result.content = parts.length === 1 ? parts[0].text : parts;
     }
-    // @ts-ignore
     result.tool_calls = toolCalls;
     return result;
   }

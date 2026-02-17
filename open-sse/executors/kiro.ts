@@ -83,8 +83,7 @@ export class KiroExecutor extends BaseExecutor {
     let chunkIndex = 0;
     const responseId = `chatcmpl-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
-    const state = {
-      endDetected: false,
+    const state: Record<string, any> = { endDetected: false,
       finishEmitted: false,
       hasToolCalls: false,
       toolCallIndex: 0,
@@ -118,15 +117,12 @@ export class KiroExecutor extends BaseExecutor {
           const eventType = event.headers[":event-type"] || "";
 
           // Track total content length for token estimation
-          // @ts-ignore
           if (!state.totalContentLength) state.totalContentLength = 0;
-          // @ts-ignore
           if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
 
           // Handle assistantResponseEvent
           if (eventType === "assistantResponseEvent" && event.payload?.content) {
             const content = event.payload.content;
-            // @ts-ignore
             state.totalContentLength += content.length;
 
             const chunk = {
@@ -279,16 +275,13 @@ export class KiroExecutor extends BaseExecutor {
 
           // Handle contextUsageEvent to extract contextUsagePercentage
           if (eventType === "contextUsageEvent" && event.payload?.contextUsagePercentage) {
-            // @ts-ignore
             state.contextUsagePercentage = event.payload.contextUsagePercentage;
             // Mark that we received context usage event
-            // @ts-ignore
             state.hasContextUsage = true;
           }
 
           // Handle meteringEvent - mark that we received it
           if (eventType === "meteringEvent") {
-            // @ts-ignore
             state.hasMeteringEvent = true;
           }
 
@@ -301,7 +294,6 @@ export class KiroExecutor extends BaseExecutor {
               const outputTokens = metrics.outputTokens || 0;
 
               if (inputTokens > 0 || outputTokens > 0) {
-                // @ts-ignore
                 state.usage = {
                   prompt_tokens: inputTokens,
                   completion_tokens: outputTokens,
@@ -312,31 +304,24 @@ export class KiroExecutor extends BaseExecutor {
           }
 
           // Emit final chunk only after receiving BOTH meteringEvent AND contextUsageEvent
-          // @ts-ignore
           if (state.hasMeteringEvent && state.hasContextUsage && !state.finishEmitted) {
             state.finishEmitted = true;
 
             // Estimate tokens if not available from events
-            // @ts-ignore
             if (!state.usage) {
               // Estimate output tokens from content length
               const estimatedOutputTokens =
-                // @ts-ignore
                 state.totalContentLength > 0
-                  // @ts-ignore
                   ? Math.max(1, Math.floor(state.totalContentLength / 4))
                   : 0;
 
               // Estimate input tokens from contextUsagePercentage
               // Kiro models typically have 200k context window
               const estimatedInputTokens =
-                // @ts-ignore
                 state.contextUsagePercentage > 0
-                  // @ts-ignore
                   ? Math.floor((state.contextUsagePercentage * 200000) / 100)
                   : 0;
 
-              // @ts-ignore
               state.usage = {
                 prompt_tokens: estimatedInputTokens,
                 completion_tokens: estimatedOutputTokens,
@@ -359,7 +344,6 @@ export class KiroExecutor extends BaseExecutor {
             };
 
             // Include usage in final chunk if available
-            // @ts-ignore
             if (state.usage) {
               // @ts-ignore
               finishChunk.usage = state.usage;

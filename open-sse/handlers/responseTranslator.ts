@@ -56,22 +56,17 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
       }
     }
 
-    const message = { role: "assistant" };
+    const message: Record<string, any> = { role: "assistant" };
     if (textContent) {
-      // @ts-ignore
       message.content = textContent;
     }
     if (reasoningContent) {
-      // @ts-ignore
       message.reasoning_content = reasoningContent;
     }
     if (toolCalls.length > 0) {
-      // @ts-ignore
       message.tool_calls = toolCalls;
     }
-    // @ts-ignore
     if (!message.content && !message.tool_calls) {
-      // @ts-ignore
       message.content = "";
     }
 
@@ -172,23 +167,18 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
     }
 
     // Build OpenAI format message
-    const message = { role: "assistant" };
+    const message: Record<string, any> = { role: "assistant" };
     if (textContent) {
-      // @ts-ignore
       message.content = textContent;
     }
     if (reasoningContent) {
-      // @ts-ignore
       message.reasoning_content = reasoningContent;
     }
     if (toolCalls.length > 0) {
-      // @ts-ignore
       message.tool_calls = toolCalls;
     }
     // If no content at all, set content to empty string
-    // @ts-ignore
     if (!message.content && !message.tool_calls) {
-      // @ts-ignore
       message.content = "";
     }
 
@@ -258,22 +248,17 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
       }
     }
 
-    const message = { role: "assistant" };
+    const message: Record<string, any> = { role: "assistant" };
     if (textContent) {
-      // @ts-ignore
       message.content = textContent;
     }
     if (thinkingContent) {
-      // @ts-ignore
       message.reasoning_content = thinkingContent;
     }
     if (toolCalls.length > 0) {
-      // @ts-ignore
       message.tool_calls = toolCalls;
     }
-    // @ts-ignore
     if (!message.content && !message.tool_calls) {
-      // @ts-ignore
       message.content = "";
     }
 

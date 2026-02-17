@@ -466,13 +466,11 @@ export class CursorExecutor extends BaseExecutor {
 
     console.log(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
 
-    const message = {
-      role: "assistant",
+    const message: Record<string, any> = { role: "assistant",
       content: totalContent || null,
     };
 
     if (toolCalls.length > 0) {
-      // @ts-ignore
       message.tool_calls = toolCalls;
     }
 

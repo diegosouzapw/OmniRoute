@@ -66,31 +66,26 @@ function convertMessages(messages) {
 
       // Keep tool_calls structure for assistant messages
       if (msg.role === "assistant" && msg.tool_calls && msg.tool_calls.length > 0) {
-        const assistantMsg = { role: "assistant" };
+        const assistantMsg: Record<string, any> = { role: "assistant" };
         if (content) {
-          // @ts-ignore
           assistantMsg.content = content;
         }
-        // @ts-ignore
         assistantMsg.tool_calls = msg.tool_calls;
 
         // Attach pending tool results to assistant message with tool_calls
         if (pendingToolResults.length > 0) {
-          // @ts-ignore
           assistantMsg.tool_results = pendingToolResults;
           pendingToolResults = [];
         }
 
         result.push(assistantMsg);
       } else if (content || pendingToolResults.length > 0) {
-        const msgObj = {
-          role: msg.role,
+        const msgObj: Record<string, any> = { role: msg.role,
           content: content || "",
         };
 
         // Attach pending tool results to this message
         if (pendingToolResults.length > 0) {
-          // @ts-ignore
           msgObj.tool_results = pendingToolResults;
           pendingToolResults = [];
         }

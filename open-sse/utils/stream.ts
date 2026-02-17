@@ -442,7 +442,6 @@ export function createSSETransformStreamWithLogger(
     sourceFormat,
     provider,
     reqLogger,
-    // @ts-ignore
     toolNameMap,
     model,
     connectionId,

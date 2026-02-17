@@ -100,7 +100,6 @@ export function resolveNestedComboModels(combo, allCombos, visited = new Set(), 
   if (visited.has(combo.name)) return []; // cycle safety
   visited.add(combo.name);
 
-  // @ts-ignore
   const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
   const resolved = [];
 

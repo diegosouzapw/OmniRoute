@@ -44,12 +44,10 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     }
   }
 
-  const message = {
-    role: "assistant",
+  const message: Record<string, any> = { role: "assistant",
     content: contentParts.join(""),
   };
   if (reasoningParts.length > 0) {
-    // @ts-ignore
     message.reasoning_content = reasoningParts.join("");
   }
 

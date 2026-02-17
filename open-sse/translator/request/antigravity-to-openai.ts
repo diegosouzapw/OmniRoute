@@ -199,17 +199,14 @@ function convertContent(content) {
 
   // Assistant with tool calls
   if (toolCalls.length > 0) {
-    const msg = { role: "assistant" };
+    const msg: Record<string, any> = { role: "assistant" };
     if (textParts.length > 0) {
-      // @ts-ignore
       msg.content =
         textParts.length === 1 && textParts[0].type === "text" ? textParts[0].text : textParts;
     }
     if (reasoningContent) {
-      // @ts-ignore
       msg.reasoning_content = reasoningContent;
     }
-    // @ts-ignore
     msg.tool_calls = toolCalls;
     return msg;
   }
