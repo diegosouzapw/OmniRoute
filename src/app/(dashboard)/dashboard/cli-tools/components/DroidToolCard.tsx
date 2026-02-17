@@ -17,6 +17,7 @@ export default function DroidToolCard({
   activeProviders,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [droidStatus, setDroidStatus] = useState(null);
   const [checkingDroid, setCheckingDroid] = useState(false);
@@ -270,6 +271,7 @@ export default function DroidToolCard({
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>

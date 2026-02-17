@@ -9,6 +9,7 @@ import {
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 const getOpenClawSettingsPath = () => getCliPrimaryConfigPath("openclaw");
 const getOpenClawDir = () => path.dirname(getOpenClawSettingsPath());
@@ -132,6 +133,13 @@ export async function POST(request: Request) {
     // Write settings
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
 
+    // Persist last-configured timestamp
+    try {
+      saveCliToolLastConfigured("openclaw");
+    } catch {
+      /* non-critical */
+    }
+
     return NextResponse.json({
       success: true,
       message: "Open Claw settings applied successfully!",
@@ -188,6 +196,13 @@ export async function DELETE() {
 
     // Write updated settings
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+
+    // Clear last-configured timestamp
+    try {
+      deleteCliToolLastConfigured("openclaw");
+    } catch {
+      /* non-critical */
+    }
 
     return NextResponse.json({
       success: true,

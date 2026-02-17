@@ -13,6 +13,19 @@ const STRATEGIES = [
   },
   { value: "round-robin", label: "Round Robin", desc: "Cycle through all accounts", icon: "loop" },
   { value: "p2c", label: "P2C", desc: "Pick 2 random, use the healthier one", icon: "balance" },
+  { value: "random", label: "Random", desc: "Random account each request", icon: "shuffle" },
+  {
+    value: "least-used",
+    label: "Least Used",
+    desc: "Pick least recently used account",
+    icon: "low_priority",
+  },
+  {
+    value: "cost-optimized",
+    label: "Cost Opt",
+    desc: "Prefer cheapest available account",
+    icon: "savings",
+  },
 ];
 
 export default function RoutingTab() {
@@ -76,7 +89,7 @@ export default function RoutingTab() {
           <h3 className="text-lg font-semibold">Routing Strategy</h3>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4" style={{ gridAutoRows: "1fr" }}>
           {STRATEGIES.map((s) => (
             <button
               key={s.value}
@@ -132,6 +145,12 @@ export default function RoutingTab() {
             "Using accounts in priority order (Fill First)."}
           {settings.fallbackStrategy === "p2c" &&
             "Power of Two Choices: picks 2 random accounts and routes to the healthier one."}
+          {settings.fallbackStrategy === "random" &&
+            "Randomly selects an available account for each request."}
+          {settings.fallbackStrategy === "least-used" &&
+            "Picks the account that was used least recently."}
+          {settings.fallbackStrategy === "cost-optimized" &&
+            "Prefers accounts with the lowest cost (priority-based, extensible with actual cost data)."}
         </p>
       </Card>
 

@@ -6,6 +6,7 @@ import path from "path";
 import os from "os";
 import { ensureCliConfigWriteAllowed, getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 const CLINE_DATA_DIR = path.join(os.homedir(), ".cline", "data");
 const GLOBAL_STATE_PATH = path.join(CLINE_DATA_DIR, "globalState.json");
@@ -151,6 +152,13 @@ export async function POST(request: Request) {
 
     await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
 
+    // Persist last-configured timestamp
+    try {
+      saveCliToolLastConfigured("cline");
+    } catch {
+      /* non-critical */
+    }
+
     return NextResponse.json({
       success: true,
       message: "Cline settings applied successfully!",
@@ -209,6 +217,13 @@ export async function DELETE() {
 
     delete secrets.openAiApiKey;
     await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
+
+    // Clear last-configured timestamp
+    try {
+      deleteCliToolLastConfigured("cline");
+    } catch {
+      /* non-critical */
+    }
 
     return NextResponse.json({
       success: true,

@@ -17,6 +17,7 @@ export default function KiloToolCard({
   activeProviders,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [kiloStatus, setKiloStatus] = useState(null);
   const [checkingKilo, setCheckingKilo] = useState(false);
@@ -222,6 +223,7 @@ export default function KiloToolCard({
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>
@@ -448,11 +450,14 @@ export default function KiloToolCard({
           isOpen={showManualConfigModal}
           onClose={() => setShowManualConfigModal(false)}
           title="Kilo Code Manual Configuration"
-          {...{onApply: handleManualConfig, currentConfig: {
-            model: selectedModel,
-            apiKey: selectedApiKey,
-            baseUrl: customBaseUrl || baseUrl,
-          }} as any}
+          {...({
+            onApply: handleManualConfig,
+            currentConfig: {
+              model: selectedModel,
+              apiKey: selectedApiKey,
+              baseUrl: customBaseUrl || baseUrl,
+            },
+          } as any)}
         />
       )}
     </Card>

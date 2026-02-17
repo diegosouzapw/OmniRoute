@@ -14,6 +14,7 @@ export default function CodexToolCard({
   activeProviders,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [codexStatus, setCodexStatus] = useState(null);
   const [checkingCodex, setCheckingCodex] = useState(false);
@@ -337,6 +338,7 @@ wire_api = "responses"
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.8] — 2026-02-17
+
+### Added
+
+- 📊 **Analytics page redesign** — Rebuilt analytics dashboard with Recharts (SVG-based) charts replacing the previous implementation. New layout: stat cards → model usage bar chart → provider breakdown table with success rates and avg latency
+- 🎯 **6 global routing strategies** — Expanded from 3 (Fill-First, Round-Robin, P2C) to 6, adding Random, Least-Used, and Cost-Optimized. All strategies now have descriptions and icons in the Settings → Routing tab
+- 🔧 **Editable rate limits** — Rate limit defaults (RPM, Min Gap, Max Concurrent) are now editable in Settings → Resilience with save/cancel functionality. Values persist via the resilience API
+- 📋 **Policies in Resilience tab** — Moved PoliciesPanel (circuit breaker status + locked identifiers) from Security to Resilience tab for better logical grouping
+- 🧠 **Prompt Cache in AI tab** — Relocated CacheStatsCard from Advanced to AI tab alongside Thinking Budget and System Prompt
+
+### Changed
+
+- ♻️ **Settings page restructure** — Reorganized all settings tabs for better UX:
+  - **Security**: Simplified to Login/Password and IP Access Control only
+  - **Routing**: Expanded strategy grid with all 6 routing strategies
+  - **Resilience**: Reordered cards (Provider Profiles → Rate Limiting → Circuit Breakers → Policies & Locked Identifiers)
+  - **AI**: Now includes Thinking Budget, System Prompt, and Prompt Cache
+  - **Advanced**: Simplified to only Global Proxy configuration
+- 🔄 **Backend routing strategies** — Implemented `random` (Fisher-Yates shuffle), `least-used` (sorted by `lastUsedAt`), `cost-optimized` (sorted by priority ascending), and fixed `p2c` (power-of-two-choices with health scoring) in `auth.ts`
+- 🔌 **Resilience API updates** — GET endpoint now merges saved rate limit defaults with constants; PATCH endpoint accepts both `profiles` and `defaults`
+- 📊 **Usage page split** — Refactored Usage page into "Request Logs" (with updated icon) and a new dedicated "Limits & Quotas" page
+
+### Fixed
+
+- 🐛 **Provider add error** — Improved error handling for API responses when adding new provider connections, with clear validation feedback
+
+---
+
 ## [0.8.5] — 2026-02-17
 
 ### Added
@@ -191,6 +219,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.8.8]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.5...v0.8.8
 [0.8.5]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.0...v0.8.5
 [0.8.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.6.0...v0.7.0

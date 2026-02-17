@@ -17,6 +17,7 @@ export default function OpenClawToolCard({
   activeProviders,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [openclawStatus, setOpenclawStatus] = useState(null);
   const [checkingOpenclaw, setCheckingOpenclaw] = useState(false);
@@ -274,6 +275,7 @@ export default function OpenClawToolCard({
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>

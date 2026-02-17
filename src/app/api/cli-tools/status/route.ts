@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getCliRuntimeStatus, CLI_TOOL_IDS } from "@/shared/services/cliRuntime";
+import { getAllCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 /**
  * GET /api/cli-tools/status
@@ -57,6 +58,18 @@ export async function GET() {
         }
       })
     );
+
+    // Merge last-configured timestamps from SQLite
+    try {
+      const lastConfigured = getAllCliToolLastConfigured();
+      for (const [toolId, timestamp] of Object.entries(lastConfigured)) {
+        if (statuses[toolId]) {
+          statuses[toolId].lastConfiguredAt = timestamp;
+        }
+      }
+    } catch {
+      /* non-critical */
+    }
 
     return NextResponse.json(statuses);
   } catch (error) {
