@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strict": false,
+    "jsx": "react-jsx",
+    "lib": ["dom", "esnext"],
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.js"
+  ]
+}
