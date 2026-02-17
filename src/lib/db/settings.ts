@@ -11,7 +11,7 @@ import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.
 export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
-  const settings = { cloudEnabled: false, stickyRoundRobinLimit: 3, requireLogin: true };
+  const settings: Record<string, any> = { cloudEnabled: false, stickyRoundRobinLimit: 3, requireLogin: true };
   for (const row of rows) {
     settings[row.key] = JSON.parse(row.value);
   }
@@ -32,7 +32,7 @@ export async function getSettings() {
   return settings;
 }
 
-export async function updateSettings(updates) {
+export async function updateSettings(updates: Record<string, unknown>) {
   const db = getDbInstance();
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
@@ -57,7 +57,7 @@ export async function isCloudEnabled() {
 export async function getPricing() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
-  const userPricing = {};
+  const userPricing: Record<string, any> = {};
   for (const row of rows) {
     userPricing[row.key] = JSON.parse(row.value);
   }
@@ -65,8 +65,8 @@ export async function getPricing() {
   const { getDefaultPricing } = await import("@/shared/constants/pricing");
   const defaultPricing = getDefaultPricing();
 
-  const mergedPricing = {};
-  for (const [provider, models] of Object.entries(defaultPricing)) {
+  const mergedPricing: Record<string, any> = {};
+  for (const [provider, models] of Object.entries(defaultPricing) as [string, any][]) {
     mergedPricing[provider] = { ...models };
     if (userPricing[provider]) {
       for (const [model, pricing] of Object.entries(userPricing[provider])) {
@@ -92,7 +92,7 @@ export async function getPricing() {
   return mergedPricing;
 }
 
-export async function getPricingForModel(provider, model) {
+export async function getPricingForModel(provider: string, model: string) {
   const pricing = await getPricing();
   if (pricing[provider]?.[model]) return pricing[provider][model];
 
@@ -106,14 +106,14 @@ export async function getPricingForModel(provider, model) {
   return null;
 }
 
-export async function updatePricing(pricingData) {
+export async function updatePricing(pricingData: Record<string, any>) {
   const db = getDbInstance();
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('pricing', ?, ?)"
   );
 
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
-  const existing = {};
+  const existing: Record<string, any> = {};
   for (const row of rows) existing[row.key] = JSON.parse(row.value);
 
   const tx = db.transaction(() => {
@@ -130,7 +130,7 @@ export async function updatePricing(pricingData) {
   return updated;
 }
 
-export async function resetPricing(provider, model) {
+export async function resetPricing(provider: string, model?: string) {
   const db = getDbInstance();
 
   if (model) {
@@ -177,14 +177,14 @@ const ALIAS_TO_PROVIDER_ID = Object.entries(PROVIDER_ID_TO_ALIAS).reduce(
     return acc;
   },
   {}
-);
+) as Record<string, string>;
 
-function resolveProviderAliasOrId(providerOrAlias) {
+function resolveProviderAliasOrId(providerOrAlias: string): string {
   if (typeof providerOrAlias !== "string") return providerOrAlias;
   return ALIAS_TO_PROVIDER_ID[providerOrAlias] || providerOrAlias;
 }
 
-function getComboModelProvider(modelEntry) {
+function getComboModelProvider(modelEntry: any): string | null {
   if (modelEntry && typeof modelEntry.provider === "string") {
     return resolveProviderAliasOrId(modelEntry.provider);
   }
@@ -203,7 +203,7 @@ function getComboModelProvider(modelEntry) {
   return resolveProviderAliasOrId(providerOrAlias);
 }
 
-function migrateProxyEntry(value) {
+function migrateProxyEntry(value: any) {
   if (!value) return null;
   if (typeof value === "object" && value.type) return value;
   if (typeof value !== "string") return null;
@@ -261,14 +261,14 @@ export async function getProxyConfig() {
   return raw;
 }
 
-export async function getProxyForLevel(level, id) {
+export async function getProxyForLevel(level: string, id?: string | null) {
   const config = await getProxyConfig();
   if (level === "global") return config.global || null;
   const map = config[level + "s"] || config[level] || {};
   return (id ? map[id] : null) || null;
 }
 
-export async function setProxyForLevel(level, id, proxy) {
+export async function setProxyForLevel(level: string, id: string | null, proxy: any) {
   const db = getDbInstance();
   const config = await getProxyConfig();
 
@@ -298,7 +298,7 @@ export async function deleteProxyForLevel(level, id) {
   return setProxyForLevel(level, id, null);
 }
 
-export async function resolveProxyForConnection(connectionId) {
+export async function resolveProxyForConnection(connectionId: string) {
   const config = await getProxyConfig();
 
   if (connectionId && config.keys?.[connectionId]) {
@@ -346,7 +346,7 @@ export async function resolveProxyForConnection(connectionId) {
   return { proxy: null, level: "direct", levelId: null };
 }
 
-export async function setProxyConfig(config) {
+export async function setProxyConfig(config: any) {
   if (config.level !== undefined) {
     return setProxyForLevel(config.level, config.id || null, config.proxy);
   }

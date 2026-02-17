@@ -9,11 +9,11 @@ import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
 
 // ──────────────── Provider Connections ────────────────
 
-export async function getProviderConnections(filter = {}) {
+export async function getProviderConnections(filter: any = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM provider_connections";
-  const conditions = [];
-  const params = {};
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
 
   if (filter.provider) {
     conditions.push("provider = @provider");
@@ -33,13 +33,13 @@ export async function getProviderConnections(filter = {}) {
   return rows.map((r) => decryptConnectionFields(cleanNulls(rowToCamel(r))));
 }
 
-export async function getProviderConnectionById(id) {
+export async function getProviderConnectionById(id: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   return row ? decryptConnectionFields(cleanNulls(rowToCamel(row))) : null;
 }
 
-export async function createProviderConnection(data) {
+export async function createProviderConnection(data: any) {
   const db = getDbInstance();
   const now = new Date().toISOString();
 
@@ -98,7 +98,7 @@ export async function createProviderConnection(data) {
     connectionPriority = (max?.maxP || 0) + 1;
   }
 
-  const connection = {
+  const connection: Record<string, any> = {
     id: uuidv4(),
     provider: data.provider,
     authType: data.authType || "oauth",
@@ -151,7 +151,7 @@ export async function createProviderConnection(data) {
   return cleanNulls(connection);
 }
 
-function _insertConnectionRow(db, conn) {
+function _insertConnectionRow(db: any, conn: any) {
   db.prepare(
     `
     INSERT INTO provider_connections (
@@ -217,7 +217,7 @@ function _insertConnectionRow(db, conn) {
   });
 }
 
-function _updateConnectionRow(db, id, data) {
+function _updateConnectionRow(db: any, id: string, data: any) {
   const now = data.updatedAt || new Date().toISOString();
   db.prepare(
     `
@@ -280,7 +280,7 @@ function _updateConnectionRow(db, id, data) {
   });
 }
 
-export async function updateProviderConnection(id, data) {
+export async function updateProviderConnection(id: string, data: any) {
   const db = getDbInstance();
   const existing = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return null;
@@ -296,7 +296,7 @@ export async function updateProviderConnection(id, data) {
   return cleanNulls(merged);
 }
 
-export async function deleteProviderConnection(id) {
+export async function deleteProviderConnection(id: string) {
   const db = getDbInstance();
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return false;
@@ -307,19 +307,19 @@ export async function deleteProviderConnection(id) {
   return true;
 }
 
-export async function deleteProviderConnectionsByProvider(providerId) {
+export async function deleteProviderConnectionsByProvider(providerId: string) {
   const db = getDbInstance();
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
   backupDbFile("pre-write");
   return result.changes;
 }
 
-export async function reorderProviderConnections(providerId) {
+export async function reorderProviderConnections(providerId: string) {
   const db = getDbInstance();
   _reorderConnections(db, providerId);
 }
 
-function _reorderConnections(db, providerId) {
+function _reorderConnections(db: any, providerId: string) {
   const rows = db
     .prepare(
       "SELECT id, priority, updated_at FROM provider_connections WHERE provider = ? ORDER BY priority ASC, updated_at DESC"
@@ -338,10 +338,10 @@ export async function cleanupProviderConnections() {
 
 // ──────────────── Provider Nodes ────────────────
 
-export async function getProviderNodes(filter = {}) {
+export async function getProviderNodes(filter: any = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM provider_nodes";
-  const params = {};
+  const params: Record<string, unknown> = {};
 
   if (filter.type) {
     sql += " WHERE type = @type";
@@ -351,13 +351,13 @@ export async function getProviderNodes(filter = {}) {
   return db.prepare(sql).all(params).map(rowToCamel);
 }
 
-export async function getProviderNodeById(id) {
+export async function getProviderNodeById(id: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM provider_nodes WHERE id = ?").get(id);
   return row ? rowToCamel(row) : null;
 }
 
-export async function createProviderNode(data) {
+export async function createProviderNode(data: any) {
   const db = getDbInstance();
   const now = new Date().toISOString();
 
@@ -383,7 +383,7 @@ export async function createProviderNode(data) {
   return node;
 }
 
-export async function updateProviderNode(id, data) {
+export async function updateProviderNode(id: string, data: any) {
   const db = getDbInstance();
   const existing = db.prepare("SELECT * FROM provider_nodes WHERE id = ?").get(id);
   if (!existing) return null;
@@ -410,7 +410,7 @@ export async function updateProviderNode(id, data) {
   return merged;
 }
 
-export async function deleteProviderNode(id) {
+export async function deleteProviderNode(id: string) {
   const db = getDbInstance();
   const existing = db.prepare("SELECT * FROM provider_nodes WHERE id = ?").get(id);
   if (!existing) return null;

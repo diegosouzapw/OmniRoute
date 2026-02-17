@@ -11,18 +11,20 @@
  * @module shared/constants/errorCodes
  */
 
-// @ts-check
+export interface ErrorCodeDef {
+  code: string;
+  message: string;
+  httpStatus: number;
+  category: string;
+}
 
-/**
- * @typedef {Object} ErrorCodeDef
- * @property {string} code - Error code (e.g. "AUTH_001")
- * @property {string} message - Human-readable message
- * @property {number} httpStatus - HTTP status code
- * @property {string} category - Category (AUTH, PROXY, RATE_LIMIT, etc.)
- */
+interface ErrorDetails {
+  detail?: string;
+  requestId?: string;
+  retryAfter?: number;
+}
 
-/** @type {Record<string, ErrorCodeDef>} */
-export const ERROR_CODES = {
+export const ERROR_CODES: Record<string, ErrorCodeDef> = {
   // ── Auth ──
   AUTH_001: { code: "AUTH_001", message: "Authentication required", httpStatus: 401, category: "AUTH" },
   AUTH_002: { code: "AUTH_002", message: "Invalid API key", httpStatus: 401, category: "AUTH" },
@@ -62,17 +64,7 @@ export const ERROR_CODES = {
   INTERNAL_003: { code: "INTERNAL_003", message: "Circuit breaker open", httpStatus: 503, category: "INTERNAL" },
 };
 
-/**
- * Create a standardized error response.
- *
- * @param {string} code - Error code from ERROR_CODES
- * @param {Object} [details] - Additional error details
- * @param {string} [details.detail] - Extra detail message
- * @param {string} [details.requestId] - Correlation request ID
- * @param {number} [details.retryAfter] - Retry-After seconds
- * @returns {{ error: { code: string, message: string, category: string, detail?: string, requestId?: string }, status: number, retryAfter?: number }}
- */
-export function createErrorResponse(code, details = {}) {
+export function createErrorResponse(code: string, details: ErrorDetails = {}) {
   const def = ERROR_CODES[code];
   if (!def) {
     return {
@@ -85,7 +77,7 @@ export function createErrorResponse(code, details = {}) {
     };
   }
 
-  const response = {
+  const response: any = {
     error: {
       code: def.code,
       message: def.message,
@@ -103,12 +95,6 @@ export function createErrorResponse(code, details = {}) {
   return response;
 }
 
-/**
- * Get all error codes for a category.
- *
- * @param {string} category
- * @returns {ErrorCodeDef[]}
- */
-export function getErrorsByCategory(category) {
+export function getErrorsByCategory(category: string): ErrorCodeDef[] {
   return Object.values(ERROR_CODES).filter((e) => e.category === category);
 }

@@ -12,7 +12,7 @@ import { calculateCost } from "@/lib/usageDb";
  * @param {string} range - "1d" | "7d" | "30d" | "90d" | "ytd" | "all"
  * @returns {{ start: Date, end: Date }}
  */
-function getDateRange(range) {
+function getDateRange(range: string) {
   const end = new Date();
   let start;
 
@@ -48,7 +48,7 @@ function getDateRange(range) {
 /**
  * Format a Date to "YYYY-MM-DD" string
  */
-function toDateKey(date) {
+function toDateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
@@ -58,7 +58,7 @@ function toDateKey(date) {
 /**
  * Short model name (strip provider prefix paths)
  */
-function shortModelName(model) {
+function shortModelName(model: string) {
   if (!model) return "unknown";
   // "accounts/fireworks/models/gpt-oss-120b" → "gpt-oss-120b"
   const parts = model.split("/");
@@ -72,7 +72,7 @@ function shortModelName(model) {
  * @param {Object} connectionMap - Map of connectionId → account name
  * @returns {Object} Analytics data
  */
-export async function computeAnalytics(history, range = "30d", connectionMap = {}) {
+export async function computeAnalytics(history: any[], range = "30d", connectionMap: Record<string, string> = {}) {
   const { start, end } = getDateRange(range);
 
   // ---- Filtered entries ----
@@ -88,25 +88,25 @@ export async function computeAnalytics(history, range = "30d", connectionMap = {
     completionTokens: 0,
     totalCost: 0,
     totalRequests: entries.length,
-    uniqueModels: new Set(),
-    uniqueAccounts: new Set(),
-    uniqueApiKeys: new Set(),
+    uniqueModels: new Set<string>(),
+    uniqueAccounts: new Set<string>(),
+    uniqueApiKeys: new Set<string>(),
   };
 
   // ---- Daily trend ----
-  const dailyMap = {}; // "YYYY-MM-DD" → { requests, promptTokens, completionTokens, cost }
-  const dailyByModelMap = {}; // "YYYY-MM-DD" → { modelShort → tokens }
+  const dailyMap: Record<string, any> = {}; // "YYYY-MM-DD" → { requests, promptTokens, completionTokens, cost }
+  const dailyByModelMap: Record<string, Record<string, number>> = {}; // "YYYY-MM-DD" → { modelShort → tokens }
 
   // ---- Activity heatmap (always last 365 days, regardless of range filter) ----
   const heatmapStart = new Date();
   heatmapStart.setDate(heatmapStart.getDate() - 364);
-  const activityMap = {};
+  const activityMap: Record<string, number> = {};
 
   // ---- By model / account / provider ----
-  const byModelMap = {};
-  const byAccountMap = {};
-  const byProviderMap = {};
-  const byApiKeyMap = {};
+  const byModelMap: Record<string, any> = {};
+  const byAccountMap: Record<string, any> = {};
+  const byProviderMap: Record<string, any> = {};
+  const byApiKeyMap: Record<string, any> = {};
 
   // ---- Weekly pattern (0=Sun..6=Sat) ----
   const weeklyTokens = [0, 0, 0, 0, 0, 0, 0];
@@ -251,7 +251,7 @@ export async function computeAnalytics(history, range = "30d", connectionMap = {
   const dailyTrend = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
 
   // Daily by model — collect all unique model names
-  const allModels = new Set();
+  const allModels = new Set<string>();
   for (const day of Object.values(dailyByModelMap)) {
     for (const m of Object.keys(day)) allModels.add(m);
   }
