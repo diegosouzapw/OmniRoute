@@ -1,8 +1,8 @@
-import { handleModeration } from "@omniroute/open-sse/handlers/moderations.js";
+import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 
 /**
  * Handle CORS preflight

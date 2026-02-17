@@ -1,4 +1,4 @@
-import { ollamaModels } from "@omniroute/open-sse/config/ollamaModels.js";
+import { ollamaModels } from "@omniroute/open-sse/config/ollamaModels.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

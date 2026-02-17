@@ -1,5 +1,5 @@
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 
 export class GeminiCLIExecutor extends BaseExecutor {
   constructor() {

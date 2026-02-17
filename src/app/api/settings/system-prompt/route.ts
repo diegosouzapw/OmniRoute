@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   setSystemPromptConfig,
   getSystemPromptConfig,
-} from "@omniroute/open-sse/services/systemPrompt.js";
+} from "@omniroute/open-sse/services/systemPrompt.ts";
 import { updateSettings } from "@/lib/localDb";
 
 export async function GET() {

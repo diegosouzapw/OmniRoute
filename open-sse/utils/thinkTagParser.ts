@@ -8,7 +8,7 @@
  * chain-of-thought reasoning inside <think> tags.
  *
  * Usage:
- *   import { extractThinkTags, hasThinkTags } from "./thinkTagParser.js";
+ *   import { extractThinkTags, hasThinkTags } from "./thinkTagParser.ts";
  *
  *   const { reasoning, content } = extractThinkTags(rawOutput);
  *   // reasoning = "step-by-step thinking..."

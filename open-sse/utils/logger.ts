@@ -7,7 +7,7 @@
  *   - "json": Single-line JSON objects for log aggregators
  *
  * Usage:
- *   import { logger, createLogger, generateRequestId } from "../utils/logger.js";
+ *   import { logger, createLogger, generateRequestId } from "../utils/logger.ts";
  *
  *   // Tag-based (simple — for services/utilities):
  *   const log = logger("CHAT");

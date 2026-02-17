@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback.js";
-import { getCacheStats } from "@omniroute/open-sse/services/signatureCache.js";
+import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback.ts";
+import { getCacheStats } from "@omniroute/open-sse/services/signatureCache.ts";
 import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
 import {
   enableRateLimitProtection,
   disableRateLimitProtection,
   getRateLimitStatus,
   getAllRateLimitStatus,
-} from "@omniroute/open-sse/services/rateLimitManager.js";
+} from "@omniroute/open-sse/services/rateLimitManager.ts";
 
 /**
  * GET /api/rate-limits — Consolidated rate-limit status

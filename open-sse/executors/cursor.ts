@@ -20,16 +20,16 @@ declare var EdgeRuntime: any;
  * @see cursorProtobuf.js for Protobuf encoding/decoding utilities
  */
 
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS, HTTP_STATUS } from "../config/constants.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import {
   generateCursorBody,
   parseConnectRPCFrame,
   extractTextFromResponse,
-} from "../utils/cursorProtobuf.js";
-import { estimateUsage } from "../utils/usageTracking.js";
-import { FORMATS } from "../translator/formats.js";
-import { buildCursorRequest } from "../translator/request/openai-to-cursor.js";
+} from "../utils/cursorProtobuf.ts";
+import { estimateUsage } from "../utils/usageTracking.ts";
+import { FORMATS } from "../translator/formats.ts";
+import { buildCursorRequest } from "../translator/request/openai-to-cursor.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 import zlib from "zlib";

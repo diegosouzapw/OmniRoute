@@ -1,8 +1,8 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
-import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.js";
-import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
-import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
+import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.ts";
+import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
+import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";

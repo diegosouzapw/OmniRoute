@@ -4,7 +4,7 @@ import {
   isSocks5ProxyEnabled,
   proxyConfigToUrl,
   proxyUrlForLogs,
-} from "@omniroute/open-sse/utils/proxyDispatcher.js";
+} from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 

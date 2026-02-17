@@ -1,10 +1,10 @@
-import { AntigravityExecutor } from "./antigravity.js";
-import { GeminiCLIExecutor } from "./gemini-cli.js";
-import { GithubExecutor } from "./github.js";
-import { KiroExecutor } from "./kiro.js";
-import { CodexExecutor } from "./codex.js";
-import { CursorExecutor } from "./cursor.js";
-import { DefaultExecutor } from "./default.js";
+import { AntigravityExecutor } from "./antigravity.ts";
+import { GeminiCLIExecutor } from "./gemini-cli.ts";
+import { GithubExecutor } from "./github.ts";
+import { KiroExecutor } from "./kiro.ts";
+import { CodexExecutor } from "./codex.ts";
+import { CursorExecutor } from "./cursor.ts";
+import { DefaultExecutor } from "./default.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -28,11 +28,11 @@ export function hasSpecializedExecutor(provider) {
   return !!executors[provider];
 }
 
-export { BaseExecutor } from "./base.js";
-export { AntigravityExecutor } from "./antigravity.js";
-export { GeminiCLIExecutor } from "./gemini-cli.js";
-export { GithubExecutor } from "./github.js";
-export { KiroExecutor } from "./kiro.js";
-export { CodexExecutor } from "./codex.js";
-export { CursorExecutor } from "./cursor.js";
-export { DefaultExecutor } from "./default.js";
+export { BaseExecutor } from "./base.ts";
+export { AntigravityExecutor } from "./antigravity.ts";
+export { GeminiCLIExecutor } from "./gemini-cli.ts";
+export { GithubExecutor } from "./github.ts";
+export { KiroExecutor } from "./kiro.ts";
+export { CodexExecutor } from "./codex.ts";
+export { CursorExecutor } from "./cursor.ts";
+export { DefaultExecutor } from "./default.ts";

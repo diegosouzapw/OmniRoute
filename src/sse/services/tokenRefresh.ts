@@ -15,7 +15,7 @@ import {
   refreshTokenByProvider as _refreshTokenByProvider,
   formatProviderCredentials as _formatProviderCredentials,
   getAllAccessTokens as _getAllAccessTokens,
-} from "@omniroute/open-sse/services/tokenRefresh.js";
+} from "@omniroute/open-sse/services/tokenRefresh.ts";
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 

@@ -2,8 +2,8 @@
  * OpenAI to Cursor Request Translator
  * Converts OpenAI messages to Cursor simple format
  */
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
 
 /**
  * Convert OpenAI messages to Cursor format with native tool_results support

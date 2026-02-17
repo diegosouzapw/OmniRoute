@@ -1,4 +1,4 @@
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.js";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { createHash } from "node:crypto";
 
 // Token expiry buffer (refresh if expires within 5 minutes)

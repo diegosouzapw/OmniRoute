@@ -1,7 +1,7 @@
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS } from "../config/constants.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
-import { refreshKiroToken } from "../services/tokenRefresh.js";
+import { refreshKiroToken } from "../services/tokenRefresh.ts";
 
 // ── CRC32 lookup table (IEEE polynomial, no dependency) ──
 const CRC32_TABLE = new Uint32Array(256);

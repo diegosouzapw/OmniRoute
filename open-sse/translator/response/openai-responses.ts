@@ -2,8 +2,8 @@
  * Translator: OpenAI Chat Completions → OpenAI Responses API (response)
  * Converts streaming chunks from Chat Completions to Responses API events
  */
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
 
 /**
  * Translate OpenAI chunk to Responses API events

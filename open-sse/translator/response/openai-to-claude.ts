@@ -1,5 +1,5 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
 
 // Prefix for Claude OAuth tool names (must match request translator)
 const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";

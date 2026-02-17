@@ -1,6 +1,6 @@
-import { BaseExecutor } from "./base.js";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.js";
-import { getModelTargetFormat } from "../config/providerModels.js";
+import { BaseExecutor } from "./base.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {

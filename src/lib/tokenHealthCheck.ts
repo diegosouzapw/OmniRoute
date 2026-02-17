@@ -15,7 +15,7 @@ import {
   getAccessToken,
   supportsTokenRefresh,
   isUnrecoverableRefreshError,
-} from "@omniroute/open-sse/services/tokenRefresh.js";
+} from "@omniroute/open-sse/services/tokenRefresh.ts";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds

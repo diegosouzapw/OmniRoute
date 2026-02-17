@@ -12,7 +12,7 @@ import {
   checkFallbackError,
   isModelLocked,
   lockModel,
-} from "@omniroute/open-sse/services/accountFallback.js";
+} from "@omniroute/open-sse/services/accountFallback.ts";
 import * as log from "../utils/logger";
 
 // Mutex to prevent race conditions during account selection

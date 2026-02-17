@@ -4,7 +4,7 @@ import {
   buildProviderHeaders,
   detectFormat,
   getTargetFormat,
-} from "@omniroute/open-sse/services/provider.js";
+} from "@omniroute/open-sse/services/provider.ts";
 import { getProviderConnections } from "@/lib/localDb";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { logTranslationEvent } from "@/lib/translatorEvents";

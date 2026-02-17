@@ -15,7 +15,7 @@
  * }
  */
 
-import { getImageProvider, parseImageModel } from "../config/imageRegistry.js";
+import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
 
 /**

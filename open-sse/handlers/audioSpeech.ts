@@ -10,8 +10,8 @@
  * - Deepgram: POST { text } with model via query param, Token auth
  */
 
-import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.js";
-import { errorResponse } from "../utils/error.js";
+import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts";
+import { errorResponse } from "../utils/error.ts";
 
 /**
  * Build auth header for a speech provider

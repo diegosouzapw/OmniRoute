@@ -13,7 +13,7 @@
  * }
  */
 
-import { getEmbeddingProvider, parseEmbeddingModel } from "../config/embeddingRegistry.js";
+import { getEmbeddingProvider, parseEmbeddingModel } from "../config/embeddingRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
 
 /**

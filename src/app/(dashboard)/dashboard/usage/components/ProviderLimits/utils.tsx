@@ -1,4 +1,4 @@
-import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.js";
+import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.ts";
 
 /**
  * Format ISO date string to countdown format (inspired by vscode-antigravity-cockpit)

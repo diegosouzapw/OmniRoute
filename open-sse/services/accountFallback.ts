@@ -5,8 +5,8 @@ import {
   RateLimitReason,
   HTTP_STATUS,
   PROVIDER_PROFILES,
-} from "../config/constants.js";
-import { getProviderCategory } from "../config/providerRegistry.js";
+} from "../config/constants.ts";
+import { getProviderCategory } from "../config/providerRegistry.ts";
 
 // ─── Provider Profile Helper ────────────────────────────────────────────────
 

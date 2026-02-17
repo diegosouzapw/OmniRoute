@@ -1,11 +1,11 @@
-import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.js";
+import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import {
   parseEmbeddingModel,
   getAllEmbeddingModels,
-} from "@omniroute/open-sse/config/embeddingRegistry.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+} from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 

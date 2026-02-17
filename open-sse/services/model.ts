@@ -1,4 +1,4 @@
-import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.js";
+import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
 
 // Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
 // This prevents the two maps from drifting out of sync

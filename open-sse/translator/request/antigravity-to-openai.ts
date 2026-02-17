@@ -1,6 +1,6 @@
-import { register } from "../index.js";
-import { FORMATS } from "../formats.js";
-import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
+import { register } from "../index.ts";
+import { FORMATS } from "../formats.ts";
+import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 
 // Convert Antigravity request to OpenAI format
 // Antigravity body: { project, model, userAgent, requestType, requestId, request: { contents, systemInstruction, tools, toolConfig, generationConfig, sessionId } }

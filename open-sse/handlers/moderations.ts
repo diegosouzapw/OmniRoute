@@ -4,8 +4,8 @@
  * Handles POST /v1/moderations (OpenAI Moderations API format).
  */
 
-import { getModerationProvider, parseModerationModel } from "../config/moderationRegistry.js";
-import { errorResponse } from "../utils/error.js";
+import { getModerationProvider, parseModerationModel } from "../config/moderationRegistry.ts";
+import { errorResponse } from "../utils/error.ts";
 
 /**
  * Handle moderation request

@@ -1,8 +1,8 @@
 import { handleChat } from "@/sse/handlers/chat";
-import { initTranslators } from "@omniroute/open-sse/translator/index.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.js";
+import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 let initialized = false;
 

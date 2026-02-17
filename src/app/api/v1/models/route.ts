@@ -1,11 +1,11 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderConnections, getCombos, getAllCustomModels } from "@/lib/localDb";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.js";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.js";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.js";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.js";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.js";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
+import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",

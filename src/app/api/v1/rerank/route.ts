@@ -1,8 +1,8 @@
-import { handleRerank } from "@omniroute/open-sse/handlers/rerank.js";
+import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.js";
-import { errorResponse } from "@omniroute/open-sse/utils/error.js";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.js";
+import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 
 /**
  * Handle CORS preflight
