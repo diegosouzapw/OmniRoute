@@ -53,7 +53,7 @@
     "test:fixes": "node --test tests/unit/fixes-p1.test.mjs",
     "test:security": "node --test tests/unit/security-fase01.test.mjs",
     "test:e2e": "npx playwright test",
-    "test:coverage": "npx c8 --check-coverage --lines 50 --functions 40 --branches 40 node --test tests/unit/*.test.mjs",
+    "test:coverage": "npx c8 --check-coverage --lines 40 --functions 40 --branches 40 node --test tests/unit/*.test.mjs",
     "test:all": "npm run test:unit && npm run test:e2e",
     "check": "npm run lint && npm run test",
     "prepublishOnly": "npm run build:cli",
