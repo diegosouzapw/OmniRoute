@@ -35,7 +35,7 @@ export async function PUT(request) {
     }
 
     // Update credentials
-    const updateData = {};
+    const updateData: Record<string, any> = {};
     if (credentials.accessToken) {
       updateData.accessToken = credentials.accessToken;
     }

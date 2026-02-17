@@ -6,7 +6,7 @@ import chalkAnimation from "chalk-animation";
  * Display banner
  */
 export function showBanner() {
-  const banner = figlet.textSync("LLM Proxy", {
+  const banner = (figlet as any).textSync("LLM Proxy", {
     font: "ANSI Shadow",
     horizontalLayout: "default",
     verticalLayout: "default",
@@ -20,7 +20,7 @@ export function showBanner() {
  * Display simple banner (no animation)
  */
 export function showSimpleBanner() {
-  const banner = figlet.textSync("EP CLI", {
+  const banner = (figlet as any).textSync("EP CLI", {
     font: "Standard",
     horizontalLayout: "default",
   });
@@ -31,8 +31,8 @@ export function showSimpleBanner() {
 /**
  * Display success animation
  */
-export async function showSuccess(message) {
-  return new Promise((resolve) => {
+export async function showSuccess(message: string) {
+  return new Promise<void>((resolve) => {
     const animation = chalkAnimation.rainbow(`\n✨ ${message}\n`);
     setTimeout(() => {
       animation.stop();
@@ -44,7 +44,7 @@ export async function showSuccess(message) {
 /**
  * Display loading animation
  */
-export function showLoading(text) {
+export function showLoading(text: string) {
   const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
   let i = 0;
 

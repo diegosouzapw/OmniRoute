@@ -129,7 +129,7 @@ export default function ModelAvailabilityPanel() {
           <div key={provider} className="border border-border/30 rounded-lg p-3">
             <p className="text-sm font-medium text-text-main mb-2 capitalize">{provider}</p>
             <div className="flex flex-col gap-1.5">
-              {provModels.map((m) => {
+              {(provModels as any).map((m) => {
                 const status = STATUS_CONFIG[m.status] || STATUS_CONFIG.unknown;
                 const isClearing = clearing === `${m.provider}:${m.model}`;
                 return (

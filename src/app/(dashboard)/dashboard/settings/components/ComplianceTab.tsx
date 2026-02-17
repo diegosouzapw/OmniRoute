@@ -15,7 +15,7 @@ export default function ComplianceTab() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<any>({});
   const [visibleCols, setVisibleCols] = useState({
     timestamp: true,
     action: true,
@@ -107,7 +107,9 @@ export default function ComplianceTab() {
         ]}
         activeFilters={filters}
         onFilterChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
-      />
+      >
+        {null}
+      </FilterBar>
 
       <DataTable
         columns={columns}

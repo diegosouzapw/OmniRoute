@@ -49,7 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
       let deviceData;
       if (provider === "github" || provider === "kiro" || provider === "kilocode") {
         // GitHub, Kiro, and KiloCode don't use PKCE for device code
-        deviceData = await requestDeviceCode(provider);
+        deviceData = await (requestDeviceCode as any)(provider);
       } else {
         // Qwen and other providers use PKCE
         deviceData = await requestDeviceCode(provider, authData.codeChallenge);
@@ -157,7 +157,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
       const tokenData = await exchangeTokens(provider, code, redirectUri, codeVerifier, state);
 
       // Save to database
-      const connection = await createProviderConnection({
+      const connection: any = await createProviderConnection({
         provider,
         authType: "oauth",
         ...tokenData,
@@ -191,21 +191,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
       // For providers that don't use PKCE (like GitHub, Kiro, Kimi Coding), don't pass codeVerifier
       let result;
       if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
-        result = await pollForToken(provider, deviceCode);
+        result = await (pollForToken as any)(provider, deviceCode);
       } else if (provider === "kiro") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
-        result = await pollForToken(provider, deviceCode, null, extraData);
+        result = await (pollForToken as any)(provider, deviceCode, null, extraData);
       } else {
         // Qwen and other providers use PKCE
         if (!codeVerifier) {
           return NextResponse.json({ error: "Missing code verifier" }, { status: 400 });
         }
-        result = await pollForToken(provider, deviceCode, codeVerifier);
+        result = await (pollForToken as any)(provider, deviceCode, codeVerifier);
       }
 
       if (result.success) {
         // Save to database
-        const connection = await createProviderConnection({
+        const connection: any = await createProviderConnection({
           provider,
           authType: "oauth",
           ...result.tokens,
@@ -299,7 +299,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
         );
 
         // Save to database
-        const connection = await createProviderConnection({
+        const connection: any = await createProviderConnection({
           provider,
           authType: "oauth",
           ...tokenData,

@@ -329,7 +329,7 @@ export async function GET(request, { params }) {
     }
 
     // Make request
-    const fetchOptions = {
+    const fetchOptions: any = {
       method: config.method,
       headers,
     };

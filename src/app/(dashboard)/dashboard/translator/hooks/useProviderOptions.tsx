@@ -34,12 +34,12 @@ export function useProviderOptions(initialProvider = "openai") {
         );
         const options = [...activeProviders]
           .map((pid) => {
-            const info = AI_PROVIDERS[pid];
-            const node = nodeMap.get(pid);
+            const info = (AI_PROVIDERS as any)[pid as string];
+            const node: any = nodeMap.get(pid);
             let label = info?.name || node?.name || pid;
-            if (!info && pid.startsWith(OPENAI_COMPATIBLE_PREFIX))
+            if (!info && (pid as string).startsWith(OPENAI_COMPATIBLE_PREFIX))
               label = node?.name || "OpenAI Compatible";
-            if (!info && pid.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
+            if (!info && (pid as string).startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
               label = node?.name || "Anthropic Compatible";
             return { value: pid, label };
           })
@@ -48,11 +48,11 @@ export function useProviderOptions(initialProvider = "openai") {
         const nextOptions =
           options.length > 0
             ? options
-            : Object.entries(AI_PROVIDERS).map(([id, info]) => ({ value: id, label: info.name }));
+            : Object.entries(AI_PROVIDERS).map(([id, info]: [string, any]) => ({ value: id, label: info.name }));
         setProviderOptions(nextOptions);
         if (nextOptions.length > 0) {
-          setProvider((current) =>
-            nextOptions.some((opt) => opt.value === current) ? current : nextOptions[0].value
+          setProvider((current: string): string =>
+            nextOptions.some((opt: any) => opt.value === current) ? current : (nextOptions[0] as any).value as string
           );
         }
       } catch {

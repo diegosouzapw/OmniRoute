@@ -90,7 +90,7 @@ async function installCertWindows(certPath) {
         reject(new Error(`Failed to install certificate: ${error.message}`));
       } else {
         console.log(`✅ Installed certificate to Windows Root store`);
-        resolve();
+        resolve(void 0);
       }
     });
   });
@@ -132,7 +132,7 @@ async function uninstallCertWindows() {
         reject(new Error(`Failed to uninstall certificate: ${error.message}`));
       } else {
         console.log("✅ Uninstalled certificate from Windows Root store");
-        resolve();
+        resolve(void 0);
       }
     });
   });

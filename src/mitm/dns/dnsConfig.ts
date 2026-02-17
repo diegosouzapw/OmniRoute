@@ -95,7 +95,7 @@ export async function removeDNSEntry(sudoPassword) {
       await new Promise((resolve, reject) => {
         exec(`powershell -Command "${psCommand}"`, (error) => {
           if (error) reject(new Error(`Failed to remove DNS entry: ${error.message}`));
-          else resolve();
+          else resolve(void 0);
         });
       });
     } else {

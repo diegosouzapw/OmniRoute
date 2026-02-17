@@ -23,8 +23,8 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
 };
 
 function buildAliasMaps() {
-  const aliasToProviderId = {};
-  const providerIdToAlias = {};
+  const aliasToProviderId: Record<string, string> = {};
+  const providerIdToAlias: Record<string, string> = {};
 
   // Canonical source for ID/alias pairs used across dashboard/provider config.
   for (const provider of Object.values(AI_PROVIDERS)) {
@@ -243,7 +243,7 @@ export async function GET() {
 
     // Add custom models (user-defined)
     try {
-      const customModelsMap = await getAllCustomModels();
+      const customModelsMap: Record<string, any[]> = await getAllCustomModels();
       for (const [providerId, providerCustomModels] of Object.entries(customModelsMap)) {
         const alias = providerIdToAlias[providerId] || providerId;
         const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
@@ -305,7 +305,7 @@ export async function GET() {
   } catch (error) {
     console.log("Error fetching models:", error);
     return Response.json(
-      { error: { message: error.message, type: "server_error" } },
+      { error: { message: (error as any).message, type: "server_error" } },
       { status: 500 }
     );
   }

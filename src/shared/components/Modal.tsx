@@ -14,6 +14,7 @@ interface ModalProps {
   closeOnOverlay?: boolean;
   showCloseButton?: boolean;
   className?: string;
+  maxWidth?: string;
 }
 
 export default function Modal({
@@ -190,7 +191,7 @@ export function ConfirmModal({
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             {cancelText}
           </Button>
-          <Button variant={variant} onClick={onConfirm} loading={loading}>
+          <Button variant={variant as any} onClick={onConfirm} loading={loading}>
             {confirmText}
           </Button>
         </>

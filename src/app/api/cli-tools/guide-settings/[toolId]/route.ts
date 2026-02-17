@@ -28,7 +28,7 @@ export async function POST(request, { params }) {
         );
     }
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
@@ -44,7 +44,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
   await fs.mkdir(configDir, { recursive: true });
 
   // Read existing config if any
-  let existingConfig = {};
+  let existingConfig: any = {};
   try {
     const raw = await fs.readFile(configPath, "utf-8");
     existingConfig = JSON.parse(raw);

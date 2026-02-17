@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       process.env.ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE === "true";
 
     if (isOpenAICompatibleProvider(provider)) {
-      const node = await getProviderNodeById(provider);
+      const node: any = await getProviderNodeById(provider);
       if (!node) {
         return NextResponse.json({ error: "OpenAI Compatible node not found" }, { status: 404 });
       }
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         nodeName: node.name,
       };
     } else if (isAnthropicCompatibleProvider(provider)) {
-      const node = await getProviderNodeById(provider);
+      const node: any = await getProviderNodeById(provider);
       if (!node) {
         return NextResponse.json({ error: "Anthropic Compatible node not found" }, { status: 404 });
       }

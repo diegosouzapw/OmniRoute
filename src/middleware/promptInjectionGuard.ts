@@ -21,7 +21,7 @@ import { sanitizeRequest } from "../shared/utils/inputSanitizer";
  * @param {GuardOptions} [options={}]
  * @returns {(req: Request) => { blocked: boolean, result: Object }|null}
  */
-export function createInjectionGuard(options = {}) {
+export function createInjectionGuard(options: any = {}) {
   const mode = options.mode || process.env.INJECTION_GUARD_MODE || "warn";
   const logger = options.logger || console;
 
@@ -31,12 +31,12 @@ export function createInjectionGuard(options = {}) {
    * @param {Object} body - The parsed request body
    * @returns {{ blocked: boolean, result: Object }}
    */
-  return function guardRequest(body) {
+  return function guardRequest(body: any) {
     if (!body || typeof body !== "object") {
       return { blocked: false, result: { flagged: false, detections: [], piiDetections: [] } };
     }
 
-    const result = sanitizeRequest(body, logger);
+    const result: any = sanitizeRequest(body, logger);
 
     if (!result.flagged) {
       return { blocked: false, result };
@@ -72,10 +72,10 @@ export function createInjectionGuard(options = {}) {
  * @param {GuardOptions} [options={}]
  * @returns {Function} Wrapped handler
  */
-export function withInjectionGuard(handler, options = {}) {
+export function withInjectionGuard(handler: any, options: any = {}) {
   const guard = createInjectionGuard(options);
 
-  return async function guardedHandler(request, context) {
+  return async function guardedHandler(request: any, context: any) {
     // Only apply to POST/PUT/PATCH
     if (!["POST", "PUT", "PATCH"].includes(request.method)) {
       return handler(request, context);
@@ -87,7 +87,7 @@ export function withInjectionGuard(handler, options = {}) {
       const body = await cloned.json().catch(() => null);
 
       if (body) {
-        const { blocked, result } = guard(body);
+        const { blocked, result }: any = guard(body);
 
         if (blocked) {
           return new Response(

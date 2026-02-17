@@ -7,7 +7,7 @@ import { getSettings, updateSettings } from "@/lib/localDb";
  */
 export async function GET() {
   try {
-    const settings = await getSettings();
+    const settings: any = await getSettings();
     return NextResponse.json({
       comboDefaults: settings.comboDefaults || {
         strategy: "priority",
@@ -35,7 +35,7 @@ export async function GET() {
 export async function PATCH(request) {
   try {
     const body = await request.json();
-    const updates = {};
+    const updates: Record<string, any> = {};
 
     if (body.comboDefaults) {
       updates.comboDefaults = body.comboDefaults;
@@ -48,7 +48,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
 
-    const settings = await updateSettings(updates);
+    const settings: any = await updateSettings(updates);
     return NextResponse.json({
       comboDefaults: settings.comboDefaults || {},
       providerOverrides: settings.providerOverrides || {},

@@ -26,7 +26,7 @@ export default function NewProviderPage() {
     displayName: "",
     isActive: true,
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<any>({});
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -36,7 +36,7 @@ export default function NewProviderPage() {
   };
 
   const validate = () => {
-    const newErrors = {};
+    const newErrors: any = {};
     if (!formData.provider) newErrors.provider = "Please select a provider";
     if (formData.authMethod === "api_key" && !formData.apiKey) {
       newErrors.apiKey = "API Key is required";
@@ -70,7 +70,7 @@ export default function NewProviderPage() {
     }
   };
 
-  const selectedProvider = AI_PROVIDERS[formData.provider];
+  const selectedProvider = (AI_PROVIDERS as any)[formData.provider];
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -99,7 +99,7 @@ export default function NewProviderPage() {
             value={formData.provider}
             onChange={(e) => handleChange("provider", e.target.value)}
             placeholder="Select a provider"
-            error={errors.provider}
+            error={errors.provider as string}
             required
           />
 
@@ -155,7 +155,7 @@ export default function NewProviderPage() {
               placeholder="Enter your API key"
               value={formData.apiKey}
               onChange={(e) => handleChange("apiKey", e.target.value)}
-              error={errors.apiKey}
+              error={errors.apiKey as string}
               hint="Your API key will be encrypted and stored securely."
               required
             />
@@ -163,7 +163,7 @@ export default function NewProviderPage() {
 
           {/* OAuth2 Button */}
           {formData.authMethod === "oauth2" && (
-            <Card.Section>
+            <Card.Section className="">
               <p className="text-sm text-text-muted mb-4">
                 Connect your account using OAuth2 authentication.
               </p>
@@ -193,7 +193,7 @@ export default function NewProviderPage() {
           {/* Error Message */}
           {errors.submit && (
             <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
-              {errors.submit}
+              {errors.submit as string}
             </div>
           )}
 

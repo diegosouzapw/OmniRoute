@@ -9,7 +9,7 @@ import { syncToCloud } from "@/lib/cloudSync";
  * Exchange authorization code for tokens (Google/GitHub social login)
  * Callback URL will be in format: kiro://kiro.kiroAgent/authenticate-success?code=XXX&state=YYY
  */
-export async function POST(request) {
+export async function POST(request: any) {
   try {
     const { code, codeVerifier, provider } = await request.json();
 
@@ -30,7 +30,7 @@ export async function POST(request) {
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
 
     // Save to database
-    const connection = await createProviderConnection({
+    const connection: any = await createProviderConnection({
       provider: "kiro",
       authType: "oauth",
       accessToken: tokenData.accessToken,
@@ -56,7 +56,7 @@ export async function POST(request) {
         email: connection.email,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("Kiro social exchange error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

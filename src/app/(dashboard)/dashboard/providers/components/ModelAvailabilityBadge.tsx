@@ -148,7 +148,7 @@ export default function ModelAvailabilityBadge() {
                       {provider}
                     </p>
                     <div className="flex flex-col gap-1">
-                      {provModels.map((m) => {
+                      {(provModels as any).map((m) => {
                         const status = STATUS_CONFIG[m.status] || STATUS_CONFIG.unknown;
                         const isClearing = clearing === `${m.provider}:${m.model}`;
                         return (

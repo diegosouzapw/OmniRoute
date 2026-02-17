@@ -24,7 +24,7 @@ const roundRobinCounters = new Map();
  * @returns {{ model: string, index: number }}
  * @throws {Error} If combo has no models
  */
-export function resolveComboModel(combo, context = {}) {
+export function resolveComboModel(combo: any, context: any = {}) {
   const models = combo.models || [];
   if (models.length === 0) {
     throw new Error(`Combo "${combo.name}" has no models configured`);

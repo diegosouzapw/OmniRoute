@@ -83,7 +83,7 @@ export default function ProviderLimitCard({
           <div>
             <h3 className="font-semibold text-text-primary">{name || provider}</h3>
             {plan && (
-              <Badge variant={planVariants[plan?.toLowerCase()] || "default"} size="xs">
+              <Badge variant={(planVariants as any)[plan?.toLowerCase()] || "default"} size={"xs" as any}>
                 {plan}
               </Badge>
             )}

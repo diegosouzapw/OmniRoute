@@ -64,7 +64,7 @@ function getBarColor(remaining) {
 function formatCountdown(resetAt) {
   if (!resetAt) return null;
   try {
-    const diff = new Date(resetAt) - new Date();
+    const diff = (new Date(resetAt) as any) - (new Date() as any);
     if (diff <= 0) return null;
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);

@@ -32,7 +32,7 @@ export class LRUCache {
    * @param {number} [options.maxSize=100] - Max number of entries
    * @param {number} [options.defaultTTL=300000] - Default TTL in ms (5 min)
    */
-  constructor(options = {}) {
+  constructor(options: any = {}) {
     this.#maxSize = options.maxSize ?? 100;
     this.#defaultTTL = options.defaultTTL ?? 300000;
   }
@@ -168,7 +168,7 @@ let promptCache;
  * @param {Object} [options]
  * @returns {LRUCache}
  */
-export function getPromptCache(options) {
+export function getPromptCache(options?: any) {
   if (!promptCache) {
     promptCache = new LRUCache({
       maxSize: parseInt(process.env.PROMPT_CACHE_MAX_SIZE || "200", 10),

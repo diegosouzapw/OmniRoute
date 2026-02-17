@@ -49,7 +49,7 @@ const suites = new Map();
  *
  * @param {EvalSuite} suite
  */
-export function registerSuite(suite) {
+export function registerSuite(suite: any) {
   suites.set(suite.id, suite);
 }
 
@@ -59,7 +59,7 @@ export function registerSuite(suite) {
  * @param {string} suiteId
  * @returns {EvalSuite | null}
  */
-export function getSuite(suiteId) {
+export function getSuite(suiteId: string) {
   return suites.get(suiteId) || null;
 }
 
@@ -91,12 +91,12 @@ export function listSuites() {
  * @param {string} actualOutput - The actual LLM response text
  * @returns {EvalResult}
  */
-export function evaluateCase(evalCase, actualOutput) {
+export function evaluateCase(evalCase: any, actualOutput: string) {
   const start = Date.now();
 
   try {
     let passed = false;
-    const details = {};
+    const details: Record<string, any> = {};
 
     switch (evalCase.expected.strategy) {
       case "exact":
@@ -145,7 +145,7 @@ export function evaluateCase(evalCase, actualOutput) {
       durationMs: Date.now() - start,
       details,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       caseId: evalCase.id,
       caseName: evalCase.name,
@@ -163,7 +163,7 @@ export function evaluateCase(evalCase, actualOutput) {
  * @param {Record<string, string>} outputs - Map of caseId → actualOutput
  * @returns {{ suiteId: string, suiteName: string, results: EvalResult[], summary: { total: number, passed: number, failed: number, passRate: number } }}
  */
-export function runSuite(suiteId, outputs) {
+export function runSuite(suiteId: string, outputs: Record<string, string>) {
   const suite = suites.get(suiteId);
   if (!suite) {
     throw new Error(`Suite not found: ${suiteId}`);
@@ -196,7 +196,7 @@ export function runSuite(suiteId, outputs) {
  * @param {Array<ReturnType<typeof runSuite>>} runs
  * @returns {{ suites: number, totalCases: number, totalPassed: number, overallPassRate: number, perSuite: Array<{ id: string, name: string, passRate: number }> }}
  */
-export function createScorecard(runs) {
+export function createScorecard(runs: any[]) {
   const totalCases = runs.reduce((sum, r) => sum + r.summary.total, 0);
   const totalPassed = runs.reduce((sum, r) => sum + r.summary.passed, 0);
 

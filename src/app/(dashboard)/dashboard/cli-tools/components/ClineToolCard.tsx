@@ -458,17 +458,18 @@ export default function ClineToolCard({
         activeProviders={activeProviders}
         title="Select Model for Cline"
       />
-      <ManualConfigModal
-        isOpen={showManualConfigModal}
-        onClose={() => setShowManualConfigModal(false)}
-        onApply={handleManualConfig}
-        currentConfig={{
-          model: selectedModel,
-          apiKey: selectedApiKey,
-          baseUrl: customBaseUrl || baseUrl,
-        }}
-        title="Cline Manual Configuration"
-      />
+      {showManualConfigModal && (
+        <ManualConfigModal
+          isOpen={showManualConfigModal}
+          onClose={() => setShowManualConfigModal(false)}
+          title="Cline Manual Configuration"
+          {...{onApply: handleManualConfig, currentConfig: {
+            model: selectedModel,
+            apiKey: selectedApiKey,
+            baseUrl: customBaseUrl || baseUrl,
+          }} as any}
+        />
+      )}
     </Card>
   );
 }

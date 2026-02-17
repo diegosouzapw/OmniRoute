@@ -215,7 +215,7 @@ export default function HealthPage() {
           </div>
           <p className="text-xl font-semibold text-text-main">{cbEntries.length}</p>
           <p className="text-xs text-text-muted mt-1">
-            {cbEntries.filter(([, v]) => v.state === "CLOSED").length} healthy
+            {cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length} healthy
           </p>
         </Card>
       </div>
@@ -352,8 +352,8 @@ export default function HealthPage() {
           </p>
         ) : (
           (() => {
-            const unhealthy = cbEntries.filter(([, cb]) => cb.state !== "CLOSED");
-            const healthy = cbEntries.filter(([, cb]) => cb.state === "CLOSED");
+            const unhealthy = cbEntries.filter(([, cb]: [string, any]) => cb.state !== "CLOSED");
+            const healthy = cbEntries.filter(([, cb]: [string, any]) => cb.state === "CLOSED");
             return (
               <div className="space-y-4">
                 {/* Unhealthy providers first */}
@@ -362,7 +362,7 @@ export default function HealthPage() {
                     <p className="text-xs font-medium text-red-400 uppercase tracking-wide">
                       Issues Detected
                     </p>
-                    {unhealthy.map(([provider, cb]) => {
+                    {unhealthy.map(([provider, cb]: [string, any]) => {
                       const style = CB_COLORS[cb.state] || CB_COLORS.OPEN;
                       const providerInfo = AI_PROVIDERS[provider];
                       const displayName = providerInfo?.name || provider;
@@ -477,7 +477,7 @@ export default function HealthPage() {
           };
 
           // Group entries by provider for a cleaner display
-          const entries = Object.entries(rateLimitStatus).map(([key, status]) => ({
+          const entries = Object.entries(rateLimitStatus).map(([key, status]: [string, any]) => ({
             key,
             ...parseKey(key),
             status,
@@ -505,7 +505,7 @@ export default function HealthPage() {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {entries.map(({ key, displayName, providerInfo, connectionId, model, status }) => {
+                {entries.map(({ key, displayName, providerInfo, connectionId, model, status }: any) => {
                   const isActive = (status.queued || 0) + (status.running || 0) > 0;
                   const isQueued = (status.queued || 0) > 0;
                   return (
@@ -581,7 +581,7 @@ export default function HealthPage() {
             Active Lockouts
           </h2>
           <div className="space-y-2">
-            {lockoutEntries.map(([key, lockout]) => (
+            {lockoutEntries.map(([key, lockout]: [string, any]) => (
               <div
                 key={key}
                 className="rounded-lg p-3 bg-red-500/5 border border-red-500/10 flex items-center justify-between"

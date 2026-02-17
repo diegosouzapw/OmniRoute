@@ -3,7 +3,7 @@
 import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 
-export default function ThemeToggle({ className, variant = "default" }) {
+export default function ThemeToggle({ className, variant = "default" }: { className?: any; variant?: string }) {
   const { theme, toggleTheme, isDark } = useTheme();
 
   const variants = {

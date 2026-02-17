@@ -11,7 +11,7 @@ import { getAllCustomModels, getPricing } from "@/lib/localDb";
  */
 export async function GET() {
   try {
-    const catalog = {};
+    const catalog: Record<string, any> = {};
 
     // ── 1. Registry models (hardcoded) ──────────────────────────────
     for (const entry of Object.values(REGISTRY)) {
@@ -33,7 +33,7 @@ export async function GET() {
     }
 
     // ── 2. Custom models (DB) ───────────────────────────────────────
-    let customModelsMap = {};
+    let customModelsMap: Record<string, any[]> = {};
     try {
       customModelsMap = await getAllCustomModels();
     } catch {
@@ -75,7 +75,7 @@ export async function GET() {
     }
 
     // ── 3. Pricing-only models (DB) ─────────────────────────────────
-    let pricingData = {};
+    let pricingData: Record<string, any> = {};
     try {
       pricingData = await getPricing();
     } catch {

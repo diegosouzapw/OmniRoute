@@ -177,7 +177,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
   const bodyBuffer = await collectBodyRaw(req);
 
   // Save request log if enabled
-  if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
+  if ((bodyBuffer as any).length > 0) saveRequestLog(req.url, bodyBuffer);
 
   // Anti-loop: requests from OmniRoute bypass interception
   if (req.headers["x-omniroute-source"] === "omniroute") {

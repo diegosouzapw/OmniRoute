@@ -11,7 +11,7 @@ export function formatResetTime(date) {
   try {
     const resetDate = typeof date === "string" ? new Date(date) : date;
     const now = new Date();
-    const diffMs = resetDate - now;
+    const diffMs = (resetDate as any) - (now as any);
 
     if (diffMs <= 0) return "-";
 
@@ -90,7 +90,7 @@ export function parseQuotaData(provider, data) {
     switch (provider.toLowerCase()) {
       case "github":
         if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]) => {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push({
               name,
               used: quota.used || 0,
@@ -103,7 +103,7 @@ export function parseQuotaData(provider, data) {
 
       case "antigravity":
         if (data.quotas) {
-          Object.entries(data.quotas).forEach(([modelKey, quota]) => {
+          Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
             normalizedQuotas.push({
               name: quota.displayName || modelKey,
               modelKey: modelKey, // Keep modelKey for sorting
@@ -118,7 +118,7 @@ export function parseQuotaData(provider, data) {
 
       case "codex":
         if (data.quotas) {
-          Object.entries(data.quotas).forEach(([quotaType, quota]) => {
+          Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
             normalizedQuotas.push({
               name: quotaType,
               used: quota.used || 0,
@@ -131,7 +131,7 @@ export function parseQuotaData(provider, data) {
 
       case "kiro":
         if (data.quotas) {
-          Object.entries(data.quotas).forEach(([quotaType, quota]) => {
+          Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
             normalizedQuotas.push({
               name: quotaType,
               used: quota.used || 0,
@@ -153,7 +153,7 @@ export function parseQuotaData(provider, data) {
             message: data.message,
           });
         } else if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]) => {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push({
               name,
               used: quota.used || 0,
@@ -167,7 +167,7 @@ export function parseQuotaData(provider, data) {
       default:
         // Generic fallback for unknown providers
         if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]) => {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push({
               name,
               used: quota.used || 0,
@@ -193,7 +193,7 @@ export function parseQuotaData(provider, data) {
       const keyB = b.modelKey || b.name;
       const orderA = orderMap.get(keyA) ?? 999;
       const orderB = orderMap.get(keyB) ?? 999;
-      return orderA - orderB;
+      return (orderA as number) - (orderB as number);
     });
   }
 

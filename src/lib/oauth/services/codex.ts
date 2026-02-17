@@ -109,7 +109,7 @@ export class CodexService extends OAuthService {
           if (callbackParams) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
-            resolve();
+            resolve(void 0);
           }
         }, 100);
       });

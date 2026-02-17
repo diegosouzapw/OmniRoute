@@ -131,7 +131,7 @@ export function getContrastRatio(fgHex, bgHex) {
  * @param {{ largeText?: boolean }} [options={}] - Options
  * @returns {{ ratio: number, aa: boolean, aaa: boolean }}
  */
-export function checkContrast(fgHex, bgHex, options = {}) {
+export function checkContrast(fgHex, bgHex, options: any = {}) {
   const ratio = getContrastRatio(fgHex, bgHex);
   const minAA = options.largeText ? 3 : 4.5;
   const minAAA = options.largeText ? 4.5 : 7;

@@ -48,7 +48,7 @@ export async function GET() {
     } catch {
       return NextResponse.json({ enabled: true, connected: false });
     }
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ enabled: false, error: error.message }, { status: 500 });
   }
 }
@@ -57,7 +57,7 @@ export async function GET() {
  * POST /api/sync/cloud
  * Sync data with Cloud
  */
-export async function POST(request) {
+export async function POST(request: any) {
   try {
     const body = await request.json();
     const { action } = body;
@@ -83,7 +83,7 @@ export async function POST(request) {
         return enableResult;
       }
       case "sync": {
-        const syncResult = await syncToCloud(machineId);
+        const syncResult: any = await syncToCloud(machineId);
         if (syncResult.error) {
           return NextResponse.json(syncResult, { status: 502 });
         }
@@ -95,7 +95,7 @@ export async function POST(request) {
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.log("Cloud sync error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -104,9 +104,9 @@ export async function POST(request) {
 /**
  * Sync and verify connection with ping (retry on verify)
  */
-async function syncAndVerify(machineId, createdKey, existingKeys) {
+async function syncAndVerify(machineId: string, createdKey: any, existingKeys: any[]) {
   // Step 1: Sync data to cloud
-  const syncResult = await syncToCloud(machineId, createdKey);
+  const syncResult: any = await syncToCloud(machineId, createdKey);
   if (syncResult.error) {
     return NextResponse.json(
       { error: `Cloud sync failed: ${syncResult.error}` },
@@ -150,7 +150,7 @@ async function syncAndVerify(machineId, createdKey, existingKeys) {
         });
       }
       lastVerifyError = `Ping failed: ${pingResponse.status}`;
-    } catch (error) {
+    } catch (error: any) {
       lastVerifyError = error?.name === "AbortError" ? "Verify timeout" : error.message;
     }
 
@@ -171,7 +171,7 @@ async function syncAndVerify(machineId, createdKey, existingKeys) {
 /**
  * Disable Cloud - delete cache and update Claude CLI settings
  */
-async function handleDisable(machineId, request) {
+async function handleDisable(machineId: string, request: any) {
   if (!CLOUD_URL) {
     return NextResponse.json({ error: "NEXT_PUBLIC_CLOUD_URL is not configured" }, { status: 500 });
   }
@@ -181,7 +181,7 @@ async function handleDisable(machineId, request) {
     response = await fetchWithTimeout(`${CLOUD_URL}/sync/${machineId}`, {
       method: "DELETE",
     });
-  } catch (error) {
+  } catch (error: any) {
     const isTimeout = error?.name === "AbortError";
     return NextResponse.json(
       {
@@ -210,7 +210,7 @@ async function handleDisable(machineId, request) {
 /**
  * Update Claude CLI settings to use local endpoint (only if currently using cloud)
  */
-async function updateClaudeSettingsToLocal(machineId, host) {
+async function updateClaudeSettingsToLocal(machineId: string, host: string) {
   try {
     const settingsPath = path.join(os.homedir(), ".claude", "settings.json");
     const cloudUrl = `${CLOUD_URL}/${machineId}`;
@@ -221,7 +221,7 @@ async function updateClaudeSettingsToLocal(machineId, host) {
     try {
       const content = await fs.readFile(settingsPath, "utf-8");
       settings = JSON.parse(content);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return; // No settings file, nothing to update
       }
@@ -238,7 +238,7 @@ async function updateClaudeSettingsToLocal(machineId, host) {
     settings.env.ANTHROPIC_BASE_URL = localUrl;
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
     console.log(`Updated Claude CLI settings: ${cloudUrl} → ${localUrl}`);
-  } catch (error) {
+  } catch (error: any) {
     console.log("Failed to update Claude CLI settings:", error.message);
   }
 }

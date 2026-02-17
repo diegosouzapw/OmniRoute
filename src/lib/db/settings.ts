@@ -71,7 +71,7 @@ export async function getPricing() {
     if (userPricing[provider]) {
       for (const [model, pricing] of Object.entries(userPricing[provider])) {
         mergedPricing[provider][model] = mergedPricing[provider][model]
-          ? { ...mergedPricing[provider][model], ...pricing }
+          ? { ...mergedPricing[provider][model], ...(pricing as any) }
           : pricing;
       }
     }

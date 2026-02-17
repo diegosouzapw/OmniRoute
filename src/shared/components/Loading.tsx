@@ -3,8 +3,8 @@
 import { cn } from "@/shared/utils/cn";
 
 // Spinner loading
-export function Spinner({ size = "md", className }) {
-  const sizes = {
+export function Spinner({ size = "md", className }: { size?: string; className?: string }) {
+  const sizes: Record<string, string> = {
     sm: "size-4",
     md: "size-6",
     lg: "size-8",
@@ -23,7 +23,7 @@ export function Spinner({ size = "md", className }) {
 }
 
 // Full page loading
-export function PageLoading({ message = "Loading..." }) {
+export function PageLoading({ message = "Loading..." }: { message?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg">
       <Spinner size="xl" />
@@ -33,7 +33,7 @@ export function PageLoading({ message = "Loading..." }) {
 }
 
 // Skeleton loading
-export function Skeleton({ className, ...props }) {
+export function Skeleton({ className, ...props }: { className?: string; [key: string]: any }) {
   return (
     <div
       aria-hidden="true"
@@ -58,7 +58,7 @@ export function CardSkeleton() {
 }
 
 // Default export
-export default function Loading({ type = "spinner", ...props }) {
+export default function Loading({ type = "spinner", ...props }: { type?: string; [key: string]: any }) {
   switch (type) {
     case "page":
       return <PageLoading {...props} />;

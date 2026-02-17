@@ -88,8 +88,8 @@ const troubleshootingItems = [
   "For OAuth providers, re-authenticate if tokens expire. Check the provider card status indicator.",
 ];
 
-function ProviderTable({ title, providers, colorDot }) {
-  const entries = Object.values(providers);
+function ProviderTable({ title, providers, colorDot }: { title: string; providers: Record<string, any>; colorDot: string }) {
+  const entries: any[] = Object.values(providers);
   return (
     <div className="rounded-lg border border-border bg-bg p-4">
       <div className="flex items-center gap-2 mb-3">

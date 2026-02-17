@@ -59,7 +59,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // FASE-01: Input sanitization — prompt injection detection & PII redaction
   telemetry.startPhase("validate");
-  const sanitizeResult = sanitizeRequest(body, log);
+  const sanitizeResult = sanitizeRequest(body, log as any);
   if (sanitizeResult.blocked) {
     log.warn("SANITIZER", "Request blocked due to prompt injection", {
       detections: sanitizeResult.detections,

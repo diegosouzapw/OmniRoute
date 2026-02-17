@@ -33,7 +33,7 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const providerId = params.id;
+  const providerId = params.id as string;
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [providerNode, setProviderNode] = useState(null);
@@ -66,8 +66,8 @@ export default function ProviderDetailPage() {
         baseUrl: providerNode.baseUrl,
         type: providerNode.type,
       }
-    : FREE_PROVIDERS[providerId] || OAUTH_PROVIDERS[providerId] || APIKEY_PROVIDERS[providerId];
-  const isOAuth = !!FREE_PROVIDERS[providerId] || !!OAUTH_PROVIDERS[providerId];
+    : (FREE_PROVIDERS as any)[providerId] || (OAUTH_PROVIDERS as any)[providerId] || (APIKEY_PROVIDERS as any)[providerId];
+  const isOAuth = !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
   const models = getModelsByProviderId(providerId);
   const providerAlias = getProviderAlias(providerId);
 
@@ -817,7 +817,7 @@ export default function ProviderDetailPage() {
   );
 }
 
-function ModelRow({ model, fullModel, alias, copied, onCopy }) {
+function ModelRow({ model, fullModel, alias, copied, onCopy, onSetAlias, onDeleteAlias }: any) {
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50">
       <span className="material-symbols-outlined text-base text-text-muted">smart_toy</span>
@@ -859,12 +859,12 @@ function PassthroughModelsSection({
   const [adding, setAdding] = useState(false);
 
   // Filter aliases for this provider - models are persisted via alias
-  const providerAliases = Object.entries(modelAliases).filter(([, model]) =>
-    model.startsWith(`${providerAlias}/`)
+  const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
+    (model as string).startsWith(`${providerAlias}/`)
   );
 
-  const allModels = providerAliases.map(([alias, fullModel]) => ({
-    modelId: fullModel.replace(`${providerAlias}/`, ""),
+  const allModels = providerAliases.map(([alias, fullModel]: [string, any]) => ({
+    modelId: (fullModel as string).replace(`${providerAlias}/`, ""),
     fullModel,
     alias,
   }));
@@ -931,7 +931,7 @@ function PassthroughModelsSection({
         <div className="flex flex-col gap-3">
           {allModels.map(({ modelId, fullModel, alias }) => (
             <PassthroughModelRow
-              key={fullModel}
+              key={fullModel as string}
               modelId={modelId}
               fullModel={fullModel}
               copied={copied}
@@ -1180,12 +1180,12 @@ function CompatibleModelsSection({
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const providerAliases = Object.entries(modelAliases).filter(([, model]) =>
-    model.startsWith(`${providerStorageAlias}/`)
+  const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
+    (model as string).startsWith(`${providerStorageAlias}/`)
   );
 
-  const allModels = providerAliases.map(([alias, fullModel]) => ({
-    modelId: fullModel.replace(`${providerStorageAlias}/`, ""),
+  const allModels = providerAliases.map(([alias, fullModel]: [string, any]) => ({
+    modelId: (fullModel as string).replace(`${providerStorageAlias}/`, ""),
     fullModel,
     alias,
   }));
@@ -1311,7 +1311,7 @@ function CompatibleModelsSection({
         <div className="flex flex-col gap-3">
           {allModels.map(({ modelId, fullModel, alias }) => (
             <PassthroughModelRow
-              key={fullModel}
+              key={fullModel as string}
               modelId={modelId}
               fullModel={`${providerDisplayAlias}/${modelId}`}
               copied={copied}
@@ -1602,7 +1602,7 @@ function ConnectionRow({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{displayName}</p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <Badge variant={statusPresentation.statusVariant} size="sm" dot>
+            <Badge variant={statusPresentation.statusVariant as any} size="sm" dot>
               {statusPresentation.statusLabel}
             </Badge>
             {isCooldown && connection.isActive !== false && (
@@ -1956,7 +1956,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      const updates = {
+      const updates: any = {
         name: formData.name,
         priority: formData.priority,
         healthCheckInterval: formData.healthCheckInterval,
@@ -2156,7 +2156,7 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
     if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;
     setSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         name: formData.name,
         prefix: formData.prefix,
         baseUrl: formData.baseUrl,
