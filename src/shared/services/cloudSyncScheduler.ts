@@ -11,7 +11,11 @@ const INTERNAL_BASE_URL =
  * Cloud sync scheduler
  */
 export class CloudSyncScheduler {
-  constructor(machineId = null, intervalMinutes = 15) {
+  machineId: string | null;
+  intervalMinutes: number;
+  intervalId: ReturnType<typeof setInterval> | null;
+
+  constructor(machineId: string | null = null, intervalMinutes = 15) {
     this.machineId = machineId;
     this.intervalMinutes = intervalMinutes;
     this.intervalId = null;
@@ -116,9 +120,9 @@ export class CloudSyncScheduler {
 }
 
 // Export a singleton instance if needed
-let cloudSyncScheduler = null;
+let cloudSyncScheduler: CloudSyncScheduler | null = null;
 
-export async function getCloudSyncScheduler(machineId = null, intervalMinutes = 15) {
+export async function getCloudSyncScheduler(machineId: string | null = null, intervalMinutes = 15) {
   if (!cloudSyncScheduler) {
     cloudSyncScheduler = new CloudSyncScheduler(machineId, intervalMinutes);
   }

@@ -10,7 +10,7 @@
 
 import { getCorrelationId } from "../middleware/correlationId";
 
-const LOG_LEVELS = {
+const LOG_LEVELS: Record<string, number> = {
   debug: 10,
   info: 20,
   warn: 30,
@@ -18,20 +18,11 @@ const LOG_LEVELS = {
   fatal: 50,
 };
 
-const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toLowerCase()] || LOG_LEVELS.info;
+const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toLowerCase() || ""] || LOG_LEVELS.info;
 const isProduction = process.env.NODE_ENV === "production";
 
-/**
- * Format a log entry.
- *
- * @param {string} level
- * @param {string} component
- * @param {string} message
- * @param {Object} [meta]
- * @returns {string}
- */
-function formatEntry(level, component, message, meta) {
-  const entry = {
+function formatEntry(level: string, component: string, message: string, meta?: Record<string, unknown>) {
+  const entry: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     level,
     component,
@@ -40,7 +31,7 @@ function formatEntry(level, component, message, meta) {
   };
 
   // Add correlation ID if available
-  const correlationId = getCorrelationId();
+  const correlationId = getCorrelationId() as string | undefined;
   if (correlationId) {
     entry.correlationId = correlationId;
   }
@@ -55,43 +46,32 @@ function formatEntry(level, component, message, meta) {
   return `[${entry.timestamp}] ${level.toUpperCase().padEnd(5)} [${component}]${corrStr} ${message}${metaStr}`;
 }
 
-/**
- * Create a scoped logger for a specific component.
- *
- * @param {string} component - Component name (e.g. 'CHAT', 'AUTH', 'PROXY')
- * @returns {{ debug: Function, info: Function, warn: Function, error: Function, fatal: Function }}
- */
-export function createLogger(component) {
+export function createLogger(component: string) {
   return {
-    debug(message, meta) {
+    debug(message: string, meta?: Record<string, unknown>) {
       if (currentLevel <= LOG_LEVELS.debug) {
         console.debug(formatEntry("debug", component, message, meta));
       }
     },
-    info(message, meta) {
+    info(message: string, meta?: Record<string, unknown>) {
       if (currentLevel <= LOG_LEVELS.info) {
         console.info(formatEntry("info", component, message, meta));
       }
     },
-    warn(message, meta) {
+    warn(message: string, meta?: Record<string, unknown>) {
       if (currentLevel <= LOG_LEVELS.warn) {
         console.warn(formatEntry("warn", component, message, meta));
       }
     },
-    error(message, meta) {
+    error(message: string, meta?: Record<string, unknown>) {
       if (currentLevel <= LOG_LEVELS.error) {
         console.error(formatEntry("error", component, message, meta));
       }
     },
-    fatal(message, meta) {
+    fatal(message: string, meta?: Record<string, unknown>) {
       console.error(formatEntry("fatal", component, message, meta));
     },
-    /**
-     * Create a child logger with additional default metadata.
-     * @param {Object} defaultMeta - Default metadata to include
-     * @returns {Object} Child logger
-     */
-    child(defaultMeta) {
+    child(defaultMeta: Record<string, unknown>) {
       return createLogger(component);
     },
   };

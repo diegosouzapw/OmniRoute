@@ -4,7 +4,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { THEME_CONFIG } from "@/shared/constants/config";
 
-const useThemeStore = create(
+interface ThemeState {
+  theme: string;
+  setTheme: (theme: string) => void;
+  toggleTheme: () => void;
+  initTheme: () => void;
+}
+
+const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
       theme: THEME_CONFIG.defaultTheme,
@@ -33,7 +40,7 @@ const useThemeStore = create(
 );
 
 // Apply theme to document
-function applyTheme(theme) {
+function applyTheme(theme: string) {
   if (typeof window === "undefined") return;
 
   const root = document.documentElement;
