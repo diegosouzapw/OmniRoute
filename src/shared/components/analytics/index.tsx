@@ -22,4 +22,6 @@ export {
   ModelTable,
   UsageDetail,
   ProviderCostDonut,
+  ModelOverTimeChart,
+  ProviderTable,
 } from "./charts";

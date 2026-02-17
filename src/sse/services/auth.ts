@@ -29,7 +29,10 @@ const markMutexes = new Map<string, Promise<void>>();
  * @param {string} provider - Provider name
  * @param {string|null} excludeConnectionId - Connection ID to exclude (for retry with next account)
  */
-export async function getProviderCredentials(provider: string, excludeConnectionId: string | null = null) {
+export async function getProviderCredentials(
+  provider: string,
+  excludeConnectionId: string | null = null
+) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
   let resolveMutex: (() => void) | undefined;
@@ -105,7 +108,8 @@ export async function getProviderCredentials(provider: string, excludeConnection
           (c) => c.rateLimitedUntil && new Date(c.rateLimitedUntil).getTime() > Date.now()
         );
         const earliestConn = rateLimitedConns.sort(
-          (a: any, b: any) => new Date(a.rateLimitedUntil).getTime() - new Date(b.rateLimitedUntil).getTime()
+          (a: any, b: any) =>
+            new Date(a.rateLimitedUntil).getTime() - new Date(b.rateLimitedUntil).getTime()
         )[0];
         log.warn(
           "AUTH",
@@ -166,6 +170,41 @@ export async function getProviderCredentials(provider: string, excludeConnection
           consecutiveUseCount: 1,
         });
       }
+    } else if (strategy === "p2c") {
+      // Power of Two Choices: pick 2 random, choose the one with fewer failures
+      if (availableConnections.length <= 2) {
+        connection = availableConnections[0];
+      } else {
+        const i = Math.floor(Math.random() * availableConnections.length);
+        let j = Math.floor(Math.random() * (availableConnections.length - 1));
+        if (j >= i) j++;
+        const a = availableConnections[i];
+        const b = availableConnections[j];
+        // Prefer the one with fewer consecutive uses / better health
+        const scoreA = (a.consecutiveUseCount || 0) + (a.lastError ? 10 : 0);
+        const scoreB = (b.consecutiveUseCount || 0) + (b.lastError ? 10 : 0);
+        connection = scoreA <= scoreB ? a : b;
+      }
+    } else if (strategy === "random") {
+      // Random: Fisher-Yates-inspired random pick
+      const idx = Math.floor(Math.random() * availableConnections.length);
+      connection = availableConnections[idx];
+    } else if (strategy === "least-used") {
+      // Least Used: pick the one with oldest lastUsedAt
+      const sorted = [...availableConnections].sort((a: any, b: any) => {
+        if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
+        if (!a.lastUsedAt) return -1;
+        if (!b.lastUsedAt) return 1;
+        return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+      });
+      connection = sorted[0];
+    } else if (strategy === "cost-optimized") {
+      // Cost Optimized: sort by priority ascending (lower = cheaper/preferred)
+      // Future: can be enhanced with actual cost data per provider
+      const sorted = [...availableConnections].sort(
+        (a: any, b: any) => (a.priority || 999) - (b.priority || 999)
+      );
+      connection = sorted[0];
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = availableConnections[0];

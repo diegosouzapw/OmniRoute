@@ -9,6 +9,7 @@ import {
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 const getDroidSettingsPath = () => getCliPrimaryConfigPath("droid");
 const getDroidDir = () => path.dirname(getDroidSettingsPath());
@@ -132,6 +133,13 @@ export async function POST(request: Request) {
     // Write settings
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
 
+    // Persist last-configured timestamp
+    try {
+      saveCliToolLastConfigured("droid");
+    } catch {
+      /* non-critical */
+    }
+
     return NextResponse.json({
       success: true,
       message: "Factory Droid settings applied successfully!",
@@ -183,6 +191,13 @@ export async function DELETE() {
 
     // Write updated settings
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+
+    // Clear last-configured timestamp
+    try {
+      deleteCliToolLastConfigured("droid");
+    } catch {
+      /* non-critical */
+    }
 
     return NextResponse.json({
       success: true,

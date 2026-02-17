@@ -19,6 +19,7 @@ export default function ClaudeToolCard({
   apiKeys,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [claudeStatus, setClaudeStatus] = useState(null);
   const [checkingClaude, setCheckingClaude] = useState(false);
@@ -277,6 +278,7 @@ export default function ClaudeToolCard({
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>

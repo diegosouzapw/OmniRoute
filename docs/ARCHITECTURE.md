@@ -408,6 +408,9 @@ erDiagram
       number stickyRoundRobinLimit
       boolean requireLogin
       string password_hash
+      string fallbackStrategy
+      json rateLimitDefaults
+      json providerProfiles
     }
 
     PROVIDER_CONNECTION {
@@ -750,8 +753,9 @@ Environment variables actively used by code:
 3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
 4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
-6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive visualizations (bar charts, donut charts).
+6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
 7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:plan3`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
+8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
 
 ## Operational Verification Checklist
 

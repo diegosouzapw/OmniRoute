@@ -29,6 +29,7 @@ export default function CLIToolsPageClient({ machineId }) {
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
   const [toolStatuses, setToolStatuses] = useState({});
+  const [statusesLoaded, setStatusesLoaded] = useState(false);
 
   useEffect(() => {
     fetchConnections();
@@ -70,6 +71,8 @@ export default function CLIToolsPageClient({ machineId }) {
       }
     } catch (error) {
       console.log("Error fetching CLI tool statuses:", error);
+    } finally {
+      setStatusesLoaded(true);
     }
   };
 
@@ -144,7 +147,7 @@ export default function CLIToolsPageClient({ machineId }) {
     return "http://localhost:20128";
   };
 
-  if (loading) {
+  if (loading || !statusesLoaded) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4">
@@ -167,6 +170,7 @@ export default function CLIToolsPageClient({ machineId }) {
       baseUrl: getBaseUrl(),
       apiKeys,
       batchStatus: toolStatuses[toolId] || null,
+      lastConfiguredAt: toolStatuses[toolId]?.lastConfiguredAt || null,
     };
 
     switch (toolId) {

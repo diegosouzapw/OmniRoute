@@ -4,7 +4,13 @@
 export interface Settings {
   requireLogin: boolean;
   hasPassword: boolean;
-  fallbackStrategy: "fill-first" | "round-robin";
+  fallbackStrategy:
+    | "fill-first"
+    | "round-robin"
+    | "p2c"
+    | "random"
+    | "least-used"
+    | "cost-optimized";
   stickyRoundRobinLimit: number;
   jwtSecret?: string;
 }

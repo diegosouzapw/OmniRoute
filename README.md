@@ -158,7 +158,7 @@ docker compose --profile cli up -d
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `0.8.5`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `0.8.8`  | ~250MB | Current version       |
 
 ---
 
@@ -166,19 +166,19 @@ docker compose --profile cli up -d
 
 ### 🧠 Core Routing & Intelligence
 
-| Feature                         | What It Does                                                                      |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| 🎯 **Smart 4-Tier Fallback**    | Auto-route: Subscription → API Key → Cheap → Free                                 |
-| 📊 **Real-Time Quota Tracking** | Live token count + reset countdown per provider                                   |
-| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro seamless                                 |
-| 👥 **Multi-Account Support**    | Multiple accounts per provider with P2C selection                                 |
-| 🔄 **Auto Token Refresh**       | OAuth tokens refresh automatically with retry                                     |
-| 🎨 **Custom Combos**            | 6 strategies: priority, weighted, round-robin, random, least-used, cost-optimized |
-| 🧩 **Custom Models**            | Add any model ID to any provider                                                  |
-| 🌐 **Wildcard Router**          | Route `provider/*` patterns to any provider dynamically                           |
-| 🧠 **Thinking Budget**          | Passthrough, auto, custom, and adaptive modes for reasoning models                |
-| 💬 **System Prompt Injection**  | Global system prompt applied across all requests                                  |
-| 📄 **Responses API**            | Full OpenAI Responses API (`/v1/responses`) support for Codex                     |
+| Feature                         | What It Does                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| 🎯 **Smart 4-Tier Fallback**    | Auto-route: Subscription → API Key → Cheap → Free                              |
+| 📊 **Real-Time Quota Tracking** | Live token count + reset countdown per provider                                |
+| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro seamless                              |
+| 👥 **Multi-Account Support**    | Multiple accounts per provider with intelligent selection                      |
+| 🔄 **Auto Token Refresh**       | OAuth tokens refresh automatically with retry                                  |
+| 🎨 **Custom Combos**            | 6 strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized |
+| 🧩 **Custom Models**            | Add any model ID to any provider                                               |
+| 🌐 **Wildcard Router**          | Route `provider/*` patterns to any provider dynamically                        |
+| 🧠 **Thinking Budget**          | Passthrough, auto, custom, and adaptive modes for reasoning models             |
+| 💬 **System Prompt Injection**  | Global system prompt applied across all requests                               |
+| 📄 **Responses API**            | Full OpenAI Responses API (`/v1/responses`) support for Codex                  |
 
 ### 🎵 Multi-Modal APIs
 
@@ -193,26 +193,28 @@ docker compose --profile cli up -d
 
 ### 🛡️ Resilience & Security
 
-| Feature                         | What It Does                                                 |
-| ------------------------------- | ------------------------------------------------------------ |
-| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds    |
-| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers           |
-| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency |
-| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                       |
-| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                   |
-| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                   |
-| 📋 **Compliance Audit Log**     | Tamper-proof request logs with opt-out per API key           |
+| Feature                         | What It Does                                                  |
+| ------------------------------- | ------------------------------------------------------------- |
+| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds     |
+| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers            |
+| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency  |
+| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                        |
+| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                    |
+| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                    |
+| 📋 **Compliance Audit Log**     | Tamper-proof request logs with opt-out per API key            |
+| 📊 **Editable Rate Limits**     | Configurable RPM, min gap, and max concurrent at system level |
 
 ### 📊 Observability & Analytics
 
-| Feature                  | What It Does                                           |
-| ------------------------ | ------------------------------------------------------ |
-| 📝 **Request Logging**   | Debug mode with full request/response logs             |
-| 💾 **SQLite Proxy Logs** | Persistent proxy logs survive server restarts          |
-| 📊 **Usage Analytics**   | Track tokens, cost, trends over time                   |
-| 📈 **Progress Tracking** | Opt-in SSE progress events for streaming               |
-| 🧪 **LLM Evaluations**   | Golden set testing with 4 match strategies             |
-| 🔍 **Request Telemetry** | p50/p95/p99 latency aggregation + X-Request-Id tracing |
+| Feature                      | What It Does                                                    |
+| ---------------------------- | --------------------------------------------------------------- |
+| 📝 **Request Logging**       | Debug mode with full request/response logs                      |
+| 💾 **SQLite Proxy Logs**     | Persistent proxy logs survive server restarts                   |
+| 📊 **Analytics Dashboard**   | Recharts-powered: stat cards, model usage chart, provider table |
+| 📈 **Progress Tracking**     | Opt-in SSE progress events for streaming                        |
+| 🧪 **LLM Evaluations**       | Golden set testing with 4 match strategies                      |
+| 🔍 **Request Telemetry**     | p50/p95/p99 latency aggregation + X-Request-Id tracing          |
+| 📋 **Request Logs + Quotas** | Dedicated pages for log browsing and limits/quotas tracking     |
 
 ### ☁️ Deployment & Sync
 
@@ -292,7 +294,7 @@ registerSuite({
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v0.8.5)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v0.8.8)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
 - **Streaming**: Server-Sent Events (SSE)
@@ -347,7 +349,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.8.5 --title "v0.8.5" --generate-notes
+gh release create v0.8.8 --title "v0.8.8" --generate-notes
 ```
 
 ---

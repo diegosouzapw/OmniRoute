@@ -17,6 +17,7 @@ export default function ClineToolCard({
   activeProviders,
   cloudEnabled,
   batchStatus,
+  lastConfiguredAt,
 }) {
   const [clineStatus, setClineStatus] = useState(null);
   const [checkingCline, setCheckingCline] = useState(false);
@@ -236,6 +237,7 @@ export default function ClineToolCard({
               <CliStatusBadge
                 effectiveConfigStatus={effectiveConfigStatus}
                 batchStatus={batchStatus}
+                lastConfiguredAt={lastConfiguredAt}
               />
             </div>
             <p className="text-xs text-text-muted truncate">{tool.description}</p>
@@ -463,11 +465,14 @@ export default function ClineToolCard({
           isOpen={showManualConfigModal}
           onClose={() => setShowManualConfigModal(false)}
           title="Cline Manual Configuration"
-          {...{onApply: handleManualConfig, currentConfig: {
-            model: selectedModel,
-            apiKey: selectedApiKey,
-            baseUrl: customBaseUrl || baseUrl,
-          }} as any}
+          {...({
+            onApply: handleManualConfig,
+            currentConfig: {
+              model: selectedModel,
+              apiKey: selectedApiKey,
+              baseUrl: customBaseUrl || baseUrl,
+            },
+          } as any)}
         />
       )}
     </Card>

@@ -9,6 +9,7 @@ import {
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 import { createMultiBackup } from "@/shared/services/backupService";
+import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 const getCodexConfigPath = () => getCliConfigPaths("codex").config;
 const getCodexAuthPath = () => getCliConfigPaths("codex").auth;
@@ -201,6 +202,13 @@ export async function POST(request: Request) {
     authData.OPENAI_API_KEY = apiKey;
     await fs.writeFile(authPath, JSON.stringify(authData, null, 2));
 
+    // Persist last-configured timestamp
+    try {
+      saveCliToolLastConfigured("codex");
+    } catch {
+      /* non-critical */
+    }
+
     return NextResponse.json({
       success: true,
       message: "Codex settings applied successfully!",
@@ -268,6 +276,13 @@ export async function DELETE() {
       }
     } catch {
       /* No auth file */
+    }
+
+    // Clear last-configured timestamp
+    try {
+      deleteCliToolLastConfigured("codex");
+    } catch {
+      /* non-critical */
     }
 
     return NextResponse.json({

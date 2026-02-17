@@ -74,6 +74,7 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-6">
               <ThinkingBudgetTab />
               <SystemPromptTab />
+              <CacheStatsCard />
             </div>
           )}
 
@@ -88,12 +89,7 @@ export default function SettingsPage() {
 
           {activeTab === "resilience" && <ResilienceTab />}
 
-          {activeTab === "advanced" && (
-            <div className="flex flex-col gap-6">
-              <ProxyTab />
-              <CacheStatsCard />
-            </div>
-          )}
+          {activeTab === "advanced" && <ProxyTab />}
 
           {activeTab === "compliance" && <ComplianceTab />}
         </div>

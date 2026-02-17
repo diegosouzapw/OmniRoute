@@ -6,6 +6,7 @@ import path from "path";
 import os from "os";
 import { ensureCliConfigWriteAllowed, getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 
 const KILO_DATA_DIR = path.join(os.homedir(), ".local", "share", "kilo");
 const AUTH_PATH = path.join(KILO_DATA_DIR, "auth.json");
@@ -175,6 +176,13 @@ export async function POST(request) {
       // VS Code settings not writable — not a problem for CLI
     }
 
+    // Persist last-configured timestamp
+    try {
+      saveCliToolLastConfigured("kilo");
+    } catch {
+      /* non-critical */
+    }
+
     return NextResponse.json({
       success: true,
       message: "Kilo Code settings applied successfully!",
@@ -231,6 +239,13 @@ export async function DELETE() {
       await fs.writeFile(vscodeSettingsPath, JSON.stringify(vscodeSettings, null, 2));
     } catch {
       /* ignore */
+    }
+
+    // Clear last-configured timestamp
+    try {
+      deleteCliToolLastConfigured("kilo");
+    } catch {
+      /* non-critical */
     }
 
     return NextResponse.json({
