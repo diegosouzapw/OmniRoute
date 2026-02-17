@@ -21,7 +21,7 @@ let selectionMutex = Promise.resolve();
 // ─── Anti-Thundering Herd: per-connection mutex for markAccountUnavailable ───
 // Prevents multiple concurrent requests from marking the same connection
 // unavailable in parallel, which was the root cause of cascading 502 lockouts.
-const markMutexes = new Map();
+const markMutexes = new Map<string, Promise<void>>();
 
 /**
  * Get provider credentials from localDb
@@ -29,10 +29,10 @@ const markMutexes = new Map();
  * @param {string} provider - Provider name
  * @param {string|null} excludeConnectionId - Connection ID to exclude (for retry with next account)
  */
-export async function getProviderCredentials(provider, excludeConnectionId = null) {
+export async function getProviderCredentials(provider: string, excludeConnectionId: string | null = null) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
-  let resolveMutex;
+  let resolveMutex: (() => void) | undefined;
   selectionMutex = new Promise((resolve) => {
     resolveMutex = resolve;
   });
@@ -105,7 +105,7 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
           (c) => c.rateLimitedUntil && new Date(c.rateLimitedUntil).getTime() > Date.now()
         );
         const earliestConn = rateLimitedConns.sort(
-          (a, b) => new Date(a.rateLimitedUntil) - new Date(b.rateLimitedUntil)
+          (a: any, b: any) => new Date(a.rateLimitedUntil).getTime() - new Date(b.rateLimitedUntil).getTime()
         )[0];
         log.warn(
           "AUTH",
@@ -131,11 +131,11 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
       const stickyLimit = settings.stickyRoundRobinLimit || 3;
 
       // Sort by lastUsed (most recent first) to find current candidate
-      const byRecency = [...availableConnections].sort((a, b) => {
+      const byRecency = [...availableConnections].sort((a: any, b: any) => {
         if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
         if (!a.lastUsedAt) return 1;
         if (!b.lastUsedAt) return -1;
-        return new Date(b.lastUsedAt) - new Date(a.lastUsedAt);
+        return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
       });
 
       const current = byRecency[0];
@@ -151,11 +151,11 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
         });
       } else {
         // Pick the least recently used (excluding current if possible)
-        const sortedByOldest = [...availableConnections].sort((a, b) => {
+        const sortedByOldest = [...availableConnections].sort((a: any, b: any) => {
           if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
           if (!a.lastUsedAt) return -1;
           if (!b.lastUsedAt) return 1;
-          return new Date(a.lastUsedAt) - new Date(b.lastUsedAt);
+          return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
         });
 
         connection = sortedByOldest[0];
@@ -200,18 +200,14 @@ export async function getProviderCredentials(provider, excludeConnectionId = nul
  * @returns {{ shouldFallback: boolean, cooldownMs: number }}
  */
 export async function markAccountUnavailable(
-  connectionId,
-  status,
-  errorText,
-  provider = null,
-  model = null
+  connectionId: string,
+  status: number,
+  errorText: string,
+  provider: string | null = null,
+  model: string | null = null
 ) {
-  // ─── Anti-Thundering Herd Mutex ─────────────────────────────────
-  // Wait for any in-flight markAccountUnavailable call for the SAME connection.
-  // This prevents 5 concurrent 502s from each independently marking the account
-  // with backoffLevel 0 → 1, when only the first should.
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
-  let resolveMutex;
+  let resolveMutex: (() => void) | undefined;
   markMutexes.set(
     connectionId,
     new Promise((resolve) => {
@@ -284,7 +280,7 @@ export async function markAccountUnavailable(
  * Clear account error status (only if currently has error)
  * Optimized to avoid unnecessary DB updates
  */
-export async function clearAccountError(connectionId, currentConnection) {
+export async function clearAccountError(connectionId: string, currentConnection: any) {
   // Only update if currently has error status
   const hasError =
     currentConnection.testStatus === "unavailable" ||
@@ -306,7 +302,7 @@ export async function clearAccountError(connectionId, currentConnection) {
 /**
  * Extract API key from request headers
  */
-export function extractApiKey(request) {
+export function extractApiKey(request: Request) {
   const authHeader = request.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
@@ -317,7 +313,7 @@ export function extractApiKey(request) {
 /**
  * Validate API key (optional - for local use can skip)
  */
-export async function isValidApiKey(apiKey) {
+export async function isValidApiKey(apiKey: string) {
   if (!apiKey) return false;
   return await validateApiKey(apiKey);
 }

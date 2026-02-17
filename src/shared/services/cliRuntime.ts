@@ -6,7 +6,7 @@ import { spawn } from "child_process";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
-const CLI_TOOLS = {
+const CLI_TOOLS: Record<string, any> = {
   claude: {
     defaultCommand: "claude",
     envBinKey: "CLI_CLAUDE_BIN",
@@ -90,12 +90,12 @@ const CLI_TOOLS = {
 
 const isWindows = () => process.platform === "win32";
 
-const parseBoolean = (value, defaultValue = true) => {
+const parseBoolean = (value: unknown, defaultValue = true) => {
   if (value == null || value === "") return defaultValue;
   return !FALSE_VALUES.has(String(value).trim().toLowerCase());
 };
 
-const runProcess = (command, args, { env, timeoutMs = 3000 } = {}) =>
+const runProcess = (command: string, args: string[], { env, timeoutMs = 3000 }: { env?: Record<string, string | undefined>; timeoutMs?: number } = {}): Promise<any> =>
   new Promise((resolve) => {
     let stdout = "";
     let stderr = "";
@@ -108,7 +108,7 @@ const runProcess = (command, args, { env, timeoutMs = 3000 } = {}) =>
       child.kill("SIGKILL");
     }, timeoutMs);
 
-    const done = (result) => {
+    const done = (result: any) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
@@ -168,7 +168,7 @@ const getLookupEnv = () => {
   return env;
 };
 
-const resolveToolCommands = (toolId) => {
+const resolveToolCommands = (toolId: string): string[] => {
   const tool = CLI_TOOLS[toolId];
   if (!tool) return [];
   const envCommand = String(process.env[tool.envBinKey] || "").trim();
@@ -179,7 +179,7 @@ const resolveToolCommands = (toolId) => {
   return tool.defaultCommand ? [tool.defaultCommand] : [];
 };
 
-const checkExplicitPath = async (commandPath) => {
+const checkExplicitPath = async (commandPath: string) => {
   try {
     await fs.access(commandPath, fs.constants.F_OK);
   } catch {
@@ -194,7 +194,7 @@ const checkExplicitPath = async (commandPath) => {
   }
 };
 
-const locateCommand = async (command, env) => {
+const locateCommand = async (command: string, env: Record<string, string | undefined>) => {
   if (!command) {
     return { installed: false, commandPath: null, reason: "missing_command" };
   }
@@ -231,7 +231,7 @@ const locateCommand = async (command, env) => {
   return { installed: !!first, commandPath: first, reason: first ? null : "not_found" };
 };
 
-const locateCommandCandidate = async (commands, env) => {
+const locateCommandCandidate = async (commands: string[], env: Record<string, string | undefined>) => {
   if (!Array.isArray(commands) || commands.length === 0) {
     return { command: null, installed: false, commandPath: null, reason: "missing_command" };
   }
@@ -246,7 +246,7 @@ const locateCommandCandidate = async (commands, env) => {
   return { command: commands[0], installed: false, commandPath: null, reason: "not_found" };
 };
 
-const checkRunnable = async (commandPath, env, timeoutMs = 4000) => {
+const checkRunnable = async (commandPath: string, env: Record<string, string | undefined>, timeoutMs = 4000) => {
   for (const args of [["--version"], ["-v"]]) {
     const result = await runProcess(commandPath, args, { env, timeoutMs });
     if (result.ok) {
@@ -267,23 +267,23 @@ export const ensureCliConfigWriteAllowed = () => {
 export const getCliConfigHome = () =>
   String(process.env.CLI_CONFIG_HOME || "").trim() || os.homedir();
 
-export const getCliConfigPaths = (toolId) => {
+export const getCliConfigPaths = (toolId: string) => {
   const tool = CLI_TOOLS[toolId];
   if (!tool) return null;
   const home = getCliConfigHome();
   return Object.fromEntries(
-    Object.entries(tool.paths).map(([key, relativePath]) => [key, path.join(home, relativePath)])
+    Object.entries(tool.paths).map(([key, relativePath]) => [key, path.join(home, relativePath as string)])
   );
 };
 
-export const getCliPrimaryConfigPath = (toolId) => {
+export const getCliPrimaryConfigPath = (toolId: string) => {
   const paths = getCliConfigPaths(toolId);
   if (!paths) return null;
   const firstKey = Object.keys(paths)[0];
   return firstKey ? paths[firstKey] : null;
 };
 
-export const getCliRuntimeStatus = async (toolId) => {
+export const getCliRuntimeStatus = async (toolId: string) => {
   const tool = CLI_TOOLS[toolId];
   const runtimeMode = getRuntimeMode();
   if (!tool) {

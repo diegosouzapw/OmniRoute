@@ -13,7 +13,10 @@ import { shouldPersistToDisk } from "./migrations";
 
 // ──────────────── Pending Requests (in-memory) ────────────────
 
-const pendingRequests = {
+const pendingRequests: {
+  byModel: Record<string, number>;
+  byAccount: Record<string, Record<string, number>>;
+} = {
   byModel: {},
   byAccount: {},
 };
@@ -21,7 +24,7 @@ const pendingRequests = {
 /**
  * Track a pending request.
  */
-export function trackPendingRequest(model, provider, connectionId, started) {
+export function trackPendingRequest(model: string, provider: string, connectionId: string | null, started: boolean) {
   const modelKey = provider ? `${model} (${provider})` : model;
 
   if (!pendingRequests.byModel[modelKey]) pendingRequests.byModel[modelKey] = 0;
@@ -84,7 +87,7 @@ export async function getUsageDb() {
 /**
  * Save request usage entry to SQLite.
  */
-export async function saveRequestUsage(entry) {
+export async function saveRequestUsage(entry: any) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -122,11 +125,11 @@ export async function saveRequestUsage(entry) {
 /**
  * Get usage history with optional filters.
  */
-export async function getUsageHistory(filter = {}) {
+export async function getUsageHistory(filter: any = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM usage_history";
-  const conditions = [];
-  const params = {};
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
 
   if (filter.provider) {
     conditions.push("provider = @provider");
@@ -175,7 +178,7 @@ import fs from "fs";
 import { LOG_FILE } from "./migrations";
 
 function formatLogDate(date = new Date()) {
-  const pad = (n) => String(n).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, "0");
   const d = pad(date.getDate());
   const m = pad(date.getMonth() + 1);
   const y = date.getFullYear();
@@ -188,7 +191,7 @@ function formatLogDate(date = new Date()) {
 /**
  * Append to log.txt.
  */
-export async function appendRequestLog({ model, provider, connectionId, tokens, status }) {
+export async function appendRequestLog({ model, provider, connectionId, tokens, status }: { model?: string; provider?: string; connectionId?: string; tokens?: any; status?: string | number }) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -225,7 +228,7 @@ export async function appendRequestLog({ model, provider, connectionId, tokens, 
     if (lines.length > 200) {
       fs.writeFileSync(LOG_FILE, lines.slice(-200).join("\n") + "\n");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to append to log.txt:", error.message);
   }
 }
@@ -243,7 +246,7 @@ export async function getRecentLogs(limit = 200) {
     const content = fs.readFileSync(LOG_FILE, "utf-8");
     const lines = content.trim().split("\n");
     return lines.slice(-limit).reverse();
-  } catch (error) {
+  } catch (error: any) {
     console.error("[usageDb] Failed to read log.txt:", error.message);
     return [];
   }

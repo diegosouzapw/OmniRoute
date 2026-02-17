@@ -24,7 +24,7 @@ function generateLogId() {
 /**
  * Save a structured call log entry.
  */
-export async function saveCallLog(entry) {
+export async function saveCallLog(entry: any) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -38,7 +38,7 @@ export async function saveCallLog(entry) {
     } catch {}
 
     // Truncate large payloads for DB storage (keep under 8KB each)
-    const truncatePayload = (obj) => {
+    const truncatePayload = (obj: any) => {
       if (!obj) return null;
       const str = JSON.stringify(obj);
       if (str.length <= 8192) return str;
@@ -107,7 +107,7 @@ export async function saveCallLog(entry) {
       entry.requestBody,
       entry.responseBody
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("[callLogs] Failed to save call log:", error.message);
   }
 }
@@ -115,7 +115,7 @@ export async function saveCallLog(entry) {
 /**
  * Write call log as JSON file to disk (full payloads, not truncated).
  */
-function writeCallLogToDisk(logEntry, requestBody, responseBody) {
+function writeCallLogToDisk(logEntry: any, requestBody: any, responseBody: any) {
   if (!CALL_LOGS_DIR) return;
 
   try {
@@ -136,7 +136,7 @@ function writeCallLogToDisk(logEntry, requestBody, responseBody) {
     };
 
     fs.writeFileSync(path.join(dir, filename), JSON.stringify(fullEntry, null, 2));
-  } catch (err) {
+  } catch (err: any) {
     console.error("[callLogs] Failed to write disk log:", err.message);
   }
 }
@@ -160,7 +160,7 @@ export function rotateCallLogs() {
         console.log(`[callLogs] Rotated old logs: ${entry}`);
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("[callLogs] Failed to rotate logs:", err.message);
   }
 }
@@ -175,11 +175,11 @@ if (shouldPersistToDisk) {
 /**
  * Get call logs with optional filtering.
  */
-export async function getCallLogs(filter = {}) {
+export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM call_logs";
-  const conditions = [];
-  const params = {};
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
 
   if (filter.status) {
     if (filter.status === "error") {
@@ -257,7 +257,7 @@ export async function getCallLogs(filter = {}) {
 /**
  * Get a single call log by ID (with full payloads from disk when available).
  */
-export async function getCallLogById(id) {
+export async function getCallLogById(id: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM call_logs WHERE id = ?").get(id);
   if (!row) return null;
@@ -296,7 +296,7 @@ export async function getCallLogById(id) {
           responseBody: diskEntry.responseBody ?? entry.responseBody,
         };
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[callLogs] Failed to read full log from disk:", err.message);
     }
   }
@@ -307,7 +307,7 @@ export async function getCallLogById(id) {
 /**
  * Read the full (untruncated) log entry from disk.
  */
-function readFullLogFromDisk(entry) {
+function readFullLogFromDisk(entry: any) {
   if (!CALL_LOGS_DIR || !entry.timestamp) return null;
 
   try {
@@ -332,7 +332,7 @@ function readFullLogFromDisk(entry) {
     if (files.length > 0) {
       return JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8"));
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("[callLogs] Disk log read error:", err.message);
   }
 
