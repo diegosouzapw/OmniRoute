@@ -1,3 +1,4 @@
+declare var EdgeRuntime: any;
 /**
  * CursorExecutor — Handles communication with the Cursor IDE API.
  *
@@ -36,7 +37,6 @@ import zlib from "zlib";
 // Detect cloud environment
 const isCloudEnv = () => {
   if (typeof caches !== "undefined" && typeof caches === "object") return true;
-  // @ts-ignore — EdgeRuntime is a global in edge runtimes
   if (typeof EdgeRuntime !== "undefined") return true;
   return false;
 };
@@ -227,8 +227,7 @@ export class CursorExecutor extends BaseExecutor {
 
     return {
       status: response.status,
-      // @ts-ignore — Headers.entries() exists at runtime
-      headers: Object.fromEntries(response.headers.entries()),
+      headers: Object.fromEntries((response.headers as any).entries()),
       body: Buffer.from(await response.arrayBuffer()),
     };
   }
@@ -292,25 +291,21 @@ export class CursorExecutor extends BaseExecutor {
     const transformedBody = this.transformRequest(model, body, stream, credentials);
 
     try {
-      const response = http2
+      const response: any = http2
         ? await this.makeHttp2Request(url, headers, transformedBody, signal)
         : await this.makeFetchRequest(url, headers, transformedBody, signal);
 
-      // @ts-ignore
       if (response.status !== 200) {
-        // @ts-ignore
         const errorText = response.body?.toString() || "Unknown error";
         const errorResponse = new Response(
           JSON.stringify({
             error: {
-              // @ts-ignore
               message: `[${response.status}]: ${errorText}`,
               type: "invalid_request_error",
               code: "",
             },
           }),
           {
-            // @ts-ignore
             status: response.status,
             headers: { "Content-Type": "application/json" },
           }
@@ -320,9 +315,7 @@ export class CursorExecutor extends BaseExecutor {
 
       const transformedResponse =
         stream !== false
-          // @ts-ignore
           ? this.transformProtobufToSSE(response.body, model, body)
-          // @ts-ignore
           : this.transformProtobufToJSON(response.body, model, body);
 
       return { response: transformedResponse, url, headers, transformedBody: body };

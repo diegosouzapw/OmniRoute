@@ -234,8 +234,7 @@ export function translateResponse(targetFormat, sourceFormat, chunk, state) {
 
   // Attach OpenAI intermediate results for logging
   if (openaiResults && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
-    // @ts-ignore — custom expando property for logging
-    results._openaiIntermediate = openaiResults;
+    (results as any)._openaiIntermediate = openaiResults;
   }
 
   return results;

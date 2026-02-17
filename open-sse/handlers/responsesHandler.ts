@@ -37,7 +37,6 @@ export async function handleResponsesCore({
   convertedBody.stream = true;
 
   // Call chat core handler
-  // @ts-ignore
   const result = await handleChatCore({
     body: convertedBody,
     modelInfo,
@@ -46,8 +45,11 @@ export async function handleResponsesCore({
     onCredentialsRefreshed,
     onRequestSuccess,
     onDisconnect,
+    clientRawRequest: null,
     connectionId,
-  });
+    userAgent: null,
+    comboName: null,
+  } as any);
 
   if (!result.success || !result.response) {
     return result;

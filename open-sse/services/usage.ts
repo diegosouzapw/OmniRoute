@@ -49,8 +49,7 @@ export async function getUsageForProvider(connection) {
     case "gemini-cli":
       return await getGeminiUsage(accessToken);
     case "antigravity":
-      // @ts-ignore
-      return await getAntigravityUsage(accessToken);
+      return await getAntigravityUsage(accessToken, undefined);
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
@@ -312,7 +311,7 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
     }
 
     const data = await response.json();
-    const quotas = {};
+    const quotas: Record<string, any> = {};
 
     // Parse model quotas (inspired by vscode-antigravity-cockpit)
     if (data.models) {
@@ -329,20 +328,17 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
         "gemini-2.5-flash",
       ];
 
-      for (const [modelKey, info] of Object.entries(data.models)) {
+      for (const [modelKey, info] of Object.entries(data.models) as [string, any][]) {
         // Skip models without quota info
-        // @ts-ignore
         if (!info.quotaInfo) {
           continue;
         }
 
         // Skip internal models and non-important models
-        // @ts-ignore
         if (info.isInternal || !importantModels.includes(modelKey)) {
           continue;
         }
 
-        // @ts-ignore
         const remainingFraction = info.quotaInfo.remainingFraction || 0;
         const remainingPercentage = remainingFraction * 100;
 
@@ -358,11 +354,9 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
         quotas[modelKey] = {
           used,
           total,
-          // @ts-ignore
           resetAt: parseResetTime(info.quotaInfo.resetTime),
           remainingPercentage,
           unlimited: false,
-          // @ts-ignore
           displayName: info.displayName || modelKey,
         };
       }

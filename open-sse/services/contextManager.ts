@@ -51,16 +51,13 @@ export function getTokenLimit(provider, model = null) {
  * @param {object} options - { provider?, model?, maxTokens?, reserveTokens? }
  * @returns {{ body: object, compressed: boolean, stats: object }}
  */
-export function compressContext(body, options = {}) {
+export function compressContext(body, options: any = {}) {
   if (!body || !body.messages || !Array.isArray(body.messages)) {
     return { body, compressed: false, stats: {} };
   }
 
-  // @ts-ignore
   const provider = options.provider || "default";
-  // @ts-ignore
   const maxTokens = options.maxTokens || getTokenLimit(provider, body.model || options.model);
-  // @ts-ignore
   const reserveTokens = options.reserveTokens || 16000; // Reserve for response
   const targetTokens = maxTokens - reserveTokens;
 

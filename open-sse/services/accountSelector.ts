@@ -27,9 +27,7 @@ export function selectAccountP2C(accounts, model = null) {
   const a = accounts[i];
   const b = accounts[j];
 
-  // @ts-ignore — getAccountHealth accepts optional model
   const healthA = getAccountHealth(a, model);
-  // @ts-ignore
   const healthB = getAccountHealth(b, model);
 
   return healthA >= healthB ? a : b;
@@ -45,7 +43,7 @@ export function selectAccountP2C(accounts, model = null) {
  * @param {string} [model] - Model name
  * @returns {{ account: object|null, state: object }}
  */
-export function selectAccount(accounts, strategy = "fill-first", state = {}, model = null) {
+export function selectAccount(accounts, strategy = "fill-first", state: any = {}, model = null) {
   if (!accounts || accounts.length === 0) {
     return { account: null, state };
   }
@@ -61,7 +59,6 @@ export function selectAccount(accounts, strategy = "fill-first", state = {}, mod
       };
 
     case "round-robin": {
-      // @ts-ignore
       const lastIndex = state.lastIndex ?? -1;
       const nextIndex = (lastIndex + 1) % accounts.length;
       return {

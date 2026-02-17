@@ -156,15 +156,13 @@ export function getProviderFallbackCount(provider) {
 }
 
 // Build provider URL
-export function buildProviderUrl(provider, model, stream = true, options = {}) {
+export function buildProviderUrl(provider, model, stream = true, options: any = {}) {
   if (isOpenAICompatible(provider)) {
     const apiType = getOpenAICompatibleType(provider);
-    // @ts-ignore
     const baseUrl = options?.baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl;
     return buildOpenAICompatibleUrl(baseUrl, apiType);
   }
   if (isAnthropicCompatible(provider)) {
-    // @ts-ignore
     const baseUrl = options?.baseUrl || ANTHROPIC_COMPATIBLE_DEFAULTS.baseUrl;
     return buildAnthropicCompatibleUrl(baseUrl);
   }
@@ -176,7 +174,6 @@ export function buildProviderUrl(provider, model, stream = true, options = {}) {
   if (entry) {
     // Multi-URL providers (e.g. antigravity)
     if (entry.baseUrls) {
-      // @ts-ignore
       const urlIndex = options?.baseUrlIndex || 0;
       const baseUrl = entry.baseUrls[urlIndex] || entry.baseUrls[0];
       if (entry.urlBuilder) return entry.urlBuilder(baseUrl, model, stream);

@@ -4,7 +4,7 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
 
 // Convert Claude request to OpenAI format
 export function claudeToOpenAIRequest(model, body, stream) {
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     messages: [],
     stream: stream,
@@ -12,13 +12,11 @@ export function claudeToOpenAIRequest(model, body, stream) {
 
   // Max tokens
   if (body.max_tokens) {
-    // @ts-ignore
     result.max_tokens = adjustMaxTokens(body);
   }
 
   // Temperature
   if (body.temperature !== undefined) {
-    // @ts-ignore
     result.temperature = body.temperature;
   }
 
@@ -57,7 +55,6 @@ export function claudeToOpenAIRequest(model, body, stream) {
 
   // Tools
   if (body.tools && Array.isArray(body.tools)) {
-    // @ts-ignore
     result.tools = body.tools.map((tool) => ({
       type: "function",
       function: {
@@ -70,7 +67,6 @@ export function claudeToOpenAIRequest(model, body, stream) {
 
   // Tool choice
   if (body.tool_choice) {
-    // @ts-ignore
     result.tool_choice = convertToolChoice(body.tool_choice);
   }
 

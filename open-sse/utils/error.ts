@@ -144,7 +144,6 @@ export function createErrorResult(statusCode: number, message: string, retryAfte
     result.retryAfterMs = retryAfterMs;
   }
 
-  // @ts-ignore - boolean is assignable to false at runtime
   return result;
 }
 
@@ -156,7 +155,7 @@ export function createErrorResult(statusCode: number, message: string, retryAfte
  * @param {string} retryAfterHuman - Human-readable retry info e.g. "reset after 30s"
  * @returns {Response}
  */
-export function unavailableResponse(statusCode, message, retryAfter, retryAfterHuman) {
+export function unavailableResponse(statusCode, message, retryAfter?: any, retryAfterHuman?: any) {
   const retryAfterSec = Math.max(
     Math.ceil((new Date(retryAfter).getTime() - Date.now()) / 1000),
     1
@@ -180,7 +179,6 @@ export function unavailableResponse(statusCode, message, retryAfter, retryAfterH
  * @returns {string} Formatted error message
  */
 export function formatProviderError(error, provider, model, statusCode) {
-  // @ts-ignore - Error may have custom 'code' property
   const code = statusCode || error.code || "FETCH_FAILED";
   const message = error.message || "Unknown error";
   return `[${code}]: ${message}`;

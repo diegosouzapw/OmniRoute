@@ -36,7 +36,6 @@ function normalizeModelEntry(entry) {
  * @returns {Object|null} Full combo object or null if not a combo
  */
 export function getComboFromData(modelStr, combosData) {
-  // @ts-ignore - combosData can be object with .combos property
   const combos = Array.isArray(combosData) ? combosData : combosData?.combos || [];
   const combo = combos.find((c) => c.name === modelStr);
   if (combo && combo.models && combo.models.length > 0) {
@@ -71,7 +70,6 @@ export function validateComboDAG(comboName, allCombos, visited = new Set(), dept
   }
   visited.add(comboName);
 
-  // @ts-ignore - allCombos can be object with .combos property
   const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
   const combo = combos.find((c) => c.name === comboName);
   if (!combo || !combo.models) return;
@@ -251,7 +249,6 @@ export async function handleComboChat({
 
   // Use config cascade if settings provided
   const config = settings
-    // @ts-ignore
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const maxRetries = config.maxRetries ?? 1;
@@ -453,7 +450,6 @@ export async function handleComboChat({
 
   if (allBreakersOpen) {
     log.warn("COMBO", "All models have circuit breaker OPEN — aborting");
-    // @ts-ignore - partial args are valid for this error case
     return unavailableResponse(
       503,
       "All providers temporarily unavailable (circuit breakers open)"
@@ -498,7 +494,6 @@ async function handleRoundRobinCombo({
 }) {
   const models = combo.models || [];
   const config = settings
-    // @ts-ignore
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const concurrency = config.concurrencyPerModel ?? 3;
@@ -516,7 +511,6 @@ async function handleRoundRobinCombo({
 
   const modelCount = orderedModels.length;
   if (modelCount === 0) {
-    // @ts-ignore - partial args are valid for this error case
     return unavailableResponse(406, "Round-robin combo has no models");
   }
 
@@ -706,7 +700,6 @@ async function handleRoundRobinCombo({
 
   if (allBreakersOpen) {
     log.warn("COMBO-RR", "All models have circuit breaker OPEN — aborting");
-    // @ts-ignore - partial args are valid for this error case
     return unavailableResponse(
       503,
       "All providers temporarily unavailable (circuit breakers open)"

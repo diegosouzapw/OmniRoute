@@ -125,7 +125,7 @@ export class KiroExecutor extends BaseExecutor {
             const content = event.payload.content;
             state.totalContentLength += content.length;
 
-            const chunk = {
+            const chunk: Record<string, any> = {
               id: responseId,
               object: "chat.completion.chunk",
               created,
@@ -144,7 +144,7 @@ export class KiroExecutor extends BaseExecutor {
 
           // Handle codeEvent
           if (eventType === "codeEvent" && event.payload?.content) {
-            const chunk = {
+            const chunk: Record<string, any> = {
               id: responseId,
               object: "chat.completion.chunk",
               created,
@@ -256,7 +256,7 @@ export class KiroExecutor extends BaseExecutor {
 
           // Handle messageStopEvent
           if (eventType === "messageStopEvent") {
-            const chunk = {
+            const chunk: Record<string, any> = {
               id: responseId,
               object: "chat.completion.chunk",
               created,
@@ -329,7 +329,7 @@ export class KiroExecutor extends BaseExecutor {
               };
             }
 
-            const finishChunk = {
+            const finishChunk: Record<string, any> = {
               id: responseId,
               object: "chat.completion.chunk",
               created,
@@ -345,7 +345,6 @@ export class KiroExecutor extends BaseExecutor {
 
             // Include usage in final chunk if available
             if (state.usage) {
-              // @ts-ignore
               finishChunk.usage = state.usage;
             }
 

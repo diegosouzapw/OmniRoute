@@ -34,27 +34,21 @@ const MAX_PATTERNS_PER_KEY = 50;
  * @param {object} context - { tool?, modelFamily?, sessionId? }
  * @returns {string[]} Array of unique signature patterns
  */
-export function getSignatures(context = {}) {
+export function getSignatures(context: any = {}) {
   const patterns = new Set(DEFAULT_SIGNATURES);
 
   // Layer 1: Tool (e.g., "cursor", "cline", "antigravity")
-  // @ts-ignore
   if (context.tool && layers.tool.has(context.tool)) {
-    // @ts-ignore
     for (const p of layers.tool.get(context.tool)) patterns.add(p);
   }
 
   // Layer 2: Model family (e.g., "claude-sonnet", "claude-opus")
-  // @ts-ignore
   if (context.modelFamily && layers.family.has(context.modelFamily)) {
-    // @ts-ignore
     for (const p of layers.family.get(context.modelFamily)) patterns.add(p);
   }
 
   // Layer 3: Session-specific
-  // @ts-ignore
   if (context.sessionId && layers.session.has(context.sessionId)) {
-    // @ts-ignore
     for (const p of layers.session.get(context.sessionId)) patterns.add(p);
   }
 
@@ -67,7 +61,7 @@ export function getSignatures(context = {}) {
  * @param {string} pattern - The signature pattern (e.g., "<antThinking>")
  * @param {object} context - { tool?, modelFamily?, sessionId? }
  */
-export function addSignature(pattern, context = {}) {
+export function addSignature(pattern: any, context: any = {}) {
   if (!pattern || typeof pattern !== "string") return;
 
   const addToLayer = (layer, key) => {
@@ -86,11 +80,8 @@ export function addSignature(pattern, context = {}) {
     }
   };
 
-  // @ts-ignore
   addToLayer(layers.tool, context.tool);
-  // @ts-ignore
   addToLayer(layers.family, context.modelFamily);
-  // @ts-ignore
   addToLayer(layers.session, context.sessionId);
 }
 
@@ -102,7 +93,7 @@ export function addSignature(pattern, context = {}) {
  * @param {object} context - { tool?, modelFamily?, sessionId? }
  * @returns {{ found: string[], cleaned: string }} Detected tags and cleaned text
  */
-export function detectAndLearn(text, context = {}) {
+export function detectAndLearn(text: any, context: any = {}) {
   if (!text || typeof text !== "string") return { found: [], cleaned: text };
 
   const found = [];

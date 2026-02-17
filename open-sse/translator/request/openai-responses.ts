@@ -21,10 +21,8 @@ export function openaiResponsesToOpenAIRequest(model, body, stream, credentials)
         const error = new Error(
           `Unsupported Responses API feature: ${tool.type} tool type is not supported by omniroute`
         );
-        // @ts-ignore — custom error property
-        error.statusCode = 400;
-        // @ts-ignore — custom error property
-        error.errorType = "unsupported_feature";
+        (error as any).statusCode = 400;
+        (error as any).errorType = "unsupported_feature";
         throw error;
       }
     }
@@ -33,14 +31,12 @@ export function openaiResponsesToOpenAIRequest(model, body, stream, credentials)
     const error = new Error(
       "Unsupported Responses API feature: background mode is not supported by omniroute"
     );
-    // @ts-ignore — custom error property
-    error.statusCode = 400;
-    // @ts-ignore — custom error property
-    error.errorType = "unsupported_feature";
+    (error as any).statusCode = 400;
+    (error as any).errorType = "unsupported_feature";
     throw error;
   }
 
-  const result = { ...body };
+  const result: Record<string, any> = { ...body };
   result.messages = [];
 
   // Convert instructions to system message
@@ -163,7 +159,7 @@ export function openaiResponsesToOpenAIRequest(model, body, stream, credentials)
  * Convert OpenAI Chat Completions to OpenAI Responses API format
  */
 export function openaiToOpenAIResponsesRequest(model, body, stream, credentials) {
-  const result = {
+  const result: Record<string, any> = {
     model,
     input: [],
     stream: true,
@@ -178,7 +174,6 @@ export function openaiToOpenAIResponsesRequest(model, body, stream, credentials)
     if (msg.role === "system") {
       // Use first system message as instructions
       if (!hasSystemMessage) {
-        // @ts-ignore
         result.instructions = typeof msg.content === "string" ? msg.content : "";
         hasSystemMessage = true;
       }
@@ -280,13 +275,11 @@ export function openaiToOpenAIResponsesRequest(model, body, stream, credentials)
 
   // If no system message, leave instructions empty
   if (!hasSystemMessage) {
-    // @ts-ignore
     result.instructions = "";
   }
 
   // Convert tools format
   if (body.tools && Array.isArray(body.tools)) {
-    // @ts-ignore
     result.tools = body.tools.map((tool) => {
       if (tool.type === "function") {
         return {
@@ -302,11 +295,8 @@ export function openaiToOpenAIResponsesRequest(model, body, stream, credentials)
   }
 
   // Pass through other relevant fields
-  // @ts-ignore
   if (body.temperature !== undefined) result.temperature = body.temperature;
-  // @ts-ignore
   if (body.max_tokens !== undefined) result.max_tokens = body.max_tokens;
-  // @ts-ignore
   if (body.top_p !== undefined) result.top_p = body.top_p;
 
   return result;

@@ -133,7 +133,7 @@ export function claudeToOpenAIResponse(chunk, state) {
 
       if (chunk.delta?.stop_reason) {
         state.finishReason = convertStopReason(chunk.delta.stop_reason);
-        const finalChunk = {
+        const finalChunk: Record<string, any> = {
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
           created: Math.floor(Date.now() / 1000),
@@ -161,7 +161,6 @@ export function claudeToOpenAIResponse(chunk, state) {
           const completionTokens = outputTokens;
           const totalTokens = promptTokens + completionTokens;
 
-          // @ts-ignore
           finalChunk.usage = {
             prompt_tokens: promptTokens,
             completion_tokens: completionTokens,
@@ -170,14 +169,11 @@ export function claudeToOpenAIResponse(chunk, state) {
 
           // Add prompt_tokens_details if cached tokens exist
           if (cachedTokens > 0 || cacheCreationTokens > 0) {
-            // @ts-ignore
             finalChunk.usage.prompt_tokens_details = {};
             if (cachedTokens > 0) {
-              // @ts-ignore
               finalChunk.usage.prompt_tokens_details.cached_tokens = cachedTokens;
             }
             if (cacheCreationTokens > 0) {
-              // @ts-ignore
               finalChunk.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
             }
           }

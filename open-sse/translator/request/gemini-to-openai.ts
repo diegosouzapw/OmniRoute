@@ -4,7 +4,7 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
 
 // Convert Gemini request to OpenAI format
 export function geminiToOpenAIRequest(model, body, stream) {
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     messages: [],
     stream: stream,
@@ -15,15 +15,12 @@ export function geminiToOpenAIRequest(model, body, stream) {
     const config = body.generationConfig;
     if (config.maxOutputTokens) {
       const tempBody = { max_tokens: config.maxOutputTokens, tools: body.tools };
-      // @ts-ignore
       result.max_tokens = adjustMaxTokens(tempBody);
     }
     if (config.temperature !== undefined) {
-      // @ts-ignore
       result.temperature = config.temperature;
     }
     if (config.topP !== undefined) {
-      // @ts-ignore
       result.top_p = config.topP;
     }
   }
@@ -51,12 +48,10 @@ export function geminiToOpenAIRequest(model, body, stream) {
 
   // Tools
   if (body.tools && Array.isArray(body.tools)) {
-    // @ts-ignore
     result.tools = [];
     for (const tool of body.tools) {
       if (tool.functionDeclarations) {
         for (const func of tool.functionDeclarations) {
-          // @ts-ignore
           result.tools.push({
             type: "function",
             function: {

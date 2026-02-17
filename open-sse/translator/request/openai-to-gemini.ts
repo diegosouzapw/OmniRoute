@@ -21,7 +21,7 @@ import {
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(model, body, stream) {
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     contents: [],
     generationConfig: {},
@@ -30,19 +30,15 @@ function openaiToGeminiBase(model, body, stream) {
 
   // Generation config
   if (body.temperature !== undefined) {
-    // @ts-ignore
     result.generationConfig.temperature = body.temperature;
   }
   if (body.top_p !== undefined) {
-    // @ts-ignore
     result.generationConfig.topP = body.top_p;
   }
   if (body.top_k !== undefined) {
-    // @ts-ignore
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    // @ts-ignore
     result.generationConfig.maxOutputTokens = body.max_tokens;
   }
 
@@ -78,7 +74,6 @@ function openaiToGeminiBase(model, body, stream) {
       const content = msg.content;
 
       if (role === "system" && body.messages.length > 1) {
-        // @ts-ignore
         result.systemInstruction = {
           role: "user",
           parts: [{ text: typeof content === "string" ? content : extractTextContent(content) }],
@@ -200,7 +195,6 @@ function openaiToGeminiBase(model, body, stream) {
     }
 
     if (functionDeclarations.length > 0) {
-      // @ts-ignore
       result.tools = [{ functionDeclarations }];
     }
   }
@@ -222,7 +216,6 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
   if (body.reasoning_effort) {
     const budgetMap = { low: 1024, medium: 8192, high: 32768 };
     const budget = budgetMap[body.reasoning_effort] || 8192;
-    // @ts-ignore
     gemini.generationConfig.thinkingConfig = {
       thinkingBudget: budget,
       include_thoughts: true,
@@ -231,7 +224,6 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
   // Thinking config from Claude format
   if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
-    // @ts-ignore
     gemini.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       include_thoughts: true,
@@ -239,9 +231,7 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
   }
 
   // Clean schema for tools
-  // @ts-ignore
   if (gemini.tools?.[0]?.functionDeclarations) {
-    // @ts-ignore
     for (const fn of gemini.tools[0].functionDeclarations) {
       if (fn.parameters) {
         const cleanedSchema = cleanJSONSchemaForAntigravity(fn.parameters);
@@ -263,7 +253,7 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
   const projectId = credentials?.projectId || generateProjectId();
 
-  const envelope = {
+  const envelope: Record<string, any> = {
     project: projectId,
     model: model,
     userAgent: isAntigravity ? "antigravity" : "gemini-cli",
@@ -279,11 +269,10 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
   // Antigravity specific fields
   if (isAntigravity) {
-    // @ts-ignore
     envelope.requestType = "agent";
 
     // Inject required default system prompt for Antigravity
-    const defaultPart = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
+    const defaultPart: Record<string, any> = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
     if (envelope.request.systemInstruction?.parts) {
       envelope.request.systemInstruction.parts.unshift(defaultPart);
     } else {
@@ -292,14 +281,12 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
     // Add toolConfig for Antigravity
     if (geminiCLI.tools?.length > 0) {
-      // @ts-ignore
       envelope.request.toolConfig = {
         functionCallingConfig: { mode: "VALIDATED" },
       };
     }
   } else {
     // Keep safetySettings for Gemini CLI
-    // @ts-ignore
     envelope.request.safetySettings = geminiCLI.safetySettings;
   }
 
@@ -310,7 +297,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
   const projectId = credentials?.projectId || generateProjectId();
 
-  const envelope = {
+  const envelope: Record<string, any> = {
     project: projectId,
     model: model,
     userAgent: "antigravity",
@@ -386,9 +373,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
       }
     }
     if (functionDeclarations.length > 0) {
-      // @ts-ignore
       envelope.request.tools = [{ functionDeclarations }];
-      // @ts-ignore
       envelope.request.toolConfig = {
         functionCallingConfig: { mode: "VALIDATED" },
       };
@@ -409,7 +394,6 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     }
   }
 
-  // @ts-ignore
   envelope.request.systemInstruction = { role: "user", parts: systemParts };
 
   return envelope;

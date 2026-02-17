@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
@@ -31,7 +33,6 @@ async function getPath() {
 // Create log directory for responses (Node.js only)
 export function createResponsesLogger(model, logsDir = null) {
   // Skip logging in worker environment (no fs)
-  // @ts-ignore - fs is available as a Node.js global or dynamically imported
   if (typeof fs.mkdirSync !== "function") {
     return null;
   }
@@ -39,11 +40,9 @@ export function createResponsesLogger(model, logsDir = null) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
   const uniqueId = Math.random().toString(36).slice(2, 8);
   const baseDir = logsDir || (typeof process !== "undefined" ? process.cwd() : ".");
-  // @ts-ignore - path is available as a Node.js global
   const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
 
   try {
-    // @ts-ignore
     fs.mkdirSync(logDir, { recursive: true });
   } catch {
     return null;
@@ -61,9 +60,7 @@ export function createResponsesLogger(model, logsDir = null) {
     },
     flush: () => {
       try {
-        // @ts-ignore
         fs.writeFileSync(path.join(logDir, "1_input_stream.txt"), inputEvents.join("\n"));
-        // @ts-ignore
         fs.writeFileSync(path.join(logDir, "2_output_stream.txt"), outputEvents.join("\n"));
       } catch (e) {
         console.log("[RESPONSES] Failed to write logs:", e.message);

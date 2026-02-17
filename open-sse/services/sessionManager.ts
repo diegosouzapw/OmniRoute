@@ -36,14 +36,13 @@ _cleanupTimer.unref();
  * @param {object} [options] - Extra context
  * @returns {string} Session ID (hex hash)
  */
-export function generateSessionId(body, options = {}) {
+export function generateSessionId(body, options: any = {}) {
   const parts = [];
 
   // Model contributes to fingerprint
   if (body.model) parts.push(`model:${body.model}`);
 
   // Provider binding
-  // @ts-ignore
   if (options.provider) parts.push(`provider:${options.provider}`);
 
   // System prompt hash (first 32 chars of system content)
@@ -69,7 +68,6 @@ export function generateSessionId(body, options = {}) {
   }
 
   // Connection ID for sticky routing
-  // @ts-ignore
   if (options.connectionId) parts.push(`conn:${options.connectionId}`);
 
   if (parts.length === 0) return null;

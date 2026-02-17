@@ -51,7 +51,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     message.reasoning_content = reasoningParts.join("");
   }
 
-  const result = {
+  const result: Record<string, any> = {
     id: first.id || `chatcmpl-${Date.now()}`,
     object: "chat.completion",
     created: first.created || Math.floor(Date.now() / 1000),
@@ -66,7 +66,6 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   };
 
   if (usage) {
-    // @ts-ignore
     result.usage = usage;
   }
 

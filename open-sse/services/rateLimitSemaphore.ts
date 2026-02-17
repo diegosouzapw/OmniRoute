@@ -117,8 +117,7 @@ export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}
       const idx = gate.queue.findIndex((item) => item.timer === timer);
       if (idx !== -1) gate.queue.splice(idx, 1);
       const err = new Error(`Semaphore timeout after ${timeoutMs}ms for ${modelStr}`);
-      // @ts-ignore — custom error code property
-      err.code = "SEMAPHORE_TIMEOUT";
+      (err as any).code = "SEMAPHORE_TIMEOUT";
       reject(err);
     }, timeoutMs);
 

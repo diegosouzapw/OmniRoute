@@ -232,21 +232,16 @@ async function handleOpenAIImageGeneration({
   };
 
   // Build upstream request (OpenAI-compatible format)
-  const upstreamBody = {
+  const upstreamBody: Record<string, any> = {
     model: model,
     prompt: body.prompt,
   };
 
   // Pass optional parameters
-  // @ts-ignore
   if (body.n !== undefined) upstreamBody.n = body.n;
-  // @ts-ignore
   if (body.size !== undefined) upstreamBody.size = body.size;
-  // @ts-ignore
   if (body.quality !== undefined) upstreamBody.quality = body.quality;
-  // @ts-ignore
   if (body.response_format !== undefined) upstreamBody.response_format = body.response_format;
-  // @ts-ignore
   if (body.style !== undefined) upstreamBody.style = body.style;
 
   // Build headers

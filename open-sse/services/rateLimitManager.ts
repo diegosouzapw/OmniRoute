@@ -293,16 +293,13 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // Calculate optimal minTime from RPM limit
     const minTime = Math.max(0, Math.floor(60000 / limit) - 10); // Small buffer
 
-    const updates = { minTime };
+    const updates: Record<string, any> = { minTime };
 
     // If remaining is low (< 10% of limit), set reservoir to throttle immediately
     if (!isNaN(remaining)) {
       if (remaining < limit * 0.1) {
-        // @ts-ignore
         updates.reservoir = remaining;
-        // @ts-ignore
         updates.reservoirRefreshAmount = limit;
-        // @ts-ignore
         updates.reservoirRefreshInterval = resetMs;
         console.log(
           `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${remaining}/${limit} remaining, throttling`
@@ -310,11 +307,8 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
       } else if (remaining > limit * 0.5) {
         // Plenty of headroom — relax the limiter
         updates.minTime = 0;
-        // @ts-ignore
         updates.reservoir = null;
-        // @ts-ignore
         updates.reservoirRefreshAmount = null;
-        // @ts-ignore
         updates.reservoirRefreshInterval = null;
       }
     }
@@ -354,7 +348,7 @@ export function getRateLimitStatus(provider, connectionId) {
  * Get all active limiters status (for dashboard overview)
  */
 export function getAllRateLimitStatus() {
-  const result = {};
+  const result: Record<string, any> = {};
   for (const [key, limiter] of limiters) {
     const counts = limiter.counts();
     result[key] = {

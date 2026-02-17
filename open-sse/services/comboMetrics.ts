@@ -35,7 +35,7 @@ export function recordComboRequest(
     });
   }
 
-  const combo = metrics.get(comboName);
+  const combo: any = metrics.get(comboName);
   combo.totalRequests++;
   combo.totalLatencyMs += latencyMs;
   combo.totalFallbacks += fallbackCount;
@@ -81,7 +81,7 @@ export function recordComboRequest(
  * @returns {Object|null}
  */
 export function getComboMetrics(comboName) {
-  const combo = metrics.get(comboName);
+  const combo: any = metrics.get(comboName);
   if (!combo) return null;
 
   return {
@@ -93,14 +93,11 @@ export function getComboMetrics(comboName) {
     fallbackRate:
       combo.totalRequests > 0 ? Math.round((combo.totalFallbacks / combo.totalRequests) * 100) : 0,
     byModel: Object.fromEntries(
-      Object.entries(combo.byModel).map(([model, m]) => [
+      Object.entries(combo.byModel).map(([model, m]: [string, any]) => [
         model,
         {
-          // @ts-ignore
           ...m,
-          // @ts-ignore
           avgLatencyMs: m.requests > 0 ? Math.round(m.totalLatencyMs / m.requests) : 0,
-          // @ts-ignore
           successRate: m.requests > 0 ? Math.round((m.successes / m.requests) * 100) : 0,
         },
       ])
@@ -113,7 +110,7 @@ export function getComboMetrics(comboName) {
  * @returns {Object} Map of comboName → metrics
  */
 export function getAllComboMetrics() {
-  const result = {};
+  const result: Record<string, any> = {};
   for (const [name] of metrics) {
     result[name] = getComboMetrics(name);
   }

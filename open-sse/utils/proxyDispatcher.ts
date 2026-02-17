@@ -119,8 +119,7 @@ export function createProxyDispatcher(proxyUrl) {
     };
     if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
     if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
-    // @ts-ignore - socksOptions conforms to SocksProxies at runtime
-    dispatcher = socksDispatcher(socksOptions);
+    dispatcher = socksDispatcher(socksOptions as any);
   } else {
     dispatcher = new ProxyAgent(normalizedUrl);
   }

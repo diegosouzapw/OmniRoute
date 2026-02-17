@@ -52,15 +52,13 @@ export async function handleEmbedding({ body, credentials, log }) {
   }
 
   // Build upstream request
-  const upstreamBody = {
+  const upstreamBody: Record<string, any> = {
     model: model,
     input: body.input,
   };
 
   // Pass optional parameters
-  // @ts-ignore
   if (body.dimensions !== undefined) upstreamBody.dimensions = body.dimensions;
-  // @ts-ignore
   if (body.encoding_format !== undefined) upstreamBody.encoding_format = body.encoding_format;
 
   // Build headers

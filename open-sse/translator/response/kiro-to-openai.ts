@@ -155,7 +155,7 @@ export function convertKiroToOpenAI(chunk, state) {
   if (eventType === "messageStopEvent" || eventType === "done" || data.messageStopEvent) {
     state.finishReason = "stop"; // Mark for usage injection in stream.js
 
-    const openaiChunk = {
+    const openaiChunk: Record<string, any> = {
       id: state.responseId,
       object: "chat.completion.chunk",
       created: state.created,
@@ -171,7 +171,6 @@ export function convertKiroToOpenAI(chunk, state) {
 
     // Include usage in final chunk if available
     if (state.usage && typeof state.usage === "object") {
-      // @ts-ignore
       openaiChunk.usage = state.usage;
     }
 

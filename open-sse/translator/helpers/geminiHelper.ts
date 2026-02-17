@@ -193,22 +193,17 @@ function mergeAllOf(obj) {
   if (!obj || typeof obj !== "object") return;
 
   if (obj.allOf && Array.isArray(obj.allOf)) {
-    const merged = {};
+    const merged: Record<string, any> = {};
 
     for (const item of obj.allOf) {
       if (item.properties) {
-        // @ts-ignore
         if (!merged.properties) merged.properties = {};
-        // @ts-ignore
         Object.assign(merged.properties, item.properties);
       }
       if (item.required && Array.isArray(item.required)) {
-        // @ts-ignore
         if (!merged.required) merged.required = [];
         for (const req of item.required) {
-          // @ts-ignore
           if (!merged.required.includes(req)) {
-            // @ts-ignore
             merged.required.push(req);
           }
         }
@@ -216,9 +211,7 @@ function mergeAllOf(obj) {
     }
 
     delete obj.allOf;
-    // @ts-ignore
     if (merged.properties) obj.properties = { ...obj.properties, ...merged.properties };
-    // @ts-ignore
     if (merged.required) obj.required = [...(obj.required || []), ...merged.required];
   }
 

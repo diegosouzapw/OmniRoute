@@ -226,7 +226,7 @@ export function geminiToOpenAIResponse(chunk, state) {
       finishReason = "tool_calls";
     }
 
-    const finalChunk = {
+    const finalChunk: Record<string, any> = {
       id: `chatcmpl-${state.messageId}`,
       object: "chat.completion.chunk",
       created: Math.floor(Date.now() / 1000),
@@ -242,7 +242,6 @@ export function geminiToOpenAIResponse(chunk, state) {
 
     // Include usage in final chunk for downstream translators
     if (state.usage) {
-      // @ts-ignore
       finalChunk.usage = state.usage;
     }
 

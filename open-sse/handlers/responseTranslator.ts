@@ -74,7 +74,7 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
     const model = response?.model || responseBody?.model || "openai-responses";
     const finishReason = toolCalls.length > 0 ? "tool_calls" : "stop";
 
-    const result = {
+    const result: Record<string, any> = {
       id: `chatcmpl-${response?.id || Date.now()}`,
       object: "chat.completion",
       created: createdAt,
@@ -91,7 +91,6 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
     if (usage && typeof usage === "object") {
       const inputTokens = usage.input_tokens || 0;
       const outputTokens = usage.output_tokens || 0;
-      // @ts-ignore
       result.usage = {
         prompt_tokens: inputTokens,
         completion_tokens: outputTokens,
@@ -99,20 +98,16 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
       };
 
       if (usage.reasoning_tokens > 0) {
-        // @ts-ignore
         result.usage.completion_tokens_details = {
           reasoning_tokens: usage.reasoning_tokens,
         };
       }
       if (usage.cache_read_input_tokens > 0 || usage.cache_creation_input_tokens > 0) {
-        // @ts-ignore
         result.usage.prompt_tokens_details = {};
         if (usage.cache_read_input_tokens > 0) {
-          // @ts-ignore
           result.usage.prompt_tokens_details.cached_tokens = usage.cache_read_input_tokens;
         }
         if (usage.cache_creation_input_tokens > 0) {
-          // @ts-ignore
           result.usage.prompt_tokens_details.cache_creation_tokens =
             usage.cache_creation_input_tokens;
         }
@@ -188,7 +183,7 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
       finishReason = "tool_calls";
     }
 
-    const result = {
+    const result: Record<string, any> = {
       id: `chatcmpl-${response.responseId || Date.now()}`,
       object: "chat.completion",
       created: Math.floor(new Date(response.createTime || Date.now()).getTime() / 1000),
@@ -204,14 +199,12 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
 
     // Add usage if available (match streaming translator: add thoughtsTokenCount to prompt_tokens)
     if (usage) {
-      // @ts-ignore
       result.usage = {
         prompt_tokens: (usage.promptTokenCount || 0) + (usage.thoughtsTokenCount || 0),
         completion_tokens: usage.candidatesTokenCount || 0,
         total_tokens: usage.totalTokenCount || 0,
       };
       if (usage.thoughtsTokenCount > 0) {
-        // @ts-ignore
         result.usage.completion_tokens_details = {
           reasoning_tokens: usage.thoughtsTokenCount,
         };
@@ -266,7 +259,7 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
     if (finishReason === "end_turn") finishReason = "stop";
     if (finishReason === "tool_use") finishReason = "tool_calls";
 
-    const result = {
+    const result: Record<string, any> = {
       id: `chatcmpl-${responseBody.id || Date.now()}`,
       object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
@@ -281,7 +274,6 @@ export function translateNonStreamingResponse(responseBody, targetFormat, source
     };
 
     if (responseBody.usage) {
-      // @ts-ignore
       result.usage = {
         prompt_tokens: responseBody.usage.input_tokens || 0,
         completion_tokens: responseBody.usage.output_tokens || 0,

@@ -504,7 +504,7 @@ export function applyErrorState(account, status, errorText, provider = null) {
  * @param {object} account
  * @returns {number} score 0 = unhealthy, 100 = perfectly healthy
  */
-export function getAccountHealth(account) {
+export function getAccountHealth(account, model?: any) {
   if (!account) return 0;
   let score = 100;
   score -= (account.backoffLevel || 0) * 10;

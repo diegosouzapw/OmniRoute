@@ -27,7 +27,7 @@ const DEFAULT_COMBO_CONFIG = {
  * @param {string} [provider] - Optional provider to apply provider-level overrides
  * @returns {Object} Resolved config
  */
-export function resolveComboConfig(combo, settings, provider) {
+export function resolveComboConfig(combo, settings, provider?: any) {
   const global = settings?.comboDefaults || {};
   const providerOverride = provider ? settings?.providerOverrides?.[provider] || {} : {};
   const comboConfig = combo?.config || {};

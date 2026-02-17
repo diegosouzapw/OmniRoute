@@ -6,7 +6,7 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.js";
 // Antigravity body: { project, model, userAgent, requestType, requestId, request: { contents, systemInstruction, tools, toolConfig, generationConfig, sessionId } }
 export function antigravityToOpenAIRequest(model, body, stream) {
   const req = body.request || body;
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     messages: [],
     stream: stream,
@@ -17,19 +17,15 @@ export function antigravityToOpenAIRequest(model, body, stream) {
     const config = req.generationConfig;
     if (config.maxOutputTokens) {
       const tempBody = { max_tokens: config.maxOutputTokens, tools: req.tools };
-      // @ts-ignore
       result.max_tokens = adjustMaxTokens(tempBody);
     }
     if (config.temperature !== undefined) {
-      // @ts-ignore
       result.temperature = config.temperature;
     }
     if (config.topP !== undefined) {
-      // @ts-ignore
       result.top_p = config.topP;
     }
     if (config.topK !== undefined) {
-      // @ts-ignore
       result.top_k = config.topK;
     }
 
@@ -38,13 +34,10 @@ export function antigravityToOpenAIRequest(model, body, stream) {
       const budget = config.thinkingConfig.thinkingBudget || 0;
       if (budget > 0) {
         if (budget <= 2048) {
-          // @ts-ignore
           result.reasoning_effort = "low";
         } else if (budget <= 16384) {
-          // @ts-ignore
           result.reasoning_effort = "medium";
         } else {
-          // @ts-ignore
           result.reasoning_effort = "high";
         }
       }
@@ -75,12 +68,10 @@ export function antigravityToOpenAIRequest(model, body, stream) {
 
   // Tools
   if (req.tools && Array.isArray(req.tools)) {
-    // @ts-ignore
     result.tools = [];
     for (const tool of req.tools) {
       if (tool.functionDeclarations) {
         for (const func of tool.functionDeclarations) {
-          // @ts-ignore
           result.tools.push({
             type: "function",
             function: {
@@ -213,14 +204,12 @@ function convertContent(content) {
 
   // Regular message
   if (textParts.length > 0 || reasoningContent) {
-    const msg = { role };
+    const msg: Record<string, any> = { role };
     if (textParts.length > 0) {
-      // @ts-ignore
       msg.content =
         textParts.length === 1 && textParts[0].type === "text" ? textParts[0].text : textParts;
     }
     if (reasoningContent) {
-      // @ts-ignore
       msg.reasoning_content = reasoningContent;
     }
     return msg;

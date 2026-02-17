@@ -9,7 +9,7 @@ import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingS
  * skipping the OpenAI hub intermediate step.
  */
 export function claudeToGeminiRequest(model, body, stream) {
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     contents: [],
     generationConfig: {},
@@ -18,19 +18,15 @@ export function claudeToGeminiRequest(model, body, stream) {
 
   // ── Generation config ──────────────────────────────────────────
   if (body.temperature !== undefined) {
-    // @ts-ignore
     result.generationConfig.temperature = body.temperature;
   }
   if (body.top_p !== undefined) {
-    // @ts-ignore
     result.generationConfig.topP = body.top_p;
   }
   if (body.top_k !== undefined) {
-    // @ts-ignore
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    // @ts-ignore
     result.generationConfig.maxOutputTokens = body.max_tokens;
   }
 
@@ -43,7 +39,6 @@ export function claudeToGeminiRequest(model, body, stream) {
       systemText = String(body.system);
     }
     if (systemText) {
-      // @ts-ignore
       result.systemInstruction = {
         role: "user",
         parts: [{ text: systemText }],
@@ -157,14 +152,12 @@ export function claudeToGeminiRequest(model, body, stream) {
       }
     }
     if (functionDeclarations.length > 0) {
-      // @ts-ignore
       result.tools = [{ functionDeclarations }];
     }
   }
 
   // ── Thinking config ────────────────────────────────────────────
   if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
-    // @ts-ignore
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       include_thoughts: true,

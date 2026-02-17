@@ -519,7 +519,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
       state.finishReasonSent = true;
       state.finishReason = "stop"; // Mark for usage injection in stream.js
 
-      const finalChunk = {
+      const finalChunk: Record<string, any> = {
         id: state.chatId,
         object: "chat.completion.chunk",
         created: state.created,
@@ -535,7 +535,6 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
       // Include usage in final chunk if available
       if (state.usage && typeof state.usage === "object") {
-        // @ts-ignore
         finalChunk.usage = state.usage;
       }
 

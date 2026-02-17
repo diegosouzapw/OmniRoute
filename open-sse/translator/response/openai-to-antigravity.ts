@@ -81,7 +81,7 @@ export function openaiToAntigravityResponse(chunk, state) {
   }
 
   // Build candidate
-  const candidate = { content: { role: "model", parts } };
+  const candidate: Record<string, any> = { content: { role: "model", parts } };
 
   // Finish reason mapping
   if (finishReason) {
@@ -91,12 +91,11 @@ export function openaiToAntigravityResponse(chunk, state) {
       tool_calls: "STOP",
       content_filter: "SAFETY",
     };
-    // @ts-ignore
     candidate.finishReason = reasonMap[finishReason] || "STOP";
   }
 
   // Build response
-  const response = {
+  const response: Record<string, any> = {
     candidates: [candidate],
     modelVersion: state._modelVersion,
     responseId: state._responseId,
@@ -105,18 +104,15 @@ export function openaiToAntigravityResponse(chunk, state) {
   // Usage metadata
   const usage = chunk.usage || state._usage;
   if (usage) {
-    // @ts-ignore
     response.usageMetadata = {
       promptTokenCount: usage.prompt_tokens || 0,
       candidatesTokenCount: usage.completion_tokens || 0,
       totalTokenCount: usage.total_tokens || 0,
     };
     if (usage.completion_tokens_details?.reasoning_tokens) {
-      // @ts-ignore
       response.usageMetadata.thoughtsTokenCount = usage.completion_tokens_details.reasoning_tokens;
     }
     if (usage.prompt_tokens_details?.cached_tokens) {
-      // @ts-ignore
       response.usageMetadata.cachedContentTokenCount = usage.prompt_tokens_details.cached_tokens;
     }
   }

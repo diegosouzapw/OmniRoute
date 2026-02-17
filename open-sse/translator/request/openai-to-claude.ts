@@ -11,7 +11,7 @@ const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 export function openaiToClaudeRequest(model, body, stream) {
   // Tool name mapping for Claude OAuth (capitalizedName → originalName)
   const toolNameMap = new Map();
-  const result = {
+  const result: Record<string, any> = {
     model: model,
     max_tokens: adjustMaxTokens(body),
     stream: stream,
@@ -19,12 +19,10 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   // Temperature
   if (body.temperature !== undefined) {
-    // @ts-ignore
     result.temperature = body.temperature;
   }
 
   // Messages
-  // @ts-ignore
   result.messages = [];
   const systemParts = [];
 
@@ -48,7 +46,6 @@ export function openaiToClaudeRequest(model, body, stream) {
 
     const flushCurrentMessage = () => {
       if (currentRole && currentParts.length > 0) {
-        // @ts-ignore
         result.messages.push({ role: currentRole, content: currentParts });
         currentParts = [];
       }
@@ -68,7 +65,6 @@ export function openaiToClaudeRequest(model, body, stream) {
         flushCurrentMessage();
 
         if (toolResultBlocks.length > 0) {
-          // @ts-ignore
           result.messages.push({ role: "user", content: toolResultBlocks });
         }
 
@@ -94,9 +90,7 @@ export function openaiToClaudeRequest(model, body, stream) {
     flushCurrentMessage();
 
     // Add cache_control to last assistant message
-    // @ts-ignore
     for (let i = result.messages.length - 1; i >= 0; i--) {
-      // @ts-ignore
       const message = result.messages[i];
       if (
         message.role === "assistant" &&
@@ -117,19 +111,16 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   if (systemParts.length > 0) {
     const systemText = systemParts.join("\n");
-    // @ts-ignore
     result.system = [
       claudeCodePrompt,
       { type: "text", text: systemText, cache_control: { type: "ephemeral", ttl: "1h" } },
     ];
   } else {
-    // @ts-ignore
     result.system = [claudeCodePrompt];
   }
 
   // Tools - convert from OpenAI format to Claude format with prefix for OAuth
   if (body.tools && Array.isArray(body.tools)) {
-    // @ts-ignore
     result.tools = body.tools.map((tool) => {
       const toolData = tool.type === "function" && tool.function ? tool.function : tool;
       const originalName = toolData.name;
@@ -148,22 +139,18 @@ export function openaiToClaudeRequest(model, body, stream) {
       };
     });
 
-    // @ts-ignore
     if (result.tools.length > 0) {
-      // @ts-ignore
       result.tools[result.tools.length - 1].cache_control = { type: "ephemeral", ttl: "1h" };
     }
   }
 
   // Tool choice
   if (body.tool_choice) {
-    // @ts-ignore
     result.tool_choice = convertOpenAIToolChoice(body.tool_choice);
   }
 
   // Thinking configuration
   if (body.thinking) {
-    // @ts-ignore
     result.thinking = {
       type: body.thinking.type || "enabled",
       ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
@@ -173,7 +160,6 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
-    // @ts-ignore
     result._toolNameMap = toolNameMap;
   }
 
@@ -310,23 +296,17 @@ function openaiToClaudeRequestForAntigravity(model, body, stream) {
   const result = openaiToClaudeRequest(model, body, stream);
 
   // Remove Claude Code system prompt, keep only user's system messages
-  // @ts-ignore
   if (result.system && Array.isArray(result.system)) {
-    // @ts-ignore
     result.system = result.system.filter(
       (block) => !block.text || !block.text.includes("You are Claude Code")
     );
-    // @ts-ignore
     if (result.system.length === 0) {
-      // @ts-ignore
       delete result.system;
     }
   }
 
   // Strip prefix from tool names for Antigravity (doesn't use Claude OAuth)
-  // @ts-ignore
   if (result.tools && Array.isArray(result.tools)) {
-    // @ts-ignore
     result.tools = result.tools.map((tool) => {
       if (tool.name && tool.name.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
         return {
@@ -339,9 +319,7 @@ function openaiToClaudeRequestForAntigravity(model, body, stream) {
   }
 
   // Strip prefix from tool_use in messages
-  // @ts-ignore
   if (result.messages && Array.isArray(result.messages)) {
-    // @ts-ignore
     result.messages = result.messages.map((msg) => {
       if (!msg.content || !Array.isArray(msg.content)) {
         return msg;

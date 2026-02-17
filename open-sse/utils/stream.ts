@@ -233,10 +233,8 @@ export function createSSEStream(options: any = {}) {
           const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
 
           // Log OpenAI intermediate chunks (if available)
-          // @ts-ignore - _openaiIntermediate is a custom property on translated arrays
-          if (translated?._openaiIntermediate) {
-            // @ts-ignore
-            for (const item of translated._openaiIntermediate) {
+          if ((translated as any)?._openaiIntermediate) {
+            for (const item of (translated as any)._openaiIntermediate) {
               const openaiOutput = formatSSE(item, FORMATS.OPENAI);
               reqLogger?.appendOpenAIChunk?.(openaiOutput);
             }
@@ -331,10 +329,8 @@ export function createSSEStream(options: any = {}) {
               const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
 
               // Log OpenAI intermediate chunks
-              // @ts-ignore - _openaiIntermediate is a custom property
-              if (translated?._openaiIntermediate) {
-                // @ts-ignore
-                for (const item of translated._openaiIntermediate) {
+              if ((translated as any)?._openaiIntermediate) {
+                for (const item of (translated as any)._openaiIntermediate) {
                   const openaiOutput = formatSSE(item, FORMATS.OPENAI);
                   reqLogger?.appendOpenAIChunk?.(openaiOutput);
                 }
@@ -354,10 +350,8 @@ export function createSSEStream(options: any = {}) {
           const flushed = translateResponse(targetFormat, sourceFormat, null, state);
 
           // Log OpenAI intermediate chunks for flushed events
-          // @ts-ignore - _openaiIntermediate is a custom property
-          if (flushed?._openaiIntermediate) {
-            // @ts-ignore
-            for (const item of flushed._openaiIntermediate) {
+          if ((flushed as any)?._openaiIntermediate) {
+            for (const item of (flushed as any)._openaiIntermediate) {
               const openaiOutput = formatSSE(item, FORMATS.OPENAI);
               reqLogger?.appendOpenAIChunk?.(openaiOutput);
             }

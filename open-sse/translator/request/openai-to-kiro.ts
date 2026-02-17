@@ -22,7 +22,7 @@ function convertMessages(messages, tools, model) {
   const flushPending = () => {
     if (currentRole === "user") {
       const content = pendingUserContent.join("\n\n").trim() || "continue";
-      const userMsg = {
+      const userMsg: Record<string, any> = {
         userInputMessage: {
           content: content,
           modelId: "",
@@ -30,7 +30,6 @@ function convertMessages(messages, tools, model) {
       };
 
       if (pendingToolResults.length > 0) {
-        // @ts-ignore
         userMsg.userInputMessage.userInputMessageContext = {
           toolResults: pendingToolResults,
         };
@@ -38,12 +37,9 @@ function convertMessages(messages, tools, model) {
 
       // Add tools to first user message
       if (tools && tools.length > 0 && history.length === 0) {
-        // @ts-ignore
         if (!userMsg.userInputMessage.userInputMessageContext) {
-          // @ts-ignore
           userMsg.userInputMessage.userInputMessageContext = {};
         }
-        // @ts-ignore
         userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
           const name = t.function?.name || t.name;
           let description = t.function?.description || t.description || "";
@@ -259,7 +255,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
   const timestamp = new Date().toISOString();
   finalContent = `[Context: Current time is ${timestamp}]\n\n${finalContent}`;
 
-  const payload = {
+  const payload: Record<string, any> = {
     conversationState: {
       chatTriggerType: "MANUAL",
       conversationId: uuidv4(),
@@ -278,18 +274,13 @@ export function buildKiroPayload(model, body, stream, credentials) {
   };
 
   if (profileArn) {
-    // @ts-ignore
     payload.profileArn = profileArn;
   }
 
   if (maxTokens || temperature !== undefined || topP !== undefined) {
-    // @ts-ignore
     payload.inferenceConfig = {};
-    // @ts-ignore
     if (maxTokens) payload.inferenceConfig.maxTokens = maxTokens;
-    // @ts-ignore
     if (temperature !== undefined) payload.inferenceConfig.temperature = temperature;
-    // @ts-ignore
     if (topP !== undefined) payload.inferenceConfig.topP = topP;
   }
 
