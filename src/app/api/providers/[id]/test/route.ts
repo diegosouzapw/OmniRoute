@@ -44,17 +44,15 @@ const OAUTH_TEST_CONFIG = {
     extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
   },
   iflow: {
-    url: "https://iflow.cn/api/oauth/getUserInfo",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
+    // iFlow's getUserInfo endpoint returns 400 without a specific format.
+    // Use checkExpiry instead — actual connectivity is validated via real requests.
+    checkExpiry: true,
     refreshable: true,
   },
   qwen: {
-    url: "https://portal.qwen.ai/v1/models",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
+    // portal.qwen.ai/v1/models returns 404 — endpoint no longer exists.
+    // Use checkExpiry instead — actual connectivity is validated via real requests.
+    checkExpiry: true,
     refreshable: true,
   },
   cursor: {
@@ -70,15 +68,11 @@ const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
   },
   cline: {
-    url: "https://api.cline.bot/api/v1/models",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
+    // Cline's /api/v1/models endpoint frequently returns stale auth errors even
+    // with fresh tokens. Use checkExpiry instead — actual connectivity is validated
+    // via real requests.
+    checkExpiry: true,
     refreshable: true,
-    extraHeaders: {
-      "HTTP-Referer": "https://cline.bot",
-      "X-Title": "Cline",
-    },
   },
   kiro: {
     checkExpiry: true,
@@ -520,12 +514,12 @@ export async function testSingleConnection(connectionId) {
   const startTime = Date.now();
   const runtime = await getProviderRuntimeStatus(connection.provider);
 
-  if (runtime?.diagnosis) {
+  if ((runtime as any)?.diagnosis) {
     result = {
       valid: false,
-      error: runtime.error,
+      error: (runtime as any).error,
       refreshed: false,
-      diagnosis: runtime.diagnosis,
+      diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
     result = await testApiKeyConnection(connection);
@@ -543,7 +537,7 @@ export async function testSingleConnection(connectionId) {
       ? makeDiagnosis("ok", "local", null, null)
       : classifyFailure({ error: result.error, statusCode: result.statusCode }));
 
-  const updateData = {
+  const updateData: Record<string, any> = {
     testStatus: result.valid ? "active" : "error",
     lastError: result.valid ? null : result.error,
     lastErrorAt: result.valid ? null : now,

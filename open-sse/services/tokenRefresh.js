@@ -312,6 +312,23 @@ export async function refreshQwenToken(refreshToken, log) {
       };
     } else {
       const errorText = await response.text().catch(() => "");
+
+      // Detect unrecoverable invalid_request (expired/revoked refresh token or bad client_id)
+      let errorCode = null;
+      try {
+        const parsed = JSON.parse(errorText);
+        errorCode = parsed?.error;
+      } catch {
+        // not JSON, ignore
+      }
+
+      if (errorCode === "invalid_request") {
+        log?.error?.("TOKEN_REFRESH", "Qwen refresh token is invalid or expired. Re-authentication required.", {
+          status: response.status,
+        });
+        return { error: "invalid_request" };
+      }
+
       log?.warn?.("TOKEN_REFRESH", `Error with Qwen endpoint`, {
         status: response.status,
         error: errorText,
@@ -703,7 +720,8 @@ export function supportsTokenRefresh(provider) {
  * Callers should stop retrying and request re-authentication.
  */
 export function isUnrecoverableRefreshError(result) {
-  return result && typeof result === "object" && result.error === "refresh_token_reused";
+  return result && typeof result === "object" &&
+    (result.error === "refresh_token_reused" || result.error === "invalid_request");
 }
 
 /**
