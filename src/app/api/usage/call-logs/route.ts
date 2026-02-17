@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCallLogs } from "@/lib/usageDb";
 
-export async function GET(request) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const filter = {};
+    const filter: Record<string, any> = {};
     if (searchParams.get("status")) filter.status = searchParams.get("status");
     if (searchParams.get("model")) filter.model = searchParams.get("model");
     if (searchParams.get("provider")) filter.provider = searchParams.get("provider");

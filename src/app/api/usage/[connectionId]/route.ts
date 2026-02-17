@@ -21,7 +21,7 @@ async function syncToCloudIfEnabled() {
  * Refresh credentials using executor and update database
  * @returns {{ connection, refreshed: boolean }}
  */
-async function refreshAndUpdateCredentials(connection) {
+async function refreshAndUpdateCredentials(connection: any) {
   const executor = getExecutor(connection.provider);
 
   // Build credentials object from connection
@@ -55,7 +55,7 @@ async function refreshAndUpdateCredentials(connection) {
 
   // Build update object
   const now = new Date().toISOString();
-  const updateData = {
+  const updateData: Record<string, any> = {
     updatedAt: now,
   };
 
@@ -103,7 +103,7 @@ async function refreshAndUpdateCredentials(connection) {
 /**
  * GET /api/usage/[connectionId] - Get usage data for a specific connection
  */
-export async function GET(request, { params }) {
+export async function GET(request: Request, { params }: { params: Promise<{ connectionId: string }> }) {
   try {
     const { connectionId } = await params;
 
@@ -133,7 +133,7 @@ export async function GET(request, { params }) {
       console.error("[Usage API] Credential refresh failed:", refreshError);
       return Response.json(
         {
-          error: `Credential refresh failed: ${refreshError.message}`,
+          error: `Credential refresh failed: ${(refreshError as any).message}`,
         },
         { status: 401 }
       );
@@ -144,7 +144,7 @@ export async function GET(request, { params }) {
     return Response.json(usage);
   } catch (error) {
     console.error("[Usage API] Error fetching usage:", error);
-    console.error("[Usage API] Error stack:", error.stack);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("[Usage API] Error stack:", (error as any).stack);
+    return Response.json({ error: (error as any).message }, { status: 500 });
   }
 }

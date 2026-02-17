@@ -91,13 +91,13 @@ const CLI_RUNTIME_PROVIDER_MAP = {
   kilocode: "kilo",
 };
 
-function toSafeMessage(value, fallback = "Unknown error") {
+function toSafeMessage(value: any, fallback = "Unknown error"): string {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
   return trimmed || fallback;
 }
 
-function makeDiagnosis(type, source, message, code = null) {
+function makeDiagnosis(type: string, source: string, message: string | null, code: string | null = null) {
   return {
     type,
     source,
@@ -106,7 +106,7 @@ function makeDiagnosis(type, source, message, code = null) {
   };
 }
 
-function classifyFailure({ error, statusCode = null, refreshFailed = false, unsupported = false }) {
+function classifyFailure({ error, statusCode = null, refreshFailed = false, unsupported = false }: { error: string; statusCode?: number | null; refreshFailed?: boolean; unsupported?: boolean }) {
   const message = toSafeMessage(error, "Connection test failed");
   const normalized = message.toLowerCase();
   const numericStatus = Number.isFinite(statusCode) ? Number(statusCode) : null;
@@ -183,7 +183,7 @@ function classifyFailure({ error, statusCode = null, refreshFailed = false, unsu
   );
 }
 
-async function getProviderRuntimeStatus(provider) {
+async function getProviderRuntimeStatus(provider: string) {
   const toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
   if (!toolId) return null;
 
@@ -208,7 +208,7 @@ async function getProviderRuntimeStatus(provider) {
       error: runtimeMessage,
     };
   } catch (error) {
-    const runtimeMessage = `Failed to check local CLI runtime: ${error?.message || "runtime_check_failed"}`;
+    const runtimeMessage = `Failed to check local CLI runtime: ${(error as any)?.message || "runtime_check_failed"}`;
     return {
       installed: false,
       runnable: false,
@@ -227,7 +227,7 @@ async function getProviderRuntimeStatus(provider) {
  *
  * @returns {object} { accessToken, expiresIn, refreshToken } or null if failed
  */
-async function refreshOAuthToken(connection) {
+async function refreshOAuthToken(connection: any) {
   const { provider, refreshToken } = connection;
   if (!refreshToken) return null;
 
@@ -241,7 +241,7 @@ async function refreshOAuthToken(connection) {
     const result = await getAccessToken(provider, credentials, console);
     return result; // { accessToken, expiresIn, refreshToken } or null
   } catch (err) {
-    console.log(`Error refreshing ${provider} token:`, err.message);
+    console.log(`Error refreshing ${provider} token:`, (err as any).message);
     return null;
   }
 }
@@ -249,7 +249,7 @@ async function refreshOAuthToken(connection) {
 /**
  * Check if token is expired or about to expire (within 5 minutes)
  */
-function isTokenExpired(connection) {
+function isTokenExpired(connection: any) {
   const expiresAtValue = connection.expiresAt || connection.tokenExpiresAt;
   if (!expiresAtValue) return false;
   const expiresAt = new Date(expiresAtValue).getTime();
@@ -277,7 +277,7 @@ async function syncToCloudIfEnabled() {
  * Auto-refreshes token if expired
  * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
  */
-async function testOAuthConnection(connection) {
+async function testOAuthConnection(connection: any) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
 
   if (!config) {
@@ -467,7 +467,7 @@ async function testOAuthConnection(connection) {
 /**
  * Test API key connection
  */
-async function testApiKeyConnection(connection) {
+async function testApiKeyConnection(connection: any) {
   if (!connection.apiKey) {
     const error = "Missing API key";
     return {
@@ -509,7 +509,7 @@ async function testApiKeyConnection(connection) {
  * @param {string} connectionId
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
-export async function testSingleConnection(connectionId) {
+export async function testSingleConnection(connectionId: string) {
   const connection = await getProviderConnectionById(connectionId);
 
   if (!connection) {
@@ -520,12 +520,12 @@ export async function testSingleConnection(connectionId) {
   const startTime = Date.now();
   const runtime = await getProviderRuntimeStatus(connection.provider);
 
-  if (runtime?.diagnosis) {
+  if ((runtime as any)?.diagnosis) {
     result = {
       valid: false,
-      error: runtime.error,
+      error: (runtime as any).error,
       refreshed: false,
-      diagnosis: runtime.diagnosis,
+      diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
     result = await testApiKeyConnection(connection);
@@ -543,7 +543,7 @@ export async function testSingleConnection(connectionId) {
       ? makeDiagnosis("ok", "local", null, null)
       : classifyFailure({ error: result.error, statusCode: result.statusCode }));
 
-  const updateData = {
+  const updateData: Record<string, any> = {
     testStatus: result.valid ? "active" : "error",
     lastError: result.valid ? null : result.error,
     lastErrorAt: result.valid ? null : now,
@@ -624,7 +624,7 @@ export async function testSingleConnection(connectionId) {
 }
 
 // POST /api/providers/[id]/test - Test connection
-export async function POST(request, { params }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const data = await testSingleConnection(id);

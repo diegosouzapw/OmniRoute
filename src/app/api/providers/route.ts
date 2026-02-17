@@ -36,7 +36,7 @@ export async function GET() {
 }
 
 // POST /api/providers - Create new connection (API Key only, OAuth via separate flow)
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
 
@@ -58,7 +58,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
     }
 
-    let providerSpecificData = null;
+    let providerSpecificData: Record<string, any> | null = null;
     const allowMultipleCompatibleConnections =
       process.env.ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE === "true";
 
@@ -117,7 +117,7 @@ export async function POST(request) {
     });
 
     // Hide sensitive fields
-    const result = { ...newConnection };
+    const result: Record<string, any> = { ...newConnection };
     delete result.apiKey;
 
     // Auto sync to Cloud if enabled
