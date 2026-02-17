@@ -9,6 +9,8 @@ import { spinner as createSpinner } from "../utils/ui";
  * Uses Device Code Flow with PKCE
  */
 export class QwenService {
+  config: any;
+
   constructor() {
     this.config = QWEN_CONFIG;
   }
@@ -16,7 +18,7 @@ export class QwenService {
   /**
    * Request device code
    */
-  async requestDeviceCode(codeChallenge) {
+  async requestDeviceCode(codeChallenge: string) {
     const response = await fetch(this.config.deviceCodeUrl, {
       method: "POST",
       headers: {
@@ -42,7 +44,7 @@ export class QwenService {
   /**
    * Poll for token
    */
-  async pollForToken(deviceCode, codeVerifier, interval = 5) {
+  async pollForToken(deviceCode: string, codeVerifier: string, interval = 5) {
     const maxAttempts = 60; // 5 minutes
     const pollInterval = interval * 1000;
 
@@ -89,7 +91,7 @@ export class QwenService {
   /**
    * Save Qwen tokens to server
    */
-  async saveTokens(tokens) {
+  async saveTokens(tokens: any) {
     const { server, token, userId } = getServerCredentials();
 
     const response = await fetch(`${server}/api/cli/providers/qwen`, {
@@ -161,7 +163,7 @@ export class QwenService {
 
       spinner.succeed("Qwen connected successfully!");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
       throw error;
     }

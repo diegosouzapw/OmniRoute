@@ -10,6 +10,8 @@ import { spinner as createSpinner } from "../utils/ui";
  * Uses standard OAuth2 Authorization Code flow (similar to Gemini)
  */
 export class AntigravityService {
+  config: any;
+
   constructor() {
     this.config = ANTIGRAVITY_CONFIG;
   }
@@ -17,7 +19,7 @@ export class AntigravityService {
   /**
    * Build Antigravity authorization URL
    */
-  buildAuthUrl(redirectUri, state) {
+  buildAuthUrl(redirectUri: string, state: string) {
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: "code",
@@ -34,7 +36,7 @@ export class AntigravityService {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCode(code, redirectUri) {
+  async exchangeCode(code: string, redirectUri: string) {
     const response = await fetch(this.config.tokenUrl, {
       method: "POST",
       headers: {
@@ -61,7 +63,7 @@ export class AntigravityService {
   /**
    * Get user info from Google
    */
-  async getUserInfo(accessToken) {
+  async getUserInfo(accessToken: string) {
     const response = await fetch(`${this.config.userInfoUrl}?alt=json`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -80,7 +82,7 @@ export class AntigravityService {
   /**
    * Get common headers for Antigravity API calls
    */
-  getApiHeaders(accessToken) {
+  getApiHeaders(accessToken: string) {
     return {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -104,7 +106,7 @@ export class AntigravityService {
   /**
    * Fetch Project ID and Tier from loadCodeAssist API
    */
-  async loadCodeAssist(accessToken) {
+  async loadCodeAssist(accessToken: string) {
     const response = await fetch(this.config.loadCodeAssistEndpoint, {
       method: "POST",
       headers: this.getApiHeaders(accessToken),
@@ -141,7 +143,7 @@ export class AntigravityService {
   /**
    * Onboard user to enable Gemini Code Assist for the project
    */
-  async onboardUser(accessToken, projectId, tierId) {
+  async onboardUser(accessToken: string, projectId: string, tierId: string) {
     const response = await fetch(this.config.onboardUserEndpoint, {
       method: "POST",
       headers: this.getApiHeaders(accessToken),
@@ -163,7 +165,7 @@ export class AntigravityService {
   /**
    * Complete onboarding flow with retry
    */
-  async completeOnboarding(accessToken, projectId, tierId, maxRetries = 10) {
+  async completeOnboarding(accessToken: string, projectId: string, tierId: string, maxRetries = 10) {
     for (let i = 0; i < maxRetries; i++) {
       const result = await this.onboardUser(accessToken, projectId, tierId);
 
@@ -191,7 +193,7 @@ export class AntigravityService {
   /**
    * Fetch Project ID from loadCodeAssist API (legacy method for compatibility)
    */
-  async fetchProjectId(accessToken) {
+  async fetchProjectId(accessToken: string) {
     const { projectId } = await this.loadCodeAssist(accessToken);
     if (!projectId) {
       throw new Error("No cloudaicompanionProject found in response");
@@ -202,7 +204,7 @@ export class AntigravityService {
   /**
    * Save Antigravity tokens to server
    */
-  async saveTokens(tokens, userInfo, projectId) {
+  async saveTokens(tokens: any, userInfo: any, projectId: string) {
     const { server, token, userId } = getServerCredentials();
 
     const response = await fetch(`${server}/api/cli/providers/antigravity`, {
@@ -240,7 +242,7 @@ export class AntigravityService {
       spinner.text = "Starting local server...";
 
       // Start local server for callback
-      let callbackParams = null;
+      let callbackParams: any = null;
       const { port, close } = await startLocalServer((params) => {
         callbackParams = params;
       });
@@ -272,7 +274,7 @@ export class AntigravityService {
           if (callbackParams) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
-            resolve();
+            resolve(undefined);
           }
         }, 100);
       });
@@ -323,7 +325,7 @@ export class AntigravityService {
         `Antigravity connected successfully! (${userInfo.email}, Project: ${finalProjectId})`
       );
       return true;
-    } catch (error) {
+    } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
       throw error;
     }

@@ -15,6 +15,8 @@ import { CURSOR_CONFIG } from "../constants/oauth";
  */
 
 export class CursorService {
+  config: any;
+
   constructor() {
     this.config = CURSOR_CONFIG;
   }
@@ -24,7 +26,7 @@ export class CursorService {
    * Algorithm: XOR timestamp bytes with rolling key (initial 165), then base64 encode
    * Format: {encoded_timestamp},{machineId}
    */
-  generateChecksum(machineId) {
+  generateChecksum(machineId: string) {
     const timestamp = Math.floor(Date.now() / 1000).toString();
     let key = 165;
     const encoded = [];
@@ -42,7 +44,7 @@ export class CursorService {
   /**
    * Build request headers for Cursor API
    */
-  buildHeaders(accessToken, machineId, ghostMode = false) {
+  buildHeaders(accessToken: string, machineId: string, ghostMode = false) {
     const checksum = this.generateChecksum(machineId);
 
     return {
@@ -92,7 +94,7 @@ export class CursorService {
    * @param {string} accessToken - Access token from state.vscdb
    * @param {string} machineId - Machine ID from state.vscdb
    */
-  async validateImportToken(accessToken, machineId) {
+  async validateImportToken(accessToken: string, machineId: string) {
     // Basic validation
     if (!accessToken || typeof accessToken !== "string") {
       throw new Error("Access token is required");
@@ -128,7 +130,7 @@ export class CursorService {
    * Extract user info from token if possible
    * Cursor tokens may contain encoded user info
    */
-  extractUserInfo(accessToken) {
+  extractUserInfo(accessToken: string) {
     try {
       // Try to decode as JWT
       const parts = accessToken.split(".");
