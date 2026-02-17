@@ -51,6 +51,16 @@ export default function ProviderDetailPage() {
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
   const [importingModels, setImportingModels] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importProgress, setImportProgress] = useState({
+    current: 0,
+    total: 0,
+    phase: "idle" as "idle" | "fetching" | "importing" | "done" | "error",
+    status: "",
+    logs: [] as string[],
+    error: "",
+    importedCount: 0,
+  });
 
   const providerInfo = providerNode
     ? {
@@ -66,7 +76,9 @@ export default function ProviderDetailPage() {
         baseUrl: providerNode.baseUrl,
         type: providerNode.type,
       }
-    : (FREE_PROVIDERS as any)[providerId] || (OAUTH_PROVIDERS as any)[providerId] || (APIKEY_PROVIDERS as any)[providerId];
+    : (FREE_PROVIDERS as any)[providerId] ||
+      (OAUTH_PROVIDERS as any)[providerId] ||
+      (APIKEY_PROVIDERS as any)[providerId];
   const isOAuth = !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
   const models = getModelsByProviderId(providerId);
   const providerAlias = getProviderAlias(providerId);
@@ -237,9 +249,14 @@ export default function ProviderDetailPage() {
       if (res.ok) {
         await fetchConnections();
         setShowAddApiKeyModal(false);
+        return null;
       }
+      const data = await res.json().catch(() => ({}));
+      const errorMsg = data.error?.message || data.error || "Failed to save connection";
+      return errorMsg;
     } catch (error) {
       console.log("Error saving connection:", error);
+      return "Failed to save connection. Please try again.";
     }
   };
 
@@ -352,24 +369,63 @@ export default function ProviderDetailPage() {
     if (!activeConnection) return;
 
     setImportingModels(true);
+    setShowImportModal(true);
+    setImportProgress({
+      current: 0,
+      total: 0,
+      phase: "fetching",
+      status: "Fetching available models...",
+      logs: [],
+      error: "",
+      importedCount: 0,
+    });
+
     try {
       const res = await fetch(`/api/providers/${activeConnection.id}/models`);
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Failed to import models");
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "error",
+          status: "Failed to fetch models",
+          error: data.error || "Failed to import models",
+        }));
         return;
       }
       const fetchedModels = data.models || [];
       if (fetchedModels.length === 0) {
-        alert("No models returned from /models.");
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "done",
+          status: "No models found",
+          logs: ["No models returned from /models endpoint."],
+        }));
         return;
       }
+
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "importing",
+        total: fetchedModels.length,
+        status: `Importing 0 of ${fetchedModels.length} models...`,
+        logs: [`Found ${fetchedModels.length} models. Starting import...`],
+      }));
+
       let importedCount = 0;
-      for (const model of fetchedModels) {
+      for (let i = 0; i < fetchedModels.length; i++) {
+        const model = fetchedModels[i];
         const modelId = model.id || model.name || model.model;
         if (!modelId) continue;
         const parts = modelId.split("/");
         const baseAlias = parts[parts.length - 1];
+
+        setImportProgress((prev) => ({
+          ...prev,
+          current: i + 1,
+          status: `Importing ${i + 1} of ${fetchedModels.length} models...`,
+          logs: [...prev.logs, `Importing ${modelId}...`],
+        }));
+
         // Save as imported (default) model in the DB
         await fetch("/api/provider-models", {
           method: "POST",
@@ -387,14 +443,129 @@ export default function ProviderDetailPage() {
         }
         importedCount += 1;
       }
-      if (importedCount === 0) {
-        alert("No new models were added (all already exist).");
-      }
+
       await fetchAliases();
+
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "done",
+        current: fetchedModels.length,
+        status:
+          importedCount > 0
+            ? `Successfully imported ${importedCount} model${importedCount === 1 ? "" : "s"}!`
+            : "No new models were added (all already exist).",
+        logs: [
+          ...prev.logs,
+          importedCount > 0
+            ? `✓ Done! ${importedCount} model${importedCount === 1 ? "" : "s"} imported.`
+            : "No new models were added.",
+        ],
+        importedCount,
+      }));
+
+      // Auto-reload after success
+      if (importedCount > 0) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       console.log("Error importing models:", error);
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "error",
+        status: "Import failed",
+        error: error instanceof Error ? error.message : "An unexpected error occurred",
+      }));
     } finally {
       setImportingModels(false);
+    }
+  };
+
+  // Shared import handler for CompatibleModelsSection
+  const handleCompatibleImportWithProgress = async (
+    fetchModels: () => Promise<{ models: any[] }>,
+    processModel: (model: any) => Promise<boolean>
+  ) => {
+    setShowImportModal(true);
+    setImportProgress({
+      current: 0,
+      total: 0,
+      phase: "fetching",
+      status: "Fetching available models...",
+      logs: [],
+      error: "",
+      importedCount: 0,
+    });
+
+    try {
+      const data = await fetchModels();
+      const models = data.models || [];
+      if (models.length === 0) {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "done",
+          status: "No models found",
+          logs: ["No models returned from /models endpoint."],
+        }));
+        return;
+      }
+
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "importing",
+        total: models.length,
+        status: `Importing 0 of ${models.length} models...`,
+        logs: [`Found ${models.length} models. Starting import...`],
+      }));
+
+      let importedCount = 0;
+      for (let i = 0; i < models.length; i++) {
+        const model = models[i];
+        const modelId = model.id || model.name || model.model;
+        if (!modelId) continue;
+
+        setImportProgress((prev) => ({
+          ...prev,
+          current: i + 1,
+          status: `Importing ${i + 1} of ${models.length} models...`,
+          logs: [...prev.logs, `Importing ${modelId}...`],
+        }));
+
+        const added = await processModel(model);
+        if (added) importedCount += 1;
+      }
+
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "done",
+        current: models.length,
+        status:
+          importedCount > 0
+            ? `Successfully imported ${importedCount} model${importedCount === 1 ? "" : "s"}!`
+            : "No new models were added.",
+        logs: [
+          ...prev.logs,
+          importedCount > 0
+            ? `✓ Done! ${importedCount} model${importedCount === 1 ? "" : "s"} imported.`
+            : "No new models were added.",
+        ],
+        importedCount,
+      }));
+
+      if (importedCount > 0) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    } catch (error) {
+      console.log("Error importing models:", error);
+      setImportProgress((prev) => ({
+        ...prev,
+        phase: "error",
+        status: "Import failed",
+        error: error instanceof Error ? error.message : "An unexpected error occurred",
+      }));
     }
   };
 
@@ -413,6 +584,7 @@ export default function ProviderDetailPage() {
           onDeleteAlias={handleDeleteAlias}
           connections={connections}
           isAnthropic={isAnthropicCompatible}
+          onImportWithProgress={handleCompatibleImportWithProgress}
         />
       );
     }
@@ -813,6 +985,115 @@ export default function ProviderDetailPage() {
           levelLabel={proxyTarget.label}
         />
       )}
+      {/* Import Progress Modal */}
+      <Modal
+        isOpen={showImportModal}
+        onClose={() => {
+          if (importProgress.phase === "done" || importProgress.phase === "error") {
+            setShowImportModal(false);
+          }
+        }}
+        title="Importing Models"
+        size="md"
+        closeOnOverlay={false}
+        showCloseButton={importProgress.phase === "done" || importProgress.phase === "error"}
+      >
+        <div className="flex flex-col gap-4">
+          {/* Status text */}
+          <div className="flex items-center gap-3">
+            {importProgress.phase === "fetching" && (
+              <span className="material-symbols-outlined text-primary animate-spin">
+                progress_activity
+              </span>
+            )}
+            {importProgress.phase === "importing" && (
+              <span className="material-symbols-outlined text-primary animate-spin">
+                progress_activity
+              </span>
+            )}
+            {importProgress.phase === "done" && (
+              <span className="material-symbols-outlined text-green-500">check_circle</span>
+            )}
+            {importProgress.phase === "error" && (
+              <span className="material-symbols-outlined text-red-500">error</span>
+            )}
+            <span className="text-sm font-medium text-text-main">{importProgress.status}</span>
+          </div>
+
+          {/* Progress bar */}
+          {(importProgress.phase === "importing" || importProgress.phase === "done") &&
+            importProgress.total > 0 && (
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-text-muted">
+                    {importProgress.current} / {importProgress.total}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {Math.round((importProgress.current / importProgress.total) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300 ease-out"
+                    style={{
+                      width: `${(importProgress.current / importProgress.total) * 100}%`,
+                      background:
+                        importProgress.phase === "done"
+                          ? "linear-gradient(90deg, #22c55e, #16a34a)"
+                          : "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+          {/* Fetching indeterminate bar */}
+          {importProgress.phase === "fetching" && (
+            <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full animate-pulse"
+                style={{
+                  width: "60%",
+                  background:
+                    "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Error message */}
+          {importProgress.phase === "error" && importProgress.error && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-sm text-red-400">{importProgress.error}</p>
+            </div>
+          )}
+
+          {/* Log list */}
+          {importProgress.logs.length > 0 && (
+            <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
+              <div className="flex flex-col gap-1">
+                {importProgress.logs.map((log, i) => (
+                  <p
+                    key={i}
+                    className={`text-xs font-mono ${
+                      log.startsWith("✓") ? "text-green-500 font-semibold" : "text-text-muted"
+                    }`}
+                  >
+                    {log}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Auto-reload notice */}
+          {importProgress.phase === "done" && importProgress.importedCount > 0 && (
+            <p className="text-xs text-text-muted text-center animate-pulse">
+              Page will refresh automatically...
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -1175,6 +1456,7 @@ function CompatibleModelsSection({
   onDeleteAlias,
   connections,
   isAnthropic,
+  onImportWithProgress,
 }) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
@@ -1232,29 +1514,24 @@ function CompatibleModelsSection({
 
     setImporting(true);
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models`);
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to import models");
-        return;
-      }
-      const models = data.models || [];
-      if (models.length === 0) {
-        alert("No models returned from /models.");
-        return;
-      }
-      let importedCount = 0;
-      for (const model of models) {
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
-        const resolvedAlias = resolveAlias(modelId);
-        if (!resolvedAlias) continue;
-        await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
-        importedCount += 1;
-      }
-      if (importedCount === 0) {
-        alert("No new models were added.");
-      }
+      await onImportWithProgress(
+        // fetchModels callback
+        async () => {
+          const res = await fetch(`/api/providers/${activeConnection.id}/models`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to import models");
+          return data;
+        },
+        // processModel callback
+        async (model: any) => {
+          const modelId = model.id || model.name || model.model;
+          if (!modelId) return false;
+          const resolvedAlias = resolveAlias(modelId);
+          if (!resolvedAlias) return false;
+          await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
+          return true;
+        }
+      );
     } catch (error) {
       console.log("Error importing models:", error);
     } finally {
@@ -1340,6 +1617,7 @@ CompatibleModelsSection.propTypes = {
     })
   ).isRequired,
   isAnthropic: PropTypes.bool,
+  onImportWithProgress: PropTypes.func.isRequired,
 };
 
 function CooldownTimer({ until }) {
@@ -1757,9 +2035,11 @@ function AddApiKeyModal({
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleValidate = async () => {
     setValidating(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/providers/validate", {
         method: "POST",
@@ -1779,6 +2059,7 @@ function AddApiKeyModal({
     if (!provider || !formData.apiKey) return;
 
     setSaving(true);
+    setSaveError(null);
     try {
       let isValid = false;
       try {
@@ -1798,12 +2079,20 @@ function AddApiKeyModal({
         setValidating(false);
       }
 
-      await onSave({
+      if (!isValid) {
+        setSaveError("API key validation failed. Please check your key and try again.");
+        return;
+      }
+
+      const error = await onSave({
         name: formData.name,
         apiKey: formData.apiKey,
         priority: formData.priority,
-        testStatus: isValid ? "active" : "unknown",
+        testStatus: "active",
       });
+      if (error) {
+        setSaveError(typeof error === "string" ? error : "Failed to save connection");
+      }
     } finally {
       setSaving(false);
     }
@@ -1842,6 +2131,11 @@ function AddApiKeyModal({
           <Badge variant={validationResult === "success" ? "success" : "error"}>
             {validationResult === "success" ? "Valid" : "Invalid"}
           </Badge>
+        )}
+        {saveError && (
+          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {saveError}
+          </div>
         )}
         {isCompatible && (
           <p className="text-xs text-text-muted">
