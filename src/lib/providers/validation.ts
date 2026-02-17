@@ -255,20 +255,62 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
   }
 
-  const response = await fetch(`${baseUrl}/models`, {
-    method: "GET",
-    headers: buildBearerHeaders(apiKey),
-  });
+  // Step 1: Try GET /models
+  try {
+    const modelsRes = await fetch(`${baseUrl}/models`, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey),
+    });
 
-  if (response.ok) {
-    return { valid: true, error: null };
+    if (modelsRes.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+  } catch {
+    // /models fetch failed (network error, etc.) — fall through to chat test
   }
 
-  if (response.status === 401 || response.status === 403) {
-    return { valid: false, error: "Invalid API key" };
+  // Step 2: Fallback — try a minimal chat completion request
+  // Many providers don't expose /models but accept chat completions fine
+  const apiType = providerSpecificData.apiType || "chat";
+  const chatSuffix = apiType === "responses" ? "/responses" : "/chat/completions";
+  const chatUrl = `${baseUrl}${chatSuffix}`;
+
+  try {
+    const chatRes = await fetch(chatUrl, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey),
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (chatRes.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (chatRes.status === 401 || chatRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // 4xx other than auth (e.g. 400 bad model, 422) usually means auth passed
+    if (chatRes.status >= 400 && chatRes.status < 500) {
+      return { valid: true, error: null };
+    }
+
+    if (chatRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${chatRes.status})` };
+    }
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Connection failed" };
   }
 
-  return { valid: false, error: `Validation failed: ${response.status}` };
+  return { valid: false, error: "Validation failed" };
 }
 
 async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -281,25 +323,52 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
     baseUrl = baseUrl.slice(0, -9);
   }
 
-  const response = await fetch(`${baseUrl}/models`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
+  const headers = {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "anthropic-version": "2023-06-01",
+    Authorization: `Bearer ${apiKey}`,
+  };
 
-  if (response.ok) {
+  // Step 1: Try GET /models
+  try {
+    const modelsRes = await fetch(`${baseUrl}/models`, {
+      method: "GET",
+      headers,
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+  } catch {
+    // /models fetch failed — fall through to messages test
+  }
+
+  // Step 2: Fallback — try a minimal messages request
+  try {
+    const messagesRes = await fetch(`${baseUrl}/messages`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      }),
+    });
+
+    if (messagesRes.status === 401 || messagesRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // Any other response (200, 400, 422, etc.) means auth passed
     return { valid: true, error: null };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Connection failed" };
   }
-
-  if (response.status === 401 || response.status === 403) {
-    return { valid: false, error: "Invalid API key" };
-  }
-
-  return { valid: false, error: `Validation failed: ${response.status}` };
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
