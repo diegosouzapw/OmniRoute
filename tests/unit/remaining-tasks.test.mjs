@@ -11,7 +11,7 @@ import {
   RequestTelemetry,
   recordTelemetry,
   getTelemetrySummary,
-} from "../../src/shared/utils/requestTelemetry.js";
+} from "../../src/shared/utils/requestTelemetry.ts";
 
 test("RequestTelemetry: records phases", async () => {
   const t = new RequestTelemetry("tel-1");
@@ -60,7 +60,7 @@ test("RequestTelemetry: getTelemetrySummary returns valid output", () => {
 import {
   resolveComboModel,
   getComboFallbacks,
-} from "../../src/domain/comboResolver.js";
+} from "../../src/domain/comboResolver.ts";
 
 test("comboResolver: priority returns first model", () => {
   const combo = {
@@ -115,7 +115,7 @@ import {
   recordFailedAttempt,
   recordSuccess,
   forceUnlock,
-} from "../../src/domain/lockoutPolicy.js";
+} from "../../src/domain/lockoutPolicy.ts";
 
 test("lockoutPolicy: initially not locked", () => {
   const result = checkLockout("user-fresh");

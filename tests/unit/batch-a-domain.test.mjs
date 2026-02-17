@@ -17,7 +17,7 @@ import {
   getAvailabilityReport,
   getUnavailableCount,
   resetAllAvailability,
-} from "../../src/domain/modelAvailability.js";
+} from "../../src/domain/modelAvailability.ts";
 
 describe("modelAvailability", () => {
   before(() => resetAllAvailability());
@@ -70,7 +70,7 @@ import {
   getDailyTotal,
   getCostSummary,
   resetCostData,
-} from "../../src/domain/costRules.js";
+} from "../../src/domain/costRules.ts";
 
 describe("costRules", () => {
   before(() => resetCostData());
@@ -125,7 +125,7 @@ import {
   removeFallback,
   getAllFallbackChains,
   resetAllFallbacks,
-} from "../../src/domain/fallbackPolicy.js";
+} from "../../src/domain/fallbackPolicy.ts";
 
 describe("fallbackPolicy", () => {
   before(() => resetAllFallbacks());
@@ -187,7 +187,7 @@ import {
   ERROR_CODES,
   createErrorResponse,
   getErrorsByCategory,
-} from "../../src/shared/constants/errorCodes.js";
+} from "../../src/shared/constants/errorCodes.ts";
 
 describe("errorCodes", () => {
   it("should have at least 20 error codes", () => {
@@ -228,7 +228,7 @@ import {
   withRequestId,
   addRequestIdHeader,
   generateRequestId,
-} from "../../src/shared/utils/requestId.js";
+} from "../../src/shared/utils/requestId.ts";
 
 describe("requestId", () => {
   it("should return null outside context", () => {
@@ -271,7 +271,7 @@ describe("requestId", () => {
 
 // ──────────────── T-25: Fetch Timeout ────────────────
 
-import { getConfiguredTimeout, FetchTimeoutError } from "../../src/shared/utils/fetchTimeout.js";
+import { getConfiguredTimeout, FetchTimeoutError } from "../../src/shared/utils/fetchTimeout.ts";
 
 describe("fetchTimeout", () => {
   it("should have default timeout of 120000ms", () => {

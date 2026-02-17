@@ -34,7 +34,7 @@ async function withEnv(overrides, fn) {
 
 test("secretsValidator: validateSecrets rejects missing JWT_SECRET", async () => {
   await withEnv({ JWT_SECRET: undefined, API_KEY_SECRET: "a".repeat(16) }, async () => {
-    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.js");
+    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.ts");
     // Force re-evaluation by calling the function
     const result = validateSecrets();
     assert.equal(result.valid, false);
@@ -44,7 +44,7 @@ test("secretsValidator: validateSecrets rejects missing JWT_SECRET", async () =>
 
 test("secretsValidator: validateSecrets rejects missing API_KEY_SECRET", async () => {
   await withEnv({ JWT_SECRET: "a".repeat(32), API_KEY_SECRET: undefined }, async () => {
-    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.js");
+    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.ts");
     const result = validateSecrets();
     assert.equal(result.valid, false);
     assert.ok(result.errors.some((e) => e.name === "API_KEY_SECRET"));
@@ -53,7 +53,7 @@ test("secretsValidator: validateSecrets rejects missing API_KEY_SECRET", async (
 
 test("secretsValidator: validateSecrets rejects too-short JWT_SECRET", async () => {
   await withEnv({ JWT_SECRET: "short", API_KEY_SECRET: "a".repeat(16) }, async () => {
-    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.js");
+    const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.ts");
     const result = validateSecrets();
     assert.equal(result.valid, false);
     assert.ok(result.errors.some((e) => e.name === "JWT_SECRET" && e.issue.includes("too short")));
@@ -67,7 +67,7 @@ test("secretsValidator: validateSecrets warns on known weak secrets", async () =
       API_KEY_SECRET: "endpoint-proxy-api-key-secret",
     },
     async () => {
-      const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.js");
+      const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.ts");
       const result = validateSecrets();
       assert.ok(result.warnings.length >= 1, "Should have at least one warning for weak secrets");
     }
@@ -81,7 +81,7 @@ test("secretsValidator: validateSecrets passes with strong secrets", async () =>
       API_KEY_SECRET: "xK9mR3vN7tB2yE5u",
     },
     async () => {
-      const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.js");
+      const { validateSecrets } = await import("../../src/shared/utils/secretsValidator.ts");
       const result = validateSecrets();
       assert.equal(result.valid, true);
       assert.equal(result.errors.length, 0);

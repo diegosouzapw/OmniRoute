@@ -40,7 +40,7 @@ export async function initializeRateLimits() {
   initialized = true;
 
   try {
-    const { getProviderConnections } = await import("@/lib/localDb.js");
+    const { getProviderConnections } = await import("@/lib/localDb");
     const connections = await getProviderConnections();
     let explicitCount = 0;
     let autoCount = 0;

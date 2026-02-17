@@ -16,7 +16,7 @@
  */
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.js";
-import { saveCallLog } from "@/lib/usageDb.js";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Handle image generation request

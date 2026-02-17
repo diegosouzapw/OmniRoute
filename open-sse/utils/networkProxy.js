@@ -20,7 +20,7 @@ async function getConfig() {
   if (_cachedConfig && now < _cacheExpiry) return _cachedConfig;
 
   try {
-    const { getProxyConfig } = await import("../../src/lib/localDb.js");
+    const { getProxyConfig } = await import("../../src/lib/localDb");
     _cachedConfig = await getProxyConfig();
     _cacheExpiry = now + 30_000; // Cache for 30s
     return _cachedConfig;

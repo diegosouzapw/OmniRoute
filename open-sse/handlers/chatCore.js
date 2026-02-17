@@ -19,7 +19,7 @@ import {
   trackPendingRequest,
   appendRequestLog,
   saveCallLog,
-} from "@/lib/usageDb.js";
+} from "@/lib/usageDb";
 import { getExecutor } from "../executors/index.js";
 import { translateNonStreamingResponse } from "./responseTranslator.js";
 import { extractUsageFromResponse } from "./usageExtractor.js";
@@ -34,8 +34,8 @@ import {
   getCachedResponse,
   setCachedResponse,
   isCacheable,
-} from "@/lib/semanticCache.js";
-import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer.js";
+} from "@/lib/semanticCache";
+import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.js";
 
 /**

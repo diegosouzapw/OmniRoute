@@ -12,7 +12,7 @@ import {
   CircuitBreaker,
   CircuitBreakerOpenError,
   STATE,
-} from "../../src/shared/utils/circuitBreaker.js";
+} from "../../src/shared/utils/circuitBreaker.ts";
 
 const cbSuffix = `-${Date.now()}`;
 
@@ -113,7 +113,7 @@ test("CircuitBreaker: calls onStateChange callback", async () => {
 
 // ─── Request Timeout Tests ───────────────────────────
 
-import { withTimeout, getProviderTimeout } from "../../src/shared/utils/requestTimeout.js";
+import { withTimeout, getProviderTimeout } from "../../src/shared/utils/requestTimeout.ts";
 
 test("requestTimeout: withTimeout resolves before timeout", async () => {
   const result = await withTimeout(async () => "fast", 1000, "test");
@@ -141,7 +141,7 @@ test("requestTimeout: getProviderTimeout returns provider-specific value", () =>
 
 // ─── Correlation ID Tests ────────────────────────────
 
-import { getCorrelationId, runWithCorrelation } from "../../src/shared/middleware/correlationId.js";
+import { getCorrelationId, runWithCorrelation } from "../../src/shared/middleware/correlationId.ts";
 
 test("correlationId: getCorrelationId returns undefined outside context", () => {
   assert.equal(getCorrelationId(), undefined);

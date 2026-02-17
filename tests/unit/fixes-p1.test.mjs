@@ -7,16 +7,16 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fixes-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../src/lib/db/core.js");
-const backupDb = await import("../../src/lib/db/backup.js");
-const providersDb = await import("../../src/lib/db/providers.js");
-const combosDb = await import("../../src/lib/db/combos.js");
-const settingsDb = await import("../../src/lib/db/settings.js");
+const core = await import("../../src/lib/db/core.ts");
+const backupDb = await import("../../src/lib/db/backup.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.js");
 const proxyFetch = await import("../../open-sse/utils/proxyFetch.js");
 const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.js");
-const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.js");
-const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.js");
+const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
+const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
 
 async function withEnv(name, value, fn) {
   const previous = process.env[name];

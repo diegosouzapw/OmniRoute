@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { generateSignature, isCacheable } from "../../src/lib/semanticCache.js";
+import { generateSignature, isCacheable } from "../../src/lib/semanticCache.ts";
 
 describe("Semantic Cache", () => {
   describe("generateSignature", () => {

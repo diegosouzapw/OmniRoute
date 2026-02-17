@@ -28,7 +28,7 @@ afterEach(() => {
 describe("fallbackPolicy persistence", () => {
   it("should register and resolve a fallback chain", async () => {
     const { registerFallback, resolveFallbackChain, hasFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.js");
+      await import("../../src/domain/fallbackPolicy.ts");
 
     resetAllFallbacks();
 
@@ -50,7 +50,7 @@ describe("fallbackPolicy persistence", () => {
 
   it("should resolve with exclusions", async () => {
     const { registerFallback, resolveFallbackChain, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.js");
+      await import("../../src/domain/fallbackPolicy.ts");
 
     resetAllFallbacks();
 
@@ -68,7 +68,7 @@ describe("fallbackPolicy persistence", () => {
 
   it("should get next fallback correctly", async () => {
     const { registerFallback, getNextFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.js");
+      await import("../../src/domain/fallbackPolicy.ts");
 
     resetAllFallbacks();
 
@@ -89,7 +89,7 @@ describe("fallbackPolicy persistence", () => {
 
   it("should remove fallback chain", async () => {
     const { registerFallback, removeFallback, hasFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.js");
+      await import("../../src/domain/fallbackPolicy.ts");
 
     resetAllFallbacks();
 
@@ -104,7 +104,7 @@ describe("fallbackPolicy persistence", () => {
 
   it("should get all fallback chains", async () => {
     const { registerFallback, getAllFallbackChains, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.js");
+      await import("../../src/domain/fallbackPolicy.ts");
 
     resetAllFallbacks();
 
@@ -124,7 +124,7 @@ describe("fallbackPolicy persistence", () => {
 describe("costRules persistence", () => {
   it("should set and check budget", async () => {
     const { setBudget, getBudget, checkBudget, resetCostData } =
-      await import("../../src/domain/costRules.js");
+      await import("../../src/domain/costRules.ts");
 
     resetCostData();
 
@@ -142,7 +142,7 @@ describe("costRules persistence", () => {
 
   it("should record cost and check daily total", async () => {
     const { setBudget, recordCost, getDailyTotal, checkBudget, resetCostData } =
-      await import("../../src/domain/costRules.js");
+      await import("../../src/domain/costRules.ts");
 
     resetCostData();
 
@@ -165,7 +165,7 @@ describe("costRules persistence", () => {
   });
 
   it("should return allowed=true when no budget set", async () => {
-    const { checkBudget, resetCostData } = await import("../../src/domain/costRules.js");
+    const { checkBudget, resetCostData } = await import("../../src/domain/costRules.ts");
 
     resetCostData();
 
@@ -178,7 +178,7 @@ describe("costRules persistence", () => {
 
   it("should get cost summary", async () => {
     const { setBudget, recordCost, getCostSummary, resetCostData } =
-      await import("../../src/domain/costRules.js");
+      await import("../../src/domain/costRules.ts");
 
     resetCostData();
 
@@ -200,7 +200,7 @@ describe("costRules persistence", () => {
 describe("lockoutPolicy persistence", () => {
   it("should track failed attempts and trigger lockout", async () => {
     const { recordFailedAttempt, checkLockout, recordSuccess } =
-      await import("../../src/domain/lockoutPolicy.js");
+      await import("../../src/domain/lockoutPolicy.ts");
 
     const id = "test-ip-" + Date.now();
     const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
@@ -227,7 +227,7 @@ describe("lockoutPolicy persistence", () => {
 
   it("should unlock after success", async () => {
     const { recordFailedAttempt, recordSuccess, checkLockout } =
-      await import("../../src/domain/lockoutPolicy.js");
+      await import("../../src/domain/lockoutPolicy.ts");
 
     const id = "test-unlock-" + Date.now();
     const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
@@ -243,7 +243,7 @@ describe("lockoutPolicy persistence", () => {
 
   it("should force-unlock", async () => {
     const { recordFailedAttempt, forceUnlock, checkLockout } =
-      await import("../../src/domain/lockoutPolicy.js");
+      await import("../../src/domain/lockoutPolicy.ts");
 
     const id = "test-force-" + Date.now();
     const config = { maxAttempts: 2, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
@@ -265,7 +265,7 @@ describe("lockoutPolicy persistence", () => {
 
 describe("circuitBreaker persistence", () => {
   it("should open after threshold failures", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.js");
+    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
     const cb = new CircuitBreaker("test-cb-" + Date.now(), { failureThreshold: 3 });
     assert.equal(cb.state, STATE.CLOSED);
@@ -284,7 +284,7 @@ describe("circuitBreaker persistence", () => {
   });
 
   it("should reset correctly", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.js");
+    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
     const cb = new CircuitBreaker("test-reset-" + Date.now(), { failureThreshold: 2 });
 
@@ -304,7 +304,7 @@ describe("circuitBreaker persistence", () => {
   });
 
   it("should close on success after half-open", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.js");
+    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
     const cb = new CircuitBreaker("test-halfopen-" + Date.now(), {
       failureThreshold: 2,
@@ -331,7 +331,7 @@ describe("circuitBreaker persistence", () => {
 
   it("registry should return statuses", async () => {
     const { getCircuitBreaker, getAllCircuitBreakerStatuses } =
-      await import("../../src/shared/utils/circuitBreaker.js");
+      await import("../../src/shared/utils/circuitBreaker.ts");
 
     const name = "reg-test-" + Date.now();
     const cb = getCircuitBreaker(name, { failureThreshold: 5 });

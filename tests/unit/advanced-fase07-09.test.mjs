@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 // ─── Policy Engine Tests ──────────────────────────
 
-import { PolicyEngine } from "../../src/domain/policyEngine.js";
+import { PolicyEngine } from "../../src/domain/policyEngine.ts";
 
 test("PolicyEngine: evaluates empty policy list as allowed", () => {
   const engine = new PolicyEngine();
@@ -159,7 +159,7 @@ test("PolicyEngine: addPolicy and removePolicy work", () => {
 
 // ─── LRU Cache Tests ──────────────────────────
 
-import { LRUCache } from "../../src/lib/cacheLayer.js";
+import { LRUCache } from "../../src/lib/cacheLayer.ts";
 
 test("LRUCache: set and get work", () => {
   const cache = new LRUCache({ maxSize: 5 });
@@ -233,7 +233,7 @@ import {
   createStreamTracker,
   getActiveStreams,
   archiveStream,
-} from "../../src/sse/services/streamState.js";
+} from "../../src/sse/services/streamState.ts";
 
 test("StreamTracker: starts in INITIALIZED state", () => {
   const tracker = new StreamTracker("req-1");

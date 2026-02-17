@@ -14,7 +14,7 @@
  */
 
 import { getEmbeddingProvider, parseEmbeddingModel } from "../config/embeddingRegistry.js";
-import { saveCallLog } from "@/lib/usageDb.js";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Handle embedding request

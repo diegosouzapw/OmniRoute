@@ -24,10 +24,10 @@ afterEach(() => {
 describe("policyEngine", async () => {
   // Dynamic import to pick up DATA_DIR
   const { evaluateRequest, evaluateFirstAllowed } =
-    await import("../../src/domain/policyEngine.js");
-  const { registerFallback } = await import("../../src/domain/fallbackPolicy.js");
-  const { setBudget, recordCost } = await import("../../src/domain/costRules.js");
-  const { recordFailedAttempt } = await import("../../src/domain/lockoutPolicy.js");
+    await import("../../src/domain/policyEngine.ts");
+  const { registerFallback } = await import("../../src/domain/fallbackPolicy.ts");
+  const { setBudget, recordCost } = await import("../../src/domain/costRules.ts");
+  const { recordFailedAttempt } = await import("../../src/domain/lockoutPolicy.ts");
 
   test("allows a basic request with no restrictions", () => {
     const verdict = evaluateRequest({ model: "gpt-4o" });

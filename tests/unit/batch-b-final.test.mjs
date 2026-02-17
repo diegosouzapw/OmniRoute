@@ -17,7 +17,7 @@ import {
   runSuite,
   createScorecard,
   resetSuites,
-} from "../../src/lib/evals/evalRunner.js";
+} from "../../src/lib/evals/evalRunner.ts";
 
 describe("evalRunner", () => {
   after(() => {
@@ -121,7 +121,7 @@ describe("evalRunner", () => {
 
 // ──────────────── T-35: a11y Audit ────────────────
 
-import { auditHTML, generateReport, WCAG_RULES } from "../../src/shared/utils/a11yAudit.js";
+import { auditHTML, generateReport, WCAG_RULES } from "../../src/shared/utils/a11yAudit.ts";
 
 describe("a11yAudit", () => {
   it("should pass for compliant HTML", () => {
@@ -208,7 +208,7 @@ describe("responsiveSpecs", () => {
 
 // ──────────────── T-43: Compliance (noLog) ────────────────
 
-import { setNoLog, isNoLog, getRetentionDays } from "../../src/lib/compliance/index.js";
+import { setNoLog, isNoLog, getRetentionDays } from "../../src/lib/compliance/index.ts";
 
 describe("compliance", () => {
   it("should default to logging enabled", () => {

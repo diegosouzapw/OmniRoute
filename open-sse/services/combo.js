@@ -8,7 +8,7 @@ import { unavailableResponse } from "../utils/error.js";
 import { recordComboRequest, getComboMetrics } from "./comboMetrics.js";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.js";
 import * as semaphore from "./rateLimitSemaphore.js";
-import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker.js";
+import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { parseModel } from "./model.js";
 
 // Status codes that should mark semaphore + record circuit breaker failures
@@ -170,7 +170,7 @@ function shuffleArray(arr) {
  */
 async function sortModelsByCost(models) {
   try {
-    const { getPricingForModel } = await import("../../src/lib/localDb.js");
+    const { getPricingForModel } = await import("../../src/lib/localDb");
     const withCost = await Promise.all(
       models.map(async (modelStr) => {
         const parsed = parseModel(modelStr);

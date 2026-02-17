@@ -2,7 +2,7 @@
  * Token Usage Tracking - Extract, normalize, estimate and log token usage
  */
 
-import { saveRequestUsage, appendRequestLog } from "@/lib/usageDb.js";
+import { saveRequestUsage, appendRequestLog } from "@/lib/usageDb";
 import { FORMATS } from "../translator/formats.js";
 
 // ANSI color codes

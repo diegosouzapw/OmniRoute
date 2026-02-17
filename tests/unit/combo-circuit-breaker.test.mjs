@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // Reset circuit breaker registry between tests
 const { CircuitBreaker, getCircuitBreaker, getAllCircuitBreakerStatuses, STATE } =
-  await import("../../src/shared/utils/circuitBreaker.js");
+  await import("../../src/shared/utils/circuitBreaker.ts");
 
 const { handleComboChat, getComboFromData } = await import("../../open-sse/services/combo.js");
 

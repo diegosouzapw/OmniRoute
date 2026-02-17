@@ -6,7 +6,7 @@ import {
   saveIdempotency,
   clearIdempotency,
   getIdempotencyStats,
-} from "../../src/lib/idempotencyLayer.js";
+} from "../../src/lib/idempotencyLayer.ts";
 
 describe("Idempotency Layer", () => {
   beforeEach(() => {

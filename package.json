@@ -48,7 +48,7 @@
     "start": "next start --port 20128",
     "lint": "eslint .",
     "test": "node --test tests/unit/*.test.mjs",
-    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:unit": "node --import tsx/esm --test tests/unit/*.test.mjs",
     "test:plan3": "node --test tests/unit/plan3-p0.test.mjs",
     "test:fixes": "node --test tests/unit/fixes-p1.test.mjs",
     "test:security": "node --test tests/unit/security-fase01.test.mjs",
@@ -90,6 +90,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.14",
@@ -100,6 +101,7 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "lint-staged": {
