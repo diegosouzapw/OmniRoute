@@ -25,7 +25,7 @@ import {
 
 // ── Custom Tooltip for dark theme ──────────────────────────────────────────
 
-function DarkTooltip({ active, payload, label, formatter }) {
+function DarkTooltip({ active, payload, label, formatter }: { active?: boolean; payload?: any[]; label?: any; formatter?: Function }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
@@ -48,7 +48,7 @@ function DarkTooltip({ active, payload, label, formatter }) {
 
 // ── Sort Indicator (shared by tables) ──────────────────────────────────────
 
-export function SortIndicator({ active, sortOrder }) {
+export function SortIndicator({ active, sortOrder }: { active: boolean; sortOrder: string }) {
   if (!active) {
     return (
       <span className="material-symbols-outlined text-[12px] opacity-0 group-hover:opacity-30">
@@ -65,7 +65,7 @@ export function SortIndicator({ active, sortOrder }) {
 
 // ── StatCard ───────────────────────────────────────────────────────────────
 
-export function StatCard({ icon, label, value, subValue, color = "text-text-main" }) {
+export function StatCard({ icon, label, value, subValue, color = "text-text-main" }: { icon: any; label: any; value: any; subValue?: any; color?: string }) {
   return (
     <Card className="px-4 py-3 flex flex-col gap-1">
       <div className="flex items-center gap-2 text-text-muted text-xs uppercase font-semibold tracking-wider">
@@ -161,7 +161,7 @@ export function ActivityHeatmap({ activityMap }) {
         <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Activity</h3>
         <span className="text-xs text-text-muted">
           {Object.keys(activityMap || {}).length} active days ·{" "}
-          {fmt(Object.values(activityMap || {}).reduce((a, b) => a + b, 0))} tokens · 365 days
+          {fmt(Object.values(activityMap || {}).reduce((a: number, b: number) => a + b, 0))} tokens · 365 days
         </span>
       </div>
 
@@ -320,7 +320,7 @@ export function DailyTrendChart({ dailyTrend }) {
 
 // ── Cost-aware Tooltip ─────────────────────────────────────────────────────
 
-function CostTooltip({ active, payload, label }) {
+function CostTooltip({ active, payload, label }: { active?: boolean; payload?: any[]; label?: any }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">

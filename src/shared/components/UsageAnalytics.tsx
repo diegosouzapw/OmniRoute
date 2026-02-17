@@ -23,9 +23,9 @@ import {
 
 export default function UsageAnalytics() {
   const [range, setRange] = useState("30d");
-  const [analytics, setAnalytics] = useState(null);
+  const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -36,7 +36,7 @@ export default function UsageAnalytics() {
       setAnalytics(data);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError((err as any).message);
     } finally {
       setLoading(false);
     }

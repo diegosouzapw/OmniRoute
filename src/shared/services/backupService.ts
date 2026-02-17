@@ -8,14 +8,14 @@ const MAX_BACKUPS_PER_TOOL = 5;
 /**
  * Get backup directory for a specific tool
  */
-function getToolBackupDir(toolId) {
+function getToolBackupDir(toolId: string) {
   return path.join(BACKUP_DIR, toolId);
 }
 
 /**
  * Ensure backup directory exists for a tool
  */
-async function ensureBackupDir(toolId) {
+async function ensureBackupDir(toolId: string) {
   const dir = getToolBackupDir(toolId);
   await fs.mkdir(dir, { recursive: true });
   return dir;
@@ -24,7 +24,7 @@ async function ensureBackupDir(toolId) {
 /**
  * Generate a backup filename with timestamp
  */
-function makeBackupName(originalPath) {
+function makeBackupName(originalPath: string) {
   const ext = path.extname(originalPath);
   const base = path.basename(originalPath, ext);
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -35,7 +35,7 @@ function makeBackupName(originalPath) {
  * Create a backup of a file before modifying it.
  * Returns the backup path, or null if the source doesn't exist.
  */
-export async function createBackup(toolId, filePath) {
+export async function createBackup(toolId: string, filePath: string) {
   try {
     await fs.access(filePath);
   } catch {
@@ -71,8 +71,8 @@ export async function createBackup(toolId, filePath) {
  * Create backups for multiple files in one operation (e.g. Codex config.toml + auth.json).
  * Returns an array of backup paths.
  */
-export async function createMultiBackup(toolId, filePaths) {
-  const results = [];
+export async function createMultiBackup(toolId: string, filePaths: string[]) {
+  const results: (string | null)[] = [];
   for (const filePath of filePaths) {
     const result = await createBackup(toolId, filePath);
     results.push(result);
@@ -83,7 +83,7 @@ export async function createMultiBackup(toolId, filePaths) {
 /**
  * List all backups for a tool (sorted newest first).
  */
-export async function listBackups(toolId) {
+export async function listBackups(toolId: string) {
   const dir = getToolBackupDir(toolId);
 
   let entries;
@@ -94,7 +94,7 @@ export async function listBackups(toolId) {
   }
 
   const metaFiles = entries.filter((e) => e.endsWith(".meta.json"));
-  const backups = [];
+  const backups: any[] = [];
 
   for (const metaFile of metaFiles) {
     try {
@@ -127,14 +127,14 @@ export async function listBackups(toolId) {
   }
 
   // Sort newest first
-  backups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  backups.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return backups;
 }
 
 /**
  * Restore a backup by its id (filename).
  */
-export async function restoreBackup(toolId, backupId) {
+export async function restoreBackup(toolId: string, backupId: string) {
   const dir = getToolBackupDir(toolId);
   const backupPath = path.join(dir, backupId);
   const metaPath = backupPath + ".meta.json";
@@ -173,7 +173,7 @@ export async function restoreBackup(toolId, backupId) {
 /**
  * Delete a specific backup by its id.
  */
-export async function deleteBackup(toolId, backupId) {
+export async function deleteBackup(toolId: string, backupId: string) {
   const dir = getToolBackupDir(toolId);
   const backupPath = path.join(dir, backupId);
   const metaPath = backupPath + ".meta.json";
@@ -196,18 +196,18 @@ export async function deleteBackup(toolId, backupId) {
  * Enforce max backups per tool — removes oldest when limit exceeded.
  * Groups by original file basename so each config file gets its own rotation.
  */
-async function rotateBackups(toolId) {
+async function rotateBackups(toolId: string) {
   const all = await listBackups(toolId);
 
   // Group by original file basename
-  const groups = {};
+  const groups: Record<string, any[]> = {};
   for (const b of all) {
     const key = path.basename(b.originalPath);
     if (!groups[key]) groups[key] = [];
     groups[key].push(b);
   }
 
-  for (const [, group] of Object.entries(groups)) {
+  for (const [, group] of Object.entries(groups) as [string, any[]][]) {
     // Already sorted newest first
     if (group.length > MAX_BACKUPS_PER_TOOL) {
       const toDelete = group.slice(MAX_BACKUPS_PER_TOOL);

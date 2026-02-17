@@ -19,42 +19,41 @@ import {
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 
-// Wrap functions with local logger
-export const refreshAccessToken = (provider, refreshToken, credentials) =>
+export const refreshAccessToken = (provider: string, refreshToken: string, credentials: any) =>
   _refreshAccessToken(provider, refreshToken, credentials, log);
 
-export const refreshClaudeOAuthToken = (refreshToken) =>
+export const refreshClaudeOAuthToken = (refreshToken: string) =>
   _refreshClaudeOAuthToken(refreshToken, log);
 
-export const refreshGoogleToken = (refreshToken, clientId, clientSecret) =>
+export const refreshGoogleToken = (refreshToken: string, clientId: string, clientSecret: string) =>
   _refreshGoogleToken(refreshToken, clientId, clientSecret, log);
 
-export const refreshQwenToken = (refreshToken) => _refreshQwenToken(refreshToken, log);
+export const refreshQwenToken = (refreshToken: string) => _refreshQwenToken(refreshToken, log);
 
-export const refreshCodexToken = (refreshToken) => _refreshCodexToken(refreshToken, log);
+export const refreshCodexToken = (refreshToken: string) => _refreshCodexToken(refreshToken, log);
 
-export const refreshIflowToken = (refreshToken) => _refreshIflowToken(refreshToken, log);
+export const refreshIflowToken = (refreshToken: string) => _refreshIflowToken(refreshToken, log);
 
-export const refreshGitHubToken = (refreshToken) => _refreshGitHubToken(refreshToken, log);
+export const refreshGitHubToken = (refreshToken: string) => _refreshGitHubToken(refreshToken, log);
 
-export const refreshCopilotToken = (githubAccessToken) =>
+export const refreshCopilotToken = (githubAccessToken: string) =>
   _refreshCopilotToken(githubAccessToken, log);
 
-export const getAccessToken = (provider, credentials) =>
+export const getAccessToken = (provider: string, credentials: any) =>
   _getAccessToken(provider, credentials, log);
 
-export const refreshTokenByProvider = (provider, credentials) =>
+export const refreshTokenByProvider = (provider: string, credentials: any) =>
   _refreshTokenByProvider(provider, credentials, log);
 
-export const formatProviderCredentials = (provider, credentials) =>
+export const formatProviderCredentials = (provider: string, credentials: any) =>
   _formatProviderCredentials(provider, credentials, log);
 
-export const getAllAccessTokens = (userInfo) => _getAllAccessTokens(userInfo, log);
+export const getAllAccessTokens = (userInfo: any) => _getAllAccessTokens(userInfo, log);
 
 // Local-specific: Update credentials in localDb
-export async function updateProviderCredentials(connectionId, newCredentials) {
+export async function updateProviderCredentials(connectionId: string, newCredentials: any) {
   try {
-    const updates = {};
+    const updates: Record<string, any> = {};
 
     if (newCredentials.accessToken) {
       updates.accessToken = newCredentials.accessToken;
@@ -79,14 +78,14 @@ export async function updateProviderCredentials(connectionId, newCredentials) {
   } catch (error) {
     log.error("TOKEN_REFRESH", "Error updating credentials in localDb", {
       connectionId,
-      error: error.message,
+      error: (error as any).message,
     });
     return false;
   }
 }
 
 // Local-specific: Check and refresh token proactively
-export async function checkAndRefreshToken(provider, credentials) {
+export async function checkAndRefreshToken(provider: string, credentials: any) {
   let updatedCredentials = { ...credentials };
 
   // Check regular token expiry
@@ -150,7 +149,7 @@ export async function checkAndRefreshToken(provider, credentials) {
 }
 
 // Local-specific: Refresh GitHub and Copilot tokens together
-export async function refreshGitHubAndCopilotTokens(credentials) {
+export async function refreshGitHubAndCopilotTokens(credentials: any) {
   const newGitHubCredentials = await refreshGitHubToken(credentials.refreshToken);
   if (newGitHubCredentials?.accessToken) {
     const copilotToken = await refreshCopilotToken(newGitHubCredentials.accessToken);

@@ -19,7 +19,7 @@ import {
 } from "@omniroute/open-sse/config/providerModels.js";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
-import { updateProviderCredentials } from "../services/auth";
+// updateProviderCredentials is dynamically imported from ../services/auth when needed
 
 const HTTP_STATUS = {
   BAD_REQUEST: 400,
@@ -34,17 +34,17 @@ const HTTP_STATUS = {
  * @param {Function} errorResponse - Error response factory
  * @returns {Promise<{ error?: Response, provider: string, model: string, sourceFormat: string, targetFormat: string }>}
  */
-export async function resolveModelOrError(modelStr, body, log, errorResponse) {
+export async function resolveModelOrError(modelStr: string, body: any, log: any, errorResponse: Function) {
   const modelInfo = await getModelInfo(modelStr);
 
   if (!modelInfo.provider) {
-    if (modelInfo.errorType === "ambiguous_model") {
+    if ((modelInfo as any).errorType === "ambiguous_model") {
       const message =
-        modelInfo.errorMessage ||
+        (modelInfo as any).errorMessage ||
         `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
       log.warn("CHAT", message, {
         model: modelStr,
-        candidates: modelInfo.candidateAliases || modelInfo.candidateProviders || [],
+        candidates: (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
       });
       return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
     }
@@ -155,7 +155,8 @@ export function buildChatCoreParams({
     apiKeyInfo,
     userAgent,
     comboName,
-    onCredentialsRefreshed: async (newCreds) => {
+    onCredentialsRefreshed: async (newCreds: any) => {
+      const { updateProviderCredentials } = await import("../services/tokenRefresh");
       await updateProviderCredentials(credentials.connectionId, {
         accessToken: newCreds.accessToken,
         refreshToken: newCreds.refreshToken,

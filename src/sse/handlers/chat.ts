@@ -42,7 +42,7 @@ import { logAuditEvent } from "../../lib/compliance/index";
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
  * Format detection and translation handled by translator
  */
-export async function handleChat(request, clientRawRequest = null) {
+export async function handleChat(request: any, clientRawRequest: any = null) {
   // Pipeline: Start request telemetry
   const reqId = generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
@@ -155,7 +155,7 @@ export async function handleChat(request, clientRawRequest = null) {
 
     // Pre-check function: skip models where all accounts are in cooldown
     // Uses modelAvailability module for TTL-based cooldowns
-    const checkModelAvailable = async (modelString) => {
+    const checkModelAvailable = async (modelString: string) => {
       const parsed = parseModel(modelString);
       const provider = parsed.provider;
       if (!provider) return true; // can't determine provider, let it try
@@ -178,10 +178,10 @@ export async function handleChat(request, clientRawRequest = null) {
     ]);
     telemetry.endPhase();
 
-    const response = await handleComboChat({
+    const response = await (handleComboChat as any)({
       body,
       combo,
-      handleSingleModel: (b, m) =>
+      handleSingleModel: (b: any, m: string) =>
         handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry),
       isModelAvailable: checkModelAvailable,
       log,
@@ -217,24 +217,24 @@ export async function handleChat(request, clientRawRequest = null) {
  * credential retry loop.
  */
 async function handleSingleModelChat(
-  body,
-  modelStr,
-  clientRawRequest = null,
-  request = null,
-  comboName = null,
-  apiKeyInfo = null,
-  telemetry = null
+  body: any,
+  modelStr: string,
+  clientRawRequest: any = null,
+  request: any = null,
+  comboName: string | null = null,
+  apiKeyInfo: any = null,
+  telemetry: any = null
 ) {
   // 1. Resolve model → provider/model (or return error)
   const modelInfo = await getModelInfo(modelStr);
   if (!modelInfo.provider) {
-    if (modelInfo.errorType === "ambiguous_model") {
+    if ((modelInfo as any).errorType === "ambiguous_model") {
       const message =
-        modelInfo.errorMessage ||
+        (modelInfo as any).errorMessage ||
         `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
       log.warn("CHAT", message, {
         model: modelStr,
-        candidates: modelInfo.candidateAliases || modelInfo.candidateProviders || [],
+        candidates: (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
       });
       return errorResponse(HTTP_STATUS.BAD_REQUEST, message);
     }
@@ -256,7 +256,7 @@ async function handleSingleModelChat(
   // Pipeline: Check model availability (TTL cooldown)
   if (!isModelAvailable(provider, model)) {
     log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
-    return unavailableResponse(
+    return (unavailableResponse as any)(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       `Model ${provider}/${model} is temporarily unavailable (cooldown)`,
       30
@@ -267,11 +267,11 @@ async function handleSingleModelChat(
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: 5,
     resetTimeout: 30000,
-    onStateChange: (name, from, to) => log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+    onStateChange: (name: string, from: string, to: string) => log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
   if (!breaker.canExecute()) {
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
-    return unavailableResponse(
+    return (unavailableResponse as any)(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       `Provider ${provider} circuit breaker is open`,
       30
@@ -314,7 +314,7 @@ async function handleSingleModelChat(
     try {
       const chatFn = () =>
         runWithProxyContext(proxyInfo?.proxy || null, () =>
-          handleChatCore({
+          (handleChatCore as any)({
             body: { ...body, model: `${provider}/${model}` },
             modelInfo: { provider, model },
             credentials: refreshedCredentials,
@@ -324,7 +324,7 @@ async function handleSingleModelChat(
             apiKeyInfo,
             userAgent,
             comboName,
-            onCredentialsRefreshed: async (newCreds) => {
+            onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
                 accessToken: newCreds.accessToken,
                 refreshToken: newCreds.refreshToken,
@@ -351,7 +351,7 @@ async function handleSingleModelChat(
     } catch (cbErr) {
       if (cbErr instanceof CircuitBreakerOpenError) {
         log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
-        return unavailableResponse(
+        return (unavailableResponse as any)(
           HTTP_STATUS.SERVICE_UNAVAILABLE,
           `Provider ${provider} circuit breaker is open`,
           Math.ceil(cbErr.retryAfterMs / 1000)
@@ -425,12 +425,12 @@ async function handleSingleModelChat(
 // ──── Extracted helpers (T-28) ────
 
 function handleNoCredentials(
-  credentials,
-  excludeConnectionId,
-  provider,
-  model,
-  lastError,
-  lastStatus
+  credentials: any,
+  excludeConnectionId: string | null,
+  provider: string,
+  model: string,
+  lastError: string | null,
+  lastStatus: number | null
 ) {
   if (credentials?.allRateLimited) {
     const errorMsg = lastError || credentials.lastError || "Unavailable";
@@ -455,10 +455,10 @@ function handleNoCredentials(
   );
 }
 
-async function safeResolveProxy(connectionId) {
+async function safeResolveProxy(connectionId: string) {
   try {
     return await resolveProxyForConnection(connectionId);
-  } catch (proxyErr) {
+  } catch (proxyErr: any) {
     log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
     return null;
   }
