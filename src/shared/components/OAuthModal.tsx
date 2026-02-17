@@ -10,7 +10,14 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
  * - Localhost: Auto callback via popup message
  * - Remote: Manual paste callback URL
  */
-export default function OAuthModal({ isOpen, provider, providerInfo, onSuccess, onClose, idcConfig }: any) {
+export default function OAuthModal({
+  isOpen,
+  provider,
+  providerInfo,
+  onSuccess,
+  onClose,
+  idcConfig,
+}: any) {
   const [step, setStep] = useState("waiting"); // waiting | input | success | error
   const [authData, setAuthData] = useState(null);
   const [callbackUrl, setCallbackUrl] = useState("");
@@ -200,8 +207,10 @@ export default function OAuthModal({ isOpen, provider, providerInfo, onSuccess, 
       }
 
       // Authorization code flow (non-Codex providers)
-      const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
-      const redirectUri = `http://localhost:${port}/callback`;
+      // Use actual origin for remote deployments, localhost for local dev
+      const redirectUri = isLocalhost
+        ? `http://localhost:${window.location.port || "80"}/callback`
+        : `${window.location.origin}/callback`;
 
       const res = await fetch(
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`

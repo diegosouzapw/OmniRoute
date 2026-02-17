@@ -88,3 +88,6 @@ omnirouteSite/
 
 # Security Analysis (standalone project with own git)
 security-analysis/
+
+# Deploy workflow (contains sensitive VPS credentials)
+.agent/workflows/deploy.md
