@@ -29,9 +29,9 @@ export default function ModelSelectModal({
   modelAliases = {},
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [combos, setCombos] = useState([]);
-  const [providerNodes, setProviderNodes] = useState([]);
-  const [customModels, setCustomModels] = useState({});
+  const [combos, setCombos] = useState<any[]>([]);
+  const [providerNodes, setProviderNodes] = useState<any[]>([]);
+  const [customModels, setCustomModels] = useState<Record<string, any>>({});
 
   const fetchCombos = async () => {
     try {
@@ -88,7 +88,7 @@ export default function ModelSelectModal({
 
   // Group models by provider with priority order
   const groupedModels = useMemo(() => {
-    const groups = {};
+    const groups: Record<string, any> = {};
 
     // Get all active provider IDs from connections
     const activeConnectionIds = activeProviders.map((p) => p.provider);
@@ -115,9 +115,9 @@ export default function ModelSelectModal({
       const providerCustomModels = customModels[providerId] || [];
 
       if (providerInfo.passthroughModels) {
-        const aliasModels = Object.entries(modelAliases)
-          .filter(([, fullModel]) => fullModel.startsWith(`${alias}/`))
-          .map(([aliasName, fullModel]) => ({
+        const aliasModels = Object.entries(modelAliases as Record<string, string>)
+          .filter(([, fullModel]: [string, string]) => fullModel.startsWith(`${alias}/`))
+          .map(([aliasName, fullModel]: [string, string]) => ({
             id: fullModel.replace(`${alias}/`, ""),
             name: aliasName,
             value: fullModel,
@@ -150,9 +150,9 @@ export default function ModelSelectModal({
         const matchedNode = providerNodes.find((node) => node.id === providerId);
         const displayName = matchedNode?.name || providerInfo.name;
 
-        const nodeModels = Object.entries(modelAliases)
-          .filter(([, fullModel]) => fullModel.startsWith(`${providerId}/`))
-          .map(([aliasName, fullModel]) => ({
+        const nodeModels = Object.entries(modelAliases as Record<string, string>)
+          .filter(([, fullModel]: [string, string]) => fullModel.startsWith(`${providerId}/`))
+          .map(([aliasName, fullModel]: [string, string]) => ({
             id: fullModel.replace(`${providerId}/`, ""),
             name: aliasName,
             value: fullModel,
@@ -227,9 +227,9 @@ export default function ModelSelectModal({
     if (!searchQuery.trim()) return groupedModels;
 
     const query = searchQuery.toLowerCase();
-    const filtered = {};
+    const filtered: Record<string, any> = {};
 
-    Object.entries(groupedModels).forEach(([providerId, group]) => {
+    Object.entries(groupedModels).forEach(([providerId, group]: [string, any]) => {
       const matchedModels = group.models.filter(
         (m) => m.name.toLowerCase().includes(query) || m.id.toLowerCase().includes(query)
       );
@@ -247,7 +247,7 @@ export default function ModelSelectModal({
     return filtered;
   }, [groupedModels, searchQuery]);
 
-  const handleSelect = (model) => {
+  const handleSelect = (model: any) => {
     onSelect(model);
     onClose();
     setSearchQuery("");
@@ -317,7 +317,7 @@ export default function ModelSelectModal({
         )}
 
         {/* Provider models */}
-        {Object.entries(filteredGroups).map(([providerId, group]) => (
+        {Object.entries(filteredGroups).map(([providerId, group]: [string, any]) => (
           <div key={providerId}>
             {/* Provider header */}
             <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 bg-surface py-0.5">
