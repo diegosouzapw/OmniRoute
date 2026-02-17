@@ -7,12 +7,12 @@ import assert from "node:assert/strict";
 // by its own manual verification.
 
 const { checkFallbackError, getProviderProfile } =
-  await import("../../open-sse/services/accountFallback.js");
+  await import("../../open-sse/services/accountFallback.ts");
 
 const { PROVIDER_PROFILES, DEFAULT_API_LIMITS, COOLDOWN_MS, RateLimitReason } =
-  await import("../../open-sse/config/constants.js");
+  await import("../../open-sse/config/constants.ts");
 
-const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.js");
+const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.ts");
 
 // ─── OAuth vs API Profile Differentiation ───────────────────────────────────
 

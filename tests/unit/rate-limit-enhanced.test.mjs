@@ -19,9 +19,9 @@ const {
   filterAvailableAccounts,
   resetAccountState,
   applyErrorState,
-} = await import("../../open-sse/services/accountFallback.js");
+} = await import("../../open-sse/services/accountFallback.ts");
 
-const { RateLimitReason, BACKOFF_STEPS_MS } = await import("../../open-sse/config/constants.js");
+const { RateLimitReason, BACKOFF_STEPS_MS } = await import("../../open-sse/config/constants.ts");
 
 // ─── parseRetryAfterFromBody Tests ──────────────────────────────────────────
 

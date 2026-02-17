@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const {
   selectAccountP2C,
   selectAccount,
-} = await import("../../open-sse/services/accountSelector.js");
+} = await import("../../open-sse/services/accountSelector.ts");
 
 // ─── selectAccountP2C ───────────────────────────────────────────────────────
 

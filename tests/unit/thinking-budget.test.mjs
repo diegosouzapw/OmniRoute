@@ -8,7 +8,7 @@ const {
   ThinkingMode,
   EFFORT_BUDGETS,
   DEFAULT_THINKING_CONFIG,
-} = await import("../../open-sse/services/thinkingBudget.js");
+} = await import("../../open-sse/services/thinkingBudget.ts");
 
 // ─── Config Management ──────────────────────────────────────────────────────
 

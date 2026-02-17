@@ -9,7 +9,7 @@ const {
   getActiveSessionCount,
   getActiveSessions,
   clearSessions,
-} = await import("../../open-sse/services/sessionManager.js");
+} = await import("../../open-sse/services/sessionManager.ts");
 
 // Reset between tests
 test.beforeEach(() => clearSessions());

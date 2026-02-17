@@ -22,6 +22,7 @@ const eslintConfig = [
       "scripts/**",
       "bin/**",
       "node_modules/**",
+      "open-sse/**",
     ],
   },
 ];

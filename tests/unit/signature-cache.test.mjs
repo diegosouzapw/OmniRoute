@@ -8,7 +8,7 @@ const {
   getModelFamily,
   getCacheStats,
   clearCache,
-} = await import("../../open-sse/services/signatureCache.js");
+} = await import("../../open-sse/services/signatureCache.ts");
 
 test.beforeEach(() => clearCache());
 

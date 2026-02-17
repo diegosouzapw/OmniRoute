@@ -1,15 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { FORMATS } from "../../open-sse/translator/formats.js";
-import { getModelInfoCore } from "../../open-sse/services/model.js";
-import { detectFormat } from "../../open-sse/services/provider.js";
-import { translateRequest } from "../../open-sse/translator/index.js";
-import { GithubExecutor } from "../../open-sse/executors/github.js";
-import { CodexExecutor } from "../../open-sse/executors/codex.js";
-import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.js";
-import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.js";
-import { parseSSEToResponsesOutput } from "../../open-sse/handlers/sseParser.js";
+import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { getModelInfoCore } from "../../open-sse/services/model.ts";
+import { detectFormat } from "../../open-sse/services/provider.ts";
+import { translateRequest } from "../../open-sse/translator/index.ts";
+import { GithubExecutor } from "../../open-sse/executors/github.ts";
+import { CodexExecutor } from "../../open-sse/executors/codex.ts";
+import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.ts";
+import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.ts";
+import { parseSSEToResponsesOutput } from "../../open-sse/handlers/sseParser.ts";
 
 test("getModelInfoCore resolves unique non-openai unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4-5-20251001", {});

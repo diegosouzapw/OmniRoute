@@ -5,7 +5,7 @@ const {
   compressContext,
   estimateTokens,
   getTokenLimit,
-} = await import("../../open-sse/services/contextManager.js");
+} = await import("../../open-sse/services/contextManager.ts");
 
 // ─── estimateTokens ─────────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ const {
   removeFromWhitelist,
   getIPFilterConfig,
   resetIPFilter,
-} = await import("../../open-sse/services/ipFilter.js");
+} = await import("../../open-sse/services/ipFilter.ts");
 
 test.beforeEach(() => resetIPFilter());
 
