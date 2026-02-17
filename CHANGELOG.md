@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.5] — 2026-02-17
 
+> ### 🔷 MILESTONE: 100% TypeScript Migration
+>
+> **OmniRoute is now fully TypeScript.** The entire `src/` directory (API routes, components, services, lib, domain layer) and all 94 files in `open-sse/` have been migrated from JavaScript/JSX to TypeScript/TSX — with zero `@ts-ignore` annotations and zero TypeScript errors. This is a complete rewrite of the type layer across 200+ files.
+
 ### Added
 
 - 🔒 **TLS fingerprint spoofing** — Implement browser-like TLS fingerprinting via `wreq-js` to bypass bot detection on providers that enforce TLS client fingerprint checks (`3dd0cc1`, PR #52)
