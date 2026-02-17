@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.5] — 2026-02-17
+
+### Added
+
+- 🔒 **TLS fingerprint spoofing** — Implement browser-like TLS fingerprinting via `wreq-js` to bypass bot detection on providers that enforce TLS client fingerprint checks (`3dd0cc1`, PR #52)
+- 💾 **SQLite proxy log persistence** — Proxy request/response logs now persist to SQLite database, surviving server restarts. Previously, logs were lost on restart (`f1664fe`, PR #53)
+- 📋 **Unified test logging** — Shared `Logger` + Proxy logging infrastructure for all provider connection test flows. Consistent log formatting across batch and individual tests (`bce302e`, PR #55)
+
+### Refactored
+
+- 🔷 **Full TypeScript migration — `src/`** — Migrated the entire `src/` directory from JavaScript to TypeScript. All `.js`/`.jsx` files converted to `.ts`/`.tsx` with proper type annotations across API routes, lib modules, components, services, stores, domain layer, and shared utilities (`d0ca595`)
+  - **Wave 1**: Shared component interfaces + EventTarget fixes (`dfdd2a2`)
+  - **Wave 2**: Utils & services typed fields, Zustand stores, logger, sync scheduler (`89dd107`, `b2907cd`)
+  - **Wave 3a**: Lib layer, DB, compliance, domain layer typed (`9e13fe2`)
+  - **Wave 3b**: Usage, CLI runtime, SSE auth/logger typed (`a291abd`)
+  - **Wave 3c**: OAuth services + server utils typed (`d62cf8d`)
+  - **Wave 4a**: 7 API routes — providers, cli-tools, oauth (`7cdb923`)
+  - **Wave 4b**: 7 more API routes — providers, test, usage, nodes (`5592c2e`)
+  - **Wave 4c**: 8 files — components, SSE handlers, services (`d8ce9dc`)
+  - **Dashboard hardening**: Resolve all TypeScript errors across dashboard pages (`7a463a3`, PR #61)
+- 🔷 **Full TypeScript migration — `open-sse/`** — Migrated all 94 `.js` files in the SSE routing engine to TypeScript (PR #62)
+  - **Phase 1**: Rename all 94 `.js` → `.ts` files (`256e443`)
+  - **Phase 6**: Reduce `@ts-ignore` from 231 → 186 with targeted fixes (`6a54b84`)
+  - **Phase 7**: Eliminate ALL `@ts-ignore` annotations (186 → 0) and ALL TypeScript errors (237 → 0) — zero `@ts-ignore`, zero errors (`7b37a3c`)
+  - Typing strategies: `Record<string, any>` for dynamic objects, optional function params, `as any` casts for custom Error/Array properties, `declare var EdgeRuntime` for edge compatibility, proper `fs`/`path` imports
+
+### Fixed
+
+- 🐛 **Qwen token refresh** — Detect `invalid_request` as unrecoverable error and switch broken test endpoints to `checkExpiry` method instead of failing silently (`1e0ffbc`, PR #60)
+- 🐛 **VPS batch test compatibility** — Eliminate HTTP self-calls in batch provider connection tests for VPS environments where localhost is unreachable (`a3bbbb5`, PR #54)
+- 🐛 **E2E test assertions** — Correct API endpoints and response format assertions in end-to-end tests (`92b5e66`)
+- 🐛 **CI coverage thresholds** — Lower coverage thresholds, use production server for E2E, block ESLint major upgrades from breaking CI (`3ca4b6b`, PR #51)
+
+### Changed
+
+- 📖 **Documentation update** — Updated all documentation to reflect JS → TS migration, corrected file extensions and import paths (`7ff8aa2`)
+- ⬆️ **CI/CD** — Bump `actions/checkout` v4 → v6, `actions/setup-node` v4 → v6, `peter-evans/dockerhub-description` v4 → v5
+
+### Dependencies
+
+- ⬆️ `undici` 7.21.0 → 7.22.0 (production)
+- ⬆️ `actions/checkout` 4 → 6
+- ⬆️ `actions/setup-node` 4 → 6
+- ⬆️ `peter-evans/dockerhub-description` 4 → 5
+- 🚫 `eslint` 10.0.0 blocked — major version incompatible with `eslint-config-next`
+
+---
+
 ## [0.8.0] — 2026-02-16
 
 ### Added
@@ -143,6 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.8.5]: https://github.com/diegosouzapw/OmniRoute/compare/v0.8.0...v0.8.5
 [0.8.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/diegosouzapw/OmniRoute/compare/v0.5.0...v0.6.0

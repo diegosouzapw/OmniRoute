@@ -5,7 +5,7 @@
   
   **Never stop coding. Auto-route to FREE & cheap AI models with smart fallback.**
   
-  **36+ Providers • Embeddings • Image Generation • Think Tag Parsing**
+  **36+ Providers • Embeddings • Image Generation • Audio • Reranking • Full TypeScript**
   
   **Free AI Provider for OpenClaw.**
   
@@ -158,31 +158,69 @@ docker compose --profile cli up -d
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `0.6.0`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `0.8.5`  | ~250MB | Current version       |
 
 ---
 
 ## 💡 Key Features
 
-| Feature                         | What It Does                                  |
-| ------------------------------- | --------------------------------------------- |
-| 🎯 **Smart 3-Tier Fallback**    | Auto-route: Subscription → Cheap → Free       |
-| 📊 **Real-Time Quota Tracking** | Live token count + reset countdown            |
-| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini seamless             |
-| 👥 **Multi-Account Support**    | Multiple accounts per provider                |
-| 🔄 **Auto Token Refresh**       | OAuth tokens refresh automatically            |
-| 🎨 **Custom Combos**            | Create unlimited model combinations           |
-| 🧩 **Custom Models**            | Add any model ID to any provider              |
-| 📝 **Request Logging**          | Debug mode with full request/response logs    |
-| 💾 **Cloud Sync**               | Sync config across devices                    |
-| 📊 **Usage Analytics**          | Track tokens, cost, trends over time          |
-| 🌐 **Deploy Anywhere**          | Localhost, VPS, Docker, Cloudflare Workers    |
-| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with cooldowns   |
-| 🛡️ **Anti-Thundering Herd**     | Mutex + auto rate-limit for API key providers |
-| 🧠 **Semantic Cache**           | Two-tier cache reduces cost & latency         |
-| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests        |
-| 📈 **Progress Tracking**        | Opt-in SSE progress events for streaming      |
-| 🧪 **LLM Evaluations**          | Golden set testing with 4 match strategies    |
+### 🧠 Core Routing & Intelligence
+
+| Feature                         | What It Does                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| 🎯 **Smart 4-Tier Fallback**    | Auto-route: Subscription → API Key → Cheap → Free                                 |
+| 📊 **Real-Time Quota Tracking** | Live token count + reset countdown per provider                                   |
+| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro seamless                                 |
+| 👥 **Multi-Account Support**    | Multiple accounts per provider with P2C selection                                 |
+| 🔄 **Auto Token Refresh**       | OAuth tokens refresh automatically with retry                                     |
+| 🎨 **Custom Combos**            | 6 strategies: priority, weighted, round-robin, random, least-used, cost-optimized |
+| 🧩 **Custom Models**            | Add any model ID to any provider                                                  |
+| 🌐 **Wildcard Router**          | Route `provider/*` patterns to any provider dynamically                           |
+| 🧠 **Thinking Budget**          | Passthrough, auto, custom, and adaptive modes for reasoning models                |
+| 💬 **System Prompt Injection**  | Global system prompt applied across all requests                                  |
+| 📄 **Responses API**            | Full OpenAI Responses API (`/v1/responses`) support for Codex                     |
+
+### 🎵 Multi-Modal APIs
+
+| Feature                    | What It Does                                        |
+| -------------------------- | --------------------------------------------------- |
+| 🖼️ **Image Generation**    | `/v1/images/generations` — 4 providers, 9+ models   |
+| 📐 **Embeddings**          | `/v1/embeddings` — 6 providers, 9+ models           |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — Whisper-compatible     |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — Multi-provider audio synthesis |
+| 🛡️ **Moderations**         | `/v1/moderations` — Content safety checks           |
+| 🔀 **Reranking**           | `/v1/rerank` — Document relevance reranking         |
+
+### 🛡️ Resilience & Security
+
+| Feature                         | What It Does                                                 |
+| ------------------------------- | ------------------------------------------------------------ |
+| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds    |
+| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers           |
+| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency |
+| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                       |
+| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                   |
+| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                   |
+| 📋 **Compliance Audit Log**     | Tamper-proof request logs with opt-out per API key           |
+
+### 📊 Observability & Analytics
+
+| Feature                  | What It Does                                           |
+| ------------------------ | ------------------------------------------------------ |
+| 📝 **Request Logging**   | Debug mode with full request/response logs             |
+| 💾 **SQLite Proxy Logs** | Persistent proxy logs survive server restarts          |
+| 📊 **Usage Analytics**   | Track tokens, cost, trends over time                   |
+| 📈 **Progress Tracking** | Opt-in SSE progress events for streaming               |
+| 🧪 **LLM Evaluations**   | Golden set testing with 4 match strategies             |
+| 🔍 **Request Telemetry** | p50/p95/p99 latency aggregation + X-Request-Id tracing |
+
+### ☁️ Deployment & Sync
+
+| Feature                   | What It Does                                      |
+| ------------------------- | ------------------------------------------------- |
+| 💾 **Cloud Sync**         | Sync config across devices via Cloudflare Workers |
+| 🌐 **Deploy Anywhere**    | Localhost, VPS, Docker, Cloudflare Workers        |
+| 🔑 **API Key Management** | Generate, rotate, and scope API keys per provider |
 
 ---
 
@@ -254,17 +292,17 @@ registerSuite({
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.9 (src/) + JavaScript (open-sse/)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v0.8.5)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: LowDB (JSON) + SQLite (domain state)
+- **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
 - **Streaming**: Server-Sent Events (SSE)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
 - **Testing**: Node.js test runner (368+ unit tests)
-- **CI/CD**: GitHub Actions (auto npm publish on release)
+- **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
 - **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
-- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd
+- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing
 
 ---
 
@@ -309,7 +347,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v0.8.0 --title "v0.8.0" --generate-notes
+gh release create v0.8.5 --title "v0.8.5" --generate-notes
 ```
 
 ---
