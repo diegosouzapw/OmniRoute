@@ -158,52 +158,54 @@ export default function OAuthModal({
         return;
       }
 
-      // Codex: use callback server on port 1455 + polling (auto-complete)
+      // Codex: on localhost use callback server on port 1455,
+      // on remote use standard auth code flow (callback server is unreachable)
       if (provider === "codex") {
-        try {
-          // Start callback server on port 1455
-          const serverRes = await fetch(`/api/oauth/codex/start-callback-server`);
-          const serverData = await serverRes.json();
-          if (!serverRes.ok) throw new Error(serverData.error);
+        if (isLocalhost) {
+          // Localhost: use callback server on port 1455 + polling
+          try {
+            const serverRes = await fetch(`/api/oauth/codex/start-callback-server`);
+            const serverData = await serverRes.json();
+            if (!serverRes.ok) throw new Error(serverData.error);
 
-          setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
-          setStep("waiting");
-          window.open(serverData.authUrl, "oauth_auth");
+            setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
+            setStep("waiting");
+            window.open(serverData.authUrl, "oauth_auth");
 
-          // Poll for callback (like device code flow)
-          setPolling(true);
-          const maxAttempts = 150; // 5 min at 2s interval
-          for (let i = 0; i < maxAttempts; i++) {
-            await new Promise((r) => setTimeout(r, 2000));
+            setPolling(true);
+            const maxAttempts = 150;
+            for (let i = 0; i < maxAttempts; i++) {
+              await new Promise((r) => setTimeout(r, 2000));
 
-            const pollRes = await fetch(`/api/oauth/codex/poll-callback`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({}),
-            });
-            const pollData = await pollRes.json();
+              const pollRes = await fetch(`/api/oauth/codex/poll-callback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
+              });
+              const pollData = await pollRes.json();
 
-            if (pollData.success) {
-              setStep("success");
-              setPolling(false);
-              onSuccess?.();
-              return;
+              if (pollData.success) {
+                setStep("success");
+                setPolling(false);
+                onSuccess?.();
+                return;
+              }
+
+              if (pollData.error && !pollData.pending) {
+                throw new Error(pollData.errorDescription || pollData.error);
+              }
             }
 
-            if (pollData.error && !pollData.pending) {
-              throw new Error(pollData.errorDescription || pollData.error);
-            }
+            setPolling(false);
+            throw new Error("Authorization timeout");
+          } catch (codexErr) {
+            setPolling(false);
+            setStep("input");
+            setError(codexErr.message + " — You can paste the callback URL manually below.");
           }
-
-          setPolling(false);
-          throw new Error("Authorization timeout");
-        } catch (codexErr) {
-          setPolling(false);
-          // Fallback to manual input mode
-          setStep("input");
-          setError(codexErr.message + " — You can paste the callback URL manually below.");
+          return;
         }
-        return;
+        // Remote: fall through to standard auth code flow below
       }
 
       // Authorization code flow (non-Codex providers)
