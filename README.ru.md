@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./images/omniroute.png" alt="OmniRoute Dashboard" width="800"/>
+  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
   
   # 🚀 OmniRoute — Бесплатный AI Gateway
 
