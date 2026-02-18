@@ -208,11 +208,11 @@ export default function OAuthModal({
         // Remote: fall through to standard auth code flow below
       }
 
-      // Authorization code flow (non-Codex providers)
-      // Use actual origin for remote deployments, localhost for local dev
-      const redirectUri = isLocalhost
-        ? `http://localhost:${window.location.port || "80"}/callback`
-        : `${window.location.origin}/callback`;
+      // Authorization code flow
+      // Always use localhost redirect_uri — this is what providers have registered.
+      // On remote, the browser redirects to localhost (error page), user copies URL and pastes back.
+      const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+      const redirectUri = `http://localhost:${port}/callback`;
 
       const res = await fetch(
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
@@ -443,6 +443,15 @@ export default function OAuthModal({
         {step === "input" && !isDeviceCode && (
           <>
             <div className="space-y-4">
+              {!isLocalhost && (
+                <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
+                  <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
+                  <strong>Remote access:</strong> Since you&apos;re accessing OmniRoute remotely,
+                  after authorizing you&apos;ll see an error page (localhost not found). That&apos;s
+                  expected — just copy the full URL from your browser&apos;s address bar and paste
+                  it below.
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium mb-2">Step 1: Open this URL in your browser</p>
                 <div className="flex gap-2">
