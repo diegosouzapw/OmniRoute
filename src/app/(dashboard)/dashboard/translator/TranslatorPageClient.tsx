@@ -14,6 +14,17 @@ const MODES = [
   { value: "live-monitor", label: "Live Monitor", icon: "monitoring" },
 ];
 
+const MODE_DESCRIPTIONS: Record<string, string> = {
+  playground:
+    "Paste any API request body and see how OmniRoute translates it between provider formats (OpenAI ↔ Claude ↔ Gemini ↔ Responses API)",
+  "chat-tester":
+    "Send real chat requests through OmniRoute and see the full round-trip: your input, the translated request, the provider response, and the translated output",
+  "test-bench":
+    "Define multiple test cases with different inputs and expected outputs, run them all at once, and compare results across providers and models",
+  "live-monitor":
+    "Watch incoming requests in real-time as they flow through OmniRoute — see format translations happening live and identify issues instantly",
+};
+
 export default function TranslatorPageClient() {
   const [mode, setMode] = useState("playground");
 
@@ -27,7 +38,8 @@ export default function TranslatorPageClient() {
             Translator Playground
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Debug, test, and visualize how OmniRoute translates API requests between providers
+            {MODE_DESCRIPTIONS[mode] ||
+              "Debug, test, and visualize how OmniRoute translates API requests between providers"}
           </p>
         </div>
         <SegmentedControl options={MODES} value={mode} onChange={setMode} size="md" />

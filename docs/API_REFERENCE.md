@@ -227,6 +227,17 @@ Response example:
 | `/api/monitoring/health` | GET        | Health check            |
 | `/api/cache`             | GET/DELETE | Cache stats / clear     |
 
+### Backup & Export/Import
+
+| Endpoint                    | Method | Description                             |
+| --------------------------- | ------ | --------------------------------------- |
+| `/api/db-backups`           | GET    | List available backups                  |
+| `/api/db-backups`           | PUT    | Create a manual backup                  |
+| `/api/db-backups`           | POST   | Restore from a specific backup          |
+| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
+| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
+| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+
 ### Cloud Sync
 
 | Endpoint               | Method  | Description           |

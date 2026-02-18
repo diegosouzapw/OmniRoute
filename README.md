@@ -396,7 +396,7 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | 🔑 **API Key Management**  | Generate, rotate, and scope API keys per provider                     |
 | 🧙 **Onboarding Wizard**   | 4-step guided setup for first-time users                              |
 | 🔧 **CLI Tools Dashboard** | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
-| 🔄 **DB Backups**          | Automatic backup and restore for all settings                         |
+| 🔄 **DB Backups**          | Automatic backup, restore, export & import for all settings           |
 
 <details>
 <summary><b>📖 Feature Details</b></summary>
@@ -459,9 +459,16 @@ Seamless translation between formats:
 
 ### 🔧 Translator Playground
 
-- Debug, test, and visualize API format translations
-- Send requests and see how OmniRoute translates between provider formats
-- Invaluable for troubleshooting integration issues
+OmniRoute includes a powerful built-in Translator Playground with **4 modes** for debugging, testing, and monitoring API translations:
+
+| Mode                | Description                                                                                                                                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **💻 Playground**   | Direct format translation — paste any API request body and instantly see how OmniRoute translates it between provider formats (OpenAI ↔ Claude ↔ Gemini ↔ Responses API). Includes example templates and format auto-detection. |
+| **💬 Chat Tester**  | Send real chat requests through OmniRoute and see the full round-trip: your input, the translated request, the provider response, and the translated response back. Invaluable for validating combo routing.                    |
+| **🧪 Test Bench**   | Batch testing mode — define multiple test cases with different inputs and expected outputs, run them all at once, and compare results across providers and models.                                                              |
+| **📱 Live Monitor** | Real-time request monitoring — watch incoming requests as they flow through OmniRoute, see format translations happening live, and identify issues instantly.                                                                   |
+
+**Access:** Dashboard → Translator (sidebar)
 
 ### 💾 Cloud Sync
 
@@ -918,15 +925,61 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 
 ## 📖 Documentation
 
-| Document                                   | Description                                    |
-| ------------------------------------------ | ---------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)           | Providers, combos, CLI integration, deployment |
-| [API Reference](docs/API_REFERENCE.md)     | All endpoints with examples                    |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common problems and solutions                  |
-| [Architecture](docs/ARCHITECTURE.md)       | System architecture and internals              |
-| [Contributing](CONTRIBUTING.md)            | Development setup and guidelines               |
-| [OpenAPI Spec](docs/openapi.yaml)          | OpenAPI 3.0 specification                      |
-| [Security Policy](SECURITY.md)             | Vulnerability reporting and security practices |
+| Document                                     | Description                                    |
+| -------------------------------------------- | ---------------------------------------------- |
+| [User Guide](docs/USER_GUIDE.md)             | Providers, combos, CLI integration, deployment |
+| [API Reference](docs/API_REFERENCE.md)       | All endpoints with examples                    |
+| [Troubleshooting](docs/TROUBLESHOOTING.md)   | Common problems and solutions                  |
+| [Architecture](docs/ARCHITECTURE.md)         | System architecture and internals              |
+| [Contributing](CONTRIBUTING.md)              | Development setup and guidelines               |
+| [OpenAPI Spec](docs/openapi.yaml)            | OpenAPI 3.0 specification                      |
+| [Security Policy](SECURITY.md)               | Vulnerability reporting and security practices |
+| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md) | Complete guide: VM + nginx + Cloudflare setup  |
+| [Features Gallery](docs/FEATURES.md)         | Visual dashboard tour with screenshots         |
+
+### 📸 Dashboard Preview
+
+<details>
+<summary><b>Click to see dashboard screenshots</b></summary>
+
+| Page           | Screenshot                                        |
+| -------------- | ------------------------------------------------- |
+| **Providers**  | ![Providers](docs/screenshots/01-providers.png)   |
+| **Combos**     | ![Combos](docs/screenshots/02-combos.png)         |
+| **Analytics**  | ![Analytics](docs/screenshots/03-analytics.png)   |
+| **Health**     | ![Health](docs/screenshots/04-health.png)         |
+| **Translator** | ![Translator](docs/screenshots/05-translator.png) |
+| **Settings**   | ![Settings](docs/screenshots/06-settings.png)     |
+| **CLI Tools**  | ![CLI Tools](docs/screenshots/07-cli-tools.png)   |
+| **Usage Logs** | ![Usage](docs/screenshots/08-usage.png)           |
+| **Endpoint**   | ![Endpoint](docs/screenshots/09-endpoint.png)     |
+
+</details>
+
+---
+
+## 🗺️ Roadmap
+
+OmniRoute has **210+ features planned** across multiple development phases. Here are the key areas:
+
+| Category                      | Planned Features | Highlights                                                                             |
+| ----------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, P2C account selection      |
+| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping   |
+| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, cost tracking per model         |
+| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing |
+| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API         |
+| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode            |
+
+### 🔜 Coming Soon
+
+- 🔗 **OpenCode Integration** — Native provider support for the OpenCode AI coding IDE
+- 🔗 **TRAE Integration** — Full support for the TRAE AI development framework
+- 📦 **Batch API** — Asynchronous batch processing for bulk requests
+- 🎯 **Tag-Based Routing** — Route requests based on custom tags and metadata
+- 💰 **Lowest-Cost Strategy** — Automatically select the cheapest available provider
+
+> 📝 Full feature specifications available in [`docs/new-features/`](docs/new-features/) (217 detailed specs)
 
 ---
 

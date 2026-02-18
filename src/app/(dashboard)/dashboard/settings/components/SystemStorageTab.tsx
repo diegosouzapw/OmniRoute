@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Button, Badge } from "@/shared/components";
 
 export default function SystemStorageTab() {
@@ -12,6 +12,12 @@ export default function SystemStorageTab() {
   const [confirmRestoreId, setConfirmRestoreId] = useState(null);
   const [manualBackupLoading, setManualBackupLoading] = useState(false);
   const [manualBackupStatus, setManualBackupStatus] = useState({ type: "", message: "" });
+  const [exportLoading, setExportLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importStatus, setImportStatus] = useState({ type: "", message: "" });
+  const [confirmImport, setConfirmImport] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [storageHealth, setStorageHealth] = useState({
     driver: "sqlite",
     dbPath: "~/.omniroute/storage.sqlite",
@@ -103,6 +109,91 @@ export default function SystemStorageTab() {
     loadStorageHealth();
   }, []);
 
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const res = await fetch("/api/db-backups/export");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Export failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="(.+)"/);
+      const filename = filenameMatch
+        ? filenameMatch[1]
+        : `omniroute-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.sqlite`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      setImportStatus({ type: "error", message: `Export failed: ${(err as Error).message}` });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".sqlite")) {
+      setImportStatus({
+        type: "error",
+        message: "Invalid file type. Only .sqlite files are accepted.",
+      });
+      return;
+    }
+    setPendingImportFile(file);
+    setConfirmImport(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleImportConfirm = async () => {
+    if (!pendingImportFile) return;
+    setImportLoading(true);
+    setImportStatus({ type: "", message: "" });
+    setConfirmImport(false);
+    try {
+      const formData = new FormData();
+      formData.append("file", pendingImportFile);
+      const res = await fetch("/api/db-backups/import", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setImportStatus({
+          type: "success",
+          message: `Database imported! ${data.connectionCount} connections, ${data.nodeCount} nodes, ${data.comboCount} combos, ${data.apiKeyCount} API keys.`,
+        });
+        await loadStorageHealth();
+        if (backupsExpanded) await loadBackups();
+      } else {
+        setImportStatus({ type: "error", message: data.error || "Import failed" });
+      }
+    } catch {
+      setImportStatus({ type: "error", message: "An error occurred during import" });
+    } finally {
+      setImportLoading(false);
+      setPendingImportFile(null);
+    }
+  };
+
+  const handleImportCancel = () => {
+    setConfirmImport(false);
+    setPendingImportFile(null);
+  };
+
   const formatBytes = (bytes) => {
     if (!bytes || bytes === 0) return "0 B";
     if (bytes < 1024) return `${bytes} B`;
@@ -155,7 +246,118 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
-      {/* Last backup + Backup Now */}
+      {/* Export / Import */}
+      <div className="flex items-center gap-2 mb-4">
+        <Button variant="outline" size="sm" onClick={handleExport} loading={exportLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            download
+          </span>
+          Export Database
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={async () => {
+            setExportLoading(true);
+            try {
+              const res = await fetch("/api/db-backups/exportAll");
+              if (!res.ok) throw new Error("Export failed");
+              const blob = await res.blob();
+              const cd = res.headers.get("Content-Disposition") || "";
+              const filenameMatch = cd.match(/filename="?([^"]+)"?/);
+              const filename = filenameMatch?.[1] || `omniroute-full-backup.tar.gz`;
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } catch (err) {
+              setImportStatus({
+                type: "error",
+                message: `Full export failed: ${(err as Error).message}`,
+              });
+            } finally {
+              setExportLoading(false);
+            }
+          }}
+          loading={exportLoading}
+        >
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            folder_zip
+          </span>
+          Export All (.tar.gz)
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleImportClick} loading={importLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            upload
+          </span>
+          Import Database
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".sqlite"
+          className="hidden"
+          onChange={handleFileSelected}
+        />
+      </div>
+
+      {/* Import confirmation dialog */}
+      {confirmImport && pendingImportFile && (
+        <div className="p-4 rounded-lg mb-4 bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-start gap-3">
+            <span
+              className="material-symbols-outlined text-[20px] text-amber-500 mt-0.5"
+              aria-hidden="true"
+            >
+              warning
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-500 mb-1">Confirm Database Import</p>
+              <p className="text-xs text-text-muted mb-2">
+                This will replace <strong>all current data</strong> with the content from{" "}
+                <span className="font-mono">{pendingImportFile.name}</span>. A backup will be
+                created automatically before the import.
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleImportConfirm}
+                  className="!bg-amber-500 hover:!bg-amber-600"
+                >
+                  Yes, Import
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleImportCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import status */}
+      {importStatus.message && (
+        <div
+          className={`p-3 rounded-lg mb-4 text-sm ${
+            importStatus.type === "success"
+              ? "bg-green-500/10 text-green-500 border border-green-500/20"
+              : "bg-red-500/10 text-red-500 border border-red-500/20"
+          }`}
+          role="alert"
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+              {importStatus.type === "success" ? "check_circle" : "error"}
+            </span>
+            {importStatus.message}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-amber-500" aria-hidden="true">
