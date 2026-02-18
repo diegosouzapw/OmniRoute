@@ -20,9 +20,9 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 | Version | Support Status |
 | ------- | -------------- |
-| 0.8.x   | ✅ Active      |
-| 0.7.x   | ✅ Security    |
-| < 0.7.0 | ❌ Unsupported |
+| 1.0.x   | ✅ Active      |
+| 0.8.x   | ✅ Security    |
+| < 0.8.0 | ❌ Unsupported |
 
 ---
 

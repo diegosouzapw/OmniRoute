@@ -9,6 +9,21 @@
   --color-primary: #e54d5e;
   --color-primary-hover: #c93d4e;
 
+  /* Accent - Indigo/Violet (buttons, links, gradients) */
+  --color-accent: #6366f1;
+  --color-accent-hover: #8b5cf6;
+  --color-accent-light: #a855f7;
+
+  /* Semantic */
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  /* Traffic lights */
+  --color-traffic-red: #ff5f56;
+  --color-traffic-yellow: #ffbd2e;
+  --color-traffic-green: #27c93f;
+
   /* Light theme */
   --color-bg: #f9f9fb;
   --color-bg-alt: #f0f0f5;
@@ -44,6 +59,16 @@
   /* Primary */
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+
+  /* Accent */
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-light: var(--color-accent-light);
+
+  /* Semantic */
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
 
   /* Auto-switch colors (use CSS variables from :root/.dark) */
   --color-bg: var(--color-bg);
@@ -259,13 +284,13 @@ button .material-symbols-outlined,
 }
 
 .traffic-light.red {
-  background: #ff5f56;
+  background: var(--color-traffic-red);
 }
 
 .traffic-light.yellow {
-  background: #ffbd2e;
+  background: var(--color-traffic-yellow);
 }
 
 .traffic-light.green {
-  background: #27c93f;
+  background: var(--color-traffic-green);
 }

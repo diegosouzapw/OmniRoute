@@ -161,6 +161,90 @@ export function cleanExpiredEntries() {
 }
 
 /**
+ * Invalidate cache entries by model name.
+ * Useful when a model is updated/changed and cached responses are stale.
+ * @param {string} model - Model name to invalidate (exact match)
+ * @returns {number} Number of entries removed
+ */
+export function invalidateByModel(model: string): number {
+  getMemoryCache().clear(); // Memory cache doesn't track model; full clear
+  try {
+    const db = getDbInstance();
+    const result = db
+      .prepare("DELETE FROM semantic_cache WHERE model = ?")
+      .run(model);
+    return result.changes || 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Invalidate a single cache entry by its signature.
+ * @param {string} signature - Cache signature to invalidate
+ * @returns {boolean} Whether the entry was found and removed
+ */
+export function invalidateBySignature(signature: string): boolean {
+  getMemoryCache().delete(signature);
+  try {
+    const db = getDbInstance();
+    const result = db
+      .prepare("DELETE FROM semantic_cache WHERE signature = ?")
+      .run(signature);
+    return (result.changes || 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Invalidate entries older than a given age.
+ * @param {number} maxAgeMs - Maximum age in milliseconds
+ * @returns {number} Number of entries removed
+ */
+export function invalidateStale(maxAgeMs: number): number {
+  getMemoryCache().clear();
+  try {
+    const db = getDbInstance();
+    const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+    const result = db
+      .prepare("DELETE FROM semantic_cache WHERE created_at < ?")
+      .run(cutoff);
+    return result.changes || 0;
+  } catch {
+    return 0;
+  }
+}
+
+// ── Auto-cleanup timer ──
+
+let _cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Start periodic auto-cleanup of expired entries.
+ * @param {number} intervalMs - Cleanup interval (default: 5 minutes)
+ */
+export function startAutoCleanup(intervalMs = 300_000): void {
+  stopAutoCleanup();
+  _cleanupTimer = setInterval(() => {
+    const removed = cleanExpiredEntries();
+    if (removed > 0) {
+      console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
+    }
+  }, intervalMs);
+}
+
+/**
+ * Stop periodic auto-cleanup.
+ */
+export function stopAutoCleanup(): void {
+  if (_cleanupTimer) {
+    clearInterval(_cleanupTimer);
+    _cleanupTimer = null;
+  }
+}
+
+/**
  * Clear all cache entries.
  */
 export function clearCache() {
