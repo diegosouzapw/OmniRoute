@@ -71,6 +71,9 @@ docs/*
 !docs/planning/
 !docs/improvement-plans/
 !docs/api/
+!docs/VM_DEPLOYMENT_GUIDE.md
+!docs/FEATURES.md
+!docs/screenshots/
 
 # open-sse tests
 open-sse/test/*

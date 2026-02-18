@@ -572,6 +572,38 @@ OmniRoute implements provider-level resilience with four components:
 
 ---
 
+### Database Export / Import
+
+Manage database backups in **Dashboard → Settings → System & Storage**.
+
+| Action                   | Description                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created                          |
+
+```bash
+# API: Export database
+curl -o backup.sqlite http://localhost:20128/api/db-backups/export
+
+# API: Export all (full archive)
+curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
+
+# API: Import database
+curl -X POST http://localhost:20128/api/db-backups/import \
+  -F "file=@backup.sqlite"
+```
+
+**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
+
+**Use Cases:**
+
+- Migrate OmniRoute between machines
+- Create external backups for disaster recovery
+- Share configurations between team members (export all → share archive)
+
+---
+
 ### Settings Dashboard
 
 The settings page is organized into 5 tabs for easy navigation:

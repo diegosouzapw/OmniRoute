@@ -389,14 +389,14 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### ☁️ Deploy e Sincronização
 
-| Funcionalidade                    | O que Faz                                                                        |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| 💾 **Cloud Sync**                 | Sincronize configurações entre dispositivos via Cloudflare Workers               |
-| 🌐 **Deploy em Qualquer Lugar**   | Localhost, VPS, Docker, Cloudflare Workers                                       |
-| 🔑 **Gestão de API Keys**         | Gere, rotacione e defina escopo de API keys por provedor                         |
-| 🧙 **Assistente de Configuração** | Setup guiado em 4 etapas para novos usuários                                     |
-| 🔧 **Dashboard CLI Tools**        | Configuração em um clique para Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
-| 🔄 **Backups de DB**              | Backup e restauração automáticos de todas as configurações                       |
+| Funcionalidade                    | O que Faz                                                                         |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| 💾 **Cloud Sync**                 | Sincronize configurações entre dispositivos via Cloudflare Workers                |
+| 🌐 **Deploy em Qualquer Lugar**   | Localhost, VPS, Docker, Cloudflare Workers                                        |
+| 🔑 **Gestão de API Keys**         | Gere, rotacione e defina escopo de API keys por provedor                          |
+| 🧙 **Assistente de Configuração** | Setup guiado em 4 etapas para novos usuários                                      |
+| 🔧 **Dashboard CLI Tools**        | Configuração em um clique para Claude, Codex, Cline, OpenClaw, Kilo, Antigravity  |
+| 🔄 **Backups de DB**              | Backup, restauração, exportação e importação automática de todas as configurações |
 
 <details>
 <summary><b>📖 Detalhes das Funcionalidades</b></summary>
@@ -459,9 +459,16 @@ Tradução transparente entre formatos:
 
 ### 🔧 Playground do Tradutor
 
-- Debug, teste e visualize traduções de formato de API
-- Envie requisições e veja como o OmniRoute traduz entre formatos de provedores
-- Inestimável para troubleshooting de problemas de integração
+O OmniRoute inclui um poderoso Playground de Tradução integrado com **4 modos** para debug, teste e monitoramento de traduções de API:
+
+| Modo                | Descrição                                                                                                                                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **💻 Playground**   | Tradução direta entre formatos — cole qualquer corpo de requisição e veja instantaneamente como o OmniRoute traduz entre formatos (OpenAI ↔ Claude ↔ Gemini ↔ Responses API). Inclui templates de exemplo e auto-detecção de formato. |
+| **💬 Chat Tester**  | Envie requisições reais pelo OmniRoute e veja a viagem completa: sua entrada, a requisição traduzida, a resposta do provedor, e a resposta traduzida de volta. Inestimável para validar roteamento de combos.                         |
+| **🧪 Test Bench**   | Modo de teste em lote — defina múltiplos casos de teste com diferentes entradas e saídas esperadas, execute todos de uma vez, e compare resultados entre provedores e modelos.                                                        |
+| **📱 Live Monitor** | Monitoramento de requisições em tempo real — acompanhe requisições entrando conforme fluem pelo OmniRoute, veja traduções de formato acontecendo ao vivo, e identifique problemas instantaneamente.                                   |
+
+**Acesso:** Dashboard → Translator (barra lateral)
 
 ### 💾 Cloud Sync
 
@@ -927,6 +934,52 @@ O "OmniRoute Golden Set" pré-carregado contém 10 casos de teste cobrindo:
 | [Contribuindo](CONTRIBUTING.md)                 | Setup de desenvolvimento e diretrizes             |
 | [Spec OpenAPI](docs/openapi.yaml)               | Especificação OpenAPI 3.0                         |
 | [Política de Segurança](SECURITY.md)            | Reportar vulnerabilidades e práticas de segurança |
+| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Guia completo: VM + nginx + Cloudflare            |
+| [Galeria de Features](docs/FEATURES.md)         | Tour visual do dashboard com screenshots          |
+
+### 📸 Preview do Dashboard
+
+<details>
+<summary><b>Clique para ver screenshots do dashboard</b></summary>
+
+| Página            | Screenshot                                        |
+| ----------------- | ------------------------------------------------- |
+| **Provedores**    | ![Providers](docs/screenshots/01-providers.png)   |
+| **Combos**        | ![Combos](docs/screenshots/02-combos.png)         |
+| **Analytics**     | ![Analytics](docs/screenshots/03-analytics.png)   |
+| **Saúde**         | ![Health](docs/screenshots/04-health.png)         |
+| **Tradutor**      | ![Translator](docs/screenshots/05-translator.png) |
+| **Configurações** | ![Settings](docs/screenshots/06-settings.png)     |
+| **CLI Tools**     | ![CLI Tools](docs/screenshots/07-cli-tools.png)   |
+| **Logs de Uso**   | ![Usage](docs/screenshots/08-usage.png)           |
+| **Endpoint**      | ![Endpoint](docs/screenshots/09-endpoint.png)     |
+
+</details>
+
+---
+
+## 🗺️ Roadmap
+
+O OmniRoute tem **210+ funcionalidades planejadas** em múltiplas fases de desenvolvimento. Áreas principais:
+
+| Categoria                        | Features Planejadas | Destaques                                                                   |
+| -------------------------------- | ------------------- | --------------------------------------------------------------------------- |
+| 🧠 **Roteamento e Inteligência** | 25+                 | Roteamento por menor latência, roteamento por tags, pré-verificação de cota |
+| 🔒 **Segurança e Compliance**    | 20+                 | Hardening SSRF, cloaking de credenciais, rate-limit por endpoint            |
+| 📊 **Observabilidade**           | 15+                 | Integração OpenTelemetry, monitoramento de cota em tempo real               |
+| 🔄 **Integrações**               | 20+                 | Registro dinâmico de modelos, cooldowns de provedor                         |
+| ⚡ **Performance**               | 15+                 | Cache dupla camada, prompt cache, response cache, batch API                 |
+| 🌐 **Ecossistema**               | 10+                 | WebSocket API, config hot-reload, modo comercial                            |
+
+### 🔜 Em Breve
+
+- 🔗 **Integração com OpenCode** — Suporte nativo como provider para a IDE OpenCode
+- 🔗 **Integração com TRAE** — Suporte completo ao framework de desenvolvimento TRAE
+- 📦 **Batch API** — Processamento assíncrono em lote para requisições em massa
+- 🎯 **Roteamento por Tags** — Roteamento de requisições baseado em tags personalizadas
+- 💰 **Estratégia de Menor Custo** — Seleção automática do provedor mais barato
+
+> 📝 Especificações completas de features disponíveis em [`docs/new-features/`](docs/new-features/) (217 specs detalhadas)
 
 ---
 
