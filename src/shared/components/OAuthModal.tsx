@@ -211,8 +211,15 @@ export default function OAuthModal({
       // Authorization code flow
       // Always use localhost redirect_uri — this is what providers have registered.
       // On remote, the browser redirects to localhost (error page), user copies URL and pastes back.
-      const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
-      const redirectUri = `http://localhost:${port}/callback`;
+      // Codex (OpenAI) requires exactly http://localhost:1455/auth/callback — the registered URI.
+      // Other providers (Antigravity/Gemini via Google OAuth) accept any localhost port.
+      let redirectUri: string;
+      if (provider === "codex" || provider === "openai") {
+        redirectUri = "http://localhost:1455/auth/callback";
+      } else {
+        const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+        redirectUri = `http://localhost:${port}/callback`;
+      }
 
       const res = await fetch(
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
