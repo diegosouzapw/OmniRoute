@@ -199,6 +199,24 @@ function openaiToGeminiBase(model, body, stream) {
     }
   }
 
+  // Convert response_format to Gemini's responseMimeType/responseSchema
+  if (body.response_format) {
+    if (body.response_format.type === "json_schema" && body.response_format.json_schema) {
+      result.generationConfig.responseMimeType = "application/json";
+      // Extract the schema (may be nested under .schema key)
+      const schema = body.response_format.json_schema.schema || body.response_format.json_schema;
+      if (schema && typeof schema === "object") {
+        // Remove unsupported keywords for Gemini (it uses a subset of JSON Schema)
+        const { $schema, additionalProperties, ...cleanSchema } = schema;
+        result.generationConfig.responseSchema = cleanSchema;
+      }
+    } else if (body.response_format.type === "json_object") {
+      result.generationConfig.responseMimeType = "application/json";
+    } else if (body.response_format.type === "text") {
+      result.generationConfig.responseMimeType = "text/plain";
+    }
+  }
+
   return result;
 }
 

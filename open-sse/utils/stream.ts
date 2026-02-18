@@ -12,6 +12,10 @@ import {
 } from "./usageTracking.ts";
 import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
 import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
+import {
+  sanitizeStreamingChunk,
+  extractThinkingFromContent,
+} from "../handlers/responseSanitizer.ts";
 
 export { COLORS, formatSSE };
 
@@ -130,7 +134,10 @@ export function createSSEStream(options: any = {}) {
 
             if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
               try {
-                const parsed = JSON.parse(trimmed.slice(5).trim());
+                let parsed = JSON.parse(trimmed.slice(5).trim());
+
+                // Sanitize: strip non-standard fields for OpenAI SDK compatibility
+                parsed = sanitizeStreamingChunk(parsed);
 
                 const idFixed = fixInvalidId(parsed);
 
@@ -139,6 +146,16 @@ export function createSSEStream(options: any = {}) {
                 }
 
                 const delta = parsed.choices?.[0]?.delta;
+
+                // Extract <think> tags from streaming content
+                if (delta?.content && typeof delta.content === "string") {
+                  const { content, thinking } = extractThinkingFromContent(delta.content);
+                  delta.content = content;
+                  if (thinking && !delta.reasoning_content) {
+                    delta.reasoning_content = thinking;
+                  }
+                }
+
                 const content = delta?.content || delta?.reasoning_content;
                 if (content && typeof content === "string") {
                   totalContentLength += content.length;

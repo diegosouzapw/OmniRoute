@@ -340,7 +340,7 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | ------------------------------- | ------------------------------------------------------------------------------ |
 | 🎯 **Smart 4-Tier Fallback**    | Auto-route: Subscription → API Key → Cheap → Free                              |
 | 📊 **Real-Time Quota Tracking** | Live token count + reset countdown per provider                                |
-| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro seamless                              |
+| 🔄 **Format Translation**       | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro seamless + response sanitization      |
 | 👥 **Multi-Account Support**    | Multiple accounts per provider with intelligent selection                      |
 | 🔄 **Auto Token Refresh**       | OAuth tokens refresh automatically with retry                                  |
 | 🎨 **Custom Combos**            | 6 strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized |
@@ -429,6 +429,10 @@ Seamless translation between formats:
 - **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **OpenAI Responses**
 - Your CLI tool sends OpenAI format → OmniRoute translates → Provider receives native format
 - Works with any tool that supports custom OpenAI endpoints
+- **Response sanitization** — Strips non-standard fields for strict OpenAI SDK compatibility
+- **Role normalization** — `developer` → `system` for non-OpenAI; `system` → `user` for GLM/ERNIE models
+- **Think tag extraction** — `<think>` blocks → `reasoning_content` for thinking models
+- **Structured output** — `json_schema` → Gemini's `responseMimeType`/`responseSchema`
 
 ### 👥 Multi-Account Support
 

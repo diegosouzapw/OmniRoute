@@ -1,6 +1,6 @@
 # OmniRoute Architecture
 
-_Last updated: 2026-02-17_
+_Last updated: 2026-02-18_
 
 ## Executive Summary
 
@@ -17,6 +17,9 @@ Core capabilities:
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (4 providers, 9 models)
 - Think tag parsing (`<think>...</think>`) for reasoning models
+- Response sanitization for strict OpenAI SDK compatibility
+- Role normalization (developer→system, system→user) for cross-provider compatibility
+- Structured output conversion (json_schema → Gemini responseSchema)
 - Local persistence for providers, keys, aliases, combos, settings, pricing
 - Usage/cost tracking and request logging
 - Optional cloud sync for multi-device/state sync
@@ -180,6 +183,8 @@ Main flow modules:
 - Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
 - Image generation handler: `open-sse/handlers/imageGeneration.ts`
 - Image provider registry: `open-sse/config/imageRegistry.ts`
+- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
+- Role normalization: `open-sse/services/roleNormalizer.ts`
 
 Services (business logic):
 
@@ -646,6 +651,13 @@ Source Format → OpenAI (hub) → Target Format
 ```
 
 Translations are selected dynamically based on source payload shape and provider target format.
+
+Additional processing layers in the translation pipeline:
+
+- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
+- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
+- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
+- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
 
 ## Supported API Endpoints
 

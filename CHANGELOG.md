@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] — 2026-02-18
+
+> ### 🔧 API Compatibility & SDK Hardening
+>
+> Response sanitization, role normalization, and structured output improvements for strict OpenAI SDK compatibility and cross-provider robustness.
+
+### 🛡️ Response Sanitization (NEW)
+
+- **Response sanitizer module** — New `responseSanitizer.ts` strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`, etc.) from all OpenAI-format provider responses, fixing OpenAI Python SDK v1.83+ Pydantic validation failures that returned raw strings instead of parsed `ChatCompletion` objects
+- **Streaming chunk sanitization** — Passthrough streaming mode now sanitizes each SSE chunk in real-time via `sanitizeStreamingChunk()`, ensuring strict `chat.completion.chunk` schema compliance
+- **ID/Object/Usage normalization** — Ensures `id`, `object`, `created`, `model`, `choices`, and `usage` fields always exist with correct types
+- **Usage field cleanup** — Strips non-standard usage sub-fields, keeps only `prompt_tokens`, `completion_tokens`, `total_tokens`, and OpenAI detail fields
+
+### 🧠 Think Tag Extraction (NEW)
+
+- **`<think>` tag extraction** — Automatically extracts `<think>...</think>` blocks from thinking model responses (DeepSeek R1, Kimi K2 Thinking, etc.) into OpenAI's standard `reasoning_content` field
+- **Streaming think-tag stripping** — Real-time `<think>` extraction in passthrough SSE stream, preventing JSON parsing errors in downstream tools
+- **Preserves native reasoning** — Providers that already send `reasoning_content` natively (e.g., OpenAI o1) are not overwritten
+
+### 🔄 Role Normalization (NEW)
+
+- **`developer` → `system` conversion** — OpenAI's new `developer` role is automatically converted to `system` for all non-OpenAI providers (Claude, Gemini, Kiro, etc.)
+- **`system` → `user` merging** — For models that reject the `system` role (GLM, ERNIE), system messages are intelligently merged into the first user message with clear delimiters
+- **Model-aware normalization** — Uses model name prefix matching (`glm-*`, `ernie-*`) for compatibility decisions, avoiding hardcoded provider-level flags
+
+### 📐 Structured Output for Gemini (NEW)
+
+- **`response_format` → Gemini conversion** — OpenAI's `json_schema` structured output is now translated to Gemini's `responseMimeType` + `responseSchema` in the translator pipeline
+- **`json_object` support** — `response_format: { type: "json_object" }` maps to Gemini's `application/json` MIME type
+- **Schema cleanup** — Automatically removes unsupported JSON Schema keywords (`$schema`, `additionalProperties`) for Gemini compatibility
+
+### 📁 Files Added
+
+| File                                     | Purpose                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `open-sse/handlers/responseSanitizer.ts` | Response field stripping, think-tag extraction, ID/usage normalization |
+| `open-sse/services/roleNormalizer.ts`    | Developer→system, system→user role conversion pipeline                 |
+
+### 📁 Files Modified
+
+| File                                              | Change                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `open-sse/handlers/chatCore.ts`                   | Integrated response sanitizer for non-streaming OpenAI responses                |
+| `open-sse/utils/stream.ts`                        | Integrated streaming chunk sanitizer + think-tag extraction in passthrough mode |
+| `open-sse/translator/index.ts`                    | Integrated role normalizer into the request translation pipeline                |
+| `open-sse/translator/request/openai-to-gemini.ts` | Added `response_format` → `responseMimeType`/`responseSchema` conversion        |
+
+---
+
 ## [1.0.0] — 2026-02-18
 
 > ### 🎉 First Major Release — OmniRoute 1.0
@@ -138,4 +187,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.1.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.0
 [1.0.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.0

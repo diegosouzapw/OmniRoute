@@ -4,6 +4,7 @@ import { prepareClaudeRequest } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
 import { normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
+import { normalizeRoles } from "../services/roleNormalizer.ts";
 
 // Registry for translators.
 // NOTE: translator modules import this file and call register() at module-load time.
@@ -131,6 +132,11 @@ export function translateRequest(
 
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
+
+  // Normalize roles: developer→system for non-OpenAI, system→user for incompatible models
+  if (result.messages && Array.isArray(result.messages)) {
+    result.messages = normalizeRoles(result.messages, provider || "", model || "", targetFormat);
+  }
 
   // If same format, skip translation steps
   if (sourceFormat !== targetFormat) {

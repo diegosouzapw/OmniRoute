@@ -2,6 +2,7 @@
 const nextConfig = {
   turbopack: {},
   output: "standalone",
+  serverExternalPackages: ["better-sqlite3"],
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["192.168.*"],
   typescript: {

@@ -177,6 +177,10 @@ Use **Dashboard → Translator** to debug format translation issues:
 - **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
 - **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
 - **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
 
 ---
 

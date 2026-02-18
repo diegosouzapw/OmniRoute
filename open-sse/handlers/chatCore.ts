@@ -24,6 +24,7 @@ import { getExecutor } from "../executors/index.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.ts";
+import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
@@ -471,9 +472,16 @@ export async function handleChatCore({
     }
 
     // Translate response to client's expected format (usually OpenAI)
-    const translatedResponse = needsTranslation(targetFormat, sourceFormat)
+    let translatedResponse = needsTranslation(targetFormat, sourceFormat)
       ? translateNonStreamingResponse(responseBody, targetFormat, sourceFormat)
       : responseBody;
+
+    // Sanitize response for OpenAI SDK compatibility
+    // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
+    // Extracts <think> tags into reasoning_content
+    if (sourceFormat === FORMATS.OPENAI) {
+      translatedResponse = sanitizeOpenAIResponse(translatedResponse);
+    }
 
     // Add buffer and filter usage for client (to prevent CLI context errors)
     if (translatedResponse?.usage) {
