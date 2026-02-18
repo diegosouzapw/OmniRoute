@@ -3,7 +3,7 @@ import { jwtVerify } from "jose";
 import { generateRequestId } from "./shared/utils/requestId";
 import { getSettings } from "./lib/localDb";
 import { isPublicRoute, verifyAuth, isAuthRequired } from "./shared/utils/apiAuth";
-import { checkBodySize } from "./shared/middleware/bodySizeGuard";
+import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
 
 // FASE-01: Fail-fast — no hardcoded fallback. Server must have JWT_SECRET configured.
@@ -37,7 +37,7 @@ export async function proxy(request) {
 
   // ──────────────── Pre-flight: Reject oversized bodies ────────────────
   if (pathname.startsWith("/api/") && request.method !== "GET" && request.method !== "OPTIONS") {
-    const bodySizeRejection = checkBodySize(request);
+    const bodySizeRejection = checkBodySize(request, getBodySizeLimit(pathname));
     if (bodySizeRejection) return bodySizeRejection;
   }
 

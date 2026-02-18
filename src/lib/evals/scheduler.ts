@@ -8,7 +8,7 @@
  * @module lib/evals/scheduler
  */
 
-import { runSuite, listSuites, createScorecard } from "./evalRunner";
+import { runSuite, listSuites, createScorecard, getSuite } from "./evalRunner";
 
 // ── Types ──
 
@@ -159,7 +159,6 @@ async function executeScheduledRun(suiteId: string): Promise<EvalRunResult | nul
     // Get outputs from provider
     const outputs: Record<string, string> = {};
     // We use the suite's cases to get the case IDs
-    const { getSuite } = require("./evalRunner");
     const suite = getSuite(suiteId);
     if (!suite?.cases) return null;
 

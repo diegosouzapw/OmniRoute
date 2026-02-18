@@ -15,6 +15,18 @@
  * @module lib/container
  */
 
+import { evaluateFirstAllowed, evaluateRequest, PolicyEngine } from "../domain/policyEngine";
+import { getDbInstance } from "./db/core";
+import {
+  decrypt,
+  decryptConnectionFields,
+  encrypt,
+  encryptConnectionFields,
+} from "./db/encryption";
+import { getSettings } from "./localDb";
+import { getCircuitBreaker } from "../shared/utils/circuitBreaker";
+import { recordTelemetry, RequestTelemetry } from "../shared/utils/requestTelemetry";
+
 type Factory<T = any> = () => T;
 
 class Container {
@@ -76,41 +88,34 @@ class Container {
 export const container = new Container();
 
 // ── Default registrations ──
-// These lazy-load the actual modules so the container can be imported
-// without triggering all side effects at module load time.
+// Services are still lazily instantiated on first resolve().
 
 container.register("settings", () => {
-  const { getSettings } = require("@/lib/localDb");
   return { get: getSettings };
 });
 
 container.register("db", () => {
-  const { getDbInstance } = require("@/lib/db/core");
   return getDbInstance();
 });
 
 container.register("encryption", () => {
-  const enc = require("@/lib/db/encryption");
   return {
-    encrypt: enc.encrypt,
-    decrypt: enc.decrypt,
-    encryptConnectionFields: enc.encryptConnectionFields,
-    decryptConnectionFields: enc.decryptConnectionFields,
+    encrypt,
+    decrypt,
+    encryptConnectionFields,
+    decryptConnectionFields,
   };
 });
 
 container.register("policyEngine", () => {
-  const { evaluateRequest, evaluateFirstAllowed, PolicyEngine } = require("@/domain/policyEngine");
   return { evaluateRequest, evaluateFirstAllowed, PolicyEngine };
 });
 
 container.register("circuitBreaker", () => {
-  const { getCircuitBreaker } = require("@/shared/utils/circuitBreaker");
   return { get: getCircuitBreaker };
 });
 
 container.register("telemetry", () => {
-  const { RequestTelemetry, recordTelemetry } = require("@/shared/utils/requestTelemetry");
   return { RequestTelemetry, recordTelemetry };
 });
 

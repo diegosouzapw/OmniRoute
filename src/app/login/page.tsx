@@ -56,6 +56,7 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
+        sessionStorage.setItem("omniroute_login_time", String(Date.now()));
         router.push("/dashboard");
         router.refresh();
       } else {

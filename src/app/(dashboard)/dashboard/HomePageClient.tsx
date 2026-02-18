@@ -158,10 +158,10 @@ export default function HomePageClient({ machineId }) {
                 <span className="font-semibold">1. Create API key</span>
                 <p className="text-text-muted mt-0.5">
                   Go to{" "}
-                  <Link href="/dashboard/settings" className="text-primary hover:underline">
-                    Settings
+                  <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                    Endpoint
                   </Link>{" "}
-                  → API Keys. Generate one key per environment.
+                  → Registered Keys. Generate one key per environment.
                 </p>
               </div>
             </li>

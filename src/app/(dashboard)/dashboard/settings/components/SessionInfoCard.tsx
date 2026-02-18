@@ -23,26 +23,51 @@ export default function SessionInfoCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Build session info from client-side data
-    const loginTime = sessionStorage.getItem("omniroute_login_time");
-    const now = Date.now();
+    let cancelled = false;
 
-    let sessionAge = "Unknown";
-    if (loginTime) {
-      const elapsed = now - parseInt(loginTime, 10);
-      const hours = Math.floor(elapsed / 3600000);
-      const minutes = Math.floor((elapsed % 3600000) / 60000);
-      sessionAge = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    async function loadSession() {
+      // Build session info from client-side data
+      const loginTime = sessionStorage.getItem("omniroute_login_time");
+      const now = Date.now();
+
+      let sessionAge = "Unknown";
+      if (loginTime) {
+        const elapsed = now - parseInt(loginTime, 10);
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        sessionAge = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+      }
+
+      let authenticated = false;
+      try {
+        const res = await fetch("/api/auth/status", {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          authenticated = data.authenticated === true;
+        }
+      } catch {
+        // Keep unauthenticated fallback on network errors.
+      }
+
+      if (cancelled) return;
+
+      setSession({
+        authenticated,
+        loginTime: loginTime ? new Date(parseInt(loginTime, 10)).toLocaleString() : null,
+        sessionAge,
+        ipAddress: "—", // Server-side only
+        userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || "Unknown",
+      });
+      setLoading(false);
     }
 
-    setSession({
-      authenticated: !!document.cookie.includes("omniroute"),
-      loginTime: loginTime ? new Date(parseInt(loginTime, 10)).toLocaleString() : null,
-      sessionAge,
-      ipAddress: "—", // Server-side only
-      userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || "Unknown",
-    });
-    setLoading(false);
+    loadSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleLogout = async () => {

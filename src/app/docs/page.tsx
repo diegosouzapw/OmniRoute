@@ -204,7 +204,7 @@ export default function DocsPage() {
             <li className="rounded-lg border border-border p-3 bg-bg">
               <span className="font-semibold">2. Create API key</span>
               <p className="text-text-muted mt-1">
-                Go to Settings → API Keys. Generate one key per environment.
+                Go to Endpoint → Registered Keys. Generate one key per environment.
               </p>
             </li>
             <li className="rounded-lg border border-border p-3 bg-bg">

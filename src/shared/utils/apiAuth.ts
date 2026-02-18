@@ -20,6 +20,7 @@ const PUBLIC_API_ROUTES = [
   // Auth flow — must be accessible to unauthenticated users
   "/api/auth/login",
   "/api/auth/logout",
+  "/api/auth/status",
 
   // Settings check — used by login page / onboarding
   "/api/settings/require-login",
