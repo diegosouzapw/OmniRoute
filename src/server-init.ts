@@ -2,8 +2,12 @@
 import initializeCloudSync from "./shared/services/initializeCloudSync";
 import { enforceSecrets } from "./shared/utils/secretsValidator";
 import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/compliance/index";
+import { initConsoleInterceptor } from "./lib/consoleInterceptor";
 
 async function startServer() {
+  // Console interceptor: capture all console output to log file (must be first)
+  initConsoleInterceptor();
+
   // FASE-01: Validate required secrets before anything else (fail-fast)
   enforceSecrets();
 

@@ -16,7 +16,7 @@ const navItems = [
   { href: "/dashboard/endpoint", label: "Endpoint", icon: "api" },
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   { href: "/dashboard/combos", label: "Combos", icon: "layers" },
-  { href: "/dashboard/usage", label: "Request Logs", icon: "receipt_long" },
+  { href: "/dashboard/logs", label: "Logs", icon: "description" },
   { href: "/dashboard/costs", label: "Costs", icon: "account_balance_wallet" },
   { href: "/dashboard/analytics", label: "Analytics", icon: "analytics" },
   { href: "/dashboard/limits", label: "Limits & Quotas", icon: "tune" },
