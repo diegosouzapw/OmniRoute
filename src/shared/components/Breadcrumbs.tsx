@@ -19,7 +19,9 @@ const PATH_LABELS = {
   providers: "Providers",
   combos: "Combos",
   settings: "Settings",
-  usage: "Usage",
+  logs: "Logs",
+  "audit-log": "Audit Log",
+  console: "Console",
   logger: "Logger",
   translator: "Translator",
   playground: "Playground",
@@ -27,7 +29,6 @@ const PATH_LABELS = {
   edit: "Edit",
   keys: "API Keys",
   models: "Models",
-  logs: "Logs",
 };
 
 /**
@@ -85,8 +86,12 @@ export default function Breadcrumbs() {
                 textDecoration: "none",
                 transition: "color 0.15s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--accent, #818cf8)")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary, #888)")}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "var(--accent, #818cf8)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary, #888)")
+              }
             >
               {crumb.label}
             </Link>

@@ -242,7 +242,7 @@ docker compose --profile cli up -d
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `1.0.2`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Current version       |
 
 ---
 
@@ -375,17 +375,19 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### 📊 Observability & Analytics
 
-| Feature                      | What It Does                                                    |
-| ---------------------------- | --------------------------------------------------------------- |
-| 📝 **Request Logging**       | Debug mode with full request/response logs                      |
-| 💾 **SQLite Proxy Logs**     | Persistent proxy logs survive server restarts                   |
-| 📊 **Analytics Dashboard**   | Recharts-powered: stat cards, model usage chart, provider table |
-| 📈 **Progress Tracking**     | Opt-in SSE progress events for streaming                        |
-| 🧪 **LLM Evaluations**       | Golden set testing with 4 match strategies                      |
-| 🔍 **Request Telemetry**     | p50/p95/p99 latency aggregation + X-Request-Id tracing          |
-| 📋 **Request Logs + Quotas** | Dedicated pages for log browsing and limits/quotas tracking     |
-| 🏥 **Health Dashboard**      | System uptime, circuit breaker states, lockouts, cache stats    |
-| 💰 **Cost Tracking**         | Budget management + per-model pricing configuration             |
+| Feature                    | What It Does                                                           |
+| -------------------------- | ---------------------------------------------------------------------- |
+| 📝 **Request Logging**     | Debug mode with full request/response logs                             |
+| 💾 **SQLite Proxy Logs**   | Persistent proxy logs survive server restarts                          |
+| 📊 **Analytics Dashboard** | Recharts-powered: stat cards, model usage chart, provider table        |
+| 📈 **Progress Tracking**   | Opt-in SSE progress events for streaming                               |
+| 🧪 **LLM Evaluations**     | Golden set testing with 4 match strategies                             |
+| 🔍 **Request Telemetry**   | p50/p95/p99 latency aggregation + X-Request-Id tracing                 |
+| 📋 **Logs Dashboard**      | Unified 4-tab page: Request Logs, Proxy Logs, Audit Logs, Console      |
+| 🖥️ **Console Log Viewer**  | Real-time terminal-style viewer with level filter, search, auto-scroll |
+| 📑 **File-Based Logging**  | Console interceptor captures all output to JSON log file with rotation |
+| 🏥 **Health Dashboard**    | System uptime, circuit breaker states, lockouts, cache stats           |
+| 💰 **Cost Tracking**       | Budget management + per-model pricing configuration                    |
 
 ### ☁️ Deployment & Sync
 
@@ -903,7 +905,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 
 - Many providers don't expose a `/models` endpoint
-- OmniRoute v1.0.2+ includes fallback validation via chat completions
+- OmniRoute v1.0.3+ includes fallback validation via chat completions
 - Ensure base URL includes `/v1` suffix
 
 </details>
@@ -913,7 +915,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.2)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.3)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
 - **Streaming**: Server-Sent Events (SSE)
@@ -1014,7 +1016,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v1.0.2 --title "v1.0.2" --generate-notes
+gh release create v1.0.3 --title "v1.0.3" --generate-notes
 ```
 
 ---

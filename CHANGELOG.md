@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] — 2026-02-19
+
+> ### 📊 Logs Dashboard & Real-Time Console Viewer
+>
+> Unified logs interface with real-time console log viewer, file-based logging via console interception, and server initialization improvements.
+
+### ✨ Features
+
+- **Logs Dashboard** — Consolidated 4-tab page at `/dashboard/logs` with Request Logs, Proxy Logs, Audit Logs, and Console tabs
+- **Console Log Viewer** — Terminal-style real-time log viewer with color-coded log levels, auto-scroll, search/filtering, level filter, and 5-second polling
+- **Console Interceptor** — Monkey-patches `console.log/info/warn/error/debug` at server start to capture all application output as JSON lines to `logs/application/app.log`
+- **Log Rotation** — Size-based rotation and retention-based cleanup for log files
+
+### 🔧 Improvements
+
+- **Instrumentation consolidation** — Moved `initAuditLog()`, `cleanupExpiredLogs()`, and console interceptor initialization to Next.js `instrumentation.ts` (runs on both dev and prod server start)
+- **Structured Logger file output** — `structuredLogger.ts` now also appends JSON log entries to the log file
+- **Pino Logger fix** — Fixed broken mix of pino `transport` targets + manual `createWriteStream`; now uses `pino/file` transport targets exclusively with absolute paths
+
+### 🗂️ Files Added
+
+| File                                                 | Purpose                                                           |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `src/app/(dashboard)/dashboard/logs/page.tsx`        | Tabbed Logs Dashboard page                                        |
+| `src/app/(dashboard)/dashboard/logs/AuditLogTab.tsx` | Audit log tab component extracted from standalone page            |
+| `src/shared/components/ConsoleLogViewer.tsx`         | Terminal-style real-time log viewer                               |
+| `src/app/api/logs/console/route.ts`                  | API endpoint to read log file (filters last 1h, level, component) |
+| `src/lib/consoleInterceptor.ts`                      | Console method monkey-patching for file capture                   |
+| `src/lib/logRotation.ts`                             | Log rotation by size and cleanup by retention days                |
+
+### 🗂️ Files Modified
+
+| File                                    | Change                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------- |
+| `src/shared/components/Sidebar.tsx`     | Nav: "Request Logs" → "Logs" with `description` icon                            |
+| `src/shared/components/Breadcrumbs.tsx` | Added breadcrumb labels for `logs`, `audit-log`, `console`                      |
+| `src/instrumentation.ts`                | Added console interceptor + audit log init + expired log cleanup                |
+| `src/server-init.ts`                    | Added console interceptor import (backup init)                                  |
+| `src/shared/utils/logger.ts`            | Fixed pino file transport using `pino/file` targets                             |
+| `src/shared/utils/structuredLogger.ts`  | Added `appendFileSync` file writing + log file config                           |
+| `.env.example`                          | Added `LOG_TO_FILE`, `LOG_FILE_PATH`, `LOG_MAX_FILE_SIZE`, `LOG_RETENTION_DAYS` |
+
+### ⚙️ Configuration
+
+New environment variables:
+
+| Variable             | Default                    | Description                   |
+| -------------------- | -------------------------- | ----------------------------- |
+| `LOG_TO_FILE`        | `true`                     | Enable/disable file logging   |
+| `LOG_FILE_PATH`      | `logs/application/app.log` | Log file path                 |
+| `LOG_MAX_FILE_SIZE`  | `50M`                      | Max file size before rotation |
+| `LOG_RETENTION_DAYS` | `7`                        | Days to retain old log files  |
+
+---
+
 ## [1.0.2] — 2026-02-18
 
 > ### 🔒 Security Hardening, Architecture Improvements & UX Polish
@@ -232,5 +287,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 [1.1.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.0
+[1.0.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.3
 [1.0.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.2
 [1.0.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.0
