@@ -110,8 +110,8 @@ export async function handleChatCore({
   const modelTargetFormat = getModelTargetFormat(alias, model);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
 
-  // Default to streaming unless client explicitly sets stream: false
-  const stream = body.stream !== false;
+  // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
+  const stream = body.stream === true;
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {

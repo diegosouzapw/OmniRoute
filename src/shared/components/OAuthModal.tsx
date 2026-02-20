@@ -53,6 +53,9 @@ export default function OAuthModal({
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
 
+  // Google OAuth providers that only accept pre-registered localhost redirect URIs
+  const GOOGLE_OAUTH_PROVIDERS = ["antigravity", "gemini-cli"];
+
   // Exchange tokens
   const exchangeTokens = useCallback(
     async (code, state) => {
@@ -75,10 +78,26 @@ export default function OAuthModal({
         setStep("success");
         onSuccess?.();
       } catch (err) {
-        setError(err.message);
+        // Provide actionable guidance for redirect_uri_mismatch on Google OAuth providers
+        if (
+          err.message?.toLowerCase().includes("redirect_uri_mismatch") &&
+          GOOGLE_OAUTH_PROVIDERS.includes(provider)
+        ) {
+          setError(
+            "redirect_uri_mismatch: As credenciais padrão do Google OAuth só funcionam em localhost. " +
+              "Para uso remoto, configure suas próprias credenciais OAuth nas variáveis de ambiente: " +
+              (provider === "antigravity"
+                ? "ANTIGRAVITY_OAUTH_CLIENT_ID e ANTIGRAVITY_OAUTH_CLIENT_SECRET"
+                : "GEMINI_OAUTH_CLIENT_ID e GEMINI_OAUTH_CLIENT_SECRET") +
+              ". Veja o README, seção 'OAuth em Servidor Remoto'."
+          );
+        } else {
+          setError(err.message);
+        }
         setStep("error");
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [authData, provider, onSuccess]
   );
 
@@ -216,15 +235,23 @@ export default function OAuthModal({
       }
 
       // Authorization code flow
-      // On localhost: use localhost callback so popup/BroadcastChannel/localStorage can relay code.
-      // On remote (behind nginx/reverse proxy): use the actual origin so the callback page loads.
-      // Codex (OpenAI) requires exactly http://localhost:1455/auth/callback — the registered URI.
+      // Redirect URI strategy:
+      // - Codex/OpenAI: always port 1455 (registered in OAuth app)
+      // - Google OAuth providers (antigravity, gemini-cli): always localhost, regardless of
+      //   where OmniRoute is hosted — Google only accepts pre-registered localhost URIs with
+      //   the built-in credentials. Remote users must configure their own credentials.
+      // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
+      // - Localhost: use localhost:port
       let redirectUri: string;
       if (provider === "codex" || provider === "openai") {
         redirectUri = "http://localhost:1455/auth/callback";
+      } else if (GOOGLE_OAUTH_PROVIDERS.includes(provider)) {
+        // Google OAuth built-in credentials only accept localhost redirect URIs.
+        // Even in remote deployments we use localhost — user copies the callback URL manually.
+        const port = window.location.port || "20128";
+        redirectUri = `http://localhost:${port}/callback`;
       } else if (!isLocalhost) {
         // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
-        // This ensures the OAuth provider redirects to the proxied URL where the callback page loads.
         // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
         const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const origin =
@@ -466,7 +493,29 @@ export default function OAuthModal({
         {step === "input" && !isDeviceCode && (
           <>
             <div className="space-y-4">
-              {!isLocalhost && (
+              {/* Remote server info for Google OAuth providers */}
+              {!isLocalhost && GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                  <span className="material-symbols-outlined text-sm align-middle mr-1">
+                    warning
+                  </span>
+                  <strong>Acesso remoto + Google OAuth:</strong> As credenciais padrão só aceitam
+                  redirect para <code>localhost</code>. Após autorizar, o browser tentará abrir
+                  <code>localhost</code> — copie essa URL completa e cole abaixo. Para uso
+                  totalmente remoto sem esse passo manual,{" "}
+                  <a
+                    href="https://github.com/diegosouzapw/OmniRoute#oauth-em-servidor-remoto"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    configure suas próprias credenciais OAuth
+                  </a>
+                  .
+                </div>
+              )}
+              {/* Generic remote info for other providers */}
+              {!isLocalhost && !GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
                 <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
                   <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
                   <strong>Remote access:</strong> Since you&apos;re accessing OmniRoute remotely,

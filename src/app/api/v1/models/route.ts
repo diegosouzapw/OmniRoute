@@ -259,8 +259,14 @@ export async function GET() {
       for (const [providerId, providerCustomModels] of Object.entries(customModelsMap)) {
         const alias = providerIdToAlias[providerId] || providerId;
         const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
-        // Only include if provider is active
-        if (!activeAliases.has(alias) && !activeAliases.has(canonicalProviderId)) continue;
+        // Only include if provider is active — check alias, canonical ID, or raw providerId
+        // (raw check needed for OpenAI-compatible providers whose ID isn't in the alias map)
+        if (
+          !activeAliases.has(alias) &&
+          !activeAliases.has(canonicalProviderId) &&
+          !activeAliases.has(providerId)
+        )
+          continue;
 
         for (const model of providerCustomModels) {
           // Skip if already added as built-in
