@@ -858,6 +858,99 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 
 ---
 
+## 🔐 OAuth em Servidor Remoto (Remote OAuth Setup)
+
+<a name="oauth-em-servidor-remoto"></a>
+
+> **⚠️ IMPORTANTE para usuários com OmniRoute em VPS/Docker/servidor remoto**
+
+### Por que o OAuth do Antigravity / Gemini CLI falha em servidores remotos?
+
+Os provedores **Antigravity** e **Gemini CLI** usam **Google OAuth 2.0** para autenticação. O Google exige que a `redirect_uri` usada no fluxo OAuth seja **exatamente** uma das URIs pré-cadastradas no Google Cloud Console do aplicativo.
+
+As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
+
+```
+Error 400: redirect_uri_mismatch
+```
+
+### Solução: Configure suas próprias credenciais OAuth
+
+Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
+
+#### Passo a passo
+
+**1. Acesse o Google Cloud Console**
+
+Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+
+**2. Crie um novo OAuth 2.0 Client ID**
+
+- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
+- Tipo de aplicativo: **"Web application"**
+- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
+
+**3. Adicione as Authorized Redirect URIs**
+
+No campo **"Authorized redirect URIs"**, adicione:
+
+```
+https://seu-servidor.com/callback
+```
+
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+
+**4. Salve e copie as credenciais**
+
+Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
+
+**5. Configure as variáveis de ambiente**
+
+No seu `.env` (ou nas variáveis de ambiente do Docker):
+
+```bash
+# Para Antigravity:
+ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+
+# Para Gemini CLI:
+GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+```
+
+**6. Reinicie o OmniRoute**
+
+```bash
+# Se usando npm:
+npm run dev
+
+# Se usando Docker:
+docker restart omniroute
+```
+
+**7. Tente conectar novamente**
+
+Dashboard → Providers → Antigravity (ou Gemini CLI) → OAuth
+
+Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
+
+---
+
+### Workaround temporário (sem configurar credenciais próprias)
+
+Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
+
+1. O OmniRoute abrirá a URL de autorização do Google
+2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
+3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
+4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+5. Clique em **"Connect"**
+
+> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
+
+---
+
 ## 🐛 Troubleshooting
 
 <details>

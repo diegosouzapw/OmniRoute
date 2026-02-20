@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7] — 2026-02-20
+
+> ### 🐛 Bugfix Release — OpenAI Compatibility, Custom Models & OAuth UX
+>
+> Fixes three community-reported issues: stream default now follows OpenAI spec, custom OpenAI-compatible providers appear in `/v1/models`, and Google OAuth shows a clear error + tutorial for remote deployments.
+
+### 🐛 Bug Fixes
+
+- **`stream` defaults to `false`** — Aligns with the OpenAI specification which explicitly states `stream` defaults to `false`. Previously OmniRoute defaulted to `true`, causing SSE data to be returned instead of a JSON object, breaking clients like Spacebot, OpenCode, and standard Python/Rust/Go OpenAI SDKs that don't explicitly set `stream: true` ([#89](https://github.com/diegosouzapw/OmniRoute/issues/89))
+- **Custom AI providers now appear in `/v1/models`** — OpenAI-compatible custom providers (e.g. FriendLI) whose provider ID wasn't in the built-in alias map were silently excluded from the models list even when active. Fixed by also checking the raw provider ID from the database against active connections ([#90](https://github.com/diegosouzapw/OmniRoute/issues/90))
+- **OAuth `redirect_uri_mismatch` — improved UX for remote deployments** — Google OAuth providers (Antigravity, Gemini CLI) now always use `localhost` as redirect URI matching the registered credentials. Remote-access users see a targeted amber warning with a link to the new setup guide. The token exchange error message explains the root cause and guides users to configure their own credentials ([#91](https://github.com/diegosouzapw/OmniRoute/issues/91))
+
+### 📖 Documentation
+
+- **OAuth em Servidor Remoto tutorial** — New README section with step-by-step guide to configure custom Google Cloud OAuth 2.0 credentials for remote/VPS/Docker deployments
+- **`.env.example` Google OAuth block** — Added prominent warning block explaining remote credential requirements with direct links to Google Cloud Console
+
+### 📁 Files Modified
+
+| File                                   | Change                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `open-sse/handlers/chatCore.ts`        | `stream` defaults to `false` (was `true`) per OpenAI spec                                   |
+| `src/app/api/v1/models/route.ts`       | Added raw `providerId` check for custom models active-provider filter                       |
+| `src/shared/components/OAuthModal.tsx` | Force `localhost` redirect for Google OAuth; improved `redirect_uri_mismatch` error message |
+| `.env.example`                         | Added ⚠️ Google OAuth remote credentials block with step-by-step instructions               |
+| `README.md`                            | New "🔐 OAuth em Servidor Remoto" tutorial section                                          |
+
+---
+
 ## [1.0.6] — 2026-02-20
 
 > ### ✨ Provider & Combo Toggles — Strict Model Filtering
@@ -353,6 +382,7 @@ New environment variables:
 
 ---
 
+[1.0.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.7
 [1.0.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.6
 [1.0.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.5
 [1.0.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.4
