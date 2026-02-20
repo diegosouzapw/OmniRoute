@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 import { generateRequestId } from "./shared/utils/requestId";
 import { getSettings } from "./lib/localDb";
 import { isPublicRoute, verifyAuth, isAuthRequired } from "./shared/utils/apiAuth";
@@ -81,7 +81,42 @@ export async function proxy(request) {
 
     if (token) {
       try {
-        await jwtVerify(token, SECRET);
+        const { payload } = await jwtVerify(token, SECRET);
+
+        // Auto-refresh: if token expires within 7 days, issue a fresh 30-day token
+        const exp = payload.exp as number;
+        const now = Math.floor(Date.now() / 1000);
+        const REFRESH_WINDOW = 7 * 24 * 60 * 60; // 7 days in seconds
+        if (exp && exp - now < REFRESH_WINDOW) {
+          try {
+            const freshToken = await new SignJWT({ authenticated: true })
+              .setProtectedHeader({ alg: "HS256" })
+              .setExpirationTime("30d")
+              .sign(SECRET);
+
+            // Detect secure context
+            const fwdProto = (request.headers.get("x-forwarded-proto") || "")
+              .split(",")[0]
+              .trim()
+              .toLowerCase();
+            const isHttps = fwdProto === "https" || request.nextUrl?.protocol === "https:";
+            const useSecure = process.env.AUTH_COOKIE_SECURE === "true" || isHttps;
+
+            response.cookies.set("auth_token", freshToken, {
+              httpOnly: true,
+              secure: useSecure,
+              sameSite: "lax",
+              path: "/",
+            });
+            console.log(
+              `[Middleware] JWT auto-refreshed for ${pathname} (was expiring in ${Math.round((exp - now) / 3600)}h)`
+            );
+          } catch (refreshErr) {
+            // Refresh failed — continue with existing valid token
+            console.error("[Middleware] JWT auto-refresh failed:", refreshErr.message);
+          }
+        }
+
         return response;
       } catch (err) {
         // FASE-01: Log auth errors instead of silently redirecting
