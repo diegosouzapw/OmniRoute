@@ -1,20 +1,37 @@
 import { NextResponse } from "next/server";
-import { getModelAliases, setModelAlias } from "@/models";
+import { getModelAliases, setModelAlias, getProviderConnections } from "@/models";
 import { AI_MODELS } from "@/shared/constants/config";
 
-// GET /api/models - Get models with aliases
-export async function GET() {
+// GET /api/models - Get models with aliases (only from active providers by default)
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const showAll = searchParams.get("all") === "true";
+
     const modelAliases = await getModelAliases();
 
-    const models = AI_MODELS.map((m) => {
+    // Get active provider connections to filter available models
+    let activeProviders: Set<string> | null = null;
+    if (!showAll) {
+      try {
+        const connections = await getProviderConnections();
+        const active = connections.filter((c: any) => c.isActive !== false);
+        activeProviders = new Set(active.map((c: any) => c.provider));
+      } catch {
+        // If DB unavailable, show all models
+      }
+    }
+
+    const models = AI_MODELS.map((m: any) => {
       const fullModel = `${m.provider}/${m.model}`;
+      const available = !activeProviders || activeProviders.has(m.provider);
       return {
         ...m,
         fullModel,
         alias: modelAliases[fullModel] || m.model,
+        available,
       };
-    });
+    }).filter((m: any) => showAll || m.available);
 
     return NextResponse.json({ models });
   } catch (error) {

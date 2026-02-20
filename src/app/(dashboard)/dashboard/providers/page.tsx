@@ -134,14 +134,18 @@ export default function ProvidersPage() {
     const error = errorConns.length;
     const total = providerConnections.length;
 
+    // Check if all connections are manually disabled
+    const allDisabled = total > 0 && providerConnections.every((c) => c.isActive === false);
+
     // Get latest error info
     const latestError = errorConns.sort(
-      (a: any, b: any) => (new Date(b.lastErrorAt || 0) as any) - (new Date(a.lastErrorAt || 0) as any)
+      (a: any, b: any) =>
+        (new Date(b.lastErrorAt || 0) as any) - (new Date(a.lastErrorAt || 0) as any)
     )[0];
     const errorCode = latestError ? getConnectionErrorTag(latestError) : null;
     const errorTime = latestError?.lastErrorAt ? getRelativeTime(latestError.lastErrorAt) : null;
 
-    return { connected, error, total, errorCode, errorTime };
+    return { connected, error, total, errorCode, errorTime, allDisabled };
   };
 
   const handleBatchTest = async (mode, providerId = null) => {
@@ -422,7 +426,7 @@ export default function ProvidersPage() {
 }
 
 function ProviderCard({ providerId, provider, stats, authType }) {
-  const { connected, error, errorCode, errorTime } = stats;
+  const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const [imgError, setImgError] = useState(false);
 
   const dotColors = {
@@ -437,7 +441,7 @@ function ProviderCard({ providerId, provider, stats, authType }) {
     <Link href={`/dashboard/providers/${providerId}`} className="group">
       <Card
         padding="xs"
-        className="h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer"
+        className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -470,8 +474,19 @@ function ProviderCard({ providerId, provider, stats, authType }) {
                 />
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
-                {getStatusDisplay(connected, error, errorCode)}
-                {errorTime && <span className="text-text-muted">• {errorTime}</span>}
+                {allDisabled ? (
+                  <Badge variant="default" size="sm">
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">pause_circle</span>
+                      Disabled
+                    </span>
+                  </Badge>
+                ) : (
+                  <>
+                    {getStatusDisplay(connected, error, errorCode)}
+                    {errorTime && <span className="text-text-muted">• {errorTime}</span>}
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -503,7 +518,7 @@ ProviderCard.propTypes = {
 
 // API Key providers - use image with textIcon fallback (same as OAuth providers)
 function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
-  const { connected, error, errorCode, errorTime } = stats;
+  const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
   const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
   const [imgError, setImgError] = useState(false);
@@ -531,7 +546,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
     <Link href={`/dashboard/providers/${providerId}`} className="group">
       <Card
         padding="xs"
-        className="h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer"
+        className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -564,18 +579,29 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
                 />
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
-                {getStatusDisplay(connected, error, errorCode)}
-                {isCompatible && (
+                {allDisabled ? (
                   <Badge variant="default" size="sm">
-                    {provider.apiType === "responses" ? "Responses" : "Chat"}
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">pause_circle</span>
+                      Disabled
+                    </span>
                   </Badge>
+                ) : (
+                  <>
+                    {getStatusDisplay(connected, error, errorCode)}
+                    {isCompatible && (
+                      <Badge variant="default" size="sm">
+                        {provider.apiType === "responses" ? "Responses" : "Chat"}
+                      </Badge>
+                    )}
+                    {isAnthropicCompatible && (
+                      <Badge variant="default" size="sm">
+                        Messages
+                      </Badge>
+                    )}
+                    {errorTime && <span className="text-text-muted">• {errorTime}</span>}
+                  </>
                 )}
-                {isAnthropicCompatible && (
-                  <Badge variant="default" size="sm">
-                    Messages
-                  </Badge>
-                )}
-                {errorTime && <span className="text-text-muted">• {errorTime}</span>}
               </div>
             </div>
           </div>
