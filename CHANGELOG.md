@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6] — 2026-02-20
+
+> ### ✨ Provider & Combo Toggles — Strict Model Filtering
+>
+> `/v1/models` now shows only models from providers with active connections. Combos and providers can be toggled on/off directly from the dashboard.
+
+### ✨ New Features
+
+- **Provider toggle on Providers page** — Enable/disable all connections for a provider directly from the main Providers list. Toggle is always visible, no hover needed
+- **Combo enable/disable toggle** — Each combo on the Combos page now has a toggle. Disabled combos are excluded from `/v1/models`
+- **OAuth private IP support** — Expanded localhost detection to include private/LAN IPs (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`) for correct OAuth redirect URIs
+
+### 🐛 Bug Fixes
+
+- **`/v1/models` strict filtering** — Models are now shown only from providers with active, enabled connections. Previously, if no connections existed or all were disabled, all 378+ models were shown as a fallback
+- **Disabled provider models hidden** — Toggling off a provider immediately removes its models from `/v1/models`
+
+---
+
 ## [1.0.5] — 2026-02-20
 
 > ### 🐛 Hotfix — Model Filtering & Docker DATA_DIR
@@ -334,6 +353,7 @@ New environment variables:
 
 ---
 
+[1.0.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.6
 [1.0.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.5
 [1.0.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.4
 [1.1.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.0

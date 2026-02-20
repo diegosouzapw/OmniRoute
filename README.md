@@ -906,7 +906,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 
 - Many providers don't expose a `/models` endpoint
-- OmniRoute v1.0.5+ includes fallback validation via chat completions
+- OmniRoute v1.0.6+ includes fallback validation via chat completions
 - Ensure base URL includes `/v1` suffix
 
 </details>
@@ -916,7 +916,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.5)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.6)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
 - **Streaming**: Server-Sent Events (SSE)
@@ -1020,7 +1020,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v1.0.5 --title "v1.0.5" --generate-notes
+gh release create v1.0.6 --title "v1.0.6" --generate-notes
 ```
 
 ---

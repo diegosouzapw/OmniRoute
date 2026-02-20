@@ -243,7 +243,7 @@ docker compose --profile cli up -d
 | 镜像                     | 标签     | 大小   | 描述       |
 | ------------------------ | -------- | ------ | ---------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | 最新稳定版 |
-| `diegosouzapw/omniroute` | `1.0.5`  | ~250MB | 当前版本   |
+| `diegosouzapw/omniroute` | `1.0.6`  | ~250MB | 当前版本   |
 
 ---
 
@@ -893,7 +893,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 **兼容 OpenAI 的提供商连接测试显示 "Invalid"**
 
 - 许多提供商不暴露 `/models` 端点
-- OmniRoute v1.0.5+ 包含通过 chat completions 的回退验证
+- OmniRoute v1.0.6+ 包含通过 chat completions 的回退验证
 - 确保 base URL 包含 `/v1` 后缀
 
 </details>
@@ -903,7 +903,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 ## 🛠️ 技术栈
 
 - **运行时**: Node.js 20+
-- **语言**: TypeScript 5.9 — `src/` 和 `open-sse/` 中 **100% TypeScript**（v1.0.5）
+- **语言**: TypeScript 5.9 — `src/` 和 `open-sse/` 中 **100% TypeScript**（v1.0.6）
 - **框架**: Next.js 16 + React 19 + Tailwind CSS 4
 - **数据库**: LowDB (JSON) + SQLite（领域状态 + 代理日志）
 - **流式传输**: Server-Sent Events (SSE)
@@ -961,7 +961,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 
 ```bash
 # 创建发布 — npm 发布自动完成
-gh release create v1.0.5 --title "v1.0.5" --generate-notes
+gh release create v1.0.6 --title "v1.0.6" --generate-notes
 ```
 
 ---
