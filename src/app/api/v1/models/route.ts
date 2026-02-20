@@ -184,8 +184,16 @@ export async function GET() {
       }
     }
 
-    // Add embedding models
+    // Helper: check if a provider is active (by provider id or alias)
+    const isProviderActive = (provider: string) => {
+      if (connections.length === 0) return true; // No connections configured = show all
+      const alias = providerIdToAlias[provider] || provider;
+      return activeAliases.has(alias) || activeAliases.has(provider);
+    };
+
+    // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
+      if (!isProviderActive(embModel.provider)) continue;
       models.push({
         id: embModel.id,
         object: "model",
@@ -196,8 +204,9 @@ export async function GET() {
       });
     }
 
-    // Add image models
+    // Add image models (filtered by active providers)
     for (const imgModel of getAllImageModels()) {
+      if (!isProviderActive(imgModel.provider)) continue;
       models.push({
         id: imgModel.id,
         object: "model",
@@ -208,8 +217,9 @@ export async function GET() {
       });
     }
 
-    // Add rerank models
+    // Add rerank models (filtered by active providers)
     for (const rerankModel of getAllRerankModels()) {
+      if (!isProviderActive(rerankModel.provider)) continue;
       models.push({
         id: rerankModel.id,
         object: "model",
@@ -219,8 +229,9 @@ export async function GET() {
       });
     }
 
-    // Add audio models (transcription + speech)
+    // Add audio models (filtered by active providers)
     for (const audioModel of getAllAudioModels()) {
+      if (!isProviderActive(audioModel.provider)) continue;
       models.push({
         id: audioModel.id,
         object: "model",
@@ -231,8 +242,9 @@ export async function GET() {
       });
     }
 
-    // Add moderation models
+    // Add moderation models (filtered by active providers)
     for (const modModel of getAllModerationModels()) {
+      if (!isProviderActive(modModel.provider)) continue;
       models.push({
         id: modModel.id,
         object: "model",
