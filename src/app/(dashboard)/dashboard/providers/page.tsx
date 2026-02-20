@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import PropTypes from "prop-types";
-import { Card, CardSkeleton, Badge, Button, Input, Modal, Select } from "@/shared/components";
+import {
+  Card,
+  CardSkeleton,
+  Badge,
+  Button,
+  Input,
+  Modal,
+  Select,
+  Toggle,
+} from "@/shared/components";
 import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
 import {
   FREE_PROVIDERS,
@@ -148,6 +157,29 @@ export default function ProvidersPage() {
     return { connected, error, total, errorCode, errorTime, allDisabled };
   };
 
+  // Toggle all connections for a provider on/off
+  const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
+    const providerConns = connections.filter(
+      (c) => c.provider === providerId && c.authType === authType
+    );
+    // Optimistically update UI
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.provider === providerId && c.authType === authType ? { ...c, isActive: newActive } : c
+      )
+    );
+    // Fire API calls in parallel
+    await Promise.allSettled(
+      providerConns.map((c) =>
+        fetch(`/api/providers/${c.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: newActive }),
+        })
+      )
+    );
+  };
+
   const handleBatchTest = async (mode, providerId = null) => {
     if (testingMode) return;
     setTestingMode(mode === "provider" ? providerId : mode);
@@ -237,6 +269,7 @@ export default function ProvidersPage() {
               provider={info}
               stats={getProviderStats(key, "oauth")}
               authType="oauth"
+              onToggle={(active) => handleToggleProvider(key, "oauth", active)}
             />
           ))}
         </div>
@@ -273,6 +306,7 @@ export default function ProvidersPage() {
               provider={info}
               stats={getProviderStats(key, "oauth")}
               authType="free"
+              onToggle={(active) => handleToggleProvider(key, "oauth", active)}
             />
           ))}
         </div>
@@ -310,6 +344,7 @@ export default function ProvidersPage() {
               provider={info}
               stats={getProviderStats(key, "apikey")}
               authType="apikey"
+              onToggle={(active) => handleToggleProvider(key, "apikey", active)}
             />
           ))}
         </div>
@@ -373,6 +408,7 @@ export default function ProvidersPage() {
                 provider={info}
                 stats={getProviderStats(info.id, "apikey")}
                 authType="compatible"
+                onToggle={(active) => handleToggleProvider(info.id, "apikey", active)}
               />
             ))}
           </div>
@@ -425,7 +461,7 @@ export default function ProvidersPage() {
   );
 }
 
-function ProviderCard({ providerId, provider, stats, authType }) {
+function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const [imgError, setImgError] = useState(false);
 
@@ -490,9 +526,28 @@ function ProviderCard({ providerId, provider, stats, authType }) {
               </div>
             </div>
           </div>
-          <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-            chevron_right
-          </span>
+          <div className="flex items-center gap-2">
+            {stats.total > 0 && (
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggle(!allDisabled ? false : true);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Toggle
+                  size="sm"
+                  checked={!allDisabled}
+                  onChange={() => {}}
+                  title={allDisabled ? "Enable provider" : "Disable provider"}
+                />
+              </div>
+            )}
+            <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+              chevron_right
+            </span>
+          </div>
         </div>
       </Card>
     </Link>
@@ -517,7 +572,7 @@ ProviderCard.propTypes = {
 };
 
 // API Key providers - use image with textIcon fallback (same as OAuth providers)
-function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
+function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle }) {
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
   const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
@@ -605,9 +660,28 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType }) {
               </div>
             </div>
           </div>
-          <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-            chevron_right
-          </span>
+          <div className="flex items-center gap-2">
+            {stats.total > 0 && (
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggle(!allDisabled ? false : true);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Toggle
+                  size="sm"
+                  checked={!allDisabled}
+                  onChange={() => {}}
+                  title={allDisabled ? "Enable provider" : "Disable provider"}
+                />
+              </div>
+            )}
+            <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+              chevron_right
+            </span>
+          </div>
         </div>
       </Card>
     </Link>
