@@ -100,6 +100,7 @@ _通过 OmniRoute 连接任何 AI 驱动的 IDE 或 CLI 工具 — 免费 API �
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 [🌐 网站](https://omniroute.online) • [🚀 快速开始](#-快速开始) • [💡 功能特性](#-核心功能) • [📖 文档](#-文档) • [💰 定价](#-定价概览)
 
@@ -242,7 +243,7 @@ docker compose --profile cli up -d
 | 镜像                     | 标签     | 大小   | 描述       |
 | ------------------------ | -------- | ------ | ---------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | 最新稳定版 |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | 当前版本   |
+| `diegosouzapw/omniroute` | `1.0.4`  | ~250MB | 当前版本   |
 
 ---
 
@@ -892,7 +893,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 **兼容 OpenAI 的提供商连接测试显示 "Invalid"**
 
 - 许多提供商不暴露 `/models` 端点
-- OmniRoute v1.0.3+ 包含通过 chat completions 的回退验证
+- OmniRoute v1.0.4+ 包含通过 chat completions 的回退验证
 - 确保 base URL 包含 `/v1` 后缀
 
 </details>
@@ -902,7 +903,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 ## 🛠️ 技术栈
 
 - **运行时**: Node.js 20+
-- **语言**: TypeScript 5.9 — `src/` 和 `open-sse/` 中 **100% TypeScript**（v1.0.3）
+- **语言**: TypeScript 5.9 — `src/` 和 `open-sse/` 中 **100% TypeScript**（v1.0.4）
 - **框架**: Next.js 16 + React 19 + Tailwind CSS 4
 - **数据库**: LowDB (JSON) + SQLite（领域状态 + 代理日志）
 - **流式传输**: Server-Sent Events (SSE)
@@ -932,9 +933,12 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 
 ## 📧 支持
 
+> 💬 **加入我们的社区！** [WhatsApp 群组](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — 获取帮助、分享技巧、了解最新动态。
+
 - **网站**: [omniroute.online](https://omniroute.online)
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **WhatsApp**: [社区群组](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **原始项目**: [decolua 的 9router](https://github.com/decolua/9router)
 
 ---
@@ -957,7 +961,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 
 ```bash
 # 创建发布 — npm 发布自动完成
-gh release create v1.0.3 --title "v1.0.3" --generate-notes
+gh release create v1.0.4 --title "v1.0.4" --generate-notes
 ```
 
 ---

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.4] — 2026-02-19
+
+> ### 🔧 Provider Filtering, OAuth Proxy Fix & Documentation
+>
+> Dashboard model filtering by active providers, provider enable/disable visual indicators, OAuth login fix for nginx reverse proxy, and LLM onboarding documentation.
+
+### ✨ Features
+
+- **API Models filtering** — `GET /api/models` now returns only models from active providers; use `?all=true` for all models (#85)
+- **Provider disabled indicator** — Provider cards show ⏸ "Disabled" badge with reduced opacity when all connections are inactive (#85)
+- **`llm.txt`** — Comprehensive LLM onboarding file with project overview, architecture, flows, and conventions (#84)
+- **WhatsApp Community** — Added WhatsApp group link to README badges and Support section
+
+### 🐛 Bug Fixes
+
+- **OAuth behind nginx** — Fixed OAuth login failing when behind a reverse proxy by using `window.location.origin` for redirect URI instead of hardcoded `localhost` (#86)
+- **`NEXT_PUBLIC_BASE_URL` for OAuth** — Documented env var usage as redirect URI override for proxy deployments (#86)
+
+### 📁 Files Added
+
+| File      | Purpose                                            |
+| --------- | -------------------------------------------------- |
+| `llm.txt` | LLM and contributor onboarding (llms.txt standard) |
+
+### 📁 Files Modified
+
+| File                                               | Change                                                           |
+| -------------------------------------------------- | ---------------------------------------------------------------- |
+| `src/app/api/models/route.ts`                      | Filter by active providers, `?all=true` param, `available` field |
+| `src/app/(dashboard)/dashboard/providers/page.tsx` | `allDisabled` detection + ⏸ badge + opacity-50 on provider cards |
+| `src/shared/components/OAuthModal.tsx`             | Proxy-aware redirect URI using `window.location.origin`          |
+| `.env.example`                                     | Documented `NEXT_PUBLIC_BASE_URL` for OAuth behind proxy         |
+
+---
+
 ## [1.0.3] — 2026-02-19
 
 > ### 📊 Logs Dashboard & Real-Time Console Viewer
@@ -286,6 +321,7 @@ New environment variables:
 
 ---
 
+[1.0.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.4
 [1.1.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.0
 [1.0.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.3
 [1.0.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.2

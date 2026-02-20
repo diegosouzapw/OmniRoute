@@ -100,6 +100,7 @@ _Connectez n'importe quel IDE ou outil CLI alimenté par l'IA via OmniRoute — 
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 [🌐 Site web](https://omniroute.online) • [🚀 Démarrage rapide](#-démarrage-rapide) • [💡 Fonctionnalités](#-fonctionnalités-principales) • [📖 Docs](#-documentation) • [💰 Tarifs](#-aperçu-des-tarifs)
 
@@ -242,7 +243,7 @@ docker compose --profile cli up -d
 | Image                    | Tag      | Taille | Description             |
 | ------------------------ | -------- | ------ | ----------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Dernière version stable |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Version actuelle        |
+| `diegosouzapw/omniroute` | `1.0.4`  | ~250MB | Version actuelle        |
 
 ---
 
@@ -892,7 +893,7 @@ Le « OmniRoute Golden Set » préchargé contient 10 cas de test :
 **Le test de connexion affiche « Invalid » pour les fournisseurs compatibles OpenAI**
 
 - Beaucoup de fournisseurs n'exposent pas le point de terminaison `/models`
-- OmniRoute v1.0.3+ inclut une validation de secours via chat completions
+- OmniRoute v1.0.4+ inclut une validation de secours via chat completions
 - Assurez-vous que l'URL de base inclut le suffixe `/v1`
 
 </details>
@@ -902,7 +903,7 @@ Le « OmniRoute Golden Set » préchargé contient 10 cas de test :
 ## 🛠️ Stack technologique
 
 - **Runtime** : Node.js 20+
-- **Langage** : TypeScript 5.9 — **100% TypeScript** dans `src/` et `open-sse/` (v1.0.3)
+- **Langage** : TypeScript 5.9 — **100% TypeScript** dans `src/` et `open-sse/` (v1.0.4)
 - **Framework** : Next.js 16 + React 19 + Tailwind CSS 4
 - **Base de données** : LowDB (JSON) + SQLite (état du domaine + logs proxy)
 - **Streaming** : Server-Sent Events (SSE)
@@ -932,9 +933,12 @@ Le « OmniRoute Golden Set » préchargé contient 10 cas de test :
 
 ## 📧 Support
 
+> 💬 **Rejoignez notre communauté !** [Groupe WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Obtenez de l'aide, partagez des astuces et restez informé.
+
 - **Site web** : [omniroute.online](https://omniroute.online)
 - **GitHub** : [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **WhatsApp** : [Groupe communautaire](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Projet original** : [9router par decolua](https://github.com/decolua/9router)
 
 ---
@@ -957,7 +961,7 @@ Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour les directives détaillées.
 
 ```bash
 # Créer un release — la publication npm est automatique
-gh release create v1.0.3 --title "v1.0.3" --generate-notes
+gh release create v1.0.4 --title "v1.0.4" --generate-notes
 ```
 
 ---

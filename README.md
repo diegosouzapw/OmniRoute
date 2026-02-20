@@ -100,8 +100,9 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
-[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance)
+[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 🌐 **Available in:** [English](README.md) | [Português](README.pt-BR.md) | [Español](README.es.md) | [Русский](README.ru.md) | [中文](README.zh-CN.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Italiano](README.it.md)
 
@@ -905,7 +906,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 
 - Many providers don't expose a `/models` endpoint
-- OmniRoute v1.0.3+ includes fallback validation via chat completions
+- OmniRoute v1.0.4+ includes fallback validation via chat completions
 - Ensure base URL includes `/v1` suffix
 
 </details>
@@ -915,7 +916,7 @@ The pre-loaded "OmniRoute Golden Set" contains 10 test cases covering:
 ## 🛠️ Tech Stack
 
 - **Runtime**: Node.js 20+
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.3)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.4)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
 - **Streaming**: Server-Sent Events (SSE)
@@ -991,9 +992,12 @@ OmniRoute has **210+ features planned** across multiple development phases. Here
 
 ## 📧 Support
 
+> 💬 **Join our community!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Get help, share tips, and stay updated.
+
 - **Website**: [omniroute.online](https://omniroute.online)
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 
 ---
@@ -1016,7 +1020,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v1.0.3 --title "v1.0.3" --generate-notes
+gh release create v1.0.4 --title "v1.0.4" --generate-notes
 ```
 
 ---
