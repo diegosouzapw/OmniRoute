@@ -1,0 +1,134 @@
+# OmniRoute
+
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 36+ AI providers — all through a single OpenAI-compatible endpoint.
+
+## Overview
+
+OmniRoute solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
+
+**Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
+
+## Tech Stack
+
+- **Runtime:** Node.js >= 18
+- **Framework:** Next.js 16 (App Router) with TypeScript
+- **Database:** SQLite via better-sqlite3 (local, zero-config)
+- **State management:** Zustand (client), lowdb (server JSON persistence)
+- **UI:** React 19, Tailwind CSS 4, Recharts for analytics
+- **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
+- **Background jobs:** Custom token health check scheduler
+- **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
+- **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting
+- **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
+
+## Project Structure
+
+```
+/
+├── src/                          # Main application source
+│   ├── app/                      # Next.js App Router pages and API routes
+│   │   ├── (dashboard)/          # Dashboard UI pages (providers, combos, analytics, logs, etc.)
+│   │   ├── api/                  # REST API endpoints
+│   │   │   ├── v1/               # OpenAI-compatible API (chat, models, embeddings, images, audio)
+│   │   │   ├── oauth/            # OAuth flows per provider (authorize, exchange, callback)
+│   │   │   ├── providers/        # Provider CRUD and batch testing
+│   │   │   ├── models/           # Dashboard model listing and aliases
+│   │   │   ├── combos/           # Combo CRUD (multi-model fallback chains)
+│   │   │   └── ...               # Other endpoints (usage, logs, health, settings, etc.)
+│   │   └── login/                # Login page
+│   ├── domain/                   # Domain types and business logic interfaces
+│   ├── lib/                      # Core libraries
+│   │   ├── db/                   # SQLite database layer (providers, combos, prompts, logs)
+│   │   ├── oauth/                # OAuth providers, services, and utilities
+│   │   │   ├── providers/        # Provider-specific OAuth configs (GitHub, Google, Claude, etc.)
+│   │   │   ├── services/         # Provider-specific token exchange logic
+│   │   │   └── utils/            # PKCE, callback server, token helpers
+│   │   ├── cloudSync.ts          # Cloud sync via Cloudflare Workers
+│   │   ├── tokenHealthCheck.ts   # Background OAuth token refresh scheduler
+│   │   └── localDb.ts            # Unified database access layer
+│   ├── shared/                   # Shared utilities, components, and constants
+│   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, etc.)
+│   │   ├── constants/            # Provider definitions, model lists, pricing
+│   │   └── utils/                # Helpers (auth, CORS, error codes, machine ID)
+│   ├── sse/                      # SSE proxy pipeline
+│   │   ├── services/             # Auth resolution, format translation, response handling
+│   │   └── middleware/           # Rate limiting, circuit breaker, caching, idempotency
+│   ├── store/                    # Zustand client-side stores
+│   ├── types/                    # TypeScript type definitions
+│   ├── proxy.ts                  # Main proxy request handler
+│   └── server-init.ts            # Server initialization (DB, health checks)
+├── open-sse/                     # Standalone SSE server (npm workspace)
+│   ├── config/                   # Model registries (embedding, image, audio, rerank, moderation)
+│   ├── handlers/                 # Request handlers per API type
+│   └── translators/              # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses)
+├── tests/                        # Test suites
+│   ├── unit/                     # Unit tests (32+ test files)
+│   └── integration/              # Integration tests
+├── docs/                         # Documentation and screenshots
+├── bin/                          # CLI entry points (omniroute, reset-password)
+└── .env.example                  # Environment variable template
+```
+
+## Key Architectural Decisions
+
+1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format (`/v1/chat/completions`, `/v1/models`, etc.). This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
+
+2. **Provider abstraction via format translators:** Each AI provider (Claude, Gemini, etc.) has a translator in `open-sse/translators/` that converts between the OpenAI format and the provider's native format. This happens transparently.
+
+3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider are supported for multi-account rotation.
+
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 6 strategies: fill-first, round-robin, power-of-two-choices, random, least-used, cost-optimized.
+
+5. **SSE proxy pipeline (`src/sse/`):** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
+
+6. **SQLite for persistence:** All state (providers, combos, logs, settings) is stored in a single SQLite database file at `data/omniroute.db`. This keeps the app self-contained and zero-config.
+
+7. **OAuth with PKCE:** OAuth flows use PKCE for security. A local callback server (`src/lib/oauth/utils/server.ts`) handles the redirect. Token refresh is handled by a background job (`tokenHealthCheck.ts`).
+
+## Main Flows
+
+### Proxy Request Flow
+1. Client sends OpenAI-format request to `/v1/chat/completions`
+2. API key validation (`src/shared/utils/apiAuth.ts`)
+3. Model resolution: direct model or combo lookup
+4. For combos: iterate through models in fallback order
+5. Auth resolution: get credentials for the target provider
+6. Format translation: OpenAI → provider native format
+7. Upstream request with circuit breaker and rate limiting
+8. Response translation: provider → OpenAI format
+9. SSE streaming back to client
+
+### OAuth Flow
+1. Dashboard initiates `/api/oauth/[provider]/authorize`
+2. User completes OAuth login in browser
+3. Callback hits `/api/oauth/[provider]/exchange`
+4. Tokens stored as a provider connection in SQLite
+5. Background job refreshes tokens before expiry
+
+### Model Listing
+- `/api/models` — Dashboard endpoint, lists all defined models with aliases
+- `/v1/models` — OpenAI-compatible endpoint, lists only models from active providers
+
+## Important Notes for LLMs
+
+1. **Two model endpoints exist:** `/api/models` (dashboard, all models) and `/v1/models` (OpenAI-compatible, active only). Don't confuse them.
+
+2. **Provider IDs vs aliases:** Providers have both an ID (`claude`, `github`) and a short alias (`cc`, `gh`). Models are referenced as `alias/model-name` (e.g., `cc/claude-opus-4-6`).
+
+3. **The `open-sse/` directory is a separate npm workspace** with its own config, handlers, and translators. It handles the actual SSE streaming and format translation.
+
+4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
+
+5. **Database migrations:** SQLite schema is managed inline in `src/lib/db/core.ts` and `src/lib/db/providers.ts`. No migration framework — schema changes are applied on startup.
+
+6. **Tests use Node.js built-in test runner:** Run `npm test` or `node --test tests/unit/*.test.mjs`. Playwright is used for E2E tests.
+
+7. **The proxy pipeline is in `src/sse/`**, not in `src/app/api/v1/`. The API routes in `src/app/api/v1/` delegate to the SSE server running on a separate Express instance.
+
+## Links
+
+- Repository: https://github.com/diegosouzapw/OmniRoute
+- Website: https://omniroute.online
+- npm: https://www.npmjs.com/package/omniroute
+- Docker Hub: https://hub.docker.com/r/diegosouzapw/omniroute
+- Documentation: See `/docs/` directory
