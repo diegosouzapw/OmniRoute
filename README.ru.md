@@ -100,6 +100,7 @@ _Подключайте любую IDE или CLI-инструмент с AI ч�
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 [🌐 Сайт](https://omniroute.online) • [🚀 Быстрый старт](#-быстрый-старт) • [💡 Функции](#-основные-функции) • [📖 Документация](#-документация) • [💰 Цены](#-обзор-цен)
 
@@ -242,7 +243,7 @@ docker compose --profile cli up -d
 | Образ                    | Тег      | Размер | Описание                   |
 | ------------------------ | -------- | ------ | -------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Последний стабильный релиз |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Текущая версия             |
+| `diegosouzapw/omniroute` | `1.0.4`  | ~250MB | Текущая версия             |
 
 ---
 
@@ -892,7 +893,7 @@ OmniRoute включает встроенный фреймворк оценки 
 **Тест подключения показывает «Invalid» для OpenAI-совместимых провайдеров**
 
 - Многие провайдеры не предоставляют endpoint `/models`
-- OmniRoute v1.0.3+ включает fallback-валидацию через chat completions
+- OmniRoute v1.0.4+ включает fallback-валидацию через chat completions
 - Убедитесь что base URL содержит суффикс `/v1`
 
 </details>
@@ -902,7 +903,7 @@ OmniRoute включает встроенный фреймворк оценки 
 ## 🛠️ Технологический стек
 
 - **Runtime**: Node.js 20+
-- **Язык**: TypeScript 5.9 — **100% TypeScript** в `src/` и `open-sse/` (v1.0.3)
+- **Язык**: TypeScript 5.9 — **100% TypeScript** в `src/` и `open-sse/` (v1.0.4)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **База данных**: LowDB (JSON) + SQLite (состояние домена + proxy-логи)
 - **Стриминг**: Server-Sent Events (SSE)
@@ -932,9 +933,12 @@ OmniRoute включает встроенный фреймворк оценки 
 
 ## 📧 Поддержка
 
+> 💬 **Присоединяйтесь к сообществу!** [Группа WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Получайте помощь, делитесь советами и оставайтесь в курсе.
+
 - **Сайт**: [omniroute.online](https://omniroute.online)
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **WhatsApp**: [Группа сообщества](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Оригинальный проект**: [9router от decolua](https://github.com/decolua/9router)
 
 ---
@@ -957,7 +961,7 @@ OmniRoute включает встроенный фреймворк оценки 
 
 ```bash
 # Создайте релиз — публикация в npm происходит автоматически
-gh release create v1.0.3 --title "v1.0.3" --generate-notes
+gh release create v1.0.4 --title "v1.0.4" --generate-notes
 ```
 
 ---
