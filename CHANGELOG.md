@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.10] — 2026-02-21
+
+> ### 🐛 Bugfix — Multi-Account Support for Qwen
+>
+> Solves the issue where adding a second Qwen account would overwrite the first one.
+
+### 🐛 Bug Fixes
+
+- **OAuth Accounts** — Extracted user email from the `id_token` using JWT decoding for Qwen and similar providers, allowing multiple accounts of the same provider to be authenticated simultaneously instead of triggering the fallback overwrite logic ([#99](https://github.com/diegosouzapw/OmniRoute/issues/99))
+
+---
+
 ## [1.0.9] — 2026-02-21
 
 > ### 🐛 Hotfix — Settings Persistence
