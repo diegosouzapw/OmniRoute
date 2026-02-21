@@ -44,10 +44,24 @@ export const codex = {
 
     return await response.json();
   },
-  mapTokens: (tokens) => ({
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token,
-    idToken: tokens.id_token,
-    expiresIn: tokens.expires_in,
-  }),
+  mapTokens: (tokens) => {
+    // Extract email from id_token JWT to distinguish between accounts
+    let email = null;
+    if (tokens.id_token) {
+      try {
+        const payload = tokens.id_token.split(".")[1];
+        const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
+        email = decoded.email || null;
+      } catch {
+        // Ignore JWT parsing errors
+      }
+    }
+    return {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      idToken: tokens.id_token,
+      expiresIn: tokens.expires_in,
+      email,
+    };
+  },
 };
