@@ -6,12 +6,7 @@ import { isPublicRoute, verifyAuth, isAuthRequired } from "./shared/utils/apiAut
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
 
-// FASE-01: Fail-fast — no hardcoded fallback. Server must have JWT_SECRET configured.
-if (!process.env.JWT_SECRET) {
-  console.error("[SECURITY] JWT_SECRET is not set. Authentication will fail.");
-}
-
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
 
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
