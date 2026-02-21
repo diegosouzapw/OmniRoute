@@ -69,6 +69,7 @@ export const updateSettingsSchema = z.object({
   logRetentionDays: z.number().int().min(1).max(365).optional(),
   cloudUrl: z.string().max(500).optional(),
   baseUrl: z.string().max(500).optional(),
+  setupComplete: z.boolean().optional(),
 });
 
 // ──── Auth Schemas ────

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Input } from "@/shared/components";
+import { Button, Input } from "@/shared/components";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -9,9 +9,12 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [hasPassword, setHasPassword] = useState(null);
+  const [setupComplete, setSetupComplete] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     async function checkAuth() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -31,13 +34,15 @@ export default function LoginPage() {
             return;
           }
           setHasPassword(!!data.hasPassword);
+          setSetupComplete(!!data.setupComplete);
         } else {
-          // Safe fallback on non-OK response to avoid infinite loading state.
           setHasPassword(true);
+          setSetupComplete(true);
         }
       } catch (err) {
         clearTimeout(timeoutId);
         setHasPassword(true);
+        setSetupComplete(true);
       }
     }
     checkAuth();
@@ -70,58 +75,207 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading state while checking password
-  if (hasPassword === null) {
+  if (hasPassword === null || setupComplete === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-text-muted mt-4">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 border-2 border-primary/20 rounded-full"></div>
+            <div className="absolute inset-0 w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <span className="text-sm text-text-muted">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasPassword && !setupComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+        <div
+          className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        >
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 mb-6">
+              <span className="material-symbols-outlined text-primary text-[40px]">
+                rocket_launch
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-text-main tracking-tight">Welcome</h1>
+            <p className="text-text-muted mt-2">
+              Let&apos;s get your OmniRoute instance configured
+            </p>
+          </div>
+
+          <div className="bg-surface border border-border rounded-2xl p-8 shadow-soft">
+            <div className="text-center">
+              <p className="text-text-muted leading-relaxed mb-6">
+                Run the onboarding wizard to set up your password and connect your first AI
+                provider.
+              </p>
+              <Button
+                variant="primary"
+                className="w-full h-11 text-sm font-medium"
+                onClick={() => router.push("/dashboard/onboarding")}
+              >
+                Start Onboarding
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-text-muted/60 mt-8">
+            OmniRoute — Unified AI API Proxy
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasPassword && setupComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+        <div
+          className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        >
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/10 mb-6">
+              <span className="material-symbols-outlined text-amber-500 text-[40px]">
+                shield_person
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-text-main tracking-tight">
+              Secure Your Instance
+            </h1>
+            <p className="text-text-muted mt-2">Password protection is not enabled</p>
+          </div>
+
+          <div className="bg-surface border border-border rounded-2xl p-8 shadow-soft">
+            <div className="text-center">
+              <p className="text-text-muted leading-relaxed mb-6">
+                Set a password to protect your dashboard and secure your API endpoints from
+                unauthorized access.
+              </p>
+              <Button
+                variant="primary"
+                className="w-full h-11 text-sm font-medium"
+                onClick={() => router.push("/dashboard/settings?tab=security")}
+              >
+                Configure Password
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-text-muted/60 mt-8">
+            OmniRoute — Unified AI API Proxy
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">OmniRoute</h1>
-          <p className="text-text-muted">Enter your password to access the dashboard</p>
-        </div>
+    <div className="min-h-screen flex bg-bg">
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div
+          className={`w-full max-w-sm transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        >
+          <div className="mb-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-[20px]">hub</span>
+              </div>
+              <span className="text-xl font-semibold text-text-main tracking-tight">OmniRoute</span>
+            </div>
+            <h1 className="text-2xl font-bold text-text-main tracking-tight">Sign in</h1>
+            <p className="text-text-muted mt-1.5">Enter your password to continue</p>
+          </div>
 
-        <Card>
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Password</label>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-main">Password</label>
               <Input
                 type="password"
-                placeholder="Enter password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoFocus
+                className="h-11"
               />
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              {error && (
+                <p className="text-sm text-red-500 flex items-center gap-1.5 pt-1">
+                  <span className="material-symbols-outlined text-base">error</span>
+                  {error}
+                </p>
+              )}
             </div>
 
-            <Button type="submit" variant="primary" className="w-full" loading={loading}>
-              Login
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full h-11 text-sm font-medium"
+              loading={loading}
+            >
+              Continue
             </Button>
-
-            {!hasPassword && (
-              <p className="text-xs text-center text-text-muted mt-2">
-                Default password is <code className="bg-sidebar px-1 rounded">123456</code>
-              </p>
-            )}
-
-            <p className="text-xs text-center mt-1">
-              <a href="/forgot-password" className="text-primary hover:underline">
-                Forgot password?
-              </a>
-            </p>
           </form>
-        </Card>
+
+          <div className="mt-6 pt-6 border-t border-border">
+            <a
+              href="/forgot-password"
+              className="text-sm text-text-muted hover:text-primary transition-colors"
+            >
+              Forgot your password?
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent items-center justify-center p-12">
+        <div
+          className={`max-w-md transition-all duration-700 delay-200 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        >
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-text-main mb-3">Unified AI API Proxy</h2>
+              <p className="text-text-muted leading-relaxed">
+                Route requests to multiple AI providers through a single endpoint. Load balancing,
+                failover, and usage tracking built in.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  icon: "swap_horiz",
+                  title: "Multi-Provider",
+                  desc: "OpenAI, Anthropic, Google, and more",
+                },
+                {
+                  icon: "speed",
+                  title: "Load Balancing",
+                  desc: "Distribute requests intelligently",
+                },
+                { icon: "analytics", title: "Usage Tracking", desc: "Monitor costs and tokens" },
+              ].map((item) => (
+                <div
+                  key={item.icon}
+                  className="flex items-start gap-4 p-4 rounded-xl bg-surface/50 border border-border"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-[20px]">
+                      {item.icon}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-text-main">{item.title}</h3>
+                    <p className="text-sm text-text-muted">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

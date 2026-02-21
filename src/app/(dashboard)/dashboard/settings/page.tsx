@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/config";
 import SystemStorageTab from "./components/SystemStorageTab";
@@ -25,7 +26,10 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("general");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [userSelectedTab, setUserSelectedTab] = useState(null);
+  const activeTab = userSelectedTab || tabs.find((t) => t.id === tabParam)?.id || "general";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -42,7 +46,7 @@ export default function SettingsPage() {
               role="tab"
               aria-selected={activeTab === tab.id}
               tabIndex={activeTab === tab.id ? 0 : -1}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setUserSelectedTab(tab.id)}
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all text-sm",
                 activeTab === tab.id
