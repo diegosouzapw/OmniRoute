@@ -32,8 +32,8 @@ const SECRET_RULES = [
   {
     name: "JWT_SECRET",
     minLength: 32,
-    required: true,
-    description: "JWT signing secret for dashboard authentication",
+    required: false,
+    description: "JWT signing secret for dashboard authentication (auto-generated if not set)",
     generateHint: "openssl rand -base64 48",
   },
   {
