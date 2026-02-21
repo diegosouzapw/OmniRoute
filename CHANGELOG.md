@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] — 2026-02-21
+
+> ### 🐛 Bugfix Release — OAuth Client Secret and Codex Business Quotas
+>
+> Fixes missing remote-server OAuth configurations and adds ChatGPT Business account quota monitoring.
+
+### 🐛 Bug Fixes
+
+- **OAuth Client Secret** — Omitted explicitly empty `client_secret` parameters to resolve token exchange connection rejection on remote servers missing environment variables for Antigravity, Gemini and iFlow ([#103](https://github.com/diegosouzapw/OmniRoute/issues/103))
+- **Codex Business Quotas** — Automatically fetches the appropriate ChatGPT workspace to unlock the 5-hour Business usage limits directly inside the Quota tab and mapped `BIZ` string variant perfectly ([#101](https://github.com/diegosouzapw/OmniRoute/issues/101))
+
+---
+
 ## [1.0.10] — 2026-02-21
 
 > ### 🐛 Bugfix — Multi-Account Support for Qwen
@@ -244,7 +257,7 @@ New environment variables:
 
 ---
 
-## [1.1.0] — 2026-02-18
+## [1.0.1] — 2026-02-18
 
 > ### 🔧 API Compatibility & SDK Hardening
 >
@@ -429,6 +442,7 @@ New environment variables:
 [1.0.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.5
 [1.0.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.4
 [1.1.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.0
+[1.0.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.1
 [1.0.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.3
 [1.0.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.2
 [1.0.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.0
