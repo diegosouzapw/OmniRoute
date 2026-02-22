@@ -22,7 +22,7 @@ export async function getUsageForProvider(connection) {
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
-      return await getCodexUsage(accessToken);
+      return await getCodexUsage(accessToken, providerSpecificData);
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "iflow":
@@ -169,10 +169,18 @@ async function getClaudeUsage(accessToken) {
 
 /**
  * Codex (OpenAI) Usage
+ * Note: Actual quota tracking is handled by open-sse/services/usage.ts
+ * This fallback returns a message directing users to the dashboard.
  */
-async function getCodexUsage(accessToken) {
+async function getCodexUsage(accessToken, providerSpecificData: Record<string, any> = {}) {
   try {
-    // OpenAI usage requires organization API access
+    // Check if workspace is bound
+    const workspaceId = providerSpecificData?.workspaceId;
+    if (workspaceId) {
+      return {
+        message: `Codex connected (workspace: ${workspaceId.slice(0, 8)}...). Check dashboard for quota.`,
+      };
+    }
     return { message: "Codex connected. Check OpenAI dashboard for usage." };
   } catch (error) {
     return { message: "Unable to fetch Codex usage." };

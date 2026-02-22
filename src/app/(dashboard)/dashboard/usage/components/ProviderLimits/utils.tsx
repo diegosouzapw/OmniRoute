@@ -202,7 +202,7 @@ export function parseQuotaData(provider, data) {
 
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
- * Supported tiers: enterprise, business, ultra, pro, free, unknown.
+ * Supported tiers: enterprise, business, team, ultra, pro, free, unknown.
  */
 export function normalizePlanTier(plan) {
   const raw = typeof plan === "string" ? plan.trim() : "";
@@ -213,15 +213,15 @@ export function normalizePlanTier(plan) {
   const upper = raw.toUpperCase();
 
   if (upper.includes("ENTERPRISE") || upper.includes("CORP") || upper.includes("ORG")) {
-    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 6, raw };
+    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
   }
 
-  if (
-    upper.includes("BUSINESS") ||
-    upper.includes("TEAM") ||
-    upper.includes("STANDARD") ||
-    upper.includes("BIZ")
-  ) {
+  // Team plan (e.g., ChatGPT Team, GitHub Team)
+  if (upper.includes("TEAM") || upper.includes("CHATGPTTEAM")) {
+    return { key: "team", label: "Team", variant: "info", rank: 6, raw };
+  }
+
+  if (upper.includes("BUSINESS") || upper.includes("STANDARD") || upper.includes("BIZ")) {
     return { key: "business", label: "Business", variant: "warning", rank: 5, raw };
   }
 
