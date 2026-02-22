@@ -108,6 +108,7 @@ export async function GET(request: Request) {
     } catch {}
     if (settings.requireAuthForModels === true) {
       // Check authentication: API key OR dashboard session (JWT cookie)
+      // Supports dual auth: Bearer token for external clients, cookie for dashboard.
       let isAuthenticated = false;
 
       // 1. Check API key (for external clients)
@@ -116,72 +117,21 @@ export async function GET(request: Request) {
         isAuthenticated = true;
       }
 
-      // 2. Check JWT cookie (ONLY for dashboard requests - same origin)
-      // External API clients must use API key authentication
+      // 2. Check JWT cookie (for dashboard session)
+      // The auth_token cookie has sameSite:lax + httpOnly, which already
+      // prevents cross-origin abuse — no additional origin check needed.
+      // Same pattern as shared/utils/apiAuth.ts verifyAuth().
       if (!isAuthenticated && process.env.JWT_SECRET) {
-        const origin = request.headers.get("origin");
-        const referer = request.headers.get("referer");
-        const host = request.headers.get("host");
-        const secFetchSite = request.headers.get("sec-fetch-site");
-
-        // Check if request is from dashboard (same origin)
-        // Security: Use strict matching instead of loose includes()
-        let isDashboardRequest = false;
-
-        // Check sec-fetch-site header (set by browser, harder to spoof)
-        // "same-origin" = same origin request, "none" = same origin navigation
-        if (secFetchSite === "same-origin" || secFetchSite === "none") {
-          isDashboardRequest = true;
-        }
-
-        // Fallback: Check origin/referer against host with proper URL parsing
-        if (!isDashboardRequest && host) {
-          const normalizeHost = (h: string) => {
-            // Remove port if present for comparison
-            const colonIndex = h.lastIndexOf(":");
-            return colonIndex > 0 ? h.slice(0, colonIndex) : h;
-          };
-          const normalizedHost = normalizeHost(host);
-
-          if (origin) {
-            try {
-              const originUrl = new URL(origin);
-              const normalizedOrigin = normalizeHost(originUrl.host);
-              // Exact match only
-              if (normalizedOrigin === normalizedHost) {
-                isDashboardRequest = true;
-              }
-            } catch {
-              // Invalid URL, not a dashboard request
-            }
+        try {
+          const cookieStore = await cookies();
+          const token = cookieStore.get("auth_token")?.value;
+          if (token) {
+            const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+            await jwtVerify(token, secret);
+            isAuthenticated = true;
           }
-
-          if (!isDashboardRequest && referer) {
-            try {
-              const refererUrl = new URL(referer);
-              const normalizedReferer = normalizeHost(refererUrl.host);
-              // Exact match only
-              if (normalizedReferer === normalizedHost) {
-                isDashboardRequest = true;
-              }
-            } catch {
-              // Invalid URL, not a dashboard request
-            }
-          }
-        }
-
-        if (isDashboardRequest) {
-          try {
-            const cookieStore = await cookies();
-            const token = cookieStore.get("auth_token")?.value;
-            if (token) {
-              const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-              await jwtVerify(token, secret);
-              isAuthenticated = true;
-            }
-          } catch {
-            // Invalid/expired token or cookies not available — not authenticated
-          }
+        } catch {
+          // Invalid/expired token or cookies not available — not authenticated
         }
       }
 

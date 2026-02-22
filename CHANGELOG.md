@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-02-22
+
+> ### ✨ Feature Release — Dashboard Session Auth for Models Endpoint
+>
+> Dashboard users can now access `/v1/models` via their existing session when API key auth is required.
+
+### ✨ New Features
+
+- **JWT Session Auth Fallback** — When `requireAuthForModels` is enabled, the `/v1/models` endpoint now accepts both API key (Bearer token) for external clients **and** the dashboard JWT session cookie (`auth_token`), allowing logged-in dashboard users to view models without needing an explicit API key ([PR #110](https://github.com/diegosouzapw/OmniRoute/pull/110) by [@nyatoru](https://github.com/nyatoru))
+
+### 🔧 Improvements
+
+- **401 instead of 404** — Authentication failures on `/v1/models` now return `401 Unauthorized` with a structured JSON error body (OpenAI-compatible format) instead of a generic `404 Not Found`, improving debuggability for API clients
+- **Simplified auth logic** — Refactored the JWT cookie verification to reuse the same pattern as `apiAuth.ts`, removing redundant same-origin detection (~60 lines) since the `sameSite:lax` + `httpOnly` cookie flags already provide equivalent CSRF protection
+
+---
+
 ## [1.1.1] — 2026-02-22
 
 > ### 🐛 Bugfix Release — API Key Creation & Codex Team Plan Quotas
@@ -450,6 +467,7 @@ New environment variables:
 
 ---
 
+[1.2.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.2.0
 [1.1.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.1
 [1.0.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.7
 [1.0.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.6
