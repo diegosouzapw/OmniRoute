@@ -72,6 +72,7 @@ export const updateSettingsSchema = z.object({
   setupComplete: z.boolean().optional(),
   requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
+  hideHealthCheckLogs: z.boolean().optional(),
 });
 
 // ──── Auth Schemas ────

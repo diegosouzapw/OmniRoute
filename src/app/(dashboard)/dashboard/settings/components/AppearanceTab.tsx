@@ -1,11 +1,39 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, Toggle } from "@/shared/components";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
+  const [settings, setSettings] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        setSettings(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const updateSetting = async (key: string, value: any) => {
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: value }),
+      });
+      if (res.ok) {
+        setSettings((prev) => ({ ...prev, [key]: value }));
+      }
+    } catch (err) {
+      console.error(`Failed to update ${key}:`, err);
+    }
+  };
 
   return (
     <Card>
@@ -51,6 +79,22 @@ export default function AppearanceTab() {
                 <span className="capitalize">{option}</span>
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Hide Health Check Logs</p>
+              <p className="text-sm text-text-muted">
+                When ON, suppress [HealthCheck] messages in server console
+              </p>
+            </div>
+            <Toggle
+              checked={settings.hideHealthCheckLogs === true}
+              onChange={() => updateSetting("hideHealthCheckLogs", !settings.hideHealthCheckLogs)}
+              disabled={loading}
+            />
           </div>
         </div>
       </div>
