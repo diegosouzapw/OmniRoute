@@ -25,21 +25,37 @@ const LOG_PREFIX = "[HealthCheck]";
 // ── Logging helper ───────────────────────────────────────────────────────────
 let cachedHideLogs: boolean | null = null;
 let cacheTimestamp = 0;
+let pendingHideLogs: Promise<boolean> | null = null;
 const CACHE_TTL = 30_000; // Cache settings for 30 seconds
 
 async function shouldHideLogs(): Promise<boolean> {
   const now = Date.now();
+
+  // Return cached value if valid
   if (cachedHideLogs !== null && now - cacheTimestamp < CACHE_TTL) {
     return cachedHideLogs;
   }
-  try {
-    const settings = await getSettings();
-    cachedHideLogs = settings.hideHealthCheckLogs === true;
-    cacheTimestamp = now;
-    return cachedHideLogs;
-  } catch {
-    return false;
+
+  // Return pending promise if a query is already in progress (request coalescing)
+  if (pendingHideLogs !== null) {
+    return pendingHideLogs;
   }
+
+  // Create new promise for DB query
+  pendingHideLogs = (async () => {
+    try {
+      const settings = await getSettings();
+      cachedHideLogs = settings.hideHealthCheckLogs === true;
+      cacheTimestamp = now;
+      return cachedHideLogs;
+    } catch {
+      return false;
+    } finally {
+      pendingHideLogs = null;
+    }
+  })();
+
+  return pendingHideLogs;
 }
 
 function log(message: string, ...args: any[]) {
