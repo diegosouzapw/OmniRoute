@@ -53,7 +53,7 @@ export async function getUsageForProvider(connection) {
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
-      return await getCodexUsage(accessToken);
+      return await getCodexUsage(accessToken, providerSpecificData);
     case "kiro":
       return await getKiroUsage(accessToken, providerSpecificData);
     case "qwen":
@@ -483,38 +483,17 @@ async function getClaudeUsage(accessToken) {
 
 /**
  * Codex (OpenAI) Usage - Fetch from ChatGPT backend API
+ * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
+ * No fallback to other workspaces - strict binding to user's selected workspace.
  */
-async function getCodexUsage(accessToken) {
+async function getCodexUsage(accessToken, providerSpecificData: Record<string, any> = {}) {
   try {
-    let accountId = null;
-    try {
-      const accountsRes = await fetch("https://chatgpt.com/backend-api/accounts/check/v4", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-        },
-      });
-      if (accountsRes.ok) {
-        const accountsData = await accountsRes.json();
-        if (accountsData.accounts) {
-          const accountsArray = Object.values(accountsData.accounts) as any[];
-          const targetWorkspace =
-            accountsArray.find((a) => a.account?.plan_type === "biz") ||
-            accountsArray.find((a) => a.account?.plan_type !== "free") ||
-            accountsArray.find((a) => a.is_default) ||
-            accountsArray[0];
-          if (targetWorkspace && targetWorkspace.account?.id) {
-            accountId = targetWorkspace.account.id;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Could not fetch ChatGPT accounts for quota:", err);
-    }
+    // Use persisted workspace ID from OAuth - NO FALLBACK
+    const accountId = providerSpecificData?.workspaceId || null;
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
       Accept: "application/json",
     };
     if (accountId) {
@@ -532,60 +511,74 @@ async function getCodexUsage(accessToken) {
 
     const data = await response.json();
 
-    // Parse rate limit info
-    const rateLimit = data.rate_limit || {};
-    const primaryWindow = rateLimit.primary_window || {};
-    const secondaryWindow = rateLimit.secondary_window || {};
+    // Helper to get field with snake_case/camelCase fallback
+    const getField = (obj: any, snakeKey: string, camelKey: string) =>
+      obj?.[snakeKey] ?? obj?.[camelKey] ?? null;
 
-    // Parse reset dates (reset_at is Unix timestamp in seconds, multiply by 1000 for ms)
-    const sessionResetAt = parseResetTime(
-      primaryWindow.reset_at ? primaryWindow.reset_at * 1000 : null
-    );
-    const weeklyResetAt = parseResetTime(
-      secondaryWindow.reset_at ? secondaryWindow.reset_at * 1000 : null
-    );
+    // Parse rate limit info (supports both snake_case and camelCase)
+    const rateLimit = getField(data, "rate_limit", "rateLimit") || {};
+    const primaryWindow = getField(rateLimit, "primary_window", "primaryWindow") || {};
+    const secondaryWindow = getField(rateLimit, "secondary_window", "secondaryWindow") || {};
 
-    // Parse code review rate limit (3rd window — differs per plan: Plus/Pro/Team)
-    const codeReviewRateLimit = data.code_review_rate_limit || {};
-    const codeReviewWindow = codeReviewRateLimit.primary_window || {};
-    const codeReviewResetAt = parseResetTime(
-      codeReviewWindow.reset_at ? codeReviewWindow.reset_at * 1000 : null
-    );
-
-    const quotas: Record<string, any> = {
-      session: {
-        used: primaryWindow.used_percent || 0,
-        total: 100,
-        remaining: 100 - (primaryWindow.used_percent || 0),
-        resetAt: sessionResetAt,
-        unlimited: false,
-      },
-      weekly: {
-        used: secondaryWindow.used_percent || 0,
-        total: 100,
-        remaining: 100 - (secondaryWindow.used_percent || 0),
-        resetAt: weeklyResetAt,
-        unlimited: false,
-      },
+    // Parse reset times (reset_at is Unix timestamp in seconds)
+    const parseWindowReset = (window: any) => {
+      const resetAt = getField(window, "reset_at", "resetAt");
+      const resetAfterSeconds = getField(window, "reset_after_seconds", "resetAfterSeconds");
+      if (resetAt) return parseResetTime(resetAt * 1000);
+      if (resetAfterSeconds) return parseResetTime(Date.now() + resetAfterSeconds * 1000);
+      return null;
     };
 
-    // Only include code review quota if the API returned data for it
-    if (
-      codeReviewWindow.used_percent !== undefined ||
-      codeReviewWindow.remaining_count !== undefined
-    ) {
-      quotas.code_review = {
-        used: codeReviewWindow.used_percent || 0,
+    // Build quota windows
+    const quotas: Record<string, any> = {};
+
+    // Primary window (5-hour)
+    if (Object.keys(primaryWindow).length > 0) {
+      quotas.session = {
+        used: getField(primaryWindow, "used_percent", "usedPercent") || 0,
         total: 100,
-        remaining: 100 - (codeReviewWindow.used_percent || 0),
-        resetAt: codeReviewResetAt,
+        remaining: 100 - (getField(primaryWindow, "used_percent", "usedPercent") || 0),
+        resetAt: parseWindowReset(primaryWindow),
+        unlimited: false,
+      };
+    }
+
+    // Secondary window (weekly)
+    if (Object.keys(secondaryWindow).length > 0) {
+      quotas.weekly = {
+        used: getField(secondaryWindow, "used_percent", "usedPercent") || 0,
+        total: 100,
+        remaining: 100 - (getField(secondaryWindow, "used_percent", "usedPercent") || 0),
+        resetAt: parseWindowReset(secondaryWindow),
+        unlimited: false,
+      };
+    }
+
+    // Code review rate limit (3rd window — differs per plan: Plus/Pro/Team)
+    const codeReviewRateLimit =
+      getField(data, "code_review_rate_limit", "codeReviewRateLimit") || {};
+    const codeReviewWindow = getField(codeReviewRateLimit, "primary_window", "primaryWindow") || {};
+
+    // Only include code review quota if the API returned data for it
+    const codeReviewUsedPercent = getField(codeReviewWindow, "used_percent", "usedPercent");
+    const codeReviewRemainingCount = getField(
+      codeReviewWindow,
+      "remaining_count",
+      "remainingCount"
+    );
+    if (codeReviewUsedPercent !== null || codeReviewRemainingCount !== null) {
+      quotas.code_review = {
+        used: codeReviewUsedPercent || 0,
+        total: 100,
+        remaining: 100 - (codeReviewUsedPercent || 0),
+        resetAt: parseWindowReset(codeReviewWindow),
         unlimited: false,
       };
     }
 
     return {
-      plan: data.plan_type || "unknown",
-      limitReached: rateLimit.limit_reached || false,
+      plan: getField(data, "plan_type", "planType") || "unknown",
+      limitReached: getField(rateLimit, "limit_reached", "limitReached") || false,
       quotas,
     };
   } catch (error) {

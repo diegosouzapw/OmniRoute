@@ -23,6 +23,7 @@ const PROVIDER_CONFIG = {
 const TIER_FILTERS = [
   { key: "all", label: "All" },
   { key: "enterprise", label: "Enterprise" },
+  { key: "team", label: "Team" },
   { key: "business", label: "Business" },
   { key: "ultra", label: "Ultra" },
   { key: "pro", label: "Pro" },
@@ -249,6 +250,7 @@ export default function ProviderLimits() {
     const counts = {
       all: sortedConnections.length,
       enterprise: 0,
+      team: 0,
       business: 0,
       ultra: 0,
       pro: 0,
