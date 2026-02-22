@@ -47,7 +47,6 @@ export const qwen = {
     };
   },
   mapTokens: (tokens) => {
-    console.log("QWEN RAW TOKENS:", JSON.stringify(tokens, null, 2));
     let email = null;
     let displayName = null;
     if (tokens.id_token) {
