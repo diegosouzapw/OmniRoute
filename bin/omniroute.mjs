@@ -81,17 +81,26 @@ console.log(`
   \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
 \x1b[0m`);
 
+// ── Node.js version check ──────────────────────────────────
+const nodeMajor = parseInt(process.versions.node.split(".")[0], 10);
+if (nodeMajor >= 24) {
+  console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
+     OmniRoute uses better-sqlite3, a native addon that does not yet
+     have compatible prebuilt binaries for Node.js 24+.
+     You may experience errors like "is not a valid Win32 application"
+     or "NODE_MODULE_VERSION mismatch".
+
+     Recommended: use Node.js 22 LTS (or 20 LTS).
+     Workaround:  npm rebuild better-sqlite3\x1b[0m
+`);
+}
+
 // ── Resolve server entry ───────────────────────────────────
 const serverJs = join(APP_DIR, "server.js");
 
 if (!existsSync(serverJs)) {
-  console.error(
-    "\x1b[31m✖ Server not found at:\x1b[0m",
-    serverJs,
-  );
-  console.error(
-    "  This usually means the package was not built correctly.",
-  );
+  console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
+  console.error("  This usually means the package was not built correctly.");
   console.error("  Try reinstalling: npm install -g omniroute");
   process.exit(1);
 }
@@ -119,7 +128,10 @@ server.stdout.on("data", (data) => {
   process.stdout.write(text);
 
   // Detect server ready
-  if (!started && (text.includes("Ready") || text.includes("started") || text.includes("listening"))) {
+  if (
+    !started &&
+    (text.includes("Ready") || text.includes("started") || text.includes("listening"))
+  ) {
     started = true;
     onReady();
   }

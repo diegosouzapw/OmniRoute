@@ -4,7 +4,7 @@ import crypto from "crypto";
 if (!process.env.API_KEY_SECRET) {
   console.error("[SECURITY] API_KEY_SECRET is not set. API key CRC will be insecure.");
 }
-const API_KEY_SECRET = process.env.API_KEY_SECRET;
+const API_KEY_SECRET = process.env.API_KEY_SECRET || "omniroute-insecure-default-key";
 
 /**
  * Generate 6-char random keyId

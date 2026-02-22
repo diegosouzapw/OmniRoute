@@ -1009,7 +1009,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: Node.js 20+
+- **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.6)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)

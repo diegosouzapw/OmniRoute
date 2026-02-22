@@ -545,25 +545,48 @@ async function getCodexUsage(accessToken) {
       secondaryWindow.reset_at ? secondaryWindow.reset_at * 1000 : null
     );
 
+    // Parse code review rate limit (3rd window — differs per plan: Plus/Pro/Team)
+    const codeReviewRateLimit = data.code_review_rate_limit || {};
+    const codeReviewWindow = codeReviewRateLimit.primary_window || {};
+    const codeReviewResetAt = parseResetTime(
+      codeReviewWindow.reset_at ? codeReviewWindow.reset_at * 1000 : null
+    );
+
+    const quotas: Record<string, any> = {
+      session: {
+        used: primaryWindow.used_percent || 0,
+        total: 100,
+        remaining: 100 - (primaryWindow.used_percent || 0),
+        resetAt: sessionResetAt,
+        unlimited: false,
+      },
+      weekly: {
+        used: secondaryWindow.used_percent || 0,
+        total: 100,
+        remaining: 100 - (secondaryWindow.used_percent || 0),
+        resetAt: weeklyResetAt,
+        unlimited: false,
+      },
+    };
+
+    // Only include code review quota if the API returned data for it
+    if (
+      codeReviewWindow.used_percent !== undefined ||
+      codeReviewWindow.remaining_count !== undefined
+    ) {
+      quotas.code_review = {
+        used: codeReviewWindow.used_percent || 0,
+        total: 100,
+        remaining: 100 - (codeReviewWindow.used_percent || 0),
+        resetAt: codeReviewResetAt,
+        unlimited: false,
+      };
+    }
+
     return {
       plan: data.plan_type || "unknown",
       limitReached: rateLimit.limit_reached || false,
-      quotas: {
-        session: {
-          used: primaryWindow.used_percent || 0,
-          total: 100,
-          remaining: 100 - (primaryWindow.used_percent || 0),
-          resetAt: sessionResetAt,
-          unlimited: false,
-        },
-        weekly: {
-          used: secondaryWindow.used_percent || 0,
-          total: 100,
-          remaining: 100 - (secondaryWindow.used_percent || 0),
-          resetAt: weeklyResetAt,
-          unlimited: false,
-        },
-      },
+      quotas,
     };
   } catch (error) {
     throw new Error(`Failed to fetch Codex usage: ${error.message}`);

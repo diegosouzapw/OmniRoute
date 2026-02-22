@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] — 2026-02-22
+
+> ### 🐛 Bugfix Release — API Key Creation & Codex Team Plan Quotas
+>
+> Fixes API key creation crash when `API_KEY_SECRET` is not set and adds Code Review rate limit window to Codex quota display.
+
+### 🐛 Bug Fixes
+
+- **API Key Creation** — Added deterministic fallback for `API_KEY_SECRET` to prevent `crypto.createHmac` crash when the environment variable is not configured. Keys created without the secret are insecure (warned at startup) but the application no longer crashes ([#108](https://github.com/diegosouzapw/OmniRoute/issues/108))
+- **Codex Code Review Quota** — Added parsing of the third rate limit window (`code_review_rate_limit`) from the ChatGPT usage API, supporting Plus/Pro/Team plan differences. The dashboard now displays all three quota bars: Session (5h), Weekly, and Code Review ([#106](https://github.com/diegosouzapw/OmniRoute/issues/106))
+
+---
+
 ## [1.1.0] — 2026-02-21
 
 > ### 🐛 Bugfix Release — OAuth Client Secret and Codex Business Quotas
@@ -437,6 +450,7 @@ New environment variables:
 
 ---
 
+[1.1.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.1
 [1.0.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.7
 [1.0.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.6
 [1.0.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.5
