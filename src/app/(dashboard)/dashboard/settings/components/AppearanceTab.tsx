@@ -7,7 +7,7 @@ import { cn } from "@/shared/utils/cn";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
-  const [settings, setSettings] = useState<any>({});
+  const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
