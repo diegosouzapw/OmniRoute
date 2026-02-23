@@ -351,10 +351,35 @@ export async function isModelAllowedForKey(key, modelId) {
 }
 
 /**
+ * Clear prepared statements cache (called on database reset/restore)
+ * Prepared statements are bound to a specific database connection,
+ * so they must be cleared when the connection is reset.
+ */
+function clearPreparedStatementCache() {
+  _stmtGetAllKeys = null;
+  _stmtGetKeyById = null;
+  _stmtValidateKey = null;
+  _stmtGetKeyMetadata = null;
+  _stmtInsertKey = null;
+  _stmtUpdatePermissions = null;
+  _stmtDeleteKey = null;
+  _schemaChecked = false; // Also reset schema check for new connection
+}
+
+/**
  * Clear all caches (exported for testing/debugging)
  */
 export function clearApiKeyCaches() {
   invalidateCaches();
   _modelPermissionCache.clear();
   _regexCache.clear();
+}
+
+/**
+ * Reset all cached state for database connection reset/restore.
+ * Called by backup.ts when the database is restored.
+ */
+export function resetApiKeyState() {
+  clearPreparedStatementCache();
+  clearApiKeyCaches();
 }

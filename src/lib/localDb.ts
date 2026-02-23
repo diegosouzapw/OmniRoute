@@ -62,6 +62,8 @@ export {
   getApiKeyMetadata,
   updateApiKeyPermissions,
   isModelAllowedForKey,
+  clearApiKeyCaches,
+  resetApiKeyState,
 } from "./db/apiKeys";
 
 export {
