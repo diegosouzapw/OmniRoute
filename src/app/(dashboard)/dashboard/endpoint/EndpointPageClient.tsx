@@ -538,13 +538,7 @@ export default function APIPageClient({ machineId }) {
           <div>
             <h2 className="text-lg font-semibold">Available Endpoints</h2>
             <p className="text-sm text-text-muted">
-              {endpointData.chat.length +
-                endpointData.embeddings.length +
-                endpointData.images.length +
-                endpointData.rerank.length +
-                endpointData.audioTranscription.length +
-                endpointData.audioSpeech.length +
-                endpointData.moderation.length}{" "}
+              {Object.values(endpointData).reduce((acc, models) => acc + models.length, 0)}{" "}
               models across{" "}
               {
                 [
