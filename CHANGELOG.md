@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] — 2026-02-23
+
+> ### 🐛 Bugfix Release — Proxy Connection Tests & Compatible Provider Display
+>
+> Fixes provider connection tests bypassing configured proxy and improves compatible provider display in the request logger.
+
+### 🐛 Bug Fixes
+
+- **Connection Tests Now Use Proxy** — Provider connection tests (`Test Connection` button) now route through the configured proxy (key → combo → provider → global → direct), matching the behavior of real API calls. Previously, `fetch()` was called directly, bypassing the proxy entirely ([#119](https://github.com/diegosouzapw/OmniRoute/issues/119))
+- **Compatible Provider Display in Logs** — OpenAI/Anthropic compatible providers now show friendly labels (`OAI-COMPAT`, `ANT-COMPAT`) instead of raw UUID-based IDs in the request logger's provider column, dropdown, and quick filters ([#113](https://github.com/diegosouzapw/OmniRoute/issues/113))
+
+### 🧪 Tests
+
+- **Connection Test Unit Tests** — 26 new test cases covering error classification logic, token expiry detection, and provider display label resolution
+
+---
+
 ## [1.3.0] — 2026-02-23
 
 > ### ✨ Feature Release — iFlow Fix, Health Check Logs Toggle, Kilocode Models & Model Deduplication
