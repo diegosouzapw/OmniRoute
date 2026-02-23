@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] — 2026-02-23
+
+### 🔧 Improvements
+
+- **Endpoint Page Cleanup** — Removed redundant API Key Management section from Endpoint page (now fully managed in the dedicated API Manager page)
+- **CI/CD** — Added `deploy-vps.yml` workflow for automatic VPS deployment on new releases
+
+---
+
 ## [1.4.0] — 2026-02-23
 
 > ### ✨ Feature Release — Dedicated API Key Manager with Model Permissions
