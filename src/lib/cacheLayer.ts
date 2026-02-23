@@ -3,6 +3,7 @@
  *
  * In-memory LRU cache for LLM prompt/response pairs.
  * Uses content hashing for cache keys to handle semantic deduplication.
+ * Memory-optimized with byte-based limits.
  *
  * @module lib/cacheLayer
  */
@@ -19,22 +20,30 @@ import crypto from "node:crypto";
  * @property {number} hits - Number of times this entry was accessed
  */
 
+const DEFAULT_MAX_ENTRIES = 50;
+const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
+const DEFAULT_TTL = 300000;
+
 export class LRUCache {
   /** @type {Map<string, CacheEntry>} */
   #cache = new Map();
   #maxSize;
+  #maxBytes;
   #defaultTTL;
   #currentSize = 0;
+  #currentBytes = 0;
   #stats = { hits: 0, misses: 0, evictions: 0 };
 
   /**
    * @param {Object} options
-   * @param {number} [options.maxSize=100] - Max number of entries
+   * @param {number} [options.maxSize=50] - Max number of entries (reduced for memory)
+   * @param {number} [options.maxBytes=2097152] - Max bytes (default: 2MB)
    * @param {number} [options.defaultTTL=300000] - Default TTL in ms (5 min)
    */
-  constructor(options: any = {}) {
-    this.#maxSize = options.maxSize ?? 100;
-    this.#defaultTTL = options.defaultTTL ?? 300000;
+  constructor(options: { maxSize?: number; maxBytes?: number; defaultTTL?: number } = {}) {
+    this.#maxSize = options.maxSize ?? DEFAULT_MAX_ENTRIES;
+    this.#maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
+    this.#defaultTTL = options.defaultTTL ?? DEFAULT_TTL;
   }
 
   /**
@@ -42,7 +51,7 @@ export class LRUCache {
    * @param {Object} params - Parameters to hash
    * @returns {string} Cache key
    */
-  static generateKey(params) {
+  static generateKey(params: Record<string, unknown>) {
     const normalized = JSON.stringify(params, Object.keys(params).sort());
     return crypto.createHash("sha256").update(normalized).digest("hex").slice(0, 16);
   }
@@ -52,7 +61,7 @@ export class LRUCache {
    * @param {string} key
    * @returns {*|undefined}
    */
-  get(key) {
+  get(key: string) {
     const entry = this.#cache.get(key);
 
     if (!entry) {
@@ -60,15 +69,12 @@ export class LRUCache {
       return undefined;
     }
 
-    // Check TTL
     if (Date.now() - entry.createdAt > entry.ttl) {
-      this.#cache.delete(key);
-      this.#currentSize--;
+      this.#deleteEntry(key, entry);
       this.#stats.misses++;
       return undefined;
     }
 
-    // Move to end (most recently used)
     this.#cache.delete(key);
     entry.hits++;
     this.#cache.set(key, entry);
@@ -83,18 +89,25 @@ export class LRUCache {
    * @param {*} value
    * @param {number} [ttl] - Override default TTL
    */
-  set(key, value, ttl) {
-    // If key exists, delete it first (will be re-added at end)
+  set(key: string, value: unknown, ttl?: number) {
+    const entrySize = this.#estimateSize(value);
+
     if (this.#cache.has(key)) {
-      this.#cache.delete(key);
+      const oldEntry = this.#cache.get(key)!;
+      this.#currentBytes -= oldEntry.size || 0;
       this.#currentSize--;
+      this.#cache.delete(key);
     }
 
-    // Evict oldest entries if at capacity
-    while (this.#currentSize >= this.#maxSize) {
+    while (
+      (this.#currentSize >= this.#maxSize || this.#currentBytes + entrySize > this.#maxBytes) &&
+      this.#cache.size > 0
+    ) {
       const oldestKey = this.#cache.keys().next().value;
-      this.#cache.delete(oldestKey);
-      this.#currentSize--;
+      const oldestEntry = this.#cache.get(oldestKey);
+      if (oldestEntry) {
+        this.#deleteEntry(oldestKey, oldestEntry);
+      }
       this.#stats.evictions++;
     }
 
@@ -103,12 +116,34 @@ export class LRUCache {
       value,
       createdAt: Date.now(),
       ttl: ttl ?? this.#defaultTTL,
-      size: JSON.stringify(value).length,
+      size: entrySize,
       hits: 0,
     };
 
     this.#cache.set(key, entry);
     this.#currentSize++;
+    this.#currentBytes += entrySize;
+  }
+
+  /**
+   * Estimate size of a value in bytes.
+   */
+  #estimateSize(value: unknown): number {
+    try {
+      return JSON.stringify(value).length * 2;
+    } catch {
+      return 1024;
+    }
+  }
+
+  /**
+   * Delete an entry and update counters.
+   */
+  #deleteEntry(key: string, entry: { size?: number }) {
+    this.#cache.delete(key);
+    this.#currentSize--;
+    this.#currentBytes -= entry.size || 0;
+    if (this.#currentBytes < 0) this.#currentBytes = 0;
   }
 
   /**
@@ -116,12 +151,11 @@ export class LRUCache {
    * @param {string} key
    * @returns {boolean}
    */
-  has(key) {
+  has(key: string) {
     const entry = this.#cache.get(key);
     if (!entry) return false;
     if (Date.now() - entry.createdAt > entry.ttl) {
-      this.#cache.delete(key);
-      this.#currentSize--;
+      this.#deleteEntry(key, entry);
       return false;
     }
     return true;
@@ -132,10 +166,10 @@ export class LRUCache {
    * @param {string} key
    * @returns {boolean}
    */
-  delete(key) {
-    if (this.#cache.has(key)) {
-      this.#cache.delete(key);
-      this.#currentSize--;
+  delete(key: string) {
+    const entry = this.#cache.get(key);
+    if (entry) {
+      this.#deleteEntry(key, entry);
       return true;
     }
     return false;
@@ -145,14 +179,17 @@ export class LRUCache {
   clear() {
     this.#cache.clear();
     this.#currentSize = 0;
+    this.#currentBytes = 0;
   }
 
-  /** @returns {{ size: number, maxSize: number, hits: number, misses: number, evictions: number, hitRate: number }} */
+  /** @returns {{ size: number, maxSize: number, bytes: number, maxBytes: number, hits: number, misses: number, evictions: number, hitRate: number }} */
   getStats() {
     const total = this.#stats.hits + this.#stats.misses;
     return {
       size: this.#currentSize,
       maxSize: this.#maxSize,
+      bytes: this.#currentBytes,
+      maxBytes: this.#maxBytes,
       ...this.#stats,
       hitRate: total > 0 ? (this.#stats.hits / total) * 100 : 0,
     };
@@ -161,18 +198,21 @@ export class LRUCache {
 
 // ─── Prompt Cache Singleton ─────────────────
 
-let promptCache;
+let promptCache: LRUCache | null = null;
 
 /**
  * Get the global prompt cache instance.
  * @param {Object} [options]
  * @returns {LRUCache}
  */
-export function getPromptCache(options?: any) {
+export function getPromptCache(
+  options?: { maxSize?: number; maxBytes?: number; defaultTTL?: number } & Record<string, unknown>
+) {
   if (!promptCache) {
     promptCache = new LRUCache({
-      maxSize: parseInt(process.env.PROMPT_CACHE_MAX_SIZE || "200", 10),
-      defaultTTL: parseInt(process.env.PROMPT_CACHE_TTL_MS || "600000", 10),
+      maxSize: parseInt(process.env.PROMPT_CACHE_MAX_SIZE || "50", 10),
+      maxBytes: parseInt(process.env.PROMPT_CACHE_MAX_BYTES || String(2 * 1024 * 1024), 10),
+      defaultTTL: parseInt(process.env.PROMPT_CACHE_TTL_MS || "300000", 10),
       ...options,
     });
   }

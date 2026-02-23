@@ -316,6 +316,25 @@ Model: cc/claude-opus-4-6
 
 ## 🚀 Deployment
 
+### Global npm install (Recommended)
+
+```bash
+npm install -g omniroute
+
+# Create config directory
+mkdir -p ~/.omniroute
+
+# Create .env file (see .env.example)
+cp ~/.omniroute/.env
+
+# Start server
+omniroute
+# Or with custom port:
+omniroute --port 3000
+```
+
+The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
+
 ### VPS Deployment
 
 ```bash
@@ -335,6 +354,41 @@ npm run start
 # Or: pm2 start npm --name omniroute -- start
 ```
 
+### PM2 Deployment (Low Memory)
+
+For servers with limited RAM, use the memory limit option:
+
+```bash
+# With 256MB limit (default)
+pm2 start npm --name omniroute -- start
+
+# Or with custom memory limit
+OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
+
+# Or using ecosystem.config.js
+pm2 start ecosystem.config.js
+```
+
+Create `ecosystem.config.js`:
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'omniroute',
+    script: 'npm',
+    args: 'start',
+    env: {
+      NODE_ENV: 'production',
+      OMNIROUTE_MEMORY_MB: '256',
+      JWT_SECRET: 'your-secret',
+      INITIAL_PASSWORD: 'your-password',
+    },
+    node_args: '--max-old-space-size=256',
+    max_memory_restart: '300M',
+  }]
+};
+```
+
 ### Docker
 
 ```bash
@@ -349,20 +403,23 @@ For host-integrated mode with CLI binaries, see the Docker section in the main d
 
 ### Environment Variables
 
-| Variable              | Default                              | Description                                             |
-| --------------------- | ------------------------------------ | ------------------------------------------------------- |
-| `JWT_SECRET`          | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
-| `INITIAL_PASSWORD`    | `123456`                             | First login password                                    |
-| `DATA_DIR`            | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
-| `PORT`                | framework default                    | Service port (`20128` in examples)                      |
-| `HOSTNAME`            | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
-| `NODE_ENV`            | runtime default                      | Set `production` for deploy                             |
-| `BASE_URL`            | `http://localhost:20128`             | Server-side internal base URL                           |
-| `CLOUD_URL`           | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
-| `API_KEY_SECRET`      | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
-| `REQUIRE_API_KEY`     | `false`                              | Enforce Bearer API key on `/v1/*`                       |
-| `ENABLE_REQUEST_LOGS` | `false`                              | Enables request/response logs                           |
-| `AUTH_COOKIE_SECURE`  | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
+| Variable                | Default                              | Description                                             |
+| ----------------------- | ------------------------------------ | ------------------------------------------------------- |
+| `JWT_SECRET`            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
+| `INITIAL_PASSWORD`      | `123456`                             | First login password                                    |
+| `DATA_DIR`              | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
+| `PORT`                  | framework default                    | Service port (`20128` in examples)                      |
+| `HOSTNAME`              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
+| `NODE_ENV`              | runtime default                      | Set `production` for deploy                             |
+| `BASE_URL`              | `http://localhost:20128`             | Server-side internal base URL                           |
+| `CLOUD_URL`             | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
+| `API_KEY_SECRET`        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
+| `REQUIRE_API_KEY`       | `false`                              | Enforce Bearer API key on `/v1/*`                       |
+| `ENABLE_REQUEST_LOGS`   | `false`                              | Enables request/response logs                           |
+| `AUTH_COOKIE_SECURE`    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
+| `OMNIROUTE_MEMORY_MB`   | `256`                                | Node.js heap limit in MB                                |
+| `PROMPT_CACHE_MAX_SIZE` | `50`                                 | Max prompt cache entries                                |
+| `SEMANTIC_CACHE_MAX_SIZE`| `100`                               | Max semantic cache entries                              |
 
 For the full environment variable reference, see the [README](../README.md).
 
