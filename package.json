@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {

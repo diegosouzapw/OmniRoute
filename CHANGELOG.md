@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.2] — 2026-02-23
+
+### 🐛 Bug Fix
+
+- **OAuth Token Refresh** — Fixed `client_secret is missing` error for Google-based OAuth providers (Antigravity, Gemini, Gemini CLI, iFlow). Desktop/CLI OAuth secrets are now hardcoded as defaults since Next.js inlined empty strings at build time.
+
+---
+
 ## [1.4.1] — 2026-02-23
 
 ### 🔧 Improvements

@@ -36,7 +36,7 @@ export const GEMINI_CONFIG = {
   clientId:
     process.env.GEMINI_OAUTH_CLIENT_ID ||
     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  clientSecret: process.env.GEMINI_OAUTH_CLIENT_SECRET || "",
+  clientSecret: process.env.GEMINI_OAUTH_CLIENT_SECRET || "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",
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -59,7 +59,7 @@ export const QWEN_CONFIG = {
 // iFlow OAuth Configuration (Authorization Code)
 export const IFLOW_CONFIG = {
   clientId: process.env.IFLOW_OAUTH_CLIENT_ID || "10009311001",
-  clientSecret: process.env.IFLOW_OAUTH_CLIENT_SECRET || "",
+  clientSecret: process.env.IFLOW_OAUTH_CLIENT_SECRET || "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
   authorizeUrl: "https://iflow.cn/oauth",
   tokenUrl: "https://iflow.cn/oauth/token",
   userInfoUrl: "https://iflow.cn/api/oauth/getUserInfo",
@@ -98,7 +98,7 @@ export const ANTIGRAVITY_CONFIG = {
     process.env.ANTIGRAVITY_OAUTH_CLIENT_ID ||
     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
   clientSecret:
-    process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET || "",
+    process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET || "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",
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",

@@ -108,7 +108,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientIdEnv: "GEMINI_OAUTH_CLIENT_ID",
       clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
       clientSecretEnv: "GEMINI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [
       { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
@@ -134,7 +134,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
       clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
       clientSecretEnv: "GEMINI_CLI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
@@ -223,7 +223,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientIdEnv: "IFLOW_OAUTH_CLIENT_ID",
       clientIdDefault: "10009311001",
       clientSecretEnv: "IFLOW_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
       tokenUrl: "https://iflow.cn/oauth/token",
       authUrl: "https://iflow.cn/oauth",
     },
@@ -261,7 +261,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
       clientIdDefault: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
       clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [
       { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
