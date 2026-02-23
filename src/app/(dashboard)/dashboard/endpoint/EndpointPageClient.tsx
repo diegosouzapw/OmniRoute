@@ -5,7 +5,6 @@ import PropTypes from "prop-types";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
-import Link from "next/link";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
@@ -394,24 +393,6 @@ export default function APIPageClient({ machineId }) {
           >
             {copied === "endpoint_url" ? "Copied!" : "Copy"}
           </Button>
-        </div>
-
-        {/* Link to API Manager */}
-        <div className="flex items-center gap-3 p-4 border border-border rounded-lg mt-4 bg-surface/30">
-          <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 shrink-0">
-            <span className="material-symbols-outlined text-xl text-amber-500">vpn_key</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm">API Key Management</p>
-            <p className="text-xs text-text-muted">
-              Create and manage API keys for authenticating requests
-            </p>
-          </div>
-          <Link href="/dashboard/api-manager">
-            <Button size="sm" variant="secondary" icon="arrow_forward">
-              Manage Keys
-            </Button>
-          </Link>
         </div>
       </Card>
 
