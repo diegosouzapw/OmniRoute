@@ -141,11 +141,11 @@ export const CLI_TOOLS = {
     configType: "mitm",
     modelAliases: [
       "claude-opus-4-6-thinking",
-      "claude-sonnet-4-6",
+      "claude-sonnet-4-6-thinking",
       "gemini-3-flash",
       "gpt-oss-120b-medium",
-      "gemini-3-pro-high",
-      "gemini-3-pro-low",
+      "gemini-3.1-pro-high",
+      "gemini-3.1-pro-low",
     ],
     defaultModels: [
       { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", alias: "gemini-3.1-pro-high" },
