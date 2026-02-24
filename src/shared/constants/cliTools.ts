@@ -140,25 +140,28 @@ export const CLI_TOOLS = {
     description: "Google Antigravity IDE with MITM",
     configType: "mitm",
     modelAliases: [
-      "claude-opus-4-5-thinking",
-      "claude-sonnet-4-5-thinking",
-      "claude-sonnet-4-5",
+      "claude-opus-4-6-thinking",
+      "claude-sonnet-4-6",
+      "gemini-3-flash",
+      "gpt-oss-120b-medium",
       "gemini-3-pro-high",
+      "gemini-3-pro-low",
     ],
     defaultModels: [
-      {
-        id: "claude-opus-4-5-thinking",
-        name: "Claude Opus 4.5 Thinking",
-        alias: "claude-opus-4-5-thinking",
-      },
-      {
-        id: "claude-sonnet-4-5-thinking",
-        name: "Claude Sonnet 4.5 Thinking",
-        alias: "claude-sonnet-4-5-thinking",
-      },
-      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", alias: "claude-sonnet-4-5" },
-      { id: "gemini-3-pro-high", name: "Gemini 3 Pro High", alias: "gemini-3-pro-high" },
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", alias: "gemini-3.1-pro-high" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low", alias: "gemini-3.1-pro-low" },
       { id: "gemini-3-flash", name: "Gemini 3 Flash", alias: "gemini-3-flash" },
+      {
+        id: "claude-sonnet-4-6-thinking",
+        name: "Claude Sonnet 4.6 Thinking",
+        alias: "claude-sonnet-4-6-thinking",
+      },
+      {
+        id: "claude-opus-4-6-thinking",
+        name: "Claude Opus 4.6 Thinking",
+        alias: "claude-opus-4-6-thinking",
+      },
+      { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium", alias: "gpt-oss-120b-medium" },
     ],
   },
   // HIDDEN: gemini-cli
