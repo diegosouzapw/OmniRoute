@@ -10,6 +10,8 @@ import { createProviderConnection, isCloudEnabled } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
+import { getProxyConfig } from "@/lib/localDb";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -23,7 +25,10 @@ if (!globalThis.__codexCallbackState) {
 
 // GET /api/oauth/[provider]/authorize - Generate auth URL
 // GET /api/oauth/[provider]/device-code - Request device code (for device_code flow)
-export async function GET(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ provider: string; action: string }> }
+) {
   try {
     const { provider, action } = await params;
     const { searchParams } = new URL(request.url);
@@ -141,7 +146,10 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
 
 // POST /api/oauth/[provider]/exchange - Exchange code for tokens and save
 // POST /api/oauth/[provider]/poll - Poll for token (device_code flow)
-export async function POST(request: Request, { params }: { params: Promise<{ provider: string; action: string }> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ provider: string; action: string }> }
+) {
   try {
     const { provider, action } = await params;
     const body = await request.json();
@@ -153,8 +161,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
       }
 
-      // Exchange code for tokens
-      const tokenData = await exchangeTokens(provider, code, redirectUri, codeVerifier, state);
+      // Resolve proxy for this provider (provider-level → global → direct)
+      const proxyConfig = await getProxyConfig();
+      const proxy = proxyConfig.providers?.[provider] || proxyConfig.global || null;
+
+      // Exchange code for tokens (through proxy if configured)
+      const tokenData = await runWithProxyContext(proxy, () =>
+        exchangeTokens(provider, code, redirectUri, codeVerifier, state)
+      );
 
       // Save to database
       const connection: any = await createProviderConnection({
@@ -289,13 +303,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
       }
 
       try {
-        // Exchange code for tokens
-        const tokenData = await exchangeTokens(
-          provider,
-          params.code,
-          redirectUri,
-          codeVerifier,
-          params.state
+        // Resolve proxy for this provider
+        const proxyConfig = await getProxyConfig();
+        const proxy = proxyConfig.providers?.[provider] || proxyConfig.global || null;
+
+        // Exchange code for tokens (through proxy if configured)
+        const tokenData = await runWithProxyContext(proxy, () =>
+          exchangeTokens(provider, params.code, redirectUri, codeVerifier, params.state)
         );
 
         // Save to database
