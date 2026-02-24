@@ -1,10 +1,14 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { getProviderConnections, getCombos, getAllCustomModels, getSettings } from "@/lib/localDb";
-import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import {
+  getProviderConnections,
+  getCombos,
+  getAllCustomModels,
+  getSettings,
+  getProviderNodes,
+} from "@/lib/localDb";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
@@ -107,35 +111,7 @@ export async function GET(request: Request) {
       settings = await getSettings();
     } catch {}
     if (settings.requireAuthForModels === true) {
-      // Check authentication: API key OR dashboard session (JWT cookie)
-      // Supports dual auth: Bearer token for external clients, cookie for dashboard.
-      let isAuthenticated = false;
-
-      // 1. Check API key (for external clients)
-      const apiKey = extractApiKey(request);
-      if (apiKey && (await isValidApiKey(apiKey))) {
-        isAuthenticated = true;
-      }
-
-      // 2. Check JWT cookie (for dashboard session)
-      // The auth_token cookie has sameSite:lax + httpOnly, which already
-      // prevents cross-origin abuse — no additional origin check needed.
-      // Same pattern as shared/utils/apiAuth.ts verifyAuth().
-      if (!isAuthenticated && process.env.JWT_SECRET) {
-        try {
-          const cookieStore = await cookies();
-          const token = cookieStore.get("auth_token")?.value;
-          if (token) {
-            const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-            await jwtVerify(token, secret);
-            isAuthenticated = true;
-          }
-        } catch {
-          // Invalid/expired token or cookies not available — not authenticated
-        }
-      }
-
-      if (!isAuthenticated) {
+      if (!(await isAuthenticated(request))) {
         return Response.json(
           {
             error: {
@@ -167,6 +143,26 @@ export async function GET(request: Request) {
     } catch (e) {
       // If database not available, show no provider models (safe default)
       console.log("Could not fetch providers, showing only combos/custom models");
+    }
+
+    // Get provider nodes (for compatible providers with custom prefixes)
+    let providerNodes = [];
+    try {
+      providerNodes = await getProviderNodes();
+    } catch (e) {
+      console.log("Could not fetch provider nodes");
+    }
+
+    // Build map of provider node ID to prefix and type for compatible providers
+    const providerIdToPrefix: Record<string, string> = {};
+    const nodeIdToProviderType: Record<string, string> = {};
+    for (const node of providerNodes) {
+      if (node.prefix) {
+        providerIdToPrefix[node.id] = node.prefix;
+      }
+      if (node.type) {
+        nodeIdToProviderType[node.id] = node.type;
+      }
     }
 
     // Get combos
@@ -318,14 +314,19 @@ export async function GET(request: Request) {
     try {
       const customModelsMap: Record<string, any[]> = await getAllCustomModels();
       for (const [providerId, providerCustomModels] of Object.entries(customModelsMap)) {
-        const alias = providerIdToAlias[providerId] || providerId;
+        // For compatible providers, use the prefix from provider nodes
+        const prefix = providerIdToPrefix[providerId];
+        const alias = prefix || providerIdToAlias[providerId] || providerId;
         const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
-        // Only include if provider is active — check alias, canonical ID, or raw providerId
-        // (raw check needed for OpenAI-compatible providers whose ID isn't in the alias map)
+
+        // Only include if provider is active — check alias, canonical ID, raw providerId,
+        // or the parent provider type (for compatible providers whose node ID is a UUID)
+        const parentProviderType = nodeIdToProviderType[providerId];
         if (
           !activeAliases.has(alias) &&
           !activeAliases.has(canonicalProviderId) &&
-          !activeAliases.has(providerId)
+          !activeAliases.has(providerId) &&
+          !(parentProviderType && activeAliases.has(parentProviderType))
         )
           continue;
 
@@ -345,7 +346,8 @@ export async function GET(request: Request) {
             custom: true,
           });
 
-          if (canonicalProviderId !== alias) {
+          // Only add provider-prefixed version if different from alias
+          if (canonicalProviderId !== alias && !prefix) {
             const providerPrefixedId = `${canonicalProviderId}/${model.id}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
             models.push({

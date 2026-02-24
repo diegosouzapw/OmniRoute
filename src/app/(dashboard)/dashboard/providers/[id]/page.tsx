@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNotificationStore } from "@/store/notificationStore";
 import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -1290,7 +1291,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
 
   const fetchCustomModels = useCallback(async () => {
     try {
-      const res = await fetch(`/api/provider-models?provider=${providerId}`);
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
       if (res.ok) {
         const data = await res.json();
         setCustomModels(data.models || []);
@@ -1334,7 +1335,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const handleRemove = async (modelId) => {
     try {
       await fetch(
-        `/api/provider-models?provider=${providerId}&model=${encodeURIComponent(modelId)}`,
+        `/api/provider-models?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
         {
           method: "DELETE",
         }
@@ -1461,6 +1462,7 @@ function CompatibleModelsSection({
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+  const notify = useNotificationStore();
 
   const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
     (model as string).startsWith(`${providerStorageAlias}/`)
@@ -1490,7 +1492,7 @@ function CompatibleModelsSection({
     const modelId = newModel.trim();
     const resolvedAlias = resolveAlias(modelId);
     if (!resolvedAlias) {
-      alert(
+      notify.error(
         "All suggested aliases already exist. Please choose a different model or remove conflicting aliases."
       );
       return;
@@ -1498,10 +1500,37 @@ function CompatibleModelsSection({
 
     setAdding(true);
     try {
+      // Save to customModels DB FIRST - only create alias if this succeeds
+      const customModelRes = await fetch("/api/provider-models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: providerStorageAlias,
+          modelId,
+          modelName: modelId,
+          source: "manual",
+        }),
+      });
+
+      if (!customModelRes.ok) {
+        let errorData: { error?: { message?: string } } = {};
+        try {
+          errorData = await customModelRes.json();
+        } catch (jsonError) {
+          console.error("Failed to parse error response from custom model API:", jsonError);
+        }
+        throw new Error(errorData.error?.message || "Failed to save custom model");
+      }
+
+      // Only create alias after customModel is saved successfully
       await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
       setNewModel("");
+      notify.success(`Model ${modelId} added successfully`);
     } catch (error) {
-      console.log("Error adding model:", error);
+      console.error("Error adding model:", error);
+      notify.error(
+        error instanceof Error ? error.message : "Failed to add model. Please try again."
+      );
     } finally {
       setAdding(false);
     }
@@ -1528,18 +1557,60 @@ function CompatibleModelsSection({
           if (!modelId) return false;
           const resolvedAlias = resolveAlias(modelId);
           if (!resolvedAlias) return false;
+
+          // Save to customModels DB FIRST - only create alias if this succeeds
+          const customModelRes = await fetch("/api/provider-models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider: providerStorageAlias,
+              modelId,
+              modelName: model.name || modelId,
+              source: "imported",
+            }),
+          });
+
+          if (!customModelRes.ok) {
+            notify.error("Failed to save imported model to custom database");
+            return false;
+          }
+
+          // Only create alias after customModel is saved successfully
           await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
           return true;
         }
       );
     } catch (error) {
-      console.log("Error importing models:", error);
+      console.error("Error importing models:", error);
+      notify.error("Failed to import models. Please try again.");
     } finally {
       setImporting(false);
     }
   };
 
   const canImport = connections.some((conn) => conn.isActive !== false);
+
+  // Handle delete: remove from both alias and customModels DB
+  const handleDeleteModel = async (modelId: string, alias: string) => {
+    try {
+      // Remove from customModels DB
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&model=${encodeURIComponent(modelId)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        throw new Error("Failed to remove model from database");
+      }
+      // Also delete the alias
+      await onDeleteAlias(alias);
+      notify.success("Model removed successfully");
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      notify.error(
+        error instanceof Error ? error.message : "Failed to delete model. Please try again."
+      );
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -1593,7 +1664,7 @@ function CompatibleModelsSection({
               fullModel={`${providerDisplayAlias}/${modelId}`}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={() => onDeleteAlias(alias)}
+              onDeleteAlias={() => handleDeleteModel(modelId, alias)}
             />
           ))}
         </div>

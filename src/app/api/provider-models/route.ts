@@ -4,6 +4,7 @@ import {
   addCustomModel,
   removeCustomModel,
 } from "@/lib/localDb";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/provider-models?provider=<id>
@@ -11,6 +12,14 @@ import {
  */
 export async function GET(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return Response.json(
+        { error: { message: "Authentication required", type: "invalid_api_key" } },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
 
@@ -31,6 +40,14 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return Response.json(
+        { error: { message: "Authentication required", type: "invalid_api_key" } },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { provider, modelId, modelName, source } = body;
 
@@ -56,6 +73,14 @@ export async function POST(request) {
  */
 export async function DELETE(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return Response.json(
+        { error: { message: "Authentication required", type: "invalid_api_key" } },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
     const modelId = searchParams.get("model");

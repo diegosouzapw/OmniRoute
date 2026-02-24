@@ -156,13 +156,14 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     // Pre-check function: skip models where all accounts are in cooldown
     // Uses modelAvailability module for TTL-based cooldowns
     const checkModelAvailable = async (modelString: string) => {
-      const parsed = parseModel(modelString);
-      const provider = parsed.provider;
+      // Use getModelInfo to properly resolve custom prefixes
+      const modelInfo = await getModelInfo(modelString);
+      const provider = modelInfo.provider;
       if (!provider) return true; // can't determine provider, let it try
 
       // Check domain-level availability (cooldown)
-      if (!isModelAvailable(provider, parsed.model || modelString)) {
-        log.debug("AVAILABILITY", `${provider}/${parsed.model} in cooldown, skipping`);
+      if (!isModelAvailable(provider, modelInfo.model || modelString)) {
+        log.debug("AVAILABILITY", `${provider}/${modelInfo.model} in cooldown, skipping`);
         return false;
       }
 
