@@ -149,13 +149,14 @@ export default function ModelSelectModal({
       } else if (isCustomProvider) {
         const matchedNode = providerNodes.find((node) => node.id === providerId);
         const displayName = matchedNode?.name || providerInfo.name;
+        const nodePrefix = matchedNode?.prefix || providerId;
 
         const nodeModels = Object.entries(modelAliases as Record<string, string>)
           .filter(([, fullModel]: [string, string]) => fullModel.startsWith(`${providerId}/`))
           .map(([aliasName, fullModel]: [string, string]) => ({
             id: fullModel.replace(`${providerId}/`, ""),
             name: aliasName,
-            value: fullModel,
+            value: `${nodePrefix}/${fullModel.replace(`${providerId}/`, "")}`,
           }));
 
         // Merge custom models for custom providers
@@ -164,7 +165,7 @@ export default function ModelSelectModal({
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
-            value: `${providerId}/${cm.id}`,
+            value: `${nodePrefix}/${cm.id}`,
             isCustom: true,
           }));
 
@@ -173,7 +174,7 @@ export default function ModelSelectModal({
         if (allModels.length > 0) {
           groups[providerId] = {
             name: displayName,
-            alias: matchedNode?.prefix || providerId,
+            alias: nodePrefix,
             color: providerInfo.color,
             models: allModels,
             isCustom: true,

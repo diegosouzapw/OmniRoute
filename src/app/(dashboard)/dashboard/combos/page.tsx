@@ -631,8 +631,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
       const parts = modelValue.split("/");
       if (parts.length !== 2) return modelValue;
 
-      const [providerId, modelId] = parts;
-      const matchedNode = providerNodes.find((node) => node.id === providerId);
+      const [providerPart, modelId] = parts;
+      // Match by node ID or prefix
+      const matchedNode = providerNodes.find(
+        (node) => node.id === providerPart || node.prefix === providerPart
+      );
 
       if (matchedNode) {
         return `${matchedNode.name}/${modelId}`;
