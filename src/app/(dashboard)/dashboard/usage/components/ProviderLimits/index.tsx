@@ -27,6 +27,7 @@ const TIER_FILTERS = [
   { key: "business", label: "Business" },
   { key: "ultra", label: "Ultra" },
   { key: "pro", label: "Pro" },
+  { key: "plus", label: "Plus" },
   { key: "free", label: "Free" },
   { key: "unknown", label: "Unknown" },
 ];
