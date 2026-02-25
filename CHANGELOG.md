@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.4.9] — 2026-02-25
+## [1.4.10] — 2026-02-25
+
+> ### 🔒 Proxy Visibility + Bug Fixes
+>
+> Color-coded proxy badges, provider-level proxy configuration, CLI tools page fix, and EACCES fix for restricted environments.
+
+### ✨ New Features
+
+- **Color-Coded Proxy Badges** — Each provider connection now shows its proxy status with color-coded badges: 🟢 green (global proxy), 🟡 amber (provider-level proxy), 🔵 blue (per-connection proxy). Badge always displays the proxy IP/host
+- **Provider-Level Proxy Button** — New "Provider Proxy" button in the Connections header of each provider detail page. Allows configuring a proxy that applies to all connections of that provider
+- **Proxy IP Display** — The proxy badge now always shows the proxy host/IP address for quick identification
+
+### 🐛 Bug Fixes
+
+- **CLI Tools Page Stuck in Loading** — Fixed the `/api/cli-tools/status` endpoint hanging indefinitely when binary checks stall on VPS. Added 5s server-side timeout per tool and 8s client-side AbortController timeout (#cli-tools-hang)
+- **EACCES on Restricted Home Directories** — Fixed crash when `~/.omniroute` directory cannot be created due to permission issues. Now gracefully warns and suggests using the `DATA_DIR` environment variable (#133)
+
+---
 
 > ### 🌐 Full Internationalization (i18n) + Multi-Account Fix
 >
