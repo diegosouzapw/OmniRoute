@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Input, Toggle, Button } from "@/shared/components";
 import FallbackChainsEditor from "./FallbackChainsEditor";
+import { useTranslations } from "next-intl";
 
 const STRATEGIES = [
   {
@@ -34,6 +35,7 @@ export default function RoutingTab() {
   const [aliases, setAliases] = useState([]);
   const [newPattern, setNewPattern] = useState("");
   const [newTarget, setNewTarget] = useState("");
+  const t = useTranslations("settings");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -86,7 +88,7 @@ export default function RoutingTab() {
               route
             </span>
           </div>
-          <h3 className="text-lg font-semibold">Routing Strategy</h3>
+          <h3 className="text-lg font-semibold">{t("routingStrategy")}</h3>
         </div>
 
         <div className="grid grid-cols-3 gap-2 mb-4" style={{ gridAutoRows: "1fr" }}>
@@ -123,8 +125,8 @@ export default function RoutingTab() {
         {settings.fallbackStrategy === "round-robin" && (
           <div className="flex items-center justify-between pt-3 border-t border-border/30">
             <div>
-              <p className="text-sm font-medium">Sticky Limit</p>
-              <p className="text-xs text-text-muted">Calls per account before switching</p>
+              <p className="text-sm font-medium">{t("stickyLimit")}</p>
+              <p className="text-xs text-text-muted">{t("stickyLimitDesc")}</p>
             </div>
             <Input
               type="number"
@@ -163,10 +165,8 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Model Aliases</h3>
-            <p className="text-sm text-text-muted">
-              Wildcard patterns to remap model names • Use * and ?
-            </p>
+            <h3 className="text-lg font-semibold">{t("modelAliases")}</h3>
+            <p className="text-sm text-text-muted">{t("modelAliasesDesc")}</p>
           </div>
         </div>
 
@@ -198,7 +198,7 @@ export default function RoutingTab() {
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <Input
-              label="Pattern"
+              label={t("pattern")}
               placeholder="claude-sonnet-*"
               value={newPattern}
               onChange={(e) => setNewPattern(e.target.value)}
@@ -206,14 +206,14 @@ export default function RoutingTab() {
           </div>
           <div className="flex-1">
             <Input
-              label="Target Model"
+              label={t("targetModel")}
               placeholder="claude-sonnet-4-20250514"
               value={newTarget}
               onChange={(e) => setNewTarget(e.target.value)}
             />
           </div>
           <Button size="sm" variant="primary" onClick={addAlias} className="mb-[2px]">
-            + Add
+            {t("add")}
           </Button>
         </div>
       </Card>
