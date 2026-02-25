@@ -61,10 +61,10 @@ export default function LiveMonitorMode() {
         <div>
           <p className="font-medium text-text-main mb-0.5">{t("realtime")}</p>
           <p>
-            {t("liveMonitorDescription")}{" "}
+            {t("liveMonitorDescriptionPrefix")}{" "}
             <strong className="text-text-main">{t("chatTester")}</strong>,{" "}
-            <strong className="text-text-main">{t("testBench")}</strong>, {t("or")}{" "}
-            {t("externalApiCalls").toLowerCase()} {t("toGenerateEvents")}
+            <strong className="text-text-main">{t("testBench")}</strong>
+            {t("liveMonitorDescriptionSuffix")}
           </p>
         </div>
       </div>
@@ -124,9 +124,7 @@ export default function LiveMonitorMode() {
                 monitoring
               </span>
               <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
-              <p className="text-xs text-center max-w-sm">
-                {t("eventsAppearHint")}
-              </p>
+              <p className="text-xs text-center max-w-sm">{t("eventsAppearHint")}</p>
               <div className="flex flex-wrap gap-2 mt-3 text-xs">
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
                   {t("chatTesterTab")}

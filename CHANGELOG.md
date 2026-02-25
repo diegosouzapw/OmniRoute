@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.11] — 2026-02-25
+
+> ### 🐛 Settings Persistence Fix
+>
+> Fixes routing strategy and wildcard aliases not saving after page refresh.
+
+### 🐛 Bug Fixes
+
+- **Routing Strategy Not Saved After Refresh (#134)** — Added `fallbackStrategy`, `wildcardAliases`, and `stickyRoundRobinLimit` to the Zod validation schema. These fields were silently stripped during validation, preventing them from being persisted to the database
+
+### 📝 Notes
+
+- **#135 Closed** — Feature request for proxy configuration (global + per-provider) was already implemented in v1.4.10
+
+---
+
 ## [1.4.10] — 2026-02-25
 
 > ### 🔒 Proxy Visibility + Bug Fixes
