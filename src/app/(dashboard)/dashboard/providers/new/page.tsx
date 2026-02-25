@@ -63,10 +63,10 @@ export default function NewProviderPage() {
         router.push("/dashboard/providers");
       } else {
         const data = await response.json();
-        setErrors({ submit: data.error || t("failedCreateProvider") });
+        setErrors({ submit: data.error || t("failedCreate") });
       }
     } catch (error) {
-      setErrors({ submit: t("errorOccurredRetry") });
+      setErrors({ submit: t("errorOccurred") });
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function NewProviderPage() {
             options={providerOptions}
             value={formData.provider}
             onChange={(e) => handleChange("provider", e.target.value)}
-            placeholder={t("selectProviderPlaceholder")}
+            placeholder={t("selectProvider")}
             error={errors.provider as string}
             required
           />
@@ -156,7 +156,7 @@ export default function NewProviderPage() {
               value={formData.apiKey}
               onChange={(e) => handleChange("apiKey", e.target.value)}
               error={errors.apiKey as string}
-              hint={t("apiKeyEncrypted")}
+              hint={t("apiKeySecure")}
               required
             />
           )}
@@ -164,9 +164,9 @@ export default function NewProviderPage() {
           {/* OAuth2 Button */}
           {formData.authMethod === "oauth2" && (
             <Card.Section className="">
-              <p className="text-sm text-text-muted mb-4">{t("connectOAuth2")}</p>
+              <p className="text-sm text-text-muted mb-4">{t("oauth2Desc")}</p>
               <Button type="button" variant="secondary" icon="link">
-                {t("connectWithOAuth2")}
+                {t("oauth2Connect")}
               </Button>
             </Card.Section>
           )}
@@ -184,7 +184,7 @@ export default function NewProviderPage() {
           <Toggle
             checked={formData.isActive}
             onChange={(checked) => handleChange("isActive", checked)}
-            label={t("activeLabel")}
+            label={t("active")}
             description={t("activeDescription")}
           />
 
