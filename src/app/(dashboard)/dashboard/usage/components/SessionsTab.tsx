@@ -68,16 +68,16 @@ export default function SessionsTab() {
             <thead>
               <tr className="border-b border-border/30">
                 <th className="text-left py-2 px-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  {t(">session</")}
+                  {t("session")}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  {t(">age</")}
+                  {t("age")}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  {t(">requests</")}
+                  {t("requests")}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  {t(">connection</")}
+                  {t("connection")}
                 </th>
               </tr>
             </thead>

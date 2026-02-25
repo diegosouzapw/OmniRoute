@@ -292,7 +292,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-violet-400">1</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">define</")}</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t("define")}</h4>
                 <p className="text-xs text-text-muted">
                   Create test cases with input prompts and expected output criteria using strategies
                   like contains, regex, or exact match.
@@ -302,7 +302,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-sky-400">2</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">run</")}</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t("run")}</h4>
                 <p className="text-xs text-text-muted">
                   Execute test cases against your LLM endpoints through OmniRoute. Each case is sent
                   as a real API request.
@@ -312,7 +312,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-emerald-400">3</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">evaluate</")}</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t("evaluate")}</h4>
                 <p className="text-xs text-text-muted">
                   Responses are compared against expected criteria. See pass/fail for each case with
                   latency metrics and detailed feedback.

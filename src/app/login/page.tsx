@@ -104,7 +104,7 @@ export default function LoginPage() {
                 rocket_launch
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-text-main tracking-tight">{t(">welcome</")}</h1>
+            <h1 className="text-3xl font-bold text-text-main tracking-tight">{t("welcome")}</h1>
             <p className="text-text-muted mt-2">
               Let&apos;s get your OmniRoute instance configured
             </p>
@@ -189,13 +189,13 @@ export default function LoginPage() {
               </div>
               <span className="text-xl font-semibold text-text-main tracking-tight">OmniRoute</span>
             </div>
-            <h1 className="text-2xl font-bold text-text-main tracking-tight">{t(">signIn</")}</h1>
+            <h1 className="text-2xl font-bold text-text-main tracking-tight">{t("signIn")}</h1>
             <p className="text-text-muted mt-1.5">{t("enterPassword")}</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-main">{t(">password</")}</label>
+              <label className="text-sm font-medium text-text-main">{t("password")}</label>
               <Input
                 type="password"
                 placeholder="Enter your password"

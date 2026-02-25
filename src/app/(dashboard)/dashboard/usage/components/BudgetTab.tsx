@@ -149,7 +149,7 @@ export default function BudgetTab() {
         </div>
 
         <div className="mb-4">
-          <label className="text-sm text-text-muted mb-1 block">{t(">apiKey</")}</label>
+          <label className="text-sm text-text-muted mb-1 block">{t("apiKey")}</label>
           <select
             value={selectedKey || ""}
             onChange={(e) => setSelectedKey(e.target.value)}

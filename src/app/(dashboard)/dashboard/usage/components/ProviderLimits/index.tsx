@@ -376,10 +376,10 @@ export default function ProviderLimits() {
           className="items-center px-4 py-2.5 border-b border-white/[0.06] text-[11px] font-semibold uppercase tracking-wider text-text-muted"
           style={{ display: "grid", gridTemplateColumns: "280px 1fr 100px 48px" }}
         >
-          <div>{t(">account</")}</div>
+          <div>{t("account")}</div>
           <div>{t("modelQuotas")}</div>
-          <div className="text-center">{t(">lastUsed</")}</div>
-          <div className="text-center">{t(">actions</")}</div>
+          <div className="text-center">{t("lastUsed")}</div>
+          <div className="text-center">{t("actions")}</div>
         </div>
 
         {visibleConnections.map((conn, idx) => {

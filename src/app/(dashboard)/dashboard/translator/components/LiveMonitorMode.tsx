@@ -13,6 +13,7 @@ import { FORMAT_META } from "../exampleTemplates";
  */
 export default function LiveMonitorMode() {
   const t = useTranslations("translator");
+  const tc = useTranslations("common");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -60,21 +61,25 @@ export default function LiveMonitorMode() {
         <div>
           <p className="font-medium text-text-main mb-0.5">{t("realtime")}</p>
           <p>
-            Shows translation events as API calls flow through OmniRoute. Events come from the
-            in-memory buffer (resets on restart). Use{" "}
+            {t("liveMonitorDescription")}{" "}
             <strong className="text-text-main">{t("chatTester")}</strong>,{" "}
-            <strong className="text-text-main">{t("testBench")}</strong>, or external API calls to
-            generate events.
+            <strong className="text-text-main">{t("testBench")}</strong>, {t("or")}{" "}
+            {t("externalApiCalls").toLowerCase()} {t("toGenerateEvents")}
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon="translate" label="Total Translations" value={events.length} color="blue" />
-        <StatCard icon="check_circle" label="Successful" value={successCount} color="green" />
-        <StatCard icon="error" label="Errors" value={errorCount} color="red" />
-        <StatCard icon="speed" label="Avg Latency" value={`${avgLatency}ms`} color="purple" />
+        <StatCard
+          icon="translate"
+          label={t("totalTranslations")}
+          value={events.length}
+          color="blue"
+        />
+        <StatCard icon="check_circle" label={t("successful")} value={successCount} color="green" />
+        <StatCard icon="error" label={t("errors")} value={errorCount} color="red" />
+        <StatCard icon="speed" label={t("avgLatency")} value={`${avgLatency}ms`} color="purple" />
       </div>
 
       {/* Controls */}
@@ -90,7 +95,7 @@ export default function LiveMonitorMode() {
               onClick={() => setAutoRefresh(!autoRefresh)}
               className="text-sm text-text-main hover:text-primary transition-colors"
             >
-              {autoRefresh ? "Live — Auto-refreshing" : "Paused"}
+              {autoRefresh ? t("liveAutoRefreshing") : t("paused")}
             </button>
           </div>
           <button
@@ -98,7 +103,7 @@ export default function LiveMonitorMode() {
             className="flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Refresh
+            {tc("refresh")}
           </button>
         </div>
       </Card>
@@ -111,7 +116,7 @@ export default function LiveMonitorMode() {
           {loading ? (
             <div className="flex items-center justify-center py-12 text-text-muted">
               <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-              Loading...
+              {tc("loading")}
             </div>
           ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-text-muted">
@@ -120,39 +125,36 @@ export default function LiveMonitorMode() {
               </span>
               <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
               <p className="text-xs text-center max-w-sm">
-                Translation events appear here as requests flow through OmniRoute. Use any of these
-                methods to generate events:
+                {t("eventsAppearHint")}
               </p>
               <div className="flex flex-wrap gap-2 mt-3 text-xs">
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  Chat Tester tab
+                  {t("chatTesterTab")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  Test Bench tab
+                  {t("testBenchTab")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  External API calls
+                  {t("externalApiCalls")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  IDE/CLI integrations
+                  {t("ideCliIntegrations")}
                 </span>
               </div>
-              <p className="text-[10px] mt-3 text-text-muted/70">
-                Note: Events are stored in-memory and reset when the server restarts.
-              </p>
+              <p className="text-[10px] mt-3 text-text-muted/70">{t("inMemoryNote")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-text-muted border-b border-border">
-                    <th className="pb-2 pr-4">{t(">time</")}</th>
-                    <th className="pb-2 pr-4">{t(">source</")}</th>
+                    <th className="pb-2 pr-4">{t("time")}</th>
+                    <th className="pb-2 pr-4">{t("source")}</th>
                     <th className="pb-2 pr-4"></th>
-                    <th className="pb-2 pr-4">{t(">target</")}</th>
-                    <th className="pb-2 pr-4">{t(">model</")}</th>
-                    <th className="pb-2 pr-4">{t(">status</")}</th>
-                    <th className="pb-2 text-right">{t(">latency</")}</th>
+                    <th className="pb-2 pr-4">{t("target")}</th>
+                    <th className="pb-2 pr-4">{t("model")}</th>
+                    <th className="pb-2 pr-4">{t("status")}</th>
+                    <th className="pb-2 text-right">{t("latency")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,11 +197,11 @@ export default function LiveMonitorMode() {
                         <td className="py-2 pr-4">
                           {event.status === "success" ? (
                             <Badge variant="success" size="sm" dot>
-                              OK
+                              {t("ok")}
                             </Badge>
                           ) : (
                             <Badge variant="error" size="sm" dot>
-                              {event.statusCode || "ERR"}
+                              {event.statusCode || t("errorShort")}
                             </Badge>
                           )}
                         </td>

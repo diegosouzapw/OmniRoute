@@ -66,7 +66,7 @@ export default function BudgetTelemetryCards() {
         {cache ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">{t(">entries</")}</span>
+              <span className="text-text-muted">{t("entries")}</span>
               <span className="font-mono">
                 {cache.size}/{cache.maxSize}
               </span>
