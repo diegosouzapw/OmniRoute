@@ -5,11 +5,14 @@ import PropTypes from "prop-types";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
+import { useTranslations } from "next-intl";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
 
 export default function APIPageClient({ machineId }) {
+  const t = useTranslations("endpoint");
+  const tc = useTranslations("common");
   const [providerConnections, setProviderConnections] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -317,12 +320,14 @@ export default function APIPageClient({ machineId }) {
       <Card className={cloudEnabled ? "" : ""}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">API Endpoint</h2>
+            <h2 className="text-lg font-semibold">{t("title")}</h2>
             <p className="text-sm text-text-muted">
-              {cloudEnabled ? "Using Cloud Proxy" : "Using Local Server"}
+              {cloudEnabled ? t("usingCloudProxy") : t("usingLocalServer")}
             </p>
             {machineId && (
-              <p className="text-xs text-text-muted mt-1">Machine ID: {machineId.slice(0, 8)}...</p>
+              <p className="text-xs text-text-muted mt-1">
+                {t("machineId", { id: machineId.slice(0, 8) })}
+              </p>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -335,7 +340,7 @@ export default function APIPageClient({ machineId }) {
                 disabled={cloudSyncing}
                 className="bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
               >
-                Disable Cloud
+                {t("disableCloud")}
               </Button>
             ) : (
               <Button
@@ -345,7 +350,7 @@ export default function APIPageClient({ machineId }) {
                 disabled={cloudSyncing}
                 className="bg-linear-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600"
               >
-                Enable Cloud
+                {t("enableCloud")}
               </Button>
             )}
           </div>
@@ -391,7 +396,7 @@ export default function APIPageClient({ machineId }) {
             icon={copied === "endpoint_url" ? "check" : "content_copy"}
             onClick={() => copy(currentEndpoint, "endpoint_url")}
           >
-            {copied === "endpoint_url" ? "Copied!" : "Copy"}
+            {copied === "endpoint_url" ? tc("copied") : tc("copy")}
           </Button>
         </div>
       </Card>
@@ -400,7 +405,7 @@ export default function APIPageClient({ machineId }) {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Available Endpoints</h2>
+            <h2 className="text-lg font-semibold">{t("available")}</h2>
             <p className="text-sm text-text-muted">
               {Object.values(endpointData).reduce((acc, models) => acc + models.length, 0)} models
               across{" "}
@@ -426,9 +431,9 @@ export default function APIPageClient({ machineId }) {
             icon="chat"
             iconColor="text-blue-500"
             iconBg="bg-blue-500/10"
-            title="Chat Completions"
+            title={t("chatCompletions")}
             path="/v1/chat/completions"
-            description="Streaming & non-streaming chat with all providers"
+            description={t("chatDesc")}
             models={endpointData.chat}
             expanded={expandedEndpoint === "chat"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "chat" ? null : "chat")}
@@ -442,9 +447,9 @@ export default function APIPageClient({ machineId }) {
             icon="data_array"
             iconColor="text-emerald-500"
             iconBg="bg-emerald-500/10"
-            title="Embeddings"
+            title={t("embeddings")}
             path="/v1/embeddings"
-            description="Text embeddings for search & RAG pipelines"
+            description={t("embeddingsDesc")}
             models={endpointData.embeddings}
             expanded={expandedEndpoint === "embeddings"}
             onToggle={() =>
@@ -460,9 +465,9 @@ export default function APIPageClient({ machineId }) {
             icon="image"
             iconColor="text-purple-500"
             iconBg="bg-purple-500/10"
-            title="Image Generation"
+            title={t("imageGeneration")}
             path="/v1/images/generations"
-            description="Generate images from text prompts"
+            description={t("imageDesc")}
             models={endpointData.images}
             expanded={expandedEndpoint === "images"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")}
@@ -476,9 +481,9 @@ export default function APIPageClient({ machineId }) {
             icon="sort"
             iconColor="text-amber-500"
             iconBg="bg-amber-500/10"
-            title="Rerank"
+            title={t("rerank")}
             path="/v1/rerank"
-            description="Rerank documents by relevance to a query"
+            description={t("rerankDesc")}
             models={endpointData.rerank}
             expanded={expandedEndpoint === "rerank"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")}
@@ -492,9 +497,9 @@ export default function APIPageClient({ machineId }) {
             icon="mic"
             iconColor="text-rose-500"
             iconBg="bg-rose-500/10"
-            title="Audio Transcription"
+            title={t("audioTranscription")}
             path="/v1/audio/transcriptions"
-            description="Transcribe audio files to text (Whisper)"
+            description={t("audioTranscriptionDesc")}
             models={endpointData.audioTranscription}
             expanded={expandedEndpoint === "audioTranscription"}
             onToggle={() =>
@@ -512,9 +517,9 @@ export default function APIPageClient({ machineId }) {
             icon="record_voice_over"
             iconColor="text-cyan-500"
             iconBg="bg-cyan-500/10"
-            title="Text to Speech"
+            title={t("textToSpeech")}
             path="/v1/audio/speech"
-            description="Convert text to natural-sounding speech"
+            description={t("textToSpeechDesc")}
             models={endpointData.audioSpeech}
             expanded={expandedEndpoint === "audioSpeech"}
             onToggle={() =>
@@ -530,9 +535,9 @@ export default function APIPageClient({ machineId }) {
             icon="shield"
             iconColor="text-orange-500"
             iconBg="bg-orange-500/10"
-            title="Moderations"
+            title={t("moderations")}
             path="/v1/moderations"
-            description="Content moderation and safety classification"
+            description={t("moderationsDesc")}
             models={endpointData.moderation}
             expanded={expandedEndpoint === "moderation"}
             onToggle={() =>
@@ -612,19 +617,19 @@ export default function APIPageClient({ machineId }) {
       {/* Cloud Enable Modal */}
       <Modal
         isOpen={showCloudModal}
-        title="Enable Cloud Proxy"
+        title={t("enableCloudTitle")}
         onClose={() => setShowCloudModal(false)}
       >
         <div className="flex flex-col gap-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
-              What you will get
+              {t("whatYouGet")}
             </p>
             <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              <li>• Access your API from anywhere in the world</li>
-              <li>• Share endpoint with your team easily</li>
-              <li>• No need to open ports or configure firewall</li>
-              <li>• Fast global edge network</li>
+              <li>• {t("cloudBenefitAccess")}</li>
+              <li>• {t("cloudBenefitShare")}</li>
+              <li>• {t("cloudBenefitPorts")}</li>
+              <li>• {t("cloudBenefitEdge")}</li>
             </ul>
           </div>
 
@@ -663,9 +668,9 @@ export default function APIPageClient({ machineId }) {
                     modalSuccess ? "text-green-500" : "text-primary"
                   }`}
                 >
-                  {modalSuccess && "Cloud Proxy connected!"}
-                  {!modalSuccess && syncStep === "syncing" && "Connecting to cloud..."}
-                  {!modalSuccess && syncStep === "verifying" && "Verifying connection..."}
+                  {modalSuccess && t("cloudConnected")}
+                  {!modalSuccess && syncStep === "syncing" && t("connectingToCloud")}
+                  {!modalSuccess && syncStep === "verifying" && t("verifyingConnection")}
                 </p>
               </div>
             </div>
@@ -678,15 +683,15 @@ export default function APIPageClient({ machineId }) {
                   <span className="material-symbols-outlined animate-spin text-sm">
                     progress_activity
                   </span>
-                  {syncStep === "syncing" ? "Connecting..." : "Verifying..."}
+                  {syncStep === "syncing" ? t("connecting") : t("verifying")}
                 </span>
               ) : modalSuccess ? (
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm">check</span>
-                  Connected!
+                  {t("connected")}
                 </span>
               ) : (
-                "Enable Cloud"
+                t("enableCloud")
               )}
             </Button>
             <Button
@@ -695,7 +700,7 @@ export default function APIPageClient({ machineId }) {
               fullWidth
               disabled={cloudSyncing || modalSuccess}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
           </div>
         </div>
@@ -704,7 +709,7 @@ export default function APIPageClient({ machineId }) {
       {/* Disable Cloud Modal */}
       <Modal
         isOpen={showDisableModal}
-        title="Disable Cloud Proxy"
+        title={t("disableCloudTitle")}
         onClose={() => !cloudSyncing && setShowDisableModal(false)}
       >
         <div className="flex flex-col gap-4">
@@ -730,14 +735,14 @@ export default function APIPageClient({ machineId }) {
               </span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-primary">
-                  {syncStep === "syncing" && "Syncing latest data..."}
-                  {syncStep === "disabling" && "Disabling cloud..."}
+                  {syncStep === "syncing" && t("syncingData")}
+                  {syncStep === "disabling" && t("disablingCloud")}
                 </p>
               </div>
             </div>
           )}
 
-          <p className="text-sm text-text-muted">Are you sure you want to disable cloud proxy?</p>
+          <p className="text-sm text-text-muted">{t("disableConfirm")}</p>
 
           <div className="flex gap-2">
             <Button
@@ -751,10 +756,10 @@ export default function APIPageClient({ machineId }) {
                   <span className="material-symbols-outlined animate-spin text-sm">
                     progress_activity
                   </span>
-                  {syncStep === "syncing" ? "Syncing..." : "Disabling..."}
+                  {syncStep === "syncing" ? t("syncing") : t("disabling")}
                 </span>
               ) : (
-                "Disable Cloud"
+                t("disableCloud")
               )}
             </Button>
             <Button
@@ -763,7 +768,7 @@ export default function APIPageClient({ machineId }) {
               fullWidth
               disabled={cloudSyncing}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
           </div>
         </div>
