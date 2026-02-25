@@ -5,6 +5,7 @@ import { Card, Button, Input, Toggle } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import IPFilterSection from "./IPFilterSection";
 import SessionInfoCard from "./SessionInfoCard";
+import { useTranslations } from "next-intl";
 
 export default function SecurityTab() {
   const [settings, setSettings] = useState<any>({ requireLogin: false, hasPassword: false });
@@ -12,6 +13,7 @@ export default function SecurityTab() {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [passStatus, setPassStatus] = useState({ type: "", message: "" });
   const [passLoading, setPassLoading] = useState(false);
+  const t = useTranslations("settings");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -64,7 +66,7 @@ export default function SecurityTab() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwords.new !== passwords.confirm) {
-      setPassStatus({ type: "error", message: "Passwords do not match" });
+      setPassStatus({ type: "error", message: t("passwordsNoMatch") });
       return;
     }
 
@@ -82,13 +84,13 @@ export default function SecurityTab() {
       });
       const data = await res.json();
       if (res.ok) {
-        setPassStatus({ type: "success", message: "Password updated successfully" });
+        setPassStatus({ type: "success", message: t("passwordUpdated") });
         setPasswords({ current: "", new: "", confirm: "" });
       } else {
-        setPassStatus({ type: "error", message: data.error || "Failed to update password" });
+        setPassStatus({ type: "error", message: data.error || t("failedUpdatePassword") });
       }
     } catch {
-      setPassStatus({ type: "error", message: "An error occurred" });
+      setPassStatus({ type: "error", message: t("errorOccurred") });
     } finally {
       setPassLoading(false);
     }
@@ -105,15 +107,13 @@ export default function SecurityTab() {
               shield
             </span>
           </div>
-          <h3 className="text-lg font-semibold">Security</h3>
+          <h3 className="text-lg font-semibold">{t("security")}</h3>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Require login</p>
-              <p className="text-sm text-text-muted">
-                When ON, dashboard requires password. When OFF, access without login.
-              </p>
+              <p className="font-medium">{t("requireLogin")}</p>
+              <p className="text-sm text-text-muted">{t("requireLoginDesc")}</p>
             </div>
             <Toggle
               checked={settings.requireLogin === true}
@@ -128,9 +128,9 @@ export default function SecurityTab() {
             >
               {settings.hasPassword && (
                 <Input
-                  label="Current Password"
+                  label={t("currentPassword")}
                   type="password"
-                  placeholder="Enter current password"
+                  placeholder={t("enterCurrentPassword")}
                   value={passwords.current}
                   onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
                   required
@@ -138,17 +138,17 @@ export default function SecurityTab() {
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  label="New Password"
+                  label={t("newPassword")}
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder={t("enterNewPassword")}
                   value={passwords.new}
                   onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
                   required
                 />
                 <Input
-                  label="Confirm New Password"
+                  label={t("confirmPassword")}
                   type="password"
-                  placeholder="Confirm new password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   value={passwords.confirm}
                   onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
                   required
@@ -165,7 +165,7 @@ export default function SecurityTab() {
 
               <div className="pt-2">
                 <Button type="submit" variant="primary" loading={passLoading}>
-                  {settings.hasPassword ? "Update Password" : "Set Password"}
+                  {settings.hasPassword ? t("updatePassword") : t("setPassword")}
                 </Button>
               </div>
             </form>
@@ -181,13 +181,13 @@ export default function SecurityTab() {
               api
             </span>
           </div>
-          <h3 className="text-lg font-semibold">API Endpoint Protection</h3>
+          <h3 className="text-lg font-semibold">{t("apiEndpointProtection")}</h3>
         </div>
         <div className="flex flex-col gap-4">
           {/* Require auth for /models */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Require API key for /models</p>
+              <p className="font-medium">{t("requireAuthModels")}</p>
               <p className="text-sm text-text-muted">
                 When ON, the{" "}
                 <code className="text-xs bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">
@@ -207,7 +207,7 @@ export default function SecurityTab() {
           {/* Blocked Providers */}
           <div className="pt-4 border-t border-border/50">
             <div className="mb-3">
-              <p className="font-medium">Blocked Providers</p>
+              <p className="font-medium">{t("blockedProviders")}</p>
               <p className="text-sm text-text-muted">
                 Hide specific providers from the{" "}
                 <code className="text-xs bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">
