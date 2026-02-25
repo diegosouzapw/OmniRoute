@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   Card,
   Button,
@@ -47,6 +48,7 @@ export default function ProviderDetailPage() {
   const [modelAliases, setModelAliases] = useState({});
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
+  const t = useTranslations("providers");
   const hasAutoOpened = useRef(false);
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
@@ -203,7 +205,7 @@ export default function ProviderDetailPage() {
         await fetchAliases();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to set alias");
+        alert(data.error || t("failedSetAlias"));
       }
     } catch (error) {
       console.log("Error setting alias:", error);
@@ -224,7 +226,7 @@ export default function ProviderDetailPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this connection?")) return;
+    if (!confirm(t("deleteConnectionConfirm"))) return;
     try {
       const res = await fetch(`/api/providers/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -253,11 +255,11 @@ export default function ProviderDetailPage() {
         return null;
       }
       const data = await res.json().catch(() => ({}));
-      const errorMsg = data.error?.message || data.error || "Failed to save connection";
+      const errorMsg = data.error?.message || data.error || t("failedSaveConnection");
       return errorMsg;
     } catch (error) {
       console.log("Error saving connection:", error);
-      return "Failed to save connection. Please try again.";
+      return t("failedSaveConnectionRetry");
     }
   };
 
@@ -316,7 +318,7 @@ export default function ProviderDetailPage() {
       const res = await fetch(`/api/providers/${connectionId}/test`, { method: "POST" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "Failed to retest connection");
+        alert(data.error || t("failedRetestConnection"));
         return;
       }
       await fetchConnections();
@@ -375,7 +377,7 @@ export default function ProviderDetailPage() {
       current: 0,
       total: 0,
       phase: "fetching",
-      status: "Fetching available models...",
+      status: t("fetchingModels"),
       logs: [],
       error: "",
       importedCount: 0,
@@ -388,7 +390,7 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "error",
-          status: "Failed to fetch models",
+          status: t("failedFetchModels"),
           error: data.error || "Failed to import models",
         }));
         return;
@@ -398,7 +400,7 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: "No models found",
+          status: t("noModelsFound"),
           logs: ["No models returned from /models endpoint."],
         }));
         return;
@@ -475,7 +477,7 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "error",
-        status: "Import failed",
+        status: t("importFailed"),
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     } finally {
@@ -493,7 +495,7 @@ export default function ProviderDetailPage() {
       current: 0,
       total: 0,
       phase: "fetching",
-      status: "Fetching available models...",
+      status: t("fetchingModels"),
       logs: [],
       error: "",
       importedCount: 0,
@@ -506,7 +508,7 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: "No models found",
+          status: t("noModelsFound"),
           logs: ["No models returned from /models endpoint."],
         }));
         return;
@@ -564,7 +566,7 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "error",
-        status: "Import failed",
+        status: t("importFailed"),
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }
@@ -600,10 +602,10 @@ export default function ProviderDetailPage() {
               onClick={handleImportModels}
               disabled={!canImportModels || importingModels}
             >
-              {importingModels ? "Importing..." : "Import from /models"}
+              {importingModels ? t("importingModels") : t("importFromModels")}
             </Button>
             {!canImportModels && (
-              <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+              <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
             )}
           </div>
           <PassthroughModelsSection
@@ -627,10 +629,10 @@ export default function ProviderDetailPage() {
           onClick={handleImportModels}
           disabled={!canImportModels || importingModels}
         >
-          {importingModels ? "Importing..." : "Import from /models"}
+          {importingModels ? t("importingModels") : t("importFromModels")}
         </Button>
         {!canImportModels && (
-          <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
         )}
       </div>
     );
@@ -639,7 +641,7 @@ export default function ProviderDetailPage() {
       return (
         <div>
           {importButton}
-          <p className="text-sm text-text-muted">No models configured</p>
+          <p className="text-sm text-text-muted">{t("noModelsConfigured")}</p>
         </div>
       );
     }
@@ -683,9 +685,9 @@ export default function ProviderDetailPage() {
   if (!providerInfo) {
     return (
       <div className="text-center py-20">
-        <p className="text-text-muted">Provider not found</p>
+        <p className="text-text-muted">{t("providerNotFound")}</p>
         <Link href="/dashboard/providers" className="text-primary mt-4 inline-block">
-          Back to Providers
+          {t("backToProviders")}
         </Link>
       </div>
     );
@@ -713,7 +715,7 @@ export default function ProviderDetailPage() {
           className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
-          Back to Providers
+          {t("backToProviders")}
         </Link>
         <div className="flex items-center gap-4">
           <div
@@ -764,15 +766,15 @@ export default function ProviderDetailPage() {
             <div>
               <h2 className="text-lg font-semibold">
                 {isAnthropicCompatible
-                  ? "Anthropic Compatible Details"
-                  : "OpenAI Compatible Details"}
+                  ? t("anthropicCompatibleDetails")
+                  : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
                 {isAnthropicCompatible
-                  ? "Messages API"
+                  ? t("messagesApi")
                   : providerNode.apiType === "responses"
-                    ? "Responses API"
-                    : "Chat Completions"}{" "}
+                    ? t("responsesApi")
+                    : t("chatCompletions")}{" "}
                 · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
                 {isAnthropicCompatible
                   ? "messages"
