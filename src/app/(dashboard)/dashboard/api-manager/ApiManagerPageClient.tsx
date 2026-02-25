@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { useTranslations } from "next-intl";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 100;
@@ -70,6 +71,8 @@ interface Model {
 type ProviderGroup = [provider: string, models: Model[]];
 
 export default function ApiManagerPageClient() {
+  const t = useTranslations("apiManager");
+  const tc = useTranslations("common");
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
@@ -193,7 +196,7 @@ export default function ApiManagerPageClient() {
       return;
     }
 
-    if (!confirm("Delete this API key?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
 
     setIsSubmitting(true);
     clearError();
@@ -332,7 +335,7 @@ export default function ApiManagerPageClient() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{keys.length}</p>
-                <p className="text-xs text-text-muted">Total Keys</p>
+                <p className="text-xs text-text-muted">{t("totalKeys")}</p>
               </div>
             </div>
           </Card>
@@ -348,7 +351,7 @@ export default function ApiManagerPageClient() {
                       .length
                   }
                 </p>
-                <p className="text-xs text-text-muted">Restricted</p>
+                <p className="text-xs text-text-muted">{t("restricted")}</p>
               </div>
             </div>
           </Card>
@@ -361,7 +364,7 @@ export default function ApiManagerPageClient() {
                 <p className="text-2xl font-bold">
                   {Object.values(usageStats).reduce((sum, s) => sum + s.totalRequests, 0)}
                 </p>
-                <p className="text-xs text-text-muted">Total Requests</p>
+                <p className="text-xs text-text-muted">{t("totalRequests")}</p>
               </div>
             </div>
           </Card>
@@ -374,7 +377,7 @@ export default function ApiManagerPageClient() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{allModels.length}</p>
-                <p className="text-xs text-text-muted">Models Available</p>
+                <p className="text-xs text-text-muted">{t("modelsAvailable")}</p>
               </div>
             </div>
           </Card>
@@ -385,13 +388,11 @@ export default function ApiManagerPageClient() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">API Key Management</h2>
-            <p className="text-sm text-text-muted">
-              Create and manage API keys for authenticating requests to your endpoint
-            </p>
+            <h2 className="text-lg font-semibold">{t("keyManagement")}</h2>
+            <p className="text-sm text-text-muted">{t("keyManagementDesc")}</p>
           </div>
           <Button icon="add" onClick={() => setShowAddModal(true)}>
-            Create Key
+            {t("createKey")}
           </Button>
         </div>
       </Card>
@@ -404,42 +405,40 @@ export default function ApiManagerPageClient() {
               <span className="material-symbols-outlined text-xl text-amber-500">vpn_key</span>
             </div>
             <div>
-              <h3 className="font-semibold">Registered Keys</h3>
+              <h3 className="font-semibold">{t("registeredKeys")}</h3>
               <p className="text-xs text-text-muted">
-                {keys.length} {keys.length === 1 ? "key" : "keys"} registered
+                {keys.length}{" "}
+                {keys.length === 1
+                  ? t("keyRegistered", { count: keys.length })
+                  : t("keysRegistered", { count: keys.length })}
               </p>
             </div>
           </div>
         </div>
 
-        <p className="text-sm text-text-muted mb-4">
-          Each key isolates usage tracking and can be revoked independently. Keys are masked after
-          creation for security.
-        </p>
+        <p className="text-sm text-text-muted mb-4">{t("keysSecurityNote")}</p>
 
         {keys.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-border rounded-lg">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
               <span className="material-symbols-outlined text-[32px]">vpn_key</span>
             </div>
-            <p className="text-text-main font-medium mb-2">No API keys yet</p>
-            <p className="text-sm text-text-muted mb-4">
-              Create your first API key to authenticate requests to your endpoint
-            </p>
+            <p className="text-text-main font-medium mb-2">{t("noKeys")}</p>
+            <p className="text-sm text-text-muted mb-4">{t("noKeysDesc")}</p>
             <Button icon="add" onClick={() => setShowAddModal(true)}>
-              Create Your First Key
+              {t("createFirstKey")}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col border border-border rounded-lg overflow-hidden">
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider">
-              <div className="col-span-2">Name</div>
-              <div className="col-span-3">Key</div>
-              <div className="col-span-2">Permissions</div>
-              <div className="col-span-2">Usage</div>
-              <div className="col-span-1">Created</div>
-              <div className="col-span-2 text-right">Actions</div>
+              <div className="col-span-2">{t("name")}</div>
+              <div className="col-span-3">{t("key")}</div>
+              <div className="col-span-2">{t("permissions")}</div>
+              <div className="col-span-2">{t("usage")}</div>
+              <div className="col-span-1">{t("created")}</div>
+              <div className="col-span-2 text-right">{t("actions")}</div>
             </div>
 
             {/* Table Rows */}
@@ -489,21 +488,21 @@ export default function ApiManagerPageClient() {
                         className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[14px]">lock_open</span>
-                        All models
+                        {t("allModels")}
                       </button>
                     )}
                   </div>
                   <div className="col-span-2 flex flex-col justify-center">
                     <span className="text-sm font-medium tabular-nums">
                       {stats?.totalRequests ?? 0}{" "}
-                      <span className="text-text-muted font-normal text-xs">reqs</span>
+                      <span className="text-text-muted font-normal text-xs">{t("reqs")}</span>
                     </span>
                     {stats?.lastUsed ? (
                       <span className="text-[10px] text-text-muted">
                         Last: {new Date(stats.lastUsed).toLocaleDateString()}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-text-muted italic">Never used</span>
+                      <span className="text-[10px] text-text-muted italic">{t("neverUsed")}</span>
                     )}
                   </div>
                   <div className="col-span-1 flex items-center text-sm text-text-muted">
@@ -539,28 +538,23 @@ export default function ApiManagerPageClient() {
             <span className="material-symbols-outlined text-xl text-blue-500">lightbulb</span>
           </div>
           <div>
-            <h3 className="font-semibold mb-2">Usage Tips</h3>
+            <h3 className="font-semibold mb-2">{t("usageTips")}</h3>
             <ul className="text-sm text-text-muted space-y-1.5">
               <li className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>
-                  Use API keys in the{" "}
-                  <code className="text-xs bg-surface px-1.5 py-0.5 rounded">Authorization</code>{" "}
-                  header as{" "}
-                  <code className="text-xs bg-surface px-1.5 py-0.5 rounded">Bearer YOUR_KEY</code>
-                </span>
+                <span>{t("tipAuth")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>Keys are only shown once during creation — store them securely</span>
+                <span>{t("tipSecure")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>Create separate keys for different clients or environments</span>
+                <span>{t("tipSeparate")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>Restrict keys to specific models for better security and cost control</span>
+                <span>{t("tipRestrict")}</span>
               </li>
             </ul>
           </div>
@@ -570,7 +564,7 @@ export default function ApiManagerPageClient() {
       {/* Add Key Modal */}
       <Modal
         isOpen={showAddModal}
-        title="Create API Key"
+        title={t("createKey")}
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
@@ -578,16 +572,16 @@ export default function ApiManagerPageClient() {
       >
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-sm font-medium text-text-main mb-1.5 block">Key Name</label>
+            <label className="text-sm font-medium text-text-main mb-1.5 block">
+              {t("keyName")}
+            </label>
             <Input
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
-              placeholder="e.g., Production Key, Development Key"
+              placeholder={t("keyNamePlaceholder")}
               autoFocus
             />
-            <p className="text-xs text-text-muted mt-1.5">
-              Choose a descriptive name to identify this key&apos;s purpose
-            </p>
+            <p className="text-xs text-text-muted mt-1.5">{t("keyNameDesc")}</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -598,17 +592,17 @@ export default function ApiManagerPageClient() {
               variant="ghost"
               fullWidth
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button onClick={handleCreateKey} fullWidth disabled={!newKeyName.trim()}>
-              Create Key
+              {t("createKey")}
             </Button>
           </div>
         </div>
       </Modal>
 
       {/* Created Key Modal */}
-      <Modal isOpen={!!createdKey} title="API Key Created" onClose={() => setCreatedKey(null)}>
+      <Modal isOpen={!!createdKey} title={t("keyCreated")} onClose={() => setCreatedKey(null)}>
         <div className="flex flex-col gap-4">
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -617,11 +611,9 @@ export default function ApiManagerPageClient() {
               </span>
               <div>
                 <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-1">
-                  Key created successfully!
+                  {t("keyCreatedSuccess")}
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Copy and store this key now — it won&apos;t be shown again.
-                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">{t("keyCreatedNote")}</p>
               </div>
             </div>
           </div>
@@ -632,7 +624,7 @@ export default function ApiManagerPageClient() {
               icon={copied === "created_key" ? "check" : "content_copy"}
               onClick={() => copy(createdKey, "created_key")}
             >
-              {copied === "created_key" ? "Copied!" : "Copy"}
+              {copied === "created_key" ? tc("copied") : tc("copy")}
             </Button>
           </div>
           <Button onClick={() => setCreatedKey(null)} fullWidth>
@@ -683,6 +675,9 @@ const PermissionsModal = memo(function PermissionsModal({
   onSearchChange: (v: string) => void;
   onSave: (models: string[]) => void;
 }) {
+  const t = useTranslations("apiManager");
+  const tc = useTranslations("common");
+
   // Initialize state from props - component remounts when key prop changes
   const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
@@ -773,7 +768,7 @@ const PermissionsModal = memo(function PermissionsModal({
   return (
     <Modal
       isOpen={onClose ? isOpen : false}
-      title={`Permissions: ${apiKey?.name || ""}`}
+      title={t("permissionsTitle", { name: apiKey?.name || "" })}
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
@@ -788,7 +783,7 @@ const PermissionsModal = memo(function PermissionsModal({
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">lock_open</span>
-            Allow All
+            {t("allowAll")}
           </button>
           <button
             onClick={handleRestrictMode}
@@ -799,7 +794,7 @@ const PermissionsModal = memo(function PermissionsModal({
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">lock</span>
-            Restrict
+            {t("restrict")}
           </button>
         </div>
 
@@ -823,9 +818,7 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll
-              ? "This key can access all available models."
-              : `This key can access ${selectedCount} of ${totalModels} models.`}
+            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
@@ -833,19 +826,21 @@ const PermissionsModal = memo(function PermissionsModal({
         {!allowAll && selectedCount > 0 && (
           <div className="flex flex-col gap-1.5 p-2 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-primary">{selectedCount} selected</span>
+              <span className="text-xs font-medium text-primary">
+                {t("selectedCount", { count: selectedCount })}
+              </span>
               <div className="flex gap-1">
                 <button
                   onClick={handleSelectAllModels}
                   className="text-[10px] text-primary hover:bg-primary/10 px-1.5 py-0.5 rounded transition-colors"
                 >
-                  All
+                  {tc("all")}
                 </button>
                 <button
                   onClick={handleDeselectAllModels}
                   className="text-[10px] text-red-500 hover:bg-red-500/10 px-1.5 py-0.5 rounded transition-colors"
                 >
-                  Clear
+                  {t("clear")}
                 </button>
               </div>
             </div>
@@ -877,7 +872,7 @@ const PermissionsModal = memo(function PermissionsModal({
               <Input
                 value={searchModel}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search models by name or provider..."
+                placeholder={t("searchModels")}
                 icon="search"
               />
               {searchModel && (
@@ -894,7 +889,7 @@ const PermissionsModal = memo(function PermissionsModal({
               {modelsByProvider.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-text-muted">
                   <span className="material-symbols-outlined text-2xl mb-1">search_off</span>
-                  <p className="text-xs">No models found</p>
+                  <p className="text-xs">{t("noModelsFound")}</p>
                 </div>
               ) : (
                 modelsByProvider.map(([provider, models]) => {
@@ -995,10 +990,10 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Actions */}
         <div className="flex gap-2">
           <Button onClick={handleSave} fullWidth>
-            Save Permissions
+            {t("savePermissions")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {tc("cancel")}
           </Button>
         </div>
       </div>
