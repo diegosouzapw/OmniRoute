@@ -66,13 +66,17 @@ export default function CLIToolsPageClient({ machineId }) {
 
   const fetchToolStatuses = async () => {
     try {
-      const res = await fetch("/api/cli-tools/status");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s client timeout
+      const res = await fetch("/api/cli-tools/status", { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         setToolStatuses(data || {});
       }
     } catch (error) {
-      console.log("Error fetching CLI tool statuses:", error);
+      // Timeout or network error — proceed without statuses
+      console.log("CLI tool status check timed out or failed:", error);
     } finally {
       setStatusesLoaded(true);
     }
