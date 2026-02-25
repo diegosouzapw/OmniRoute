@@ -10,31 +10,32 @@ import OmniRouteLogo from "./OmniRouteLogo";
 import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
+import { useTranslations } from "next-intl";
 
-const navItems = [
-  { href: "/dashboard", label: "Home", icon: "home", exact: true },
-  { href: "/dashboard/endpoint", label: "Endpoint", icon: "api" },
-  { href: "/dashboard/api-manager", label: "API Manager", icon: "vpn_key" },
-  { href: "/dashboard/providers", label: "Providers", icon: "dns" },
-  { href: "/dashboard/combos", label: "Combos", icon: "layers" },
-  { href: "/dashboard/logs", label: "Logs", icon: "description" },
-  { href: "/dashboard/costs", label: "Costs", icon: "account_balance_wallet" },
-  { href: "/dashboard/analytics", label: "Analytics", icon: "analytics" },
-  { href: "/dashboard/limits", label: "Limits & Quotas", icon: "tune" },
-  { href: "/dashboard/health", label: "Health", icon: "health_and_safety" },
-  { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
+// Nav items use i18n keys resolved inside the component
+const navItemDefs = [
+  { href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
+  { href: "/dashboard/endpoint", i18nKey: "endpoint", icon: "api" },
+  { href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  { href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
+  { href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+  { href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
+  { href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
+  { href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
+  { href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
+  { href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
+  { href: "/dashboard/cli-tools", i18nKey: "cliTools", icon: "terminal" },
 ];
 
-// Debug items (only show when ENABLE_REQUEST_LOGS=true)
-const debugItems = [{ href: "/dashboard/translator", label: "Translator", icon: "translate" }];
+const debugItemDefs = [{ href: "/dashboard/translator", i18nKey: "translator", icon: "translate" }];
 
-const systemItems = [{ href: "/dashboard/settings", label: "Settings", icon: "settings" }];
+const systemItemDefs = [{ href: "/dashboard/settings", i18nKey: "settings", icon: "settings" }];
 
-const helpItems = [
-  { href: "/docs", label: "Docs", icon: "menu_book" },
+const helpItemDefs = [
+  { href: "/docs", i18nKey: "docs", icon: "menu_book" },
   {
     href: "https://github.com/diegosouzapw/OmniRoute/issues",
-    label: "Issues",
+    i18nKey: "issues",
     icon: "bug_report",
     external: true,
   },
@@ -50,6 +51,8 @@ export default function Sidebar({
   onToggleCollapse?: any;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
+  const tc = useTranslations("common");
   const [showShutdownModal, setShowShutdownModal] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [isShuttingDown, setIsShuttingDown] = useState(false);
@@ -99,6 +102,13 @@ export default function Sidebar({
       globalThis.location.reload();
     }, 3000);
   };
+
+  // Resolve i18n keys → labels
+  const resolveItems = (defs) => defs.map((d) => ({ ...d, label: t(d.i18nKey) }));
+  const navItems = resolveItems(navItemDefs);
+  const debugItems = resolveItems(debugItemDefs);
+  const systemItems = resolveItems(systemItemDefs);
+  const helpItems = resolveItems(helpItemDefs);
 
   const renderNavLink = (item) => {
     const active = !item.external && isActive(item.href, item.exact);
@@ -271,7 +281,7 @@ export default function Sidebar({
         >
           <button
             onClick={() => setShowRestartModal(true)}
-            title="Restart server"
+            title={t("restart")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-amber-500 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40",
@@ -279,11 +289,11 @@ export default function Sidebar({
             )}
           >
             <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-            {!collapsed && "Restart"}
+            {!collapsed && t("restart")}
           </button>
           <button
             onClick={() => setShowShutdownModal(true)}
-            title="Shutdown server"
+            title={t("shutdown")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-red-500 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40",
@@ -291,7 +301,7 @@ export default function Sidebar({
             )}
           >
             <span className="material-symbols-outlined text-[18px]">power_settings_new</span>
-            {!collapsed && "Shutdown"}
+            {!collapsed && t("shutdown")}
           </button>
         </div>
       </aside>
@@ -301,10 +311,10 @@ export default function Sidebar({
         isOpen={showShutdownModal}
         onClose={() => setShowShutdownModal(false)}
         onConfirm={handleShutdown}
-        title="Close Proxy"
-        message="Are you sure you want to close the proxy server?"
-        confirmText="Close"
-        cancelText="Cancel"
+        title={t("shutdown")}
+        message={t("shutdownConfirm")}
+        confirmText={t("shutdown")}
+        cancelText={tc("cancel")}
         variant="danger"
         loading={isShuttingDown}
       />
@@ -314,10 +324,10 @@ export default function Sidebar({
         isOpen={showRestartModal}
         onClose={() => setShowRestartModal(false)}
         onConfirm={handleRestart}
-        title="Restart Proxy"
-        message="Are you sure you want to restart the proxy server? It will be back online in a few seconds."
-        confirmText="Restart"
-        cancelText="Cancel"
+        title={t("restart")}
+        message={t("restartConfirm")}
+        confirmText={t("restart")}
+        cancelText={tc("cancel")}
         variant="warning"
         loading={isRestarting}
       />
