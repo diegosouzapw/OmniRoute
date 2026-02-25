@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import { parseQuotaData, calculatePercentage, normalizePlanTier } from "./utils";
@@ -81,6 +83,7 @@ function formatCountdown(resetAt) {
 }
 
 export default function ProviderLimits() {
+  const t = useTranslations("usage");
   const [connections, setConnections] = useState([]);
   const [quotaData, setQuotaData] = useState({});
   const [loading, setLoading] = useState({});
@@ -286,7 +289,7 @@ export default function ProviderLimits() {
       <Card padding="lg">
         <div className="text-center py-12">
           <span className="material-symbols-outlined text-[64px] opacity-15">cloud_off</span>
-          <h3 className="mt-4 text-lg font-semibold text-text-main">No Providers Connected</h3>
+          <h3 className="mt-4 text-lg font-semibold text-text-main">{t("noProviders")}</h3>
           <p className="mt-2 text-sm text-text-muted max-w-[400px] mx-auto">
             Connect to providers with OAuth to track your API quota limits and usage.
           </p>
@@ -300,7 +303,7 @@ export default function ProviderLimits() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-text-main m-0">Provider Limits</h2>
+          <h2 className="text-lg font-semibold text-text-main m-0">{t("providerLimits")}</h2>
           <span className="text-[13px] text-text-muted">
             {visibleConnections.length} account{visibleConnections.length !== 1 ? "s" : ""}
             {visibleConnections.length !== sortedConnections.length
@@ -373,10 +376,10 @@ export default function ProviderLimits() {
           className="items-center px-4 py-2.5 border-b border-white/[0.06] text-[11px] font-semibold uppercase tracking-wider text-text-muted"
           style={{ display: "grid", gridTemplateColumns: "280px 1fr 100px 48px" }}
         >
-          <div>Account</div>
-          <div>Model Quotas</div>
-          <div className="text-center">Last Used</div>
-          <div className="text-center">Actions</div>
+          <div>{t(">account</")}</div>
+          <div>{t("modelQuotas")}</div>
+          <div className="text-center">{t(">lastUsed</")}</div>
+          <div className="text-center">{t(">actions</")}</div>
         </div>
 
         {visibleConnections.map((conn, idx) => {
@@ -491,7 +494,7 @@ export default function ProviderLimits() {
                     );
                   })
                 ) : (
-                  <div className="text-xs text-text-muted italic">No quota data</div>
+                  <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
                 )}
               </div>
 

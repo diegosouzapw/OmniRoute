@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * TokenHealthBadge — Batch G
  *
@@ -17,6 +19,7 @@ const STATUS_MAP = {
 };
 
 export default function TokenHealthBadge() {
+  const t = useTranslations("stats");
   const [health, setHealth] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -71,31 +74,31 @@ export default function TokenHealthBadge() {
             backdropFilter: "blur(12px)",
           }}
         >
-          <p className="text-xs font-medium text-text-main mb-2">Token Health</p>
+          <p className="text-xs font-medium text-text-main mb-2">{t("tokenHealth")}</p>
           <div className="flex flex-col gap-1 text-xs">
             <div className="flex justify-between">
-              <span className="text-text-muted">Total OAuth</span>
+              <span className="text-text-muted">{t("totalOAuth")}</span>
               <span className="text-text-main">{health.total}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-emerald-400">Healthy</span>
+              <span className="text-emerald-400">{t(">healthy</")}</span>
               <span className="text-text-main">{health.healthy}</span>
             </div>
             {health.errored > 0 && (
               <div className="flex justify-between">
-                <span className="text-red-400">Errored</span>
+                <span className="text-red-400">{t(">errored</")}</span>
                 <span className="text-text-main">{health.errored}</span>
               </div>
             )}
             {health.warning > 0 && (
               <div className="flex justify-between">
-                <span className="text-amber-400">Warning</span>
+                <span className="text-amber-400">{t(">warning</")}</span>
                 <span className="text-text-main">{health.warning}</span>
               </div>
             )}
             {health.lastCheckAt && (
               <div className="flex justify-between mt-1 pt-1 border-t border-white/5">
-                <span className="text-text-muted">Last check</span>
+                <span className="text-text-muted">{t("lastCheck")}</span>
                 <span className="text-text-muted">
                   {new Date(health.lastCheckAt).toLocaleTimeString()}
                 </span>

@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { Button, Input } from "@/shared/components";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -101,7 +104,7 @@ export default function LoginPage() {
                 rocket_launch
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-text-main tracking-tight">Welcome</h1>
+            <h1 className="text-3xl font-bold text-text-main tracking-tight">{t(">welcome</")}</h1>
             <p className="text-text-muted mt-2">
               Let&apos;s get your OmniRoute instance configured
             </p>
@@ -124,7 +127,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-center text-xs text-text-muted/60 mt-8">
-            OmniRoute — Unified AI API Proxy
+            OmniRoute — {t("unifiedProxy")}
           </p>
         </div>
       </div>
@@ -146,7 +149,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-text-main tracking-tight">
               Secure Your Instance
             </h1>
-            <p className="text-text-muted mt-2">Password protection is not enabled</p>
+            <p className="text-text-muted mt-2">{t("passwordNotEnabled")}</p>
           </div>
 
           <div className="bg-surface border border-border rounded-2xl p-8 shadow-soft">
@@ -186,13 +189,13 @@ export default function LoginPage() {
               </div>
               <span className="text-xl font-semibold text-text-main tracking-tight">OmniRoute</span>
             </div>
-            <h1 className="text-2xl font-bold text-text-main tracking-tight">Sign in</h1>
-            <p className="text-text-muted mt-1.5">Enter your password to continue</p>
+            <h1 className="text-2xl font-bold text-text-main tracking-tight">{t(">signIn</")}</h1>
+            <p className="text-text-muted mt-1.5">{t("enterPassword")}</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-main">Password</label>
+              <label className="text-sm font-medium text-text-main">{t(">password</")}</label>
               <Input
                 type="password"
                 placeholder="Enter your password"

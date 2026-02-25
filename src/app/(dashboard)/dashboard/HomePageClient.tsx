@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import Image from "next/image";
@@ -10,6 +12,8 @@ import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constant
 import { useNotificationStore } from "@/store/notificationStore";
 
 export default function HomePageClient({ machineId }) {
+  const t = useTranslations("home");
+  const tc = useTranslations("common");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,14 +107,14 @@ export default function HomePageClient({ machineId }) {
   }, [selectedProvider, models]);
 
   const quickStartLinks = [
-    { label: "Documentation", href: "/docs", icon: "menu_book" },
-    { label: "Providers", href: "/dashboard/providers", icon: "dns" },
+    { label: t("documentation"), href: "/docs", icon: "menu_book" },
+    { label: tc("provider") + "s", href: "/dashboard/providers", icon: "dns" },
     { label: "Combos", href: "/dashboard/combos", icon: "layers" },
     { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
-    { label: "Health Monitor", href: "/dashboard/health", icon: "health_and_safety" },
+    { label: t("healthMonitor"), href: "/dashboard/health", icon: "health_and_safety" },
     { label: "CLI Tools", href: "/dashboard/cli-tools", icon: "terminal" },
     {
-      label: "Report issue",
+      label: t("reportIssue"),
       href: "https://github.com/diegosouzapw/OmniRoute/issues",
       external: true,
       icon: "bug_report",
@@ -135,17 +139,15 @@ export default function HomePageClient({ machineId }) {
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Quick Start</h2>
-              <p className="text-sm text-text-muted">
-                Get up and running in 4 steps. Connect providers, route models, monitor everything.
-              </p>
+              <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
+              <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
             </div>
             <Link
               href="/docs"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">menu_book</span>
-              Full Docs
+              {t("fullDocs")}
             </Link>
           </div>
 
@@ -155,7 +157,7 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">key</span>
               </div>
               <div>
-                <span className="font-semibold">1. Create API key</span>
+                <span className="font-semibold">{t("step1Title")}</span>
                 <p className="text-text-muted mt-0.5">
                   Go to{" "}
                   <Link href="/dashboard/endpoint" className="text-primary hover:underline">
@@ -170,7 +172,7 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">dns</span>
               </div>
               <div>
-                <span className="font-semibold">2. Connect providers</span>
+                <span className="font-semibold">{t("step2Title")}</span>
                 <p className="text-text-muted mt-0.5">
                   Add accounts in{" "}
                   <Link href="/dashboard/providers" className="text-primary hover:underline">
@@ -185,7 +187,7 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">link</span>
               </div>
               <div>
-                <span className="font-semibold">3. Point your client</span>
+                <span className="font-semibold">{t("step3Title")}</span>
                 <p className="text-text-muted mt-0.5">
                   Set base URL to{" "}
                   <code className="px-1.5 py-0.5 rounded bg-surface text-xs font-mono">
@@ -200,7 +202,7 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">analytics</span>
               </div>
               <div>
-                <span className="font-semibold">4. Monitor & optimize</span>
+                <span className="font-semibold">{t("step4Title")}</span>
                 <p className="text-text-muted mt-0.5">
                   Track tokens, cost and errors in{" "}
                   <Link href="/dashboard/usage" className="text-primary hover:underline">
@@ -239,7 +241,7 @@ export default function HomePageClient({ machineId }) {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Providers Overview</h2>
+            <h2 className="text-lg font-semibold">{t("providersOverview")}</h2>
             <p className="text-sm text-text-muted">
               {providerStats.filter((item) => item.total > 0).length} configured of{" "}
               {providerStats.length} available providers
@@ -348,7 +350,7 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
           </div>
           <p className={`text-xs ${statusVariant}`}>
             {item.total === 0
-              ? "Not configured"
+              ? tc("notConfigured")
               : `${item.connected} active · ${item.errors} error`}
           </p>
           {metrics && metrics.totalRequests > 0 && (
@@ -433,7 +435,7 @@ function ProviderModelsModal({ provider, models, onClose }) {
             <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
               search_off
             </span>
-            <p className="text-sm text-text-muted">No models available for this provider.</p>
+            <p className="text-sm text-text-muted">{t("noModelsAvailable")}</p>
             <p className="text-xs text-text-muted mt-1">
               Configure a connection first in{" "}
               <button
@@ -460,7 +462,7 @@ function ProviderModelsModal({ provider, models, onClose }) {
                 <button
                   onClick={() => handleCopy(m.fullModel)}
                   className="shrink-0 ml-2 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors opacity-0 group-hover:opacity-100"
-                  title="Copy model name"
+                  title={t("copyModelName")}
                 >
                   <span className="material-symbols-outlined text-[14px]">
                     {copiedModel === m.fullModel ? "check" : "content_copy"}
@@ -481,7 +483,7 @@ function ProviderModelsModal({ provider, models, onClose }) {
             className="flex-1"
           >
             <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
-            Configure Provider
+            {t("configureProvider")}
           </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close

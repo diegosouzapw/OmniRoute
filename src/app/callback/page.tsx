@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -94,8 +96,8 @@ function CallbackContent() {
                 progress_activity
               </span>
             </div>
-            <h1 className="text-xl font-semibold mb-2">Processing...</h1>
-            <p className="text-text-muted">Please wait while we complete the authorization.</p>
+            <h1 className="text-xl font-semibold mb-2">{t("processing")}</h1>
+            <p className="text-text-muted">{t("pleaseWait")}</p>
           </>
         )}
 
@@ -106,7 +108,7 @@ function CallbackContent() {
                 check_circle
               </span>
             </div>
-            <h1 className="text-xl font-semibold mb-2">Authorization Successful!</h1>
+            <h1 className="text-xl font-semibold mb-2">{t("authSuccess")}</h1>
             <p className="text-text-muted">
               {status === "success"
                 ? "This window will close automatically..."
@@ -120,7 +122,7 @@ function CallbackContent() {
             <div className="size-16 mx-auto mb-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl text-yellow-600">info</span>
             </div>
-            <h1 className="text-xl font-semibold mb-2">Copy This URL</h1>
+            <h1 className="text-xl font-semibold mb-2">{t("copyUrl")}</h1>
             <p className="text-text-muted mb-4">
               Please copy the URL from the address bar and paste it in the application.
             </p>
@@ -141,6 +143,7 @@ function CallbackContent() {
  * Receives callback from OAuth providers and sends data back via multiple methods
  */
 export default function CallbackPage() {
+  const t = useTranslations("auth");
   return (
     <Suspense
       fallback={

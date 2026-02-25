@@ -1,9 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 
 export default function RateLimitStatus() {
+  const t = useTranslations("usage");
   const [data, setData] = useState({ lockouts: [], cacheStats: null });
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +34,7 @@ export default function RateLimitStatus() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Model Lockouts */}
+      {/* {t("modelLockouts")} */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
@@ -55,7 +58,7 @@ export default function RateLimitStatus() {
             <span className="material-symbols-outlined text-[32px] mb-2 block opacity-40">
               lock_open
             </span>
-            <p className="text-sm">No models currently locked</p>
+            <p className="text-sm">{t("noLockouts")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useCallback, useEffect } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
@@ -8,6 +10,7 @@ import dynamic from "next/dynamic";
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 export default function PlaygroundMode() {
+  const t = useTranslations("translator");
   const [sourceFormat, setSourceFormat] = useState("claude");
   const [targetFormat, setTargetFormat] = useState("openai");
   const [inputContent, setInputContent] = useState("");
@@ -114,7 +117,7 @@ export default function PlaygroundMode() {
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Format Converter</p>
+          <p className="font-medium text-text-main mb-0.5">{t("formatConverter")}</p>
           <p>
             Paste or type a JSON request body. The translator will auto-detect the source format and
             convert it to the target format. Use this to debug how OmniRoute translates requests
@@ -201,7 +204,7 @@ export default function PlaygroundMode() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-text-muted">input</span>
-                <h3 className="text-sm font-semibold text-text-main">Input</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t(">input</")}</h3>
                 {detectedFormat && (
                   <Badge variant="info" size="sm" dot>
                     {FORMAT_META[detectedFormat]?.label || detectedFormat}
@@ -265,7 +268,7 @@ export default function PlaygroundMode() {
                 <span className="material-symbols-outlined text-[18px] text-text-muted">
                   output
                 </span>
-                <h3 className="text-sm font-semibold text-text-main">Output</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t(">output</")}</h3>
                 {outputContent && (
                   <Badge variant="success" size="sm" dot>
                     {FORMAT_META[targetFormat]?.label || targetFormat}
@@ -303,7 +306,7 @@ export default function PlaygroundMode() {
         </Card>
       </div>
 
-      {/* Example Templates */}
+      {/* {t("exampleTemplates")} */}
       <Card>
         <div className="p-4 space-y-3">
           <div className="flex items-center gap-2">

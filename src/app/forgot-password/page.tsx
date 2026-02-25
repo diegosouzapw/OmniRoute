@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * Forgot Password Page — Phase 8.2
  *
@@ -12,12 +14,13 @@ import Link from "next/link";
 import { Card } from "@/shared/components";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth");
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg p-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Reset Password</h1>
-          <p className="text-text-muted">Choose a method to recover access to your dashboard</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">{t(">resetPassword</")}</h1>
+          <p className="text-text-muted">{t("resetDescription")}</p>
         </div>
 
         {/* Method 1: CLI Reset */}
@@ -53,7 +56,7 @@ export default function ForgotPasswordPage() {
                 Delete the password from the database and set a new one on startup:
               </p>
               <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                <li>Stop the OmniRoute server</li>
+                <li>{t("stopServer")}</li>
                 <li>
                   Set a new password in your{" "}
                   <code className="bg-black/30 px-1 rounded text-text-main">.env</code> file:

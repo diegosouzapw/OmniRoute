@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
@@ -12,7 +14,7 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 /**
  * Chat Tester Mode:
  * - Left: Chat interface (send messages as a specific client format)
- * - Right: Pipeline visualization showing each translation step
+ * - Right: {t("pipelineVisualization")} showing each translation step
  *
  * How it works:
  * 1. You type a message and select a "Client Format" (how the request is structured)
@@ -22,6 +24,7 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
  */
 
 export default function ChatTesterMode() {
+  const t = useTranslations("translator");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
   const [clientFormat, setClientFormat] = useState("openai");
@@ -246,7 +249,7 @@ export default function ChatTesterMode() {
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Pipeline Debugger</p>
+          <p className="font-medium text-text-main mb-0.5">{t("pipelineDebugger")}</p>
           <p>
             Send messages as a specific client format and see how each step of the translation
             pipeline works. The right panel shows the full flow:{" "}
@@ -386,7 +389,7 @@ export default function ChatTesterMode() {
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   account_tree
                 </span>
-                <h3 className="text-sm font-semibold text-text-main">Translation Pipeline</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("translationPipeline")}</h3>
               </div>
               <p className="text-xs text-text-muted">
                 Click on any step to inspect the data at that stage

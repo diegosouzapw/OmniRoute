@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * SystemMonitor — Real-time system metrics widget
  *
@@ -51,6 +53,7 @@ function MetricRow({ icon, label, value, color = "text-text-main" }) {
 }
 
 export default function SystemMonitor({ compact = false }) {
+  const t = useTranslations("stats");
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(false);
   const mountedRef = useRef(true);
@@ -85,7 +88,7 @@ export default function SystemMonitor({ compact = false }) {
       <Card className="p-4">
         <div className="flex items-center gap-2 text-text-muted text-sm">
           <span className="material-symbols-outlined text-[18px] text-red-400">error</span>
-          <span>Unable to load system metrics</span>
+          <span>{t("unableToLoad")}</span>
         </div>
       </Card>
     );

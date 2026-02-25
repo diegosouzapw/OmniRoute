@@ -1,9 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { Card } from "@/shared/components";
 
 export default function BudgetTelemetryCards() {
+  const t = useTranslations("usage");
   const [telemetry, setTelemetry] = useState(null);
   const [cache, setCache] = useState(null);
   const [policies, setPolicies] = useState(null);
@@ -45,12 +48,12 @@ export default function BudgetTelemetryCards() {
               <span className="font-mono">{fmt(telemetry.p99)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 mt-2">
-              <span className="text-text-muted">Total requests</span>
+              <span className="text-text-muted">{t("totalRequests")}</span>
               <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
 
@@ -63,17 +66,17 @@ export default function BudgetTelemetryCards() {
         {cache ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">Entries</span>
+              <span className="text-text-muted">{t(">entries</")}</span>
               <span className="font-mono">
                 {cache.size}/{cache.maxSize}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Hit Rate</span>
+              <span className="text-text-muted">{t("hitRate")}</span>
               <span className="font-mono">{cache.hitRate?.toFixed(1) ?? 0}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Hits / Misses</span>
+              <span className="text-text-muted">{t("hitsMisses")}</span>
               <span className="font-mono">
                 {cache.hits ?? 0} / {cache.misses ?? 0}
               </span>
@@ -93,11 +96,11 @@ export default function BudgetTelemetryCards() {
         {policies ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">Circuit Breakers</span>
+              <span className="text-text-muted">{t("circuitBreakers")}</span>
               <span className="font-mono">{policies.circuitBreakers?.length ?? 0} active</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Locked IPs</span>
+              <span className="text-text-muted">{t("lockedIPs")}</span>
               <span className="font-mono">{policies.lockedIdentifiers?.length ?? 0}</span>
             </div>
             {policies.circuitBreakers?.some((cb) => cb.state === "OPEN") && (

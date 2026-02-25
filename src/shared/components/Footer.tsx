@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import Link from "next/link";
 import { APP_CONFIG } from "@/shared/constants/config";
 
@@ -36,6 +38,7 @@ const footerLinks = {
 };
 
 export default function Footer() {
+  const t = useTranslations("stats");
   const renderFooterLink = (link) => {
     if (link.external) {
       return (
@@ -106,7 +109,7 @@ export default function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="font-semibold text-text-main mb-4">Product</h4>
+            <h4 className="font-semibold text-text-main mb-4">{t(">product</")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>{renderFooterLink(link)}</li>
@@ -116,7 +119,7 @@ export default function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold text-text-main mb-4">Resources</h4>
+            <h4 className="font-semibold text-text-main mb-4">{t(">resources</")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.resources.map((link) => (
                 <li key={link.label}>{renderFooterLink(link)}</li>
@@ -126,7 +129,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="font-semibold text-text-main mb-4">Company</h4>
+            <h4 className="font-semibold text-text-main mb-4">{t(">company</")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>{renderFooterLink(link)}</li>

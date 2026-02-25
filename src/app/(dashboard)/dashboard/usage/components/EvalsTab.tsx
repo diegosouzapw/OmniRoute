@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * EvalsTab — Batch F
  *
@@ -49,6 +51,7 @@ const STRATEGIES = [
 ];
 
 export default function EvalsTab() {
+  const t = useTranslations("usage");
   const [suites, setSuites] = useState([]);
   const [apiKey, setApiKey] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -255,7 +258,7 @@ export default function EvalsTab() {
         </Card>
       </div>
 
-      {/* How It Works — Collapsible */}
+      {/* {t("howItWorks")} — Collapsible */}
       <Card className="p-0 overflow-hidden">
         <button
           onClick={() => setShowHowItWorks(!showHowItWorks)}
@@ -289,7 +292,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-violet-400">1</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">Define</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">define</")}</h4>
                 <p className="text-xs text-text-muted">
                   Create test cases with input prompts and expected output criteria using strategies
                   like contains, regex, or exact match.
@@ -299,7 +302,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-sky-400">2</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">Run</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">run</")}</h4>
                 <p className="text-xs text-text-muted">
                   Execute test cases against your LLM endpoints through OmniRoute. Each case is sent
                   as a real API request.
@@ -309,7 +312,7 @@ export default function EvalsTab() {
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-emerald-400">3</span>
                 </div>
-                <h4 className="text-sm font-semibold text-text-main mb-1">Evaluate</h4>
+                <h4 className="text-sm font-semibold text-text-main mb-1">{t(">evaluate</")}</h4>
                 <p className="text-xs text-text-muted">
                   Responses are compared against expected criteria. See pass/fail for each case with
                   latency metrics and detailed feedback.
@@ -369,7 +372,7 @@ export default function EvalsTab() {
             <span className="material-symbols-outlined text-[20px]">science</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Evaluation Suites</h3>
+            <h3 className="text-lg font-semibold">{t("evalSuites")}</h3>
             <p className="text-xs text-text-muted">
               Click a suite to view test cases, then run to evaluate your LLM endpoints
             </p>
@@ -663,7 +666,7 @@ function HeroSection() {
             <span className="material-symbols-outlined text-[28px]">science</span>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-text-main mb-1">Model Evaluations</h2>
+            <h2 className="text-xl font-bold text-text-main mb-1">{t("modelEvals")}</h2>
             <p className="text-sm text-text-muted leading-relaxed max-w-2xl">
               Test and validate your LLM endpoints by running predefined evaluation suites. Each
               suite contains test cases that send real prompts through OmniRoute and compare

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * BudgetTab — Batch C
  *
@@ -34,6 +36,7 @@ function ProgressBar({ value, max, warningAt = 0.8 }) {
 }
 
 export default function BudgetTab() {
+  const t = useTranslations("usage");
   const [keys, setKeys] = useState([]);
   const [selectedKey, setSelectedKey] = useState(null);
   const [budget, setBudget] = useState(null);
@@ -142,11 +145,11 @@ export default function BudgetTab() {
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
             <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
-          <h3 className="text-lg font-semibold">Budget Management</h3>
+          <h3 className="text-lg font-semibold">{t("budgetManagement")}</h3>
         </div>
 
         <div className="mb-4">
-          <label className="text-sm text-text-muted mb-1 block">API Key</label>
+          <label className="text-sm text-text-muted mb-1 block">{t(">apiKey</")}</label>
           <select
             value={selectedKey || ""}
             onChange={(e) => setSelectedKey(e.target.value)}
@@ -170,7 +173,7 @@ export default function BudgetTab() {
             )}
           </div>
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
-            <p className="text-sm text-text-muted mb-2">This Month</p>
+            <p className="text-sm text-text-muted mb-2">{t("thisMonth")}</p>
             <p className="text-2xl font-bold text-text-main">${monthlyCost.toFixed(2)}</p>
             {monthlyLimit > 0 && (
               <ProgressBar value={monthlyCost} max={monthlyLimit} warningAt={warnPct} />
@@ -180,7 +183,7 @@ export default function BudgetTab() {
 
         {/* Budget Form */}
         <div className="border-t border-border/30 pt-4">
-          <p className="text-sm font-medium mb-3">Set Limits</p>
+          <p className="text-sm font-medium mb-3">{t("setLimits")}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Input
               label="Daily Limit (USD)"

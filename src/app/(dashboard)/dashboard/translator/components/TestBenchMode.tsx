@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
@@ -26,6 +28,7 @@ const SCENARIOS = [
 ];
 
 export default function TestBenchMode() {
+  const t = useTranslations("translator");
   const [sourceFormat, setSourceFormat] = useState("claude");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
@@ -147,7 +150,7 @@ export default function TestBenchMode() {
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Compatibility Tester</p>
+          <p className="font-medium text-text-main mb-0.5">{t("compatibilityTester")}</p>
           <p>
             Run predefined scenarios (Simple Chat, Tool Calling, etc.) to verify translation and
             provider compatibility. Select a source format and target provider, then run all tests
@@ -232,7 +235,7 @@ export default function TestBenchMode() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-text-main">Compatibility Report</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("compatibilityReport")}</h3>
                 <Badge
                   variant={
                     compatibility >= 80 ? "success" : compatibility >= 50 ? "warning" : "error"

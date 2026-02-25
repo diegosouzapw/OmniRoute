@@ -3,6 +3,8 @@
   
   # 🚀 OmniRoute — The Free AI Gateway
 
+🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
+
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
 _Your universal API proxy — one endpoint, 36+ providers, zero downtime._
@@ -1142,6 +1144,85 @@ Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)*
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+---
+
+## 🇧🇷 OmniRoute — Gateway de IA Gratuito
+
+<a name="-omniroute--gateway-de-ia-gratuito"></a>
+
+### Nunca pare de codar. Roteamento inteligente para **modelos de IA GRATUITOS e de baixo custo** com fallback automático.
+
+_Seu proxy universal de API — um endpoint, 36+ provedores, zero downtime._
+
+### 🌐 Internacionalização (i18n)
+
+O dashboard do OmniRoute suporta **múltiplos idiomas**. Atualmente disponível em:
+
+| Idioma                | Código  | Status      |
+| --------------------- | ------- | ----------- |
+| 🇺🇸 English            | `en`    | ✅ Completo |
+| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Completo |
+
+**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) no header do dashboard → selecione o idioma desejado.
+
+**Para adicionar um novo idioma:**
+
+1. Crie `src/i18n/messages/{codigo}.json` baseado em `en.json`
+2. Adicione o código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
+3. Reinicie o servidor
+
+### ⚡ Início Rápido
+
+```bash
+# Instalar via npm
+npx omniroute@latest
+
+# Ou rodar do código-fonte
+cp .env.example .env
+npm install
+PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+```
+
+### 🐳 Docker
+
+```bash
+docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
+```
+
+### 🔑 Funcionalidades Principais
+
+- **36+ provedores de IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, e mais
+- **Roteamento inteligente** — Fallback automático entre provedores
+- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
+- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
+- **Cache semântico** — Reduz custos e latência
+- **OAuth automático** — Tokens renovam automaticamente
+- **Combos personalizados** — 6 estratégias de roteamento
+- **Dashboard completo** — Monitoramento, logs, análises, configurações
+- **CLI Tools** — Configure Claude Code, Codex, Cursor, Cline com um clique
+- **100% TypeScript** — Código limpo e tipado
+
+### 📖 Documentação
+
+| Documento                                       | Descrição                              |
+| ----------------------------------------------- | -------------------------------------- |
+| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combos, CLI, deploy        |
+| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos        |
+| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções            |
+| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema      |
+| [Contribuição](CONTRIBUTING.md)                 | Setup de desenvolvimento e guidelines  |
+| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Guia completo: VM + nginx + Cloudflare |
+
+### 📧 Suporte
+
+> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
+
+- **Website**: [omniroute.online](https://omniroute.online)
+- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

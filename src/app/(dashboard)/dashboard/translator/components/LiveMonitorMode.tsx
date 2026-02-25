@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useRef } from "react";
 import { Card, Badge } from "@/shared/components";
 import { FORMAT_META } from "../exampleTemplates";
@@ -10,6 +12,7 @@ import { FORMAT_META } from "../exampleTemplates";
  * Polls /api/translator/history for translation events.
  */
 export default function LiveMonitorMode() {
+  const t = useTranslations("translator");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -55,12 +58,12 @@ export default function LiveMonitorMode() {
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Real-Time Translation Activity</p>
+          <p className="font-medium text-text-main mb-0.5">{t("realtime")}</p>
           <p>
             Shows translation events as API calls flow through OmniRoute. Events come from the
             in-memory buffer (resets on restart). Use{" "}
-            <strong className="text-text-main">Chat Tester</strong>,{" "}
-            <strong className="text-text-main">Test Bench</strong>, or external API calls to
+            <strong className="text-text-main">{t("chatTester")}</strong>,{" "}
+            <strong className="text-text-main">{t("testBench")}</strong>, or external API calls to
             generate events.
           </p>
         </div>
@@ -103,7 +106,7 @@ export default function LiveMonitorMode() {
       {/* Events Table */}
       <Card>
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-text-main mb-3">Recent Translations</h3>
+          <h3 className="text-sm font-semibold text-text-main mb-3">{t("recentTranslations")}</h3>
 
           {loading ? (
             <div className="flex items-center justify-center py-12 text-text-muted">
@@ -115,7 +118,7 @@ export default function LiveMonitorMode() {
               <span className="material-symbols-outlined text-[48px] mb-3 opacity-30">
                 monitoring
               </span>
-              <p className="text-sm font-medium mb-1">No translations yet</p>
+              <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
               <p className="text-xs text-center max-w-sm">
                 Translation events appear here as requests flow through OmniRoute. Use any of these
                 methods to generate events:
@@ -143,13 +146,13 @@ export default function LiveMonitorMode() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-text-muted border-b border-border">
-                    <th className="pb-2 pr-4">Time</th>
-                    <th className="pb-2 pr-4">Source</th>
+                    <th className="pb-2 pr-4">{t(">time</")}</th>
+                    <th className="pb-2 pr-4">{t(">source</")}</th>
                     <th className="pb-2 pr-4"></th>
-                    <th className="pb-2 pr-4">Target</th>
-                    <th className="pb-2 pr-4">Model</th>
-                    <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2 text-right">Latency</th>
+                    <th className="pb-2 pr-4">{t(">target</")}</th>
+                    <th className="pb-2 pr-4">{t(">model</")}</th>
+                    <th className="pb-2 pr-4">{t(">status</")}</th>
+                    <th className="pb-2 text-right">{t(">latency</")}</th>
                   </tr>
                 </thead>
                 <tbody>

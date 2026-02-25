@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -8,7 +10,15 @@ import Badge from "./Badge";
 import { CardSkeleton } from "./Loading";
 import { fmtFull, fmtCost } from "@/shared/utils/formatting";
 
-function SortIcon({ field, currentSort, currentOrder }: { field: string; currentSort: string; currentOrder: string }) {
+function SortIcon({
+  field,
+  currentSort,
+  currentOrder,
+}: {
+  field: string;
+  currentSort: string;
+  currentOrder: string;
+}) {
   if (currentSort !== field) return <span className="ml-1 opacity-20">↕</span>;
   return <span className="ml-1">{currentOrder === "asc" ? "↑" : "↓"}</span>;
 }
@@ -19,7 +29,13 @@ SortIcon.propTypes = {
   currentOrder: PropTypes.string.isRequired,
 };
 
-function MiniBarGraph({ data, colorClass = "bg-primary" }: { data: number[]; colorClass?: string }) {
+function MiniBarGraph({
+  data,
+  colorClass = "bg-primary",
+}: {
+  data: number[];
+  colorClass?: string;
+}) {
   const max = Math.max(...data, 1);
   return (
     <div className="flex items-end gap-1 h-8 w-24">
@@ -41,6 +57,7 @@ MiniBarGraph.propTypes = {
 };
 
 export default function UsageStats() {
+  const t = useTranslations("stats");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -188,7 +205,7 @@ export default function UsageStats() {
 
   if (loading) return <CardSkeleton />;
 
-  if (!stats) return <div className="text-text-muted">Failed to load usage statistics.</div>;
+  if (!stats) return <div className="text-text-muted">{t("failedToLoad")}</div>;
 
   // Format number with commas — delegated to shared module
   const fmt = (n: number) => fmtFull(n);
@@ -213,7 +230,7 @@ export default function UsageStats() {
     <div className="flex flex-col gap-6">
       {/* Header with Auto Refresh Toggle and View Toggle */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Usage Overview</h2>
+        <h2 className="text-xl font-semibold">{t("usageOverview")}</h2>
         <div className="flex items-center gap-2">
           {/* View Toggle */}
           <div className="flex items-center gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
@@ -331,21 +348,25 @@ export default function UsageStats() {
         <Card className="px-4 py-2 flex flex-col gap-1">
           <div className="flex justify-between items-start gap-4">
             <div className="flex flex-col gap-1 flex-1">
-              <span className="text-text-muted text-sm uppercase font-semibold">Output Tokens</span>
+              <span className="text-text-muted text-sm uppercase font-semibold">
+                {t("outputTokens")}
+              </span>
               <span className="text-2xl font-bold text-success">
                 {fmt(stats.totalCompletionTokens)}
               </span>
             </div>
             <div className="w-px bg-border self-stretch mx-2" />
             <div className="flex flex-col gap-1 flex-1">
-              <span className="text-text-muted text-sm uppercase font-semibold">Total Cost</span>
+              <span className="text-text-muted text-sm uppercase font-semibold">
+                {t("totalCost")}
+              </span>
               <span className="text-2xl font-bold text-warning">{fmtCost(stats.totalCost)}</span>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Usage by Model Table */}
+      {/* {t("usageByModel")} Table */}
       <Card className="overflow-hidden">
         <div className="p-4 border-b border-border bg-bg-subtle/50">
           <h3 className="font-semibold">Usage by Model</h3>
@@ -504,7 +525,7 @@ export default function UsageStats() {
         </div>
       </Card>
 
-      {/* Usage by Account Table */}
+      {/* {t("usageByAccount")} Table */}
       <Card className="overflow-hidden">
         <div className="p-4 border-b border-border bg-bg-subtle/50">
           <h3 className="font-semibold">Usage by Account</h3>
