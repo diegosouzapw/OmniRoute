@@ -876,7 +876,9 @@
     "cachedTokenDesc": "Tokens de input em cache (tipicamente 50% da taxa de input)",
     "reasoningTokenDesc": "Tokens especiais de raciocínio (fallback para taxa de output)",
     "cacheCreationTokenDesc": "Tokens usados para criar entradas de cache (fallback para taxa de input)",
-    "customPricingNote": "Você pode sobrescrever preços padrão para modelos específicos. Sobrescritas personalizadas têm prioridade sobre preços detectados automaticamente."
+    "customPricingNote": "Você pode sobrescrever preços padrão para modelos específicos. Sobrescritas personalizadas têm prioridade sobre preços detectados automaticamente.",
+    "editPricing": "Editar Preços",
+    "viewFullDetails": "Ver Detalhes Completos"
   },
   "translator": {
     "title": "Tradutor",

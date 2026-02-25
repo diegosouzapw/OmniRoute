@@ -876,7 +876,9 @@
     "cachedTokenDesc": "Cached input tokens (typically 50% of input rate)",
     "reasoningTokenDesc": "Special reasoning/thinking tokens (fallback to output rate)",
     "cacheCreationTokenDesc": "Tokens used to create cache entries (fallback to input rate)",
-    "customPricingNote": "You can override default pricing for specific models. Custom overrides take priority over auto-detected pricing."
+    "customPricingNote": "You can override default pricing for specific models. Custom overrides take priority over auto-detected pricing.",
+    "editPricing": "Edit Pricing",
+    "viewFullDetails": "View Full Details"
   },
   "translator": {
     "title": "Translator",
