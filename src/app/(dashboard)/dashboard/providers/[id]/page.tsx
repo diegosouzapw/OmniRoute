@@ -839,7 +839,34 @@ export default function ProviderDetailPage() {
       {/* Connections */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Connections</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">Connections</h2>
+            {/* Provider-level proxy indicator/button */}
+            <button
+              onClick={() =>
+                setProxyTarget({
+                  level: "provider",
+                  id: providerId,
+                  label: providerInfo?.name || providerId,
+                })
+              }
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                proxyConfig?.providers?.[providerId]
+                  ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                  : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+              }`}
+              title={
+                proxyConfig?.providers?.[providerId]
+                  ? `Provider proxy: ${proxyConfig.providers[providerId].host || "configured"}`
+                  : "Configure proxy for all connections of this provider"
+              }
+            >
+              <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
+              {proxyConfig?.providers?.[providerId]
+                ? proxyConfig.providers[providerId].host || "Provider Proxy"
+                : "Provider Proxy"}
+            </button>
+          </div>
           {!isCompatible && (
             <Button
               size="sm"
