@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.6] — 2026-02-25
+
+> ### ✨ Community Release — Security Fix, Multi-Platform Docker, Model Updates & Plus Tier
+>
+> Enforces API key model restrictions across all endpoints, adds ARM64 Docker support, updates model registry for latest AI models, and introduces Plus tier in ProviderLimits.
+
+### 🔒 Security
+
+- **API Key Model Restrictions Enforced** — `isModelAllowedForKey()` was never called, allowing API keys with `allowedModels` restrictions to access any model. Created centralized `enforceApiKeyPolicy()` middleware and wired it into all `/v1/*` endpoints (chat, embeddings, images, audio, moderations, rerank). Supports exact match, prefix match (`openai/*`), and wildcard patterns ([#130](https://github.com/diegosouzapw/OmniRoute/issues/130), [PR #131](https://github.com/diegosouzapw/OmniRoute/pull/131) by [@ersintarhan](https://github.com/ersintarhan))
+- **ApiKeyMetadata Type Safety** — Replaced `any` types with proper `ApiKeyMetadata` interface in the policy middleware. Added error logging in catch blocks for metadata fetch and budget check failures
+
+### ✨ New Features
+
+- **Docker Multi-Platform Builds** — Restructured Docker CI workflow to support both `linux/amd64` and `linux/arm64` using native runners and digest-based manifest merging. ARM64 users (Apple Silicon, AWS Graviton, Raspberry Pi) can now run OmniRoute natively ([PR #127](https://github.com/diegosouzapw/OmniRoute/pull/127) by [@npmSteven](https://github.com/npmSteven))
+- **Plus Tier in ProviderLimits** — Added "Plus" as a separate category in the ProviderLimits dashboard, distinguishing Plus/Paid plans from Pro plans with proper ranking and filtering ([PR #126](https://github.com/diegosouzapw/OmniRoute/pull/126) by [@nyatoru](https://github.com/nyatoru))
+
+### 🔧 Improvements
+
+- **Model Registry Updates** — Updated provider registry, usage tracking, CLI tools config, and pricing for latest AI models: added Claude Sonnet 4.6, Gemini 3.1 Pro (High/Low), GPT OSS 120B Medium; removed deprecated Claude 4.5 variants and Gemini 2.5 Flash ([PR #128](https://github.com/diegosouzapw/OmniRoute/pull/128) by [@nyatoru](https://github.com/nyatoru))
+- **Model ID Consistency** — Fixed `claude-sonnet-4-6-thinking` → `claude-sonnet-4-6` mismatch in `importantModels` to match the provider registry
+
+---
+
 ## [1.4.5] — 2026-02-24
 
 > ### 🐛 Bugfix Release — Claude Code OAuth & OAuth Proxy Routing
@@ -595,6 +618,7 @@ New environment variables:
 
 ---
 
+[1.4.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.6
 [1.4.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.5
 [1.4.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.4
 [1.4.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.3
