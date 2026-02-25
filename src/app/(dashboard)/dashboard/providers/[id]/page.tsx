@@ -915,6 +915,13 @@ export default function ProviderDetailPage() {
                           ? "global"
                           : null
                   }
+                  proxyHost={
+                    (
+                      proxyConfig?.keys?.[conn.id] ||
+                      proxyConfig?.providers?.[providerId] ||
+                      proxyConfig?.global
+                    )?.host || null
+                  }
                 />
               ))}
           </div>
@@ -1909,6 +1916,7 @@ function ConnectionRow({
   onProxy,
   hasProxy,
   proxySource,
+  proxyHost,
 }) {
   const displayName = isOAuth
     ? connection.name || connection.email || connection.displayName || "OAuth Account"
@@ -2010,18 +2018,33 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? "Protected" : "Unprotected"}
             </button>
-            {hasProxy && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-500/15 text-emerald-500"
-                  title={`Proxy: ${proxySource === "key" ? "per-connection" : proxySource === "provider" ? "per-provider" : "global"}`}
-                >
-                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
-                  Proxy
-                </span>
-              </>
-            )}
+            {hasProxy &&
+              (() => {
+                const colorClass =
+                  proxySource === "global"
+                    ? "bg-emerald-500/15 text-emerald-500"
+                    : proxySource === "provider"
+                      ? "bg-amber-500/15 text-amber-500"
+                      : "bg-blue-500/15 text-blue-500";
+                const label =
+                  proxySource === "global"
+                    ? "Global"
+                    : proxySource === "provider"
+                      ? "Provider"
+                      : "Key";
+                return (
+                  <>
+                    <span className="text-text-muted/30 select-none">|</span>
+                    <span
+                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${colorClass}`}
+                      title={`Proxy (${label}): ${proxyHost || "configured"}`}
+                    >
+                      <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
+                      {proxyHost || "Proxy"}
+                    </span>
+                  </>
+                );
+              })()}
           </div>
         </div>
       </div>
