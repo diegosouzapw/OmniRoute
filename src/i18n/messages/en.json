@@ -184,6 +184,8 @@
   },
   "cliTools": {
     "title": "CLI Tools",
+    "noActiveProviders": "No active providers",
+    "noActiveProvidersDesc": "Please add and connect providers first to configure CLI tools.",
     "mapModels": "Map Models",
     "testConnection": "Test Connection",
     "connectionStatus": "Connection Status",

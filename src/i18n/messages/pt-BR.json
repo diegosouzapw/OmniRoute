@@ -184,6 +184,8 @@
   },
   "cliTools": {
     "title": "Ferramentas CLI",
+    "noActiveProviders": "Nenhum provedor ativo",
+    "noActiveProvidersDesc": "Adicione e conecte provedores primeiro para configurar as ferramentas CLI.",
     "mapModels": "Mapear Modelos",
     "testConnection": "Testar Conexão",
     "connectionStatus": "Status da Conexão",
