@@ -364,16 +364,18 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### 🛡️ Resiliência e Segurança
 
-| Funcionalidade                     | O que Faz                                                             |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| 🔌 **Circuit Breaker**             | Auto-abertura/fechamento por provedor com limites configuráveis       |
-| 🛡️ **Anti-Thundering Herd**        | Mutex + semáforo rate-limit para provedores com API key               |
-| 🧠 **Cache Semântico**             | Cache de duas camadas (assinatura + semântico) reduz custo e latência |
-| ⚡ **Idempotência de Requisição**  | Janela de dedup de 5s para requisições duplicadas                     |
-| 🔒 **Spoofing de Fingerprint TLS** | Bypass de detecção de bot via TLS com wreq-js                         |
-| 🌐 **Filtragem de IP**             | Allowlist/blocklist para controle de acesso à API                     |
-| 📊 **Rate Limits Editáveis**       | RPM, gap mínimo e concorrência máxima configuráveis                   |
-| 🛡 **Proteção de Endpoint API**    | Gateway de Auth + bloqueio de provedores para o endpoint `/models`    |
+| Funcionalidade                     | O que Faz                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| 🔌 **Circuit Breaker**             | Auto-abertura/fechamento por provedor com limites configuráveis             |
+| 🛡️ **Anti-Thundering Herd**        | Mutex + semáforo rate-limit para provedores com API key                     |
+| 🧠 **Cache Semântico**             | Cache de duas camadas (assinatura + semântico) reduz custo e latência       |
+| ⚡ **Idempotência de Requisição**  | Janela de dedup de 5s para requisições duplicadas                           |
+| 🔒 **Spoofing de Fingerprint TLS** | Bypass de detecção de bot via TLS com wreq-js                               |
+| 🌐 **Filtragem de IP**             | Allowlist/blocklist para controle de acesso à API                           |
+| 📊 **Rate Limits Editáveis**       | RPM, gap mínimo e concorrência máxima configuráveis                         |
+| 🛡 **Proteção de Endpoint API**    | Gateway de Auth + bloqueio de provedores para o endpoint `/models`          |
+| 🔒 **Visibilidade de Proxy**       | Badges coloridos: 🟢 global, 🟡 provedor, 🔵 por-conexão com exibição de IP |
+| 🌐 **Proxy em 3 Níveis**           | Configure proxies em nível global, por provedor ou por conexão              |
 
 ### 📊 Observabilidade e Analytics
 
@@ -400,6 +402,8 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | 🔧 **Dashboard CLI Tools**        | Configuração em um clique para Claude, Codex, Cline, OpenClaw, Kilo, Antigravity  |
 | 🔄 **Backups de DB**              | Backup, restauração, exportação e importação automática de todas as configurações |
 | 🌐 **Internacionalização**        | i18n completo com next-intl — suporte English + Português (Brasil)                |
+| 🌍 **Seletor de Idioma**          | Ícone de globo no cabeçalho para troca de idioma em tempo real (🇺🇸/🇧🇷)            |
+| 📂 **Diretório de Dados Custom**  | Variável `DATA_DIR` para sobrescrever o caminho padrão `~/.omniroute`             |
 
 <details>
 <summary><b>📖 Detalhes das Funcionalidades</b></summary>

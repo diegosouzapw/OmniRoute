@@ -366,16 +366,18 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### 🛡️ Resilience & Security
 
-| Feature                         | What It Does                                                  |
-| ------------------------------- | ------------------------------------------------------------- |
-| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds     |
-| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers            |
-| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency  |
-| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                        |
-| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                    |
-| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                    |
-| 📊 **Editable Rate Limits**     | Configurable RPM, min gap, and max concurrent at system level |
-| 🛡 **API Endpoint Protection**  | Auth gating + provider blocking for the `/models` endpoint    |
+| Feature                         | What It Does                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds                     |
+| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers                            |
+| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency                  |
+| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                                        |
+| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                                    |
+| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                                    |
+| 📊 **Editable Rate Limits**     | Configurable RPM, min gap, and max concurrent at system level                 |
+| 🛡 **API Endpoint Protection**  | Auth gating + provider blocking for the `/models` endpoint                    |
+| 🔒 **Proxy Visibility**         | Color-coded badges: 🟢 global, 🟡 provider, 🔵 per-connection with IP display |
+| 🌐 **3-Level Proxy Config**     | Configure proxies at global, per-provider, or per-connection level            |
 
 ### 📊 Observability & Analytics
 
@@ -395,15 +397,17 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### ☁️ Deployment & Sync
 
-| Feature                     | What It Does                                                          |
-| --------------------------- | --------------------------------------------------------------------- |
-| 💾 **Cloud Sync**           | Sync config across devices via Cloudflare Workers                     |
-| 🌐 **Deploy Anywhere**      | Localhost, VPS, Docker, Cloudflare Workers                            |
-| 🔑 **API Key Management**   | Generate, rotate, and scope API keys per provider                     |
-| 🧙 **Onboarding Wizard**    | 4-step guided setup for first-time users                              |
-| 🔧 **CLI Tools Dashboard**  | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
-| 🔄 **DB Backups**           | Automatic backup, restore, export & import for all settings           |
-| 🌐 **Internationalization** | Full i18n with next-intl — English + Portuguese (Brazil) support      |
+| Feature                      | What It Does                                                          |
+| ---------------------------- | --------------------------------------------------------------------- |
+| 💾 **Cloud Sync**            | Sync config across devices via Cloudflare Workers                     |
+| 🌐 **Deploy Anywhere**       | Localhost, VPS, Docker, Cloudflare Workers                            |
+| 🔑 **API Key Management**    | Generate, rotate, and scope API keys per provider                     |
+| 🧙 **Onboarding Wizard**     | 4-step guided setup for first-time users                              |
+| 🔧 **CLI Tools Dashboard**   | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
+| 🔄 **DB Backups**            | Automatic backup, restore, export & import for all settings           |
+| 🌐 **Internationalization**  | Full i18n with next-intl — English + Portuguese (Brazil) support      |
+| 🌍 **Language Selector**     | Globe icon in header for real-time language switching (🇺🇸/🇧🇷)         |
+| 📂 **Custom Data Directory** | `DATA_DIR` env var to override default `~/.omniroute` storage path    |
 
 <details>
 <summary><b>📖 Feature Details</b></summary>
