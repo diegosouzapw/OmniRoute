@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.5.0] — 2026-02-26
 
 > ### 🌍 Massive i18n Expansion — 30 Languages
 >
@@ -714,6 +714,11 @@ New environment variables:
 
 ---
 
+[1.5.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.5.0
+[1.4.11]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.11
+[1.4.10]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.10
+[1.4.9]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.9
+[1.4.8]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.8
 [1.4.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.7
 [1.4.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.6
 [1.4.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.5
