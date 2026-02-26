@@ -53,22 +53,40 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
   }
 
   // Build the OmniRoute model entry
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
   const routerModel = {
-    apiBase: baseUrl,
+    apiBase: normalizedBaseUrl,
     title: model,
     model: model,
     provider: "openai",
     apiKey: apiKey || "sk_omniroute",
+    omnirouteManaged: true,
   };
 
   // Merge into existing models array
   const models = existingConfig.models || [];
 
+  function normalizeApiBase(value: unknown): string {
+    return String(value || "")
+      .trim()
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  }
+
   // Check if OmniRoute entry already exists and update it, or add new
   const existingIdx = models.findIndex(
     (m) =>
-      m.apiBase &&
-      (m.apiBase.includes("localhost") || m.apiBase.includes("omniroute") || m.title === model)
+      m &&
+      (m.omnirouteManaged === true ||
+        normalizeApiBase(m.apiBase) === normalizedBaseUrl.toLowerCase() ||
+        normalizeApiBase(m.apiBase).includes("omniroute") ||
+        normalizeApiBase(m.apiBase).includes("localhost:20128") ||
+        normalizeApiBase(m.apiBase).includes("127.0.0.1:20128") ||
+        String(m.apiKey || "")
+          .toLowerCase()
+          .includes("sk_omniroute"))
   );
 
   if (existingIdx >= 0) {

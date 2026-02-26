@@ -44,7 +44,7 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
 }
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __omnirouteApiBridgeStarted: boolean | undefined;
 }
 
@@ -54,7 +54,7 @@ export function initApiBridgeServer(): void {
   const { apiPort, dashboardPort } = getRuntimePorts();
   if (apiPort === dashboardPort) return;
 
-  const host = process.env.HOSTNAME || "0.0.0.0";
+  const host = process.env.API_HOST || "0.0.0.0";
 
   const server = http.createServer((req, res) => {
     const rawUrl = req.url || "/";

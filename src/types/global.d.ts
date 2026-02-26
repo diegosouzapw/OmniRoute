@@ -14,6 +14,7 @@ declare namespace NodeJS {
     PROMPT_CACHE_TTL_MS?: string;
     NEXT_PUBLIC_CLOUD_URL?: string;
     API_PORT?: string;
+    API_HOST?: string;
     DASHBOARD_PORT?: string;
     OMNIROUTE_PORT?: string;
     NODE_ENV?: "development" | "production" | "test";
