@@ -341,7 +341,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 **Furnizori acceptați:** `deepgram/nova-3`, `assemblyai/best`.
 
-**Formate acceptate:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, **OMNI*TOKEN***EN.\_11_TO\_\_
+**Formate acceptate:** `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 
@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Utilizare/înregistrare înregistrată
 9. Fallback se aplică erorilor conform regulilor combinate
 
-Referință completă a arhitecturii: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Referință completă a arhitecturii: [link](ARCHITECTURE.md)
 
 ---
 

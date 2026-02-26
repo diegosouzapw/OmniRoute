@@ -213,7 +213,7 @@ curl http://localhost:20128/api/monitoring/health
 ## עדיין תקוע?
 
 - **בעיות GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **אדריכלות**: ראה [**OMNI_TOKEN_55**](ARCHITECTURE.md) לפרטים פנימיים
-- **הפניה ל-API**: ראה [**OMNI_TOKEN_56**](API_REFERENCE.md) עבור כל נקודות הקצה
+- **אדריכלות**: ראה [link](ARCHITECTURE.md) לפרטים פנימיים
+- **הפניה ל-API**: ראה [link](API_REFERENCE.md) עבור כל נקודות הקצה
 - **לוח מחוונים לבריאות**: בדוק את **לוח מחוונים ← בריאות** למצב מערכת בזמן אמת
 - **מתרגם**: השתמש ב-**לוח מחוונים ← מתרגם** כדי לנפות באגים בפורמט

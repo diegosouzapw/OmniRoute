@@ -213,7 +213,7 @@ Kapag maraming sabay-sabay na kahilingan ang tumama sa isang provider na limitad
 ## Natigil pa rin?
 
 - **Mga Isyu sa GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arkitektura**: Tingnan ang [**OMNI_TOKEN_55**](ARCHITECTURE.md) para sa mga panloob na detalye
-- **API Reference**: Tingnan ang [**OMNI_TOKEN_56**](API_REFERENCE.md) para sa lahat ng endpoint
+- **Arkitektura**: Tingnan ang [link](ARCHITECTURE.md) para sa mga panloob na detalye
+- **API Reference**: Tingnan ang [link](API_REFERENCE.md) para sa lahat ng endpoint
 - **Dashboard ng Kalusugan**: Suriin ang **Dashboard → Kalusugan** para sa real-time na status ng system
 - **Translator**: Gamitin ang **Dashboard → Translator** para i-debug ang mga isyu sa format

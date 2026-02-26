@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Naitala ang paggamit/pag-log
 9. Nalalapat ang Fallback sa mga error ayon sa combo rules
 
-Buong sanggunian sa arkitektura: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Buong sanggunian sa arkitektura: [link](ARCHITECTURE.md)
 
 ---
 

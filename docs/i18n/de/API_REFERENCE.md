@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Nutzung/Protokollierung aufgezeichnet
 9. Bei Fehlern gilt ein Fallback gemäß den Combo-Regeln
 
-Vollständige Architekturreferenz: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Vollständige Architekturreferenz: [link](ARCHITECTURE.md)
 
 ---
 

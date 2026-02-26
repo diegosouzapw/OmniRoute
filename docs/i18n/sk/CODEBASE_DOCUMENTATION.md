@@ -374,13 +374,13 @@ graph TD
     end
 ```
 
-| Adresár      | Súbory          | Popis                                                                                                                                                                                                                                                        |
-| ------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request/`   | 8 prekladateľov | Prevod tela požiadaviek medzi formátmi. Každý súbor sa pri importe sám zaregistruje prostredníctvom `register(from, to, fn)`.                                                                                                                                |
-| `response/`  | 7 prekladateľov | Konvertujte časti odozvy streamovania medzi formátmi. Zvláda typy udalostí SSE, bloky myslenia, volania nástrojov.                                                                                                                                           |
-| `helpers/`   | 6 pomocníkov    | Zdieľané nástroje: `claudeHelper` (extrakcia systémového promptu, konfigurácia myslenia), `geminiHelper` (mapovanie častí/obsahu), `openaiHelper` (filtrovanie formátu), `toolCallHelper` (generovanie ID**OMNI_TOKEN), 1**OMNI_TOKEN1 `responsesApiHelper`. |
-| `index.ts`   | —               | Prekladový stroj: `translateRequest()`, `translateResponse()`, správa štátu, registratúra.                                                                                                                                                                   |
-| `formats.ts` | —               | Formátové konštanty: `OPENAI`, `CLAUDE`, `GEMINI`, `ANTIGRAVITY`, `KIRO`, **OMNI*TOKEN_92_TOKEN*, **OMNI*TOKEN_92_TOKEN*                                                                                                                                     |
+| Adresár      | Súbory          | Popis                                                                                                                                                                                                                                |
+| ------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request/`   | 8 prekladateľov | Prevod tela požiadaviek medzi formátmi. Každý súbor sa pri importe sám zaregistruje prostredníctvom `register(from, to, fn)`.                                                                                                        |
+| `response/`  | 7 prekladateľov | Konvertujte časti odozvy streamovania medzi formátmi. Zvláda typy udalostí SSE, bloky myslenia, volania nástrojov.                                                                                                                   |
+| `helpers/`   | 6 pomocníkov    | Zdieľané nástroje: `claudeHelper` (extrakcia systémového promptu, konfigurácia myslenia), `geminiHelper` (mapovanie častí/obsahu), `openaiHelper` (filtrovanie formátu), `toolCallHelper` (generovanie ID ), 1 `responsesApiHelper`. |
+| `index.ts`   | —               | Prekladový stroj: `translateRequest()`, `translateResponse()`, správa štátu, registratúra.                                                                                                                                           |
+| `formats.ts` | —               | Formátové konštanty: `OPENAI`, `CLAUDE`, `GEMINI`, `ANTIGRAVITY`, `KIRO`, ,                                                                                                                                                          |
 
 #### Kľúčový dizajn: Samoregistračné doplnky
 

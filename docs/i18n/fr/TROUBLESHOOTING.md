@@ -213,7 +213,7 @@ Lorsque de nombreuses requêtes simultanées atteignent un fournisseur à débit
 ## Toujours bloqué ?
 
 - **Problèmes GitHub** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture** : voir [**OMNI_TOKEN_55**](ARCHITECTURE.md) pour les détails internes
-- **Référence API** : voir [**OMNI_TOKEN_56**](API_REFERENCE.md) pour tous les points de terminaison
+- **Architecture** : voir [link](ARCHITECTURE.md) pour les détails internes
+- **Référence API** : voir [link](API_REFERENCE.md) pour tous les points de terminaison
 - **Tableau de bord de santé** : consultez **Tableau de bord → Santé** pour connaître l'état du système en temps réel
 - **Traducteur** : utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de format

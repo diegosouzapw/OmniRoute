@@ -220,7 +220,7 @@ Domain réteg modulok:
 OAuth-szolgáltató modulok (12 külön fájl a `src/lib/oauth/providers/` alatt):
 
 - Nyilvántartási index: `src/lib/oauth/providers/index.ts`
-- Egyéni szolgáltatók: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, **OMNI_TOKEN_1118**,\_118_TOK `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Egyéni szolgáltatók: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, ,\_118_TOK `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Vékony burkolat: `src/lib/oauth/providers.ts` - újraexportálás az egyes modulokból
 
 ## 3) Perzisztencia réteg
@@ -241,7 +241,7 @@ DB használat:
 Domain State DB (SQLite):
 
 - `src/lib/db/domainState.ts` - CRUD műveletek a tartomány állapotához
-- Táblázatok (létrehozva: `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, **OMNI_8_EN**
+- Táblázatok (létrehozva: `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`,
 - Átírási gyorsítótár minta: a memórián belüli térképek mérvadóak futás közben; a mutációk szinkronban íródnak az SQLite-ba; állapot visszaáll a DB-ből hidegindításkor
 
 ## 4) Auth + biztonsági felületek

@@ -94,7 +94,7 @@ _Tilslut ethvert AI-drevet IDE- eller CLI-værktøj gennem OmniRoute - gratis AP
     </tr>
   </table>
 
-<sub>📡 Alle agenter forbinder via <code>http://localhost:20128/v1</code> eller <code>http://cloud.omniroute.online/v1__OMNI_TOKEN_245, —limited one config and kvote</sub>
+<sub>📡 Alle agenter forbinder via <code>http://localhost:20128/v1</code> eller <code>http://cloud.omniroute.online/v1 , —limited one config and kvote</sub>
 
 ---
 
@@ -1087,7 +1087,7 @@ OmniRoute har **210+ funktioner planlagt** på tværs af flere udviklingsfaser. 
 - 🎯 **Tag-baseret Routing** — Ruteanmodninger baseret på tilpassede tags og metadata
 - 💰 **Laveste omkostningsstrategi** — Vælg automatisk den billigste tilgængelige udbyder
 
-> 📝 Fuld funktionsspecifikationer tilgængelige i [**OMNI_TOKEN_147**](docs/new-features/) (217 detaljerede specifikationer)
+> 📝 Fuld funktionsspecifikationer tilgængelige i [link](docs/new-features/) (217 detaljerede specifikationer)
 
 ---
 

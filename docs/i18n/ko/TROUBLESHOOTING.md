@@ -213,7 +213,7 @@ curl http://localhost:20128/api/monitoring/health
 ## 아직도 막혔나요?
 
 - **GitHub 문제**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **아키텍처**: 내부 세부정보는 [**OMNI_TOKEN_55**](ARCHITECTURE.md)을 참조하세요.
-- **API 참조**: 모든 엔드포인트에 대해서는 [**OMNI_TOKEN_56**](API_REFERENCE.md)을 참조하세요.
+- **아키텍처**: 내부 세부정보는 [link](ARCHITECTURE.md)을 참조하세요.
+- **API 참조**: 모든 엔드포인트에 대해서는 [link](API_REFERENCE.md)을 참조하세요.
 - **헬스 대시보드**: **대시보드 → 헬스**에서 실시간 시스템 상태 확인
 - **번역기**: **대시보드 → 번역기**를 사용하여 형식 문제 디버깅

@@ -213,7 +213,7 @@ Ketika banyak permintaan bersamaan mencapai penyedia dengan tarif terbatas, Omni
 ## Masih Terjebak?
 
 - **Masalah GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arsitektur**: Lihat [**OMNI_TOKEN_55**](ARCHITECTURE.md) untuk detail internal
-- **Referensi API**: Lihat [**OMNI_TOKEN_56**](API_REFERENCE.md) untuk semua titik akhir
+- **Arsitektur**: Lihat [link](ARCHITECTURE.md) untuk detail internal
+- **Referensi API**: Lihat [link](API_REFERENCE.md) untuk semua titik akhir
 - **Dasbor Kesehatan**: Periksa **Dasbor → Kesehatan** untuk status sistem waktu nyata
 - **Penerjemah**: Gunakan **Dasbor → Penerjemah** untuk men-debug masalah format

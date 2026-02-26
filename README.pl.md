@@ -1087,7 +1087,7 @@ OmniRoute ma **ponad 210 funkcji zaplanowanych** w wielu fazach rozwoju. Oto klu
 - 🎯 **Routing oparty na tagach** — Kieruj żądania na podstawie niestandardowych tagów i metadanych
 - 💰 **Strategia najniższych kosztów** — Automatycznie wybierz najtańszego dostępnego dostawcę
 
-> 📝 Pełna specyfikacja funkcji dostępna w [**OMNI_TOKEN_147**](docs/new-features/) (217 szczegółowych specyfikacji)
+> 📝 Pełna specyfikacja funkcji dostępna w [link](docs/new-features/) (217 szczegółowych specyfikacji)
 
 ---
 

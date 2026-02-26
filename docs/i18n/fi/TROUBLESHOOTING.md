@@ -213,7 +213,7 @@ Kun monet samanaikaiset pyynnöt osuvat nopeusrajoitettuun palveluntarjoajaan, O
 ## Vieläkö jumissa?
 
 - **GitHub-ongelmat**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arkkitehtuuri**: Katso sisäiset tiedot kohdasta [**OMNI_TOKEN_55**](ARCHITECTURE.md)
-- **API-viite**: Katso kaikki päätepisteet kohdasta [**OMNI_TOKEN_56**](API_REFERENCE.md)
+- **Arkkitehtuuri**: Katso sisäiset tiedot kohdasta [link](ARCHITECTURE.md)
+- **API-viite**: Katso kaikki päätepisteet kohdasta [link](API_REFERENCE.md)
 - **Health Dashboard**: Tarkista järjestelmän reaaliaikainen tila kohdasta **Dashboard → Health**
 - **Kääntäjä**: Käytä **Käyttöpaneeli → Kääntäjä** muotoongelmien korjaamiseen

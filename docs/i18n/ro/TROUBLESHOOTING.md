@@ -213,7 +213,7 @@ Când multe solicitări concurente ajung la un furnizor cu o rată limitată, Om
 ## Încă blocat?
 
 - **Probleme GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitectură**: Consultați [**OMNI_TOKEN_55**](ARCHITECTURE.md) pentru detalii interne
-- **Referință API**: Consultați [**OMNI_TOKEN_56**](API_REFERENCE.md) pentru toate punctele finale
+- **Arhitectură**: Consultați [link](ARCHITECTURE.md) pentru detalii interne
+- **Referință API**: Consultați [link](API_REFERENCE.md) pentru toate punctele finale
 - **Tabloul de bord pentru sănătate**: verificați **Tabloul de bord → Sănătate** pentru starea sistemului în timp real
 - **Translator**: utilizați **Tabloul de bord → Translator** pentru a depana problemele de format

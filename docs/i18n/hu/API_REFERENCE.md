@@ -341,7 +341,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 **Támogatott szolgáltatók:** `deepgram/nova-3`, `assemblyai/best`.
 
-**Támogatott formátumok:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, \_\_\_OMNI1_2.K.
+**Támogatott formátumok:** `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 
@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Használat/naplózás rögzítve
 9. A hibákra a tartalék a kombinált szabályok szerint érvényes
 
-Teljes architektúra hivatkozás: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Teljes architektúra hivatkozás: [link](ARCHITECTURE.md)
 
 ---
 

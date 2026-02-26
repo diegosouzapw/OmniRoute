@@ -213,7 +213,7 @@ Cuando muchas solicitudes simultáneas llegan a un proveedor de velocidad limita
 ## ¿Sigues atascado?
 
 - **Problemas de GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arquitectura**: consulte [**OMNI_TOKEN_55**](ARCHITECTURE.md) para obtener detalles internos
-- **Referencia de API**: consulte [**OMNI_TOKEN_56**](API_REFERENCE.md) para conocer todos los puntos finales
+- **Arquitectura**: consulte [link](ARCHITECTURE.md) para obtener detalles internos
+- **Referencia de API**: consulte [link](API_REFERENCE.md) para conocer todos los puntos finales
 - **Panel de estado**: marque **Panel → Salud** para ver el estado del sistema en tiempo real
 - **Traductor**: use **Panel → Traductor** para depurar problemas de formato

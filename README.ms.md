@@ -94,7 +94,7 @@ _Sambungkan mana-mana alat IDE atau CLI berkuasa AI melalui OmniRoute — get la
     </tr>
   </table>
 
-<sub>📡 Semua ejen menyambung melalui <code>http://localhost:20128/v1</code> atau <code>http://cloud.omniroute.online/v1</code> atau model <code>http://cloud.omniroute.online/v1__OMNI_TOKEN —i_24_TOKEN dan satu —i_konfigurasi kuota</sub>
+<sub>📡 Semua ejen menyambung melalui <code>http://localhost:20128/v1</code> atau <code>http://cloud.omniroute.online/v1</code> atau model <code>http://cloud.omniroute.online/v1 —i_24_TOKEN dan satu —i_konfigurasi kuota</sub>
 
 ---
 
@@ -1087,7 +1087,7 @@ OmniRoute mempunyai **210+ ciri yang dirancang** merentas berbilang fasa pembang
 - 🎯 **Penghalaan Berasaskan Teg** — Permintaan laluan berdasarkan teg tersuai dan metadata
 - 💰 **Strategi Kos Terendah** — Pilih pembekal yang tersedia paling murah secara automatik
 
-> 📝 Spesifikasi ciri penuh tersedia dalam [**OMNI_TOKEN_147**](docs/new-features/) (217 spesifikasi terperinci)
+> 📝 Spesifikasi ciri penuh tersedia dalam [link](docs/new-features/) (217 spesifikasi terperinci)
 
 ---
 

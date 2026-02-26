@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Việc sử dụng/ghi nhật ký được ghi lại
 9. Dự phòng áp dụng cho các lỗi theo quy tắc kết hợp
 
-Tham khảo kiến trúc đầy đủ: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Tham khảo kiến trúc đầy đủ: [link](ARCHITECTURE.md)
 
 ---
 

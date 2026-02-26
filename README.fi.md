@@ -1087,7 +1087,7 @@ OmniRoutella on **210+ suunniteltua ominaisuutta** useissa kehitysvaiheissa. Tä
 - 🎯 **Tagipohjainen reititys** - Reittipyynnöt mukautettujen tunnisteiden ja metatietojen perusteella
 - 💰 **Alhaisimman kustannustason strategia** - Valitse automaattisesti halvin saatavilla oleva palveluntarjoaja
 
-> 📝 Täydelliset ominaisuudet saatavilla osoitteessa [**OMNI_TOKEN_147**](docs/new-features/) (217 yksityiskohtaista spesifikaatiota)
+> 📝 Täydelliset ominaisuudet saatavilla osoitteessa [link](docs/new-features/) (217 yksityiskohtaista spesifikaatiota)
 
 ---
 

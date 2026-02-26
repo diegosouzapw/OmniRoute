@@ -1087,7 +1087,7 @@ OmniRoute memiliki **210+ fitur yang direncanakan** di berbagai fase pengembanga
 - 🎯 **Perutean Berbasis Tag** — Merutekan permintaan berdasarkan tag dan metadata khusus
 - 💰 **Strategi Biaya Terendah** — Secara otomatis memilih penyedia termurah yang tersedia
 
-> 📝 Spesifikasi fitur lengkap tersedia di [**OMNI_TOKEN_147**](docs/new-features/) (217 spesifikasi detail)
+> 📝 Spesifikasi fitur lengkap tersedia di [link](docs/new-features/) (217 spesifikasi detail)
 
 ---
 

@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Penggunaan / pembalakan direkodkan
 9. Fallback terpakai pada ralat mengikut peraturan kombo
 
-Rujukan seni bina penuh: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Rujukan seni bina penuh: [link](ARCHITECTURE.md)
 
 ---
 

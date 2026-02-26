@@ -213,7 +213,7 @@ Når mange samtidige anmodninger rammer en hastighedsbegrænset udbyder, bruger 
 ## Stadig fast?
 
 - **GitHub-problemer**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arkitektur**: Se [**OMNI_TOKEN_55**](ARCHITECTURE.md) for interne detaljer
-- **API-reference**: Se [**OMNI_TOKEN_56**](API_REFERENCE.md) for alle endepunkter
+- **Arkitektur**: Se [link](ARCHITECTURE.md) for interne detaljer
+- **API-reference**: Se [link](API_REFERENCE.md) for alle endepunkter
 - **Health Dashboard**: Tjek **Dashboard → Health** for systemstatus i realtid
 - **Oversætter**: Brug **Dashboard → Oversætter** til at fejlsøge formatproblemer

@@ -220,7 +220,7 @@ flowchart LR
 מודולי ספק OAuth (12 קבצים בודדים תחת `src/lib/oauth/providers/`):
 
 - אינדקס הרישום: `src/lib/oauth/providers/index.ts`
-- ספקים בודדים: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, **OMNI*TOKEN***12**TO, **OMNI_TOKEN **\_119**, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- ספקים בודדים: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, , **\_119**, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - עטיפה דקה: `src/lib/oauth/providers.ts` - ייצוא מחדש ממודולים בודדים
 
 ## 3) שכבת התמדה

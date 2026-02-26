@@ -213,7 +213,7 @@ Amikor sok egyidejű kérés ér egy korlátozott sebességű szolgáltatót, az
 ## Még mindig elakadt?
 
 - **GitHub-problémák**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architektúra**: A belső részletekért lásd: [**OMNI_TOKEN_55**](ARCHITECTURE.md)
-- **API-referencia**: Lásd: [**OMNI_TOKEN_56**](API_REFERENCE.md) az összes végponthoz
+- **Architektúra**: A belső részletekért lásd: [link](ARCHITECTURE.md)
+- **API-referencia**: Lásd: [link](API_REFERENCE.md) az összes végponthoz
 - **Egészségügyi irányítópult**: Az **Irányítópult → Egészség** menüpontban ellenőrizze a valós idejű rendszerállapotot
 - **Fordító**: Használja az **Irányítópult → Fordító** lehetőséget a formátumhibák elhárításához

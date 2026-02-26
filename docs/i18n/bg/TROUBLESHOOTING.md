@@ -213,7 +213,7 @@ curl http://localhost:20128/api/monitoring/health
 ## Все още сте заседнали?
 
 - **Проблеми с GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Архитектура**: Вижте [**OMNI_TOKEN_55**](ARCHITECTURE.md) за вътрешни подробности
-- **API Reference**: Вижте [**OMNI_TOKEN_56**](API_REFERENCE.md) за всички крайни точки
+- **Архитектура**: Вижте [link](ARCHITECTURE.md) за вътрешни подробности
+- **API Reference**: Вижте [link](API_REFERENCE.md) за всички крайни точки
 - **Табло за управление на здравето**: Проверете **Табло за управление → Здраве** за състоянието на системата в реално време
 - **Преводач**: Използвайте **Табло за управление → Преводач** за отстраняване на грешки при проблеми с формата

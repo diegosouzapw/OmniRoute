@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Utilizzo/registrazione registrati
 9. Il fallback si applica agli errori secondo le regole della combo
 
-Riferimento completo all'architettura: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Riferimento completo all'architettura: [link](ARCHITECTURE.md)
 
 ---
 

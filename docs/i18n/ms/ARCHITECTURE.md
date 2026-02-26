@@ -220,7 +220,7 @@ Modul lapisan domain:
 Modul pembekal OAuth (12 fail individu di bawah `src/lib/oauth/providers/`):
 
 - Indeks pendaftaran: `src/lib/oauth/providers/index.ts`
-- Pembekal individu: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, \_\_OMNI_9TOKEN `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Pembekal individu: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Pembalut nipis: `src/lib/oauth/providers.ts` — eksport semula daripada modul individu
 
 ## 3) Lapisan Kegigihan

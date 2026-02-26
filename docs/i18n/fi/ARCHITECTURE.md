@@ -220,7 +220,7 @@ Domain-kerroksen moduulit:
 OAuth-palveluntarjoajan moduulit (12 yksittäistä tiedostoa kohdassa `src/lib/oauth/providers/`):
 
 - Rekisterihakemisto: `src/lib/oauth/providers/index.ts`
-- Yksittäiset palveluntarjoajat: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, \__OMNI_TOKEN_1118_,\_1 `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Yksittäiset palveluntarjoajat: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, ,\_1 `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Ohut kääre: `src/lib/oauth/providers.ts` - jälleenvienti yksittäisistä moduuleista
 
 ## 3) Pysyvyyskerros
@@ -241,7 +241,7 @@ DB:n käyttö:
 Domain State DB (SQLite):
 
 - `src/lib/db/domainState.ts` - CRUD-toiminnot toimialueen tilassa
-- Taulukot (luotu `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, **OMNI_8_EN**
+- Taulukot (luotu `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`,
 - Kirjoitusvälimuistin malli: muistissa olevat kartat ovat arvovaltaisia ajon aikana; mutaatiot kirjoitetaan synkronisesti SQLiten kanssa; tila palautetaan DB:stä kylmäkäynnistyksen yhteydessä
 
 ## 4) Auth + Security Surfaces

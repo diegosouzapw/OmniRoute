@@ -341,7 +341,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 **Tuetut palveluntarjoajat:** `deepgram/nova-3`, `assemblyai/best`.
 
-**Tuetut muodot:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, **\_OMNI_2.\_EN**11_TOK
+**Tuetut muodot:** `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 
@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Käyttö/loki kirjattu
 9. Varmennus koskee virheitä yhdistelmäsääntöjen mukaisesti
 
-Koko arkkitehtuuriviite: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Koko arkkitehtuuriviite: [link](ARCHITECTURE.md)
 
 ---
 

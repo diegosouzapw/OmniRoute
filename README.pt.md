@@ -1087,7 +1087,7 @@ OmniRoute tem **210+ recursos planejados** em diversas fases de desenvolvimento.
 - 🎯 **Roteamento baseado em tags** — Roteie solicitações com base em tags personalizadas e metadados
 - 💰 **Estratégia de custo mais baixo** — Selecione automaticamente o provedor mais barato disponível
 
-> 📝 Especificações completas de recursos disponíveis em [**OMNI_TOKEN_147**](docs/new-features/) (217 especificações detalhadas)
+> 📝 Especificações completas de recursos disponíveis em [link](docs/new-features/) (217 especificações detalhadas)
 
 ---
 

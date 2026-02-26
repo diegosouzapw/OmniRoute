@@ -1087,7 +1087,7 @@ OmniRoute có **210+ tính năng được lên kế hoạch** qua nhiều giai �
 - 🎯 **Định tuyến dựa trên thẻ** — Định tuyến các yêu cầu dựa trên thẻ và siêu dữ liệu tùy chỉnh
 - 💰 **Chiến lược chi phí thấp nhất** — Tự động chọn nhà cung cấp có sẵn rẻ nhất
 
-> 📝 Thông số kỹ thuật đầy đủ tính năng có sẵn trong [**OMNI_TOKEN_147**](docs/new-features/) (217 thông số kỹ thuật chi tiết)
+> 📝 Thông số kỹ thuật đầy đủ tính năng có sẵn trong [link](docs/new-features/) (217 thông số kỹ thuật chi tiết)
 
 ---
 

@@ -220,7 +220,7 @@ Mga module ng layer ng domain:
 Mga module ng provider ng OAuth (12 indibidwal na file sa ilalim ng `src/lib/oauth/providers/`):
 
 - Registry index: `src/lib/oauth/providers/index.ts`
-- Mga indibidwal na tagapagbigay: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, \_\_OMNI_9TOKEN `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Mga indibidwal na tagapagbigay: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Manipis na wrapper: `src/lib/oauth/providers.ts` — muling pag-export mula sa mga indibidwal na module
 
 ## 3) Layer ng Pagtitiyaga

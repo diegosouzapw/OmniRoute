@@ -429,7 +429,7 @@ Content-Type: application/json
 8. 사용/로깅 기록
 9. 콤보 규칙에 따라 오류 발생 시 Fallback 적용
 
-전체 아키텍처 참조: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+전체 아키텍처 참조: [link](ARCHITECTURE.md)
 
 ---
 

@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+> ### 🌍 Massive i18n Expansion — 30 Languages
+>
+> Dashboard UI, README, and technical documentation now available in 30 languages. CI pipeline hardened with deploy guards.
+
+### ✨ New Features
+
+- **Dashboard i18n — 30 Languages** — Expanded dashboard internationalization from 2 languages (EN, PT-BR) to 30 languages: Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT), Portuguese (BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese (Simplified), Filipino, and English. All 500+ translation keys fully localized with RTL support for Arabic and Hebrew
+- **Multi-Language READMEs** — Added 22 new README translations (total: 30 languages), up from the original 8. Each translation includes full project overview, setup guide, feature list, and pricing table
+- **Multi-Language Documentation** — New `docs/i18n/` directory with translations of all core technical docs (API Reference, Architecture, Codebase Documentation, Features, Troubleshooting, User Guide) in 30 languages
+- **i18n QA Tooling** — Added `scripts/i18n/` with i18n-specific QA and validation scripts
+- **GitHub Discussions** — Enabled Discussions on the repository for community support and Q&A (#136)
+
+### 🐛 Bug Fixes
+
+- **Dashboard Responsiveness** — Fixed layout and responsiveness issues in dashboard components; improved i18n error message handling for missing translation keys
+
+### 🔧 CI/CD
+
+- **Deploy VPS Guard** — Added `DEPLOY_ENABLED` environment variable guard to `deploy-vps.yml` workflow, preventing accidental deployments. Removed broken Tailscale SSH step
+- **Deleted Broken Workflow** — Removed non-functional `codex-review.yml` workflow that was failing in CI
+
+---
+
 ## [1.4.11] — 2026-02-25
 
 > ### 🐛 Settings Persistence Fix

@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Penggunaan/logging dicatat
 9. Fallback berlaku pada error sesuai dengan aturan kombo
 
-Referensi arsitektur lengkap: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Referensi arsitektur lengkap: [link](ARCHITECTURE.md)
 
 ---
 

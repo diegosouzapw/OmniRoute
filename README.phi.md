@@ -94,7 +94,7 @@ _Ikonekta ang anumang AI-powered IDE o CLI tool sa pamamagitan ng OmniRoute — 
     </tr>
   </table>
 
-<sub>📡 Kumonekta ang lahat ng ahente sa pamamagitan ng <code>http://localhost:20128/v1</code> o <code>http://cloud.omniroute.online/v1__OMNI_TOKEN_20128/v1<code>http://cloud.omniroute.online/v1__OMNI_TOKEN —iisang modelo at hindi config. quota</sub>
+<sub>📡 Kumonekta ang lahat ng ahente sa pamamagitan ng <code>http://localhost:20128/v1</code> o <code>http://cloud.omniroute.online/v1 >http://cloud.omniroute.online/v1 —iisang modelo at hindi config. quota</sub>
 
 ---
 
@@ -1087,7 +1087,7 @@ Ang OmniRoute ay may **210+ feature na binalak** sa maraming yugto ng pag-unlad.
 - 🎯 **Tag-Based Routing** — Mga kahilingan sa ruta batay sa mga custom na tag at metadata
 - 💰 **Diskarte sa Pinakamababang Gastos** — Awtomatikong piliin ang pinakamurang available na provider
 
-> 📝 Available ang buong detalye ng feature sa [**OMNI_TOKEN_147**](docs/new-features/) (217 detalyadong spec)
+> 📝 Available ang buong detalye ng feature sa [link](docs/new-features/) (217 detalyadong spec)
 
 ---
 

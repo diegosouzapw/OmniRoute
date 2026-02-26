@@ -213,7 +213,7 @@ Quando muitas solicitações simultâneas atingem um provedor com taxa limitada,
 ## Ainda preso?
 
 - **Problemas do GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arquitetura**: Consulte [**OMNI_TOKEN_55**](ARCHITECTURE.md) para detalhes internos
-- **Referência da API**: Consulte [**OMNI_TOKEN_56**](API_REFERENCE.md) para todos os endpoints
+- **Arquitetura**: Consulte [link](ARCHITECTURE.md) para detalhes internos
+- **Referência da API**: Consulte [link](API_REFERENCE.md) para todos os endpoints
 - **Painel de saúde**: verifique **Painel → Saúde** para ver o status do sistema em tempo real
 - **Tradutor**: Use **Dashboard → Tradutor** para depurar problemas de formato

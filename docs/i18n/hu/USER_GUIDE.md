@@ -596,7 +596,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Importálás ellenőrzése:** Az importált fájl integritását (SQLite pragma ellenőrzés), a szükséges táblákat (`provider_connections`, `provider_nodes`, `combos`, \_\_OMNI_TOKEN_136_x ) és 0 MB-ot (0 MB_x ) ellenőrzik.
+**Importálás ellenőrzése:** Az importált fájl integritását (SQLite pragma ellenőrzés), a szükséges táblákat (`provider_connections`, `provider_nodes`, `combos`, ) és 0 MB-ot (0 MB_x ) ellenőrzik.
 
 **Használati esetek:**
 
@@ -661,7 +661,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 Elérhető szolgáltatók: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
 
-Támogatott hangformátumok: `mp3`, `wav`, `m4a`, `flac`, `ogg`, \_\_OMNI_TOKEN_145_TOKEN_1.
+Támogatott hangformátumok: `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 

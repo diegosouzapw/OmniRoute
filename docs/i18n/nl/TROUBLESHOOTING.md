@@ -213,7 +213,7 @@ Wanneer veel gelijktijdige verzoeken een provider met een beperkte snelheid bere
 ## Zit je nog steeds vast?
 
 - **GitHub-problemen**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architectuur**: zie [**OMNI_TOKEN_55**](ARCHITECTURE.md) voor interne details
-- **API-referentie**: zie [**OMNI_TOKEN_56**](API_REFERENCE.md) voor alle eindpunten
+- **Architectuur**: zie [link](ARCHITECTURE.md) voor interne details
+- **API-referentie**: zie [link](API_REFERENCE.md) voor alle eindpunten
 - **Gezondheidsdashboard**: controleer **Dashboard → Gezondheid** voor de realtime systeemstatus
 - **Vertaler**: gebruik **Dashboard → Vertaler** om formaatproblemen op te lossen

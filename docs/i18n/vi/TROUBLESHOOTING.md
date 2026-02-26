@@ -213,7 +213,7 @@ Khi nhiều yêu cầu đồng thời gặp phải một nhà cung cấp có t�
 ## Vẫn bị kẹt?
 
 - **Vấn đề về GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Kiến trúc**: Xem [**OMNI_TOKEN_55**](ARCHITECTURE.md) để biết chi tiết nội bộ
-- **Tham khảo API**: Xem [**OMNI_TOKEN_56**](API_REFERENCE.md) để biết tất cả các điểm cuối
+- **Kiến trúc**: Xem [link](ARCHITECTURE.md) để biết chi tiết nội bộ
+- **Tham khảo API**: Xem [link](API_REFERENCE.md) để biết tất cả các điểm cuối
 - **Bảng điều khiển sức khỏe**: Kiểm tra **Bảng điều khiển → Sức khỏe** để biết trạng thái hệ thống theo thời gian thực
 - **Trình dịch**: Sử dụng **Bảng điều khiển → Trình dịch** để gỡ lỗi các vấn đề về định dạng

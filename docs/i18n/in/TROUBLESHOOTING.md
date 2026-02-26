@@ -110,8 +110,6 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### प्रदाता के स्वास्थ्य की जाँच करें
 
-**OMNI_टोकन_1**
-
 ### रनटाइम स्टोरेज
 
 - मुख्य स्थिति: `${DATA_DIR}/db.json` (प्रदाता, कॉम्बो, उपनाम, कुंजियाँ, सेटिंग्स)
@@ -207,7 +205,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 ## अभी भी अटका हुआ है?
 
 - **गिटहब मुद्दे**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **आर्किटेक्चर**: आंतरिक विवरण के लिए [**OMNI_TOKEN_55**](ARCHITECTURE.md) देखें
-- **एपीआई संदर्भ**: सभी समापन बिंदुओं के लिए [**OMNI_TOKEN_56**](API_REFERENCE.md) देखें
+- **आर्किटेक्चर**: आंतरिक विवरण के लिए [link](ARCHITECTURE.md) देखें
+- **एपीआई संदर्भ**: सभी समापन बिंदुओं के लिए [link](API_REFERENCE.md) देखें
 - **स्वास्थ्य डैशबोर्ड**: वास्तविक समय प्रणाली की स्थिति के लिए **डैशबोर्ड → स्वास्थ्य** जांचें
 - **अनुवादक**: प्रारूप संबंधी समस्याओं को डीबग करने के लिए **डैशबोर्ड → अनुवादक** का उपयोग करें

@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Používanie/protokolovanie zaznamenané
 9. Záložný postup sa vzťahuje na chyby podľa pravidiel komba
 
-Odkaz na úplnú architektúru: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Odkaz na úplnú architektúru: [link](ARCHITECTURE.md)
 
 ---
 

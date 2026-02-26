@@ -215,7 +215,7 @@ Wenn viele gleichzeitige Anfragen einen Anbieter mit begrenzter Rate treffen, ve
 ## Immer noch nicht weitergekommen?
 
 - **GitHub-Probleme**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architektur**: Interne Details finden Sie unter [**OMNI_TOKEN_55**](ARCHITECTURE.md)
-- **API-Referenz**: Siehe [**OMNI_TOKEN_56**](API_REFERENCE.md) für alle Endpunkte
+- **Architektur**: Interne Details finden Sie unter [link](ARCHITECTURE.md)
+- **API-Referenz**: Siehe [link](API_REFERENCE.md) für alle Endpunkte
 - **Gesundheits-Dashboard**: Überprüfen Sie **Dashboard → Gesundheit** auf den Echtzeit-Systemstatus
 - **Übersetzer**: Verwenden Sie **Dashboard → Übersetzer**, um Formatprobleme zu beheben

@@ -596,7 +596,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Tuonnin vahvistus:** Tuodun tiedoston eheys (SQLite pragma check), vaaditut taulukot (`provider_connections`, `provider_nodes`, `combos`, \_\_OMNI_TOKEN_136_x) ja koko 0 (0 MB) tarkistetaan.
+**Tuonnin vahvistus:** Tuodun tiedoston eheys (SQLite pragma check), vaaditut taulukot (`provider_connections`, `provider_nodes`, `combos`, ) ja koko 0 (0 MB) tarkistetaan.
 
 **Käyttötapaukset:**
 
@@ -661,7 +661,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 Saatavilla olevat palveluntarjoajat: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
 
-Tuetut äänimuodot: `mp3`, `wav`, `m4a`, `flac`, `ogg`, \_\_OMNI_TOKEN_145_TOKEN_1.
+Tuetut äänimuodot: `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 

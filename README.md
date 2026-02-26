@@ -405,8 +405,8 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | 🧙 **Onboarding Wizard**     | 4-step guided setup for first-time users                              |
 | 🔧 **CLI Tools Dashboard**   | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
 | 🔄 **DB Backups**            | Automatic backup, restore, export & import for all settings           |
-| 🌐 **Internationalization**  | Full i18n with next-intl — English + Portuguese (Brazil) support      |
-| 🌍 **Language Selector**     | Globe icon in header for real-time language switching (🇺🇸/🇧🇷)         |
+| 🌐 **Internationalization**  | Full i18n with next-intl — 30 languages including RTL support         |
+| 🌍 **Language Selector**     | Globe icon in header for real-time switching between 30 languages     |
 | 📂 **Custom Data Directory** | `DATA_DIR` env var to override default `~/.omniroute` storage path    |
 
 <details>

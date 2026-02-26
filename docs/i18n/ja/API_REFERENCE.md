@@ -429,7 +429,7 @@ Content-Type: application/json
 8. 使用状況/ログの記録
 9. フォールバックはコンボルールに従ってエラーに適用されます
 
-完全なアーキテクチャリファレンス: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+完全なアーキテクチャリファレンス: [link](ARCHITECTURE.md)
 
 ---
 

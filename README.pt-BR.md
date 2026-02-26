@@ -401,8 +401,8 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | 🧙 **Assistente de Configuração** | Setup guiado em 4 etapas para novos usuários                                      |
 | 🔧 **Dashboard CLI Tools**        | Configuração em um clique para Claude, Codex, Cline, OpenClaw, Kilo, Antigravity  |
 | 🔄 **Backups de DB**              | Backup, restauração, exportação e importação automática de todas as configurações |
-| 🌐 **Internacionalização**        | i18n completo com next-intl — suporte English + Português (Brasil)                |
-| 🌍 **Seletor de Idioma**          | Ícone de globo no cabeçalho para troca de idioma em tempo real (🇺🇸/🇧🇷)            |
+| 🌐 **Internacionalização**        | i18n completo com next-intl — suporte a 30 idiomas com RTL                        |
+| 🌍 **Seletor de Idioma**          | Ícone de globo no cabeçalho para troca entre 30 idiomas em tempo real             |
 | 📂 **Diretório de Dados Custom**  | Variável `DATA_DIR` para sobrescrever o caminho padrão `~/.omniroute`             |
 
 <details>

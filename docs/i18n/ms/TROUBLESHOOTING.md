@@ -213,7 +213,7 @@ Apabila banyak permintaan serentak melanda penyedia terhad kadar, OmniRoute meng
 ## Masih Terperangkap?
 
 - **Isu GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Seni Bina**: Lihat [**OMNI_TOKEN_55**](ARCHITECTURE.md) untuk butiran dalaman
-- **Rujukan API**: Lihat [**OMNI_TOKEN_56**](API_REFERENCE.md) untuk semua titik akhir
+- **Seni Bina**: Lihat [link](ARCHITECTURE.md) untuk butiran dalaman
+- **Rujukan API**: Lihat [link](API_REFERENCE.md) untuk semua titik akhir
 - **Papan Pemuka Kesihatan**: Semak **Papan Pemuka → Kesihatan** untuk status sistem masa nyata
 - **Penterjemah**: Gunakan **Papan Pemuka → Penterjemah** untuk menyahpepijat isu format

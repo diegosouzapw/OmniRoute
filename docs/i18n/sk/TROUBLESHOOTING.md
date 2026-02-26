@@ -215,7 +215,7 @@ Keď mnoho súbežných požiadaviek zasiahne poskytovateľa s obmedzenou rýchl
 
 – **Problémy s GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
-- **Architektúra**: Interné podrobnosti nájdete v [**OMNI_TOKEN_55**](ARCHITECTURE.md)
-- **Referencia API**: Všetky koncové body nájdete na stránke [**OMNI_TOKEN_56**](API_REFERENCE.md)
+- **Architektúra**: Interné podrobnosti nájdete v [link](ARCHITECTURE.md)
+- **Referencia API**: Všetky koncové body nájdete na stránke [link](API_REFERENCE.md)
 - **Hlavný panel zdravia**: Skontrolujte stav systému v reálnom čase v časti **Hlavný panel → Zdravie**
 - **Prekladač**: Na ladenie problémov s formátom použite **Dashboard → Translator**

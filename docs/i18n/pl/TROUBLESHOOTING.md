@@ -213,7 +213,7 @@ Gdy wiele jednoczesnych żądań trafia do dostawcy z ograniczoną szybkością,
 ## Nadal utknąłeś?
 
 - **Problemy z GitHubem**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architektura**: Zobacz [**OMNI_TOKEN_55**](ARCHITECTURE.md), aby uzyskać szczegółowe informacje wewnętrzne
-- **Dokumentacja API**: Zobacz [**OMNI_TOKEN_56**](API_REFERENCE.md) dla wszystkich punktów końcowych
+- **Architektura**: Zobacz [link](ARCHITECTURE.md), aby uzyskać szczegółowe informacje wewnętrzne
+- **Dokumentacja API**: Zobacz [link](API_REFERENCE.md) dla wszystkich punktów końcowych
 - **Panel stanu**: Sprawdź **Panel kontrolny → Zdrowie**, aby sprawdzić stan systemu w czasie rzeczywistym
 - **Tłumacz**: Użyj **Panel kontrolny → Tłumacz**, aby debugować problemy z formatem

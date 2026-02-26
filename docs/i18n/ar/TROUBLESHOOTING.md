@@ -213,7 +213,7 @@ curl http://localhost:20128/api/monitoring/health
 ## هل مازلت عالقًا؟
 
 - **مشكلات GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **الهندسة المعمارية**: راجع [**OMNI_TOKEN_55**](ARCHITECTURE.md) للحصول على التفاصيل الداخلية
-- **مرجع واجهة برمجة التطبيقات**: راجع [**OMNI_TOKEN_56**](API_REFERENCE.md) لجميع نقاط النهاية
+- **الهندسة المعمارية**: راجع [link](ARCHITECTURE.md) للحصول على التفاصيل الداخلية
+- **مرجع واجهة برمجة التطبيقات**: راجع [link](API_REFERENCE.md) لجميع نقاط النهاية
 - **لوحة معلومات الصحة**: تحقق من **لوحة المعلومات ← الصحة** لمعرفة حالة النظام في الوقت الفعلي
 - **المترجم**: استخدم **لوحة المعلومات ← المترجم** لتصحيح مشكلات التنسيق

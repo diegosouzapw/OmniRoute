@@ -429,7 +429,7 @@ Content-Type: application/json
 8. 使用/日志记录
 9. 根据组合规则对错误应用回退
 
-完整架构参考：[**OMNI_TOKEN_119**](ARCHITECTURE.md)
+完整架构参考：[link](ARCHITECTURE.md)
 
 ---
 

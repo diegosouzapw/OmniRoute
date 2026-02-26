@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Verbruik/logboekregistratie
 9. Fallback is van toepassing op fouten volgens comboregels
 
-Volledige architectuurreferentie: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Volledige architectuurreferentie: [link](ARCHITECTURE.md)
 
 ---
 

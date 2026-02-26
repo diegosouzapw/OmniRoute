@@ -94,7 +94,7 @@ _Pripojte akýkoľvek nástroj IDE alebo CLI poháňaný AI cez OmniRoute – be
     </tr>
   </table>
 
-<sub>📡 Všetci agenti sa pripájajú cez <code>http://localhost:20128/v1</code> alebo <code>http://cloud.omniroute_OMNI_TOK one/v1 modely a kvóta</sub>
+<sub>📡 Všetci agenti sa pripájajú cez <code>http://localhost:20128/v1</code> alebo <code>http://cloud.omniroute one/v1 modely a kvóta</sub>
 
 ---
 
@@ -1088,7 +1088,7 @@ OmniRoute má naplánovaných **210+ funkcií** vo viacerých fázach vývoja. T
 - 🎯 ** Smerovanie založené na značkách** – Smerujte požiadavky na základe vlastných značiek a metadát
 - 💰 **Stratégia najnižšej ceny** — Automaticky vyberte najlacnejšieho dostupného poskytovateľa
 
-> 📝 Úplné špecifikácie funkcií sú k dispozícii v [**OMNI_TOKEN_147**](docs/new-features/) (217 podrobných špecifikácií)
+> 📝 Úplné špecifikácie funkcií sú k dispozícii v [link](docs/new-features/) (217 podrobných špecifikácií)
 
 ---
 

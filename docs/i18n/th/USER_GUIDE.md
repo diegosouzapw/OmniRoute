@@ -373,8 +373,7 @@ docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-dat
 ## 📊 รุ่นที่มีจำหน่าย
 
 <details>
-<summary><b>ดูรุ่นที่มีทั้งหมด</b>OMNI_TOKEN_161__
-
+<summary><b>ดูรุ่นที่มีทั้งหมด</b></summary>
 **รหัสโคลด (`cc/`)** — โปร/สูงสุด: `cc/claude-opus-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
 **โคเด็กซ์ (`cx/`)** — บวก/โปร: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`

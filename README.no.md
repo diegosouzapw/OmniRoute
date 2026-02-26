@@ -1087,7 +1087,7 @@ OmniRoute har **210+ funksjoner planlagt** på tvers av flere utviklingsfaser. H
 - 🎯 **Tag-basert ruting** — Ruteforespørsler basert på tilpassede tagger og metadata
 - 💰 **Laveste kostnadsstrategi** — Velg automatisk den billigste tilgjengelige leverandøren
 
-> 📝 Full funksjonsspesifikasjoner tilgjengelig i [**OMNI_TOKEN_147**](docs/new-features/) (217 detaljerte spesifikasjoner)
+> 📝 Full funksjonsspesifikasjoner tilgjengelig i [link](docs/new-features/) (217 detaljerte spesifikasjoner)
 
 ---
 

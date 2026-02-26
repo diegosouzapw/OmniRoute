@@ -429,7 +429,7 @@ Content-Type: application/json
 8. שימוש/רישום נרשם
 9. Fallback חל על שגיאות בהתאם לכללי המשולבים
 
-הפניה מלאה לארכיטקטורה: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+הפניה מלאה לארכיטקטורה: [link](ARCHITECTURE.md)
 
 ---
 

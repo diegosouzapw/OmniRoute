@@ -210,7 +210,7 @@ curl http://localhost:20128/api/monitoring/health
 ## 仍然卡住吗？
 
 - **GitHub 问题**：[github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **架构**：请参阅 [**OMNI_TOKEN_55**](ARCHITECTURE.md) 了解内部详细信息
-- **API 参考**：请参阅 [**OMNI_TOKEN_56**](API_REFERENCE.md) 了解所有端点
+- **架构**：请参阅 [link](ARCHITECTURE.md) 了解内部详细信息
+- **API 参考**：请参阅 [link](API_REFERENCE.md) 了解所有端点
 - **健康仪表板**：检查**仪表板→健康**以获取实时系统状态
 - **翻译器**：使用**仪表板→翻译器**来调试格式问题

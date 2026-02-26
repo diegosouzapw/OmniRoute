@@ -482,7 +482,7 @@ Returnează modele grupate după furnizor cu tipuri (`chat`, `embedding`, `image
 ### LLM Gateway Intelligence (Faza 9)
 
 - **Cache semantic** — Memorează automat în cache non-streaming, temperatură=0 răspunsuri (ocolire cu `X-OmniRoute-No-Cache: true`)
-- **Solicitare Idempotency** — Deduplică cererile în 5s prin antetul \_\_OMNI_TOKEN_1 sau `X-Request-Id`
+- **Solicitare Idempotency** — Deduplică cererile în 5s prin antetul sau `X-Request-Id`
 - **Urmărirea progresului** — Opt-in SSE `event: progress` evenimente prin antetul `X-OmniRoute-Progress: true`
 
 ---
@@ -661,7 +661,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 Furnizori disponibili: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
 
-Formate audio acceptate: `mp3`, `wav`, `m4a`, `flac`, `ogg`, **OMNI_TOKEN**14.
+Formate audio acceptate: `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 

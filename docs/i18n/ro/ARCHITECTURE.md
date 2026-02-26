@@ -220,7 +220,7 @@ Module de nivel de domeniu:
 Module de furnizor OAuth (12 fișiere individuale sub `src/lib/oauth/providers/`):
 
 - Index de registru: `src/lib/oauth/providers/index.ts`
-- Furnizori individuali: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, **OMNI_TOKEN**, **OMNI_TOKEN**, **OMNI_TOKEN**, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Furnizori individuali: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, , , , `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Ambalaj subțire: `src/lib/oauth/providers.ts` — reexporturi din module individuale
 
 ## 3) Stratul de persistență

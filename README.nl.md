@@ -1087,7 +1087,7 @@ OmniRoute heeft **210+ functies gepland** over meerdere ontwikkelingsfasen. Dit 
 - 🎯 **Op tags gebaseerde routering** — Routeer verzoeken op basis van aangepaste tags en metagegevens
 - 💰 **Laagste kostenstrategie** — Selecteer automatisch de goedkoopste beschikbare provider
 
-> 📝 Volledige functiespecificaties beschikbaar in [**OMNI_TOKEN_147**](docs/new-features/) (217 gedetailleerde specificaties)
+> 📝 Volledige functiespecificaties beschikbaar in [link](docs/new-features/) (217 gedetailleerde specificaties)
 
 ---
 

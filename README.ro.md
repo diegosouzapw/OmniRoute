@@ -94,7 +94,7 @@ _Conectați orice instrument IDE sau CLI alimentat de AI prin OmniRoute — gate
     </tr>
   </table>
 
-<sub>📡 Toți agenții se conectează prin <code>http://localhost:20128/v1</code> sau <code>http://cloud.omniroute.online.online/v1__OMNI4_TOKEN__EN modele și cotă nelimitate</sub>
+<sub>📡 Toți agenții se conectează prin <code>http://localhost:20128/v1</code> sau <code>http://cloud.omniroute.online.online/v1 modele și cotă nelimitate</sub>
 
 ---
 
@@ -1087,7 +1087,7 @@ OmniRoute are **210+ funcții planificate** în mai multe faze de dezvoltare. Ia
 - 🎯 **Rutare bazată pe etichete** — Solicitări de rutare bazate pe etichete și metadate personalizate
 - 💰 **Strategia cu cel mai mic cost** — Selectați automat cel mai ieftin furnizor disponibil
 
-> 📝 Specificații complete ale caracteristicilor disponibile în [**OMNI_TOKEN_147**](docs/new-features/) (217 specificații detaliate)
+> 📝 Specificații complete ale caracteristicilor disponibile în [link](docs/new-features/) (217 specificații detaliate)
 
 ---
 

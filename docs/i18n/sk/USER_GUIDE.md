@@ -596,7 +596,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Overenie importu:** Overí sa integrita importovaného súboru (kontrola SQLite pragma), požadované tabuľky (`provider_connections`, `provider_nodes`, `combos`, \__OMNI_TOKEN_136_1_) a veľkosť (max. 0 MB).
+**Overenie importu:** Overí sa integrita importovaného súboru (kontrola SQLite pragma), požadované tabuľky (`provider_connections`, `provider_nodes`, `combos`, ) a veľkosť (max. 0 MB).
 
 **Prípady použitia:**
 
@@ -661,7 +661,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 Dostupní poskytovatelia: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
 
-Podporované zvukové formáty: `mp3`, `wav`, `m4a`, `flac`, `ogg`, \_\_OMNI_TOKEN_1.
+Podporované zvukové formáty: `mp3`, `wav`, `m4a`, `flac`, `ogg`,
 
 ---
 

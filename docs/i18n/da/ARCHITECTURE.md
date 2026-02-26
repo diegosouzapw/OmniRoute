@@ -220,7 +220,7 @@ Domænelagsmoduler:
 OAuth-udbydermoduler (12 individuelle filer under `src/lib/oauth/providers/`):
 
 - Registerindeks: `src/lib/oauth/providers/index.ts`
-- Individuelle udbydere: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, **OMNI*TOKEN***12**TO, **OMNI_TOKEN**\_12**, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Individuelle udbydere: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, , , `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Tyndt omslag: `src/lib/oauth/providers.ts` — reeksport fra individuelle moduler
 
 ## 3) Persistens-lag

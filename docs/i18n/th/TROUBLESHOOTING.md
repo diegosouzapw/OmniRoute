@@ -213,7 +213,7 @@ curl http://localhost:20128/api/monitoring/health
 ## ยังติดอยู่เหรอ?
 
 - **ปัญหา GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **สถาปัตยกรรม**: ดู [**OMNI_TOKEN_55**](ARCHITECTURE.md) สำหรับรายละเอียดภายใน
-- **การอ้างอิง API**: ดู [**OMNI_TOKEN_56**](API_REFERENCE.md) สำหรับจุดสิ้นสุดทั้งหมด
+- **สถาปัตยกรรม**: ดู [link](ARCHITECTURE.md) สำหรับรายละเอียดภายใน
+- **การอ้างอิง API**: ดู [link](API_REFERENCE.md) สำหรับจุดสิ้นสุดทั้งหมด
 - **แดชบอร์ดสุขภาพ**: ตรวจสอบ **แดชบอร์ด → สุขภาพ** เพื่อดูสถานะของระบบแบบเรียลไทม์
 - **นักแปล**: ใช้ **แดชบอร์ด → นักแปล** เพื่อแก้ไขปัญหาเกี่ยวกับรูปแบบ

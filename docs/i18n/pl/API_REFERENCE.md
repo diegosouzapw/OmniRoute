@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Zarejestrowano użycie/rejestrowanie
 9. Rezerwa ma zastosowanie w przypadku błędów zgodnie z zasadami kombinacji
 
-Pełne odniesienie do architektury: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Pełne odniesienie do architektury: [link](ARCHITECTURE.md)
 
 ---
 

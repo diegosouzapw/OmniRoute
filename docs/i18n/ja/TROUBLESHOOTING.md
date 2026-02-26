@@ -210,7 +210,7 @@ curl http://localhost:20128/api/monitoring/health
 ## まだ行き詰まっていますか?
 
 - **GitHub の問題**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **アーキテクチャ**: 内部の詳細については、[**OMNI_TOKEN_55**](ARCHITECTURE.md) を参照してください。
-- **API リファレンス**: すべてのエンドポイントについては、[**OMNI_TOKEN_56**](API_REFERENCE.md) を参照してください。
+- **アーキテクチャ**: 内部の詳細については、[link](ARCHITECTURE.md) を参照してください。
+- **API リファレンス**: すべてのエンドポイントについては、[link](API_REFERENCE.md) を参照してください。
 - **ヘルス ダッシュボード**: リアルタイムのシステム ステータスについては、**ダッシュボード → ヘルス** を確認してください。
 - **トランスレータ**: **ダッシュボード → トランスレータ**を使用して形式の問題をデバッグします

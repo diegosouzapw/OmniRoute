@@ -213,7 +213,7 @@ Quando molte richieste simultanee raggiungono un provider con velocità limitata
 ## Sei ancora bloccato?
 
 - **Problemi GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architettura**: vedi [**OMNI_TOKEN_55**](ARCHITECTURE.md) per i dettagli interni
-- **Riferimento API**: vedere [**OMNI_TOKEN_56**](API_REFERENCE.md) per tutti gli endpoint
+- **Architettura**: vedi [link](ARCHITECTURE.md) per i dettagli interni
+- **Riferimento API**: vedere [link](API_REFERENCE.md) per tutti gli endpoint
 - **Dashboard salute**: controlla **Dashboard → Salute** per lo stato del sistema in tempo reale
 - **Traduttore**: utilizza **Dashboard → Traduttore** per eseguire il debug dei problemi di formato

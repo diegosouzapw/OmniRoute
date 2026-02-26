@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Brug/logning registreret
 9. Fallback gælder for fejl i henhold til combo regler
 
-Fuld arkitekturreference: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Fuld arkitekturreference: [link](ARCHITECTURE.md)
 
 ---
 

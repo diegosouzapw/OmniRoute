@@ -220,7 +220,7 @@ Domänlagermoduler:
 OAuth-leverantörsmoduler (12 enskilda filer under `src/lib/oauth/providers/`):
 
 - Registerindex: `src/lib/oauth/providers/index.ts`
-- Individuella leverantörer: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, **OMNI*TOKEN ***119**, **OMNI_TOKEN **\_119**, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Individuella leverantörer: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `qwen.ts`, **\*119**, **\_119**, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Tunt omslag: `src/lib/oauth/providers.ts` — återexport från enskilda moduler
 
 ## 3) Persistenslager

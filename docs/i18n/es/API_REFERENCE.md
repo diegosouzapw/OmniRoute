@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Uso/registro registrado
 9. El respaldo se aplica en caso de errores de acuerdo con las reglas combinadas.
 
-Referencia de arquitectura completa: [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Referencia de arquitectura completa: [link](ARCHITECTURE.md)
 
 ---
 

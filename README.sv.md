@@ -1087,7 +1087,7 @@ OmniRoute har **210+ funktioner planerade** över flera utvecklingsfaser. Här �
 - 🎯 **Taggbaserad routing** — Ruttbegäranden baserade på anpassade taggar och metadata
 - 💰 **Lägsta kostnadsstrategi** — Välj automatiskt den billigaste tillgängliga leverantören
 
-> 📝 Fullständiga funktionsspecifikationer tillgängliga i [**OMNI_TOKEN_147**](docs/new-features/) (217 detaljerade specifikationer)
+> 📝 Fullständiga funktionsspecifikationer tillgängliga i [link](docs/new-features/) (217 detaljerade specifikationer)
 
 ---
 

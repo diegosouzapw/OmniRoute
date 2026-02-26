@@ -220,7 +220,7 @@ Moduly vrstvy domény:
 Moduly poskytovateľa OAuth (12 samostatných súborov pod `src/lib/oauth/providers/`):
 
 - Index registra: `src/lib/oauth/providers/index.ts`
-  – Jednotliví poskytovatelia: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, \_\_OMNI_TOKEN_1_TOKNI_10 `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+  – Jednotliví poskytovatelia: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `iflow.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
 - Tenký obal: `src/lib/oauth/providers.ts` – reexporty z jednotlivých modulov
 
 ## 3) Vrstva perzistencie

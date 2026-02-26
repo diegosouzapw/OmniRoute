@@ -429,7 +429,7 @@ Content-Type: application/json
 8. Utilisation/journalisation enregistrée
 9. Le repli s'applique aux erreurs selon les règles de combo
 
-Référence complète de l'architecture : [**OMNI_TOKEN_119**](ARCHITECTURE.md)
+Référence complète de l'architecture : [link](ARCHITECTURE.md)
 
 ---
 

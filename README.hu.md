@@ -1087,7 +1087,7 @@ Az OmniRoute **210+ funkciót tervez** több fejlesztési fázisban. Íme a legf
 - 🎯 **Címke alapú útválasztás** - Egyéni címkéken és metaadatokon alapuló útvonalkérések
 - 💰 **Legalacsonyabb költségű stratégia** - Automatikusan válassza ki a legolcsóbb elérhető szolgáltatót
 
-> 📝 A teljes funkció specifikációi a [**OMNI_TOKEN_147**](docs/new-features/) címen érhetők el (217 részletes specifikáció)
+> 📝 A teljes funkció specifikációi a [link](docs/new-features/) címen érhetők el (217 részletes specifikáció)
 
 ---
 
