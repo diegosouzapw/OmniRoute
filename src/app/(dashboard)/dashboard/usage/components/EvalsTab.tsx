@@ -18,35 +18,35 @@ import { useNotificationStore } from "@/store/notificationStore";
 const STRATEGIES = [
   {
     name: "contains",
-    label: "Contains",
+    labelKey: "evalsStrategyContainsLabel",
     icon: "search",
     color: "text-sky-400",
     bg: "bg-sky-500/10",
-    description: "Checks if the response contains a specific text (case-insensitive)",
+    descriptionKey: "evalsStrategyContainsDescription",
   },
   {
     name: "exact",
-    label: "Exact Match",
+    labelKey: "evalsStrategyExactLabel",
     icon: "check_circle",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
-    description: "Response must be an exact character-for-character match",
+    descriptionKey: "evalsStrategyExactDescription",
   },
   {
     name: "regex",
-    label: "Regex Pattern",
+    labelKey: "evalsStrategyRegexLabel",
     icon: "code",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
-    description: "Matches response against a regular expression pattern",
+    descriptionKey: "evalsStrategyRegexDescription",
   },
   {
     name: "custom",
-    label: "Custom Function",
+    labelKey: "evalsStrategyCustomLabel",
     icon: "tune",
     color: "text-violet-400",
     bg: "bg-violet-500/10",
-    description: "Uses a custom function for advanced evaluation logic",
+    descriptionKey: "evalsStrategyCustomDescription",
   },
 ];
 
@@ -129,7 +129,7 @@ export default function EvalsTab() {
   const handleRunEval = async (suite) => {
     const cases = suite.cases || [];
     if (cases.length === 0) {
-      notify.warning("No test cases defined for this suite");
+      notify.warning(t("notifyNoTestCases"));
       return;
     }
 
@@ -161,16 +161,22 @@ export default function EvalsTab() {
       if (data.summary) {
         const { passed, failed, total } = data.summary;
         if (failed === 0) {
-          notify.success(`All ${total} cases passed ✅`, `Eval: ${suite.name}`);
+          notify.success(
+            t("notifyAllCasesPassed", { total }),
+            t("notifyEvalTitle", { name: suite.name || suite.id })
+          );
         } else {
-          notify.warning(`${passed}/${total} passed, ${failed} failed`, `Eval: ${suite.name}`);
+          notify.warning(
+            t("notifySomeCasesFailed", { passed, total, failed }),
+            t("notifyEvalTitle", { name: suite.name || suite.id })
+          );
         }
       }
 
       // Auto-expand to show results
       setExpanded(suite.id);
     } catch {
-      notify.error("Eval run failed");
+      notify.error(t("notifyEvalRunFailed"));
     } finally {
       setRunning(null);
       setProgress({ current: 0, total: 0 });
@@ -197,7 +203,7 @@ export default function EvalsTab() {
     return (
       <div className="flex items-center gap-2 text-text-muted p-8 animate-pulse">
         <span className="material-symbols-outlined text-[20px]">science</span>
-        Loading eval suites...
+        {t("evalsLoading")}
       </div>
     );
   }
@@ -209,51 +215,51 @@ export default function EvalsTab() {
         <HeroSection />
         <EmptyState
           icon="science"
-          title="No Eval Suites Found"
-          description="Eval suites can be defined via the API or in code. They test model outputs against expected results using strategies like contains, regex, exact match, and custom functions."
+          title={t("noEvalSuitesFound")}
+          description={t("noEvalSuitesDescription")}
         />
       </div>
     );
   }
 
   const RESULT_COLUMNS = [
-    { key: "caseName", label: "Case" },
-    { key: "status", label: "Status" },
-    { key: "durationMs", label: "Latency" },
-    { key: "details", label: "Details" },
+    { key: "caseName", label: t("columnCase") },
+    { key: "status", label: t("columnStatus") },
+    { key: "durationMs", label: t("columnLatency") },
+    { key: "details", label: t("columnDetails") },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       {/* Hero Section */}
-      <HeroSection />
+      <HeroSection t={t} />
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold tracking-wide">
-            Suites
+            {t("statsSuites")}
           </span>
           <div className="text-2xl font-bold mt-1 text-violet-400">{suites.length}</div>
         </Card>
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold tracking-wide">
-            Test Cases
+            {t("statsTestCases")}
           </span>
           <div className="text-2xl font-bold mt-1 text-sky-400">{totalCases}</div>
         </Card>
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold tracking-wide">
-            Models
+            {t("statsModels")}
           </span>
           <div className="text-2xl font-bold mt-1 text-emerald-400">{uniqueModels.length}</div>
         </Card>
         <Card className="px-4 py-3 text-center">
           <span className="text-xs text-text-muted uppercase font-semibold tracking-wide">
-            Coverage
+            {t("statsCoverage")}
           </span>
           <div className="text-2xl font-bold mt-1 text-amber-400">
-            {STRATEGIES.length} strategies
+            {t("statsStrategiesCount", { count: STRATEGIES.length })}
           </div>
         </Card>
       </div>
@@ -269,10 +275,8 @@ export default function EvalsTab() {
               <span className="material-symbols-outlined text-[20px]">help</span>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-text-main">How It Works</h3>
-              <p className="text-xs text-text-muted">
-                Learn how evaluations validate your LLM responses
-              </p>
+              <h3 className="text-sm font-semibold text-text-main">{t("howItWorks")}</h3>
+              <p className="text-xs text-text-muted">{t("howItWorksSubtitle")}</p>
             </div>
           </div>
           <span
@@ -293,37 +297,28 @@ export default function EvalsTab() {
                   <span className="text-lg font-bold text-violet-400">1</span>
                 </div>
                 <h4 className="text-sm font-semibold text-text-main mb-1">{t("define")}</h4>
-                <p className="text-xs text-text-muted">
-                  Create test cases with input prompts and expected output criteria using strategies
-                  like contains, regex, or exact match.
-                </p>
+                <p className="text-xs text-text-muted">{t("defineStepDescription")}</p>
               </div>
               <div className="flex flex-col items-center text-center p-4 rounded-lg bg-sky-500/5 border border-sky-500/10">
                 <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-sky-400">2</span>
                 </div>
                 <h4 className="text-sm font-semibold text-text-main mb-1">{t("run")}</h4>
-                <p className="text-xs text-text-muted">
-                  Execute test cases against your LLM endpoints through OmniRoute. Each case is sent
-                  as a real API request.
-                </p>
+                <p className="text-xs text-text-muted">{t("runStepDescription")}</p>
               </div>
               <div className="flex flex-col items-center text-center p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
                   <span className="text-lg font-bold text-emerald-400">3</span>
                 </div>
                 <h4 className="text-sm font-semibold text-text-main mb-1">{t("evaluate")}</h4>
-                <p className="text-xs text-text-muted">
-                  Responses are compared against expected criteria. See pass/fail for each case with
-                  latency metrics and detailed feedback.
-                </p>
+                <p className="text-xs text-text-muted">{t("evaluateStepDescription")}</p>
               </div>
             </div>
 
             {/* Evaluation Strategies */}
             <div className="mt-6">
               <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
-                Evaluation Strategies
+                {t("evaluationStrategies")}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {STRATEGIES.map((s) => (
@@ -335,8 +330,10 @@ export default function EvalsTab() {
                       {s.icon}
                     </span>
                     <div>
-                      <span className={`text-xs font-mono font-semibold ${s.color}`}>{s.name}</span>
-                      <p className="text-xs text-text-muted mt-0.5">{s.description}</p>
+                      <span className={`text-xs font-mono font-semibold ${s.color}`}>
+                        {t(s.labelKey)}
+                      </span>
+                      <p className="text-xs text-text-muted mt-0.5">{t(s.descriptionKey)}</p>
                     </div>
                   </div>
                 ))}
@@ -347,7 +344,7 @@ export default function EvalsTab() {
             {uniqueModels.length > 0 && (
               <div className="mt-6">
                 <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
-                  Models Under Test
+                  {t("modelsUnderTest")}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {uniqueModels.map((m) => (
@@ -373,16 +370,14 @@ export default function EvalsTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">{t("evalSuites")}</h3>
-            <p className="text-xs text-text-muted">
-              Click a suite to view test cases, then run to evaluate your LLM endpoints
-            </p>
+            <p className="text-xs text-text-muted">{t("evalSuitesHint")}</p>
           </div>
         </div>
 
         <FilterBar
           searchValue={search}
           onSearchChange={setSearch}
-          placeholder="Search suites..."
+          placeholder={t("searchSuitesPlaceholder")}
           filters={[]}
           activeFilters={{}}
           onFilterChange={() => {}}
@@ -427,12 +422,12 @@ export default function EvalsTab() {
                                   : "bg-red-500/10 text-red-400"
                             }`}
                           >
-                            {suiteResult.summary.passRate}% pass
+                            {suiteResult.summary.passRate}% {t("passSuffix")}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-text-muted">
-                        {caseCount} case{caseCount !== 1 ? "s" : ""}
+                        {t("casesCount", { count: caseCount })}
                         {suite.description && <span className="ml-1">— {suite.description}</span>}
                       </p>
                       {suiteModels.length > 0 && (
@@ -475,7 +470,9 @@ export default function EvalsTab() {
                       loading={isRunning}
                       disabled={isRunning}
                     >
-                      {isRunning ? `Running ${progress.current}/${progress.total}...` : "Run Eval"}
+                      {isRunning
+                        ? t("runningProgress", { current: progress.current, total: progress.total })
+                        : t("runEval")}
                     </Button>
                   </div>
                 </div>
@@ -499,11 +496,14 @@ export default function EvalsTab() {
                               >
                                 {suiteResult.summary.passRate}%
                               </span>
-                              <span className="text-xs text-text-muted">pass rate</span>
+                              <span className="text-xs text-text-muted">{t("passRate")}</span>
                             </div>
                             <div className="text-xs text-text-muted">
-                              {suiteResult.summary.passed} passed · {suiteResult.summary.failed}{" "}
-                              failed · {suiteResult.summary.total} total
+                              {t("summaryBreakdown", {
+                                passed: suiteResult.summary.passed,
+                                failed: suiteResult.summary.failed,
+                                total: suiteResult.summary.total,
+                              })}
                             </div>
                             {/* Visual pass/fail bar */}
                             <div className="flex-1 h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
@@ -531,9 +531,9 @@ export default function EvalsTab() {
                           renderCell={(row, col) => {
                             if (col.key === "status") {
                               return row.passed ? (
-                                <span className="text-emerald-400">✅ Passed</span>
+                                <span className="text-emerald-400">{t("passedIconLabel")}</span>
                               ) : (
-                                <span className="text-red-400">❌ Failed</span>
+                                <span className="text-red-400">{t("failedIconLabel")}</span>
                               );
                             }
                             if (col.key === "durationMs") {
@@ -549,11 +549,13 @@ export default function EvalsTab() {
                                 <span className="text-text-muted text-xs truncate max-w-[300px] block">
                                   {String(
                                     (d as any).searchTerm
-                                      ? `Contains: "${(d as any).searchTerm}"`
+                                      ? t("detailsContains", { term: (d as any).searchTerm })
                                       : (d as any).pattern
-                                        ? `Regex: ${(d as any).pattern}`
+                                        ? t("detailsRegex", { pattern: (d as any).pattern })
                                         : (d as any).expected
-                                          ? `Expected: "${String((d as any).expected).slice(0, 50)}"`
+                                          ? t("detailsExpected", {
+                                              expected: String((d as any).expected).slice(0, 50),
+                                            })
                                           : row.error || "—"
                                   )}
                                 </span>
@@ -566,7 +568,7 @@ export default function EvalsTab() {
                             );
                           }}
                           maxHeight="400px"
-                          emptyMessage="No results yet"
+                          emptyMessage={t("noResultsYet")}
                         />
                       </>
                     ) : (
@@ -577,15 +579,15 @@ export default function EvalsTab() {
                             checklist
                           </span>
                           <span className="text-xs text-text-muted font-medium">
-                            Test Cases ({(suite.cases || []).length})
+                            {t("testCasesCount", { count: (suite.cases || []).length })}
                           </span>
                         </div>
                         <DataTable
                           columns={[
-                            { key: "name", label: "Case" },
-                            { key: "model", label: "Model" },
-                            { key: "strategy", label: "Strategy" },
-                            { key: "expected", label: "Expected" },
+                            { key: "name", label: t("columnCase") },
+                            { key: "model", label: t("columnModel") },
+                            { key: "strategy", label: t("columnStrategy") },
+                            { key: "expected", label: t("columnExpected") },
                           ]}
                           data={(suite.cases || []).map((c, i) => ({
                             id: c.id || i,
@@ -630,12 +632,11 @@ export default function EvalsTab() {
                             );
                           }}
                           maxHeight="400px"
-                          emptyMessage="No test cases defined"
+                          emptyMessage={t("noTestCasesDefined")}
                         />
                         <p className="text-xs text-text-muted mt-3 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[14px]">info</span>
-                          Click &quot;Run Eval&quot; to execute all cases against your LLM endpoint.
-                          Each test sends a real request through OmniRoute.
+                          {t("runEvalHint")}
                         </p>
                       </>
                     )}
@@ -651,7 +652,7 @@ export default function EvalsTab() {
 }
 
 // ── Hero Section Component ─────────────────────────────────────────────
-function HeroSection() {
+function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>) => string }) {
   return (
     <Card className="p-0 overflow-hidden">
       <div
@@ -668,31 +669,28 @@ function HeroSection() {
           <div className="flex-1">
             <h2 className="text-xl font-bold text-text-main mb-1">{t("modelEvals")}</h2>
             <p className="text-sm text-text-muted leading-relaxed max-w-2xl">
-              Test and validate your LLM endpoints by running predefined evaluation suites. Each
-              suite contains test cases that send real prompts through OmniRoute and compare
-              responses against expected criteria — helping you detect regressions, compare models,
-              and ensure response quality across providers.
+              {t("evalsHeroDescription")}
             </p>
             <div className="flex flex-wrap items-center gap-4 mt-4">
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <span className="material-symbols-outlined text-[16px] text-emerald-400">
                   verified
                 </span>
-                Quality Validation
+                {t("qualityValidation")}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <span className="material-symbols-outlined text-[16px] text-sky-400">compare</span>
-                Model Comparison
+                {t("modelComparison")}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <span className="material-symbols-outlined text-[16px] text-amber-400">
                   bug_report
                 </span>
-                Regression Detection
+                {t("regressionDetection")}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 <span className="material-symbols-outlined text-[16px] text-violet-400">speed</span>
-                Latency Benchmarks
+                {t("latencyBenchmarks")}
               </div>
             </div>
           </div>

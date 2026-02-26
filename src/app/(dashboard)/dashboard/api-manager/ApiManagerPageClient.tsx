@@ -32,18 +32,21 @@ function sanitizeInput(input: string): string {
 }
 
 // Validate key name
-function validateKeyName(name: string): { valid: boolean; error?: string } {
+function validateKeyName(
+  name: string,
+  t: (key: string, values?: Record<string, unknown>) => string
+): { valid: boolean; error?: string } {
   if (!name || !name.trim()) {
-    return { valid: false, error: "Key name is required" };
+    return { valid: false, error: t("keyNameRequired") };
   }
   if (name.length > MAX_KEY_NAME_LENGTH) {
-    return { valid: false, error: `Key name must be ${MAX_KEY_NAME_LENGTH} characters or less` };
+    return { valid: false, error: t("keyNameTooLong", { max: MAX_KEY_NAME_LENGTH }) };
   }
   // Only allow alphanumeric, spaces, hyphens, underscores
   if (!/^[a-zA-Z0-9_\-\s]+$/.test(name)) {
     return {
       valid: false,
-      error: "Key name can only contain letters, numbers, spaces, hyphens, and underscores",
+      error: t("keyNameInvalid"),
     };
   }
   return { valid: true };
@@ -155,10 +158,10 @@ export default function ApiManagerPageClient() {
   const handleCreateKey = async () => {
     // Validate and sanitize input
     const sanitizedName = sanitizeInput(newKeyName);
-    const validation = validateKeyName(sanitizedName);
+    const validation = validateKeyName(sanitizedName, t);
 
     if (!validation.valid) {
-      setError(validation.error || "Invalid key name");
+      setError(validation.error || t("invalidKeyName"));
       return;
     }
 
@@ -179,11 +182,11 @@ export default function ApiManagerPageClient() {
         setNewKeyName("");
         setShowAddModal(false);
       } else {
-        setError(data.error || "Failed to create key");
+        setError(data.error || t("failedCreateKey"));
       }
     } catch (error) {
       console.error("Error creating key:", error);
-      setError("Failed to create key. Please try again.");
+      setError(t("failedCreateKeyRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -192,7 +195,7 @@ export default function ApiManagerPageClient() {
   const handleDeleteKey = async (id: string) => {
     // Validate ID format to prevent injection
     if (!id || typeof id !== "string" || !/^[a-zA-Z0-9_-]+$/.test(id)) {
-      setError("Invalid key ID");
+      setError(t("invalidKeyId"));
       return;
     }
 
@@ -207,11 +210,11 @@ export default function ApiManagerPageClient() {
         setKeys((prev) => prev.filter((k) => k.id !== id));
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to delete key");
+        setError(data.error || t("failedDeleteKey"));
       }
     } catch (error) {
       console.error("Error deleting key:", error);
-      setError("Failed to delete key. Please try again.");
+      setError(t("failedDeleteKeyRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -228,13 +231,13 @@ export default function ApiManagerPageClient() {
 
     // Validate models array
     if (!Array.isArray(allowedModels)) {
-      setError("Invalid models selection");
+      setError(t("invalidModelsSelection"));
       return;
     }
 
     // Limit number of selected models to prevent abuse
     if (allowedModels.length > MAX_SELECTED_MODELS) {
-      setError(`Cannot select more than ${MAX_SELECTED_MODELS} models`);
+      setError(t("cannotSelectMoreThanModels", { max: MAX_SELECTED_MODELS }));
       return;
     }
 
@@ -259,11 +262,11 @@ export default function ApiManagerPageClient() {
         setEditingKey(null);
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update permissions");
+        setError(data.error || t("failedUpdatePermissions"));
       }
     } catch (error) {
       console.error("Error updating permissions:", error);
-      setError("Failed to update permissions. Please try again.");
+      setError(t("failedUpdatePermissionsRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -276,7 +279,7 @@ export default function ApiManagerPageClient() {
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
     for (const model of allModels) {
-      const provider = model.owned_by || "unknown";
+      const provider = model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
@@ -465,7 +468,7 @@ export default function ApiManagerPageClient() {
                     <button
                       onClick={() => copy(key.key, key.id)}
                       className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                      title="Copy masked key"
+                      title={t("copyMaskedKey")}
                     >
                       <span className="material-symbols-outlined text-[14px]">
                         {copied === key.id ? "check" : "content_copy"}
@@ -479,8 +482,7 @@ export default function ApiManagerPageClient() {
                         className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[14px]">lock</span>
-                        {key.allowedModels.length}{" "}
-                        {key.allowedModels.length === 1 ? "model" : "models"}
+                        {t("modelsCount", { count: key.allowedModels.length })}
                       </button>
                     ) : (
                       <button
@@ -499,7 +501,7 @@ export default function ApiManagerPageClient() {
                     </span>
                     {stats?.lastUsed ? (
                       <span className="text-[10px] text-text-muted">
-                        Last: {new Date(stats.lastUsed).toLocaleDateString()}
+                        {t("lastUsedOn", { date: new Date(stats.lastUsed).toLocaleDateString() })}
                       </span>
                     ) : (
                       <span className="text-[10px] text-text-muted italic">{t("neverUsed")}</span>
@@ -512,14 +514,14 @@ export default function ApiManagerPageClient() {
                     <button
                       onClick={() => handleOpenPermissions(key)}
                       className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
-                      title="Edit permissions"
+                      title={t("editPermissions")}
                     >
                       <span className="material-symbols-outlined text-[18px]">tune</span>
                     </button>
                     <button
                       onClick={() => handleDeleteKey(key.id)}
                       className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                      title="Delete key"
+                      title={t("deleteKey")}
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>
@@ -628,7 +630,7 @@ export default function ApiManagerPageClient() {
             </Button>
           </div>
           <Button onClick={() => setCreatedKey(null)} fullWidth>
-            Done
+            {t("done")}
           </Button>
         </div>
       </Modal>

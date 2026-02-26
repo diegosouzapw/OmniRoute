@@ -31,7 +31,7 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">speed</span>
-          Latency
+          {t("latency")}
         </h3>
         {telemetry ? (
           <div className="space-y-2 text-sm">
@@ -61,7 +61,7 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">cached</span>
-          Prompt Cache
+          {t("promptCache")}
         </h3>
         {cache ? (
           <div className="space-y-2 text-sm">
@@ -83,7 +83,7 @@ export default function BudgetTelemetryCards() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
 
@@ -91,13 +91,15 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">monitor_heart</span>
-          System Health
+          {t("systemHealth")}
         </h3>
         {policies ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-text-muted">{t("circuitBreakers")}</span>
-              <span className="font-mono">{policies.circuitBreakers?.length ?? 0} active</span>
+              <span className="font-mono">
+                {t("activeCount", { count: policies.circuitBreakers?.length ?? 0 })}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-text-muted">{t("lockedIPs")}</span>
@@ -105,12 +107,12 @@ export default function BudgetTelemetryCards() {
             </div>
             {policies.circuitBreakers?.some((cb) => cb.state === "OPEN") && (
               <div className="mt-2 px-2 py-1 rounded bg-red-500/10 text-red-400 text-xs">
-                ⚠ Open circuit breakers detected
+                {t("openCircuitBreakersDetected")}
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
     </div>

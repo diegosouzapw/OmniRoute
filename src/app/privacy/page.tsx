@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = {
-  title: "Privacy Policy | OmniRoute",
-  description: "Privacy policy for the OmniRoute AI API proxy router.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("legal");
+  return {
+    title: t("privacyMetadataTitle"),
+    description: t("privacyMetadataDescription"),
+  };
+}
 
 export default function PrivacyPage() {
+  const t = useTranslations("legal");
+
   return (
     <main className="min-h-screen bg-bg text-text-main">
       <div className="max-w-3xl mx-auto px-6 py-16">
@@ -14,68 +22,62 @@ export default function PrivacyPage() {
           className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-8"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Back to home
+          {t("backToHome")}
         </Link>
 
-        <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-sm text-text-muted mb-10">Last updated: February 13, 2026</p>
+        <h1 className="text-3xl font-bold mb-2">{t("privacyPolicy")}</h1>
+        <p className="text-sm text-text-muted mb-10">
+          {t("lastUpdated", { date: "February 13, 2026" })}
+        </p>
 
         <div className="space-y-8 text-text-muted leading-relaxed">
           <section>
             <h2 className="text-lg font-semibold text-text-main mb-3">
-              1. Local-First Architecture
+              {t("privacySection1Title")}
             </h2>
-            <p>
-              OmniRoute is designed as a <strong className="text-text-main">local-first</strong>{" "}
-              application. All data processing and storage occurs entirely on your machine. There is
-              no centralized server collecting your information.
-            </p>
+            <p>{t("privacySection1Text")}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-text-main mb-3">2. Data We Store</h2>
+            <h2 className="text-lg font-semibold text-text-main mb-3">
+              {t("privacySection2Title")}
+            </h2>
             <p className="mb-3">
-              The following data is stored locally in{" "}
+              {t("privacyDataStoredIn")}{" "}
               <code className="text-primary text-sm">~/.omniroute/storage.sqlite</code>:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                <strong className="text-text-main">Provider configurations</strong> — connection
-                URLs, provider types, and priority settings
+                <strong className="text-text-main">{t("providerConfigurations")}</strong>{" "}
+                {t("listSeparator")} {t("privacyDataProviderConfigurationsDesc")}
               </li>
               <li>
-                <strong className="text-text-main">API keys</strong> — encrypted and stored locally
-                for authenticating with AI providers
+                <strong className="text-text-main">{t("apiKeys")}</strong> {t("listSeparator")}{" "}
+                {t("privacyDataApiKeysDesc")}
               </li>
               <li>
-                <strong className="text-text-main">Usage logs</strong> — request counts, token
-                usage, model names, timestamps, and response times
+                <strong className="text-text-main">{t("usageLogs")}</strong> {t("listSeparator")}{" "}
+                {t("privacyDataUsageLogsDesc")}
               </li>
               <li>
-                <strong className="text-text-main">Application settings</strong> — theme
-                preferences, routing strategy, and combo configurations
+                <strong className="text-text-main">{t("applicationSettings")}</strong>{" "}
+                {t("listSeparator")} {t("privacyDataApplicationSettingsDesc")}
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-text-main mb-3">3. No Telemetry</h2>
-            <p>
-              OmniRoute does <strong className="text-text-main">not</strong> collect telemetry,
-              analytics, or crash reports. No data is sent to us or any third party. Your usage
-              patterns, API calls, and configurations remain entirely private.
-            </p>
+            <h2 className="text-lg font-semibold text-text-main mb-3">
+              {t("privacySection3Title")}
+            </h2>
+            <p>{t("privacySection3Text")}</p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-text-main mb-3">
-              4. Third-Party AI Providers
+              {t("privacySection4Title")}
             </h2>
-            <p>
-              When you make API calls through OmniRoute, your requests are forwarded to the AI
-              providers you have configured (e.g., OpenAI, Anthropic, Google). These providers have
-              their own privacy policies that govern how they handle your data. Please review:
-            </p>
+            <p>{t("privacySection4Text")}</p>
             <ul className="list-disc pl-6 space-y-2 mt-3">
               <li>
                 <a
@@ -84,7 +86,7 @@ export default function PrivacyPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  OpenAI Privacy Policy
+                  {t("privacyOpenAiPolicy")}
                 </a>
               </li>
               <li>
@@ -94,7 +96,7 @@ export default function PrivacyPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Anthropic Privacy Policy
+                  {t("privacyAnthropicPolicy")}
                 </a>
               </li>
               <li>
@@ -104,53 +106,54 @@ export default function PrivacyPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Google Privacy Policy
+                  {t("privacyGooglePolicy")}
                 </a>
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-text-main mb-3">5. Cloud Sync (Optional)</h2>
-            <p>
-              If you enable the optional cloud sync feature, provider configurations and API keys
-              may be transmitted to a configured cloud endpoint. This feature is{" "}
-              <strong className="text-text-main">disabled by default</strong> and requires explicit
-              opt-in.
-            </p>
+            <h2 className="text-lg font-semibold text-text-main mb-3">
+              {t("privacySection5Title")}
+            </h2>
+            <p>{t("privacySection5Text")}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-text-main mb-3">6. Logging</h2>
-            <p>Request logs can be configured through the dashboard settings. You can:</p>
+            <h2 className="text-lg font-semibold text-text-main mb-3">
+              {t("privacySection6Title")}
+            </h2>
+            <p>{t("privacyLoggingIntro")}</p>
             <ul className="list-disc pl-6 space-y-2 mt-3">
-              <li>View and export usage analytics</li>
-              <li>Clear usage history at any time</li>
-              <li>Configure log retention policies</li>
-              <li>Back up and restore your database</li>
+              <li>{t("viewExportAnalytics")}</li>
+              <li>{t("clearHistory")}</li>
+              <li>{t("configureRetention")}</li>
+              <li>{t("backupRestore")}</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-text-main mb-3">7. Your Rights</h2>
+            <h2 className="text-lg font-semibold text-text-main mb-3">
+              {t("privacySection7Title")}
+            </h2>
             <p>
-              Since all data is stored locally, you have full control. You can delete your data at
-              any time by removing the <code className="text-primary text-sm">~/.omniroute/</code>{" "}
-              directory or using the database backup/restore features in the dashboard.
+              {t("privacySection7TextStart")}{" "}
+              <code className="text-primary text-sm">~/.omniroute/</code>{" "}
+              {t("privacySection7TextEnd")}
             </p>
           </section>
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/[0.06] text-sm text-text-muted">
           <p>
-            Questions? Visit our{" "}
+            {t("questionsVisit")}{" "}
             <a
               href="https://github.com/diegosouzapw/OmniRoute"
               className="text-primary hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              GitHub repository
+              {t("githubRepository")}
             </a>
             .
           </p>

@@ -27,9 +27,9 @@ export default function SessionsTab() {
   }, [loadSessions]);
 
   const formatAge = (ms) => {
-    if (ms < 60000) return `${Math.floor(ms / 1000)}s`;
-    if (ms < 3600000) return `${Math.floor(ms / 60000)}m`;
-    return `${Math.floor(ms / 3600000)}h`;
+    if (ms < 60000) return t("durationSecondsShort", { value: Math.floor(ms / 1000) });
+    if (ms < 3600000) return t("durationMinutesShort", { value: Math.floor(ms / 60000) });
+    return t("durationHoursShort", { value: Math.floor(ms / 3600000) });
   };
 
   return (
@@ -42,9 +42,7 @@ export default function SessionsTab() {
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold">{t("activeSessions")}</h3>
-          <p className="text-sm text-text-muted">
-            Tracked via request fingerprinting • Auto-refresh 5s
-          </p>
+          <p className="text-sm text-text-muted">{t("sessionsTrackedHint")}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
@@ -102,7 +100,7 @@ export default function SessionsTab() {
                         {s.connectionId.slice(0, 10)}
                       </span>
                     ) : (
-                      <span className="text-text-muted/40">—</span>
+                      <span className="text-text-muted/40">{t("notAvailableSymbol")}</span>
                     )}
                   </td>
                 </tr>

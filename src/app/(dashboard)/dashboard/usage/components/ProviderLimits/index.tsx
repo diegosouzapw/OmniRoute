@@ -23,15 +23,15 @@ const PROVIDER_CONFIG = {
 };
 
 const TIER_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "enterprise", label: "Enterprise" },
-  { key: "team", label: "Team" },
-  { key: "business", label: "Business" },
-  { key: "ultra", label: "Ultra" },
-  { key: "pro", label: "Pro" },
-  { key: "plus", label: "Plus" },
-  { key: "free", label: "Free" },
-  { key: "unknown", label: "Unknown" },
+  { key: "all", labelKey: "tierAll" },
+  { key: "enterprise", labelKey: "tierEnterprise" },
+  { key: "team", labelKey: "tierTeam" },
+  { key: "business", labelKey: "tierBusiness" },
+  { key: "ultra", labelKey: "tierUltra" },
+  { key: "pro", labelKey: "tierPro" },
+  { key: "plus", labelKey: "tierPlus" },
+  { key: "free", labelKey: "tierFree" },
+  { key: "unknown", labelKey: "tierUnknown" },
 ];
 
 // Short model display names for quota bars
@@ -291,7 +291,7 @@ export default function ProviderLimits() {
           <span className="material-symbols-outlined text-[64px] opacity-15">cloud_off</span>
           <h3 className="mt-4 text-lg font-semibold text-text-main">{t("noProviders")}</h3>
           <p className="mt-2 text-sm text-text-muted max-w-[400px] mx-auto">
-            Connect to providers with OAuth to track your API quota limits and usage.
+            {t("connectProvidersForQuota")}
           </p>
         </div>
       </Card>
@@ -305,10 +305,9 @@ export default function ProviderLimits() {
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-text-main m-0">{t("providerLimits")}</h2>
           <span className="text-[13px] text-text-muted">
-            {visibleConnections.length} account{visibleConnections.length !== 1 ? "s" : ""}
-            {visibleConnections.length !== sortedConnections.length
-              ? ` (filtered from ${sortedConnections.length})`
-              : ""}
+            {t("accountsCount", { count: visibleConnections.length })}
+            {visibleConnections.length !== sortedConnections.length &&
+              ` ${t("filteredFromCount", { count: sortedConnections.length })}`}
           </span>
         </div>
 
@@ -325,7 +324,7 @@ export default function ProviderLimits() {
             >
               {autoRefresh ? "toggle_on" : "toggle_off"}
             </span>
-            Auto-refresh
+            {t("autoRefresh")}
             {autoRefresh && <span className="text-xs text-text-muted">({countdown}s)</span>}
           </button>
 
@@ -339,7 +338,7 @@ export default function ProviderLimits() {
             >
               refresh
             </span>
-            Refresh All
+            {t("refreshAll")}
           </button>
         </div>
       </div>
@@ -362,7 +361,7 @@ export default function ProviderLimits() {
                 color: active ? "var(--primary, #E54D5E)" : "var(--text-muted)",
               }}
             >
-              <span>{tier.label}</span>
+              <span>{t(tier.labelKey)}</span>
               <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
             </button>
           );
@@ -417,7 +416,13 @@ export default function ProviderLimits() {
                     {conn.name || config.label}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span title={quota?.plan ? `Raw plan: ${quota.plan}` : "No plan from provider"}>
+                    <span
+                      title={
+                        quota?.plan
+                          ? t("rawPlanWithValue", { plan: quota.plan })
+                          : t("noPlanFromProvider")
+                      }
+                    >
                       <Badge variant={tierMeta.variant} size="sm" dot>
                         {tierMeta.label}
                       </Badge>
@@ -434,7 +439,7 @@ export default function ProviderLimits() {
                     <span className="material-symbols-outlined animate-spin text-[14px]">
                       progress_activity
                     </span>
-                    Loading...
+                    {t("loadingQuotas")}
                   </div>
                 ) : error ? (
                   <div className="flex items-center gap-1.5 text-xs text-red-500">
@@ -514,7 +519,7 @@ export default function ProviderLimits() {
                 <button
                   onClick={() => refreshProvider(conn.id, conn.provider)}
                   disabled={isLoading}
-                  title="Refresh quota"
+                  title={t("refreshQuota")}
                   className="p-1 rounded-md border-none bg-transparent cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 opacity-60 hover:opacity-100 flex items-center justify-center transition-opacity duration-150"
                 >
                   <span
@@ -530,8 +535,11 @@ export default function ProviderLimits() {
 
         {visibleConnections.length === 0 && (
           <div className="py-6 px-4 text-center text-text-muted text-[13px]">
-            No accounts found for tier filter{" "}
-            <strong>{TIER_FILTERS.find((t) => t.key === tierFilter)?.label || tierFilter}</strong>.
+            {t("noAccountsForTierFilter")}{" "}
+            <strong>
+              {t(TIER_FILTERS.find((tier) => tier.key === tierFilter)?.labelKey || "tierUnknown")}
+            </strong>
+            .
           </div>
         )}
       </div>

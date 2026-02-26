@@ -7,6 +7,7 @@ import { Card } from "@/shared/components";
 
 export default function RateLimitStatus() {
   const t = useTranslations("usage");
+  const tc = useTranslations("common");
   const [data, setData] = useState({ lockouts: [], cacheStats: null });
   const [loading, setLoading] = useState(true);
 
@@ -27,9 +28,9 @@ export default function RateLimitStatus() {
   }, [load]);
 
   const formatMs = (ms) => {
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60000) return `${Math.ceil(ms / 1000)}s`;
-    return `${Math.ceil(ms / 60000)}m`;
+    if (ms < 1000) return t("durationMillisecondsShort", { value: ms });
+    if (ms < 60000) return t("durationSecondsShort", { value: Math.ceil(ms / 1000) });
+    return t("durationMinutesShort", { value: Math.ceil(ms / 60000) });
   };
 
   return (
@@ -43,12 +44,12 @@ export default function RateLimitStatus() {
             </span>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold">Model Lockouts</h3>
-            <p className="text-sm text-text-muted">Per-model rate limit locks • Auto-refresh 10s</p>
+            <h3 className="text-lg font-semibold">{t("modelLockouts")}</h3>
+            <p className="text-sm text-text-muted">{t("lockoutsAutoRefreshHint")}</p>
           </div>
           {data.lockouts.length > 0 && (
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              {data.lockouts.length} locked
+              {t("lockedCount", { count: data.lockouts.length })}
             </span>
           )}
         </div>
@@ -75,14 +76,21 @@ export default function RateLimitStatus() {
                   <div>
                     <p className="text-sm font-medium">{lock.model}</p>
                     <p className="text-xs text-text-muted">
-                      Account:{" "}
-                      <span className="font-mono">{lock.accountId?.slice(0, 12) || "N/A"}</span>
-                      {lock.reason && <> — {lock.reason}</>}
+                      {t("account")}:{" "}
+                      <span className="font-mono">
+                        {lock.accountId?.slice(0, 12) || tc("none")}
+                      </span>
+                      {lock.reason && (
+                        <>
+                          {t("reasonSeparator")}
+                          {lock.reason}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
                 <span className="text-xs font-mono tabular-nums text-orange-400">
-                  {formatMs(lock.remainingMs)} left
+                  {t("timeLeft", { time: formatMs(lock.remainingMs) })}
                 </span>
               </div>
             ))}
