@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
+import { useTranslations } from "next-intl";
 
 export default function CodexToolCard({
   tool,
@@ -16,6 +17,7 @@ export default function CodexToolCard({
   batchStatus,
   lastConfiguredAt,
 }) {
+  const t = useTranslations("cliTools");
   const [codexStatus, setCodexStatus] = useState(null);
   const [checkingCodex, setCheckingCodex] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -132,10 +134,10 @@ export default function CodexToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "Settings applied successfully!" });
+        setMessage({ type: "success", text: t("settingsApplied") });
         checkCodexStatus();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to apply settings" });
+        setMessage({ type: "error", text: data.error || t("failedApplySettings") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -151,11 +153,11 @@ export default function CodexToolCard({
       const res = await fetch("/api/cli-tools/codex-settings", { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "Settings reset successfully!" });
+        setMessage({ type: "success", text: t("settingsReset") });
         setSelectedModel("");
         checkCodexStatus();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to reset settings" });
+        setMessage({ type: "error", text: data.error || t("failedResetSettings") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -192,11 +194,11 @@ export default function CodexToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: `Profile "${newProfileName}" saved!` });
+        setMessage({ type: "success", text: t("profileSaved", { name: newProfileName }) });
         setNewProfileName("");
         fetchProfiles();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to save profile" });
+        setMessage({ type: "error", text: data.error || t("failedSaveProfile") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -216,11 +218,11 @@ export default function CodexToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: data.message || "Profile activated!" });
+        setMessage({ type: "success", text: data.message || t("profileActivated") });
         checkCodexStatus();
         fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to activate profile" });
+        setMessage({ type: "error", text: data.error || t("failedActivateProfile") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -264,11 +266,11 @@ export default function CodexToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "Backup restored!" });
+        setMessage({ type: "success", text: t("backupRestored") });
         checkCodexStatus();
         fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to restore" });
+        setMessage({ type: "error", text: data.error || t("failedRestore") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -341,7 +343,7 @@ wire_api = "responses"
                 lastConfiguredAt={lastConfiguredAt}
               />
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.codex")}</p>
           </div>
         </div>
         <span
@@ -356,7 +358,7 @@ wire_api = "responses"
           {checkingCodex && (
             <div className="flex items-center gap-2 text-text-muted">
               <span className="material-symbols-outlined animate-spin">progress_activity</span>
-              <span>Checking Codex CLI...</span>
+              <span>{t("checkingCli", { tool: "Codex" })}</span>
             </div>
           )}
 
@@ -366,12 +368,17 @@ wire_api = "responses"
                 <span className="material-symbols-outlined text-yellow-500">warning</span>
                 <div className="flex-1">
                   <p className="font-medium text-yellow-600 dark:text-yellow-400">
-                    {codexStatus.installed ? "Codex CLI not runnable" : "Codex CLI not installed"}
+                    {codexStatus.installed
+                      ? t("cliNotRunnable", { tool: "Codex" })
+                      : t("cliNotInstalled", { tool: "Codex" })}
                   </p>
                   <p className="text-sm text-text-muted">
                     {codexStatus.installed
-                      ? `Codex CLI was found but failed runtime healthcheck${codexStatus.reason ? ` (${codexStatus.reason})` : ""}.`
-                      : "Please install Codex CLI to use auto-apply feature."}
+                      ? t("cliFoundFailedHealthcheck", {
+                          tool: "Codex",
+                          reason: codexStatus.reason ? ` (${codexStatus.reason})` : "",
+                        })
+                      : t("installCodexPrompt")}
                   </p>
                 </div>
                 <Button
@@ -382,35 +389,35 @@ wire_api = "responses"
                   <span className="material-symbols-outlined text-[18px] mr-1">
                     {showInstallGuide ? "expand_less" : "help"}
                   </span>
-                  {showInstallGuide ? "Hide" : "How to Install"}
+                  {showInstallGuide ? t("hide") : t("howToInstall")}
                 </Button>
               </div>
               {showInstallGuide && (
                 <div className="p-4 bg-surface border border-border rounded-lg">
-                  <h4 className="font-medium mb-3">Installation Guide</h4>
+                  <h4 className="font-medium mb-3">{t("installationGuide")}</h4>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <p className="text-text-muted mb-1">macOS / Linux / Windows:</p>
+                      <p className="text-text-muted mb-1">{t("platforms")}</p>
                       <code className="block px-3 py-2 bg-black/5 dark:bg-white/5 rounded font-mono text-xs">
                         npm install -g @openai/codex
                       </code>
                     </div>
                     <p className="text-text-muted">
-                      After installation, run{" "}
-                      <code className="px-1 bg-black/5 dark:bg-white/5 rounded">codex</code> to
-                      verify.
+                      {t("afterInstallationRun")}{" "}
+                      <code className="px-1 bg-black/5 dark:bg-white/5 rounded">codex</code>{" "}
+                      {t("toVerify")}
                     </p>
                     <div className="pt-2 border-t border-border">
                       <p className="text-text-muted text-xs">
-                        Codex uses{" "}
+                        {t("codexAuthNotePrefix")}{" "}
                         <code className="px-1 bg-black/5 dark:bg-white/5 rounded">
                           ~/.codex/auth.json
                         </code>{" "}
-                        with{" "}
+                        {t("codexAuthNoteMiddle")}{" "}
                         <code className="px-1 bg-black/5 dark:bg-white/5 rounded">
                           OPENAI_API_KEY
                         </code>
-                        . Click &quot;Apply&quot; to auto-configure.
+                        . {t("codexAuthNoteSuffix")}
                       </p>
                     </div>
                   </div>
@@ -430,7 +437,7 @@ wire_api = "responses"
                     return currentBaseUrl ? (
                       <div className="flex items-center gap-2">
                         <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                          Current
+                          {t("current")}
                         </span>
                         <span className="material-symbols-outlined text-text-muted text-[14px]">
                           arrow_forward
@@ -445,7 +452,7 @@ wire_api = "responses"
                 {/* Base URL */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    Base URL
+                    {t("baseUrl")}
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -454,14 +461,14 @@ wire_api = "responses"
                     type="text"
                     value={getDisplayUrl()}
                     onChange={(e) => setCustomBaseUrl(e.target.value)}
-                    placeholder="https://.../v1"
+                    placeholder={t("baseUrlPlaceholder")}
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   {customBaseUrl && customBaseUrl !== `${baseUrl}/v1` && (
                     <button
                       onClick={() => setCustomBaseUrl("")}
                       className="p-1 text-text-muted hover:text-primary rounded transition-colors"
-                      title="Reset to default"
+                      title={t("resetToDefault")}
                     >
                       <span className="material-symbols-outlined text-[14px]">restart_alt</span>
                     </button>
@@ -471,7 +478,7 @@ wire_api = "responses"
                 {/* API Key */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    API Key
+                    {t("apiKey")}
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -490,9 +497,7 @@ wire_api = "responses"
                     </select>
                   ) : (
                     <span className="flex-1 text-xs text-text-muted px-2 py-1.5">
-                      {cloudEnabled
-                        ? "No API keys - Create one in Keys page"
-                        : "sk_omniroute (default)"}
+                      {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultOmnirouteKey")}
                     </span>
                   )}
                 </div>
@@ -500,7 +505,7 @@ wire_api = "responses"
                 {/* Model */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    Model
+                    {t("model")}
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -509,7 +514,7 @@ wire_api = "responses"
                     type="text"
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    placeholder="provider/model-id"
+                    placeholder={t("providerModelPlaceholder")}
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   <button
@@ -517,13 +522,13 @@ wire_api = "responses"
                     disabled={!activeProviders?.length}
                     className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${activeProviders?.length ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
                   >
-                    Select Model
+                    {t("selectModel")}
                   </button>
                   {selectedModel && (
                     <button
                       onClick={() => setSelectedModel("")}
                       className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
-                      title="Clear"
+                      title={t("clear")}
                     >
                       <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
@@ -550,7 +555,8 @@ wire_api = "responses"
                   disabled={!selectedApiKey || !selectedModel}
                   loading={applying}
                 >
-                  <span className="material-symbols-outlined text-[14px] mr-1">save</span>Apply
+                  <span className="material-symbols-outlined text-[14px] mr-1">save</span>
+                  {t("apply")}
                 </Button>
                 <Button
                   variant="outline"
@@ -559,11 +565,12 @@ wire_api = "responses"
                   disabled={!codexStatus.hasOmniRoute}
                   loading={restoring}
                 >
-                  <span className="material-symbols-outlined text-[14px] mr-1">restore</span>Reset
+                  <span className="material-symbols-outlined text-[14px] mr-1">restore</span>
+                  {t("reset")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setShowManualConfigModal(true)}>
                   <span className="material-symbols-outlined text-[14px] mr-1">content_copy</span>
-                  Manual Config
+                  {t("manualConfig")}
                 </Button>
                 <div className="flex-1" />
                 <Button
@@ -577,7 +584,7 @@ wire_api = "responses"
                   <span className="material-symbols-outlined text-[14px] mr-1">
                     manage_accounts
                   </span>
-                  Profiles
+                  {t("profiles")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -587,7 +594,8 @@ wire_api = "responses"
                     if (!showBackups) fetchBackups();
                   }}
                 >
-                  <span className="material-symbols-outlined text-[14px] mr-1">history</span>Backups
+                  <span className="material-symbols-outlined text-[14px] mr-1">history</span>
+                  {t("backups")}
                   {backups.length > 0 && ` (${backups.length})`}
                 </Button>
               </div>
@@ -597,12 +605,10 @@ wire_api = "responses"
                 <div className="mt-2 p-3 bg-surface border border-border rounded-lg">
                   <h4 className="text-xs font-semibold text-text-main mb-2 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">manage_accounts</span>
-                    Saved Profiles
+                    {t("savedProfiles")}
                   </h4>
                   {profiles.length === 0 ? (
-                    <p className="text-xs text-text-muted">
-                      No profiles saved yet. Save current config as a profile below.
-                    </p>
+                    <p className="text-xs text-text-muted">{t("noProfilesYet")}</p>
                   ) : (
                     <div className="space-y-1.5 mb-3">
                       {profiles.map((p) => (
@@ -625,12 +631,12 @@ wire_api = "responses"
                             disabled={activatingProfile === p.id}
                             className="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
                           >
-                            {activatingProfile === p.id ? "..." : "Activate"}
+                            {activatingProfile === p.id ? "..." : t("activate")}
                           </button>
                           <button
                             onClick={() => handleDeleteProfile(p.id)}
                             className="p-0.5 text-text-muted hover:text-red-500 transition-colors"
-                            title="Delete profile"
+                            title={t("deleteProfile")}
                           >
                             <span className="material-symbols-outlined text-[14px]">delete</span>
                           </button>
@@ -643,7 +649,7 @@ wire_api = "responses"
                       type="text"
                       value={newProfileName}
                       onChange={(e) => setNewProfileName(e.target.value)}
-                      placeholder="Profile name (e.g. Personal Account)"
+                      placeholder={t("profileNamePlaceholder")}
                       className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                       onKeyDown={(e) => e.key === "Enter" && handleSaveProfile()}
                     />
@@ -654,8 +660,8 @@ wire_api = "responses"
                       disabled={!newProfileName.trim()}
                       loading={savingProfile}
                     >
-                      <span className="material-symbols-outlined text-[14px] mr-1">save</span>Save
-                      Current
+                      <span className="material-symbols-outlined text-[14px] mr-1">save</span>
+                      {t("saveCurrent")}
                     </Button>
                   </div>
                 </div>
@@ -666,12 +672,10 @@ wire_api = "responses"
                 <div className="mt-2 p-3 bg-surface border border-border rounded-lg">
                   <h4 className="text-xs font-semibold text-text-main mb-2 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">history</span>
-                    Config Backups
+                    {t("configBackups")}
                   </h4>
                   {backups.length === 0 ? (
-                    <p className="text-xs text-text-muted">
-                      No backups yet. Backups are created automatically before each Apply or Reset.
-                    </p>
+                    <p className="text-xs text-text-muted">{t("noBackupsYet")}</p>
                   ) : (
                     <div className="space-y-1.5">
                       {backups.map((b) => (
@@ -693,7 +697,7 @@ wire_api = "responses"
                             disabled={restoringBackup === b.id}
                             className="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
                           >
-                            {restoringBackup === b.id ? "..." : "Restore"}
+                            {restoringBackup === b.id ? "..." : t("restore")}
                           </button>
                         </div>
                       ))}
@@ -713,13 +717,13 @@ wire_api = "responses"
         selectedModel={selectedModel}
         activeProviders={activeProviders}
         modelAliases={modelAliases}
-        title="Select Model for Codex"
+        title={t("selectModelForTool", { tool: "Codex" })}
       />
 
       <ManualConfigModal
         isOpen={showManualConfigModal}
         onClose={() => setShowManualConfigModal(false)}
-        title="Codex CLI - Manual Configuration"
+        title={t("codexManualConfiguration")}
         configs={getManualConfigs()}
       />
     </Card>

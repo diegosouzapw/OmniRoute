@@ -95,3 +95,5 @@ security-analysis/
 # Deploy workflow (contains sensitive VPS credentials)
 .agent/workflows/deploy.md
 clipr/
+app.log
+*.tgz

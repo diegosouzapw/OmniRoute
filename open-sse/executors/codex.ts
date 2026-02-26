@@ -4,7 +4,8 @@ import { PROVIDERS } from "../config/constants.ts";
 
 /**
  * Codex Executor - handles OpenAI Codex API (Responses API format)
- * Automatically injects default instructions if missing
+ * Automatically injects default instructions if missing.
+ * IMPORTANT: Includes chatgpt-account-id header for workspace binding.
  */
 export class CodexExecutor extends BaseExecutor {
   constructor() {
@@ -14,9 +15,18 @@ export class CodexExecutor extends BaseExecutor {
   /**
    * Codex Responses endpoint is SSE-first.
    * Always request event-stream from upstream, even when client requested stream=false.
+   * Includes chatgpt-account-id header for strict workspace binding.
    */
   buildHeaders(credentials, stream = true) {
-    return super.buildHeaders(credentials, true);
+    const headers = super.buildHeaders(credentials, true);
+
+    // Add workspace binding header if workspaceId is persisted
+    const workspaceId = credentials?.providerSpecificData?.workspaceId;
+    if (workspaceId) {
+      headers["chatgpt-account-id"] = workspaceId;
+    }
+
+    return headers;
   }
 
   /**

@@ -70,12 +70,13 @@ async function validateOpenAILikeProvider({
   baseUrl,
   providerSpecificData = {},
   modelId = "gpt-4o-mini",
+  modelsUrl: customModelsUrl,
 }) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
 
-  const modelsUrl = addModelsSuffix(baseUrl);
+  const modelsUrl = customModelsUrl || addModelsSuffix(baseUrl);
   if (!modelsUrl) {
     return { valid: false, error: "Invalid models endpoint" };
   }
@@ -423,6 +424,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         baseUrl,
         providerSpecificData,
         modelId,
+        modelsUrl: entry.modelsUrl,
       });
     }
 

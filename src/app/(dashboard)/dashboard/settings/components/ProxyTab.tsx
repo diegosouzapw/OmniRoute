@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, ProxyConfigModal } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
 export default function ProxyTab() {
   const [proxyModalOpen, setProxyModalOpen] = useState(false);
   const [globalProxy, setGlobalProxy] = useState(null);
   const mountedRef = useRef(true);
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
 
   const loadGlobalProxy = async () => {
     try {
@@ -44,12 +47,9 @@ export default function ProxyTab() {
             <span className="material-symbols-outlined text-xl text-primary" aria-hidden="true">
               vpn_lock
             </span>
-            <h2 className="text-lg font-bold">Global Proxy</h2>
+            <h2 className="text-lg font-bold">{t("globalProxy")}</h2>
           </div>
-          <p className="text-sm text-text-muted mb-4">
-            Configure a global outbound proxy for all API calls. Individual providers, combos, and
-            keys can override this.
-          </p>
+          <p className="text-sm text-text-muted mb-4">{t("globalProxyDesc")}</p>
           <div className="flex items-center gap-3">
             {globalProxy ? (
               <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function ProxyTab() {
                 </span>
               </div>
             ) : (
-              <span className="text-sm text-text-muted">No global proxy configured</span>
+              <span className="text-sm text-text-muted">{t("noGlobalProxy")}</span>
             )}
             <Button
               size="sm"
@@ -69,7 +69,7 @@ export default function ProxyTab() {
                 setProxyModalOpen(true);
               }}
             >
-              {globalProxy ? "Edit" : "Configure"}
+              {globalProxy ? tc("edit") : t("configure")}
             </Button>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function ProxyTab() {
         isOpen={proxyModalOpen}
         onClose={() => setProxyModalOpen(false)}
         level="global"
-        levelLabel="Global"
+        levelLabel={t("globalLabel")}
         onSaved={loadGlobalProxy}
       />
     </>

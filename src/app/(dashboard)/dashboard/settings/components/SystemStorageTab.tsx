@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Badge } from "@/shared/components";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function SystemStorageTab() {
   const [backups, setBackups] = useState([]);
@@ -18,6 +19,9 @@ export default function SystemStorageTab() {
   const [confirmImport, setConfirmImport] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const locale = useLocale();
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const [storageHealth, setStorageHealth] = useState({
     driver: "sqlite",
     dbPath: "~/.omniroute/storage.sqlite",
@@ -58,20 +62,23 @@ export default function SystemStorageTab() {
       const data = await res.json();
       if (res.ok) {
         if (data.filename) {
-          setManualBackupStatus({ type: "success", message: `Backup created: ${data.filename}` });
+          setManualBackupStatus({
+            type: "success",
+            message: t("backupCreated", { file: data.filename }),
+          });
         } else {
           setManualBackupStatus({
             type: "info",
-            message: data.message || "No changes since last backup",
+            message: data.message || t("noChangesSinceBackup"),
           });
         }
         await loadStorageHealth();
         if (backupsExpanded) await loadBackups();
       } else {
-        setManualBackupStatus({ type: "error", message: data.error || "Backup failed" });
+        setManualBackupStatus({ type: "error", message: data.error || t("backupFailed") });
       }
     } catch {
-      setManualBackupStatus({ type: "error", message: "An error occurred" });
+      setManualBackupStatus({ type: "error", message: t("errorOccurred") });
     } finally {
       setManualBackupLoading(false);
     }
@@ -90,15 +97,20 @@ export default function SystemStorageTab() {
       if (res.ok) {
         setRestoreStatus({
           type: "success",
-          message: `Restored! ${data.connectionCount} connections, ${data.nodeCount} nodes, ${data.comboCount} combos, ${data.apiKeyCount} API keys.`,
+          message: t("restoreSuccess", {
+            connections: data.connectionCount,
+            nodes: data.nodeCount,
+            combos: data.comboCount,
+            apiKeys: data.apiKeyCount,
+          }),
         });
         await loadBackups();
         await loadStorageHealth();
       } else {
-        setRestoreStatus({ type: "error", message: data.error || "Restore failed" });
+        setRestoreStatus({ type: "error", message: data.error || t("restoreFailed") });
       }
     } catch {
-      setRestoreStatus({ type: "error", message: "An error occurred during restore" });
+      setRestoreStatus({ type: "error", message: t("errorDuringRestore") });
     } finally {
       setRestoringId(null);
       setConfirmRestoreId(null);
@@ -115,7 +127,7 @@ export default function SystemStorageTab() {
       const res = await fetch("/api/db-backups/export");
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Export failed");
+        throw new Error(data.error || t("exportFailed"));
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -133,7 +145,10 @@ export default function SystemStorageTab() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Export failed:", err);
-      setImportStatus({ type: "error", message: `Export failed: ${(err as Error).message}` });
+      setImportStatus({
+        type: "error",
+        message: t("exportFailedWithError", { error: (err as Error).message }),
+      });
     } finally {
       setExportLoading(false);
     }
@@ -149,7 +164,7 @@ export default function SystemStorageTab() {
     if (!file.name.endsWith(".sqlite")) {
       setImportStatus({
         type: "error",
-        message: "Invalid file type. Only .sqlite files are accepted.",
+        message: t("invalidFileType"),
       });
       return;
     }
@@ -174,15 +189,20 @@ export default function SystemStorageTab() {
       if (res.ok) {
         setImportStatus({
           type: "success",
-          message: `Database imported! ${data.connectionCount} connections, ${data.nodeCount} nodes, ${data.comboCount} combos, ${data.apiKeyCount} API keys.`,
+          message: t("importSuccess", {
+            connections: data.connectionCount,
+            nodes: data.nodeCount,
+            combos: data.comboCount,
+            apiKeys: data.apiKeyCount,
+          }),
         });
         await loadStorageHealth();
         if (backupsExpanded) await loadBackups();
       } else {
-        setImportStatus({ type: "error", message: data.error || "Import failed" });
+        setImportStatus({ type: "error", message: data.error || t("importFailed") });
       }
     } catch {
-      setImportStatus({ type: "error", message: "An error occurred during import" });
+      setImportStatus({ type: "error", message: t("errorDuringImport") });
     } finally {
       setImportLoading(false);
       setPendingImportFile(null);
@@ -207,12 +227,18 @@ export default function SystemStorageTab() {
     const then = new Date(isoString);
     const diffMs = (now as any) - (then as any);
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "just now";
-    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 1) return t("justNow");
+    if (diffMin < 60) return t("minutesAgo", { count: diffMin });
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffHr < 24) return t("hoursAgo", { count: diffHr });
     const diffDays = Math.floor(diffHr / 24);
-    return `${diffDays}d ago`;
+    return t("daysAgo", { count: diffDays });
+  };
+
+  const formatBackupReason = (reason) => {
+    if (reason === "manual") return t("backupReasonManual");
+    if (reason === "pre-restore") return t("backupReasonPreRestore");
+    return reason;
   };
 
   return (
@@ -224,8 +250,8 @@ export default function SystemStorageTab() {
           </span>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">System & Storage</h3>
-          <p className="text-xs text-text-muted">All data stored locally on your machine</p>
+          <h3 className="text-lg font-semibold">{t("systemStorage")}</h3>
+          <p className="text-xs text-text-muted">{t("allDataLocal")}</p>
         </div>
         <Badge variant="success" size="sm">
           {storageHealth.driver || "json"}
@@ -235,13 +261,17 @@ export default function SystemStorageTab() {
       {/* Storage info grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-bg border border-border">
-          <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">Database Path</p>
+          <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
+            {t("databasePath")}
+          </p>
           <p className="text-sm font-mono text-text-main break-all">
             {storageHealth.dbPath || "~/.omniroute/storage.sqlite"}
           </p>
         </div>
         <div className="p-3 rounded-lg bg-bg border border-border">
-          <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">Database Size</p>
+          <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
+            {t("databaseSize")}
+          </p>
           <p className="text-sm font-mono text-text-main">{formatBytes(storageHealth.sizeBytes)}</p>
         </div>
       </div>
@@ -252,7 +282,7 @@ export default function SystemStorageTab() {
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             download
           </span>
-          Export Database
+          {t("exportDatabase")}
         </Button>
         <Button
           variant="outline"
@@ -261,7 +291,7 @@ export default function SystemStorageTab() {
             setExportLoading(true);
             try {
               const res = await fetch("/api/db-backups/exportAll");
-              if (!res.ok) throw new Error("Export failed");
+              if (!res.ok) throw new Error(t("exportFailed"));
               const blob = await res.blob();
               const cd = res.headers.get("Content-Disposition") || "";
               const filenameMatch = cd.match(/filename="?([^"]+)"?/);
@@ -277,7 +307,7 @@ export default function SystemStorageTab() {
             } catch (err) {
               setImportStatus({
                 type: "error",
-                message: `Full export failed: ${(err as Error).message}`,
+                message: t("fullExportFailedWithError", { error: (err as Error).message }),
               });
             } finally {
               setExportLoading(false);
@@ -288,13 +318,13 @@ export default function SystemStorageTab() {
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             folder_zip
           </span>
-          Export All (.tar.gz)
+          {t("exportAll")}
         </Button>
         <Button variant="outline" size="sm" onClick={handleImportClick} loading={importLoading}>
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             upload
           </span>
-          Import Database
+          {t("importDatabase")}
         </Button>
         <input
           ref={fileInputRef}
@@ -316,11 +346,9 @@ export default function SystemStorageTab() {
               warning
             </span>
             <div className="flex-1">
-              <p className="text-sm font-medium text-amber-500 mb-1">Confirm Database Import</p>
+              <p className="text-sm font-medium text-amber-500 mb-1">{t("confirmDbImport")}</p>
               <p className="text-xs text-text-muted mb-2">
-                This will replace <strong>all current data</strong> with the content from{" "}
-                <span className="font-mono">{pendingImportFile.name}</span>. A backup will be
-                created automatically before the import.
+                {t("confirmDbImportDesc", { file: pendingImportFile.name })}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -329,10 +357,10 @@ export default function SystemStorageTab() {
                   onClick={handleImportConfirm}
                   className="!bg-amber-500 hover:!bg-amber-600"
                 >
-                  Yes, Import
+                  {t("yesImport")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleImportCancel}>
-                  Cancel
+                  {tc("cancel")}
                 </Button>
               </div>
             </div>
@@ -364,11 +392,11 @@ export default function SystemStorageTab() {
             schedule
           </span>
           <div>
-            <p className="text-sm font-medium">Last Backup</p>
+            <p className="text-sm font-medium">{t("lastBackup")}</p>
             <p className="text-xs text-text-muted">
               {storageHealth.lastBackupAt
-                ? `${new Date(storageHealth.lastBackupAt).toLocaleString("pt-BR")} (${formatRelativeTime(storageHealth.lastBackupAt)})`
-                : "No backup yet"}
+                ? `${new Date(storageHealth.lastBackupAt).toLocaleString(locale)} (${formatRelativeTime(storageHealth.lastBackupAt)})`
+                : t("noBackupYet")}
             </p>
           </div>
         </div>
@@ -381,7 +409,7 @@ export default function SystemStorageTab() {
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             backup
           </span>
-          Backup Now
+          {t("backupNow")}
         </Button>
       </div>
 
@@ -419,7 +447,7 @@ export default function SystemStorageTab() {
             >
               restore
             </span>
-            <p className="font-medium">Backup & Restore</p>
+            <p className="font-medium">{t("backupRestore")}</p>
           </div>
           <Button
             variant="outline"
@@ -429,13 +457,10 @@ export default function SystemStorageTab() {
               if (!backupsExpanded && backups.length === 0) loadBackups();
             }}
           >
-            {backupsExpanded ? "Hide" : "View Backups"}
+            {backupsExpanded ? t("hide") : t("viewBackups")}
           </Button>
         </div>
-        <p className="text-xs text-text-muted mb-3">
-          Database snapshots are created automatically before restore and every 15 minutes when data
-          changes. Retention: 24 hourly + 30 daily backups with smart rotation.
-        </p>
+        <p className="text-xs text-text-muted mb-3">{t("backupRetentionDesc")}</p>
 
         {restoreStatus.message && (
           <div
@@ -465,7 +490,7 @@ export default function SystemStorageTab() {
                 >
                   progress_activity
                 </span>
-                Loading backups...
+                {t("loadingBackups")}
               </div>
             ) : backups.length === 0 ? (
               <div className="text-center py-6 text-text-muted text-sm">
@@ -475,13 +500,13 @@ export default function SystemStorageTab() {
                 >
                   folder_off
                 </span>
-                No backups available yet. Backups will be created automatically when data changes.
+                {t("noBackupsYet")}
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-text-muted">
-                    {backups.length} backup(s) available
+                    {t("backupsAvailable", { count: backups.length })}
                   </span>
                   <button
                     onClick={loadBackups}
@@ -490,7 +515,7 @@ export default function SystemStorageTab() {
                     <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                       refresh
                     </span>
-                    Refresh
+                    {t("refresh")}
                   </button>
                 </div>
                 {backups.map((backup) => (
@@ -507,7 +532,7 @@ export default function SystemStorageTab() {
                           description
                         </span>
                         <span className="text-sm font-medium truncate">
-                          {new Date(backup.createdAt).toLocaleString("pt-BR")}
+                          {new Date(backup.createdAt).toLocaleString(locale)}
                         </span>
                         <Badge
                           variant={
@@ -519,11 +544,11 @@ export default function SystemStorageTab() {
                           }
                           size="sm"
                         >
-                          {backup.reason}
+                          {formatBackupReason(backup.reason)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-text-muted ml-6">
-                        <span>{backup.connectionCount} connection(s)</span>
+                        <span>{t("connectionsCount", { count: backup.connectionCount })}</span>
                         <span>•</span>
                         <span>{formatBytes(backup.size)}</span>
                       </div>
@@ -531,7 +556,7 @@ export default function SystemStorageTab() {
                     <div className="flex items-center gap-2 ml-3">
                       {confirmRestoreId === backup.id ? (
                         <>
-                          <span className="text-xs text-amber-500 font-medium">Confirm?</span>
+                          <span className="text-xs text-amber-500 font-medium">{t("confirm")}</span>
                           <Button
                             variant="primary"
                             size="sm"
@@ -539,14 +564,14 @@ export default function SystemStorageTab() {
                             loading={restoringId === backup.id}
                             className="!bg-amber-500 hover:!bg-amber-600"
                           >
-                            Yes
+                            {t("yes")}
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setConfirmRestoreId(null)}
                           >
-                            No
+                            {t("no")}
                           </Button>
                         </>
                       ) : (
@@ -561,7 +586,7 @@ export default function SystemStorageTab() {
                           >
                             restore
                           </span>
-                          Restore
+                          {t("restore")}
                         </Button>
                       )}
                     </div>

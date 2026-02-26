@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/config";
+import { useTranslations } from "next-intl";
 import SystemStorageTab from "./components/SystemStorageTab";
 import SecurityTab from "./components/SecurityTab";
 import RoutingTab from "./components/RoutingTab";
@@ -17,15 +18,16 @@ import CacheStatsCard from "./components/CacheStatsCard";
 import ResilienceTab from "./components/ResilienceTab";
 
 const tabs = [
-  { id: "general", label: "General", icon: "settings" },
-  { id: "ai", label: "AI", icon: "smart_toy" },
-  { id: "security", label: "Security", icon: "shield" },
-  { id: "routing", label: "Routing", icon: "route" },
-  { id: "resilience", label: "Resilience", icon: "electrical_services" },
-  { id: "advanced", label: "Advanced", icon: "tune" },
+  { id: "general", labelKey: "general", icon: "settings" },
+  { id: "ai", labelKey: "ai", icon: "smart_toy" },
+  { id: "security", labelKey: "security", icon: "shield" },
+  { id: "routing", labelKey: "routing", icon: "route" },
+  { id: "resilience", labelKey: "resilience", icon: "electrical_services" },
+  { id: "advanced", labelKey: "advanced", icon: "tune" },
 ];
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [userSelectedTab, setUserSelectedTab] = useState(null);
@@ -37,7 +39,7 @@ export default function SettingsPage() {
         {/* Tab navigation */}
         <div
           role="tablist"
-          aria-label="Settings sections"
+          aria-label={t("settingsSectionsAria")}
           className="inline-flex items-center p-1 rounded-lg bg-black/5 dark:bg-white/5 self-start"
         >
           {tabs.map((tab) => (
@@ -57,13 +59,16 @@ export default function SettingsPage() {
               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                 {tab.icon}
               </span>
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="hidden sm:inline">{t(tab.labelKey)}</span>
             </button>
           ))}
         </div>
 
         {/* Tab contents */}
-        <div role="tabpanel" aria-label={tabs.find((t) => t.id === activeTab)?.label}>
+        <div
+          role="tabpanel"
+          aria-label={t(tabs.find((t2) => t2.id === activeTab)?.labelKey || "general")}
+        >
           {activeTab === "general" && (
             <>
               <div className="flex flex-col gap-6">
@@ -100,7 +105,7 @@ export default function SettingsPage() {
           <p>
             {APP_CONFIG.name} v{APP_CONFIG.version}
           </p>
-          <p className="mt-1">Local Mode — All data stored on your machine</p>
+          <p className="mt-1">{t("localMode")}</p>
         </div>
       </div>
     </div>

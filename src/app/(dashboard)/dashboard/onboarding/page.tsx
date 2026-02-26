@@ -2,14 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
-const STEPS = [
-  { id: "welcome", title: "Welcome", icon: "waving_hand" },
-  { id: "security", title: "Security", icon: "lock" },
-  { id: "provider", title: "Provider", icon: "dns" },
-  { id: "test", title: "Test", icon: "play_circle" },
-  { id: "done", title: "Ready!", icon: "check_circle" },
-];
+const STEP_IDS = ["welcome", "security", "provider", "test", "done"];
+const STEP_ICONS = ["waving_hand", "lock", "dns", "play_circle", "check_circle"];
 
 const COMMON_PROVIDERS = [
   { id: "openai", name: "OpenAI", color: "#10A37F" },
@@ -22,6 +18,8 @@ const COMMON_PROVIDERS = [
 
 export default function OnboardingWizard() {
   const router = useRouter();
+  const t = useTranslations("onboarding");
+  const tc = useTranslations("common");
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [apiEndpoint, setApiEndpoint] = useState("http://localhost:20128/api/v1");
@@ -70,6 +68,12 @@ export default function OnboardingWizard() {
     checkSetup();
   }, [router]);
 
+  const STEPS = STEP_IDS.map((id, i) => ({
+    id,
+    title: t(id === "done" ? "ready" : id),
+    icon: STEP_ICONS[i],
+  }));
+
   const currentStep = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
 
@@ -98,12 +102,12 @@ export default function OnboardingWizard() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setErrorMessage(data.error || "Failed to set password. Try again.");
+        setErrorMessage(data.error || t("failedSetPassword"));
         return;
       }
       handleNext();
     } catch {
-      setErrorMessage("Connection error. Please try again.");
+      setErrorMessage(t("connectionError"));
     }
   };
 
@@ -133,18 +137,18 @@ export default function OnboardingWizard() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setErrorMessage(data.error || "Failed to add provider. Try again.");
+        setErrorMessage(data.error || t("failedAddProvider"));
         return;
       }
       handleNext();
     } catch {
-      setErrorMessage("Connection error. Please try again.");
+      setErrorMessage(t("connectionError"));
     }
   };
 
   const handleTestProvider = async () => {
     setTestStatus("testing");
-    setTestMessage("Testing connection...");
+    setTestMessage(t("testingConnection"));
     try {
       const res = await fetch("/api/providers");
       if (!res.ok) throw new Error("Failed to fetch");
@@ -152,21 +156,21 @@ export default function OnboardingWizard() {
       const conn = data.connections?.[0];
       if (!conn) {
         setTestStatus("error");
-        setTestMessage("No provider found. You can add one from the dashboard later.");
+        setTestMessage(t("noProviderFound"));
         return;
       }
       const testRes = await fetch(`/api/providers/${conn.id}/test`, { method: "POST" });
       if (testRes.ok) {
         setTestStatus("success");
-        setTestMessage("Connection successful! Your provider is ready.");
+        setTestMessage(t("connectionSuccessful"));
       } else {
         const err = await testRes.json().catch(() => ({}));
         setTestStatus("error");
-        setTestMessage(err.error || "Test failed, but you can configure this later.");
+        setTestMessage(err.error || t("testFailed"));
       }
     } catch {
       setTestStatus("error");
-      setTestMessage("Could not test right now. You can test from the dashboard.");
+      setTestMessage(t("couldNotTest"));
     }
   };
 
@@ -186,7 +190,7 @@ export default function OnboardingWizard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg">
-        <div className="animate-pulse text-text-muted">Loading...</div>
+        <div className="animate-pulse text-text-muted">{tc("loading")}</div>
       </div>
     );
   }
@@ -243,16 +247,12 @@ export default function OnboardingWizard() {
             {/* Welcome */}
             {currentStep.id === "welcome" && (
               <div className="text-center space-y-4">
-                <p className="text-text-muted">
-                  <strong className="text-text-main">OmniRoute</strong> is your local AI API proxy.
-                  It routes requests to multiple AI providers with load balancing, failover, and
-                  usage tracking.
-                </p>
+                <p className="text-text-muted">{t("welcomeDesc")}</p>
                 <div className="grid grid-cols-3 gap-3 mt-6">
                   {[
-                    { icon: "swap_horiz", label: "Multi-Provider" },
-                    { icon: "monitoring", label: "Usage Tracking" },
-                    { icon: "shield", label: "API Key Mgmt" },
+                    { icon: "swap_horiz", label: t("multiProvider") },
+                    { icon: "monitoring", label: t("usageTracking") },
+                    { icon: "shield", label: t("apiKeyMgmt") },
                   ].map((f) => (
                     <div
                       key={f.icon}
@@ -271,9 +271,7 @@ export default function OnboardingWizard() {
             {/* Security */}
             {currentStep.id === "security" && (
               <div className="space-y-4">
-                <p className="text-sm text-text-muted text-center">
-                  Set a password to protect your dashboard, or skip for now.
-                </p>
+                <p className="text-sm text-text-muted text-center">{t("securityDesc")}</p>
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-text-muted">
                   <input
                     type="checkbox"
@@ -281,26 +279,26 @@ export default function OnboardingWizard() {
                     onChange={(e) => setSkipSecurity(e.target.checked)}
                     className="accent-primary"
                   />
-                  Skip password setup
+                  {t("skipPassword")}
                 </label>
                 {!skipSecurity && (
                   <div className="space-y-3">
                     <input
                       type="password"
-                      placeholder="Enter password"
+                      placeholder={t("enterPassword")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <input
                       type="password"
-                      placeholder="Confirm password"
+                      placeholder={t("confirmPasswordPlaceholder")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     {password && confirmPassword && password !== confirmPassword && (
-                      <p className="text-xs text-red-400">Passwords do not match</p>
+                      <p className="text-xs text-red-400">{t("passwordsMismatch")}</p>
                     )}
                   </div>
                 )}
@@ -310,9 +308,7 @@ export default function OnboardingWizard() {
             {/* Provider */}
             {currentStep.id === "provider" && (
               <div className="space-y-4">
-                <p className="text-sm text-text-muted text-center">
-                  Connect your first AI provider. You can add more later.
-                </p>
+                <p className="text-sm text-text-muted text-center">{t("providerDesc")}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {COMMON_PROVIDERS.map((p) => (
                     <button
@@ -335,14 +331,14 @@ export default function OnboardingWizard() {
                   <div className="space-y-3 mt-4">
                     <input
                       type="password"
-                      placeholder="API Key (required)"
+                      placeholder={t("apiKeyRequired")}
                       value={providerKey}
                       onChange={(e) => setProviderKey(e.target.value)}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <input
                       type="text"
-                      placeholder="Custom URL (optional)"
+                      placeholder={t("customUrlOptional")}
                       value={providerUrl}
                       onChange={(e) => setProviderUrl(e.target.value)}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -355,15 +351,13 @@ export default function OnboardingWizard() {
             {/* Test */}
             {currentStep.id === "test" && (
               <div className="text-center space-y-4">
-                <p className="text-sm text-text-muted">
-                  Let&apos;s verify your provider connection works.
-                </p>
+                <p className="text-sm text-text-muted">{t("testDesc")}</p>
                 {testStatus === "idle" && (
                   <button
                     onClick={handleTestProvider}
                     className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
                   >
-                    Run Connection Test
+                    {t("runTest")}
                   </button>
                 )}
                 {testStatus === "testing" && (
@@ -390,7 +384,7 @@ export default function OnboardingWizard() {
                       onClick={handleTestProvider}
                       className="text-xs text-text-muted underline cursor-pointer"
                     >
-                      Retry
+                      {t("retry")}
                     </button>
                   </div>
                 )}
@@ -400,12 +394,9 @@ export default function OnboardingWizard() {
             {/* Done */}
             {currentStep.id === "done" && (
               <div className="text-center space-y-4">
-                <p className="text-text-muted">
-                  You&apos;re all set! Your OmniRoute instance is configured and ready to proxy AI
-                  requests.
-                </p>
+                <p className="text-text-muted">{t("doneDesc")}</p>
                 <div className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.06] text-left">
-                  <p className="text-xs text-text-muted mb-2 font-medium">Your endpoint:</p>
+                  <p className="text-xs text-text-muted mb-2 font-medium">{t("yourEndpoint")}</p>
                   <code className="text-sm text-primary">{apiEndpoint}</code>
                 </div>
               </div>
@@ -420,7 +411,7 @@ export default function OnboardingWizard() {
                   onClick={handleBack}
                   className="px-4 py-2 text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer"
                 >
-                  Back
+                  {tc("back")}
                 </button>
               )}
             </div>
@@ -430,7 +421,7 @@ export default function OnboardingWizard() {
                   onClick={handleNext}
                   className="px-4 py-2 text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer"
                 >
-                  Skip
+                  {t("skip")}
                 </button>
               )}
               {currentStep.id === "welcome" && (
@@ -438,7 +429,7 @@ export default function OnboardingWizard() {
                   onClick={handleNext}
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
                 >
-                  Get Started
+                  {t("getStarted")}
                 </button>
               )}
               {currentStep.id === "security" && (
@@ -447,7 +438,7 @@ export default function OnboardingWizard() {
                   disabled={!skipSecurity && (!password || password !== confirmPassword)}
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {skipSecurity ? "Skip & Continue" : "Set Password"}
+                  {skipSecurity ? t("skipAndContinue") : t("setPassword")}
                 </button>
               )}
               {currentStep.id === "provider" && (
@@ -456,7 +447,7 @@ export default function OnboardingWizard() {
                   disabled={!selectedProvider || !providerKey}
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  Add Provider
+                  {t("addProvider")}
                 </button>
               )}
               {currentStep.id === "test" && (
@@ -464,7 +455,7 @@ export default function OnboardingWizard() {
                   onClick={handleNext}
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
                 >
-                  {testStatus === "success" ? "Continue" : "Skip"}
+                  {testStatus === "success" ? t("continue") : t("skip")}
                 </button>
               )}
               {isLastStep && (
@@ -472,7 +463,7 @@ export default function OnboardingWizard() {
                   onClick={handleFinish}
                   className="px-6 py-2.5 bg-green-500 rounded-lg text-white font-medium text-sm hover:bg-green-500/90 transition-colors cursor-pointer"
                 >
-                  Go to Dashboard →
+                  {t("goToDashboard")}
                 </button>
               )}
             </div>
@@ -486,7 +477,7 @@ export default function OnboardingWizard() {
               onClick={handleFinish}
               className="text-xs text-text-muted/60 hover:text-text-muted transition-colors cursor-pointer"
             >
-              Skip wizard entirely
+              {t("skipWizard")}
             </button>
           </div>
         )}

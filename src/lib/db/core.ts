@@ -24,9 +24,18 @@ export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite"
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
 
-// Ensure data directory exists
+// Ensure data directory exists — with fallback for restricted home directories (#133)
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
+        `[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
+        `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
+    );
+  }
 }
 
 // ──────────────── Schema ────────────────

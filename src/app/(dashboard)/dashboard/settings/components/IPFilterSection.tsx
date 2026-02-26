@@ -1,20 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Input, Toggle } from "@/shared/components";
+import { Card, Button, Input } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
 const MODES = [
-  { value: "disabled", label: "Disabled", icon: "block" },
-  { value: "blacklist", label: "Blacklist", icon: "do_not_disturb" },
-  { value: "whitelist", label: "Whitelist", icon: "verified_user" },
-  { value: "whitelist-priority", label: "WL Priority", icon: "priority_high" },
+  { value: "disabled", labelKey: "ipModeDisabled", icon: "block" },
+  { value: "blacklist", labelKey: "ipModeBlacklist", icon: "do_not_disturb" },
+  { value: "whitelist", labelKey: "ipModeWhitelist", icon: "verified_user" },
+  { value: "whitelist-priority", labelKey: "ipModeWhitelistPriority", icon: "priority_high" },
 ];
 
 export default function IPFilterSection() {
-  const [config, setConfig] = useState({ enabled: false, mode: "blacklist", blacklist: [], whitelist: [], tempBans: [] });
+  const [config, setConfig] = useState({
+    enabled: false,
+    mode: "blacklist",
+    blacklist: [],
+    whitelist: [],
+    tempBans: [],
+  });
   const [loading, setLoading] = useState(true);
   const [newIP, setNewIP] = useState("");
-  const [listTarget, setListTarget] = useState("blacklist"); // "blacklist" | "whitelist"
+  const [listTarget, setListTarget] = useState("blacklist");
+  const t = useTranslations("settings");
 
   useEffect(() => {
     loadConfig();
@@ -24,7 +32,8 @@ export default function IPFilterSection() {
     try {
       const res = await fetch("/api/settings/ip-filter");
       if (res.ok) setConfig(await res.json());
-    } catch {} finally {
+    } catch {
+    } finally {
       setLoading(false);
     }
   };
@@ -39,8 +48,6 @@ export default function IPFilterSection() {
       if (res.ok) setConfig(await res.json());
     } catch {}
   };
-
-  const toggleEnabled = () => updateConfig({ enabled: !config.enabled });
 
   const setMode = (mode) => {
     if (mode === "disabled") {
@@ -75,8 +82,8 @@ export default function IPFilterSection() {
           </span>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">IP Access Control</h3>
-          <p className="text-sm text-text-muted">Block or allow specific IP addresses</p>
+          <h3 className="text-lg font-semibold">{t("ipAccessControl")}</h3>
+          <p className="text-sm text-text-muted">{t("ipAccessControlDesc")}</p>
         </div>
       </div>
 
@@ -93,11 +100,17 @@ export default function IPFilterSection() {
                 : "border-border/50 hover:border-border hover:bg-surface/30"
             }`}
           >
-            <span className={`material-symbols-outlined text-[20px] ${
-              activeMode === m.value ? "text-red-400" : "text-text-muted"
-            }`}>{m.icon}</span>
-            <span className={`text-xs font-medium ${activeMode === m.value ? "text-red-400" : "text-text-muted"}`}>
-              {m.label}
+            <span
+              className={`material-symbols-outlined text-[20px] ${
+                activeMode === m.value ? "text-red-400" : "text-text-muted"
+              }`}
+            >
+              {m.icon}
+            </span>
+            <span
+              className={`text-xs font-medium ${activeMode === m.value ? "text-red-400" : "text-text-muted"}`}
+            >
+              {t(m.labelKey)}
             </span>
           </button>
         ))}
@@ -109,8 +122,8 @@ export default function IPFilterSection() {
           <div className="flex gap-2 items-end">
             <div className="flex-1">
               <Input
-                label="Add IP Address"
-                placeholder="192.168.1.0/24 or 10.0.*.*"
+                label={t("addIpAddress")}
+                placeholder={t("ipAddressPlaceholder")}
                 value={newIP}
                 onChange={(e) => setNewIP(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addIP()}
@@ -120,16 +133,22 @@ export default function IPFilterSection() {
               <Button
                 size="sm"
                 variant={listTarget === "blacklist" ? "danger" : "secondary"}
-                onClick={() => { setListTarget("blacklist"); if (newIP.trim()) addIP(); }}
+                onClick={() => {
+                  setListTarget("blacklist");
+                  if (newIP.trim()) addIP();
+                }}
               >
-                + Block
+                {t("block")}
               </Button>
               <Button
                 size="sm"
                 variant={listTarget === "whitelist" ? "primary" : "secondary"}
-                onClick={() => { setListTarget("whitelist"); if (newIP.trim()) addIP(); }}
+                onClick={() => {
+                  setListTarget("whitelist");
+                  if (newIP.trim()) addIP();
+                }}
               >
-                + Allow
+                {t("allow")}
               </Button>
             </div>
           </div>
@@ -138,7 +157,7 @@ export default function IPFilterSection() {
           {config.blacklist.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Blocked ({config.blacklist.length})
+                {t("blocked", { count: config.blacklist.length })}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {config.blacklist.map((ip) => (
@@ -148,7 +167,10 @@ export default function IPFilterSection() {
                                bg-red-500/10 text-red-400 border border-red-500/20"
                   >
                     {ip}
-                    <button onClick={() => removeIP(ip, "blacklist")} className="hover:text-red-300">
+                    <button
+                      onClick={() => removeIP(ip, "blacklist")}
+                      className="hover:text-red-300"
+                    >
                       <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
                   </span>
@@ -161,7 +183,7 @@ export default function IPFilterSection() {
           {config.whitelist.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Allowed ({config.whitelist.length})
+                {t("allowed", { count: config.whitelist.length })}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {config.whitelist.map((ip) => (
@@ -171,7 +193,10 @@ export default function IPFilterSection() {
                                bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                   >
                     {ip}
-                    <button onClick={() => removeIP(ip, "whitelist")} className="hover:text-emerald-300">
+                    <button
+                      onClick={() => removeIP(ip, "whitelist")}
+                      className="hover:text-emerald-300"
+                    >
                       <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
                   </span>
@@ -184,7 +209,7 @@ export default function IPFilterSection() {
           {config.tempBans.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Temporary Bans ({config.tempBans.length})
+                {t("temporaryBans", { count: config.tempBans.length })}
               </p>
               <div className="flex flex-col gap-1.5">
                 {config.tempBans.map((ban) => (
@@ -199,9 +224,12 @@ export default function IPFilterSection() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-text-muted tabular-nums">
-                        {Math.ceil(ban.remainingMs / 60000)}m left
+                        {t("minLeft", { min: Math.ceil(ban.remainingMs / 60000) })}
                       </span>
-                      <button onClick={() => removeBan(ban.ip)} className="text-text-muted hover:text-orange-400">
+                      <button
+                        onClick={() => removeBan(ban.ip)}
+                        className="text-text-muted hover:text-orange-400"
+                      >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
                     </div>

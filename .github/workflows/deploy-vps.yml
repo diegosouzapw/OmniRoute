@@ -1,0 +1,38 @@
+name: Deploy to VPS
+
+on:
+  workflow_run:
+    workflows: ["Publish to Docker Hub"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      && vars.DEPLOY_ENABLED == 'true'
+    name: Deploy OmniRoute to VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          timeout: 30s
+          script: |
+            echo "=== Updating OmniRoute ==="
+            npm install -g omniroute@latest 2>&1
+            INSTALLED_VERSION=$(omniroute --version 2>/dev/null || echo "unknown")
+            echo "Installed version: $INSTALLED_VERSION"
+
+            echo "=== Restarting PM2 ==="
+            pm2 restart omniroute || pm2 start omniroute --name omniroute -- --port 20128
+            pm2 save
+
+            echo "=== Health Check ==="
+            sleep 3
+            curl -sf http://localhost:20128/api/settings > /dev/null && echo "✅ OmniRoute is healthy" || echo "❌ Health check failed"
+            echo "=== Deploy complete ==="

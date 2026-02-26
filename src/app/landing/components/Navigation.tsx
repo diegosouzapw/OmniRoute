@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
 
 export default function Navigation() {
+  const t = useTranslations("landing");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
@@ -15,12 +17,12 @@ export default function Navigation() {
           type="button"
           className="flex items-center gap-3 cursor-pointer bg-transparent border-none p-0"
           onClick={() => router.push("/")}
-          aria-label="Navigate to home"
+          aria-label={t("navigateHome")}
         >
           <div className="size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] flex items-center justify-center text-white">
             <OmniRouteLogo size={20} className="text-white" />
           </div>
-          <h2 className="text-white text-xl font-bold tracking-tight">OmniRoute</h2>
+          <h2 className="text-white text-xl font-bold tracking-tight">{t("brandName")}</h2>
         </button>
 
         {/* Desktop menu */}
@@ -29,19 +31,19 @@ export default function Navigation() {
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
             href="#features"
           >
-            Features
+            {t("featuresLink")}
           </a>
           <a
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
             href="#how-it-works"
           >
-            How it Works
+            {t("howItWorks")}
           </a>
           <a
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
             href="/docs"
           >
-            Docs
+            {t("docsLink")}
           </a>
           <a
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-1"
@@ -49,7 +51,10 @@ export default function Navigation() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+            {t("github")}
+            <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+              open_in_new
+            </span>
           </a>
         </div>
 
@@ -59,13 +64,16 @@ export default function Navigation() {
             onClick={() => router.push("/dashboard")}
             className="hidden sm:flex h-9 items-center justify-center rounded-lg px-4 bg-[#E54D5E] hover:bg-[#C93D4E] transition-all text-white text-sm font-bold shadow-[0_0_15px_rgba(229,77,94,0.4)] hover:shadow-[0_0_20px_rgba(229,77,94,0.6)]"
           >
-            Get Started
+            {t("getStarted")}
           </button>
           <button
             className="md:hidden text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={t("toggleMenu")}
           >
-            <span className="material-symbols-outlined">{mobileMenuOpen ? "close" : "menu"}</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {mobileMenuOpen ? "close" : "menu"}
+            </span>
           </button>
         </div>
       </div>
@@ -79,20 +87,20 @@ export default function Navigation() {
               href="#features"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Features
+              {t("featuresLink")}
             </a>
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
               href="#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
             >
-              How it Works
+              {t("howItWorks")}
             </a>
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
               href="/docs"
             >
-              Docs
+              {t("docsLink")}
             </a>
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
@@ -100,13 +108,13 @@ export default function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              GitHub
+              {t("github")}
             </a>
             <button
               onClick={() => router.push("/dashboard")}
               className="h-9 rounded-lg bg-[#E54D5E] hover:bg-[#C93D4E] text-white text-sm font-bold"
             >
-              Get Started
+              {t("getStarted")}
             </button>
           </div>
         </div>

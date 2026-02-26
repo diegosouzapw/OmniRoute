@@ -3,12 +3,12 @@ import { CLAUDE_CONFIG } from "../constants/oauth";
 export const claude = {
   config: CLAUDE_CONFIG,
   flowType: "authorization_code_pkce",
-  buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
+  buildAuthUrl: (config, _redirectUri, state, codeChallenge) => {
     const params = new URLSearchParams({
       code: "true",
       client_id: config.clientId,
       response_type: "code",
-      redirect_uri: redirectUri,
+      redirect_uri: config.redirectUri,
       scope: config.scopes.join(" "),
       code_challenge: codeChallenge,
       code_challenge_method: config.codeChallengeMethod,
@@ -16,7 +16,7 @@ export const claude = {
     });
     return `${config.authorizeUrl}?${params.toString()}`;
   },
-  exchangeToken: async (config, code, redirectUri, codeVerifier, state) => {
+  exchangeToken: async (config, code, _redirectUri, codeVerifier, state) => {
     let authCode = code;
     let codeState = "";
     if (authCode.includes("#")) {
@@ -36,7 +36,7 @@ export const claude = {
         state: codeState || state,
         grant_type: "authorization_code",
         client_id: config.clientId,
-        redirect_uri: redirectUri,
+        redirect_uri: config.redirectUri,
         code_verifier: codeVerifier,
       }),
     });

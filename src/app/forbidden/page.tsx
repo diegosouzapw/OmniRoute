@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * 403 Forbidden Page — Phase 8.1
  *
@@ -12,6 +14,7 @@
 import Link from "next/link";
 
 export default function ForbiddenPage() {
+  const t = useTranslations("auth");
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[var(--bg-primary,#0a0a0f)] text-[var(--text-primary,#e0e0e0)] text-center">
       <div
@@ -24,10 +27,9 @@ export default function ForbiddenPage() {
       >
         403
       </div>
-      <h1 className="text-2xl font-semibold mb-2">Access Denied</h1>
+      <h1 className="text-2xl font-semibold mb-2">{t("accessDenied")}</h1>
       <p className="text-[15px] text-[var(--text-secondary,#888)] max-w-[400px] leading-relaxed mb-8">
-        You don&apos;t have permission to access this resource. Check your API key or contact the
-        administrator.
+        {t("accessDeniedDescription")}
       </p>
       <Link
         href="/dashboard"
@@ -36,7 +38,7 @@ export default function ForbiddenPage() {
           background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
         }}
       >
-        Go to Dashboard
+        {t("goToDashboard")}
       </Link>
     </div>
   );

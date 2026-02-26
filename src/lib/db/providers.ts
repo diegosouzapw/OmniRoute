@@ -44,13 +44,42 @@ export async function createProviderConnection(data: any) {
   const now = new Date().toISOString();
 
   // Upsert check
+  // For Codex/OpenAI, a single email can have multiple workspaces (Team + Personal)
+  // We need to check for workspace uniqueness, not just email
   let existing = null;
+
   if (data.authType === "oauth" && data.email) {
-    existing = db
-      .prepare(
-        "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND email = ?"
-      )
-      .get(data.provider, data.email);
+    // For Codex, check for existing connection with same workspace
+    const workspaceId = data.providerSpecificData?.workspaceId;
+    if (data.provider === "codex" && workspaceId) {
+      // For Codex, check for existing connection with same workspace AND email
+      // A single workspace can have multiple users (Team/Business plans)
+      // We need both workspace + email uniqueness to allow multiple accounts
+      existing = db
+        .prepare(
+          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND email = ?"
+        )
+        .get(data.provider, workspaceId, data.email);
+
+      // If no match with workspace+email, also check workspace-only for backward compat
+      // (old connections without email should still be updated, not duplicated)
+      if (!existing) {
+        existing = db
+          .prepare(
+            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND (email IS NULL OR email = '')"
+          )
+          .get(data.provider, workspaceId);
+      }
+      // For Codex with workspaceId, don't fall back to email-only check
+      // This allows creating new connections for different workspaces
+    } else {
+      // For other providers (or Codex without workspaceId), use email check
+      existing = db
+        .prepare(
+          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND email = ?"
+        )
+        .get(data.provider, data.email);
+    }
   } else if (data.authType === "apikey" && data.name) {
     existing = db
       .prepare(

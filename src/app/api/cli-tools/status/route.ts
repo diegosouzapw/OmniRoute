@@ -59,11 +59,23 @@ export async function GET() {
   try {
     const statuses = {};
 
-    // Run all runtime checks in parallel
+    // Run all runtime checks in parallel with individual timeouts
+    const RUNTIME_CHECK_TIMEOUT = 5000; // 5s per tool max
     await Promise.all(
       CLI_TOOL_IDS.map(async (toolId) => {
         try {
-          const runtime = await getCliRuntimeStatus(toolId);
+          const runtime = (await Promise.race([
+            getCliRuntimeStatus(toolId),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), RUNTIME_CHECK_TIMEOUT)
+            ),
+          ])) as {
+            installed: boolean;
+            runnable: boolean;
+            command?: string;
+            commandPath?: string;
+            reason?: string;
+          };
           statuses[toolId] = {
             installed: runtime.installed,
             runnable: runtime.runnable,
@@ -75,7 +87,7 @@ export async function GET() {
           statuses[toolId] = {
             installed: false,
             runnable: false,
-            reason: error.message,
+            reason: error.message || "Check failed",
           };
         }
       })

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 /**
  * BudgetTab — Batch C
  *
@@ -12,7 +14,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
-function ProgressBar({ value, max, warningAt = 0.8 }) {
+function ProgressBar({ value, max, warningAt = 0.8, formatCurrency }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   const ratio = max > 0 ? value / max : 0;
   const color = ratio >= 1 ? "#ef4444" : ratio >= warningAt ? "#f59e0b" : "#22c55e";
@@ -20,8 +22,8 @@ function ProgressBar({ value, max, warningAt = 0.8 }) {
   return (
     <div className="w-full">
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-text-muted">${value.toFixed(2)}</span>
-        <span className="text-text-muted">${max.toFixed(2)}</span>
+        <span className="text-text-muted">{formatCurrency(value)}</span>
+        <span className="text-text-muted">{formatCurrency(max)}</span>
       </div>
       <div className="w-full h-2 rounded-full bg-surface/50 overflow-hidden">
         <div
@@ -34,6 +36,8 @@ function ProgressBar({ value, max, warningAt = 0.8 }) {
 }
 
 export default function BudgetTab() {
+  const t = useTranslations("usage");
+  const locale = useLocale();
   const [keys, setKeys] = useState([]);
   const [selectedKey, setSelectedKey] = useState(null);
   const [budget, setBudget] = useState(null);
@@ -45,6 +49,13 @@ export default function BudgetTab() {
     warningThreshold: "80",
   });
   const notify = useNotificationStore();
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
 
   // Load API keys
   useEffect(() => {
@@ -97,13 +108,13 @@ export default function BudgetTab() {
         }),
       });
       if (res.ok) {
-        notify.success("Budget limits saved");
+        notify.success(t("budgetSaved"));
         await fetchBudget();
       } else {
-        notify.error("Failed to save budget");
+        notify.error(t("budgetSaveFailed"));
       }
     } catch {
-      notify.error("Failed to save budget");
+      notify.error(t("budgetSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -112,8 +123,10 @@ export default function BudgetTab() {
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-text-muted p-8 animate-pulse">
-        <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-        Loading budget data...
+        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+          account_balance_wallet
+        </span>
+        {t("loadingBudgetData")}
       </div>
     );
   }
@@ -122,8 +135,8 @@ export default function BudgetTab() {
     return (
       <EmptyState
         icon="vpn_key"
-        title="No API Keys"
-        description="Add API keys first to set up budget limits."
+        title={t("noApiKeysTitle")}
+        description={t("noApiKeysDescription")}
       />
     );
   }
@@ -140,13 +153,15 @@ export default function BudgetTab() {
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-            <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              account_balance_wallet
+            </span>
           </div>
-          <h3 className="text-lg font-semibold">Budget Management</h3>
+          <h3 className="text-lg font-semibold">{t("budgetManagement")}</h3>
         </div>
 
         <div className="mb-4">
-          <label className="text-sm text-text-muted mb-1 block">API Key</label>
+          <label className="text-sm text-text-muted mb-1 block">{t("apiKey")}</label>
           <select
             value={selectedKey || ""}
             onChange={(e) => setSelectedKey(e.target.value)}
@@ -163,55 +178,65 @@ export default function BudgetTab() {
         {/* Current Spend */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
-            <p className="text-sm text-text-muted mb-2">Today&apos;s Spend</p>
-            <p className="text-2xl font-bold text-text-main">${dailyCost.toFixed(2)}</p>
+            <p className="text-sm text-text-muted mb-2">{t("todaysSpend")}</p>
+            <p className="text-2xl font-bold text-text-main">{formatCurrency(dailyCost)}</p>
             {dailyLimit > 0 && (
-              <ProgressBar value={dailyCost} max={dailyLimit} warningAt={warnPct} />
+              <ProgressBar
+                value={dailyCost}
+                max={dailyLimit}
+                warningAt={warnPct}
+                formatCurrency={formatCurrency}
+              />
             )}
           </div>
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
-            <p className="text-sm text-text-muted mb-2">This Month</p>
-            <p className="text-2xl font-bold text-text-main">${monthlyCost.toFixed(2)}</p>
+            <p className="text-sm text-text-muted mb-2">{t("thisMonth")}</p>
+            <p className="text-2xl font-bold text-text-main">{formatCurrency(monthlyCost)}</p>
             {monthlyLimit > 0 && (
-              <ProgressBar value={monthlyCost} max={monthlyLimit} warningAt={warnPct} />
+              <ProgressBar
+                value={monthlyCost}
+                max={monthlyLimit}
+                warningAt={warnPct}
+                formatCurrency={formatCurrency}
+              />
             )}
           </div>
         </div>
 
         {/* Budget Form */}
         <div className="border-t border-border/30 pt-4">
-          <p className="text-sm font-medium mb-3">Set Limits</p>
+          <p className="text-sm font-medium mb-3">{t("setLimits")}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Input
-              label="Daily Limit (USD)"
+              label={t("dailyLimitUsd")}
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g. 5.00"
+              placeholder={t("dailyLimitPlaceholder")}
               value={form.dailyLimitUsd}
               onChange={(e) => setForm({ ...form, dailyLimitUsd: e.target.value })}
             />
             <Input
-              label="Monthly Limit (USD)"
+              label={t("monthlyLimitUsd")}
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g. 50.00"
+              placeholder={t("monthlyLimitPlaceholder")}
               value={form.monthlyLimitUsd}
               onChange={(e) => setForm({ ...form, monthlyLimitUsd: e.target.value })}
             />
             <Input
-              label="Warning Threshold (%)"
+              label={t("warningThresholdPercent")}
               type="number"
               min="1"
               max="100"
-              placeholder="80"
+              placeholder={t("warningThresholdPlaceholder")}
               value={form.warningThreshold}
               onChange={(e) => setForm({ ...form, warningThreshold: e.target.value })}
             />
           </div>
           <Button variant="primary" onClick={handleSave} loading={saving}>
-            Save Limits
+            {t("saveLimits")}
           </Button>
         </div>
       </Card>
@@ -222,14 +247,15 @@ export default function BudgetTab() {
           <div className="flex items-center gap-2">
             <span
               className="material-symbols-outlined text-[20px]"
+              aria-hidden="true"
               style={{ color: budget.budgetCheck.allowed ? "#22c55e" : "#ef4444" }}
             >
               {budget.budgetCheck.allowed ? "check_circle" : "block"}
             </span>
             <span className="text-sm">
               {budget.budgetCheck.allowed
-                ? `Budget OK — $${(budget.budgetCheck.remaining || 0).toFixed(2)} remaining`
-                : "Budget exceeded — requests may be blocked"}
+                ? t("budgetOk", { remaining: formatCurrency(budget.budgetCheck.remaining || 0) })
+                : t("budgetExceeded")}
             </span>
           </div>
         </Card>

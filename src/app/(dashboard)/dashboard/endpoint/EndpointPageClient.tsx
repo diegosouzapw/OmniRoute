@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import Image from "next/image";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
+import { useTranslations } from "next-intl";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
 
 export default function APIPageClient({ machineId }) {
-  const [keys, setKeys] = useState([]);
+  const t = useTranslations("endpoint");
+  const tc = useTranslations("common");
   const [providerConnections, setProviderConnections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newKeyName, setNewKeyName] = useState("");
-  const [createdKey, setCreatedKey] = useState(null);
 
   // Endpoints / models state
   const [allModels, setAllModels] = useState([]);
@@ -53,16 +51,19 @@ export default function APIPageClient({ machineId }) {
   };
 
   // Categorize models by endpoint type
+  // Filter out parent models (models with parent field set) to avoid showing duplicates
   const endpointData = useMemo(() => {
-    const chat = allModels.filter((m) => !m.type);
-    const embeddings = allModels.filter((m) => m.type === "embedding");
-    const images = allModels.filter((m) => m.type === "image");
-    const rerank = allModels.filter((m) => m.type === "rerank");
+    const chat = allModels.filter((m) => !m.type && !m.parent);
+    const embeddings = allModels.filter((m) => m.type === "embedding" && !m.parent);
+    const images = allModels.filter((m) => m.type === "image" && !m.parent);
+    const rerank = allModels.filter((m) => m.type === "rerank" && !m.parent);
     const audioTranscription = allModels.filter(
-      (m) => m.type === "audio" && m.subtype === "transcription"
+      (m) => m.type === "audio" && m.subtype === "transcription" && !m.parent
     );
-    const audioSpeech = allModels.filter((m) => m.type === "audio" && m.subtype === "speech");
-    const moderation = allModels.filter((m) => m.type === "moderation");
+    const audioSpeech = allModels.filter(
+      (m) => m.type === "audio" && m.subtype === "speech" && !m.parent
+    );
+    const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
     return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation };
   }, [allModels]);
 
@@ -108,9 +109,9 @@ export default function APIPageClient({ machineId }) {
       return { ok: res.ok, status: res.status, data };
     } catch (error) {
       if (error?.name === "AbortError") {
-        return { ok: false, status: 408, data: { error: "Cloud request timeout" } };
+        return { ok: false, status: 408, data: { error: t("cloudRequestTimeout") } };
       }
-      return { ok: false, status: 500, data: { error: error.message || "Cloud request failed" } };
+      return { ok: false, status: 500, data: { error: error.message || t("cloudRequestFailed") } };
     } finally {
       clearTimeout(timeoutId);
     }
@@ -130,16 +131,9 @@ export default function APIPageClient({ machineId }) {
 
   const fetchData = async () => {
     try {
-      const [keysRes, providersRes] = await Promise.all([
-        fetch("/api/keys"),
-        fetch("/api/providers"),
-      ]);
+      const providersRes = await fetch("/api/providers");
 
-      const [keysData, providersData] = await Promise.all([keysRes.json(), providersRes.json()]);
-
-      if (keysRes.ok) {
-        setKeys(keysData.keys || []);
-      }
+      const providersData = await providersRes.json();
 
       if (providersRes.ok) {
         setProviderConnections(providersData.connections || []);
@@ -196,13 +190,13 @@ export default function APIPageClient({ machineId }) {
         setModalSuccess(false);
 
         if (data.verified) {
-          setCloudStatus({ type: "success", message: "Cloud Proxy connected and verified!" });
+          setCloudStatus({ type: "success", message: t("cloudConnectedVerified") });
         } else {
           setCloudStatus({
             type: "warning",
             message: data.verifyError
-              ? `Connected — verification pending: ${data.verifyError}`
-              : "Connected — verification pending",
+              ? t("connectedVerificationPendingWithError", { error: data.verifyError })
+              : t("connectedVerificationPending"),
           });
         }
 
@@ -214,16 +208,15 @@ export default function APIPageClient({ machineId }) {
         await loadCloudSettings();
       } else {
         // Sync failed — provide a helpful error message
-        let errorMessage = data.error || "Failed to enable cloud";
+        let errorMessage = data.error || t("failedEnable");
         if (status === 502 || status === 408) {
-          errorMessage =
-            "Could not reach cloud worker. Make sure the cloud service is running (npm run dev in /cloud).";
+          errorMessage = t("cloudWorkerUnreachable");
         }
         setCloudStatus({ type: "error", message: errorMessage });
         setShowCloudModal(false);
       }
     } catch (error) {
-      setCloudStatus({ type: "error", message: error.message || "Connection failed" });
+      setCloudStatus({ type: "error", message: error.message || t("connectionFailed") });
       setShowCloudModal(false);
     } finally {
       setCloudSyncing(false);
@@ -246,16 +239,16 @@ export default function APIPageClient({ machineId }) {
 
       if (ok) {
         setCloudEnabled(false);
-        setCloudStatus({ type: "success", message: "Cloud disabled successfully" });
+        setCloudStatus({ type: "success", message: t("cloudDisabledSuccess") });
         setShowDisableModal(false);
         dispatchCloudChange();
         await loadCloudSettings();
       } else {
-        setCloudStatus({ type: "error", message: data.error || "Failed to disable cloud" });
+        setCloudStatus({ type: "error", message: data.error || t("failedDisable") });
       }
     } catch (error) {
       console.log("Error disabling cloud:", error);
-      setCloudStatus({ type: "error", message: "Failed to disable cloud" });
+      setCloudStatus({ type: "error", message: t("failedDisable") });
     } finally {
       setCloudSyncing(false);
       setSyncStep("");
@@ -269,49 +262,14 @@ export default function APIPageClient({ machineId }) {
     try {
       const { ok, data } = await postCloudAction("sync");
       if (ok) {
-        setCloudStatus({ type: "success", message: "Synced successfully" });
+        setCloudStatus({ type: "success", message: t("syncedSuccess") });
       } else {
-        setCloudStatus({ type: "error", message: data.error });
+        setCloudStatus({ type: "error", message: data.error || t("syncFailed") });
       }
     } catch (error) {
-      setCloudStatus({ type: "error", message: error.message });
+      setCloudStatus({ type: "error", message: error.message || t("syncFailed") });
     } finally {
       setCloudSyncing(false);
-    }
-  };
-
-  const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return;
-
-    try {
-      const res = await fetch("/api/keys", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newKeyName }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setCreatedKey(data.key);
-        await fetchData();
-        setNewKeyName("");
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.log("Error creating key:", error);
-    }
-  };
-
-  const handleDeleteKey = async (id) => {
-    if (!confirm("Delete this API key?")) return;
-
-    try {
-      const res = await fetch(`/api/keys/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setKeys(keys.filter((k) => k.id !== id));
-      }
-    } catch (error) {
-      console.log("Error deleting key:", error);
     }
   };
 
@@ -337,36 +295,20 @@ export default function APIPageClient({ machineId }) {
   // Use new format endpoint (machineId embedded in key)
   const currentEndpoint = cloudEnabled ? cloudEndpointNew : baseUrl;
 
-  const cloudBenefits = [
-    { icon: "public", title: "Access Anywhere", desc: "No port forwarding needed" },
-    { icon: "group", title: "Share Endpoint", desc: "Easy team collaboration" },
-    { icon: "schedule", title: "Always Online", desc: "24/7 availability" },
-    { icon: "speed", title: "Global Edge", desc: "Fast worldwide access" },
-  ];
-
-  const quickStartLinks = [
-    { label: "Documentation", href: "/docs" },
-    { label: "OpenAI API compatibility", href: "/docs#api-reference" },
-    { label: "Cherry/Codex compatibility", href: "/docs#client-compatibility" },
-    {
-      label: "Report issue",
-      href: "https://github.com/diegosouzapw/OmniRoute/issues",
-      external: true,
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-8">
       {/* Endpoint Card */}
       <Card className={cloudEnabled ? "" : ""}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">API Endpoint</h2>
+            <h2 className="text-lg font-semibold">{t("title")}</h2>
             <p className="text-sm text-text-muted">
-              {cloudEnabled ? "Using Cloud Proxy" : "Using Local Server"}
+              {cloudEnabled ? t("usingCloudProxy") : t("usingLocalServer")}
             </p>
             {machineId && (
-              <p className="text-xs text-text-muted mt-1">Machine ID: {machineId.slice(0, 8)}...</p>
+              <p className="text-xs text-text-muted mt-1">
+                {t("machineId", { id: machineId.slice(0, 8) })}
+              </p>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -379,7 +321,7 @@ export default function APIPageClient({ machineId }) {
                 disabled={cloudSyncing}
                 className="bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
               >
-                Disable Cloud
+                {t("disableCloud")}
               </Button>
             ) : (
               <Button
@@ -389,7 +331,7 @@ export default function APIPageClient({ machineId }) {
                 disabled={cloudSyncing}
                 className="bg-linear-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600"
               >
-                Enable Cloud
+                {t("enableCloud")}
               </Button>
             )}
           </div>
@@ -435,97 +377,8 @@ export default function APIPageClient({ machineId }) {
             icon={copied === "endpoint_url" ? "check" : "content_copy"}
             onClick={() => copy(currentEndpoint, "endpoint_url")}
           >
-            {copied === "endpoint_url" ? "Copied!" : "Copy"}
+            {copied === "endpoint_url" ? tc("copied") : tc("copy")}
           </Button>
-        </div>
-
-        {/* Registered Keys — collapsible section inside API Endpoint card */}
-        <div className="border border-border rounded-lg overflow-hidden mt-4">
-          <button
-            onClick={() => setExpandedEndpoint(expandedEndpoint === "keys" ? null : "keys")}
-            className="w-full flex items-center gap-3 p-4 hover:bg-surface/50 transition-colors text-left"
-          >
-            <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 shrink-0">
-              <span className="material-symbols-outlined text-xl text-amber-500">vpn_key</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">Registered Keys</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-                  {keys.length} {keys.length === 1 ? "key" : "keys"}
-                </span>
-              </div>
-              <p className="text-xs text-text-muted mt-0.5">
-                Manage API keys used to authenticate requests to this endpoint
-              </p>
-            </div>
-            <span
-              className={`material-symbols-outlined text-text-muted text-lg transition-transform ${expandedEndpoint === "keys" ? "rotate-180" : ""}`}
-            >
-              expand_more
-            </span>
-          </button>
-
-          {expandedEndpoint === "keys" && (
-            <div className="border-t border-border px-4 pb-4">
-              <div className="flex items-center justify-between mt-3 mb-3">
-                <p className="text-xs text-text-muted">
-                  Each key isolates usage tracking and can be revoked independently.
-                </p>
-                <Button size="sm" icon="add" onClick={() => setShowAddModal(true)}>
-                  Create Key
-                </Button>
-              </div>
-
-              {keys.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-3">
-                    <span className="material-symbols-outlined text-[24px]">vpn_key</span>
-                  </div>
-                  <p className="text-text-main font-medium mb-1 text-sm">No API keys yet</p>
-                  <p className="text-xs text-text-muted mb-3">
-                    Create your first API key to get started
-                  </p>
-                  <Button size="sm" icon="add" onClick={() => setShowAddModal(true)}>
-                    Create Key
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col">
-                  {keys.map((key) => (
-                    <div
-                      key={key.id}
-                      className="group flex items-center justify-between py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{key.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <code className="text-xs text-text-muted font-mono">{key.key}</code>
-                          <button
-                            onClick={() => copy(key.key, key.id)}
-                            className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">
-                              {copied === key.id ? "check" : "content_copy"}
-                            </span>
-                          </button>
-                        </div>
-                        <p className="text-xs text-text-muted mt-1">
-                          Created {new Date(key.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteKey(key.id)}
-                        className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </Card>
 
@@ -533,11 +386,11 @@ export default function APIPageClient({ machineId }) {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Available Endpoints</h2>
+            <h2 className="text-lg font-semibold">{t("available")}</h2>
             <p className="text-sm text-text-muted">
-              {allModels.length} models across{" "}
-              {
-                [
+              {t("modelsAcrossEndpoints", {
+                models: Object.values(endpointData).reduce((acc, models) => acc + models.length, 0),
+                endpoints: [
                   endpointData.chat,
                   endpointData.embeddings,
                   endpointData.images,
@@ -545,9 +398,8 @@ export default function APIPageClient({ machineId }) {
                   endpointData.audioTranscription,
                   endpointData.audioSpeech,
                   endpointData.moderation,
-                ].filter((a) => a.length > 0).length
-              }{" "}
-              endpoints
+                ].filter((a) => a.length > 0).length,
+              })}
             </p>
           </div>
         </div>
@@ -558,9 +410,9 @@ export default function APIPageClient({ machineId }) {
             icon="chat"
             iconColor="text-blue-500"
             iconBg="bg-blue-500/10"
-            title="Chat Completions"
+            title={t("chatCompletions")}
             path="/v1/chat/completions"
-            description="Streaming & non-streaming chat with all providers"
+            description={t("chatDesc")}
             models={endpointData.chat}
             expanded={expandedEndpoint === "chat"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "chat" ? null : "chat")}
@@ -574,9 +426,9 @@ export default function APIPageClient({ machineId }) {
             icon="data_array"
             iconColor="text-emerald-500"
             iconBg="bg-emerald-500/10"
-            title="Embeddings"
+            title={t("embeddings")}
             path="/v1/embeddings"
-            description="Text embeddings for search & RAG pipelines"
+            description={t("embeddingsDesc")}
             models={endpointData.embeddings}
             expanded={expandedEndpoint === "embeddings"}
             onToggle={() =>
@@ -592,9 +444,9 @@ export default function APIPageClient({ machineId }) {
             icon="image"
             iconColor="text-purple-500"
             iconBg="bg-purple-500/10"
-            title="Image Generation"
+            title={t("imageGeneration")}
             path="/v1/images/generations"
-            description="Generate images from text prompts"
+            description={t("imageDesc")}
             models={endpointData.images}
             expanded={expandedEndpoint === "images"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")}
@@ -608,9 +460,9 @@ export default function APIPageClient({ machineId }) {
             icon="sort"
             iconColor="text-amber-500"
             iconBg="bg-amber-500/10"
-            title="Rerank"
+            title={t("rerank")}
             path="/v1/rerank"
-            description="Rerank documents by relevance to a query"
+            description={t("rerankDesc")}
             models={endpointData.rerank}
             expanded={expandedEndpoint === "rerank"}
             onToggle={() => setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")}
@@ -624,9 +476,9 @@ export default function APIPageClient({ machineId }) {
             icon="mic"
             iconColor="text-rose-500"
             iconBg="bg-rose-500/10"
-            title="Audio Transcription"
+            title={t("audioTranscription")}
             path="/v1/audio/transcriptions"
-            description="Transcribe audio files to text (Whisper)"
+            description={t("audioTranscriptionDesc")}
             models={endpointData.audioTranscription}
             expanded={expandedEndpoint === "audioTranscription"}
             onToggle={() =>
@@ -644,9 +496,9 @@ export default function APIPageClient({ machineId }) {
             icon="record_voice_over"
             iconColor="text-cyan-500"
             iconBg="bg-cyan-500/10"
-            title="Text to Speech"
+            title={t("textToSpeech")}
             path="/v1/audio/speech"
-            description="Convert text to natural-sounding speech"
+            description={t("textToSpeechDesc")}
             models={endpointData.audioSpeech}
             expanded={expandedEndpoint === "audioSpeech"}
             onToggle={() =>
@@ -662,9 +514,9 @@ export default function APIPageClient({ machineId }) {
             icon="shield"
             iconColor="text-orange-500"
             iconBg="bg-orange-500/10"
-            title="Moderations"
+            title={t("moderations")}
             path="/v1/moderations"
-            description="Content moderation and safety classification"
+            description={t("moderationsDesc")}
             models={endpointData.moderation}
             expanded={expandedEndpoint === "moderation"}
             onToggle={() =>
@@ -677,97 +529,32 @@ export default function APIPageClient({ machineId }) {
         </div>
       </Card>
 
-      {/* Cloud Proxy Card - Hidden */}
-      {false && (
-        <Card className={cloudEnabled ? "bg-primary/5" : ""}>
-          <div className="flex flex-col gap-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`p-2 rounded-lg ${cloudEnabled ? "bg-primary text-white" : "bg-sidebar text-text-muted"}`}
-                >
-                  <span className="material-symbols-outlined text-xl">cloud</span>
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold">Cloud Proxy</h2>
-                  <p className="text-xs text-text-muted">
-                    {cloudEnabled ? "Connected & Ready" : "Access your API from anywhere"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {cloudEnabled ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="cloud_off"
-                    onClick={() => handleCloudToggle(false)}
-                    disabled={cloudSyncing}
-                    className="bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
-                  >
-                    Disable
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    icon="cloud_upload"
-                    onClick={() => handleCloudToggle(true)}
-                    disabled={cloudSyncing}
-                    className="bg-linear-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600 px-6"
-                  >
-                    Enable Cloud
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Benefits Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {cloudBenefits.map((benefit) => (
-                <div
-                  key={benefit.title}
-                  className="flex flex-col items-center text-center p-3 rounded-lg bg-sidebar/50"
-                >
-                  <span className="material-symbols-outlined text-xl text-primary mb-1">
-                    {benefit.icon}
-                  </span>
-                  <p className="text-xs font-semibold">{benefit.title}</p>
-                  <p className="text-xs text-text-muted">{benefit.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      )}
-
       {/* Cloud Enable Modal */}
       <Modal
         isOpen={showCloudModal}
-        title="Enable Cloud Proxy"
+        title={t("enableCloudTitle")}
         onClose={() => setShowCloudModal(false)}
       >
         <div className="flex flex-col gap-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
-              What you will get
+              {t("whatYouGet")}
             </p>
             <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              <li>• Access your API from anywhere in the world</li>
-              <li>• Share endpoint with your team easily</li>
-              <li>• No need to open ports or configure firewall</li>
-              <li>• Fast global edge network</li>
+              <li>• {t("cloudBenefitAccess")}</li>
+              <li>• {t("cloudBenefitShare")}</li>
+              <li>• {t("cloudBenefitPorts")}</li>
+              <li>• {t("cloudBenefitEdge")}</li>
             </ul>
           </div>
 
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">Note</p>
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">
+              {tc("note")}
+            </p>
             <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-              <li>
-                • Cloud will keep your auth session for 1 day. If not used, it will be automatically
-                deleted.
-              </li>
-              <li>• Cloud is currently unstable with Claude Code OAuth in some cases.</li>
+              <li>• {t("cloudSessionNote")}</li>
+              <li>• {t("cloudUnstableNote")}</li>
             </ul>
           </div>
 
@@ -795,9 +582,9 @@ export default function APIPageClient({ machineId }) {
                     modalSuccess ? "text-green-500" : "text-primary"
                   }`}
                 >
-                  {modalSuccess && "Cloud Proxy connected!"}
-                  {!modalSuccess && syncStep === "syncing" && "Connecting to cloud..."}
-                  {!modalSuccess && syncStep === "verifying" && "Verifying connection..."}
+                  {modalSuccess && t("cloudConnected")}
+                  {!modalSuccess && syncStep === "syncing" && t("connectingToCloud")}
+                  {!modalSuccess && syncStep === "verifying" && t("verifyingConnection")}
                 </p>
               </div>
             </div>
@@ -810,15 +597,15 @@ export default function APIPageClient({ machineId }) {
                   <span className="material-symbols-outlined animate-spin text-sm">
                     progress_activity
                   </span>
-                  {syncStep === "syncing" ? "Connecting..." : "Verifying..."}
+                  {syncStep === "syncing" ? t("connecting") : t("verifying")}
                 </span>
               ) : modalSuccess ? (
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm">check</span>
-                  Connected!
+                  {t("connected")}
                 </span>
               ) : (
-                "Enable Cloud"
+                t("enableCloud")
               )}
             </Button>
             <Button
@@ -827,77 +614,16 @@ export default function APIPageClient({ machineId }) {
               fullWidth
               disabled={cloudSyncing || modalSuccess}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
           </div>
-        </div>
-      </Modal>
-
-      {/* Add Key Modal */}
-      <Modal
-        isOpen={showAddModal}
-        title="Create API Key"
-        onClose={() => {
-          setShowAddModal(false);
-          setNewKeyName("");
-        }}
-      >
-        <div className="flex flex-col gap-4">
-          <Input
-            label="Key Name"
-            value={newKeyName}
-            onChange={(e) => setNewKeyName(e.target.value)}
-            placeholder="Production Key"
-          />
-          <div className="flex gap-2">
-            <Button onClick={handleCreateKey} fullWidth disabled={!newKeyName.trim()}>
-              Create
-            </Button>
-            <Button
-              onClick={() => {
-                setShowAddModal(false);
-                setNewKeyName("");
-              }}
-              variant="ghost"
-              fullWidth
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Created Key Modal */}
-      <Modal isOpen={!!createdKey} title="API Key Created" onClose={() => setCreatedKey(null)}>
-        <div className="flex flex-col gap-4">
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2 font-medium">
-              Save this key now!
-            </p>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              This is the only time you will see this key. Store it securely.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Input value={createdKey || ""} readOnly className="flex-1 font-mono text-sm" />
-            <Button
-              variant="secondary"
-              icon={copied === "created_key" ? "check" : "content_copy"}
-              onClick={() => copy(createdKey, "created_key")}
-            >
-              {copied === "created_key" ? "Copied!" : "Copy"}
-            </Button>
-          </div>
-          <Button onClick={() => setCreatedKey(null)} fullWidth>
-            Done
-          </Button>
         </div>
       </Modal>
 
       {/* Disable Cloud Modal */}
       <Modal
         isOpen={showDisableModal}
-        title="Disable Cloud Proxy"
+        title={t("disableCloudTitle")}
         onClose={() => !cloudSyncing && setShowDisableModal(false)}
       >
         <div className="flex flex-col gap-4">
@@ -907,10 +633,10 @@ export default function APIPageClient({ machineId }) {
                 warning
               </span>
               <div>
-                <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-1">Warning</p>
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  All auth sessions will be deleted from cloud.
+                <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-1">
+                  {tc("warning")}
                 </p>
+                <p className="text-sm text-red-700 dark:text-red-300">{t("disableWarning")}</p>
               </div>
             </div>
           </div>
@@ -923,14 +649,14 @@ export default function APIPageClient({ machineId }) {
               </span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-primary">
-                  {syncStep === "syncing" && "Syncing latest data..."}
-                  {syncStep === "disabling" && "Disabling cloud..."}
+                  {syncStep === "syncing" && t("syncingData")}
+                  {syncStep === "disabling" && t("disablingCloud")}
                 </p>
               </div>
             </div>
           )}
 
-          <p className="text-sm text-text-muted">Are you sure you want to disable cloud proxy?</p>
+          <p className="text-sm text-text-muted">{t("disableConfirm")}</p>
 
           <div className="flex gap-2">
             <Button
@@ -944,10 +670,10 @@ export default function APIPageClient({ machineId }) {
                   <span className="material-symbols-outlined animate-spin text-sm">
                     progress_activity
                   </span>
-                  {syncStep === "syncing" ? "Syncing..." : "Disabling..."}
+                  {syncStep === "syncing" ? t("syncing") : t("disabling")}
                 </span>
               ) : (
-                "Disable Cloud"
+                t("disableCloud")
               )}
             </Button>
             <Button
@@ -956,7 +682,7 @@ export default function APIPageClient({ machineId }) {
               fullWidth
               disabled={cloudSyncing}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
           </div>
         </div>
@@ -979,83 +705,18 @@ APIPageClient.propTypes = {
   machineId: PropTypes.string.isRequired,
 };
 
-function ProviderOverviewCard({ item, onClick }) {
-  const [imgError, setImgError] = useState(false);
-
-  const statusVariant =
-    item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
-
-  return (
-    <div
-      className="border border-border rounded-lg p-3 hover:bg-surface/40 transition-colors cursor-pointer"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
-    >
-      <div className="flex items-center gap-2.5">
-        <div
-          className="size-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${item.provider.color || "#888"}15` }}
-        >
-          {imgError ? (
-            <span
-              className="text-[10px] font-bold"
-              style={{ color: item.provider.color || "#888" }}
-            >
-              {item.provider.textIcon || item.provider.id.slice(0, 2).toUpperCase()}
-            </span>
-          ) : (
-            <Image
-              src={`/providers/${item.provider.id}.png`}
-              alt={item.provider.name}
-              width={26}
-              height={26}
-              className="object-contain rounded-lg"
-              sizes="26px"
-              onError={() => setImgError(true)}
-            />
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate">{item.provider.name}</p>
-          <p className={`text-xs ${statusVariant}`}>
-            {item.total === 0
-              ? "Not configured"
-              : `${item.connected} active · ${item.errors} error`}
-          </p>
-        </div>
-
-        <span className="text-xs text-text-muted">#{item.total}</span>
-      </div>
-    </div>
-  );
-}
-
-ProviderOverviewCard.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    provider: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      color: PropTypes.string,
-      textIcon: PropTypes.string,
-    }).isRequired,
-    total: PropTypes.number.isRequired,
-    connected: PropTypes.number.isRequired,
-    errors: PropTypes.number.isRequired,
-  }).isRequired,
-  onClick: PropTypes.func,
-};
-
 // -- Sub-component: Provider Models Modal ------------------------------------------
 
 function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
+  const t = useTranslations("endpoint");
+  const tc = useTranslations("common");
   // Get provider alias for matching models
+  // Filter out parent models (models with parent field set) to avoid showing duplicates
   const providerAlias = provider.provider.alias || provider.id;
   const providerModels = useMemo(() => {
-    return models.filter((m) => m.owned_by === providerAlias || m.owned_by === provider.id);
+    return models.filter(
+      (m) => !m.parent && (m.owned_by === providerAlias || m.owned_by === provider.id)
+    );
   }, [models, providerAlias, provider.id]);
 
   const chatModels = providerModels.filter((m) => !m.type);
@@ -1081,13 +742,13 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
                 <code className="text-sm font-mono flex-1 truncate">{m.id}</code>
                 {m.custom && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                    custom
+                    {t("custom")}
                   </span>
                 )}
                 <button
                   onClick={() => copy(m.id, copyKey)}
                   className="p-1 hover:bg-sidebar rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Copy model ID"
+                  title={tc("copy")}
                 >
                   <span className="material-symbols-outlined text-sm">
                     {copied === copyKey ? "check" : "content_copy"}
@@ -1102,17 +763,19 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`${provider.provider.name} — Models`}>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("providerModelsTitle", { provider: provider.provider.name })}
+    >
       <div className="max-h-[60vh] overflow-y-auto">
         {providerModels.length === 0 ? (
-          <p className="text-sm text-text-muted py-4 text-center">
-            No models available for this provider.
-          </p>
+          <p className="text-sm text-text-muted py-4 text-center">{t("noModelsForProvider")}</p>
         ) : (
           <>
-            {renderModelGroup("Chat", "chat", chatModels)}
-            {renderModelGroup("Embedding", "data_array", embeddingModels)}
-            {renderModelGroup("Image", "image", imageModels)}
+            {renderModelGroup(t("chat"), "chat", chatModels)}
+            {renderModelGroup(t("embedding"), "data_array", embeddingModels)}
+            {renderModelGroup(t("image"), "image", imageModels)}
           </>
         )}
       </div>
@@ -1144,6 +807,7 @@ function EndpointSection({
   copied,
   baseUrl,
 }) {
+  const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
     const map = {};
     for (const m of models) {
@@ -1151,7 +815,9 @@ function EndpointSection({
       if (!map[owner]) map[owner] = [];
       map[owner].push(m);
     }
-    return Object.entries(map).sort((a: any, b: any) => (b[1] as any).length - (a[1] as any).length);
+    return Object.entries(map).sort(
+      (a: any, b: any) => (b[1] as any).length - (a[1] as any).length
+    );
   }, [models]);
 
   const resolveProvider = (id) => AI_PROVIDERS[id] || getProviderByAlias(id);
@@ -1173,7 +839,7 @@ function EndpointSection({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{title}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-              {models.length} {models.length === 1 ? "model" : "models"}
+              {t("modelsCount", { count: models.length })}
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">{description}</p>
@@ -1216,7 +882,9 @@ function EndpointSection({
                   <span className="text-xs font-semibold text-text-main">
                     {providerName(providerId)}
                   </span>
-                  <span className="text-xs text-text-muted">({(providerModels as any).length})</span>
+                  <span className="text-xs text-text-muted">
+                    ({(providerModels as any).length})
+                  </span>
                 </div>
                 <div className="ml-5 flex flex-wrap gap-1.5">
                   {(providerModels as any).map((m) => (

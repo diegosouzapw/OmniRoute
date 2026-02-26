@@ -4,293 +4,295 @@
  * quickly load a realistic payload and see how the translator converts it.
  */
 
-export const EXAMPLE_TEMPLATES = [
-  {
-    id: "simple-chat",
-    name: "Simple Chat",
-    icon: "chat",
-    description: "Basic text message",
-    formats: {
-      openai: {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: "Hello! How are you today?" },
-        ],
-        stream: true,
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        system: "You are a helpful assistant.",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: "Hello! How are you today?" }],
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: "Hello! How are you today?" }],
+type TranslatorMessage = (key: string) => string;
+
+export function getExampleTemplates(t: TranslatorMessage) {
+  const simpleChatSystem = t("templatePayloads.simpleChat.system");
+  const simpleChatUser = t("templatePayloads.simpleChat.userGreeting");
+  const toolUserWeather = t("templatePayloads.toolCalling.userWeather");
+  const toolDescription = t("templatePayloads.toolCalling.toolDescription");
+  const cityNameDescription = t("templatePayloads.toolCalling.cityNameDescription");
+  const multiTurnSystem = t("templatePayloads.multiTurn.system");
+  const multiTurnUserInitial = t("templatePayloads.multiTurn.userInitial");
+  const multiTurnAssistantExample = t("templatePayloads.multiTurn.assistantExample");
+  const multiTurnUserFollowUp = t("templatePayloads.multiTurn.userFollowUp");
+  const thinkingQuestion = t("templatePayloads.thinking.question");
+  const systemPromptInstruction = t("templatePayloads.systemPrompt.systemInstruction");
+  const systemPromptQuestion = t("templatePayloads.systemPrompt.question");
+  const streamingPrompt = t("templatePayloads.streaming.prompt");
+
+  return [
+    {
+      id: "simple-chat",
+      name: t("templateNames.simple-chat"),
+      icon: "chat",
+      description: t("templateDescriptions.simple-chat"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: simpleChatSystem },
+            { role: "user", content: simpleChatUser },
+          ],
+          stream: true,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          system: simpleChatSystem,
+          max_tokens: 1024,
+          messages: [{ role: "user", content: simpleChatUser }],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: simpleChatUser }],
+            },
+          ],
+          systemInstruction: {
+            parts: [{ text: simpleChatSystem }],
           },
-        ],
-        systemInstruction: {
-          parts: [{ text: "You are a helpful assistant." }],
+        },
+        "openai-responses": {
+          model: "gpt-4o",
+          input: simpleChatUser,
+          instructions: simpleChatSystem,
         },
       },
-      "openai-responses": {
-        model: "gpt-4o",
-        input: "Hello! How are you today?",
-        instructions: "You are a helpful assistant.",
-      },
     },
-  },
-  {
-    id: "tool-calling",
-    name: "Tool Calling",
-    icon: "build",
-    description: "Function/tool invocation",
-    formats: {
-      openai: {
-        model: "gpt-4o",
-        messages: [{ role: "user", content: "What's the weather in São Paulo?" }],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "get_weather",
-              description: "Get current weather for a location",
-              parameters: {
-                type: "object",
-                properties: {
-                  location: { type: "string", description: "City name" },
-                  unit: { type: "string", enum: ["celsius", "fahrenheit"] },
-                },
-                required: ["location"],
-              },
-            },
-          },
-        ],
-        stream: true,
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: "What's the weather in São Paulo?" }],
-        tools: [
-          {
-            name: "get_weather",
-            description: "Get current weather for a location",
-            input_schema: {
-              type: "object",
-              properties: {
-                location: { type: "string", description: "City name" },
-                unit: { type: "string", enum: ["celsius", "fahrenheit"] },
-              },
-              required: ["location"],
-            },
-          },
-        ],
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: "What's the weather in São Paulo?" }],
-          },
-        ],
-        tools: [
-          {
-            functionDeclarations: [
-              {
+    {
+      id: "tool-calling",
+      name: t("templateNames.tool-calling"),
+      icon: "build",
+      description: t("templateDescriptions.tool-calling"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [{ role: "user", content: toolUserWeather }],
+          tools: [
+            {
+              type: "function",
+              function: {
                 name: "get_weather",
-                description: "Get current weather for a location",
+                description: toolDescription,
                 parameters: {
                   type: "object",
                   properties: {
-                    location: { type: "string", description: "City name" },
+                    location: { type: "string", description: cityNameDescription },
                     unit: { type: "string", enum: ["celsius", "fahrenheit"] },
                   },
                   required: ["location"],
                 },
               },
-            ],
-          },
-        ],
-      },
-    },
-  },
-  {
-    id: "multi-turn",
-    name: "Multi-turn",
-    icon: "forum",
-    description: "Conversation with history",
-    formats: {
-      openai: {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: "You are a coding assistant." },
-          { role: "user", content: "Write a function to sort an array in Python." },
-          {
-            role: "assistant",
-            content:
-              "Here's a simple sort function:\n\n```python\ndef sort_array(arr):\n    return sorted(arr)\n```",
-          },
-          { role: "user", content: "Now make it sort in descending order." },
-        ],
-        stream: true,
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        system: "You are a coding assistant.",
-        max_tokens: 1024,
-        messages: [
-          { role: "user", content: "Write a function to sort an array in Python." },
-          {
-            role: "assistant",
-            content:
-              "Here's a simple sort function:\n\n```python\ndef sort_array(arr):\n    return sorted(arr)\n```",
-          },
-          { role: "user", content: "Now make it sort in descending order." },
-        ],
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash",
-        contents: [
-          { role: "user", parts: [{ text: "Write a function to sort an array in Python." }] },
-          {
-            role: "model",
-            parts: [
-              {
-                text: "Here's a simple sort function:\n\n```python\ndef sort_array(arr):\n    return sorted(arr)\n```",
-              },
-            ],
-          },
-          { role: "user", parts: [{ text: "Now make it sort in descending order." }] },
-        ],
-        systemInstruction: {
-          parts: [{ text: "You are a coding assistant." }],
+            },
+          ],
+          stream: true,
         },
-      },
-    },
-  },
-  {
-    id: "thinking",
-    name: "Thinking",
-    icon: "psychology",
-    description: "Extended thinking / reasoning",
-    formats: {
-      openai: {
-        model: "o3-mini",
-        messages: [{ role: "user", content: "What is the sum of the first 100 prime numbers?" }],
-        stream: true,
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 16000,
-        thinking: {
-          type: "enabled",
-          budget_tokens: 10000,
-        },
-        messages: [{ role: "user", content: "What is the sum of the first 100 prime numbers?" }],
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash-thinking",
-        contents: [
-          { role: "user", parts: [{ text: "What is the sum of the first 100 prime numbers?" }] },
-        ],
-        generationConfig: {
-          thinkingConfig: {
-            thinkingBudget: 10000,
-          },
-        },
-      },
-    },
-  },
-  {
-    id: "system-prompt",
-    name: "System Prompt",
-    icon: "settings",
-    description: "Complex system instructions",
-    formats: {
-      openai: {
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a senior software engineer specializing in distributed systems. Answer questions concisely using industry best practices. Always provide code examples when relevant. Format your responses using markdown.",
-          },
-          { role: "user", content: "How do I implement a circuit breaker pattern?" },
-        ],
-        temperature: 0.7,
-        stream: true,
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        system:
-          "You are a senior software engineer specializing in distributed systems. Answer questions concisely using industry best practices. Always provide code examples when relevant. Format your responses using markdown.",
-        max_tokens: 2048,
-        messages: [{ role: "user", content: "How do I implement a circuit breaker pattern?" }],
-        temperature: 0.7,
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash",
-        contents: [
-          { role: "user", parts: [{ text: "How do I implement a circuit breaker pattern?" }] },
-        ],
-        systemInstruction: {
-          parts: [
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: toolUserWeather }],
+          tools: [
             {
-              text: "You are a senior software engineer specializing in distributed systems. Answer questions concisely using industry best practices. Always provide code examples when relevant. Format your responses using markdown.",
+              name: "get_weather",
+              description: toolDescription,
+              input_schema: {
+                type: "object",
+                properties: {
+                  location: { type: "string", description: cityNameDescription },
+                  unit: { type: "string", enum: ["celsius", "fahrenheit"] },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: toolUserWeather }],
+            },
+          ],
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: "get_weather",
+                  description: toolDescription,
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      location: { type: "string", description: cityNameDescription },
+                      unit: { type: "string", enum: ["celsius", "fahrenheit"] },
+                    },
+                    required: ["location"],
+                  },
+                },
+              ],
             },
           ],
         },
-        generationConfig: {
-          temperature: 0.7,
+      },
+    },
+    {
+      id: "multi-turn",
+      name: t("templateNames.multi-turn"),
+      icon: "forum",
+      description: t("templateDescriptions.multi-turn"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: multiTurnSystem },
+            { role: "user", content: multiTurnUserInitial },
+            {
+              role: "assistant",
+              content: multiTurnAssistantExample,
+            },
+            { role: "user", content: multiTurnUserFollowUp },
+          ],
+          stream: true,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          system: multiTurnSystem,
+          max_tokens: 1024,
+          messages: [
+            { role: "user", content: multiTurnUserInitial },
+            {
+              role: "assistant",
+              content: multiTurnAssistantExample,
+            },
+            { role: "user", content: multiTurnUserFollowUp },
+          ],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            { role: "user", parts: [{ text: multiTurnUserInitial }] },
+            {
+              role: "model",
+              parts: [
+                {
+                  text: multiTurnAssistantExample,
+                },
+              ],
+            },
+            { role: "user", parts: [{ text: multiTurnUserFollowUp }] },
+          ],
+          systemInstruction: {
+            parts: [{ text: multiTurnSystem }],
+          },
         },
       },
     },
-  },
-  {
-    id: "streaming",
-    name: "Streaming",
-    icon: "stream",
-    description: "SSE streaming request",
-    formats: {
-      openai: {
-        model: "gpt-4o",
-        messages: [
-          { role: "user", content: "Tell me a short story about a robot learning to paint." },
-        ],
-        stream: true,
-        stream_options: { include_usage: true },
-      },
-      claude: {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [
-          { role: "user", content: "Tell me a short story about a robot learning to paint." },
-        ],
-        stream: true,
-      },
-      gemini: {
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: "Tell me a short story about a robot learning to paint." }],
+    {
+      id: "thinking",
+      name: t("templateNames.thinking"),
+      icon: "psychology",
+      description: t("templateDescriptions.thinking"),
+      formats: {
+        openai: {
+          model: "o3-mini",
+          messages: [{ role: "user", content: thinkingQuestion }],
+          stream: true,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 16000,
+          thinking: {
+            type: "enabled",
+            budget_tokens: 10000,
           },
-        ],
+          messages: [{ role: "user", content: thinkingQuestion }],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash-thinking",
+          contents: [{ role: "user", parts: [{ text: thinkingQuestion }] }],
+          generationConfig: {
+            thinkingConfig: {
+              thinkingBudget: 10000,
+            },
+          },
+        },
       },
     },
-  },
-];
+    {
+      id: "system-prompt",
+      name: t("templateNames.system-prompt"),
+      icon: "settings",
+      description: t("templateDescriptions.system-prompt"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: systemPromptInstruction,
+            },
+            { role: "user", content: systemPromptQuestion },
+          ],
+          temperature: 0.7,
+          stream: true,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          system: systemPromptInstruction,
+          max_tokens: 2048,
+          messages: [{ role: "user", content: systemPromptQuestion }],
+          temperature: 0.7,
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: systemPromptQuestion }] }],
+          systemInstruction: {
+            parts: [{ text: systemPromptInstruction }],
+          },
+          generationConfig: {
+            temperature: 0.7,
+          },
+        },
+      },
+    },
+    {
+      id: "streaming",
+      name: t("templateNames.streaming"),
+      icon: "stream",
+      description: t("templateDescriptions.streaming"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [{ role: "user", content: streamingPrompt }],
+          stream: true,
+          stream_options: { include_usage: true },
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: streamingPrompt }],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: streamingPrompt }],
+            },
+          ],
+        },
+      },
+    },
+  ];
+}
 
 /**
  * Format metadata for display: colors, labels, icons

@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface AuditEntry {
   id: number;
@@ -27,6 +28,7 @@ export default function AuditLogTab() {
   const [actorFilter, setActorFilter] = useState("");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const t = useTranslations("logs");
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -45,11 +47,11 @@ export default function AuditLogTab() {
       setHasMore(data.length > PAGE_SIZE);
       setEntries(data.slice(0, PAGE_SIZE));
     } catch (err: any) {
-      setError(err.message || "Failed to fetch audit log");
+      setError(err.message || t("failedFetchAuditLog"));
     } finally {
       setLoading(false);
     }
-  }, [actionFilter, actorFilter, offset]);
+  }, [actionFilter, actorFilter, offset, t]);
 
   useEffect(() => {
     fetchEntries();
@@ -85,18 +87,16 @@ export default function AuditLogTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[var(--color-text-main)]">Audit Log</h2>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            Administrative actions and security events
-          </p>
+          <h2 className="text-xl font-bold text-[var(--color-text-main)]">{t("auditLog")}</h2>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">{t("auditLogDesc")}</p>
         </div>
         <button
           onClick={fetchEntries}
           disabled={loading}
-          aria-label="Refresh audit log"
+          aria-label={t("refreshAuditLogAria")}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-50"
         >
-          {loading ? "Loading..." : "Refresh"}
+          {loading ? t("loading") : t("refresh")}
         </button>
       </div>
 
@@ -104,31 +104,31 @@ export default function AuditLogTab() {
       <div
         className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
         role="search"
-        aria-label="Filter audit log entries"
+        aria-label={t("filterEntriesAria")}
       >
         <input
           type="text"
-          placeholder="Filter by action..."
+          placeholder={t("filterByAction")}
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          aria-label="Filter by action type"
+          aria-label={t("filterByActionTypeAria")}
           className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
         />
         <input
           type="text"
-          placeholder="Filter by actor..."
+          placeholder={t("filterByActor")}
           value={actorFilter}
           onChange={(e) => setActorFilter(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          aria-label="Filter by actor"
+          aria-label={t("filterByActorAria")}
           className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
         />
         <button
           onClick={handleSearch}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-[var(--color-accent)]"
         >
-          Search
+          {t("search")}
         </button>
       </div>
 
@@ -144,32 +144,34 @@ export default function AuditLogTab() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm" role="table" aria-label="Audit log entries">
+        <table className="w-full text-sm" role="table" aria-label={t("tableAria")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                Timestamp
+                {t("timestamp")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                Action
+                {t("action")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                Actor
+                {t("actor")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                Target
+                {t("target")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                Details
+                {t("details")}
               </th>
-              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">IP</th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
+                {t("ipAddress")}
+              </th>
             </tr>
           </thead>
           <tbody>
             {entries.length === 0 && !loading ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-muted)]">
-                  No audit log entries found
+                  {t("noEntries")}
                 </td>
               </tr>
             ) : (
@@ -190,13 +192,13 @@ export default function AuditLogTab() {
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-main)]">{entry.actor}</td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[200px] truncate">
-                    {entry.target || "—"}
+                    {entry.target || t("notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[300px] truncate font-mono text-xs">
-                    {entry.details ? JSON.stringify(entry.details) : "—"}
+                    {entry.details ? JSON.stringify(entry.details) : t("notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">
-                    {entry.ip_address || "—"}
+                    {entry.ip_address || t("notAvailable")}
                   </td>
                 </tr>
               ))
@@ -208,7 +210,7 @@ export default function AuditLogTab() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Showing {entries.length} entries (offset {offset})
+          {t("showing", { count: entries.length, offset })}
         </p>
         <div className="flex gap-2">
           <button
@@ -216,14 +218,14 @@ export default function AuditLogTab() {
             disabled={offset === 0}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-30 transition-colors"
           >
-            ← Previous
+            ← {t("previous")}
           </button>
           <button
             onClick={() => setOffset(offset + PAGE_SIZE)}
             disabled={!hasMore}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-30 transition-colors"
           >
-            Next →
+            {t("next")} →
           </button>
         </div>
       </div>

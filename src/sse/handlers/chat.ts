@@ -23,7 +23,7 @@ import {
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh";
-import { getSettings, getCombos, getApiKeyMetadata } from "@/lib/localDb";
+import { getSettings, getCombos } from "@/lib/localDb";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
@@ -34,8 +34,9 @@ import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/c
 import { isModelAvailable, setModelUnavailable } from "../../domain/modelAvailability";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
-import { checkBudget, recordCost } from "../../domain/costRules";
+import { recordCost } from "../../domain/costRules";
 import { logAuditEvent } from "../../lib/compliance/index";
+import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 
 /**
  * Handle chat completion request
@@ -97,15 +98,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // Log API key (masked)
   const authHeader = request.headers.get("Authorization");
   const apiKey = extractApiKey(request);
-  let apiKeyInfo = null;
   if (authHeader && apiKey) {
-    const masked = log.maskKey(apiKey);
-    log.debug("AUTH", `API Key: ${masked}`);
-    try {
-      apiKeyInfo = await getApiKeyMetadata(apiKey);
-    } catch {
-      apiKeyInfo = null;
-    }
+    log.debug("AUTH", `API Key: ${log.maskKey(apiKey)}`);
   } else {
     log.debug("AUTH", "No API key provided (local mode)");
   }
@@ -129,19 +123,14 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
 
-  // Pipeline: Budget check (if API key has budget limits)
+  // Pipeline: API key policy enforcement (model restrictions + budget limits)
   telemetry.startPhase("policy");
-  if (apiKeyInfo?.id) {
-    try {
-      const budgetOk = checkBudget(apiKeyInfo.id);
-      if (!budgetOk.allowed) {
-        log.warn("BUDGET", `API key ${apiKeyInfo.id} exceeded budget: ${budgetOk.reason}`);
-        return errorResponse(429, budgetOk.reason || "Budget limit exceeded");
-      }
-    } catch {
-      // Budget check is best-effort — don't block on errors
-    }
+  const policy = await enforceApiKeyPolicy(request, modelStr);
+  if (policy.rejection) {
+    log.warn("POLICY", `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`);
+    return policy.rejection;
   }
+  const apiKeyInfo = policy.apiKeyInfo;
   telemetry.endPhase();
 
   // Check if model is a combo (has multiple models with fallback)
@@ -156,13 +145,14 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     // Pre-check function: skip models where all accounts are in cooldown
     // Uses modelAvailability module for TTL-based cooldowns
     const checkModelAvailable = async (modelString: string) => {
-      const parsed = parseModel(modelString);
-      const provider = parsed.provider;
+      // Use getModelInfo to properly resolve custom prefixes
+      const modelInfo = await getModelInfo(modelString);
+      const provider = modelInfo.provider;
       if (!provider) return true; // can't determine provider, let it try
 
       // Check domain-level availability (cooldown)
-      if (!isModelAvailable(provider, parsed.model || modelString)) {
-        log.debug("AVAILABILITY", `${provider}/${parsed.model} in cooldown, skipping`);
+      if (!isModelAvailable(provider, modelInfo.model || modelString)) {
+        log.debug("AVAILABILITY", `${provider}/${modelInfo.model} in cooldown, skipping`);
         return false;
       }
 

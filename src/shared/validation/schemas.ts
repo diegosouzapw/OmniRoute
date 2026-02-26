@@ -72,6 +72,13 @@ export const updateSettingsSchema = z.object({
   setupComplete: z.boolean().optional(),
   requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
+  hideHealthCheckLogs: z.boolean().optional(),
+  // Routing settings (#134)
+  fallbackStrategy: z
+    .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])
+    .optional(),
+  wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
+  stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
 });
 
 // ──── Auth Schemas ────

@@ -90,6 +90,20 @@ console.log(`
   \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
 \x1b[0m`);
 
+// ── Node.js version check ──────────────────────────────────
+const nodeMajor = parseInt(process.versions.node.split(".")[0], 10);
+if (nodeMajor >= 24) {
+  console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
+     OmniRoute uses better-sqlite3, a native addon that does not yet
+     have compatible prebuilt binaries for Node.js 24+.
+     You may experience errors like "is not a valid Win32 application"
+     or "NODE_MODULE_VERSION mismatch".
+
+     Recommended: use Node.js 22 LTS (or 20 LTS).
+     Workaround:  npm rebuild better-sqlite3\x1b[0m
+`);
+}
+
 // ── Resolve server entry ───────────────────────────────────
 const serverJs = join(APP_DIR, "server.js");
 

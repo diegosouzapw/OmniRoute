@@ -7,6 +7,258 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.11] — 2026-02-25
+
+> ### 🐛 Settings Persistence Fix
+>
+> Fixes routing strategy and wildcard aliases not saving after page refresh.
+
+### 🐛 Bug Fixes
+
+- **Routing Strategy Not Saved After Refresh (#134)** — Added `fallbackStrategy`, `wildcardAliases`, and `stickyRoundRobinLimit` to the Zod validation schema. These fields were silently stripped during validation, preventing them from being persisted to the database
+
+### 📝 Notes
+
+- **#135 Closed** — Feature request for proxy configuration (global + per-provider) was already implemented in v1.4.10
+
+---
+
+## [1.4.10] — 2026-02-25
+
+> ### 🔒 Proxy Visibility + Bug Fixes
+>
+> Color-coded proxy badges, provider-level proxy configuration, CLI tools page fix, and EACCES fix for restricted environments.
+
+### ✨ New Features
+
+- **Color-Coded Proxy Badges** — Each provider connection now shows its proxy status with color-coded badges: 🟢 green (global proxy), 🟡 amber (provider-level proxy), 🔵 blue (per-connection proxy). Badge always displays the proxy IP/host
+- **Provider-Level Proxy Button** — New "Provider Proxy" button in the Connections header of each provider detail page. Allows configuring a proxy that applies to all connections of that provider
+- **Proxy IP Display** — The proxy badge now always shows the proxy host/IP address for quick identification
+
+### 🐛 Bug Fixes
+
+- **CLI Tools Page Stuck in Loading** — Fixed the `/api/cli-tools/status` endpoint hanging indefinitely when binary checks stall on VPS. Added 5s server-side timeout per tool and 8s client-side AbortController timeout (#cli-tools-hang)
+- **EACCES on Restricted Home Directories** — Fixed crash when `~/.omniroute` directory cannot be created due to permission issues. Now gracefully warns and suggests using the `DATA_DIR` environment variable (#133)
+
+---
+
+> ### 🌐 Full Internationalization (i18n) + Multi-Account Fix
+>
+> Complete dashboard i18n migration with next-intl, supporting English and Portuguese (Brazil). Fixes production build issues and enables multiple Codex accounts from the same workspace.
+
+### ✨ New Features
+
+- **Full Dashboard Internationalization** — Complete i18n migration of 21+ pages and components using `next-intl`. Every dashboard string is now translatable with full EN and PT-BR support. Includes language selector (globe icon) in the header for real-time language switching
+- **Portuguese (Brazil) Translation** — Complete `pt-BR.json` translation file with 500+ keys covering all pages: Home, Providers, Settings, Combos, Analytics, Costs, Logs, Health, CLI Tools, Endpoint, API Manager, and Onboarding
+- **Language Selector Component** — New `LanguageSelector` component in the header with flag icons and dropdown for switching between 🇺🇸 English and 🇧🇷 Português
+
+### 🐛 Bug Fixes
+
+- **Multiple Codex Accounts from Same Workspace** — Fixed deduplication logic in `createProviderConnection` that prevented adding multiple OpenAI Pro Business accounts from the same Team workspace. Now uses compound check (workspaceId + email) instead of workspaceId-only, allowing separate connections per user
+- **Production Build — Crypto Import** — Fixed `instrumentation.ts` using `eval('require')('crypto')` to bypass webpack's static analysis that blocked the Node.js crypto module in the bundled instrumentation file
+- **Production Build — Translation Scope** — Fixed sub-components `ProviderOverviewCard` and `ProviderModelsModal` in `HomePageClient.tsx` that referenced parent-scope translation hooks. Each sub-component now has its own `useTranslations()` call
+- **Production Build — app/ Directory Conflict** — Resolved Next.js 16 confusing the production `app/` directory (server build output) with the `src/app/` app router directory, which caused "missing root layout" build failures
+
+### 📄 i18n Pages Migrated
+
+Home, Endpoint, API Manager, Providers (list + detail + new), Combos, Logs, Costs, Analytics, Health, CLI Tools, Settings (General, Security, Routing, Session, IP Filter, Compliance, Fallback Chains, Thinking Budget, Policies, Pricing, Resilience, Advanced), Onboarding Wizard, Audit Log, Usage
+
+---
+
+## [1.4.7] — 2026-02-25
+
+> ### 🐛 Bugfix — Antigravity Model Prefix & Version Sync
+>
+> Fixes model name sent to Antigravity upstream API containing `antigravity/` prefix, causing 400 errors for non-opus models. Also syncs package-lock.json version.
+
+### 🐛 Bug Fixes
+
+- **Antigravity Model Prefix Stripping** — Model names sent to the Antigravity upstream API (Google Cloud Code) now have any `provider/` prefix defensively stripped. Previously, models like `antigravity/gemini-3-flash` were sent with the prefix intact, causing 400 errors from the upstream API. Only `claude-opus-4-6-thinking` worked because its routing path differed. Fix applied in 3 locations: `antigravity.ts` executor, and both `wrapInCloudCodeEnvelope` and `wrapInCloudCodeEnvelopeForClaude` in the translator
+- **Package-lock.json Version Sync** — Fixed `package-lock.json` being stuck at `1.4.3` while `package.json` was at `1.4.6`, which prevented npm from publishing the correct version and caused the VPS deploy to stay on the old version
+
+---
+
+## [1.4.6] — 2026-02-25
+
+> ### ✨ Community Release — Security Fix, Multi-Platform Docker, Model Updates & Plus Tier
+>
+> Enforces API key model restrictions across all endpoints, adds ARM64 Docker support, updates model registry for latest AI models, and introduces Plus tier in ProviderLimits.
+
+### 🔒 Security
+
+- **API Key Model Restrictions Enforced** — `isModelAllowedForKey()` was never called, allowing API keys with `allowedModels` restrictions to access any model. Created centralized `enforceApiKeyPolicy()` middleware and wired it into all `/v1/*` endpoints (chat, embeddings, images, audio, moderations, rerank). Supports exact match, prefix match (`openai/*`), and wildcard patterns ([#130](https://github.com/diegosouzapw/OmniRoute/issues/130), [PR #131](https://github.com/diegosouzapw/OmniRoute/pull/131) by [@ersintarhan](https://github.com/ersintarhan))
+- **ApiKeyMetadata Type Safety** — Replaced `any` types with proper `ApiKeyMetadata` interface in the policy middleware. Added error logging in catch blocks for metadata fetch and budget check failures
+
+### ✨ New Features
+
+- **Docker Multi-Platform Builds** — Restructured Docker CI workflow to support both `linux/amd64` and `linux/arm64` using native runners and digest-based manifest merging. ARM64 users (Apple Silicon, AWS Graviton, Raspberry Pi) can now run OmniRoute natively ([PR #127](https://github.com/diegosouzapw/OmniRoute/pull/127) by [@npmSteven](https://github.com/npmSteven))
+- **Plus Tier in ProviderLimits** — Added "Plus" as a separate category in the ProviderLimits dashboard, distinguishing Plus/Paid plans from Pro plans with proper ranking and filtering ([PR #126](https://github.com/diegosouzapw/OmniRoute/pull/126) by [@nyatoru](https://github.com/nyatoru))
+
+### 🔧 Improvements
+
+- **Model Registry Updates** — Updated provider registry, usage tracking, CLI tools config, and pricing for latest AI models: added Claude Sonnet 4.6, Gemini 3.1 Pro (High/Low), GPT OSS 120B Medium; removed deprecated Claude 4.5 variants and Gemini 2.5 Flash ([PR #128](https://github.com/diegosouzapw/OmniRoute/pull/128) by [@nyatoru](https://github.com/nyatoru))
+- **Model ID Consistency** — Fixed `claude-sonnet-4-6-thinking` → `claude-sonnet-4-6` mismatch in `importantModels` to match the provider registry
+
+---
+
+## [1.4.5] — 2026-02-24
+
+> ### 🐛 Bugfix Release — Claude Code OAuth & OAuth Proxy Routing
+>
+> Fixes Claude Code OAuth failures on remote deployments and routes all OAuth token exchanges through configured proxy.
+
+### 🐛 Bug Fixes
+
+- **Claude Code OAuth** — Fixed `400 Bad Request` on remote deployments by using Anthropic's registered `redirect_uri` (`https://platform.claude.com/oauth/code/callback`) instead of the dynamic server URL. Added missing OAuth scopes (`user:sessions:claude_code`, `user:mcp_servers`) to match the official Claude CLI. Configurable via `CLAUDE_CODE_REDIRECT_URI` env var ([#124](https://github.com/diegosouzapw/OmniRoute/issues/124))
+- **OAuth Token Exchange Through Proxy** — OAuth token exchange during new connection setup now routes through the configured proxy (provider-level → global → direct), fixing `unsupported_country_region_territory` errors for region-restricted providers like OpenAI Codex ([#119](https://github.com/diegosouzapw/OmniRoute/issues/119))
+
+---
+
+## [1.4.4] — 2026-02-24
+
+> ### ✨ Feature Release — Custom Provider Models in /v1/models
+>
+> Compatible provider models are now saved to the customModels database, making them visible via `/v1/models` for all OpenAI-compatible clients.
+
+### ✨ New Features
+
+- **Custom Provider Model Persistence** — Compatible provider models (manual or imported) are now saved to the `customModels` database so they appear in `/v1/models` listing for clients like Cursor, Cline, Antigravity, and Claude Code ([PR #122](https://github.com/diegosouzapw/OmniRoute/pull/122) by [@nyatoru](https://github.com/nyatoru))
+- **Provider Models API** — New `/api/provider-models` endpoint (GET/POST/DELETE) for managing custom model entries with full authentication via `isAuthenticated`
+- **Unified Model Deletion** — New `handleDeleteModel` removes models from both alias configuration and `customModels` database, preventing orphaned entries
+- **Provider Node Prefix Resolution** — `getModelInfo` refactored to use provider node prefixes for accurate custom provider model resolution
+
+### 🔒 Security
+
+- **Authentication on Provider Models API** — All `/api/provider-models` endpoints require API key or JWT session authentication via shared `isAuthenticated` utility
+- **URL Parameter Injection Fix** — Applied `encodeURIComponent` to all user-controlled URL parameters (`providerStorageAlias`, `providerId`) to prevent query string injection attacks
+- **Shared Auth Utility** — Authentication logic extracted to `@/shared/utils/apiAuth.ts`, eliminating code duplication across `/api/models/alias` and `/api/provider-models`
+
+### 🔧 Improvements
+
+- **Toast Notifications** — Replaced blocking `alert()` calls with non-blocking `notify.error`/`notify.success` toast notifications matching the project's notification system
+- **Transactional Save** — Model persistence is now transactional: database save must succeed before alias creation, preventing inconsistent state
+- **Consistent Error Handling** — All model operations (add, import, delete) now provide user-facing error/success feedback via toast notifications
+- **ComboFormModal Matching** — Improved provider node matching by ID or prefix for combo model selection
+
+---
+
+## [1.4.3] — 2026-02-23
+
+### 🐛 Bug Fix
+
+- **OAuth LAN Access** — Fixed OAuth flow for remote/LAN IP access (`192.168.x.x`). Previously, LAN IPs incorrectly used popup mode, leading to a broken redirect loop. Now defaults to manual callback URL input mode for non-localhost access
+
+---
+
+## [1.4.2] — 2026-02-23
+
+### 🐛 Bug Fix
+
+- **OAuth Token Refresh** — Fixed `client_secret is missing` error for Google-based OAuth providers (Antigravity, Gemini, Gemini CLI, iFlow). Desktop/CLI OAuth secrets are now hardcoded as defaults since Next.js inlined empty strings at build time.
+
+---
+
+## [1.4.1] — 2026-02-23
+
+### 🔧 Improvements
+
+- **Endpoint Page Cleanup** — Removed redundant API Key Management section from Endpoint page (now fully managed in the dedicated API Manager page)
+- **CI/CD** — Added `deploy-vps.yml` workflow for automatic VPS deployment on new releases
+
+---
+
+## [1.4.0] — 2026-02-23
+
+> ### ✨ Feature Release — Dedicated API Key Manager with Model Permissions
+>
+> Community-contributed API Key Manager page with model-level access control, enhanced with usage statistics, key status indicators, and improved UX.
+
+### ✨ New Features
+
+- **Dedicated API Key Manager** — New `/dashboard/api-manager` page for managing API keys, extracted from the Endpoint page. Includes create, delete, and permissions management with a clean table UI ([PR #118](https://github.com/diegosouzapw/OmniRoute/pull/118) by [@nyatoru](https://github.com/nyatoru))
+- **Model-Level API Key Permissions** — Restrict API keys to specific models using `allowed_models` with wildcard pattern support (e.g., `openai/*`). Toggle between "Allow All" and "Restrict" modes with an intuitive provider-grouped model selector
+- **API Key Validation Cache** — 3-tier caching layer (validation, metadata, permission) reduces database hits on every request, with automatic cache invalidation on key changes
+- **Usage Statistics Per Key** — Each API key shows total request count and last used timestamp, with a stats summary dashboard (total keys, restricted keys, total requests, models available)
+- **Key Status Indicators** — Color-coded lock/unlock icons and copy buttons on each key row for quick identification of restricted vs unrestricted keys
+
+### 🔧 Improvements
+
+- **Endpoint Page Simplified** — API key management removed from Endpoint page and replaced with a prominent link to the API Manager
+- **Sidebar Navigation** — New "API Manager" entry with `vpn_key` icon in the sidebar
+- **Prepared Statements** — API key database operations now use cached prepared statements for better performance
+- **Input Validation** — XSS-safe sanitization and regex validation for key names; ID format validation for API calls
+
+---
+
+## [1.3.1] — 2026-02-23
+
+> ### 🐛 Bugfix Release — Proxy Connection Tests & Compatible Provider Display
+>
+> Fixes provider connection tests bypassing configured proxy and improves compatible provider display in the request logger.
+
+### 🐛 Bug Fixes
+
+- **Connection Tests Now Use Proxy** — Provider connection tests (`Test Connection` button) now route through the configured proxy (key → combo → provider → global → direct), matching the behavior of real API calls. Previously, `fetch()` was called directly, bypassing the proxy entirely ([#119](https://github.com/diegosouzapw/OmniRoute/issues/119))
+- **Compatible Provider Display in Logs** — OpenAI/Anthropic compatible providers now show friendly labels (`OAI-COMPAT`, `ANT-COMPAT`) instead of raw UUID-based IDs in the request logger's provider column, dropdown, and quick filters ([#113](https://github.com/diegosouzapw/OmniRoute/issues/113))
+
+### 🧪 Tests
+
+- **Connection Test Unit Tests** — 26 new test cases covering error classification logic, token expiry detection, and provider display label resolution
+
+---
+
+## [1.3.0] — 2026-02-23
+
+> ### ✨ Feature Release — iFlow Fix, Health Check Logs Toggle, Kilocode Models & Model Deduplication
+>
+> Community-driven release with iFlow HMAC-SHA256 signature support, health check log management, expanded Kilocode model list, and model deduplication on the dashboard.
+
+### ✨ New Features
+
+- **Hide Health Check Logs** — New toggle in Settings → Appearance to suppress verbose `[HealthCheck]` messages from the server console. Uses a 30-second cache to minimize database reads with request coalescing for concurrent calls ([PR #111](https://github.com/diegosouzapw/OmniRoute/pull/111) by [@nyatoru](https://github.com/nyatoru))
+- **Kilocode Custom Models Endpoint** — Added `modelsUrl` support in `RegistryEntry` for providers with non-standard model endpoints. Expanded Kilocode model list from 8 to 26 models including Qwen3, GPT-5, Claude 3 Haiku, Gemini 2.5, DeepSeek V3, Llama 4, and more ([PR #115](https://github.com/diegosouzapw/OmniRoute/pull/115) by [@benzntech](https://github.com/benzntech))
+
+### 🐛 Bug Fixes
+
+- **iFlow 406 Error** — Created dedicated `IFlowExecutor` with HMAC-SHA256 signature support (`session-id`, `x-iflow-timestamp`, `x-iflow-signature` headers). The iFlow provider was previously using the default executor which lacked the required signature headers, causing 406 errors ([#114](https://github.com/diegosouzapw/OmniRoute/issues/114))
+- **Duplicate Models in Endpoint Lists** — Filtered out parent models (`!m.parent`) from all model categorization and count logic on the Endpoint page. Provider modal lists also exclude duplicates ([PR #112](https://github.com/diegosouzapw/OmniRoute/pull/112) by [@nyatoru](https://github.com/nyatoru))
+
+### 🧪 Tests
+
+- **IFlowExecutor Unit Tests** — 11 new test cases covering HMAC-SHA256 signature generation, header building, URL construction, body passthrough, and executor registry integration
+
+---
+
+## [1.2.0] — 2026-02-22
+
+> ### ✨ Feature Release — Dashboard Session Auth for Models Endpoint
+>
+> Dashboard users can now access `/v1/models` via their existing session when API key auth is required.
+
+### ✨ New Features
+
+- **JWT Session Auth Fallback** — When `requireAuthForModels` is enabled, the `/v1/models` endpoint now accepts both API key (Bearer token) for external clients **and** the dashboard JWT session cookie (`auth_token`), allowing logged-in dashboard users to view models without needing an explicit API key ([PR #110](https://github.com/diegosouzapw/OmniRoute/pull/110) by [@nyatoru](https://github.com/nyatoru))
+
+### 🔧 Improvements
+
+- **401 instead of 404** — Authentication failures on `/v1/models` now return `401 Unauthorized` with a structured JSON error body (OpenAI-compatible format) instead of a generic `404 Not Found`, improving debuggability for API clients
+- **Simplified auth logic** — Refactored the JWT cookie verification to reuse the same pattern as `apiAuth.ts`, removing redundant same-origin detection (~60 lines) since the `sameSite:lax` + `httpOnly` cookie flags already provide equivalent CSRF protection
+
+---
+
+## [1.1.1] — 2026-02-22
+
+> ### 🐛 Bugfix Release — API Key Creation & Codex Team Plan Quotas
+>
+> Fixes API key creation crash when `API_KEY_SECRET` is not set and adds Code Review rate limit window to Codex quota display.
+
+### 🐛 Bug Fixes
+
+- **API Key Creation** — Added deterministic fallback for `API_KEY_SECRET` to prevent `crypto.createHmac` crash when the environment variable is not configured. Keys created without the secret are insecure (warned at startup) but the application no longer crashes ([#108](https://github.com/diegosouzapw/OmniRoute/issues/108))
+- **Codex Code Review Quota** — Added parsing of the third rate limit window (`code_review_rate_limit`) from the ChatGPT usage API, supporting Plus/Pro/Team plan differences. The dashboard now displays all three quota bars: Session (5h), Weekly, and Code Review ([#106](https://github.com/diegosouzapw/OmniRoute/issues/106))
+
+---
+
 ## [1.1.0] — 2026-02-21
 
 > ### 🐛 Bugfix Release — OAuth Client Secret and Codex Business Quotas
@@ -437,6 +689,18 @@ New environment variables:
 
 ---
 
+[1.4.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.7
+[1.4.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.6
+[1.4.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.5
+[1.4.4]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.4
+[1.4.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.3
+[1.4.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.2
+[1.4.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.1
+[1.4.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.0
+[1.3.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.3.1
+[1.3.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.3.0
+[1.2.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.2.0
+[1.1.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.1.1
 [1.0.7]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.7
 [1.0.6]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.6
 [1.0.5]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.0.5

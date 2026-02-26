@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 const CHAIN_COLORS = [
   "#6366f1",
@@ -31,6 +32,8 @@ export default function FallbackChainsEditor() {
   const [newProviders, setNewProviders] = useState("");
   const [saving, setSaving] = useState(false);
   const notify = useNotificationStore();
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
 
   const fetchChains = useCallback(async () => {
     try {
@@ -52,7 +55,7 @@ export default function FallbackChainsEditor() {
 
   const handleCreate = async () => {
     if (!newModel.trim() || !newProviders.trim()) {
-      notify.warning("Please fill model name and providers");
+      notify.warning(t("fillModelAndProviders"));
       return;
     }
 
@@ -63,7 +66,7 @@ export default function FallbackChainsEditor() {
       .map((provider, i) => ({ provider, priority: i + 1, enabled: true }));
 
     if (providers.length === 0) {
-      notify.warning("Add at least one provider");
+      notify.warning(t("addAtLeastOneProvider"));
       return;
     }
 
@@ -75,23 +78,23 @@ export default function FallbackChainsEditor() {
         body: JSON.stringify({ model: newModel.trim(), chain: providers }),
       });
       if (res.ok) {
-        notify.success(`Chain created for ${newModel.trim()}`);
+        notify.success(t("chainCreated", { model: newModel.trim() }));
         setNewModel("");
         setNewProviders("");
         setShowCreate(false);
         await fetchChains();
       } else {
-        notify.error("Failed to create chain");
+        notify.error(t("failedCreateChain"));
       }
     } catch {
-      notify.error("Failed to create chain");
+      notify.error(t("failedCreateChain"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (model) => {
-    if (!confirm(`Delete fallback chain for "${model}"?`)) return;
+    if (!confirm(t("deleteChainConfirm", { model }))) return;
     try {
       const res = await fetch("/api/fallback/chains", {
         method: "DELETE",
@@ -99,13 +102,13 @@ export default function FallbackChainsEditor() {
         body: JSON.stringify({ model }),
       });
       if (res.ok) {
-        notify.success(`Chain deleted for ${model}`);
+        notify.success(t("chainDeleted", { model }));
         await fetchChains();
       } else {
-        notify.error("Failed to delete chain");
+        notify.error(t("failedDeleteChain"));
       }
     } catch {
-      notify.error("Failed to delete chain");
+      notify.error(t("failedDeleteChain"));
     }
   };
 
@@ -114,7 +117,7 @@ export default function FallbackChainsEditor() {
       <Card className="p-6 mt-6">
         <div className="flex items-center gap-2 text-text-muted animate-pulse">
           <span className="material-symbols-outlined text-[20px]">timeline</span>
-          Loading fallback chains...
+          {t("loadingFallbackChains")}
         </div>
       </Card>
     );
@@ -129,11 +132,11 @@ export default function FallbackChainsEditor() {
           <span className="material-symbols-outlined text-[20px]">timeline</span>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">Fallback Chains</h3>
-          <p className="text-sm text-text-muted">Define provider fallback order per model</p>
+          <h3 className="text-lg font-semibold">{t("fallbackChainsTitle")}</h3>
+          <p className="text-sm text-text-muted">{t("fallbackChainsDesc")}</p>
         </div>
         <Button size="sm" variant="primary" onClick={() => setShowCreate(!showCreate)}>
-          {showCreate ? "Cancel" : "+ Add Chain"}
+          {showCreate ? tc("cancel") : t("addChain")}
         </Button>
       </div>
 
@@ -142,20 +145,20 @@ export default function FallbackChainsEditor() {
         <div className="mx-6 p-4 rounded-lg border border-border/30 bg-surface/20 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <Input
-              label="Model Name"
-              placeholder="claude-sonnet-4-20250514"
+              label={t("modelName")}
+              placeholder={t("modelNamePlaceholder")}
               value={newModel}
               onChange={(e) => setNewModel(e.target.value)}
             />
             <Input
-              label="Providers (comma-separated, in priority order)"
-              placeholder="anthropic, openai, gemini"
+              label={t("providersCommaSeparated")}
+              placeholder={t("providersCommaSeparatedPlaceholder")}
               value={newProviders}
               onChange={(e) => setNewProviders(e.target.value)}
             />
           </div>
           <Button variant="primary" size="sm" onClick={handleCreate} loading={saving}>
-            Create Chain
+            {t("createChain")}
           </Button>
         </div>
       )}
@@ -165,8 +168,8 @@ export default function FallbackChainsEditor() {
         {chainEntries.length === 0 ? (
           <EmptyState
             icon="timeline"
-            title="No Fallback Chains"
-            description="Create a chain to define provider fallback order for a model."
+            title={t("noFallbackChains")}
+            description={t("noFallbackChainsDesc")}
           />
         ) : (
           <div className="flex flex-col gap-2">
@@ -201,7 +204,7 @@ export default function FallbackChainsEditor() {
                 <button
                   onClick={() => handleDelete(model)}
                   className="text-text-muted hover:text-red-400 transition-colors ml-2"
-                  title="Delete chain"
+                  title={t("deleteChain")}
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>

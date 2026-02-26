@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, DataTable, FilterBar, ColumnToggle } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
-
-const ALL_COLUMNS = [
-  { key: "timestamp", label: "Time" },
-  { key: "action", label: "Action" },
-  { key: "actor", label: "Actor" },
-  { key: "details", label: "Details" },
-];
+import { useTranslations } from "next-intl";
 
 export default function ComplianceTab() {
   const [logs, setLogs] = useState([]);
@@ -23,6 +17,13 @@ export default function ComplianceTab() {
     details: true,
   });
   const notify = useNotificationStore();
+  const t = useTranslations("settings");
+  const allColumns = [
+    { key: "timestamp", label: t("time") },
+    { key: "action", label: t("action") },
+    { key: "actor", label: t("actor") },
+    { key: "details", label: t("details") },
+  ];
 
   useEffect(() => {
     fetch("/api/compliance/audit-log?limit=100")
@@ -33,7 +34,7 @@ export default function ComplianceTab() {
       })
       .catch(() => {
         setLoading(false);
-        notify.error("Failed to load audit log");
+        notify.error(t("failedLoadAuditLog"));
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -54,56 +55,59 @@ export default function ComplianceTab() {
     return true;
   });
 
-  const columns = ALL_COLUMNS.filter((c) => visibleCols[c.key]);
+  const columns = allColumns.filter((c) => visibleCols[c.key]);
 
   const handleToggleCol = useCallback((key) => {
     setVisibleCols((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const renderCell = useCallback((row, col) => {
-    switch (col.key) {
-      case "timestamp":
-        return (
-          <span className="font-mono text-xs text-text-muted whitespace-nowrap">
-            {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
-          </span>
-        );
-      case "action":
-        return (
-          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
-            {row.action || "—"}
-          </span>
-        );
-      case "actor":
-        return <span className="text-text-main">{row.actor || "system"}</span>;
-      case "details":
-        return (
-          <span className="text-text-muted text-xs max-w-xs truncate block">
-            {row.details ? JSON.stringify(row.details) : "—"}
-          </span>
-        );
-      default:
-        return row[col.key] || "—";
-    }
-  }, []);
+  const renderCell = useCallback(
+    (row, col) => {
+      switch (col.key) {
+        case "timestamp":
+          return (
+            <span className="font-mono text-xs text-text-muted whitespace-nowrap">
+              {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
+            </span>
+          );
+        case "action":
+          return (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
+              {row.action || "—"}
+            </span>
+          );
+        case "actor":
+          return <span className="text-text-main">{row.actor || t("systemActor")}</span>;
+        case "details":
+          return (
+            <span className="text-text-muted text-xs max-w-xs truncate block">
+              {row.details ? JSON.stringify(row.details) : "—"}
+            </span>
+          );
+        default:
+          return row[col.key] || "—";
+      }
+    },
+    [t]
+  );
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-text-main flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px]">policy</span>
-          Audit Log
+          {t("auditLog")}
         </h3>
-        <ColumnToggle columns={ALL_COLUMNS} visible={visibleCols} onToggle={handleToggleCol} />
+        <ColumnToggle columns={allColumns} visible={visibleCols} onToggle={handleToggleCol} />
       </div>
 
       <FilterBar
         searchValue={search}
         onSearchChange={setSearch}
-        placeholder="Search audit logs..."
+        placeholder={t("searchAuditLogs")}
         filters={[
-          { key: "action", label: "Action", options: actionOptions },
-          { key: "actor", label: "Actor", options: actorOptions },
+          { key: "action", label: t("action"), options: actionOptions },
+          { key: "actor", label: t("actor"), options: actorOptions },
         ]}
         activeFilters={filters}
         onFilterChange={(key, val) => setFilters((prev) => ({ ...prev, [key]: val }))}
@@ -118,7 +122,7 @@ export default function ComplianceTab() {
         loading={loading}
         maxHeight="400px"
         emptyIcon="📋"
-        emptyMessage="No audit events found"
+        emptyMessage={t("noAuditEvents")}
       />
     </Card>
   );

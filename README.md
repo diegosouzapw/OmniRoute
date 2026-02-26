@@ -3,6 +3,8 @@
   
   # 🚀 OmniRoute — The Free AI Gateway
 
+🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
+
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
 _Your universal API proxy — one endpoint, 36+ providers, zero downtime._
@@ -374,16 +376,18 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### 🛡️ Resilience & Security
 
-| Feature                         | What It Does                                                  |
-| ------------------------------- | ------------------------------------------------------------- |
-| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds     |
-| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers            |
-| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency  |
-| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                        |
-| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                    |
-| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                    |
-| 📊 **Editable Rate Limits**     | Configurable RPM, min gap, and max concurrent at system level |
-| 🛡 **API Endpoint Protection**  | Auth gating + provider blocking for the `/models` endpoint    |
+| Feature                         | What It Does                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| 🔌 **Circuit Breaker**          | Auto-open/close per-provider with configurable thresholds                     |
+| 🛡️ **Anti-Thundering Herd**     | Mutex + semaphore rate-limit for API key providers                            |
+| 🧠 **Semantic Cache**           | Two-tier cache (signature + semantic) reduces cost & latency                  |
+| ⚡ **Request Idempotency**      | 5s dedup window for duplicate requests                                        |
+| 🔒 **TLS Fingerprint Spoofing** | Bypass TLS-based bot detection via wreq-js                                    |
+| 🌐 **IP Filtering**             | Allowlist/blocklist for API access control                                    |
+| 📊 **Editable Rate Limits**     | Configurable RPM, min gap, and max concurrent at system level                 |
+| 🛡 **API Endpoint Protection**  | Auth gating + provider blocking for the `/models` endpoint                    |
+| 🔒 **Proxy Visibility**         | Color-coded badges: 🟢 global, 🟡 provider, 🔵 per-connection with IP display |
+| 🌐 **3-Level Proxy Config**     | Configure proxies at global, per-provider, or per-connection level            |
 
 ### 📊 Observability & Analytics
 
@@ -403,14 +407,17 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### ☁️ Deployment & Sync
 
-| Feature                    | What It Does                                                          |
-| -------------------------- | --------------------------------------------------------------------- |
-| 💾 **Cloud Sync**          | Sync config across devices via Cloudflare Workers                     |
-| 🌐 **Deploy Anywhere**     | Localhost, VPS, Docker, Cloudflare Workers                            |
-| 🔑 **API Key Management**  | Generate, rotate, and scope API keys per provider                     |
-| 🧙 **Onboarding Wizard**   | 4-step guided setup for first-time users                              |
-| 🔧 **CLI Tools Dashboard** | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
-| 🔄 **DB Backups**          | Automatic backup, restore, export & import for all settings           |
+| Feature                      | What It Does                                                          |
+| ---------------------------- | --------------------------------------------------------------------- |
+| 💾 **Cloud Sync**            | Sync config across devices via Cloudflare Workers                     |
+| 🌐 **Deploy Anywhere**       | Localhost, VPS, Docker, Cloudflare Workers                            |
+| 🔑 **API Key Management**    | Generate, rotate, and scope API keys per provider                     |
+| 🧙 **Onboarding Wizard**     | 4-step guided setup for first-time users                              |
+| 🔧 **CLI Tools Dashboard**   | One-click configure Claude, Codex, Cline, OpenClaw, Kilo, Antigravity |
+| 🔄 **DB Backups**            | Automatic backup, restore, export & import for all settings           |
+| 🌐 **Internationalization**  | Full i18n with next-intl — English + Portuguese (Brazil) support      |
+| 🌍 **Language Selector**     | Globe icon in header for real-time language switching (🇺🇸/🇧🇷)         |
+| 📂 **Custom Data Directory** | `DATA_DIR` env var to override default `~/.omniroute` storage path    |
 
 <details>
 <summary><b>📖 Feature Details</b></summary>
@@ -1022,7 +1029,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: Node.js 20+
+- **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (v1.0.6)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: LowDB (JSON) + SQLite (domain state + proxy logs)
@@ -1158,8 +1165,88 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
+---
+
+## 🇧🇷 OmniRoute — Gateway de IA Gratuito
+
+<a name="-omniroute--gateway-de-ia-gratuito"></a>
+
+### Nunca pare de codar. Roteamento inteligente para **modelos de IA GRATUITOS e de baixo custo** com fallback automático.
+
+_Seu proxy universal de API — um endpoint, 36+ provedores, zero downtime._
+
+### 🌐 Internacionalização (i18n)
+
+O dashboard do OmniRoute suporta **múltiplos idiomas**. Atualmente disponível em:
+
+| Idioma                | Código  | Status      |
+| --------------------- | ------- | ----------- |
+| 🇺🇸 English            | `en`    | ✅ Completo |
+| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Completo |
+
+**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) no header do dashboard → selecione o idioma desejado.
+
+**Para adicionar um novo idioma:**
+
+1. Crie `src/i18n/messages/{codigo}.json` baseado em `en.json`
+2. Adicione o código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
+3. Reinicie o servidor
+
+### ⚡ Início Rápido
+
+```bash
+# Instalar via npm
+npx omniroute@latest
+
+# Ou rodar do código-fonte
+cp .env.example .env
+npm install
+PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+```
+
+### 🐳 Docker
+
+```bash
+docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
+```
+
+### 🔑 Funcionalidades Principais
+
+- **36+ provedores de IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, e mais
+- **Roteamento inteligente** — Fallback automático entre provedores
+- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
+- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
+- **Cache semântico** — Reduz custos e latência
+- **OAuth automático** — Tokens renovam automaticamente
+- **Combos personalizados** — 6 estratégias de roteamento
+- **Dashboard completo** — Monitoramento, logs, análises, configurações
+- **CLI Tools** — Configure Claude Code, Codex, Cursor, Cline com um clique
+- **100% TypeScript** — Código limpo e tipado
+
+### 📖 Documentação
+
+| Documento                                       | Descrição                              |
+| ----------------------------------------------- | -------------------------------------- |
+| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combos, CLI, deploy        |
+| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos        |
+| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções            |
+| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema      |
+| [Contribuição](CONTRIBUTING.md)                 | Setup de desenvolvimento e guidelines  |
+| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Guia completo: VM + nginx + Cloudflare |
+
+### 📧 Suporte
+
+> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
+
+- **Website**: [omniroute.online](https://omniroute.online)
+- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+
+---
+
 <div align="center">
   <sub>Built with ❤️ for developers who code 24/7</sub>
   <br/>
   <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
+<!-- GitHub Discussions enabled for community Q&A -->

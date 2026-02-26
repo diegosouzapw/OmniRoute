@@ -22,22 +22,28 @@ export async function resolveModelAlias(alias) {
 export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
 
-  if (!parsed.isAlias) {
-    if (parsed.provider === parsed.providerAlias) {
-      // Check OpenAI Compatible nodes
-      const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-      const matchedOpenAI = openaiNodes.find((node) => node.prefix === parsed.providerAlias);
-      if (matchedOpenAI) {
-        return { provider: matchedOpenAI.id, model: parsed.model };
-      }
+  // Check custom provider nodes first (for both alias and non-alias formats)
+  // Check custom provider nodes first (for both alias and non-alias formats)
+  if (parsed.providerAlias || parsed.provider) {
+    // Ensure prefixToCheck is always a concise identifier, not a full model string
+    const prefixToCheck = parsed.providerAlias || parsed.provider;
 
-      // Check Anthropic Compatible nodes
-      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-      const matchedAnthropic = anthropicNodes.find((node) => node.prefix === parsed.providerAlias);
-      if (matchedAnthropic) {
-        return { provider: matchedAnthropic.id, model: parsed.model };
-      }
+    // Check OpenAI Compatible nodes
+    const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+    if (matchedOpenAI) {
+      return { provider: matchedOpenAI.id, model: parsed.model };
     }
+
+    // Check Anthropic Compatible nodes
+    const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+    if (matchedAnthropic) {
+      return { provider: matchedAnthropic.id, model: parsed.model };
+    }
+  }
+
+  if (!parsed.isAlias) {
     return getModelInfoCore(modelStr, null);
   }
 

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { Card, Toggle } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
 export default function SystemPromptTab() {
   const [config, setConfig] = useState({ enabled: false, prompt: "" });
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [debounceTimer, setDebounceTimer] = useState(null);
+  const t = useTranslations("settings");
 
   useEffect(() => {
     fetch("/api/settings/system-prompt")
@@ -57,13 +59,14 @@ export default function SystemPromptTab() {
           </span>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">Global System Prompt</h3>
-          <p className="text-sm text-text-muted">Injected into all requests at proxy level</p>
+          <h3 className="text-lg font-semibold">{t("globalSystemPrompt")}</h3>
+          <p className="text-sm text-text-muted">{t("systemPromptDesc")}</p>
         </div>
         <div className="flex items-center gap-3">
           {status === "saved" && (
             <span className="text-xs font-medium text-emerald-500 flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">check_circle</span> Saved
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>{" "}
+              {t("saved")}
             </span>
           )}
           <Toggle
@@ -80,7 +83,7 @@ export default function SystemPromptTab() {
             <textarea
               value={config.prompt}
               onChange={(e) => handlePromptChange(e.target.value)}
-              placeholder="Enter system prompt to inject into all requests..."
+              placeholder={t("systemPromptPlaceholder")}
               rows={5}
               className="w-full px-4 py-3 rounded-lg border border-border/50 bg-surface/30 text-sm
                          placeholder:text-text-muted/50 resize-y min-h-[120px]
@@ -94,8 +97,9 @@ export default function SystemPromptTab() {
           </div>
           <p className="text-xs text-text-muted/70 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[14px]">info</span>
-            This prompt is prepended to the system message of every request. Use for global instructions,
-            safety guidelines, or response formatting rules. Send <code className="px-1 py-0.5 rounded bg-surface/50">_skipSystemPrompt: true</code> in a request to bypass.
+            {t("systemPromptHint")} Send{" "}
+            <code className="px-1 py-0.5 rounded bg-surface/50">_skipSystemPrompt: true</code> in a
+            request to bypass.
           </p>
         </div>
       )}

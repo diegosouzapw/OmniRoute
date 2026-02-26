@@ -198,6 +198,14 @@ const PROVIDER_MODELS_CONFIG = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  kilocode: {
+    url: "https://api.kilo.ai/api/openrouter/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
 };
 
 /**
@@ -220,8 +228,17 @@ export async function GET(request, { params }) {
           { status: 400 }
         );
       }
-      const url = `${baseUrl.replace(/\/$/, "")}/models`;
-      const response = await fetch(url, {
+
+      let modelsUrl = baseUrl.replace(/\/$/, "");
+      if (modelsUrl.endsWith("/chat/completions")) {
+        modelsUrl = modelsUrl.slice(0, -17) + "/models";
+      } else if (modelsUrl.endsWith("/completions")) {
+        modelsUrl = modelsUrl.slice(0, -12) + "/models";
+      } else {
+        modelsUrl = `${modelsUrl}/models`;
+      }
+
+      const response = await fetch(modelsUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

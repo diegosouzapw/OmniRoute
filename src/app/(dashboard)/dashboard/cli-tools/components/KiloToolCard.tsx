@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
+import { useTranslations } from "next-intl";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
@@ -19,6 +20,7 @@ export default function KiloToolCard({
   batchStatus,
   lastConfiguredAt,
 }) {
+  const t = useTranslations("cliTools");
   const [kiloStatus, setKiloStatus] = useState(null);
   const [checkingKilo, setCheckingKilo] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -95,12 +97,12 @@ export default function KiloToolCard({
         body: JSON.stringify({ tool: "kilo", backupId }),
       });
       if (res.ok) {
-        setMessage({ type: "success", text: "Backup restored! Reloading status..." });
+        setMessage({ type: "success", text: t("backupRestoredReloading") });
         await checkKiloStatus();
         await fetchBackups();
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "Failed to restore backup" });
+        setMessage({ type: "error", text: data.error || t("failedRestoreBackup") });
       }
     } catch (e) {
       setMessage({ type: "error", text: e.message });
@@ -147,11 +149,11 @@ export default function KiloToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: data.message || "Applied!" });
+        setMessage({ type: "success", text: data.message || t("applied") });
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed" });
+        setMessage({ type: "error", text: data.error || t("failed") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -167,13 +169,13 @@ export default function KiloToolCard({
       const res = await fetch("/api/cli-tools/kilo-settings", { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: data.message || "Reset!" });
+        setMessage({ type: "success", text: data.message || t("resetDone") });
         setSelectedModel("");
         hasInitializedModel.current = false;
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed" });
+        setMessage({ type: "error", text: data.error || t("failed") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -226,7 +228,7 @@ export default function KiloToolCard({
                 lastConfiguredAt={lastConfiguredAt}
               />
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.kilo")}</p>
           </div>
         </div>
         <span
@@ -243,7 +245,7 @@ export default function KiloToolCard({
               <span className="material-symbols-outlined animate-spin text-base">
                 progress_activity
               </span>
-              <span>Checking Kilo Code CLI...</span>
+              <span>{t("checkingCli", { tool: "Kilo Code" })}</span>
             </div>
           )}
 
@@ -259,14 +261,14 @@ export default function KiloToolCard({
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">
                     {cliReady
-                      ? "Kilo Code CLI detected and ready"
+                      ? t("cliDetectedReady", { tool: "Kilo Code" })
                       : kiloStatus.installed
-                        ? "Kilo Code CLI installed but not runnable"
-                        : "Kilo Code CLI not detected"}
+                        ? t("cliNotRunnable", { tool: "Kilo Code" })
+                        : t("cliNotDetected", { tool: "Kilo Code" })}
                   </p>
                   {kiloStatus.commandPath && (
                     <p className="text-xs text-text-muted">
-                      Binary:{" "}
+                      {t("binary")}:{" "}
                       <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                         {kiloStatus.commandPath}
                       </code>
@@ -274,7 +276,7 @@ export default function KiloToolCard({
                   )}
                   {kiloStatus.authPath && (
                     <p className="text-xs text-text-muted">
-                      Auth:{" "}
+                      {t("auth")}:{" "}
                       <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                         {kiloStatus.authPath}
                       </code>
@@ -293,10 +295,11 @@ export default function KiloToolCard({
                       </span>
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-green-700 dark:text-green-300">
-                          OmniRoute is configured as OpenAI-compatible provider
+                          {t("omnirouteConfiguredOpenAiCompatible")}
                         </p>
                         <p className="text-xs text-text-muted">
-                          Providers: <strong>{kiloStatus.settings?.auth?.join(", ") || "—"}</strong>
+                          {t("providers")}:{" "}
+                          <strong>{kiloStatus.settings?.auth?.join(", ") || "—"}</strong>
                         </p>
                       </div>
                     </div>
@@ -304,13 +307,13 @@ export default function KiloToolCard({
 
                   {/* Model selection */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm text-text-muted">Model</label>
+                    <label className="text-sm text-text-muted">{t("model")}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         value={selectedModel}
                         onChange={(e) => setSelectedModel(e.target.value)}
-                        placeholder="provider/model-id"
+                        placeholder={t("providerModelPlaceholder")}
                         className="flex-1 px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                       />
                       <Button
@@ -319,7 +322,7 @@ export default function KiloToolCard({
                         onClick={() => setModalOpen(true)}
                         disabled={!hasActiveProviders}
                       >
-                        Select
+                        {t("select")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -333,7 +336,7 @@ export default function KiloToolCard({
 
                   {/* API Key selection */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm text-text-muted">API Key</label>
+                    <label className="text-sm text-text-muted">{t("apiKey")}</label>
                     {apiKeys && apiKeys.length > 0 ? (
                       <select
                         value={selectedApiKey}
@@ -348,7 +351,7 @@ export default function KiloToolCard({
                       </select>
                     ) : (
                       <p className="text-sm text-text-muted">
-                        {cloudEnabled ? "No API keys available" : "Using default: sk_omniroute"}
+                        {cloudEnabled ? t("noApiKeysAvailable") : t("usingDefaultOmniroute")}
                       </p>
                     )}
                   </div>
@@ -363,14 +366,14 @@ export default function KiloToolCard({
                       loading={applying}
                     >
                       <span className="material-symbols-outlined text-[14px] mr-1">save</span>
-                      {configStatus === "configured" ? "Update Config" : "Apply Config"}
+                      {configStatus === "configured" ? t("updateConfig") : t("applyConfig")}
                     </Button>
                     {configStatus === "configured" && (
                       <Button variant="outline" size="sm" onClick={handleReset} loading={restoring}>
                         <span className="material-symbols-outlined text-[14px] mr-1">
                           restart_alt
                         </span>
-                        Reset
+                        {t("reset")}
                       </Button>
                     )}
                   </div>
@@ -399,7 +402,7 @@ export default function KiloToolCard({
                         chevron_right
                       </span>
                       <span className="material-symbols-outlined text-[16px]">backup</span>
-                      Backups {backups.length > 0 && `(${backups.length})`}
+                      {t("backups")} {backups.length > 0 && `(${backups.length})`}
                     </button>
                     {showBackups && backups.length > 0 && (
                       <div className="mt-2 flex flex-col gap-1.5 pl-6">
@@ -420,14 +423,14 @@ export default function KiloToolCard({
                               onClick={() => handleRestoreBackup(b.id)}
                               loading={restoringBackup === b.id}
                             >
-                              Restore
+                              {t("restore")}
                             </Button>
                           </div>
                         ))}
                       </div>
                     )}
                     {showBackups && backups.length === 0 && (
-                      <p className="mt-2 pl-6 text-xs text-text-muted">No backups available.</p>
+                      <p className="mt-2 pl-6 text-xs text-text-muted">{t("noBackupsAvailable")}</p>
                     )}
                   </div>
                 </>
@@ -443,13 +446,13 @@ export default function KiloToolCard({
         onSelect={handleSelectModel}
         selectedModel={selectedModel}
         activeProviders={activeProviders}
-        title="Select Model for Kilo Code"
+        title={t("selectModelForTool", { tool: "Kilo Code" })}
       />
       {showManualConfigModal && (
         <ManualConfigModal
           isOpen={showManualConfigModal}
           onClose={() => setShowManualConfigModal(false)}
-          title="Kilo Code Manual Configuration"
+          title={t("kiloManualConfiguration")}
           {...({
             onApply: handleManualConfig,
             currentConfig: {
