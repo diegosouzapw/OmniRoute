@@ -99,7 +99,10 @@ export default function RoutingTab() {
           <h3 className="text-lg font-semibold">{t("routingStrategy")}</h3>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4" style={{ gridAutoRows: "1fr" }}>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 mb-4"
+          style={{ gridAutoRows: "1fr" }}
+        >
           {STRATEGIES.map((s) => (
             <button
               key={s.value}
@@ -172,18 +175,18 @@ export default function RoutingTab() {
             {aliases.map((a, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface/30 border border-border/20"
+                className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface/30 border border-border/20"
               >
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="font-mono text-purple-400">{a.pattern}</span>
+                <div className="flex min-w-0 items-center gap-2 text-sm">
+                  <span className="font-mono text-purple-400 break-all">{a.pattern}</span>
                   <span className="material-symbols-outlined text-[14px] text-text-muted">
                     arrow_forward
                   </span>
-                  <span className="font-mono text-text-main">{a.target}</span>
+                  <span className="font-mono text-text-main break-all">{a.target}</span>
                 </div>
                 <button
                   onClick={() => removeAlias(i)}
-                  className="text-text-muted hover:text-red-400 transition-colors"
+                  className="shrink-0 text-text-muted hover:text-red-400 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
@@ -192,7 +195,7 @@ export default function RoutingTab() {
           </div>
         )}
 
-        <div className="flex gap-2 items-end">
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
           <div className="flex-1">
             <Input
               label={t("pattern")}
@@ -209,7 +212,12 @@ export default function RoutingTab() {
               onChange={(e) => setNewTarget(e.target.value)}
             />
           </div>
-          <Button size="sm" variant="primary" onClick={addAlias} className="mb-[2px]">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={addAlias}
+            className="mb-[2px] sm:w-auto w-full"
+          >
             {t("add")}
           </Button>
         </div>

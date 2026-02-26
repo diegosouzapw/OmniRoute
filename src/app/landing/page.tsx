@@ -63,11 +63,15 @@ export default function LandingPage() {
           <Features />
 
           {/* CTA Section */}
-          <section className="py-32 px-6 relative overflow-hidden">
+          <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-t from-[#E54D5E]/5 to-transparent pointer-events-none"></div>
             <div className="max-w-4xl mx-auto text-center relative z-10">
-              <h2 className="text-4xl md:text-5xl font-black mb-6">{t("ctaTitle")}</h2>
-              <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">{t("ctaDescription")}</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 break-words">
+                {t("ctaTitle")}
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto break-words">
+                {t("ctaDescription")}
+              </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() => router.push("/dashboard")}

@@ -259,7 +259,7 @@ export default function SystemStorageTab() {
       </div>
 
       {/* Storage info grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-bg border border-border">
           <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
             {t("databasePath")}
@@ -277,7 +277,7 @@ export default function SystemStorageTab() {
       </div>
 
       {/* Export / Import */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <Button variant="outline" size="sm" onClick={handleExport} loading={exportLoading}>
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             download

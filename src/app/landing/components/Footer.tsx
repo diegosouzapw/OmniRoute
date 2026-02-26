@@ -18,7 +18,7 @@ export default function Footer() {
               </div>
               <h3 className="text-white text-lg font-bold">{t("brandName")}</h3>
             </div>
-            <p className="text-gray-500 text-sm max-w-xs mb-6">{t("footerTagline")}</p>
+            <p className="text-gray-500 text-sm max-w-xs mb-6 break-words">{t("footerTagline")}</p>
             <div className="flex gap-4">
               <a
                 className="text-gray-400 hover:text-white transition-colors"
@@ -101,7 +101,9 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-[#2D333B] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-600 text-sm">{t("copyright", { year })}</p>
+          <p className="text-gray-600 text-sm break-words text-center md:text-left">
+            {t("copyright", { year })}
+          </p>
           <div className="flex gap-6">
             <a
               className="text-gray-600 hover:text-white text-sm transition-colors"

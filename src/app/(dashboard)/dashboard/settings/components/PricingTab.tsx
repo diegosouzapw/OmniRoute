@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
-const PRICING_FIELDS = ["input", "output", "cached", "reasoning", "cache_creation"];
-const FIELD_LABELS = {
-  input: "Input",
-  output: "Output",
-  cached: "Cached",
-  reasoning: "Reasoning",
-  cache_creation: "Cache Write",
+const PRICING_FIELDS = ["input", "output", "cached", "reasoning", "cache_creation"] as const;
+const FIELD_LABEL_KEYS: Record<(typeof PRICING_FIELDS)[number], string> = {
+  input: "input",
+  output: "output",
+  cached: "cached",
+  reasoning: "reasoning",
+  cache_creation: "cacheCreation",
 };
 
 export default function PricingTab() {
@@ -121,7 +121,7 @@ export default function PricingTab() {
         });
 
         if (response.ok) {
-          setSaveStatus(`✅ ${providerAlias.toUpperCase()} saved`);
+          setSaveStatus(`✅ ${providerAlias.toUpperCase()} ${t("saved")}`);
           setEditedProviders((prev) => {
             const next = new Set(prev);
             next.delete(providerAlias);
@@ -130,36 +130,41 @@ export default function PricingTab() {
           setTimeout(() => setSaveStatus(""), 3000);
         } else {
           const err = await response.json();
-          setSaveStatus(`❌ Error: ${err.error}`);
+          setSaveStatus(`❌ ${t("errorOccurred")}: ${err.error}`);
         }
       } catch (error) {
-        setSaveStatus(`❌ Save failed: ${error.message}`);
+        setSaveStatus(`❌ ${t("saveFailed")}: ${error.message}`);
       } finally {
         setSaving(false);
       }
     },
-    [pricingData]
+    [pricingData, t]
   );
 
-  const resetProvider = useCallback(async (providerAlias) => {
-    if (!confirm(t("resetPricingConfirm", { provider: providerAlias.toUpperCase() }))) return;
-    try {
-      const response = await fetch(`/api/pricing?provider=${providerAlias}`, { method: "DELETE" });
-      if (response.ok) {
-        const updated = await response.json();
-        setPricingData(updated);
-        setSaveStatus(`🔄 ${providerAlias.toUpperCase()} reset to defaults`);
-        setEditedProviders((prev) => {
-          const next = new Set(prev);
-          next.delete(providerAlias);
-          return next;
+  const resetProvider = useCallback(
+    async (providerAlias) => {
+      if (!confirm(t("resetPricingConfirm", { provider: providerAlias.toUpperCase() }))) return;
+      try {
+        const response = await fetch(`/api/pricing?provider=${providerAlias}`, {
+          method: "DELETE",
         });
-        setTimeout(() => setSaveStatus(""), 3000);
+        if (response.ok) {
+          const updated = await response.json();
+          setPricingData(updated);
+          setSaveStatus(`🔄 ${providerAlias.toUpperCase()} ${t("resetDefaults")}`);
+          setEditedProviders((prev) => {
+            const next = new Set(prev);
+            next.delete(providerAlias);
+            return next;
+          });
+          setTimeout(() => setSaveStatus(""), 3000);
+        }
+      } catch (error) {
+        setSaveStatus(`❌ ${t("resetFailed")}: ${error.message}`);
       }
-    } catch (error) {
-      setSaveStatus(`❌ Reset failed: ${error.message}`);
-    }
-  }, []);
+    },
+    [t]
+  );
 
   const selectProviderFilter = useCallback((alias) => {
     setSelectedProvider((prev) => (prev === alias ? null : alias));
@@ -312,12 +317,13 @@ function ProviderSection({
   saving,
 }) {
   const t = useTranslations("settings");
+  const tGlobal = useTranslations();
   const pricedCount = Object.keys(pricingData).length;
   const authBadge =
     provider.authType === "oauth"
-      ? "OAuth"
+      ? tGlobal("providers.oauthLabel")
       : provider.authType === "apikey"
-        ? "API Key"
+        ? tGlobal("providers.apiKeyLabel")
         : provider.authType;
 
   return (
@@ -355,7 +361,7 @@ function ProviderSection({
         <div className="flex items-center gap-3">
           {isEdited && <span className="text-yellow-500 text-xs font-medium">{t("unsaved")}</span>}
           <span className="text-text-muted text-xs">
-            {pricedCount}/{provider.modelCount} priced
+            {pricedCount}/{provider.modelCount} {t("withPricing")}
           </span>
           <div className="w-16 h-1.5 bg-bg-subtle rounded-full overflow-hidden">
             <div
@@ -378,7 +384,7 @@ function ProviderSection({
           {/* Actions bar */}
           <div className="flex items-center justify-between px-4 py-2 bg-bg-subtle/50">
             <span className="text-xs text-text-muted">
-              {provider.modelCount} models • {pricedCount} with pricing configured
+              {provider.modelCount} {t("models")} • {pricedCount} {t("withPricing")}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -411,7 +417,7 @@ function ProviderSection({
                   <th className="px-4 py-2 text-left font-semibold">{t("model")}</th>
                   {PRICING_FIELDS.map((field) => (
                     <th key={field} className="px-2 py-2 text-right font-semibold w-24">
-                      {FIELD_LABELS[field]}
+                      {t(FIELD_LABEL_KEYS[field])}
                     </th>
                   ))}
                 </tr>
@@ -437,6 +443,7 @@ function ProviderSection({
 // ── Model Row ────────────────────────────────────────────────────────────
 
 function ModelRow({ model, pricing, onPricingChange }) {
+  const t = useTranslations("settings");
   const hasPricing = pricing && Object.values(pricing).some((v: any) => v > 0);
 
   return (
@@ -449,7 +456,7 @@ function ModelRow({ model, pricing, onPricingChange }) {
           <span className="font-medium text-xs">{model.name}</span>
           {model.custom && (
             <span className="px-1 py-0.5 text-[8px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 rounded uppercase">
-              custom
+              {t("custom")}
             </span>
           )}
           <span className="text-text-muted text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">

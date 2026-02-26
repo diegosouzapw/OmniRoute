@@ -107,7 +107,7 @@ export default function TestBenchMode() {
           ...prev,
           [scenario.id]: {
             status: "error",
-            error: errData.error || `HTTP ${sendRes.status}`,
+            error: errData.error || t("errorMessage", { message: `HTTP ${sendRes.status}` }),
             latency,
             httpStatus: sendRes.status,
           },
@@ -152,7 +152,7 @@ export default function TestBenchMode() {
   const srcMeta = FORMAT_META[sourceFormat] || FORMAT_META.openai;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
         <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
@@ -167,7 +167,7 @@ export default function TestBenchMode() {
       {/* Controls */}
       <Card>
         <div className="p-4 flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row items-end gap-4">
+          <div className="flex flex-col sm:flex-row items-end gap-4 min-w-0">
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 {t("source")}
@@ -206,6 +206,7 @@ export default function TestBenchMode() {
               onClick={handleRunAll}
               loading={runningAll}
               disabled={runningAll}
+              className="w-full sm:w-auto"
             >
               {t("runAllTests")}
             </Button>

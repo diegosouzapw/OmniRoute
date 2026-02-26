@@ -41,7 +41,7 @@ export default function AuditLogTab() {
       params.set("offset", String(offset));
 
       const res = await fetch(`/api/compliance/audit-log?${params.toString()}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error(t("failedFetchAuditLog"));
       const data: AuditEntry[] = await res.json();
 
       setHasMore(data.length > PAGE_SIZE);

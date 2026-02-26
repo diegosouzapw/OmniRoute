@@ -186,7 +186,7 @@ export default function PlaygroundMode() {
               onClick={handleTranslate}
               loading={translating}
               disabled={!inputContent.trim() || translating}
-              className="whitespace-nowrap"
+              className="w-full sm:w-auto"
             >
               {t("translateAction")}
             </Button>

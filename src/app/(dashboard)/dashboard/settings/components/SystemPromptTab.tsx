@@ -92,14 +92,12 @@ export default function SystemPromptTab() {
               disabled={loading}
             />
             <div className="absolute bottom-2 right-3 text-xs text-text-muted/60 tabular-nums">
-              {config.prompt.length} chars
+              {t("chars", { count: config.prompt.length })}
             </div>
           </div>
           <p className="text-xs text-text-muted/70 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[14px]">info</span>
-            {t("systemPromptHint")} Send{" "}
-            <code className="px-1 py-0.5 rounded bg-surface/50">_skipSystemPrompt: true</code> in a
-            request to bypass.
+            {t("systemPromptHint")}
           </p>
         </div>
       )}

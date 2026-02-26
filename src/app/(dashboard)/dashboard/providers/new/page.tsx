@@ -75,7 +75,7 @@ export default function NewProviderPage() {
   const selectedProvider = (AI_PROVIDERS as any)[formData.provider];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto min-w-0">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -85,7 +85,9 @@ export default function NewProviderPage() {
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           {t("backToProviders")}
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight">{t("addNewProvider")}</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">
+          {t("addNewProvider")}
+        </h1>
         <p className="text-text-muted mt-2">{t("configureNewProvider")}</p>
       </div>
 
@@ -126,13 +128,13 @@ export default function NewProviderPage() {
             <label className="text-sm font-medium">
               {t("authMethod")} <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               {authMethodOptions.map((method) => (
                 <button
                   key={method.value}
                   type="button"
                   onClick={() => handleChange("authMethod", method.value)}
-                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                  className={`flex-1 min-w-0 flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
                     formData.authMethod === method.value
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border hover:border-primary/50"
@@ -141,7 +143,7 @@ export default function NewProviderPage() {
                   <span className="material-symbols-outlined">
                     {method.value === "api_key" ? "key" : "lock"}
                   </span>
-                  <span className="font-medium">
+                  <span className="font-medium text-center break-words">
                     {method.value === "api_key" ? t("apiKeyLabel") : t("oauth2Label")}
                   </span>
                 </button>
@@ -198,7 +200,7 @@ export default function NewProviderPage() {
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-border">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
             <Link href="/dashboard/providers" className="flex-1">
               <Button type="button" variant="ghost" fullWidth>
                 {t("cancel")}

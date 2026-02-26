@@ -93,7 +93,7 @@ function ProviderProfilesCard({ profiles, onSave, saving }) {
             <h2 className="text-lg font-bold">{t("providerProfiles")}</h2>
           </div>
           {editMode ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button size="sm" variant="secondary" onClick={() => setEditMode(false)}>
                 {tc("cancel")}
               </Button>
@@ -217,7 +217,7 @@ function RateLimitCard({ rateLimitStatus, defaults, onSaveDefaults, saving }) {
           <h3 className="text-xs font-bold uppercase tracking-wider mb-3 text-text-muted">
             {t("defaultSafetyNet")}
           </h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { key: "requestsPerMinute", label: t("rpm") },
               { key: "minTimeBetweenRequests", label: t("minGap"), format: formatMs },

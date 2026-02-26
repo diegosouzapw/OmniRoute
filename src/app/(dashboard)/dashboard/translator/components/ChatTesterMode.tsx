@@ -248,7 +248,7 @@ export default function ChatTesterMode() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
         <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
@@ -264,7 +264,7 @@ export default function ChatTesterMode() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
         {/* Left: Chat Interface */}
         <div className="space-y-4">
           {/* Controls */}
@@ -349,7 +349,7 @@ export default function ChatTesterMode() {
                         ? t("youWithFormat", { format: FORMAT_META[clientFormat]?.label })
                         : t("assistant")}
                     </p>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                   </div>
                 </div>
               ))}

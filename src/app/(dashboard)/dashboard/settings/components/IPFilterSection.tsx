@@ -88,7 +88,7 @@ export default function IPFilterSection() {
       </div>
 
       {/* Mode selector */}
-      <div className="grid grid-cols-4 gap-2 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
         {MODES.map((m) => (
           <button
             key={m.value}
@@ -119,7 +119,7 @@ export default function IPFilterSection() {
       {config.enabled && (
         <div className="flex flex-col gap-4">
           {/* Add IP */}
-          <div className="flex gap-2 items-end">
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
             <div className="flex-1">
               <Input
                 label={t("addIpAddress")}
@@ -215,12 +215,12 @@ export default function IPFilterSection() {
                 {config.tempBans.map((ban) => (
                   <div
                     key={ban.ip}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg
+                    className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg
                                bg-orange-500/5 border border-orange-500/20 text-sm"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-orange-400">{ban.ip}</span>
-                      <span className="text-xs text-text-muted">— {ban.reason}</span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="font-mono text-xs text-orange-400 shrink-0">{ban.ip}</span>
+                      <span className="text-xs text-text-muted truncate">— {ban.reason}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-text-muted tabular-nums">

@@ -24,8 +24,8 @@ export default function HowItWorks() {
               </span>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2">{t("howItWorksStep1Title")}</h3>
-              <p className="text-sm text-gray-400">{t("howItWorksStep1Description")}</p>
+              <h3 className="text-xl font-bold mb-2 break-words">{t("howItWorksStep1Title")}</h3>
+              <p className="text-sm text-gray-400 break-words">{t("howItWorksStep1Description")}</p>
             </div>
           </div>
 
@@ -40,8 +40,10 @@ export default function HowItWorks() {
               </span>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2 text-[#E54D5E]">{t("howItWorksStep2Title")}</h3>
-              <p className="text-sm text-gray-400">{t("howItWorksStep2Description")}</p>
+              <h3 className="text-xl font-bold mb-2 text-[#E54D5E] break-words">
+                {t("howItWorksStep2Title")}
+              </h3>
+              <p className="text-sm text-gray-400 break-words">{t("howItWorksStep2Description")}</p>
             </div>
           </div>
 
@@ -56,8 +58,8 @@ export default function HowItWorks() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2">{t("howItWorksStep3Title")}</h3>
-              <p className="text-sm text-gray-400">{t("howItWorksStep3Description")}</p>
+              <h3 className="text-xl font-bold mb-2 break-words">{t("howItWorksStep3Title")}</h3>
+              <p className="text-sm text-gray-400 break-words">{t("howItWorksStep3Description")}</p>
             </div>
           </div>
         </div>

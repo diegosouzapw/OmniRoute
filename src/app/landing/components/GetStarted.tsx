@@ -26,7 +26,7 @@ export default function GetStarted() {
             <p className="text-gray-400 text-lg mb-8">{t("getStartedDescription")}</p>
 
             <div className="flex flex-col gap-6">
-              <div className="flex gap-4">
+              <div className="flex gap-4 min-w-0">
                 <div className="flex-none w-8 h-8 rounded-full bg-[#E54D5E]/20 text-[#E54D5E] flex items-center justify-center font-bold">
                   1
                 </div>
@@ -36,7 +36,7 @@ export default function GetStarted() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 min-w-0">
                 <div className="flex-none w-8 h-8 rounded-full bg-[#E54D5E]/20 text-[#E54D5E] flex items-center justify-center font-bold">
                   2
                 </div>
@@ -46,7 +46,7 @@ export default function GetStarted() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 min-w-0">
                 <div className="flex-none w-8 h-8 rounded-full bg-[#E54D5E]/20 text-[#E54D5E] flex items-center justify-center font-bold">
                   3
                 </div>
@@ -72,13 +72,13 @@ export default function GetStarted() {
               </div>
 
               {/* Terminal content */}
-              <div className="p-6 font-mono text-sm leading-relaxed overflow-x-auto">
+              <div className="p-6 font-mono text-sm leading-relaxed overflow-x-hidden">
                 <div
-                  className="flex items-center gap-2 mb-4 group cursor-pointer"
+                  className="flex items-center gap-2 mb-4 group cursor-pointer min-w-0"
                   onClick={() => handleCopy(command)}
                 >
                   <span className="text-green-400">$</span>
-                  <span className="text-white">{command}</span>
+                  <span className="text-white break-all">{command}</span>
                   <span className="ml-auto text-gray-500 text-xs opacity-0 group-hover:opacity-100">
                     {copied ? t("copied") : t("copy")}
                   </span>
@@ -88,10 +88,10 @@ export default function GetStarted() {
                   <span className="text-[#E54D5E]">&gt;</span> {t("startingOmniRoute")}
                   <br />
                   <span className="text-[#E54D5E]">&gt;</span> {t("serverRunningOnLabel")}{" "}
-                  <span className="text-blue-400">{endpoint}</span>
+                  <span className="text-blue-400 break-all">{endpoint}</span>
                   <br />
                   <span className="text-[#E54D5E]">&gt;</span> {t("dashboardLabel")}:{" "}
-                  <span className="text-blue-400">{dashboardUrl}</span>
+                  <span className="text-blue-400 break-all">{dashboardUrl}</span>
                   <br />
                   <span className="text-green-400">&gt;</span> {t("readyToRoute")}
                 </div>
@@ -104,10 +104,10 @@ export default function GetStarted() {
                   <span className="text-purple-400">{t("dataLocation")}</span>
                   <br />
                   <span className="text-gray-500">{t("dataLocationMacLinux")}</span>{" "}
-                  ~/.omniroute/db.json
+                  <span className="break-all">~/.omniroute/db.json</span>
                   <br />
                   <span className="text-gray-500">{t("dataLocationWindows")}</span>{" "}
-                  %APPDATA%/omniroute/db.json
+                  <span className="break-all">%APPDATA%/omniroute/db.json</span>
                 </div>
               </div>
             </div>

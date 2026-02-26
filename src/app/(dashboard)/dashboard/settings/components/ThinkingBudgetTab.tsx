@@ -167,7 +167,7 @@ export default function ThinkingBudgetTab() {
         <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
           <p className="text-sm font-medium mb-3">{t("baseEffortLevel")}</p>
           <p className="text-xs text-text-muted mb-3">{t("adaptiveHint")}</p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {EFFORTS.map((e) => (
               <button
                 key={e.value}

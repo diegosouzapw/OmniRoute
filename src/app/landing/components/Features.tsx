@@ -125,11 +125,13 @@ export default function Features() {
                 </span>
               </div>
               <h3
-                className={`text-lg font-bold mb-2 ${feature.colors.titleHover} transition-colors`}
+                className={`text-lg font-bold mb-2 break-words ${feature.colors.titleHover} transition-colors`}
               >
                 {t(feature.titleKey)}
               </h3>
-              <p className="text-sm text-gray-400 leading-relaxed">{t(feature.descKey)}</p>
+              <p className="text-sm text-gray-400 leading-relaxed break-words">
+                {t(feature.descKey)}
+              </p>
             </div>
           ))}
         </div>

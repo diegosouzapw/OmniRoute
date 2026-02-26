@@ -54,7 +54,7 @@ export default function LiveMonitorMode() {
       : 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
         <span
@@ -212,7 +212,7 @@ export default function LiveMonitorMode() {
                             {tgtMeta.label}
                           </Badge>
                         </td>
-                        <td className="py-2 pr-4 text-xs font-mono text-text-muted">
+                        <td className="py-2 pr-4 text-xs font-mono text-text-muted break-all">
                           {event.model || notAvailable}
                         </td>
                         <td className="py-2 pr-4">

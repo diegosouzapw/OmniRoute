@@ -34,34 +34,36 @@ export default function SettingsPage() {
   const activeTab = userSelectedTab || tabs.find((t) => t.id === tabParam)?.id || "general";
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto min-w-0">
       <div className="flex flex-col gap-6">
         {/* Tab navigation */}
-        <div
-          role="tablist"
-          aria-label={t("settingsSectionsAria")}
-          className="inline-flex items-center p-1 rounded-lg bg-black/5 dark:bg-white/5 self-start"
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              tabIndex={activeTab === tab.id ? 0 : -1}
-              onClick={() => setUserSelectedTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all text-sm",
-                activeTab === tab.id
-                  ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
-                  : "text-text-muted hover:text-text-main"
-              )}
-            >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                {tab.icon}
-              </span>
-              <span className="hidden sm:inline">{t(tab.labelKey)}</span>
-            </button>
-          ))}
+        <div className="w-full overflow-x-auto pb-1">
+          <div
+            role="tablist"
+            aria-label={t("settingsSectionsAria")}
+            className="inline-flex items-center p-1 rounded-lg bg-black/5 dark:bg-white/5 min-w-max"
+          >
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                onClick={() => setUserSelectedTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all text-sm",
+                  activeTab === tab.id
+                    ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
+                    : "text-text-muted hover:text-text-main"
+                )}
+              >
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  {tab.icon}
+                </span>
+                <span className="hidden sm:inline whitespace-nowrap">{t(tab.labelKey)}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Tab contents */}
