@@ -8,18 +8,12 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      && vars.DEPLOY_ENABLED == 'true'
     name: Deploy OmniRoute to VPS
     runs-on: ubuntu-latest
     steps:
-      - name: Install Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          oauth-client-id: ""
-          oauth-secret: ""
-          tags: tag:ci-deploy
-        continue-on-error: true
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
