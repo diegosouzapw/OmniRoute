@@ -47,11 +47,11 @@ export default function AuditLogTab() {
       setHasMore(data.length > PAGE_SIZE);
       setEntries(data.slice(0, PAGE_SIZE));
     } catch (err: any) {
-      setError(err.message || "Failed to fetch audit log");
+      setError(err.message || t("failedFetchAuditLog"));
     } finally {
       setLoading(false);
     }
-  }, [actionFilter, actorFilter, offset]);
+  }, [actionFilter, actorFilter, offset, t]);
 
   useEffect(() => {
     fetchEntries();
@@ -93,7 +93,7 @@ export default function AuditLogTab() {
         <button
           onClick={fetchEntries}
           disabled={loading}
-          aria-label="Refresh audit log"
+          aria-label={t("refreshAuditLogAria")}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-50"
         >
           {loading ? t("loading") : t("refresh")}
@@ -104,7 +104,7 @@ export default function AuditLogTab() {
       <div
         className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
         role="search"
-        aria-label="Filter audit log entries"
+        aria-label={t("filterEntriesAria")}
       >
         <input
           type="text"
@@ -112,7 +112,7 @@ export default function AuditLogTab() {
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          aria-label="Filter by action type"
+          aria-label={t("filterByActionTypeAria")}
           className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
         />
         <input
@@ -121,7 +121,7 @@ export default function AuditLogTab() {
           value={actorFilter}
           onChange={(e) => setActorFilter(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          aria-label="Filter by actor"
+          aria-label={t("filterByActorAria")}
           className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
         />
         <button
@@ -144,7 +144,7 @@ export default function AuditLogTab() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm" role="table" aria-label="Audit log entries">
+        <table className="w-full text-sm" role="table" aria-label={t("tableAria")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
@@ -162,7 +162,9 @@ export default function AuditLogTab() {
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
                 {t("details")}
               </th>
-              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">IP</th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
+                {t("ipAddress")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -190,13 +192,13 @@ export default function AuditLogTab() {
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-main)]">{entry.actor}</td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[200px] truncate">
-                    {entry.target || "—"}
+                    {entry.target || t("notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[300px] truncate font-mono text-xs">
-                    {entry.details ? JSON.stringify(entry.details) : "—"}
+                    {entry.details ? JSON.stringify(entry.details) : t("notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">
-                    {entry.ip_address || "—"}
+                    {entry.ip_address || t("notAvailable")}
                   </td>
                 </tr>
               ))
@@ -208,7 +210,7 @@ export default function AuditLogTab() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Showing {entries.length} entries (offset {offset})
+          {t("showing", { count: entries.length, offset })}
         </p>
         <div className="flex gap-2">
           <button

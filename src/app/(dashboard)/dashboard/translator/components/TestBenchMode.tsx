@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
+import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import { useProviderOptions } from "../hooks/useProviderOptions";
 import { useAvailableModels } from "../hooks/useAvailableModels";
 
@@ -37,6 +37,7 @@ export default function TestBenchMode() {
     "system-prompt": t("scenarioSystemPrompt"),
     streaming: t("scenarioStreaming"),
   };
+  const templates = useMemo(() => getExampleTemplates(t), [t]);
   const [sourceFormat, setSourceFormat] = useState("claude");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
@@ -55,7 +56,7 @@ export default function TestBenchMode() {
     const start = Date.now();
     try {
       // Find template
-      const template = EXAMPLE_TEMPLATES.find((t) => t.id === scenario.templateId);
+      const template = templates.find((item) => item.id === scenario.templateId);
       const body = template?.formats[sourceFormat] || template?.formats.openai;
 
       if (!body) {

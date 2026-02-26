@@ -109,9 +109,9 @@ export default function APIPageClient({ machineId }) {
       return { ok: res.ok, status: res.status, data };
     } catch (error) {
       if (error?.name === "AbortError") {
-        return { ok: false, status: 408, data: { error: "Cloud request timeout" } };
+        return { ok: false, status: 408, data: { error: t("cloudRequestTimeout") } };
       }
-      return { ok: false, status: 500, data: { error: error.message || "Cloud request failed" } };
+      return { ok: false, status: 500, data: { error: error.message || t("cloudRequestFailed") } };
     } finally {
       clearTimeout(timeoutId);
     }
@@ -190,13 +190,13 @@ export default function APIPageClient({ machineId }) {
         setModalSuccess(false);
 
         if (data.verified) {
-          setCloudStatus({ type: "success", message: "Cloud Proxy connected and verified!" });
+          setCloudStatus({ type: "success", message: t("cloudConnectedVerified") });
         } else {
           setCloudStatus({
             type: "warning",
             message: data.verifyError
-              ? `Connected — verification pending: ${data.verifyError}`
-              : "Connected — verification pending",
+              ? t("connectedVerificationPendingWithError", { error: data.verifyError })
+              : t("connectedVerificationPending"),
           });
         }
 
@@ -208,16 +208,15 @@ export default function APIPageClient({ machineId }) {
         await loadCloudSettings();
       } else {
         // Sync failed — provide a helpful error message
-        let errorMessage = data.error || "Failed to enable cloud";
+        let errorMessage = data.error || t("failedEnable");
         if (status === 502 || status === 408) {
-          errorMessage =
-            "Could not reach cloud worker. Make sure the cloud service is running (npm run dev in /cloud).";
+          errorMessage = t("cloudWorkerUnreachable");
         }
         setCloudStatus({ type: "error", message: errorMessage });
         setShowCloudModal(false);
       }
     } catch (error) {
-      setCloudStatus({ type: "error", message: error.message || "Connection failed" });
+      setCloudStatus({ type: "error", message: error.message || t("connectionFailed") });
       setShowCloudModal(false);
     } finally {
       setCloudSyncing(false);
@@ -240,16 +239,16 @@ export default function APIPageClient({ machineId }) {
 
       if (ok) {
         setCloudEnabled(false);
-        setCloudStatus({ type: "success", message: "Cloud disabled successfully" });
+        setCloudStatus({ type: "success", message: t("cloudDisabledSuccess") });
         setShowDisableModal(false);
         dispatchCloudChange();
         await loadCloudSettings();
       } else {
-        setCloudStatus({ type: "error", message: data.error || "Failed to disable cloud" });
+        setCloudStatus({ type: "error", message: data.error || t("failedDisable") });
       }
     } catch (error) {
       console.log("Error disabling cloud:", error);
-      setCloudStatus({ type: "error", message: "Failed to disable cloud" });
+      setCloudStatus({ type: "error", message: t("failedDisable") });
     } finally {
       setCloudSyncing(false);
       setSyncStep("");
@@ -263,12 +262,12 @@ export default function APIPageClient({ machineId }) {
     try {
       const { ok, data } = await postCloudAction("sync");
       if (ok) {
-        setCloudStatus({ type: "success", message: "Synced successfully" });
+        setCloudStatus({ type: "success", message: t("syncedSuccess") });
       } else {
-        setCloudStatus({ type: "error", message: data.error });
+        setCloudStatus({ type: "error", message: data.error || t("syncFailed") });
       }
     } catch (error) {
-      setCloudStatus({ type: "error", message: error.message });
+      setCloudStatus({ type: "error", message: error.message || t("syncFailed") });
     } finally {
       setCloudSyncing(false);
     }
@@ -295,24 +294,6 @@ export default function APIPageClient({ machineId }) {
 
   // Use new format endpoint (machineId embedded in key)
   const currentEndpoint = cloudEnabled ? cloudEndpointNew : baseUrl;
-
-  const cloudBenefits = [
-    { icon: "public", title: "Access Anywhere", desc: "No port forwarding needed" },
-    { icon: "group", title: "Share Endpoint", desc: "Easy team collaboration" },
-    { icon: "schedule", title: "Always Online", desc: "24/7 availability" },
-    { icon: "speed", title: "Global Edge", desc: "Fast worldwide access" },
-  ];
-
-  const quickStartLinks = [
-    { label: "Documentation", href: "/docs" },
-    { label: "OpenAI API compatibility", href: "/docs#api-reference" },
-    { label: "Cherry/Codex compatibility", href: "/docs#client-compatibility" },
-    {
-      label: "Report issue",
-      href: "https://github.com/diegosouzapw/OmniRoute/issues",
-      external: true,
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-8">
@@ -407,10 +388,9 @@ export default function APIPageClient({ machineId }) {
           <div>
             <h2 className="text-lg font-semibold">{t("available")}</h2>
             <p className="text-sm text-text-muted">
-              {Object.values(endpointData).reduce((acc, models) => acc + models.length, 0)} models
-              across{" "}
-              {
-                [
+              {t("modelsAcrossEndpoints", {
+                models: Object.values(endpointData).reduce((acc, models) => acc + models.length, 0),
+                endpoints: [
                   endpointData.chat,
                   endpointData.embeddings,
                   endpointData.images,
@@ -418,9 +398,8 @@ export default function APIPageClient({ machineId }) {
                   endpointData.audioTranscription,
                   endpointData.audioSpeech,
                   endpointData.moderation,
-                ].filter((a) => a.length > 0).length
-              }{" "}
-              endpoints
+                ].filter((a) => a.length > 0).length,
+              })}
             </p>
           </div>
         </div>
@@ -550,70 +529,6 @@ export default function APIPageClient({ machineId }) {
         </div>
       </Card>
 
-      {/* Cloud Proxy Card - Hidden */}
-      {false && (
-        <Card className={cloudEnabled ? "bg-primary/5" : ""}>
-          <div className="flex flex-col gap-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`p-2 rounded-lg ${cloudEnabled ? "bg-primary text-white" : "bg-sidebar text-text-muted"}`}
-                >
-                  <span className="material-symbols-outlined text-xl">cloud</span>
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold">Cloud Proxy</h2>
-                  <p className="text-xs text-text-muted">
-                    {cloudEnabled ? "Connected & Ready" : "Access your API from anywhere"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {cloudEnabled ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="cloud_off"
-                    onClick={() => handleCloudToggle(false)}
-                    disabled={cloudSyncing}
-                    className="bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
-                  >
-                    Disable
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    icon="cloud_upload"
-                    onClick={() => handleCloudToggle(true)}
-                    disabled={cloudSyncing}
-                    className="bg-linear-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600 px-6"
-                  >
-                    Enable Cloud
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Benefits Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {cloudBenefits.map((benefit) => (
-                <div
-                  key={benefit.title}
-                  className="flex flex-col items-center text-center p-3 rounded-lg bg-sidebar/50"
-                >
-                  <span className="material-symbols-outlined text-xl text-primary mb-1">
-                    {benefit.icon}
-                  </span>
-                  <p className="text-xs font-semibold">{benefit.title}</p>
-                  <p className="text-xs text-text-muted">{benefit.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      )}
-
       {/* Cloud Enable Modal */}
       <Modal
         isOpen={showCloudModal}
@@ -634,13 +549,12 @@ export default function APIPageClient({ machineId }) {
           </div>
 
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">Note</p>
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">
+              {tc("note")}
+            </p>
             <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-              <li>
-                • Cloud will keep your auth session for 1 day. If not used, it will be automatically
-                deleted.
-              </li>
-              <li>• Cloud is currently unstable with Claude Code OAuth in some cases.</li>
+              <li>• {t("cloudSessionNote")}</li>
+              <li>• {t("cloudUnstableNote")}</li>
             </ul>
           </div>
 
@@ -719,10 +633,10 @@ export default function APIPageClient({ machineId }) {
                 warning
               </span>
               <div>
-                <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-1">Warning</p>
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  All auth sessions will be deleted from cloud.
+                <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-1">
+                  {tc("warning")}
                 </p>
+                <p className="text-sm text-red-700 dark:text-red-300">{t("disableWarning")}</p>
               </div>
             </div>
           </div>
@@ -794,6 +708,8 @@ APIPageClient.propTypes = {
 // -- Sub-component: Provider Models Modal ------------------------------------------
 
 function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
+  const t = useTranslations("endpoint");
+  const tc = useTranslations("common");
   // Get provider alias for matching models
   // Filter out parent models (models with parent field set) to avoid showing duplicates
   const providerAlias = provider.provider.alias || provider.id;
@@ -826,13 +742,13 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
                 <code className="text-sm font-mono flex-1 truncate">{m.id}</code>
                 {m.custom && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                    custom
+                    {t("custom")}
                   </span>
                 )}
                 <button
                   onClick={() => copy(m.id, copyKey)}
                   className="p-1 hover:bg-sidebar rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Copy model ID"
+                  title={tc("copy")}
                 >
                   <span className="material-symbols-outlined text-sm">
                     {copied === copyKey ? "check" : "content_copy"}
@@ -847,17 +763,19 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`${provider.provider.name} — Models`}>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("providerModelsTitle", { provider: provider.provider.name })}
+    >
       <div className="max-h-[60vh] overflow-y-auto">
         {providerModels.length === 0 ? (
-          <p className="text-sm text-text-muted py-4 text-center">
-            No models available for this provider.
-          </p>
+          <p className="text-sm text-text-muted py-4 text-center">{t("noModelsForProvider")}</p>
         ) : (
           <>
-            {renderModelGroup("Chat", "chat", chatModels)}
-            {renderModelGroup("Embedding", "data_array", embeddingModels)}
-            {renderModelGroup("Image", "image", imageModels)}
+            {renderModelGroup(t("chat"), "chat", chatModels)}
+            {renderModelGroup(t("embedding"), "data_array", embeddingModels)}
+            {renderModelGroup(t("image"), "image", imageModels)}
           </>
         )}
       </div>
@@ -889,6 +807,7 @@ function EndpointSection({
   copied,
   baseUrl,
 }) {
+  const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
     const map = {};
     for (const m of models) {
@@ -920,7 +839,7 @@ function EndpointSection({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{title}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-              {models.length} {models.length === 1 ? "model" : "models"}
+              {t("modelsCount", { count: models.length })}
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">{description}</p>

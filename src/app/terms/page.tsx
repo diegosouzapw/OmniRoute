@@ -27,7 +27,7 @@ export default function TermsPage() {
 
         <h1 className="text-3xl font-bold mb-2">{t("termsOfService")}</h1>
         <p className="text-sm text-text-muted mb-10">
-          {t("lastUpdated", { date: "February 13, 2026" })}
+          {t("lastUpdated", { date: t("policyLastUpdatedDate") })}
         </p>
 
         <div className="space-y-8 text-text-muted leading-relaxed">

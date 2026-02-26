@@ -29,8 +29,7 @@ export default function ForbiddenPage() {
       </div>
       <h1 className="text-2xl font-semibold mb-2">{t("accessDenied")}</h1>
       <p className="text-[15px] text-[var(--text-secondary,#888)] max-w-[400px] leading-relaxed mb-8">
-        You don&apos;t have permission to access this resource. Check your API key or contact the
-        administrator.
+        {t("accessDeniedDescription")}
       </p>
       <Link
         href="/dashboard"
@@ -39,7 +38,7 @@ export default function ForbiddenPage() {
           background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
         }}
       >
-        Go to Dashboard
+        {t("goToDashboard")}
       </Link>
     </div>
   );

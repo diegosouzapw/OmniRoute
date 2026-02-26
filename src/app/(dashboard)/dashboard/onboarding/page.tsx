@@ -237,10 +237,7 @@ export default function OnboardingWizard() {
             {/* Welcome */}
             {currentStep.id === "welcome" && (
               <div className="text-center space-y-4">
-                <p className="text-text-muted">
-                  <strong className="text-text-main">OmniRoute</strong>{" "}
-                  {t("welcomeDesc").replace("OmniRoute is your local AI API proxy. ", "")}
-                </p>
+                <p className="text-text-muted">{t("welcomeDesc")}</p>
                 <div className="grid grid-cols-3 gap-3 mt-6">
                   {[
                     { icon: "swap_horiz", label: t("multiProvider") },

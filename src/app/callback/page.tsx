@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 function CallbackContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("processing");
+  const t = useTranslations("auth");
 
   useEffect(() => {
     const code = searchParams.get("code");
@@ -110,9 +111,7 @@ function CallbackContent() {
             </div>
             <h1 className="text-xl font-semibold mb-2">{t("authSuccess")}</h1>
             <p className="text-text-muted">
-              {status === "success"
-                ? "This window will close automatically..."
-                : "You can close this tab now."}
+              {status === "success" ? t("windowWillClose") : t("closeTabNow")}
             </p>
           </>
         )}
@@ -123,9 +122,7 @@ function CallbackContent() {
               <span className="material-symbols-outlined text-3xl text-yellow-600">info</span>
             </div>
             <h1 className="text-xl font-semibold mb-2">{t("copyUrl")}</h1>
-            <p className="text-text-muted mb-4">
-              Please copy the URL from the address bar and paste it in the application.
-            </p>
+            <p className="text-text-muted mb-4">{t("copyUrlManual")}</p>
             <div className="bg-surface border border-border rounded-lg p-3 text-left">
               <code className="text-xs break-all">
                 {typeof window !== "undefined" ? window.location.href : ""}
@@ -154,7 +151,7 @@ export default function CallbackPage() {
                 progress_activity
               </span>
             </div>
-            <p className="text-text-muted">Loading...</p>
+            <p className="text-text-muted">{t("loading")}</p>
           </div>
         </div>
       }

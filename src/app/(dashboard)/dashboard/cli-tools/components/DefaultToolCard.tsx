@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function DefaultToolCard({
   toolId,
@@ -15,6 +16,17 @@ export default function DefaultToolCard({
   cloudEnabled = false,
   batchStatus,
 }) {
+  const t = useTranslations("cliTools");
+  const translateOrFallback = useCallback(
+    (key, fallback, values) => {
+      try {
+        return t(key, values);
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
   const [copiedField, setCopiedField] = useState(null);
   const [showModelModal, setShowModelModal] = useState(false);
   const [modelValue, setModelValue] = useState("");
@@ -65,7 +77,7 @@ export default function DefaultToolCard({
     fetch(`/api/cli-tools/runtime/${toolId}`)
       .then((res) => res.json())
       .then((data) => setRuntimeStatus(data))
-      .catch((error) => setRuntimeStatus({ error: error?.message || "runtime_check_failed" }));
+      .catch((error) => setRuntimeStatus({ error: error?.message || t("runtimeCheckFailed") }));
   }, [isExpanded, runtimeStatus, toolId]);
 
   const replaceVars = (text) => {
@@ -74,7 +86,7 @@ export default function DefaultToolCard({
         ? selectedApiKey
         : !cloudEnabled
           ? "sk_omniroute"
-          : "your-api-key";
+          : t("yourApiKeyPlaceholder");
 
     const normalizedBaseUrl = baseUrl || "http://localhost:20128";
     const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -84,7 +96,7 @@ export default function DefaultToolCard({
     return text
       .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
       .replace(/\{\{apiKey\}\}/g, keyToUse)
-      .replace(/\{\{model\}\}/g, modelValue || "provider/model-id");
+      .replace(/\{\{model\}\}/g, modelValue || t("modelPlaceholder"));
   };
 
   const handleCopy = async (text, field) => {
@@ -128,9 +140,9 @@ export default function DefaultToolCard({
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: data.message || "Configuration saved!" });
+        setMessage({ type: "success", text: data.message || t("configurationSaved") });
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to save" });
+        setMessage({ type: "error", text: data.error || t("failedToSave") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -169,7 +181,7 @@ export default function DefaultToolCard({
           </>
         ) : (
           <span className="text-sm text-text-muted">
-            {cloudEnabled ? "No API keys - Create one in Keys page" : "sk_omniroute"}
+            {cloudEnabled ? t("noApiKeysCreateOne") : "sk_omniroute"}
           </span>
         )}
       </div>
@@ -183,7 +195,7 @@ export default function DefaultToolCard({
           type="text"
           value={modelValue}
           onChange={(e) => handleModelChange(e.target.value)}
-          placeholder="provider/model-id"
+          placeholder={t("modelPlaceholder")}
           className="flex-1 px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
         />
         <button
@@ -195,7 +207,7 @@ export default function DefaultToolCard({
               : "opacity-50 cursor-not-allowed border-border"
           }`}
         >
-          Select Model
+          {t("selectModel")}
         </button>
         {modelValue && (
           <>
@@ -210,7 +222,7 @@ export default function DefaultToolCard({
             <button
               onClick={() => handleModelChange("")}
               className="p-2 text-text-muted hover:text-red-500 rounded transition-colors"
-              title="Clear"
+              title={t("clear")}
             >
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
@@ -251,7 +263,9 @@ export default function DefaultToolCard({
           return (
             <div key={index} className={`flex items-start gap-3 p-3 rounded-lg border ${bgClass}`}>
               <span className={`material-symbols-outlined text-lg ${iconClass}`}>{icon}</span>
-              <p className={`text-sm ${textClass}`}>{note.text}</p>
+              <p className={`text-sm ${textClass}`}>
+                {translateOrFallback(`guides.${toolId}.notes.${index}`, note.text)}
+              </p>
             </div>
           );
         })}
@@ -265,7 +279,7 @@ export default function DefaultToolCard({
   };
 
   const renderGuideSteps = () => {
-    if (!tool.guideSteps) return <p className="text-text-muted text-sm">Coming soon...</p>;
+    if (!tool.guideSteps) return <p className="text-text-muted text-sm">{t("comingSoon")}</p>;
 
     return (
       <div className="flex flex-col gap-4">
@@ -274,7 +288,7 @@ export default function DefaultToolCard({
             <span className="material-symbols-outlined animate-spin text-base">
               progress_activity
             </span>
-            <span>Checking runtime...</span>
+            <span>{t("checkingRuntime")}</span>
           </div>
         )}
         {!checkingRuntime && runtimeStatus && !runtimeStatus.error && (
@@ -289,16 +303,18 @@ export default function DefaultToolCard({
             <div className="flex flex-col gap-1">
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 {runtimeStatus.reason === "not_required"
-                  ? "Guide-only integration: no local binary required"
+                  ? t("guideOnlyIntegration")
                   : runtimeStatus.installed && runtimeStatus.runnable
-                    ? "CLI runtime detected and healthy"
+                    ? t("cliRuntimeDetected")
                     : runtimeStatus.installed
-                      ? `CLI found but not runnable${runtimeStatus.reason ? ` (${runtimeStatus.reason})` : ""}`
-                      : "CLI runtime not detected"}
+                      ? t("cliFoundNotRunnable", {
+                          reason: runtimeStatus.reason ? `: ${runtimeStatus.reason}` : "",
+                        })
+                      : t("cliRuntimeNotDetected")}
               </p>
               {runtimeStatus.commandPath && (
                 <p className="text-xs text-text-muted">
-                  Binary:{" "}
+                  {t("binary")}:{" "}
                   <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                     {runtimeStatus.commandPath}
                   </code>
@@ -306,7 +322,7 @@ export default function DefaultToolCard({
               )}
               {runtimeStatus.configPath && (
                 <p className="text-xs text-text-muted">
-                  Config path:{" "}
+                  {t("configPath")}:{" "}
                   <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                     {runtimeStatus.configPath}
                   </code>
@@ -319,7 +335,7 @@ export default function DefaultToolCard({
           <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
             <span className="material-symbols-outlined text-red-500 text-lg">error</span>
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to check runtime status.
+              {t("failedCheckRuntimeStatus")}
             </p>
           </div>
         )}
@@ -334,8 +350,14 @@ export default function DefaultToolCard({
                 {item.step}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-text">{item.title}</p>
-                {item.desc && <p className="text-sm text-text-muted mt-0.5">{item.desc}</p>}
+                <p className="font-medium text-text">
+                  {translateOrFallback(`guides.${toolId}.steps.${item.step}.title`, item.title)}
+                </p>
+                {item.desc && (
+                  <p className="text-sm text-text-muted mt-0.5">
+                    {translateOrFallback(`guides.${toolId}.steps.${item.step}.desc`, item.desc)}
+                  </p>
+                )}
                 {item.type === "apiKeySelector" && renderApiKeySelector()}
                 {item.type === "modelSelector" && renderModelSelector()}
                 {item.value && (
@@ -372,7 +394,7 @@ export default function DefaultToolCard({
                 <span className="material-symbols-outlined text-sm">
                   {copiedField === "codeblock" ? "check" : "content_copy"}
                 </span>
-                {copiedField === "codeblock" ? "Copied!" : "Copy"}
+                {copiedField === "codeblock" ? t("copied") : t("copy")}
               </button>
             </div>
             <pre className="p-4 bg-bg-secondary rounded-lg border border-border overflow-x-auto">
@@ -405,8 +427,8 @@ export default function DefaultToolCard({
                   disabled={!modelValue}
                   loading={saving}
                 >
-                  <span className="material-symbols-outlined text-[14px] mr-1">save</span>Save
-                  Config
+                  <span className="material-symbols-outlined text-[14px] mr-1">save</span>
+                  {t("saveConfig")}
                 </Button>
               )}
               {tool.codeBlock && (
@@ -418,7 +440,7 @@ export default function DefaultToolCard({
                   <span className="material-symbols-outlined text-[14px] mr-1">
                     {copiedField === "codeblock" ? "check" : "content_copy"}
                   </span>
-                  {copiedField === "codeblock" ? "Copied!" : "Copy Config"}
+                  {copiedField === "codeblock" ? t("copied") : t("copyConfig")}
                 </Button>
               )}
               {modelValue && (
@@ -426,7 +448,7 @@ export default function DefaultToolCard({
                   <span className="material-symbols-outlined text-[14px] text-green-500">
                     check_circle
                   </span>
-                  Selection saved
+                  {t("selectionSaved")}
                 </span>
               )}
             </div>
@@ -496,7 +518,7 @@ export default function DefaultToolCard({
                   return (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
                       <span className="size-1.5 rounded-full bg-blue-500" />
-                      Guide
+                      {t("guide")}
                     </span>
                   );
                 }
@@ -504,7 +526,7 @@ export default function DefaultToolCard({
                   return (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                       <span className="size-1.5 rounded-full bg-green-500" />
-                      Detected
+                      {t("detected")}
                     </span>
                   );
                 }
@@ -512,7 +534,7 @@ export default function DefaultToolCard({
                   return (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-zinc-500/10 text-zinc-500 dark:text-zinc-400">
                       <span className="size-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                      Not installed
+                      {t("notInstalled")}
                     </span>
                   );
                 }
@@ -520,14 +542,16 @@ export default function DefaultToolCard({
                   return (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
                       <span className="size-1.5 rounded-full bg-yellow-500" />
-                      Not ready
+                      {t("notReady")}
                     </span>
                   );
                 }
                 return null;
               })()}
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">
+              {translateOrFallback(`toolDescriptions.${toolId}`, tool.description)}
+            </p>
           </div>
         </div>
         <span
@@ -545,7 +569,7 @@ export default function DefaultToolCard({
         onSelect={handleSelectModel}
         selectedModel={modelValue}
         activeProviders={activeProviders}
-        title="Select Model"
+        title={t("selectModel")}
       />
     </Card>
   );

@@ -32,14 +32,16 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const CB_COLORS = {
-  CLOSED: { bg: "bg-green-500/10", text: "text-green-500", label: "Healthy" },
-  OPEN: { bg: "bg-red-500/10", text: "text-red-500", label: "Open" },
-  HALF_OPEN: { bg: "bg-amber-500/10", text: "text-amber-500", label: "Half-Open" },
+const CB_STYLES = {
+  CLOSED: { bg: "bg-green-500/10", text: "text-green-500", labelKey: "healthy" },
+  OPEN: { bg: "bg-red-500/10", text: "text-red-500", labelKey: "down" },
+  HALF_OPEN: { bg: "bg-amber-500/10", text: "text-amber-500", labelKey: "recovering" },
 };
 
 export default function HealthPage() {
   const t = useTranslations("health");
+  const tc = useTranslations("common");
+  const tp = useTranslations("providers");
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -101,7 +103,8 @@ export default function HealthPage() {
     }
   };
 
-  const fmtMs = (ms) => (ms != null ? `${Math.round(ms)}ms` : "—");
+  const fmtMs = (ms) =>
+    ms != null ? t("millisecondsShort", { value: Math.round(ms) }) : t("notAvailable");
 
   if (!data && !error) {
     return (
@@ -146,7 +149,7 @@ export default function HealthPage() {
         <div className="flex items-center gap-3">
           {lastRefresh && (
             <span className="text-xs text-text-muted">
-              Updated {lastRefresh.toLocaleTimeString()}
+              {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
             </span>
           )}
           <button
@@ -155,7 +158,7 @@ export default function HealthPage() {
               fetchExtras();
             }}
             className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
-            title="Refresh"
+            title={tc("refresh")}
           >
             <span className="material-symbols-outlined text-[18px]">refresh</span>
           </button>
@@ -204,7 +207,9 @@ export default function HealthPage() {
             <span className="text-sm text-text-muted">{t("version")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">v{system.version}</p>
-          <p className="text-xs text-text-muted mt-1">Node {system.nodeVersion}</p>
+          <p className="text-xs text-text-muted mt-1">
+            {t("nodeVersion", { version: system.nodeVersion })}
+          </p>
         </Card>
 
         <Card className="p-4">
@@ -228,11 +233,13 @@ export default function HealthPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500">
               <span className="material-symbols-outlined text-[18px]">dns</span>
             </div>
-            <span className="text-sm text-text-muted">Providers</span>
+            <span className="text-sm text-text-muted">{t("providers")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{cbEntries.length}</p>
           <p className="text-xs text-text-muted mt-1">
-            {cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length} healthy
+            {t("healthyCount", {
+              count: cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length,
+            })}
           </p>
         </Card>
       </div>
@@ -248,15 +255,15 @@ export default function HealthPage() {
           {telemetry ? (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-muted">p50</span>
+                <span className="text-text-muted">{t("latencyP50")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p50)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">p95</span>
+                <span className="text-text-muted">{t("latencyP95")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p95)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">p99</span>
+                <span className="text-text-muted">{t("latencyP99")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p99)}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2 mt-2">
@@ -308,19 +315,23 @@ export default function HealthPage() {
           {signatureCache ? (
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Defaults", value: signatureCache.defaultCount, color: "text-text-muted" },
                 {
-                  label: "Tool",
+                  label: t("signatureDefaults"),
+                  value: signatureCache.defaultCount,
+                  color: "text-text-muted",
+                },
+                {
+                  label: t("signatureTool"),
                   value: `${signatureCache.tool.entries}/${signatureCache.tool.patterns}`,
                   color: "text-blue-400",
                 },
                 {
-                  label: "Family",
+                  label: t("signatureFamily"),
                   value: `${signatureCache.family.entries}/${signatureCache.family.patterns}`,
                   color: "text-purple-400",
                 },
                 {
-                  label: "Session",
+                  label: t("signatureSession"),
                   value: `${signatureCache.session.entries}/${signatureCache.session.patterns}`,
                   color: "text-cyan-400",
                 },
@@ -341,7 +352,7 @@ export default function HealthPage() {
       </div>
 
       {/* Provider Health */}
-      <Card className="p-5" role="region" aria-label="Provider health status">
+      <Card className="p-5" role="region" aria-label={t("providerHealthStatusAria")}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px] text-primary">
@@ -359,7 +370,7 @@ export default function HealthPage() {
                     ? "bg-surface/50 text-text-muted cursor-wait"
                     : "bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border border-red-500/20"
                 }`}
-                title="Reset all circuit breakers to healthy state"
+                title={t("resetAllTitle")}
               >
                 {resetting ? (
                   <>
@@ -406,7 +417,7 @@ export default function HealthPage() {
                       {t("issuesLabel")}
                     </p>
                     {unhealthy.map(([provider, cb]: [string, any]) => {
-                      const style = CB_COLORS[cb.state] || CB_COLORS.OPEN;
+                      const style = CB_STYLES[cb.state] || CB_STYLES.OPEN;
                       const providerInfo = AI_PROVIDERS[provider];
                       const displayName = providerInfo?.name || provider;
                       return (
@@ -431,14 +442,17 @@ export default function HealthPage() {
                               <span
                                 className={`text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
                               >
-                                {style.label}
+                                {t(style.labelKey)}
                               </span>
                             </div>
                             <div className="text-xs text-text-muted mt-0.5">
-                              {cb.failures} failure{cb.failures !== 1 ? "s" : ""}
+                              {cb.failures === 1
+                                ? t("failures", { count: cb.failures })
+                                : t("failuresPlural", { count: cb.failures })}
                               {cb.lastFailure && (
                                 <span className="ml-2">
-                                  · Last: {new Date(cb.lastFailure).toLocaleTimeString()}
+                                  · {t("lastFailure")}:{" "}
+                                  {new Date(cb.lastFailure).toLocaleTimeString()}
                                 </span>
                               )}
                             </div>
@@ -502,13 +516,13 @@ export default function HealthPage() {
 
             if (providerId.startsWith("openai-compatible-")) {
               const customName = providerId.replace("openai-compatible-", "");
-              displayName = `OpenAI Compatible`;
+              displayName = tp("openaiCompatibleName");
               providerInfo = { color: "#10A37F", textIcon: "OC" };
               if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
               else if (customName) displayName += ` (${customName})`;
             } else if (providerId.startsWith("anthropic-compatible-")) {
               const customName = providerId.replace("anthropic-compatible-", "");
-              displayName = `Anthropic Compatible`;
+              displayName = tp("anthropicCompatibleName");
               providerInfo = { color: "#D97757", textIcon: "AC" };
               if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
               else if (customName) displayName += ` (${customName})`;
@@ -544,7 +558,9 @@ export default function HealthPage() {
                   {t("rateLimitStatus")}
                 </h2>
                 <span className="text-xs text-text-muted">
-                  {entries.length} active limiter{entries.length !== 1 ? "s" : ""}
+                  {entries.length === 1
+                    ? t("activeLimiters", { count: entries.length })
+                    : t("activeLimitersPlural", { count: entries.length })}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -598,19 +614,19 @@ export default function HealthPage() {
                                   : "bg-green-500/10 text-green-400"
                             }`}
                           >
-                            {isQueued ? "Queued" : isActive ? "Active" : "OK"}
+                            {isQueued ? t("queued") : isActive ? tc("active") : t("ok")}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-[11px] text-text-muted">
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">schedule</span>
-                            {status.queued || 0} queued
+                            {t("queuedCount", { count: status.queued || 0 })}
                           </span>
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">
                               play_arrow
                             </span>
-                            {status.running || 0} running
+                            {t("runningCount", { count: status.running || 0 })}
                           </span>
                         </div>
                       </div>
@@ -643,7 +659,7 @@ export default function HealthPage() {
                 </div>
                 {lockout.until && (
                   <span className="text-xs text-red-400">
-                    Until {new Date(lockout.until).toLocaleTimeString()}
+                    {t("until", { time: new Date(lockout.until).toLocaleTimeString() })}
                   </span>
                 )}
               </div>

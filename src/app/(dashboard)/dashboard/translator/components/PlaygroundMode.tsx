@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
+import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -20,6 +20,7 @@ export default function PlaygroundMode() {
   const [translating, setTranslating] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState(null);
+  const templates = useMemo(() => getExampleTemplates(t), [t]);
 
   // Auto-detect format when input changes
   const detectFormatFromInput = useCallback(async (content) => {
@@ -314,7 +315,7 @@ export default function PlaygroundMode() {
             <span className="text-xs text-text-muted">{t("exampleTemplatesHint")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            {EXAMPLE_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <button
                 key={template.id}
                 onClick={() => loadTemplate(template)}

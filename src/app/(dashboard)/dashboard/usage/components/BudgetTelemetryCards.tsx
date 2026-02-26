@@ -36,15 +36,15 @@ export default function BudgetTelemetryCards() {
         {telemetry ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">p50</span>
+              <span className="text-text-muted">{t("latencyP50")}</span>
               <span className="font-mono">{fmt(telemetry.p50)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">p95</span>
+              <span className="text-text-muted">{t("latencyP95")}</span>
               <span className="font-mono">{fmt(telemetry.p95)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">p99</span>
+              <span className="text-text-muted">{t("latencyP99")}</span>
               <span className="font-mono">{fmt(telemetry.p99)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 mt-2">
