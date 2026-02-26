@@ -101,19 +101,19 @@ export default function PricingSettingsPage() {
           </p>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>Input:</strong> {t("inputTokenDesc")}
+              <strong>{t("input")}:</strong> {t("inputTokenDesc")}
             </li>
             <li>
-              <strong>Output:</strong> {t("outputTokenDesc")}
+              <strong>{t("output")}:</strong> {t("outputTokenDesc")}
             </li>
             <li>
-              <strong>Cached:</strong> {t("cachedTokenDesc")}
+              <strong>{t("cached")}:</strong> {t("cachedTokenDesc")}
             </li>
             <li>
-              <strong>Reasoning:</strong> {t("reasoningTokenDesc")}
+              <strong>{t("reasoning")}:</strong> {t("reasoningTokenDesc")}
             </li>
             <li>
-              <strong>Cache Creation:</strong> {t("cacheCreationTokenDesc")}
+              <strong>{t("cacheCreation")}:</strong> {t("cacheCreationTokenDesc")}
             </li>
           </ul>
           <p>{t("customPricingNote")}</p>
@@ -142,13 +142,13 @@ export default function PricingSettingsPage() {
                 <div key={provider} className="text-sm">
                   <span className="font-semibold">{provider.toUpperCase()}:</span>{" "}
                   <span className="text-text-muted">
-                    {Object.keys(currentPricing[provider]).length} models
+                    {Object.keys(currentPricing[provider]).length} {t("models")}
                   </span>
                 </div>
               ))}
             {Object.keys(currentPricing).length > 5 && (
               <div className="text-sm text-text-muted">
-                + {Object.keys(currentPricing).length - 5} more providers
+                + {t("moreProviders", { count: Object.keys(currentPricing).length - 5 })}
               </div>
             )}
           </div>

@@ -866,7 +866,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                           onClick={() => handleMoveUp(index)}
                           disabled={index === 0}
                           className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title="Move up"
+                          title={t("moveUp")}
                         >
                           <span className="material-symbols-outlined text-[12px]">
                             arrow_upward
@@ -876,7 +876,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                           onClick={() => handleMoveDown(index)}
                           disabled={index === models.length - 1}
                           className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title="Move down"
+                          title={t("moveDown")}
                         >
                           <span className="material-symbols-outlined text-[12px]">
                             arrow_downward
@@ -889,7 +889,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     <button
                       onClick={() => handleRemoveModel(index)}
                       className="p-0.5 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-all"
-                      title="Remove"
+                      title={t("removeModel")}
                     >
                       <span className="material-symbols-outlined text-[12px]">close</span>
                     </button>

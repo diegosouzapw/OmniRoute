@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 /**
  * BudgetTab — Batch C
@@ -14,7 +14,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
-function ProgressBar({ value, max, warningAt = 0.8 }) {
+function ProgressBar({ value, max, warningAt = 0.8, formatCurrency }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   const ratio = max > 0 ? value / max : 0;
   const color = ratio >= 1 ? "#ef4444" : ratio >= warningAt ? "#f59e0b" : "#22c55e";
@@ -22,8 +22,8 @@ function ProgressBar({ value, max, warningAt = 0.8 }) {
   return (
     <div className="w-full">
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-text-muted">${value.toFixed(2)}</span>
-        <span className="text-text-muted">${max.toFixed(2)}</span>
+        <span className="text-text-muted">{formatCurrency(value)}</span>
+        <span className="text-text-muted">{formatCurrency(max)}</span>
       </div>
       <div className="w-full h-2 rounded-full bg-surface/50 overflow-hidden">
         <div
@@ -37,6 +37,7 @@ function ProgressBar({ value, max, warningAt = 0.8 }) {
 
 export default function BudgetTab() {
   const t = useTranslations("usage");
+  const locale = useLocale();
   const [keys, setKeys] = useState([]);
   const [selectedKey, setSelectedKey] = useState(null);
   const [budget, setBudget] = useState(null);
@@ -48,6 +49,13 @@ export default function BudgetTab() {
     warningThreshold: "80",
   });
   const notify = useNotificationStore();
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
 
   // Load API keys
   useEffect(() => {
@@ -115,7 +123,9 @@ export default function BudgetTab() {
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-text-muted p-8 animate-pulse">
-        <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+          account_balance_wallet
+        </span>
         {t("loadingBudgetData")}
       </div>
     );
@@ -143,7 +153,9 @@ export default function BudgetTab() {
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-            <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              account_balance_wallet
+            </span>
           </div>
           <h3 className="text-lg font-semibold">{t("budgetManagement")}</h3>
         </div>
@@ -167,16 +179,26 @@ export default function BudgetTab() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
             <p className="text-sm text-text-muted mb-2">{t("todaysSpend")}</p>
-            <p className="text-2xl font-bold text-text-main">${dailyCost.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-text-main">{formatCurrency(dailyCost)}</p>
             {dailyLimit > 0 && (
-              <ProgressBar value={dailyCost} max={dailyLimit} warningAt={warnPct} />
+              <ProgressBar
+                value={dailyCost}
+                max={dailyLimit}
+                warningAt={warnPct}
+                formatCurrency={formatCurrency}
+              />
             )}
           </div>
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
             <p className="text-sm text-text-muted mb-2">{t("thisMonth")}</p>
-            <p className="text-2xl font-bold text-text-main">${monthlyCost.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-text-main">{formatCurrency(monthlyCost)}</p>
             {monthlyLimit > 0 && (
-              <ProgressBar value={monthlyCost} max={monthlyLimit} warningAt={warnPct} />
+              <ProgressBar
+                value={monthlyCost}
+                max={monthlyLimit}
+                warningAt={warnPct}
+                formatCurrency={formatCurrency}
+              />
             )}
           </div>
         </div>
@@ -225,13 +247,14 @@ export default function BudgetTab() {
           <div className="flex items-center gap-2">
             <span
               className="material-symbols-outlined text-[20px]"
+              aria-hidden="true"
               style={{ color: budget.budgetCheck.allowed ? "#22c55e" : "#ef4444" }}
             >
               {budget.budgetCheck.allowed ? "check_circle" : "block"}
             </span>
             <span className="text-sm">
               {budget.budgetCheck.allowed
-                ? t("budgetOk", { remaining: (budget.budgetCheck.remaining || 0).toFixed(2) })
+                ? t("budgetOk", { remaining: formatCurrency(budget.budgetCheck.remaining || 0) })
                 : t("budgetExceeded")}
             </span>
           </div>

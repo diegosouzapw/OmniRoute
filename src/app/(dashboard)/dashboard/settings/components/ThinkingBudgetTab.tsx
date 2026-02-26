@@ -1,41 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Select } from "@/shared/components";
+import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
 const MODES = [
   {
     value: "passthrough",
-    label: "Passthrough",
-    desc: "No changes — client controls thinking budget",
+    labelKey: "passthrough",
+    descKey: "passthroughDesc",
     icon: "arrow_forward",
   },
   {
     value: "auto",
-    label: "Auto",
-    desc: "Strip all thinking config — let provider decide",
+    labelKey: "auto",
+    descKey: "autoDesc",
     icon: "auto_awesome",
   },
   {
     value: "custom",
-    label: "Custom",
-    desc: "Set a fixed token budget for all requests",
+    labelKey: "custom",
+    descKey: "customDesc",
     icon: "tune",
   },
   {
     value: "adaptive",
-    label: "Adaptive",
-    desc: "Scale budget based on request complexity",
+    labelKey: "adaptive",
+    descKey: "adaptiveDesc",
     icon: "trending_up",
   },
 ];
 
 const EFFORTS = [
-  { value: "none", label: "None (0 tokens)" },
-  { value: "low", label: "Low (1K tokens)" },
-  { value: "medium", label: "Medium (10K tokens)" },
-  { value: "high", label: "High (128K tokens)" },
+  { value: "none", labelKey: "effortNone" },
+  { value: "low", labelKey: "effortLow" },
+  { value: "medium", labelKey: "effortMedium" },
+  { value: "high", labelKey: "effortHigh" },
 ];
 
 export default function ThinkingBudgetTab() {
@@ -126,9 +126,9 @@ export default function ThinkingBudgetTab() {
               <p
                 className={`text-sm font-medium ${config.mode === m.value ? "text-violet-400" : ""}`}
               >
-                {m.label}
+                {t(m.labelKey)}
               </p>
-              <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{m.desc}</p>
+              <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{t(m.descKey)}</p>
             </div>
           </button>
         ))}
@@ -179,7 +179,7 @@ export default function ThinkingBudgetTab() {
                     : "border-border/50 text-text-muted hover:border-border"
                 }`}
               >
-                {e.value.charAt(0).toUpperCase() + e.value.slice(1)}
+                {t(e.labelKey)}
               </button>
             ))}
           </div>

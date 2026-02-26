@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Input, Toggle } from "@/shared/components";
+import { Card, Button, Input } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
 const MODES = [
-  { value: "disabled", label: "Disabled", icon: "block" },
-  { value: "blacklist", label: "Blacklist", icon: "do_not_disturb" },
-  { value: "whitelist", label: "Whitelist", icon: "verified_user" },
-  { value: "whitelist-priority", label: "WL Priority", icon: "priority_high" },
+  { value: "disabled", labelKey: "ipModeDisabled", icon: "block" },
+  { value: "blacklist", labelKey: "ipModeBlacklist", icon: "do_not_disturb" },
+  { value: "whitelist", labelKey: "ipModeWhitelist", icon: "verified_user" },
+  { value: "whitelist-priority", labelKey: "ipModeWhitelistPriority", icon: "priority_high" },
 ];
 
 export default function IPFilterSection() {
@@ -48,8 +48,6 @@ export default function IPFilterSection() {
       if (res.ok) setConfig(await res.json());
     } catch {}
   };
-
-  const toggleEnabled = () => updateConfig({ enabled: !config.enabled });
 
   const setMode = (mode) => {
     if (mode === "disabled") {
@@ -112,7 +110,7 @@ export default function IPFilterSection() {
             <span
               className={`text-xs font-medium ${activeMode === m.value ? "text-red-400" : "text-text-muted"}`}
             >
-              {m.label}
+              {t(m.labelKey)}
             </span>
           </button>
         ))}
@@ -125,7 +123,7 @@ export default function IPFilterSection() {
             <div className="flex-1">
               <Input
                 label={t("addIpAddress")}
-                placeholder="192.168.1.0/24 or 10.0.*.*"
+                placeholder={t("ipAddressPlaceholder")}
                 value={newIP}
                 onChange={(e) => setNewIP(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addIP()}
@@ -159,7 +157,7 @@ export default function IPFilterSection() {
           {config.blacklist.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Blocked ({config.blacklist.length})
+                {t("blocked", { count: config.blacklist.length })}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {config.blacklist.map((ip) => (
@@ -185,7 +183,7 @@ export default function IPFilterSection() {
           {config.whitelist.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Allowed ({config.whitelist.length})
+                {t("allowed", { count: config.whitelist.length })}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {config.whitelist.map((ip) => (
@@ -211,7 +209,7 @@ export default function IPFilterSection() {
           {config.tempBans.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Temporary Bans ({config.tempBans.length})
+                {t("temporaryBans", { count: config.tempBans.length })}
               </p>
               <div className="flex flex-col gap-1.5">
                 {config.tempBans.map((ban) => (
@@ -226,7 +224,7 @@ export default function IPFilterSection() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-text-muted tabular-nums">
-                        {Math.ceil(ban.remainingMs / 60000)}m left
+                        {t("minLeft", { min: Math.ceil(ban.remainingMs / 60000) })}
                       </span>
                       <button
                         onClick={() => removeBan(ban.ip)}

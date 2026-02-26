@@ -11,6 +11,11 @@ export default function AppearanceTab() {
   const t = useTranslations("settings");
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
+  const themeOptionLabels: Record<string, string> = {
+    light: t("themeLight"),
+    dark: t("themeDark"),
+    system: t("themeSystem"),
+  };
 
   useEffect(() => {
     fetch("/api/settings")
@@ -64,7 +69,7 @@ export default function AppearanceTab() {
         <div className="pt-4 border-t border-border">
           <div
             role="tablist"
-            aria-label="Theme selection"
+            aria-label={t("themeSelectionAria")}
             className="inline-flex p-1 rounded-lg bg-black/5 dark:bg-white/5"
           >
             {["light", "dark", "system"].map((option) => (
@@ -83,7 +88,7 @@ export default function AppearanceTab() {
                 <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                   {option === "light" ? "light_mode" : option === "dark" ? "dark_mode" : "contrast"}
                 </span>
-                <span className="capitalize">{option}</span>
+                <span>{themeOptionLabels[option] || option}</span>
               </button>
             ))}
           </div>

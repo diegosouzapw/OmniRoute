@@ -146,13 +146,13 @@ export default function FallbackChainsEditor() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <Input
               label={t("modelName")}
-              placeholder="claude-sonnet-4-20250514"
+              placeholder={t("modelNamePlaceholder")}
               value={newModel}
               onChange={(e) => setNewModel(e.target.value)}
             />
             <Input
               label={t("providersCommaSeparated")}
-              placeholder="anthropic, openai, gemini"
+              placeholder={t("providersCommaSeparatedPlaceholder")}
               value={newProviders}
               onChange={(e) => setNewProviders(e.target.value)}
             />
@@ -204,7 +204,7 @@ export default function FallbackChainsEditor() {
                 <button
                   onClick={() => handleDelete(model)}
                   className="text-text-muted hover:text-red-400 transition-colors ml-2"
-                  title="Delete chain"
+                  title={t("deleteChain")}
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>

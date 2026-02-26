@@ -27,7 +27,9 @@ export default function ForgotPasswordPage() {
         <Card className="mb-4">
           <div className="flex items-start gap-4 p-2">
             <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
-              <span className="material-symbols-outlined text-[20px]">terminal</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                terminal
+              </span>
             </div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold mb-1">{t("methodCliTitle")}</h2>
@@ -44,7 +46,9 @@ export default function ForgotPasswordPage() {
         <Card className="mb-6">
           <div className="flex items-start gap-4 p-2">
             <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 text-amber-500 shrink-0 mt-0.5">
-              <span className="material-symbols-outlined text-[20px]">database</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                database
+              </span>
             </div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold mb-1">{t("methodManualTitle")}</h2>
@@ -77,7 +81,9 @@ export default function ForgotPasswordPage() {
             href="/login"
             className="text-sm text-primary hover:underline inline-flex items-center gap-1"
           >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+              arrow_back
+            </span>
             {t("backToLogin")}
           </Link>
         </div>

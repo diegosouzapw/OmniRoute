@@ -39,7 +39,7 @@ export default function SettingsPage() {
         {/* Tab navigation */}
         <div
           role="tablist"
-          aria-label="Settings sections"
+          aria-label={t("settingsSectionsAria")}
           className="inline-flex items-center p-1 rounded-lg bg-black/5 dark:bg-white/5 self-start"
         >
           {tabs.map((tab) => (

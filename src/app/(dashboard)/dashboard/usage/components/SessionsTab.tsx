@@ -54,7 +54,10 @@ export default function SessionsTab() {
 
       {data.sessions.length === 0 ? (
         <div className="text-center py-8 text-text-muted">
-          <span className="material-symbols-outlined text-[40px] mb-2 block opacity-40">
+          <span
+            className="material-symbols-outlined text-[40px] mb-2 block opacity-40"
+            aria-hidden="true"
+          >
             fingerprint
           </span>
           <p className="text-sm">{t("noSessions")}</p>

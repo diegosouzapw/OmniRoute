@@ -21,6 +21,20 @@ export default function ComboDefaultsTab() {
   const [saving, setSaving] = useState(false);
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const strategyOptions = [
+    { value: "priority", label: t("priority"), icon: "sort" },
+    { value: "weighted", label: t("weighted"), icon: "percent" },
+    { value: "round-robin", label: t("roundRobin"), icon: "autorenew" },
+    { value: "random", label: t("random"), icon: "shuffle" },
+    { value: "least-used", label: t("leastUsed"), icon: "low_priority" },
+    { value: "cost-optimized", label: t("costOpt"), icon: "savings" },
+  ];
+  const numericSettings = [
+    { key: "maxRetries", label: t("maxRetriesLabel"), min: 0, max: 5 },
+    { key: "retryDelayMs", label: t("retryDelayLabel"), min: 500, max: 10000, step: 500 },
+    { key: "timeoutMs", label: t("timeoutLabel"), min: 5000, max: 300000, step: 5000 },
+    { key: "maxComboDepth", label: t("maxNestingDepth"), min: 1, max: 10 },
+  ];
 
   useEffect(() => {
     fetch("/api/settings/combo-defaults")
@@ -82,17 +96,10 @@ export default function ComboDefaultsTab() {
           </div>
           <div
             role="tablist"
-            aria-label="Combo strategy"
+            aria-label={t("comboStrategyAria")}
             className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-black/5 dark:bg-white/5"
           >
-            {[
-              { value: "priority", label: "Priority", icon: "sort" },
-              { value: "weighted", label: "Weighted", icon: "percent" },
-              { value: "round-robin", label: "Round-Robin", icon: "autorenew" },
-              { value: "random", label: "Random", icon: "shuffle" },
-              { value: "least-used", label: "Least-Used", icon: "low_priority" },
-              { value: "cost-optimized", label: "Cost-Opt", icon: "savings" },
-            ].map((s) => (
+            {strategyOptions.map((s) => (
               <button
                 key={s.value}
                 role="tab"
@@ -114,12 +121,7 @@ export default function ComboDefaultsTab() {
 
         {/* Numeric settings */}
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
-          {[
-            { key: "maxRetries", label: "Max Retries", min: 0, max: 5 },
-            { key: "retryDelayMs", label: "Retry Delay (ms)", min: 500, max: 10000, step: 500 },
-            { key: "timeoutMs", label: "Timeout (ms)", min: 5000, max: 300000, step: 5000 },
-            { key: "maxComboDepth", label: "Max Nesting Depth", min: 1, max: 10 },
-          ].map(({ key, label, min, max, step }) => (
+          {numericSettings.map(({ key, label, min, max, step }) => (
             <Input
               key={key}
               label={label}
@@ -140,7 +142,7 @@ export default function ComboDefaultsTab() {
         {comboDefaults.strategy === "round-robin" && (
           <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
             <Input
-              label="Concurrency / Model"
+              label={t("concurrencyPerModel")}
               type="number"
               min={1}
               max={20}
@@ -155,7 +157,7 @@ export default function ComboDefaultsTab() {
               className="text-sm"
             />
             <Input
-              label="Queue Timeout (ms)"
+              label={t("queueTimeout")}
               type="number"
               min={1000}
               max={120000}
@@ -227,7 +229,7 @@ export default function ComboDefaultsTab() {
                   }))
                 }
                 className="text-xs w-16"
-                aria-label={`${provider} max retries`}
+                aria-label={t("providerMaxRetriesAria", { provider })}
               />
               <span className="text-[10px] text-text-muted">{t("retries")}</span>
               <Input
@@ -246,13 +248,13 @@ export default function ComboDefaultsTab() {
                   }))
                 }
                 className="text-xs w-24"
-                aria-label={`${provider} timeout ms`}
+                aria-label={t("providerTimeoutAria", { provider })}
               />
               <span className="text-[10px] text-text-muted">{t("ms")}</span>
               <button
                 onClick={() => removeProviderOverride(provider)}
                 className="ml-auto text-red-400 hover:text-red-500 transition-colors"
-                aria-label={`Remove ${provider} override`}
+                aria-label={t("removeProviderOverrideAria", { provider })}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                   close
@@ -264,12 +266,12 @@ export default function ComboDefaultsTab() {
           <div className="flex items-center gap-2 mt-2">
             <Input
               type="text"
-              placeholder="e.g. google, openai..."
+              placeholder={t("newProviderNamePlaceholder")}
               value={newOverrideProvider}
               onChange={(e) => setNewOverrideProvider(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addProviderOverride()}
               className="text-xs flex-1"
-              aria-label="New provider name"
+              aria-label={t("newProviderNameAria")}
             />
             <Button
               variant="outline"

@@ -18,6 +18,8 @@ export default function LiveMonitorMode() {
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const intervalRef = useRef(null);
+  const notAvailable = t("notAvailableSymbol");
+  const formatLatency = (value) => t("millisecondsShort", { value });
 
   const fetchHistory = async () => {
     try {
@@ -55,7 +57,10 @@ export default function LiveMonitorMode() {
     <div className="space-y-5">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
-        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
+        <span
+          className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0"
+          aria-hidden="true"
+        >
           info
         </span>
         <div>
@@ -79,7 +84,12 @@ export default function LiveMonitorMode() {
         />
         <StatCard icon="check_circle" label={t("successful")} value={successCount} color="green" />
         <StatCard icon="error" label={t("errors")} value={errorCount} color="red" />
-        <StatCard icon="speed" label={t("avgLatency")} value={`${avgLatency}ms`} color="purple" />
+        <StatCard
+          icon="speed"
+          label={t("avgLatency")}
+          value={formatLatency(avgLatency)}
+          color="purple"
+        />
       </div>
 
       {/* Controls */}
@@ -88,6 +98,7 @@ export default function LiveMonitorMode() {
           <div className="flex items-center gap-2">
             <span
               className={`material-symbols-outlined text-[18px] ${autoRefresh ? "text-green-500 animate-pulse" : "text-text-muted"}`}
+              aria-hidden="true"
             >
               {autoRefresh ? "radio_button_checked" : "radio_button_unchecked"}
             </span>
@@ -102,7 +113,9 @@ export default function LiveMonitorMode() {
             onClick={fetchHistory}
             className="flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+              refresh
+            </span>
             {tc("refresh")}
           </button>
         </div>
@@ -115,12 +128,17 @@ export default function LiveMonitorMode() {
 
           {loading ? (
             <div className="flex items-center justify-center py-12 text-text-muted">
-              <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+              <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
+                progress_activity
+              </span>
               {tc("loading")}
             </div>
           ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-text-muted">
-              <span className="material-symbols-outlined text-[48px] mb-3 opacity-30">
+              <span
+                className="material-symbols-outlined text-[48px] mb-3 opacity-30"
+                aria-hidden="true"
+              >
                 monitoring
               </span>
               <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
@@ -172,7 +190,9 @@ export default function LiveMonitorMode() {
                         className="border-b border-border/50 hover:bg-bg-subtle/50 transition-colors"
                       >
                         <td className="py-2 pr-4 text-xs text-text-muted whitespace-nowrap">
-                          {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : "—"}
+                          {event.timestamp
+                            ? new Date(event.timestamp).toLocaleTimeString()
+                            : notAvailable}
                         </td>
                         <td className="py-2 pr-4">
                           <Badge variant="default" size="sm">
@@ -180,7 +200,10 @@ export default function LiveMonitorMode() {
                           </Badge>
                         </td>
                         <td className="py-2 pr-4 text-text-muted">
-                          <span className="material-symbols-outlined text-[14px]">
+                          <span
+                            className="material-symbols-outlined text-[14px]"
+                            aria-hidden="true"
+                          >
                             arrow_forward
                           </span>
                         </td>
@@ -190,7 +213,7 @@ export default function LiveMonitorMode() {
                           </Badge>
                         </td>
                         <td className="py-2 pr-4 text-xs font-mono text-text-muted">
-                          {event.model || "—"}
+                          {event.model || notAvailable}
                         </td>
                         <td className="py-2 pr-4">
                           {event.status === "success" ? (
@@ -204,7 +227,7 @@ export default function LiveMonitorMode() {
                           )}
                         </td>
                         <td className="py-2 text-right text-xs text-text-muted">
-                          {event.latency ? `${event.latency}ms` : "—"}
+                          {event.latency ? formatLatency(event.latency) : notAvailable}
                         </td>
                       </tr>
                     );
@@ -224,7 +247,12 @@ function StatCard({ icon, label, value, color }) {
     <Card>
       <div className="p-4 flex items-center gap-3">
         <div className={`flex items-center justify-center w-10 h-10 rounded-lg bg-${color}-500/10`}>
-          <span className={`material-symbols-outlined text-[22px] text-${color}-500`}>{icon}</span>
+          <span
+            className={`material-symbols-outlined text-[22px] text-${color}-500`}
+            aria-hidden="true"
+          >
+            {icon}
+          </span>
         </div>
         <div>
           <p className="text-lg font-bold text-text-main">{value}</p>

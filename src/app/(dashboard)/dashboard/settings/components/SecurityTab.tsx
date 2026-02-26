@@ -188,14 +188,7 @@ export default function SecurityTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">{t("requireAuthModels")}</p>
-              <p className="text-sm text-text-muted">
-                When ON, the{" "}
-                <code className="text-xs bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">
-                  /v1/models
-                </code>{" "}
-                endpoint returns 404 for unauthenticated requests. Prevents model discovery by
-                unauthorized users.
-              </p>
+              <p className="text-sm text-text-muted">{t("requireAuthModelsDesc")}</p>
             </div>
             <Toggle
               checked={settings.requireAuthForModels === true}
@@ -208,13 +201,7 @@ export default function SecurityTab() {
           <div className="pt-4 border-t border-border/50">
             <div className="mb-3">
               <p className="font-medium">{t("blockedProviders")}</p>
-              <p className="text-sm text-text-muted">
-                Hide specific providers from the{" "}
-                <code className="text-xs bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">
-                  /v1/models
-                </code>{" "}
-                response. Blocked providers will not appear in model listings.
-              </p>
+              <p className="text-sm text-text-muted">{t("blockedProvidersDesc")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {Object.values(AI_PROVIDERS).map((provider: any) => {
@@ -229,7 +216,11 @@ export default function SecurityTab() {
                         ? "bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400"
                         : "bg-black/[0.02] dark:bg-white/[0.02] border-transparent text-text-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
                     }`}
-                    title={isBlocked ? `Unblock ${provider.name}` : `Block ${provider.name}`}
+                    title={
+                      isBlocked
+                        ? t("unblockProviderTitle", { provider: provider.name })
+                        : t("blockProviderTitle", { provider: provider.name })
+                    }
                   >
                     <span
                       className="material-symbols-outlined text-[14px]"
@@ -250,8 +241,7 @@ export default function SecurityTab() {
             {blockedProviders.length > 0 && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
                 <span className="material-symbols-outlined text-[14px]">warning</span>
-                {blockedProviders.length} provider{blockedProviders.length !== 1 ? "s" : ""} blocked
-                from /models
+                {t("providersBlocked", { count: blockedProviders.length })}
               </p>
             )}
           </div>

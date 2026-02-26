@@ -2664,7 +2664,7 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
           label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder={isAnthropic ? "ac-prod" : "oc-prod"}
+          placeholder={isAnthropic ? t("anthropicPrefixPlaceholder") : t("openaiPrefixPlaceholder")}
           hint={t("prefixHint")}
         />
         {!isAnthropic && (
@@ -2679,7 +2679,9 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
           label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder={isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"}
+          placeholder={
+            isAnthropic ? t("anthropicBaseUrlPlaceholder") : t("openaiBaseUrlPlaceholder")
+          }
           hint={t("compatibleBaseUrlHint", {
             type: isAnthropic ? t("anthropic") : t("openai"),
           })}

@@ -94,7 +94,7 @@ export default function NewProviderPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Provider Selection */}
           <Select
-            label="Provider"
+            label={t("providerLabel")}
             options={providerOptions}
             value={formData.provider}
             onChange={(e) => handleChange("provider", e.target.value)}
@@ -141,7 +141,9 @@ export default function NewProviderPage() {
                   <span className="material-symbols-outlined">
                     {method.value === "api_key" ? "key" : "lock"}
                   </span>
-                  <span className="font-medium">{method.label}</span>
+                  <span className="font-medium">
+                    {method.value === "api_key" ? t("apiKeyLabel") : t("oauth2Label")}
+                  </span>
                 </button>
               ))}
             </div>
@@ -150,7 +152,7 @@ export default function NewProviderPage() {
           {/* API Key Input */}
           {formData.authMethod === "api_key" && (
             <Input
-              label="API Key"
+              label={t("apiKeyLabel")}
               type="password"
               placeholder={t("enterApiKey")}
               value={formData.apiKey}
@@ -173,11 +175,11 @@ export default function NewProviderPage() {
 
           {/* Display Name */}
           <Input
-            label="Display Name"
-            placeholder="e.g., Production API, Dev Environment"
+            label={t("displayName")}
+            placeholder={t("displayNamePlaceholder")}
             value={formData.displayName}
             onChange={(e) => handleChange("displayName", e.target.value)}
-            hint="Optional. A friendly name to identify this configuration."
+            hint={t("displayNameHint")}
           />
 
           {/* Active Toggle */}

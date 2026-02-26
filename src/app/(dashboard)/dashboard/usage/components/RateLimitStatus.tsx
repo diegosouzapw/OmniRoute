@@ -56,7 +56,10 @@ export default function RateLimitStatus() {
 
         {data.lockouts.length === 0 ? (
           <div className="text-center py-6 text-text-muted">
-            <span className="material-symbols-outlined text-[32px] mb-2 block opacity-40">
+            <span
+              className="material-symbols-outlined text-[32px] mb-2 block opacity-40"
+              aria-hidden="true"
+            >
               lock_open
             </span>
             <p className="text-sm">{t("noLockouts")}</p>
@@ -70,7 +73,10 @@ export default function RateLimitStatus() {
                            bg-orange-500/5 border border-orange-500/15"
               >
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[16px] text-orange-400">
+                  <span
+                    className="material-symbols-outlined text-[16px] text-orange-400"
+                    aria-hidden="true"
+                  >
                     lock
                   </span>
                   <div>

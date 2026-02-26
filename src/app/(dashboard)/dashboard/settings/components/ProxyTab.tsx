@@ -79,7 +79,7 @@ export default function ProxyTab() {
         isOpen={proxyModalOpen}
         onClose={() => setProxyModalOpen(false)}
         level="global"
-        levelLabel="Global"
+        levelLabel={t("globalLabel")}
         onSaved={loadGlobalProxy}
       />
     </>

@@ -32,7 +32,7 @@ export default function SessionInfoCard() {
       const loginTime = sessionStorage.getItem("omniroute_login_time");
       const now = Date.now();
 
-      let sessionAge = "Unknown";
+      let sessionAge = t("unknown");
       if (loginTime) {
         const elapsed = now - parseInt(loginTime, 10);
         const hours = Math.floor(elapsed / 3600000);
@@ -61,7 +61,7 @@ export default function SessionInfoCard() {
         loginTime: loginTime ? new Date(parseInt(loginTime, 10)).toLocaleString() : null,
         sessionAge,
         ipAddress: "—", // Server-side only
-        userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || "Unknown",
+        userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || t("unknown"),
       });
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export default function SessionInfoCard() {
         <h3 className="text-lg font-semibold">{t("session")}</h3>
       </div>
 
-      <div className="flex flex-col gap-3" role="list" aria-label="Session details">
+      <div className="flex flex-col gap-3" role="list" aria-label={t("sessionDetailsAria")}>
         <div className="flex justify-between items-center text-sm" role="listitem">
           <span className="text-text-muted">{t("status")}</span>
           <span className="flex items-center gap-1.5">

@@ -1,30 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Input, Toggle, Button } from "@/shared/components";
+import { Card, Input, Button } from "@/shared/components";
 import FallbackChainsEditor from "./FallbackChainsEditor";
 import { useTranslations } from "next-intl";
 
 const STRATEGIES = [
   {
     value: "fill-first",
-    label: "Fill First",
-    desc: "Use accounts in priority order",
+    labelKey: "fillFirst",
+    descKey: "fillFirstDesc",
     icon: "vertical_align_top",
   },
-  { value: "round-robin", label: "Round Robin", desc: "Cycle through all accounts", icon: "loop" },
-  { value: "p2c", label: "P2C", desc: "Pick 2 random, use the healthier one", icon: "balance" },
-  { value: "random", label: "Random", desc: "Random account each request", icon: "shuffle" },
+  { value: "round-robin", labelKey: "roundRobin", descKey: "roundRobinDesc", icon: "loop" },
+  { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "balance" },
+  { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
   {
     value: "least-used",
-    label: "Least Used",
-    desc: "Pick least recently used account",
+    labelKey: "leastUsed",
+    descKey: "leastUsedDesc",
     icon: "low_priority",
   },
   {
     value: "cost-optimized",
-    label: "Cost Opt",
-    desc: "Prefer cheapest available account",
+    labelKey: "costOpt",
+    descKey: "costOptDesc",
     icon: "savings",
   },
 ];
@@ -36,6 +36,14 @@ export default function RoutingTab() {
   const [newPattern, setNewPattern] = useState("");
   const [newTarget, setNewTarget] = useState("");
   const t = useTranslations("settings");
+  const strategyHintKeyByValue: Record<string, string> = {
+    "fill-first": "fillFirstDesc",
+    "round-robin": "roundRobinDesc",
+    p2c: "p2cDesc",
+    random: "randomDesc",
+    "least-used": "leastUsedDesc",
+    "cost-optimized": "costOptDesc",
+  };
 
   useEffect(() => {
     fetch("/api/settings")
@@ -114,9 +122,9 @@ export default function RoutingTab() {
                 <p
                   className={`text-sm font-medium ${settings.fallbackStrategy === s.value ? "text-blue-400" : ""}`}
                 >
-                  {s.label}
+                  {t(s.labelKey)}
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">{s.desc}</p>
+                <p className="text-xs text-text-muted mt-0.5">{t(s.descKey)}</p>
               </div>
             </button>
           ))}
@@ -141,18 +149,7 @@ export default function RoutingTab() {
         )}
 
         <p className="text-xs text-text-muted italic pt-3 border-t border-border/30 mt-3">
-          {settings.fallbackStrategy === "round-robin" &&
-            `Distributing requests across accounts with ${settings.stickyRoundRobinLimit || 3} calls per account.`}
-          {settings.fallbackStrategy === "fill-first" &&
-            "Using accounts in priority order (Fill First)."}
-          {settings.fallbackStrategy === "p2c" &&
-            "Power of Two Choices: picks 2 random accounts and routes to the healthier one."}
-          {settings.fallbackStrategy === "random" &&
-            "Randomly selects an available account for each request."}
-          {settings.fallbackStrategy === "least-used" &&
-            "Picks the account that was used least recently."}
-          {settings.fallbackStrategy === "cost-optimized" &&
-            "Prefers accounts with the lowest cost (priority-based, extensible with actual cost data)."}
+          {t(strategyHintKeyByValue[settings.fallbackStrategy] || "fillFirstDesc")}
         </p>
       </Card>
 
@@ -199,7 +196,7 @@ export default function RoutingTab() {
           <div className="flex-1">
             <Input
               label={t("pattern")}
-              placeholder="claude-sonnet-*"
+              placeholder={t("aliasPatternPlaceholder")}
               value={newPattern}
               onChange={(e) => setNewPattern(e.target.value)}
             />
@@ -207,7 +204,7 @@ export default function RoutingTab() {
           <div className="flex-1">
             <Input
               label={t("targetModel")}
-              placeholder="claude-sonnet-4-20250514"
+              placeholder={t("aliasTargetPlaceholder")}
               value={newTarget}
               onChange={(e) => setNewTarget(e.target.value)}
             />
