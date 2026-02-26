@@ -1236,3 +1236,4 @@ docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
   <br/>
   <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
+<!-- GitHub Discussions enabled for community Q&A -->
