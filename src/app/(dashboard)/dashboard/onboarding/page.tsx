@@ -24,6 +24,7 @@ export default function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [apiEndpoint, setApiEndpoint] = useState("http://localhost:20128/api/v1");
 
   // Security step state
   const [password, setPassword] = useState("");
@@ -42,11 +43,20 @@ export default function OnboardingWizard() {
 
   // Check if setup is already complete
   useEffect(() => {
+    const resolveApiEndpoint = (apiPort) => {
+      if (typeof window === "undefined") return;
+      const protocol = window.location.protocol;
+      const hostname = window.location.hostname;
+      const effectiveApiPort = apiPort || 20128;
+      setApiEndpoint(`${protocol}//${hostname}:${effectiveApiPort}/api/v1`);
+    };
+
     const checkSetup = async () => {
       try {
         const res = await fetch("/api/settings");
         if (res.ok) {
           const settings = await res.json();
+          resolveApiEndpoint(settings?.apiPort);
           if (settings.setupComplete) {
             router.replace("/dashboard");
             return;
@@ -396,7 +406,7 @@ export default function OnboardingWizard() {
                 </p>
                 <div className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.06] text-left">
                   <p className="text-xs text-text-muted mb-2 font-medium">Your endpoint:</p>
-                  <code className="text-sm text-primary">http://localhost:20128/api/v1</code>
+                  <code className="text-sm text-primary">{apiEndpoint}</code>
                 </div>
               </div>
             )}

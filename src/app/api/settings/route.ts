@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import bcrypt from "bcryptjs";
 import { updateSettingsSchema, validateBody } from "@/shared/validation/schemas";
+import { getRuntimePorts } from "@/lib/runtime/ports";
 
 export async function GET() {
   try {
@@ -9,11 +10,15 @@ export async function GET() {
     const { password, ...safeSettings } = settings;
 
     const enableRequestLogs = process.env.ENABLE_REQUEST_LOGS === "true";
+    const runtimePorts = getRuntimePorts();
 
     return NextResponse.json({
       ...safeSettings,
       enableRequestLogs,
       hasPassword: !!password || !!process.env.INITIAL_PASSWORD,
+      runtimePorts,
+      apiPort: runtimePorts.apiPort,
+      dashboardPort: runtimePorts.dashboardPort,
     });
   } catch (error) {
     console.log("Error getting settings:", error);

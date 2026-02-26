@@ -30,6 +30,7 @@ export default function CLIToolsPageClient({ machineId }) {
   const [apiKeys, setApiKeys] = useState([]);
   const [toolStatuses, setToolStatuses] = useState({});
   const [statusesLoaded, setStatusesLoaded] = useState(false);
+  const [apiBaseUrl, setApiBaseUrl] = useState("");
 
   useEffect(() => {
     fetchConnections();
@@ -44,6 +45,12 @@ export default function CLIToolsPageClient({ machineId }) {
       if (res.ok) {
         const data = await res.json();
         setCloudEnabled(data.cloudEnabled || false);
+        if (typeof window !== "undefined") {
+          const protocol = window.location.protocol;
+          const hostname = window.location.hostname;
+          const apiPort = data?.apiPort || 20128;
+          setApiBaseUrl(`${protocol}//${hostname}:${apiPort}`);
+        }
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
@@ -140,6 +147,9 @@ export default function CLIToolsPageClient({ machineId }) {
   const getBaseUrl = () => {
     if (cloudEnabled && CLOUD_URL) {
       return CLOUD_URL;
+    }
+    if (apiBaseUrl) {
+      return apiBaseUrl;
     }
     if (typeof window !== "undefined") {
       return window.location.origin;

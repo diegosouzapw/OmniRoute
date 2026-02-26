@@ -29,6 +29,9 @@ export async function register() {
     const { initGracefulShutdown } = await import("@/lib/gracefulShutdown");
     initGracefulShutdown();
 
+    const { initApiBridgeServer } = await import("@/lib/apiBridgeServer");
+    initApiBridgeServer();
+
     // Compliance: Initialize audit_log table + cleanup expired logs
     try {
       const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");

@@ -28,7 +28,7 @@ x-common: &common
         "CMD",
         "node",
         "-e",
-        "fetch('http://127.0.0.1:20128/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
+        "const p=process.env.DASHBOARD_PORT||process.env.PORT||'20128';fetch('http://127.0.0.1:'+p+'/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
       ]
     interval: 30s
     timeout: 5s
