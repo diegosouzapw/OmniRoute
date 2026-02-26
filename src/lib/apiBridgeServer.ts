@@ -36,15 +36,21 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
     if (res.headersSent) return;
     res.writeHead(502, { "content-type": "application/json" });
     res.end(
-      JSON.stringify({ error: "api_bridge_unavailable", detail: String(error.message || error) })
+      JSON.stringify({
+        error: "api_bridge_unavailable",
+        detail: String(error.message || error),
+      })
     );
+  });
+
+  req.on("aborted", () => {
+    targetReq.destroy();
   });
 
   req.pipe(targetReq);
 }
 
 declare global {
-   
   var __omnirouteApiBridgeStarted: boolean | undefined;
 }
 
@@ -54,7 +60,7 @@ export function initApiBridgeServer(): void {
   const { apiPort, dashboardPort } = getRuntimePorts();
   if (apiPort === dashboardPort) return;
 
-  const host = process.env.API_HOST || "0.0.0.0";
+  const host = process.env.API_HOST || "127.0.0.1";
 
   const server = http.createServer((req, res) => {
     const rawUrl = req.url || "/";

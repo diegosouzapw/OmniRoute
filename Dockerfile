@@ -28,6 +28,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
+COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
 
 EXPOSE 20128
 

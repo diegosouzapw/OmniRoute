@@ -67,12 +67,12 @@ function parsePort(value, fallback) {
 let port = parsePort(process.env.PORT || "20128", 20128);
 const portIdx = args.indexOf("--port");
 if (portIdx !== -1 && args[portIdx + 1]) {
-  const parsed = parseInt(args[portIdx + 1], 10);
-  if (isNaN(parsed)) {
+  const cliPort = parsePort(args[portIdx + 1], null);
+  if (cliPort === null) {
     console.error("\x1b[31m✖ Invalid port number\x1b[0m");
     process.exit(1);
   }
-  port = parsed;
+  port = cliPort;
 }
 
 const apiPort = parsePort(process.env.API_PORT || String(port), port);

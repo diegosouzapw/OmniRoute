@@ -22,11 +22,15 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
-      - PORT=20128
+      - PORT=${PORT:-20128}
+      - DASHBOARD_PORT=${DASHBOARD_PORT:-${PORT:-20128}}
+      - API_PORT=${API_PORT:-20129}
+      - API_HOST=${API_HOST:-0.0.0.0}
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
     ports:
-      - "20130:20128"
+      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
+      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
     volumes:
       - omniroute-prod-data:/app/data
     healthcheck:

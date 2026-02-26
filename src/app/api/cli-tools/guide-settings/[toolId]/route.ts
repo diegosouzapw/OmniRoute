@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import { getRuntimePorts } from "@/lib/runtime/ports";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -37,6 +38,7 @@ export async function POST(request, { params }) {
  * Merges with existing config if present.
  */
 async function saveContinueConfig({ baseUrl, apiKey, model }) {
+  const { apiPort } = getRuntimePorts();
   const configPath = path.join(os.homedir(), ".continue", "config.json");
   const configDir = path.dirname(configPath);
 
@@ -82,8 +84,8 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
       (m.omnirouteManaged === true ||
         normalizeApiBase(m.apiBase) === normalizedBaseUrl.toLowerCase() ||
         normalizeApiBase(m.apiBase).includes("omniroute") ||
-        normalizeApiBase(m.apiBase).includes("localhost:20128") ||
-        normalizeApiBase(m.apiBase).includes("127.0.0.1:20128") ||
+        normalizeApiBase(m.apiBase).includes(`localhost:${apiPort}`) ||
+        normalizeApiBase(m.apiBase).includes(`127.0.0.1:${apiPort}`) ||
         String(m.apiKey || "")
           .toLowerCase()
           .includes("sk_omniroute"))

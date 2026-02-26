@@ -5,6 +5,8 @@
  * with the running OmniRoute server when saving tokens.
  */
 
+import { getRuntimePorts } from "@/lib/runtime/ports";
+
 interface ServerCredentials {
   server: string;
   token: string;
@@ -12,11 +14,8 @@ interface ServerCredentials {
 }
 
 function getDefaultApiServer() {
-  const basePort = Number.parseInt(process.env.OMNIROUTE_PORT || process.env.PORT || "20128", 10);
-  const fallbackPort = Number.isFinite(basePort) ? basePort : 20128;
-  const apiPort = Number.parseInt(process.env.API_PORT || String(fallbackPort), 10);
-  const effectivePort = Number.isFinite(apiPort) ? apiPort : fallbackPort;
-  return `http://localhost:${effectivePort}`;
+  const { dashboardPort } = getRuntimePorts();
+  return `http://localhost:${dashboardPort}`;
 }
 
 /**
