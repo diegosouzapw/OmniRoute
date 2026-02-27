@@ -10,6 +10,7 @@
   "files": [
     "bin/",
     "app/",
+    "scripts/postinstall.mjs",
     "README.md",
     "LICENSE"
   ],
@@ -57,6 +58,7 @@
     "test:all": "npm run test:unit && npm run test:e2e",
     "check": "npm run lint && npm run test",
     "prepublishOnly": "npm run build:cli",
+    "postinstall": "node scripts/postinstall.mjs",
     "prepare": "husky"
   },
   "dependencies": {
