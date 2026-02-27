@@ -2,6 +2,8 @@ import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
+const PROXY_TIMEOUT_MS = 30_000; // 30s timeout to prevent resource exhaustion
+
 const OPENAI_COMPAT_PATHS = [
   /^\/v1(?:\/|$)/,
   /^\/chat\/completions(?:\?|$)/,
@@ -25,12 +27,25 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
         ...req.headers,
         host: `127.0.0.1:${dashboardPort}`,
       },
+      timeout: PROXY_TIMEOUT_MS,
     },
     (targetRes) => {
       res.writeHead(targetRes.statusCode || 502, targetRes.headers);
       targetRes.pipe(res);
     }
   );
+
+  targetReq.on("timeout", () => {
+    targetReq.destroy();
+    if (res.headersSent) return;
+    res.writeHead(504, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({
+        error: "api_bridge_timeout",
+        detail: `Proxy request timed out after ${PROXY_TIMEOUT_MS}ms`,
+      })
+    );
+  });
 
   targetReq.on("error", (error) => {
     if (res.headersSent) return;

@@ -29,11 +29,12 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
+COPY --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs
 
 EXPOSE 20128
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "const p=process.env.DASHBOARD_PORT||process.env.PORT||'20128';fetch('http://127.0.0.1:'+p+'/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))"
+  CMD ["node", "healthcheck.mjs"]
 
 CMD ["node", "run-standalone.mjs"]
 
