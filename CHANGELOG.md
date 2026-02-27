@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] — 2026-02-27
+
+> ### 🔀 Feature Release — Split-Port Mode
+>
+> API and Dashboard can now run on separate ports for advanced deployment scenarios (reverse proxies, container networking, network isolation). Community contribution by [@npmSteven](https://github.com/npmSteven) — PR [#140](https://github.com/diegosouzapw/OmniRoute/pull/140).
+
+### ✨ New Features
+
+- **Split-Port Runtime** — Serve dashboard and OpenAI-compatible API on different ports via `API_PORT` and `DASHBOARD_PORT` env vars. Opt-in; single-port mode unchanged ([#140](https://github.com/diegosouzapw/OmniRoute/pull/140))
+- **API Bridge Server** — Lightweight HTTP proxy routes only OpenAI-compatible paths (`/v1`, `/chat/completions`, `/responses`, `/models`, `/codex`) on the API port, returns 404 for everything else
+- **Centralized Port Resolution** — New `src/lib/runtime/ports.ts` module ensures consistent port config across server, CLI, OAuth, and cloud sync
+- **Runtime Wrapper Scripts** — `scripts/run-next.mjs` and `scripts/run-standalone.mjs` for proper env propagation in dev and Docker modes
+
+### 🐛 Bug Fixes & Polish
+
+- Added 30s timeout to API bridge proxy requests to prevent resource exhaustion
+- Extracted healthcheck into `scripts/healthcheck.mjs` (replaces duplicated inline code)
+- CLI tools page and onboarding derive endpoints from runtime API port
+- OAuth server fallback resolves to effective dashboard port
+- Cloud sync internal URL follows dashboard port
+
+### 🔒 Security
+
+- API bridge defaults to `127.0.0.1` (not `0.0.0.0`) — network-safe by default
+- `API_HOST` env var available for explicit override when needed
+
+### 📦 Dependencies
+
+- Bump `actions/upload-artifact` from 4 to 7 ([#143](https://github.com/diegosouzapw/OmniRoute/pull/143))
+- Bump `actions/download-artifact` from 4 to 8 ([#144](https://github.com/diegosouzapw/OmniRoute/pull/144))
+
+### 🧪 Tests
+
+- Added 14 unit tests for `parsePort` and `resolveRuntimePorts`
+
+---
+
 ## [1.5.0] — 2026-02-26
 
 > ### 🌍 Massive i18n Expansion — 30 Languages
@@ -714,6 +751,7 @@ New environment variables:
 
 ---
 
+[1.6.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.0
 [1.5.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.5.0
 [1.4.11]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.11
 [1.4.10]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.10
