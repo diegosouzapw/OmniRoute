@@ -42,10 +42,10 @@
   },
   "homepage": "https://omniroute.online",
   "scripts": {
-    "dev": "next dev --webpack --port 20128",
+    "dev": "node scripts/run-next.mjs dev",
     "build": "next build --webpack",
     "build:cli": "node scripts/prepublish.mjs",
-    "start": "next start --port 20128",
+    "start": "node scripts/run-next.mjs start",
     "lint": "eslint .",
     "test": "node --import tsx/esm --test tests/unit/*.test.mjs",
     "test:unit": "node --import tsx/esm --test tests/unit/*.test.mjs",

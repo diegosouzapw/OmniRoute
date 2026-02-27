@@ -8,6 +8,9 @@ import {
   getCliPrimaryConfigPath,
 } from "@/shared/services/cliRuntime";
 import { getAllCliToolLastConfigured } from "@/lib/db/cliToolState";
+import { getRuntimePorts } from "@/lib/runtime/ports";
+
+const { apiPort } = getRuntimePorts();
 
 // Check if a tool has OmniRoute configured by reading its config file directly
 // This replaces the expensive self-referential HTTP calls to /api/cli-tools/*-settings
@@ -31,9 +34,12 @@ async function checkToolConfigStatus(toolId: string): Promise<string> {
       case "openclaw":
       case "cline":
       case "kilo":
-        // Generic check: look for any OmniRoute-related URL in the config
+        // Generic check: look for OmniRoute-specific markers in the config
         const configStr = JSON.stringify(config).toLowerCase();
-        return configStr.includes("omniroute") || configStr.includes("20128")
+        return configStr.includes("omniroute") ||
+          configStr.includes("sk_omniroute") ||
+          configStr.includes(`localhost:${apiPort}`) ||
+          configStr.includes(`127.0.0.1:${apiPort}`)
           ? "configured"
           : "not_configured";
       default:

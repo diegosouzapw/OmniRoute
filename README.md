@@ -170,12 +170,22 @@ omniroute
 
 🎉 Dashboard opens at `http://localhost:20128`
 
-| Command                 | Description                       |
-| ----------------------- | --------------------------------- |
-| `omniroute`             | Start server (default port 20128) |
-| `omniroute --port 3000` | Use custom port                   |
-| `omniroute --no-open`   | Don't auto-open browser           |
-| `omniroute --help`      | Show help                         |
+| Command                 | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
+| `omniroute --port 3000` | Set canonical/API port to 3000                              |
+| `omniroute --no-open`   | Don't auto-open browser                                     |
+| `omniroute --help`      | Show help                                                   |
+
+Optional split-port mode:
+
+```bash
+PORT=20128 DASHBOARD_PORT=20129 omniroute
+# API:       http://localhost:20128/v1
+# Dashboard: http://localhost:20129
+```
+
+When ports are split, the API port serves only OpenAI-compatible routes (`/v1`, `/chat/completions`, `/responses`, `/models`, `/codex/*`).
 
 **2. Connect a FREE provider:**
 
@@ -197,7 +207,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Settings:
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
 ---
@@ -985,9 +995,12 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - Switch primary model to GLM/MiniMax
 - Use free tier (Gemini CLI, iFlow) for non-critical tasks
 
-**Dashboard opens on wrong port**
+**Dashboard/API ports are wrong**
 
-- Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- `PORT` is the canonical base port (and API port by default)
+- `API_PORT` overrides only OpenAI-compatible API listener
+- `DASHBOARD_PORT` overrides only dashboard/Next.js listener
+- Set `NEXT_PUBLIC_BASE_URL` to your dashboard/public URL (for OAuth callbacks)
 
 **Cloud sync errors**
 

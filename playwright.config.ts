@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const dashboardPort = process.env.DASHBOARD_PORT || process.env.PORT || "20128";
+const dashboardBaseUrl = `http://localhost:${dashboardPort}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "html",
   use: {
-    baseURL: "http://localhost:20128",
+    baseURL: dashboardBaseUrl,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -20,7 +23,7 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI ? "npm start" : "npm run dev",
-    url: "http://localhost:20128",
+    url: dashboardBaseUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
