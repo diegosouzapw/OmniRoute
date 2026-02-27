@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.1] — 2026-02-27
+
+### 🐛 Bug Fixes
+
+- **Cross-platform npm install** — Added `postinstall` script to auto-rebuild `better-sqlite3` for the user's OS/architecture. Previously, the npm package shipped Linux x64 binaries that failed on Windows and macOS ([#129](https://github.com/diegosouzapw/OmniRoute/issues/129))
+
+---
+
 ## [1.6.0] — 2026-02-27
 
 > ### 🔀 Feature Release — Split-Port Mode
@@ -751,6 +759,7 @@ New environment variables:
 
 ---
 
+[1.6.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.1
 [1.6.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.0
 [1.5.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.5.0
 [1.4.11]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.4.11
