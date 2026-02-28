@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+
+import { useState, useEffect, useMemo } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
+import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import { useProviderOptions } from "../hooks/useProviderOptions";
 import { useAvailableModels } from "../hooks/useAvailableModels";
 
@@ -17,15 +19,25 @@ import { useAvailableModels } from "../hooks/useAvailableModels";
  */
 
 const SCENARIOS = [
-  { id: "simple-chat", name: "Simple Chat", icon: "chat", templateId: "simple-chat" },
-  { id: "tool-calling", name: "Tool Calling", icon: "build", templateId: "tool-calling" },
-  { id: "multi-turn", name: "Multi-turn", icon: "forum", templateId: "multi-turn" },
-  { id: "thinking", name: "Thinking", icon: "psychology", templateId: "thinking" },
-  { id: "system-prompt", name: "System Prompt", icon: "settings", templateId: "system-prompt" },
-  { id: "streaming", name: "Streaming", icon: "stream", templateId: "streaming" },
+  { id: "simple-chat", icon: "chat", templateId: "simple-chat" },
+  { id: "tool-calling", icon: "build", templateId: "tool-calling" },
+  { id: "multi-turn", icon: "forum", templateId: "multi-turn" },
+  { id: "thinking", icon: "psychology", templateId: "thinking" },
+  { id: "system-prompt", icon: "settings", templateId: "system-prompt" },
+  { id: "streaming", icon: "stream", templateId: "streaming" },
 ];
 
 export default function TestBenchMode() {
+  const t = useTranslations("translator");
+  const scenarioLabels: Record<string, string> = {
+    "simple-chat": t("scenarioSimpleChat"),
+    "tool-calling": t("scenarioToolCalling"),
+    "multi-turn": t("scenarioMultiTurn"),
+    thinking: t("scenarioThinking"),
+    "system-prompt": t("scenarioSystemPrompt"),
+    streaming: t("scenarioStreaming"),
+  };
+  const templates = useMemo(() => getExampleTemplates(t), [t]);
   const [sourceFormat, setSourceFormat] = useState("claude");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
@@ -44,13 +56,13 @@ export default function TestBenchMode() {
     const start = Date.now();
     try {
       // Find template
-      const template = EXAMPLE_TEMPLATES.find((t) => t.id === scenario.templateId);
+      const template = templates.find((item) => item.id === scenario.templateId);
       const body = template?.formats[sourceFormat] || template?.formats.openai;
 
       if (!body) {
         setResults((prev) => ({
           ...prev,
-          [scenario.id]: { status: "error", error: "No template for this format", latency: 0 },
+          [scenario.id]: { status: "error", error: t("noTemplateForFormat"), latency: 0 },
         }));
         return;
       }
@@ -73,7 +85,7 @@ export default function TestBenchMode() {
           ...prev,
           [scenario.id]: {
             status: "error",
-            error: `Translation failed: ${translateData.error}`,
+            error: t("translationFailed", { error: translateData.error }),
             latency: Date.now() - start,
           },
         }));
@@ -95,7 +107,7 @@ export default function TestBenchMode() {
           ...prev,
           [scenario.id]: {
             status: "error",
-            error: errData.error || `HTTP ${sendRes.status}`,
+            error: errData.error || t("errorMessage", { message: `HTTP ${sendRes.status}` }),
             latency,
             httpStatus: sendRes.status,
           },
@@ -140,30 +152,25 @@ export default function TestBenchMode() {
   const srcMeta = FORMAT_META[sourceFormat] || FORMAT_META.openai;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
         <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Compatibility Tester</p>
-          <p>
-            Run predefined scenarios (Simple Chat, Tool Calling, etc.) to verify translation and
-            provider compatibility. Select a source format and target provider, then run all tests
-            to see a compatibility percentage. Use this to find which features work across
-            providers.
-          </p>
+          <p className="font-medium text-text-main mb-0.5">{t("compatibilityTester")}</p>
+          <p>{t("testBenchDescription")}</p>
         </div>
       </div>
 
       {/* Controls */}
       <Card>
         <div className="p-4 flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row items-end gap-4">
+          <div className="flex flex-col sm:flex-row items-end gap-4 min-w-0">
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-                Source Format
+                {t("source")}
               </label>
               <Select
                 value={sourceFormat}
@@ -183,7 +190,7 @@ export default function TestBenchMode() {
             </div>
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-                Target Provider
+                {t("targetProvider")}
               </label>
               <Select
                 value={provider}
@@ -199,13 +206,14 @@ export default function TestBenchMode() {
               onClick={handleRunAll}
               loading={runningAll}
               disabled={runningAll}
+              className="w-full sm:w-auto"
             >
-              Run All Tests
+              {t("runAllTests")}
             </Button>
           </div>
           <div>
             <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Model
+              {t("model")}
             </label>
             <div className="relative">
               <input
@@ -213,7 +221,7 @@ export default function TestBenchMode() {
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 list="testbench-model-suggestions"
-                placeholder="Select or type a model name..."
+                placeholder={t("modelPlaceholder")}
                 className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
               />
               <datalist id="testbench-model-suggestions">
@@ -232,7 +240,7 @@ export default function TestBenchMode() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-text-main">Compatibility Report</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("compatibilityReport")}</h3>
                 <Badge
                   variant={
                     compatibility >= 80 ? "success" : compatibility >= 50 ? "warning" : "error"
@@ -244,10 +252,10 @@ export default function TestBenchMode() {
               </div>
               <div className="flex items-center gap-3 text-xs text-text-muted">
                 <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-green-500" /> {passCount} passed
+                  <span className="size-2 rounded-full bg-green-500" /> {passCount} {t("passed")}
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-red-500" /> {failCount} failed
+                  <span className="size-2 rounded-full bg-red-500" /> {failCount} {t("failed")}
                 </span>
               </div>
             </div>
@@ -296,7 +304,9 @@ export default function TestBenchMode() {
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-text-main">{scenario.name}</p>
+                      <p className="text-sm font-medium text-text-main">
+                        {scenarioLabels[scenario.id] || scenario.id}
+                      </p>
                       <p className="text-[10px] text-text-muted uppercase">
                         {srcMeta.label} →{" "}
                         {providerOptions.find((o) => o.value === provider)?.label || provider}
@@ -312,9 +322,9 @@ export default function TestBenchMode() {
                   >
                     {result.status === "pass" ? (
                       <div className="flex items-center justify-between">
-                        <span>✅ Passed</span>
+                        <span>{t("passedIconLabel")}</span>
                         <span className="text-text-muted">
-                          {result.latency}ms • {result.chunks} chunks
+                          {result.latency}ms • {result.chunks} {t("chunks")}
                         </span>
                       </div>
                     ) : (
@@ -334,7 +344,7 @@ export default function TestBenchMode() {
                   disabled={isRunning || runningAll}
                   className="w-full"
                 >
-                  {isRunning ? "Running..." : result ? "Re-run" : "Run Test"}
+                  {isRunning ? t("running") : result ? t("reRun") : t("runTest")}
                 </Button>
               </div>
             </Card>

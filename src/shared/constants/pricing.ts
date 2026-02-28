@@ -223,14 +223,14 @@ export const DEFAULT_PRICING = {
 
   // Antigravity (ag) - User-provided pricing
   ag: {
-    "gemini-3-pro-low": {
+    "gemini-3.1-pro-low": {
       input: 2.0,
       output: 12.0,
       cached: 0.25,
       reasoning: 18.0,
       cache_creation: 2.0,
     },
-    "gemini-3-pro-high": {
+    "gemini-3.1-pro-high": {
       input: 4.0,
       output: 18.0,
       cached: 0.5,
@@ -244,33 +244,12 @@ export const DEFAULT_PRICING = {
       reasoning: 4.5,
       cache_creation: 0.5,
     },
-    "gemini-2.5-flash": {
-      input: 0.3,
-      output: 2.5,
-      cached: 0.03,
-      reasoning: 3.75,
-      cache_creation: 0.3,
-    },
-    "claude-sonnet-4-5": {
+    "claude-sonnet-4-6": {
       input: 3.0,
       output: 15.0,
       cached: 0.3,
       reasoning: 22.5,
       cache_creation: 3.0,
-    },
-    "claude-sonnet-4-5-thinking": {
-      input: 3.0,
-      output: 15.0,
-      cached: 0.3,
-      reasoning: 22.5,
-      cache_creation: 3.0,
-    },
-    "claude-opus-4-5-thinking": {
-      input: 5.0,
-      output: 25.0,
-      cached: 0.5,
-      reasoning: 37.5,
-      cache_creation: 5.0,
     },
     "claude-opus-4-6-thinking": {
       input: 5.0,
@@ -278,6 +257,13 @@ export const DEFAULT_PRICING = {
       cached: 0.5,
       reasoning: 37.5,
       cache_creation: 5.0,
+    },
+    "gpt-oss-120b-medium": {
+      input: 0.5,
+      output: 2.0,
+      cached: 0.25,
+      reasoning: 3.0,
+      cache_creation: 0.5,
     },
   },
 

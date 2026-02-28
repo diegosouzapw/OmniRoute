@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { useTranslations } from "next-intl";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -31,13 +32,16 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const CB_COLORS = {
-  CLOSED: { bg: "bg-green-500/10", text: "text-green-500", label: "Healthy" },
-  OPEN: { bg: "bg-red-500/10", text: "text-red-500", label: "Open" },
-  HALF_OPEN: { bg: "bg-amber-500/10", text: "text-amber-500", label: "Half-Open" },
+const CB_STYLES = {
+  CLOSED: { bg: "bg-green-500/10", text: "text-green-500", labelKey: "healthy" },
+  OPEN: { bg: "bg-red-500/10", text: "text-red-500", labelKey: "down" },
+  HALF_OPEN: { bg: "bg-amber-500/10", text: "text-amber-500", labelKey: "recovering" },
 };
 
 export default function HealthPage() {
+  const t = useTranslations("health");
+  const tc = useTranslations("common");
+  const tp = useTranslations("providers");
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -84,12 +88,7 @@ export default function HealthPage() {
   }, [fetchHealth, fetchExtras]);
 
   const handleResetHealth = async () => {
-    if (
-      !confirm(
-        "Reset all circuit breakers to healthy state? This will clear all failure counts and restore all providers to operational status."
-      )
-    )
-      return;
+    if (!confirm(t("resetConfirm"))) return;
     setResetting(true);
     try {
       const res = await fetch("/api/monitoring/health", { method: "DELETE" });
@@ -104,14 +103,15 @@ export default function HealthPage() {
     }
   };
 
-  const fmtMs = (ms) => (ms != null ? `${Math.round(ms)}ms` : "—");
+  const fmtMs = (ms) =>
+    ms != null ? t("millisecondsShort", { value: Math.round(ms) }) : t("notAvailable");
 
   if (!data && !error) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          <p className="text-text-muted mt-4">Loading health data...</p>
+          <p className="text-text-muted mt-4">{t("loadingHealth")}</p>
         </div>
       </div>
     );
@@ -122,12 +122,12 @@ export default function HealthPage() {
       <div className="p-6">
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
           <span className="material-symbols-outlined text-red-500 text-[32px] mb-2">error</span>
-          <p className="text-red-400">Failed to load health data: {error}</p>
+          <p className="text-red-400">{t("failedToLoad", { error })}</p>
           <button
             onClick={fetchHealth}
             className="mt-4 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
           >
-            Retry
+            {t("retry")}
           </button>
         </div>
       </div>
@@ -143,15 +143,13 @@ export default function HealthPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-main">System Health</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Real-time monitoring of your OmniRoute instance
-          </p>
+          <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
+          <p className="text-sm text-text-muted mt-1">{t("description")}</p>
         </div>
         <div className="flex items-center gap-3">
           {lastRefresh && (
             <span className="text-xs text-text-muted">
-              Updated {lastRefresh.toLocaleTimeString()}
+              {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
             </span>
           )}
           <button
@@ -160,7 +158,7 @@ export default function HealthPage() {
               fetchExtras();
             }}
             className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
-            title="Refresh"
+            title={tc("refresh")}
           >
             <span className="material-symbols-outlined text-[18px]">refresh</span>
           </button>
@@ -185,7 +183,7 @@ export default function HealthPage() {
           {data.status === "healthy" ? "check_circle" : "error"}
         </span>
         <span className={data.status === "healthy" ? "text-green-400" : "text-red-400"}>
-          {data.status === "healthy" ? "All systems operational" : "System issues detected"}
+          {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
         </span>
       </div>
 
@@ -196,7 +194,7 @@ export default function HealthPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary">
               <span className="material-symbols-outlined text-[18px]">timer</span>
             </div>
-            <span className="text-sm text-text-muted">Uptime</span>
+            <span className="text-sm text-text-muted">{t("uptime")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{formatUptime(system.uptime)}</p>
         </Card>
@@ -206,10 +204,12 @@ export default function HealthPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500">
               <span className="material-symbols-outlined text-[18px]">info</span>
             </div>
-            <span className="text-sm text-text-muted">Version</span>
+            <span className="text-sm text-text-muted">{t("version")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">v{system.version}</p>
-          <p className="text-xs text-text-muted mt-1">Node {system.nodeVersion}</p>
+          <p className="text-xs text-text-muted mt-1">
+            {t("nodeVersion", { version: system.nodeVersion })}
+          </p>
         </Card>
 
         <Card className="p-4">
@@ -217,13 +217,13 @@ export default function HealthPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-purple-500/10 text-purple-500">
               <span className="material-symbols-outlined text-[18px]">memory</span>
             </div>
-            <span className="text-sm text-text-muted">Memory (RSS)</span>
+            <span className="text-sm text-text-muted">{t("memoryRss")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">
             {formatBytes(system.memoryUsage?.rss || 0)}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            Heap: {formatBytes(system.memoryUsage?.heapUsed || 0)} /{" "}
+            {t("heap")}: {formatBytes(system.memoryUsage?.heapUsed || 0)} /{" "}
             {formatBytes(system.memoryUsage?.heapTotal || 0)}
           </p>
         </Card>
@@ -233,11 +233,13 @@ export default function HealthPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500">
               <span className="material-symbols-outlined text-[18px]">dns</span>
             </div>
-            <span className="text-sm text-text-muted">Providers</span>
+            <span className="text-sm text-text-muted">{t("providers")}</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{cbEntries.length}</p>
           <p className="text-xs text-text-muted mt-1">
-            {cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length} healthy
+            {t("healthyCount", {
+              count: cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length,
+            })}
           </p>
         </Card>
       </div>
@@ -248,29 +250,29 @@ export default function HealthPage() {
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">speed</span>
-            Latency
+            {t("latency")}
           </h3>
           {telemetry ? (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-muted">p50</span>
+                <span className="text-text-muted">{t("latencyP50")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p50)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">p95</span>
+                <span className="text-text-muted">{t("latencyP95")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p95)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">p99</span>
+                <span className="text-text-muted">{t("latencyP99")}</span>
                 <span className="font-mono">{fmtMs(telemetry.p99)}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2 mt-2">
-                <span className="text-text-muted">Total requests</span>
+                <span className="text-text-muted">{t("totalRequests")}</span>
                 <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-text-muted">No data yet</p>
+            <p className="text-sm text-text-muted">{t("noDataYet")}</p>
           )}
         </Card>
 
@@ -278,29 +280,29 @@ export default function HealthPage() {
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">cached</span>
-            Prompt Cache
+            {t("promptCache")}
           </h3>
           {cache ? (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-muted">Entries</span>
+                <span className="text-text-muted">{t("entries")}</span>
                 <span className="font-mono">
                   {cache.size}/{cache.maxSize}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Hit Rate</span>
+                <span className="text-text-muted">{t("hitRate")}</span>
                 <span className="font-mono">{cache.hitRate?.toFixed(1) ?? 0}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Hits / Misses</span>
+                <span className="text-text-muted">{t("hitsMisses")}</span>
                 <span className="font-mono">
                   {cache.hits ?? 0} / {cache.misses ?? 0}
                 </span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-text-muted">No data yet</p>
+            <p className="text-sm text-text-muted">{t("noDataYet")}</p>
           )}
         </Card>
 
@@ -308,24 +310,28 @@ export default function HealthPage() {
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">database</span>
-            Signature Cache
+            {t("signatureCache")}
           </h3>
           {signatureCache ? (
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Defaults", value: signatureCache.defaultCount, color: "text-text-muted" },
                 {
-                  label: "Tool",
+                  label: t("signatureDefaults"),
+                  value: signatureCache.defaultCount,
+                  color: "text-text-muted",
+                },
+                {
+                  label: t("signatureTool"),
                   value: `${signatureCache.tool.entries}/${signatureCache.tool.patterns}`,
                   color: "text-blue-400",
                 },
                 {
-                  label: "Family",
+                  label: t("signatureFamily"),
                   value: `${signatureCache.family.entries}/${signatureCache.family.patterns}`,
                   color: "text-purple-400",
                 },
                 {
-                  label: "Session",
+                  label: t("signatureSession"),
                   value: `${signatureCache.session.entries}/${signatureCache.session.patterns}`,
                   color: "text-cyan-400",
                 },
@@ -340,19 +346,19 @@ export default function HealthPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">No data yet</p>
+            <p className="text-sm text-text-muted">{t("noDataYet")}</p>
           )}
         </Card>
       </div>
 
       {/* Provider Health */}
-      <Card className="p-5" role="region" aria-label="Provider health status">
+      <Card className="p-5" role="region" aria-label={t("providerHealthStatusAria")}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px] text-primary">
               health_and_safety
             </span>
-            Provider Health
+            {t("providerHealth")}
           </h2>
           <div className="flex items-center gap-3">
             {cbEntries.some(([, cb]: [string, any]) => cb.state !== "CLOSED") && (
@@ -364,19 +370,19 @@ export default function HealthPage() {
                     ? "bg-surface/50 text-text-muted cursor-wait"
                     : "bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border border-red-500/20"
                 }`}
-                title="Reset all circuit breakers to healthy state"
+                title={t("resetAllTitle")}
               >
                 {resetting ? (
                   <>
                     <span className="material-symbols-outlined text-[14px] animate-spin">
                       progress_activity
                     </span>
-                    Resetting...
+                    {t("resetting")}
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-[14px]">restart_alt</span>
-                    Reset All
+                    {t("resetAll")}
                   </>
                 )}
               </button>
@@ -384,22 +390,20 @@ export default function HealthPage() {
             {cbEntries.length > 0 && (
               <div className="flex items-center gap-3 text-xs text-text-muted">
                 <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-green-500" /> Healthy
+                  <span className="size-2 rounded-full bg-green-500" /> {t("healthy")}
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-amber-500" /> Recovering
+                  <span className="size-2 rounded-full bg-amber-500" /> {t("recovering")}
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-red-500" /> Down
+                  <span className="size-2 rounded-full bg-red-500" /> {t("down")}
                 </span>
               </div>
             )}
           </div>
         </div>
         {cbEntries.length === 0 ? (
-          <p className="text-sm text-text-muted text-center py-4">
-            No circuit breaker data available. Make some requests first.
-          </p>
+          <p className="text-sm text-text-muted text-center py-4">{t("noCBData")}</p>
         ) : (
           (() => {
             const unhealthy = cbEntries.filter(([, cb]: [string, any]) => cb.state !== "CLOSED");
@@ -410,10 +414,10 @@ export default function HealthPage() {
                 {unhealthy.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-red-400 uppercase tracking-wide">
-                      Issues Detected
+                      {t("issuesLabel")}
                     </p>
                     {unhealthy.map(([provider, cb]: [string, any]) => {
-                      const style = CB_COLORS[cb.state] || CB_COLORS.OPEN;
+                      const style = CB_STYLES[cb.state] || CB_STYLES.OPEN;
                       const providerInfo = AI_PROVIDERS[provider];
                       const displayName = providerInfo?.name || provider;
                       return (
@@ -438,14 +442,17 @@ export default function HealthPage() {
                               <span
                                 className={`text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
                               >
-                                {style.label}
+                                {t(style.labelKey)}
                               </span>
                             </div>
                             <div className="text-xs text-text-muted mt-0.5">
-                              {cb.failures} failure{cb.failures !== 1 ? "s" : ""}
+                              {cb.failures === 1
+                                ? t("failures", { count: cb.failures })
+                                : t("failuresPlural", { count: cb.failures })}
                               {cb.lastFailure && (
                                 <span className="ml-2">
-                                  · Last: {new Date(cb.lastFailure).toLocaleTimeString()}
+                                  · {t("lastFailure")}:{" "}
+                                  {new Date(cb.lastFailure).toLocaleTimeString()}
                                 </span>
                               )}
                             </div>
@@ -461,7 +468,7 @@ export default function HealthPage() {
                   <div>
                     {unhealthy.length > 0 && (
                       <p className="text-xs font-medium text-green-400 uppercase tracking-wide mb-2">
-                        Operational
+                        {t("operational")}
                       </p>
                     )}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
@@ -509,13 +516,13 @@ export default function HealthPage() {
 
             if (providerId.startsWith("openai-compatible-")) {
               const customName = providerId.replace("openai-compatible-", "");
-              displayName = `OpenAI Compatible`;
+              displayName = tp("openaiCompatibleName");
               providerInfo = { color: "#10A37F", textIcon: "OC" };
               if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
               else if (customName) displayName += ` (${customName})`;
             } else if (providerId.startsWith("anthropic-compatible-")) {
               const customName = providerId.replace("anthropic-compatible-", "");
-              displayName = `Anthropic Compatible`;
+              displayName = tp("anthropicCompatibleName");
               providerInfo = { color: "#D97757", textIcon: "AC" };
               if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
               else if (customName) displayName += ` (${customName})`;
@@ -548,10 +555,12 @@ export default function HealthPage() {
                   <span className="material-symbols-outlined text-[20px] text-amber-500">
                     speed
                   </span>
-                  Rate Limit Status
+                  {t("rateLimitStatus")}
                 </h2>
                 <span className="text-xs text-text-muted">
-                  {entries.length} active limiter{entries.length !== 1 ? "s" : ""}
+                  {entries.length === 1
+                    ? t("activeLimiters", { count: entries.length })
+                    : t("activeLimitersPlural", { count: entries.length })}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -605,19 +614,19 @@ export default function HealthPage() {
                                   : "bg-green-500/10 text-green-400"
                             }`}
                           >
-                            {isQueued ? "Queued" : isActive ? "Active" : "OK"}
+                            {isQueued ? t("queued") : isActive ? tc("active") : t("ok")}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-[11px] text-text-muted">
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">schedule</span>
-                            {status.queued || 0} queued
+                            {t("queuedCount", { count: status.queued || 0 })}
                           </span>
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">
                               play_arrow
                             </span>
-                            {status.running || 0} running
+                            {t("runningCount", { count: status.running || 0 })}
                           </span>
                         </div>
                       </div>
@@ -634,7 +643,7 @@ export default function HealthPage() {
         <Card className="p-5">
           <h2 className="text-lg font-semibold text-text-main mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px] text-red-500">lock</span>
-            Active Lockouts
+            {t("activeLockouts")}
           </h2>
           <div className="space-y-2">
             {lockoutEntries.map(([key, lockout]: [string, any]) => (
@@ -650,7 +659,7 @@ export default function HealthPage() {
                 </div>
                 {lockout.until && (
                   <span className="text-xs text-red-400">
-                    Until {new Date(lockout.until).toLocaleTimeString()}
+                    {t("until", { time: new Date(lockout.until).toLocaleTimeString() })}
                   </span>
                 )}
               </div>

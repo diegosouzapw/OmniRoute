@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 const CB_STATUS = {
   closed: { icon: "check_circle", color: "#22c55e", label: "Closed" },
@@ -23,6 +24,7 @@ export default function PoliciesPanel() {
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(null);
   const notify = useNotificationStore();
+  const t = useTranslations("settings");
 
   const fetchPolicies = useCallback(async () => {
     try {
@@ -56,10 +58,10 @@ export default function PoliciesPanel() {
         notify.success(`Unlocked: ${identifier}`);
         await fetchPolicies();
       } else {
-        notify.error("Failed to unlock");
+        notify.error(t("failedUnlock"));
       }
     } catch {
-      notify.error("Failed to unlock");
+      notify.error(t("failedUnlock"));
     } finally {
       setUnlocking(null);
     }
@@ -70,7 +72,7 @@ export default function PoliciesPanel() {
       <Card className="p-6 mt-6">
         <div className="flex items-center gap-2 text-text-muted animate-pulse">
           <span className="material-symbols-outlined text-[20px]">security</span>
-          Loading policies...
+          {t("loadingPolicies")}
         </div>
       </Card>
     );
@@ -88,10 +90,8 @@ export default function PoliciesPanel() {
             <span className="material-symbols-outlined text-[20px]">verified_user</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-main">Policies & Circuit Breakers</h3>
-            <p className="text-sm text-text-muted">
-              All systems operational — no lockouts or tripped breakers
-            </p>
+            <h3 className="text-lg font-semibold text-text-main">{t("policiesCircuitBreakers")}</h3>
+            <p className="text-sm text-text-muted">{t("allOperational")}</p>
           </div>
         </div>
       </Card>
@@ -106,8 +106,8 @@ export default function PoliciesPanel() {
             <span className="material-symbols-outlined text-[20px]">gpp_maybe</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-main">Policies & Circuit Breakers</h3>
-            <p className="text-sm text-text-muted">Active issues detected</p>
+            <h3 className="text-lg font-semibold text-text-main">{t("policiesCircuitBreakers")}</h3>
+            <p className="text-sm text-text-muted">{t("activeIssuesDetected")}</p>
           </div>
         </div>
         <Button size="sm" variant="ghost" onClick={fetchPolicies}>
@@ -118,7 +118,7 @@ export default function PoliciesPanel() {
       {/* Circuit Breakers */}
       {circuitBreakers.filter((cb) => cb.state !== "closed").length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-text-muted mb-2">Circuit Breakers</p>
+          <p className="text-sm font-medium text-text-muted mb-2">{t("circuitBreakers")}</p>
           <div className="flex flex-col gap-1.5">
             {circuitBreakers
               .filter((cb) => cb.state !== "closed")
@@ -162,7 +162,7 @@ export default function PoliciesPanel() {
       {/* Locked Identifiers */}
       {lockedIds.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-text-muted mb-2">Locked Identifiers</p>
+          <p className="text-sm font-medium text-text-muted mb-2">{t("lockedIdentifiers")}</p>
           <div className="flex flex-col gap-1.5">
             {lockedIds.map((id, i) => {
               const identifier = typeof id === "string" ? id : id.identifier || id.id;
@@ -187,7 +187,7 @@ export default function PoliciesPanel() {
                     disabled={unlocking === identifier}
                     className="text-xs"
                   >
-                    {unlocking === identifier ? "Unlocking..." : "Force Unlock"}
+                    {unlocking === identifier ? t("unlocking") : t("forceUnlock")}
                   </Button>
                 </div>
               );

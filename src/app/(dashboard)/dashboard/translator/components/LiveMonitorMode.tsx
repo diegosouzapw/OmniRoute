@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useRef } from "react";
 import { Card, Badge } from "@/shared/components";
 import { FORMAT_META } from "../exampleTemplates";
@@ -10,10 +12,14 @@ import { FORMAT_META } from "../exampleTemplates";
  * Polls /api/translator/history for translation events.
  */
 export default function LiveMonitorMode() {
+  const t = useTranslations("translator");
+  const tc = useTranslations("common");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const intervalRef = useRef(null);
+  const notAvailable = t("notAvailableSymbol");
+  const formatLatency = (value) => t("millisecondsShort", { value });
 
   const fetchHistory = async () => {
     try {
@@ -48,30 +54,42 @@ export default function LiveMonitorMode() {
       : 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
-        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
+        <span
+          className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0"
+          aria-hidden="true"
+        >
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Real-Time Translation Activity</p>
+          <p className="font-medium text-text-main mb-0.5">{t("realtime")}</p>
           <p>
-            Shows translation events as API calls flow through OmniRoute. Events come from the
-            in-memory buffer (resets on restart). Use{" "}
-            <strong className="text-text-main">Chat Tester</strong>,{" "}
-            <strong className="text-text-main">Test Bench</strong>, or external API calls to
-            generate events.
+            {t("liveMonitorDescriptionPrefix")}{" "}
+            <strong className="text-text-main">{t("chatTester")}</strong>,{" "}
+            <strong className="text-text-main">{t("testBench")}</strong>
+            {t("liveMonitorDescriptionSuffix")}
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon="translate" label="Total Translations" value={events.length} color="blue" />
-        <StatCard icon="check_circle" label="Successful" value={successCount} color="green" />
-        <StatCard icon="error" label="Errors" value={errorCount} color="red" />
-        <StatCard icon="speed" label="Avg Latency" value={`${avgLatency}ms`} color="purple" />
+        <StatCard
+          icon="translate"
+          label={t("totalTranslations")}
+          value={events.length}
+          color="blue"
+        />
+        <StatCard icon="check_circle" label={t("successful")} value={successCount} color="green" />
+        <StatCard icon="error" label={t("errors")} value={errorCount} color="red" />
+        <StatCard
+          icon="speed"
+          label={t("avgLatency")}
+          value={formatLatency(avgLatency)}
+          color="purple"
+        />
       </div>
 
       {/* Controls */}
@@ -80,6 +98,7 @@ export default function LiveMonitorMode() {
           <div className="flex items-center gap-2">
             <span
               className={`material-symbols-outlined text-[18px] ${autoRefresh ? "text-green-500 animate-pulse" : "text-text-muted"}`}
+              aria-hidden="true"
             >
               {autoRefresh ? "radio_button_checked" : "radio_button_unchecked"}
             </span>
@@ -87,15 +106,17 @@ export default function LiveMonitorMode() {
               onClick={() => setAutoRefresh(!autoRefresh)}
               className="text-sm text-text-main hover:text-primary transition-colors"
             >
-              {autoRefresh ? "Live — Auto-refreshing" : "Paused"}
+              {autoRefresh ? t("liveAutoRefreshing") : t("paused")}
             </button>
           </div>
           <button
             onClick={fetchHistory}
             className="flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Refresh
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+              refresh
+            </span>
+            {tc("refresh")}
           </button>
         </div>
       </Card>
@@ -103,53 +124,53 @@ export default function LiveMonitorMode() {
       {/* Events Table */}
       <Card>
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-text-main mb-3">Recent Translations</h3>
+          <h3 className="text-sm font-semibold text-text-main mb-3">{t("recentTranslations")}</h3>
 
           {loading ? (
             <div className="flex items-center justify-center py-12 text-text-muted">
-              <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-              Loading...
+              <span className="material-symbols-outlined animate-spin mr-2" aria-hidden="true">
+                progress_activity
+              </span>
+              {tc("loading")}
             </div>
           ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-text-muted">
-              <span className="material-symbols-outlined text-[48px] mb-3 opacity-30">
+              <span
+                className="material-symbols-outlined text-[48px] mb-3 opacity-30"
+                aria-hidden="true"
+              >
                 monitoring
               </span>
-              <p className="text-sm font-medium mb-1">No translations yet</p>
-              <p className="text-xs text-center max-w-sm">
-                Translation events appear here as requests flow through OmniRoute. Use any of these
-                methods to generate events:
-              </p>
+              <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
+              <p className="text-xs text-center max-w-sm">{t("eventsAppearHint")}</p>
               <div className="flex flex-wrap gap-2 mt-3 text-xs">
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  Chat Tester tab
+                  {t("chatTesterTab")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  Test Bench tab
+                  {t("testBenchTab")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  External API calls
+                  {t("externalApiCalls")}
                 </span>
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
-                  IDE/CLI integrations
+                  {t("ideCliIntegrations")}
                 </span>
               </div>
-              <p className="text-[10px] mt-3 text-text-muted/70">
-                Note: Events are stored in-memory and reset when the server restarts.
-              </p>
+              <p className="text-[10px] mt-3 text-text-muted/70">{t("inMemoryNote")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-text-muted border-b border-border">
-                    <th className="pb-2 pr-4">Time</th>
-                    <th className="pb-2 pr-4">Source</th>
+                    <th className="pb-2 pr-4">{t("time")}</th>
+                    <th className="pb-2 pr-4">{t("source")}</th>
                     <th className="pb-2 pr-4"></th>
-                    <th className="pb-2 pr-4">Target</th>
-                    <th className="pb-2 pr-4">Model</th>
-                    <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2 text-right">Latency</th>
+                    <th className="pb-2 pr-4">{t("target")}</th>
+                    <th className="pb-2 pr-4">{t("model")}</th>
+                    <th className="pb-2 pr-4">{t("status")}</th>
+                    <th className="pb-2 text-right">{t("latency")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,7 +190,9 @@ export default function LiveMonitorMode() {
                         className="border-b border-border/50 hover:bg-bg-subtle/50 transition-colors"
                       >
                         <td className="py-2 pr-4 text-xs text-text-muted whitespace-nowrap">
-                          {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : "—"}
+                          {event.timestamp
+                            ? new Date(event.timestamp).toLocaleTimeString()
+                            : notAvailable}
                         </td>
                         <td className="py-2 pr-4">
                           <Badge variant="default" size="sm">
@@ -177,7 +200,10 @@ export default function LiveMonitorMode() {
                           </Badge>
                         </td>
                         <td className="py-2 pr-4 text-text-muted">
-                          <span className="material-symbols-outlined text-[14px]">
+                          <span
+                            className="material-symbols-outlined text-[14px]"
+                            aria-hidden="true"
+                          >
                             arrow_forward
                           </span>
                         </td>
@@ -186,22 +212,22 @@ export default function LiveMonitorMode() {
                             {tgtMeta.label}
                           </Badge>
                         </td>
-                        <td className="py-2 pr-4 text-xs font-mono text-text-muted">
-                          {event.model || "—"}
+                        <td className="py-2 pr-4 text-xs font-mono text-text-muted break-all">
+                          {event.model || notAvailable}
                         </td>
                         <td className="py-2 pr-4">
                           {event.status === "success" ? (
                             <Badge variant="success" size="sm" dot>
-                              OK
+                              {t("ok")}
                             </Badge>
                           ) : (
                             <Badge variant="error" size="sm" dot>
-                              {event.statusCode || "ERR"}
+                              {event.statusCode || t("errorShort")}
                             </Badge>
                           )}
                         </td>
                         <td className="py-2 text-right text-xs text-text-muted">
-                          {event.latency ? `${event.latency}ms` : "—"}
+                          {event.latency ? formatLatency(event.latency) : notAvailable}
                         </td>
                       </tr>
                     );
@@ -221,7 +247,12 @@ function StatCard({ icon, label, value, color }) {
     <Card>
       <div className="p-4 flex items-center gap-3">
         <div className={`flex items-center justify-center w-10 h-10 rounded-lg bg-${color}-500/10`}>
-          <span className={`material-symbols-outlined text-[22px] text-${color}-500`}>{icon}</span>
+          <span
+            className={`material-symbols-outlined text-[22px] text-${color}-500`}
+            aria-hidden="true"
+          >
+            {icon}
+          </span>
         </div>
         <div>
           <p className="text-lg font-bold text-text-main">{value}</p>

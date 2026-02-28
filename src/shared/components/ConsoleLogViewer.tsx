@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * Console Log Viewer — Real-time application log viewer.
  *
@@ -42,6 +44,7 @@ const LEVEL_BG: Record<string, string> = {
 const POLL_INTERVAL = 5000; // 5 seconds
 
 export default function ConsoleLogViewer() {
+  const t = useTranslations("loggers");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +134,7 @@ export default function ConsoleLogViewer() {
           aria-label="Filter by log level"
           className="px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:outline-2 focus:outline-[var(--color-accent)]"
         >
-          <option value="all">All Levels</option>
+          <option value="all">{t("allLevels")}</option>
           <option value="debug">Debug+</option>
           <option value="info">Info+</option>
           <option value="warn">Warn+</option>
@@ -226,7 +229,7 @@ export default function ConsoleLogViewer() {
               <span className="material-symbols-outlined text-[40px] block mb-2 opacity-30">
                 terminal
               </span>
-              <p>No log entries found</p>
+              <p>{t("noLogEntries")}</p>
               <p className="text-[10px] mt-1 opacity-60">
                 Ensure LOG_TO_FILE=true is set in your .env file
               </p>

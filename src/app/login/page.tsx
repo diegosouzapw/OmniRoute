@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { Button, Input } from "@/shared/components";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,10 +69,10 @@ export default function LoginPage() {
         router.refresh();
       } else {
         const data = await res.json();
-        setError(data.error || "Invalid password");
+        setError(data.error || t("invalidPassword"));
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(t("errorOccurredRetry"));
     } finally {
       setLoading(false);
     }
@@ -83,7 +86,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 border-2 border-primary/20 rounded-full"></div>
             <div className="absolute inset-0 w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <span className="text-sm text-text-muted">Loading...</span>
+          <span className="text-sm text-text-muted">{t("loading")}</span>
         </div>
       </div>
     );
@@ -101,30 +104,25 @@ export default function LoginPage() {
                 rocket_launch
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-text-main tracking-tight">Welcome</h1>
-            <p className="text-text-muted mt-2">
-              Let&apos;s get your OmniRoute instance configured
-            </p>
+            <h1 className="text-3xl font-bold text-text-main tracking-tight">{t("welcome")}</h1>
+            <p className="text-text-muted mt-2">{t("configureInstance")}</p>
           </div>
 
           <div className="bg-surface border border-border rounded-2xl p-8 shadow-soft">
             <div className="text-center">
-              <p className="text-text-muted leading-relaxed mb-6">
-                Run the onboarding wizard to set up your password and connect your first AI
-                provider.
-              </p>
+              <p className="text-text-muted leading-relaxed mb-6">{t("runOnboardingWizard")}</p>
               <Button
                 variant="primary"
                 className="w-full h-11 text-sm font-medium"
                 onClick={() => router.push("/dashboard/onboarding")}
               >
-                Start Onboarding
+                {t("startOnboarding")}
               </Button>
             </div>
           </div>
 
           <p className="text-center text-xs text-text-muted/60 mt-8">
-            OmniRoute — Unified AI API Proxy
+            OmniRoute — {t("unifiedProxy")}
           </p>
         </div>
       </div>
@@ -144,29 +142,26 @@ export default function LoginPage() {
               </span>
             </div>
             <h1 className="text-3xl font-bold text-text-main tracking-tight">
-              Secure Your Instance
+              {t("secureYourInstance")}
             </h1>
-            <p className="text-text-muted mt-2">Password protection is not enabled</p>
+            <p className="text-text-muted mt-2">{t("passwordNotEnabled")}</p>
           </div>
 
           <div className="bg-surface border border-border rounded-2xl p-8 shadow-soft">
             <div className="text-center">
-              <p className="text-text-muted leading-relaxed mb-6">
-                Set a password to protect your dashboard and secure your API endpoints from
-                unauthorized access.
-              </p>
+              <p className="text-text-muted leading-relaxed mb-6">{t("setPasswordDescription")}</p>
               <Button
                 variant="primary"
                 className="w-full h-11 text-sm font-medium"
                 onClick={() => router.push("/dashboard/settings?tab=security")}
               >
-                Configure Password
+                {t("configurePassword")}
               </Button>
             </div>
           </div>
 
           <p className="text-center text-xs text-text-muted/60 mt-8">
-            OmniRoute — Unified AI API Proxy
+            OmniRoute — {t("unifiedAiApiProxy")}
           </p>
         </div>
       </div>
@@ -186,16 +181,16 @@ export default function LoginPage() {
               </div>
               <span className="text-xl font-semibold text-text-main tracking-tight">OmniRoute</span>
             </div>
-            <h1 className="text-2xl font-bold text-text-main tracking-tight">Sign in</h1>
-            <p className="text-text-muted mt-1.5">Enter your password to continue</p>
+            <h1 className="text-2xl font-bold text-text-main tracking-tight">{t("signIn")}</h1>
+            <p className="text-text-muted mt-1.5">{t("enterPassword")}</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-main">Password</label>
+              <label className="text-sm font-medium text-text-main">{t("password")}</label>
               <Input
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("enterPassword")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -216,7 +211,7 @@ export default function LoginPage() {
               className="w-full h-11 text-sm font-medium"
               loading={loading}
             >
-              Continue
+              {t("continue")}
             </Button>
           </form>
 
@@ -225,7 +220,7 @@ export default function LoginPage() {
               href="/forgot-password"
               className="text-sm text-text-muted hover:text-primary transition-colors"
             >
-              Forgot your password?
+              {t("forgotPassword")}
             </a>
           </div>
         </div>
@@ -237,26 +232,27 @@ export default function LoginPage() {
         >
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-text-main mb-3">Unified AI API Proxy</h2>
-              <p className="text-text-muted leading-relaxed">
-                Route requests to multiple AI providers through a single endpoint. Load balancing,
-                failover, and usage tracking built in.
-              </p>
+              <h2 className="text-2xl font-bold text-text-main mb-3">{t("unifiedAiApiProxy")}</h2>
+              <p className="text-text-muted leading-relaxed">{t("unifiedAiApiProxyDesc")}</p>
             </div>
 
             <div className="space-y-4">
               {[
                 {
                   icon: "swap_horiz",
-                  title: "Multi-Provider",
-                  desc: "OpenAI, Anthropic, Google, and more",
+                  title: t("featureMultiProviderTitle"),
+                  desc: t("featureMultiProviderDesc"),
                 },
                 {
                   icon: "speed",
-                  title: "Load Balancing",
-                  desc: "Distribute requests intelligently",
+                  title: t("featureLoadBalancingTitle"),
+                  desc: t("featureLoadBalancingDesc"),
                 },
-                { icon: "analytics", title: "Usage Tracking", desc: "Monitor costs and tokens" },
+                {
+                  icon: "analytics",
+                  title: t("featureUsageTrackingTitle"),
+                  desc: t("featureUsageTrackingDesc"),
+                },
               ].map((item) => (
                 <div
                   key={item.icon}

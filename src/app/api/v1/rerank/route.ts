@@ -4,6 +4,7 @@ import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/serv
 import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 /**
  * Handle CORS preflight
@@ -43,6 +44,10 @@ export async function POST(request) {
   if (!body.model) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, body.model);
+  if (policy.rejection) return policy.rejection;
 
   const { provider } = parseRerankModel(body.model);
   if (!provider) {

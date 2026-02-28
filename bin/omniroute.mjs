@@ -84,7 +84,7 @@ if (args.includes("--help") || args.includes("-h")) {
 
   \x1b[1mUsage:\x1b[0m
     omniroute                 Start the server
-    omniroute --port <port>   Use custom port (default: 20128)
+    omniroute --port <port>   Use custom API port (default: 20128)
     omniroute --no-open       Don't open browser automatically
     omniroute --help          Show this help
     omniroute --version       Show version
@@ -94,12 +94,12 @@ if (args.includes("--help") || args.includes("-h")) {
     Memory limit: OMNIROUTE_MEMORY_MB (default: 256)
 
   \x1b[1mAfter starting:\x1b[0m
-    Dashboard:  http://localhost:<port>
-    API:        http://localhost:<port>/v1
+    Dashboard:  http://localhost:<dashboard-port>
+    API:        http://localhost:<api-port>/v1
 
   \x1b[1mConnect your tools:\x1b[0m
     Set your CLI tool (Cursor, Cline, Codex, etc.) to use:
-    \x1b[33mhttp://localhost:20128/v1\x1b[0m
+    \x1b[33mhttp://localhost:<api-port>/v1\x1b[0m
   `);
   process.exit(0);
 }
@@ -116,16 +116,25 @@ if (args.includes("--version") || args.includes("-v")) {
   process.exit(0);
 }
 
-// Parse --port
-let port = 20128;
+function parsePort(value, fallback) {
+  const parsed = parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
+}
+
+// Parse --port (canonical/base port)
+let port = parsePort(process.env.PORT || "20128", 20128);
 const portIdx = args.indexOf("--port");
 if (portIdx !== -1 && args[portIdx + 1]) {
-  port = parseInt(args[portIdx + 1], 10);
-  if (isNaN(port)) {
+  const cliPort = parsePort(args[portIdx + 1], null);
+  if (cliPort === null) {
     console.error("\x1b[31m✖ Invalid port number\x1b[0m");
     process.exit(1);
   }
+  port = cliPort;
 }
+
+const apiPort = parsePort(process.env.API_PORT || String(port), port);
+const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
 
 const noOpen = args.includes("--no-open");
 
@@ -170,7 +179,10 @@ const memoryLimit = process.env.OMNIROUTE_MEMORY_MB || "256";
 
 const env = {
   ...process.env,
-  PORT: String(port),
+  OMNIROUTE_PORT: String(port),
+  PORT: String(dashboardPort),
+  DASHBOARD_PORT: String(dashboardPort),
+  API_PORT: String(apiPort),
   HOSTNAME: "0.0.0.0",
   NODE_ENV: "production",
   NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
@@ -229,16 +241,17 @@ process.on("SIGTERM", shutdown);
 
 // ── On ready ───────────────────────────────────────────────
 async function onReady() {
-  const url = `http://localhost:${port}`;
+  const dashboardUrl = `http://localhost:${dashboardPort}`;
+  const apiUrl = `http://localhost:${apiPort}`;
 
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m
 
-  \x1b[1m  Dashboard:\x1b[0m  ${url}
-  \x1b[1m  API Base:\x1b[0m   ${url}/v1
+  \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
+  \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
 
   \x1b[2m  Point your CLI tool (Cursor, Cline, Codex) to:\x1b[0m
-  \x1b[33m  ${url}/v1\x1b[0m
+  \x1b[33m  ${apiUrl}/v1\x1b[0m
 
   \x1b[2m  Press Ctrl+C to stop\x1b[0m
   `);
@@ -246,7 +259,7 @@ async function onReady() {
   if (!noOpen) {
     try {
       const open = await import("open");
-      await open.default(url);
+      await open.default(dashboardUrl);
     } catch {
       // open is optional — if not available, just skip
     }

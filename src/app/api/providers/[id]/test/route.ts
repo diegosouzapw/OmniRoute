@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById, updateProviderConnection, isCloudEnabled } from "@/lib/localDb";
+import {
+  getProviderConnectionById,
+  updateProviderConnection,
+  isCloudEnabled,
+  resolveProxyForConnection,
+} from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateProviderApiKey } from "@/lib/providers/validation";
@@ -8,6 +13,7 @@ import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -91,7 +97,12 @@ function toSafeMessage(value: any, fallback = "Unknown error"): string {
   return trimmed || fallback;
 }
 
-function makeDiagnosis(type: string, source: string, message: string | null, code: string | null = null) {
+function makeDiagnosis(
+  type: string,
+  source: string,
+  message: string | null,
+  code: string | null = null
+) {
   return {
     type,
     source,
@@ -100,7 +111,17 @@ function makeDiagnosis(type: string, source: string, message: string | null, cod
   };
 }
 
-function classifyFailure({ error, statusCode = null, refreshFailed = false, unsupported = false }: { error: string; statusCode?: number | null; refreshFailed?: boolean; unsupported?: boolean }) {
+function classifyFailure({
+  error,
+  statusCode = null,
+  refreshFailed = false,
+  unsupported = false,
+}: {
+  error: string;
+  statusCode?: number | null;
+  refreshFailed?: boolean;
+  unsupported?: boolean;
+}) {
   const message = toSafeMessage(error, "Connection test failed");
   const normalized = message.toLowerCase();
   const numericStatus = Number.isFinite(statusCode) ? Number(statusCode) : null;
@@ -510,6 +531,14 @@ export async function testSingleConnection(connectionId: string) {
     return { valid: false, error: "Connection not found", diagnosis: null, latencyMs: 0 };
   }
 
+  // Resolve proxy for this connection (key → combo → provider → global → direct)
+  let proxyInfo: any = null;
+  try {
+    proxyInfo = await resolveProxyForConnection(connectionId);
+  } catch (proxyErr: any) {
+    console.log(`[ConnectionTest] Failed to resolve proxy for ${connectionId}:`, proxyErr?.message);
+  }
+
   let result;
   const startTime = Date.now();
   const runtime = await getProviderRuntimeStatus(connection.provider);
@@ -522,9 +551,13 @@ export async function testSingleConnection(connectionId: string) {
       diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
-    result = await testApiKeyConnection(connection);
+    result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+      testApiKeyConnection(connection)
+    );
   } else {
-    result = await testOAuthConnection(connection);
+    result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+      testOAuthConnection(connection)
+    );
   }
 
   const latencyMs = Date.now() - startTime;
@@ -591,9 +624,9 @@ export async function testSingleConnection(connectionId: string) {
   try {
     logProxyEvent({
       status: result.valid ? "success" : "error",
-      proxy: null,
-      level: "provider-test",
-      levelId: null,
+      proxy: proxyInfo?.proxy || null,
+      level: proxyInfo?.level || "provider-test",
+      levelId: proxyInfo?.levelId || null,
       provider: connection.provider,
       targetUrl: `${connection.provider}/connection-test`,
       latencyMs,

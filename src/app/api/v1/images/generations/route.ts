@@ -6,6 +6,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 /**
  * Handle CORS preflight
@@ -74,6 +75,10 @@ export async function POST(request) {
   if (typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid prompt: expected a non-empty string");
   }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, body.model);
+  if (policy.rejection) return policy.rejection;
 
   // Parse model to get provider
   const { provider } = parseImageModel(body.model);

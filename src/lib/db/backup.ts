@@ -14,6 +14,7 @@ import {
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
+import { resetApiKeyState } from "./apiKeys";
 
 // ──────────────── Backup Config ────────────────
 
@@ -180,6 +181,9 @@ export async function restoreDbBackup(backupId) {
 
   // Close and reset current connection
   resetDbInstance();
+
+  // Clear all cached prepared statements and other state bound to the old connection
+  resetApiKeyState();
 
   // Remove main file and WAL sidecars to avoid stale frame replay after restore.
   const sqliteFilesToReplace = [

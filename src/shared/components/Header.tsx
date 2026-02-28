@@ -6,6 +6,8 @@ import Image from "next/image";
 import PropTypes from "prop-types";
 import { ThemeToggle } from "@/shared/components";
 import TokenHealthBadge from "./TokenHealthBadge";
+import LanguageSelector from "./LanguageSelector";
+import { useTranslations } from "next-intl";
 import {
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
@@ -14,7 +16,9 @@ import {
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
 
-const getPageInfo = (pathname) => {
+function usePageInfo(pathname: string | null) {
+  const t = useTranslations("header");
+
   if (!pathname) return { title: "", description: "", breadcrumbs: [] };
 
   // Provider detail page: /dashboard/providers/[id]
@@ -29,7 +33,7 @@ const getPageInfo = (pathname) => {
         title: providerInfo.name,
         description: "",
         breadcrumbs: [
-          { label: "Providers", href: "/dashboard/providers" },
+          { label: t("providers"), href: "/dashboard/providers" },
           { label: providerInfo.name, image: `/providers/${providerInfo.id}.png` },
         ],
       };
@@ -37,22 +41,22 @@ const getPageInfo = (pathname) => {
 
     if (providerId.startsWith(OPENAI_COMPATIBLE_PREFIX)) {
       return {
-        title: "OpenAI Compatible",
+        title: t("openaiCompatible"),
         description: "",
         breadcrumbs: [
-          { label: "Providers", href: "/dashboard/providers" },
-          { label: "OpenAI Compatible", image: "/providers/oai-cc.png" },
+          { label: t("providers"), href: "/dashboard/providers" },
+          { label: t("openaiCompatible"), image: "/providers/oai-cc.png" },
         ],
       };
     }
 
     if (providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX)) {
       return {
-        title: "Anthropic Compatible",
+        title: t("anthropicCompatible"),
         description: "",
         breadcrumbs: [
-          { label: "Providers", href: "/dashboard/providers" },
-          { label: "Anthropic Compatible", image: "/providers/anthropic-m.png" },
+          { label: t("providers"), href: "/dashboard/providers" },
+          { label: t("anthropicCompatible"), image: "/providers/anthropic-m.png" },
         ],
       };
     }
@@ -60,40 +64,41 @@ const getPageInfo = (pathname) => {
 
   if (pathname.includes("/providers"))
     return {
-      title: "Providers",
-      description: "Manage your AI provider connections",
+      title: t("providers"),
+      description: t("providerDescription"),
       breadcrumbs: [],
     };
   if (pathname.includes("/combos"))
-    return { title: "Combos", description: "Model combos with fallback", breadcrumbs: [] };
+    return { title: t("combos"), description: t("comboDescription"), breadcrumbs: [] };
   if (pathname.includes("/usage"))
     return {
-      title: "Usage & Analytics",
-      description: "Monitor your API usage, token consumption, and request logs",
+      title: t("usage"),
+      description: t("usageDescription"),
       breadcrumbs: [],
     };
   if (pathname.includes("/analytics"))
     return {
-      title: "Analytics",
-      description: "Charts, trends, and evaluation insights",
+      title: t("analytics"),
+      description: t("analyticsDescription"),
       breadcrumbs: [],
     };
   if (pathname.includes("/cli-tools"))
-    return { title: "CLI Tools", description: "Configure CLI tools", breadcrumbs: [] };
+    return { title: t("cliTools"), description: t("cliToolsDescription"), breadcrumbs: [] };
   if (pathname === "/dashboard")
-    return { title: "Home", description: "Welcome to OmniRoute", breadcrumbs: [] };
+    return { title: t("home"), description: t("homeDescription"), breadcrumbs: [] };
   if (pathname.includes("/endpoint"))
-    return { title: "Endpoint", description: "API endpoint configuration", breadcrumbs: [] };
+    return { title: t("endpoint"), description: t("endpointDescription"), breadcrumbs: [] };
   if (pathname.includes("/profile"))
-    return { title: "Settings", description: "Manage your preferences", breadcrumbs: [] };
+    return { title: t("settings"), description: t("settingsDescription"), breadcrumbs: [] };
 
   return { title: "", description: "", breadcrumbs: [] };
-};
+}
 
 export default function Header({ onMenuClick, showMenuButton = true }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { title, description, breadcrumbs } = getPageInfo(pathname);
+  const t = useTranslations("header");
+  const { title, description, breadcrumbs } = usePageInfo(pathname);
 
   const handleLogout = async () => {
     try {
@@ -175,6 +180,9 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
 
       {/* Right actions */}
       <div className="flex items-center gap-3 ml-auto">
+        {/* Language selector */}
+        <LanguageSelector />
+
         {/* Theme toggle */}
         <ThemeToggle />
 
@@ -185,7 +193,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         <button
           onClick={handleLogout}
           className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
-          title="Logout"
+          title={t("logout")}
         >
           <span className="material-symbols-outlined">logout</span>
         </button>

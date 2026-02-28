@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
@@ -12,7 +14,7 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 /**
  * Chat Tester Mode:
  * - Left: Chat interface (send messages as a specific client format)
- * - Right: Pipeline visualization showing each translation step
+ * - Right: {t("pipelineVisualization")} showing each translation step
  *
  * How it works:
  * 1. You type a message and select a "Client Format" (how the request is structured)
@@ -22,6 +24,7 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
  */
 
 export default function ChatTesterMode() {
+  const t = useTranslations("translator");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
   const [clientFormat, setClientFormat] = useState("openai");
@@ -96,8 +99,8 @@ export default function ChatTesterMode() {
 
       steps.push({
         id: 1,
-        name: "Client Request",
-        description: "The request body as your client would send it",
+        name: t("clientRequest"),
+        description: t("clientRequestDescription"),
         format: clientFormat,
         content: JSON.stringify(clientRequest, null, 2),
         status: "done",
@@ -114,8 +117,8 @@ export default function ChatTesterMode() {
 
       steps.push({
         id: 2,
-        name: "Format Detected",
-        description: "OmniRoute auto-detects the API format from the request structure",
+        name: t("formatDetected"),
+        description: t("formatDetectedDescription"),
         format: detectedFormat,
         content: JSON.stringify(
           { detectedFormat, clientFormat, match: detectedFormat === clientFormat },
@@ -140,8 +143,8 @@ export default function ChatTesterMode() {
 
       steps.push({
         id: 3,
-        name: "OpenAI Intermediate",
-        description: "All formats are first normalized to OpenAI format (the universal bridge)",
+        name: t("openaiIntermediate"),
+        description: t("openaiIntermediateDescription"),
         format: "openai",
         content: JSON.stringify(toOpenaiData.result || toOpenaiData, null, 2),
         status: toOpenaiData.success ? "done" : "error",
@@ -163,8 +166,8 @@ export default function ChatTesterMode() {
 
       steps.push({
         id: 4,
-        name: "Provider Format",
-        description: `OpenAI format is translated to the provider's native format`,
+        name: t("providerFormat"),
+        description: t("providerFormatDescription"),
         format: targetFmt,
         content: JSON.stringify(providerTargetData.result || providerTargetData, null, 2),
         status: providerTargetData.success ? "done" : "error",
@@ -178,18 +181,21 @@ export default function ChatTesterMode() {
       });
 
       if (!sendRes.ok) {
-        const errData = await sendRes.json().catch(() => ({ error: "Request failed" }));
+        const errData = await sendRes.json().catch(() => ({ error: t("requestFailed") }));
         steps.push({
           id: 5,
-          name: "Provider Response",
-          description: "The raw response from the provider API",
+          name: t("providerResponse"),
+          description: t("providerResponseRawDescription"),
           format: targetFmt,
           content: JSON.stringify(errData, null, 2),
           status: "error",
         });
         setChatHistory((prev) => [
           ...prev,
-          { role: "assistant", content: `Error: ${errData.error || "Request failed"}` },
+          {
+            role: "assistant",
+            content: t("errorMessage", { message: errData.error || t("requestFailed") }),
+          },
         ]);
       } else {
         // Read streaming response
@@ -205,8 +211,8 @@ export default function ChatTesterMode() {
 
         steps.push({
           id: 5,
-          name: "Provider Response",
-          description: "The raw SSE stream from the provider API",
+          name: t("providerResponse"),
+          description: t("providerResponseSseDescription"),
           format: targetFmt,
           content:
             fullResponse.slice(0, 5000) + (fullResponse.length > 5000 ? "\n... (truncated)" : ""),
@@ -217,19 +223,22 @@ export default function ChatTesterMode() {
         const assistantText = extractAssistantText(fullResponse);
         setChatHistory((prev) => [
           ...prev,
-          { role: "assistant", content: assistantText || "(No text extracted)" },
+          { role: "assistant", content: assistantText || t("noTextExtracted") },
         ]);
       }
     } catch (err) {
       steps.push({
         id: steps.length + 1,
-        name: "Error",
-        description: "An unexpected error occurred",
+        name: t("error"),
+        description: t("unexpectedError"),
         format: "error",
         content: JSON.stringify({ error: err.message }, null, 2),
         status: "error",
       });
-      setChatHistory((prev) => [...prev, { role: "assistant", content: `Error: ${err.message}` }]);
+      setChatHistory((prev) => [
+        ...prev,
+        { role: "assistant", content: t("errorMessage", { message: err.message }) },
+      ]);
     }
 
     setPipeline(steps);
@@ -239,26 +248,23 @@ export default function ChatTesterMode() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0">
       {/* Info Banner */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-sm text-text-muted">
         <span className="material-symbols-outlined text-primary text-[20px] mt-0.5 shrink-0">
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Pipeline Debugger</p>
+          <p className="font-medium text-text-main mb-0.5">{t("pipelineDebugger")}</p>
+          <p>{t("chatTesterDescription")}</p>
           <p>
-            Send messages as a specific client format and see how each step of the translation
-            pipeline works. The right panel shows the full flow:{" "}
-            <strong className="text-text-main">
-              Client Request → Format Detection → OpenAI Intermediate → Provider Format → Response
-            </strong>
-            . Click any step to inspect the data at that stage.
+            <strong className="text-text-main">{t("chatTesterFlow")}</strong>.{" "}
+            {t("clickStepToInspect")}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
         {/* Left: Chat Interface */}
         <div className="space-y-4">
           {/* Controls */}
@@ -267,7 +273,7 @@ export default function ChatTesterMode() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                    Client Format
+                    {t("clientFormat")}
                   </label>
                   <Select
                     value={clientFormat}
@@ -279,7 +285,7 @@ export default function ChatTesterMode() {
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                    Provider
+                    {t("provider")}
                   </label>
                   <Select
                     value={provider}
@@ -290,7 +296,7 @@ export default function ChatTesterMode() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                  Model
+                  {t("model")}
                 </label>
                 <div className="relative">
                   <input
@@ -298,7 +304,7 @@ export default function ChatTesterMode() {
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     list="model-suggestions"
-                    placeholder="Select or type a model name..."
+                    placeholder={t("modelPlaceholder")}
                     className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
                   />
                   <datalist id="model-suggestions">
@@ -319,13 +325,10 @@ export default function ChatTesterMode() {
                   <span className="material-symbols-outlined text-[48px] mb-3 opacity-30">
                     chat
                   </span>
-                  <p className="text-sm font-medium mb-1">
-                    Send a message to see the translation pipeline
-                  </p>
+                  <p className="text-sm font-medium mb-1">{t("sendMessageToSeePipeline")}</p>
                   <p className="text-xs text-center max-w-xs">
-                    Your message will be formatted as a{" "}
-                    <strong>{FORMAT_META[clientFormat]?.label}</strong> request, translated through
-                    the pipeline, and sent to the selected provider.
+                    {t("chatMessageHintPrefix")} <strong>{FORMAT_META[clientFormat]?.label}</strong>{" "}
+                    {t("chatMessageHintSuffix")}
                   </p>
                 </div>
               )}
@@ -343,10 +346,10 @@ export default function ChatTesterMode() {
                   >
                     <p className="text-[10px] font-semibold text-text-muted mb-1 uppercase">
                       {msg.role === "user"
-                        ? `You (${FORMAT_META[clientFormat]?.label})`
-                        : "Assistant"}
+                        ? t("youWithFormat", { format: FORMAT_META[clientFormat]?.label })
+                        : t("assistant")}
                     </p>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                   </div>
                 </div>
               ))}
@@ -361,7 +364,7 @@ export default function ChatTesterMode() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder="Type a message..."
+                  placeholder={t("typeMessage")}
                   className="flex-1 bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
                   disabled={sending}
                 />
@@ -371,7 +374,7 @@ export default function ChatTesterMode() {
                   loading={sending}
                   disabled={!message.trim() || sending}
                 >
-                  Send
+                  {t("send")}
                 </Button>
               </div>
             </div>
@@ -386,11 +389,9 @@ export default function ChatTesterMode() {
                 <span className="material-symbols-outlined text-[18px] text-primary">
                   account_tree
                 </span>
-                <h3 className="text-sm font-semibold text-text-main">Translation Pipeline</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("translationPipeline")}</h3>
               </div>
-              <p className="text-xs text-text-muted">
-                Click on any step to inspect the data at that stage
-              </p>
+              <p className="text-xs text-text-muted">{t("clickStepToInspect")}</p>
             </div>
           </Card>
 
@@ -400,11 +401,8 @@ export default function ChatTesterMode() {
                 <span className="material-symbols-outlined text-[48px] mb-3 opacity-30">
                   account_tree
                 </span>
-                <p className="text-sm font-medium mb-1">Pipeline visualization</p>
-                <p className="text-xs text-center max-w-xs">
-                  Send a message to see how your request flows through detection → translation →
-                  provider call.
-                </p>
+                <p className="text-sm font-medium mb-1">{t("pipelineVisualization")}</p>
+                <p className="text-xs text-center max-w-xs">{t("pipelineVisualizationHint")}</p>
               </div>
             </Card>
           ) : (

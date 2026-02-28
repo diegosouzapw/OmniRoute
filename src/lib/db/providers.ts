@@ -52,14 +52,25 @@ export async function createProviderConnection(data: any) {
     // For Codex, check for existing connection with same workspace
     const workspaceId = data.providerSpecificData?.workspaceId;
     if (data.provider === "codex" && workspaceId) {
-      // Check for existing connection with same provider + workspace ONLY
-      // Do NOT fall back to email check - this allows multiple workspaces per email
+      // For Codex, check for existing connection with same workspace AND email
+      // A single workspace can have multiple users (Team/Business plans)
+      // We need both workspace + email uniqueness to allow multiple accounts
       existing = db
         .prepare(
-          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ?"
+          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND email = ?"
         )
-        .get(data.provider, workspaceId);
-      // For Codex with workspaceId, don't fall back to email check
+        .get(data.provider, workspaceId, data.email);
+
+      // If no match with workspace+email, also check workspace-only for backward compat
+      // (old connections without email should still be updated, not duplicated)
+      if (!existing) {
+        existing = db
+          .prepare(
+            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND (email IS NULL OR email = '')"
+          )
+          .get(data.provider, workspaceId);
+      }
+      // For Codex with workspaceId, don't fall back to email-only check
       // This allows creating new connections for different workspaces
     } else {
       // For other providers (or Codex without workspaceId), use email check

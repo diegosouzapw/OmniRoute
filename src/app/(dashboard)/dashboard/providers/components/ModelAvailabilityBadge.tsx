@@ -9,22 +9,26 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
-const STATUS_CONFIG = {
-  available: { icon: "check_circle", color: "#22c55e", label: "Available" },
-  cooldown: { icon: "schedule", color: "#f59e0b", label: "Cooldown" },
-  unavailable: { icon: "error", color: "#ef4444", label: "Unavailable" },
-  unknown: { icon: "help", color: "#6b7280", label: "Unknown" },
-};
-
 export default function ModelAvailabilityBadge() {
-  const [data, setData] = useState(null);
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
+
+  const STATUS_CONFIG = {
+    available: { icon: "check_circle", color: "#22c55e", label: t("available") },
+    cooldown: { icon: "schedule", color: "#f59e0b", label: t("cooldown") },
+    unavailable: { icon: "error", color: "#ef4444", label: t("unavailable") },
+    unknown: { icon: "help", color: "#6b7280", label: t("unknown") },
+  };
+
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const [clearing, setClearing] = useState(null);
-  const ref = useRef(null);
+  const [clearing, setClearing] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const notify = useNotificationStore();
 
   const fetchStatus = useCallback(async () => {
@@ -49,8 +53,8 @@ export default function ModelAvailabilityBadge() {
 
   // Close popover on outside click
   useEffect(() => {
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setExpanded(false);
       }
     };
@@ -58,7 +62,7 @@ export default function ModelAvailabilityBadge() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [expanded]);
 
-  const handleClearCooldown = async (provider, model) => {
+  const handleClearCooldown = async (provider: string, model: string) => {
     setClearing(`${provider}:${model}`);
     try {
       const res = await fetch("/api/models/availability", {
@@ -67,13 +71,13 @@ export default function ModelAvailabilityBadge() {
         body: JSON.stringify({ action: "clearCooldown", provider, model }),
       });
       if (res.ok) {
-        notify.success(`Cooldown cleared for ${model}`);
+        notify.success(t("cooldownCleared", { model }));
         await fetchStatus();
       } else {
-        notify.error("Failed to clear cooldown");
+        notify.error(t("failedClearCooldown"));
       }
     } catch {
-      notify.error("Failed to clear cooldown");
+      notify.error(t("failedClearCooldown"));
     } finally {
       setClearing(null);
     }
@@ -83,12 +87,12 @@ export default function ModelAvailabilityBadge() {
 
   const models = data?.models || [];
   const unavailableCount =
-    data?.unavailableCount || models.filter((m) => m.status !== "available").length;
+    data?.unavailableCount || models.filter((m: any) => m.status !== "available").length;
   const isHealthy = unavailableCount === 0;
 
   // Group unhealthy models by provider
-  const byProvider = {};
-  models.forEach((m) => {
+  const byProvider: Record<string, any[]> = {};
+  models.forEach((m: any) => {
     if (m.status === "available") return;
     const key = m.provider || "unknown";
     if (!byProvider[key]) byProvider[key] = [];
@@ -105,12 +109,10 @@ export default function ModelAvailabilityBadge() {
             : "bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/15"
         }`}
       >
-        <span className="material-symbols-outlined text-[14px]">
+        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
           {isHealthy ? "verified" : "warning"}
         </span>
-        {isHealthy
-          ? "All models operational"
-          : `${unavailableCount} model${unavailableCount !== 1 ? "s" : ""} with issues`}
+        {isHealthy ? t("allModelsOperational") : t("modelsWithIssues", { count: unavailableCount })}
       </button>
 
       {/* Expanded popover */}
@@ -121,25 +123,26 @@ export default function ModelAvailabilityBadge() {
               <span
                 className="material-symbols-outlined text-[16px]"
                 style={{ color: isHealthy ? "#22c55e" : "#f59e0b" }}
+                aria-hidden="true"
               >
                 {isHealthy ? "verified" : "warning"}
               </span>
-              <span className="text-sm font-semibold text-text-main">Model Status</span>
+              <span className="text-sm font-semibold text-text-main">{t("modelStatus")}</span>
             </div>
             <button
               onClick={fetchStatus}
               className="p-1 rounded-lg hover:bg-surface text-text-muted hover:text-text-main transition-colors"
-              title="Refresh"
+              title={tc("refresh")}
             >
-              <span className="material-symbols-outlined text-[14px]">refresh</span>
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                refresh
+              </span>
             </button>
           </div>
 
           <div className="px-4 py-3 max-h-60 overflow-y-auto">
             {isHealthy ? (
-              <p className="text-sm text-text-muted text-center py-2">
-                All models are responding normally.
-              </p>
+              <p className="text-sm text-text-muted text-center py-2">{t("allModelsNormal")}</p>
             ) : (
               <div className="flex flex-col gap-2.5">
                 {Object.entries(byProvider).map(([provider, provModels]) => (
@@ -148,8 +151,10 @@ export default function ModelAvailabilityBadge() {
                       {provider}
                     </p>
                     <div className="flex flex-col gap-1">
-                      {(provModels as any).map((m) => {
-                        const status = STATUS_CONFIG[m.status] || STATUS_CONFIG.unknown;
+                      {provModels.map((m) => {
+                        const status =
+                          STATUS_CONFIG[m.status as keyof typeof STATUS_CONFIG] ||
+                          STATUS_CONFIG.unknown;
                         const isClearing = clearing === `${m.provider}:${m.model}`;
                         return (
                           <div
@@ -160,6 +165,7 @@ export default function ModelAvailabilityBadge() {
                               <span
                                 className="material-symbols-outlined text-[14px] shrink-0"
                                 style={{ color: status.color }}
+                                aria-hidden="true"
                               >
                                 {status.icon}
                               </span>
@@ -175,7 +181,7 @@ export default function ModelAvailabilityBadge() {
                                 disabled={isClearing}
                                 className="text-[10px] px-1.5! py-0.5! ml-2"
                               >
-                                {isClearing ? "..." : "Clear"}
+                                {isClearing ? t("clearing") : t("clearCooldown")}
                               </Button>
                             )}
                           </div>

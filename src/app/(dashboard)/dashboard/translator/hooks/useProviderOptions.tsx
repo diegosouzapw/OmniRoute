@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   AI_PROVIDERS,
   OPENAI_COMPATIBLE_PREFIX,
@@ -16,6 +17,7 @@ import {
  * @returns {{ provider: string, setProvider: Function, providerOptions: Array<{value: string, label: string}>, loading: boolean }}
  */
 export function useProviderOptions(initialProvider = "openai") {
+  const t = useTranslations("translator");
   const [provider, setProvider] = useState(initialProvider);
   const [providerOptions, setProviderOptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +40,9 @@ export function useProviderOptions(initialProvider = "openai") {
             const node: any = nodeMap.get(pid);
             let label = info?.name || node?.name || pid;
             if (!info && (pid as string).startsWith(OPENAI_COMPATIBLE_PREFIX))
-              label = node?.name || "OpenAI Compatible";
+              label = node?.name || t("openaiCompatibleLabel");
             if (!info && (pid as string).startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
-              label = node?.name || "Anthropic Compatible";
+              label = node?.name || t("anthropicCompatibleLabel");
             return { value: pid, label };
           })
           .sort((a, b) => a.label.localeCompare(b.label));
@@ -48,11 +50,16 @@ export function useProviderOptions(initialProvider = "openai") {
         const nextOptions =
           options.length > 0
             ? options
-            : Object.entries(AI_PROVIDERS).map(([id, info]: [string, any]) => ({ value: id, label: info.name }));
+            : Object.entries(AI_PROVIDERS).map(([id, info]: [string, any]) => ({
+                value: id,
+                label: info.name,
+              }));
         setProviderOptions(nextOptions);
         if (nextOptions.length > 0) {
           setProvider((current: string): string =>
-            nextOptions.some((opt: any) => opt.value === current) ? current : (nextOptions[0] as any).value as string
+            nextOptions.some((opt: any) => opt.value === current)
+              ? current
+              : ((nextOptions[0] as any).value as string)
           );
         }
       } catch {
@@ -73,7 +80,7 @@ export function useProviderOptions(initialProvider = "openai") {
       }
     };
     fetchProviders();
-  }, []);
+  }, [t]);
 
   return { provider, setProvider, providerOptions, loading };
 }

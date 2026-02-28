@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNotificationStore } from "@/store/notificationStore";
 import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   Card,
   Button,
@@ -46,6 +48,7 @@ export default function ProviderDetailPage() {
   const [modelAliases, setModelAliases] = useState({});
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
+  const t = useTranslations("providers");
   const hasAutoOpened = useRef(false);
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
@@ -68,8 +71,8 @@ export default function ProviderDetailPage() {
         name:
           providerNode.name ||
           (providerNode.type === "anthropic-compatible"
-            ? "Anthropic Compatible"
-            : "OpenAI Compatible"),
+            ? t("anthropicCompatibleName")
+            : t("openaiCompatibleName")),
         color: providerNode.type === "anthropic-compatible" ? "#D97757" : "#10A37F",
         textIcon: providerNode.type === "anthropic-compatible" ? "AC" : "OC",
         apiType: providerNode.apiType,
@@ -202,7 +205,7 @@ export default function ProviderDetailPage() {
         await fetchAliases();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to set alias");
+        alert(data.error || t("failedSetAlias"));
       }
     } catch (error) {
       console.log("Error setting alias:", error);
@@ -223,7 +226,7 @@ export default function ProviderDetailPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this connection?")) return;
+    if (!confirm(t("deleteConnectionConfirm"))) return;
     try {
       const res = await fetch(`/api/providers/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -252,11 +255,11 @@ export default function ProviderDetailPage() {
         return null;
       }
       const data = await res.json().catch(() => ({}));
-      const errorMsg = data.error?.message || data.error || "Failed to save connection";
+      const errorMsg = data.error?.message || data.error || t("failedSaveConnection");
       return errorMsg;
     } catch (error) {
       console.log("Error saving connection:", error);
-      return "Failed to save connection. Please try again.";
+      return t("failedSaveConnectionRetry");
     }
   };
 
@@ -315,7 +318,7 @@ export default function ProviderDetailPage() {
       const res = await fetch(`/api/providers/${connectionId}/test`, { method: "POST" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "Failed to retest connection");
+        alert(data.error || t("failedRetestConnection"));
         return;
       }
       await fetchConnections();
@@ -374,7 +377,7 @@ export default function ProviderDetailPage() {
       current: 0,
       total: 0,
       phase: "fetching",
-      status: "Fetching available models...",
+      status: t("fetchingModels"),
       logs: [],
       error: "",
       importedCount: 0,
@@ -387,8 +390,8 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "error",
-          status: "Failed to fetch models",
-          error: data.error || "Failed to import models",
+          status: t("failedFetchModels"),
+          error: data.error || t("failedImportModels"),
         }));
         return;
       }
@@ -397,8 +400,8 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: "No models found",
-          logs: ["No models returned from /models endpoint."],
+          status: t("noModelsFound"),
+          logs: [t("noModelsReturnedFromEndpoint")],
         }));
         return;
       }
@@ -407,8 +410,8 @@ export default function ProviderDetailPage() {
         ...prev,
         phase: "importing",
         total: fetchedModels.length,
-        status: `Importing 0 of ${fetchedModels.length} models...`,
-        logs: [`Found ${fetchedModels.length} models. Starting import...`],
+        status: t("importingModelsProgress", { current: 0, total: fetchedModels.length }),
+        logs: [t("foundModelsStartingImport", { count: fetchedModels.length })],
       }));
 
       let importedCount = 0;
@@ -422,8 +425,8 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           current: i + 1,
-          status: `Importing ${i + 1} of ${fetchedModels.length} models...`,
-          logs: [...prev.logs, `Importing ${modelId}...`],
+          status: t("importingModelsProgress", { current: i + 1, total: fetchedModels.length }),
+          logs: [...prev.logs, t("importingModelById", { modelId })],
         }));
 
         // Save as imported (default) model in the DB
@@ -452,13 +455,13 @@ export default function ProviderDetailPage() {
         current: fetchedModels.length,
         status:
           importedCount > 0
-            ? `Successfully imported ${importedCount} model${importedCount === 1 ? "" : "s"}!`
-            : "No new models were added (all already exist).",
+            ? t("importSuccessCount", { count: importedCount })
+            : t("noNewModelsAddedExisting"),
         logs: [
           ...prev.logs,
           importedCount > 0
-            ? `✓ Done! ${importedCount} model${importedCount === 1 ? "" : "s"} imported.`
-            : "No new models were added.",
+            ? t("importDoneCount", { count: importedCount })
+            : t("noNewModelsAdded"),
         ],
         importedCount,
       }));
@@ -474,8 +477,8 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "error",
-        status: "Import failed",
-        error: error instanceof Error ? error.message : "An unexpected error occurred",
+        status: t("importFailed"),
+        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
       }));
     } finally {
       setImportingModels(false);
@@ -492,7 +495,7 @@ export default function ProviderDetailPage() {
       current: 0,
       total: 0,
       phase: "fetching",
-      status: "Fetching available models...",
+      status: t("fetchingModels"),
       logs: [],
       error: "",
       importedCount: 0,
@@ -505,8 +508,8 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: "No models found",
-          logs: ["No models returned from /models endpoint."],
+          status: t("noModelsFound"),
+          logs: [t("noModelsReturnedFromEndpoint")],
         }));
         return;
       }
@@ -515,8 +518,8 @@ export default function ProviderDetailPage() {
         ...prev,
         phase: "importing",
         total: models.length,
-        status: `Importing 0 of ${models.length} models...`,
-        logs: [`Found ${models.length} models. Starting import...`],
+        status: t("importingModelsProgress", { current: 0, total: models.length }),
+        logs: [t("foundModelsStartingImport", { count: models.length })],
       }));
 
       let importedCount = 0;
@@ -528,8 +531,8 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           current: i + 1,
-          status: `Importing ${i + 1} of ${models.length} models...`,
-          logs: [...prev.logs, `Importing ${modelId}...`],
+          status: t("importingModelsProgress", { current: i + 1, total: models.length }),
+          logs: [...prev.logs, t("importingModelById", { modelId })],
         }));
 
         const added = await processModel(model);
@@ -542,13 +545,13 @@ export default function ProviderDetailPage() {
         current: models.length,
         status:
           importedCount > 0
-            ? `Successfully imported ${importedCount} model${importedCount === 1 ? "" : "s"}!`
-            : "No new models were added.",
+            ? t("importSuccessCount", { count: importedCount })
+            : t("noNewModelsAdded"),
         logs: [
           ...prev.logs,
           importedCount > 0
-            ? `✓ Done! ${importedCount} model${importedCount === 1 ? "" : "s"} imported.`
-            : "No new models were added.",
+            ? t("importDoneCount", { count: importedCount })
+            : t("noNewModelsAdded"),
         ],
         importedCount,
       }));
@@ -563,8 +566,8 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "error",
-        status: "Import failed",
-        error: error instanceof Error ? error.message : "An unexpected error occurred",
+        status: t("importFailed"),
+        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
       }));
     }
   };
@@ -599,10 +602,10 @@ export default function ProviderDetailPage() {
               onClick={handleImportModels}
               disabled={!canImportModels || importingModels}
             >
-              {importingModels ? "Importing..." : "Import from /models"}
+              {importingModels ? t("importingModels") : t("importFromModels")}
             </Button>
             {!canImportModels && (
-              <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+              <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
             )}
           </div>
           <PassthroughModelsSection
@@ -626,10 +629,10 @@ export default function ProviderDetailPage() {
           onClick={handleImportModels}
           disabled={!canImportModels || importingModels}
         >
-          {importingModels ? "Importing..." : "Import from /models"}
+          {importingModels ? t("importingModels") : t("importFromModels")}
         </Button>
         {!canImportModels && (
-          <span className="text-xs text-text-muted">Add a connection to enable importing.</span>
+          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
         )}
       </div>
     );
@@ -638,7 +641,7 @@ export default function ProviderDetailPage() {
       return (
         <div>
           {importButton}
-          <p className="text-sm text-text-muted">No models configured</p>
+          <p className="text-sm text-text-muted">{t("noModelsConfigured")}</p>
         </div>
       );
     }
@@ -682,9 +685,9 @@ export default function ProviderDetailPage() {
   if (!providerInfo) {
     return (
       <div className="text-center py-20">
-        <p className="text-text-muted">Provider not found</p>
+        <p className="text-text-muted">{t("providerNotFound")}</p>
         <Link href="/dashboard/providers" className="text-primary mt-4 inline-block">
-          Back to Providers
+          {t("backToProviders")}
         </Link>
       </div>
     );
@@ -712,7 +715,7 @@ export default function ProviderDetailPage() {
           className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
-          Back to Providers
+          {t("backToProviders")}
         </Link>
         <div className="flex items-center gap-4">
           <div
@@ -751,7 +754,7 @@ export default function ProviderDetailPage() {
               <h1 className="text-3xl font-semibold tracking-tight">{providerInfo.name}</h1>
             )}
             <p className="text-text-muted">
-              {connections.length} connection{connections.length === 1 ? "" : "s"}
+              {t("connectionCountLabel", { count: connections.length })}
             </p>
           </div>
         </div>
@@ -763,21 +766,21 @@ export default function ProviderDetailPage() {
             <div>
               <h2 className="text-lg font-semibold">
                 {isAnthropicCompatible
-                  ? "Anthropic Compatible Details"
-                  : "OpenAI Compatible Details"}
+                  ? t("anthropicCompatibleDetails")
+                  : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
                 {isAnthropicCompatible
-                  ? "Messages API"
+                  ? t("messagesApi")
                   : providerNode.apiType === "responses"
-                    ? "Responses API"
-                    : "Chat Completions"}{" "}
+                    ? t("responsesApi")
+                    : t("chatCompletions")}{" "}
                 · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
                 {isAnthropicCompatible
-                  ? "messages"
+                  ? t("messagesPath")
                   : providerNode.apiType === "responses"
-                    ? "responses"
-                    : "chat/completions"}
+                    ? t("responsesPath")
+                    : t("chatCompletionsPath")}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -787,7 +790,7 @@ export default function ProviderDetailPage() {
                 onClick={() => setShowAddApiKeyModal(true)}
                 disabled={connections.length > 0}
               >
-                Add
+                {t("add")}
               </Button>
               <Button
                 size="sm"
@@ -795,7 +798,7 @@ export default function ProviderDetailPage() {
                 icon="edit"
                 onClick={() => setShowEditNodeModal(true)}
               >
-                Edit
+                {t("edit")}
               </Button>
               <Button
                 size="sm"
@@ -804,7 +807,9 @@ export default function ProviderDetailPage() {
                 onClick={async () => {
                   if (
                     !confirm(
-                      `Delete this ${isAnthropicCompatible ? "Anthropic" : "OpenAI"} Compatible node?`
+                      t("deleteCompatibleNodeConfirm", {
+                        type: isAnthropicCompatible ? t("anthropic") : t("openai"),
+                      })
                     )
                   )
                     return;
@@ -820,15 +825,12 @@ export default function ProviderDetailPage() {
                   }
                 }}
               >
-                Delete
+                {t("delete")}
               </Button>
             </div>
           </div>
           {connections.length > 0 && (
-            <p className="text-sm text-text-muted">
-              Only one connection is allowed per compatible node. Add another node if you need more
-              connections.
-            </p>
+            <p className="text-sm text-text-muted">{t("singleConnectionPerCompatible")}</p>
           )}
         </Card>
       )}
@@ -836,14 +838,43 @@ export default function ProviderDetailPage() {
       {/* Connections */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Connections</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">{t("connections")}</h2>
+            {/* Provider-level proxy indicator/button */}
+            <button
+              onClick={() =>
+                setProxyTarget({
+                  level: "provider",
+                  id: providerId,
+                  label: providerInfo?.name || providerId,
+                })
+              }
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                proxyConfig?.providers?.[providerId]
+                  ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                  : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+              }`}
+              title={
+                proxyConfig?.providers?.[providerId]
+                  ? t("providerProxyTitleConfigured", {
+                      host: proxyConfig.providers[providerId].host || t("configured"),
+                    })
+                  : t("providerProxyConfigureHint")
+              }
+            >
+              <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
+              {proxyConfig?.providers?.[providerId]
+                ? proxyConfig.providers[providerId].host || t("providerProxy")
+                : t("providerProxy")}
+            </button>
+          </div>
           {!isCompatible && (
             <Button
               size="sm"
               icon="add"
               onClick={() => (isOAuth ? setShowOAuthModal(true) : setShowAddApiKeyModal(true))}
             >
-              Add
+              {t("add")}
             </Button>
           )}
         </div>
@@ -855,14 +886,14 @@ export default function ProviderDetailPage() {
                 {isOAuth ? "lock" : "key"}
               </span>
             </div>
-            <p className="text-text-main font-medium mb-1">No connections yet</p>
-            <p className="text-sm text-text-muted mb-4">Add your first connection to get started</p>
+            <p className="text-text-main font-medium mb-1">{t("noConnectionsYet")}</p>
+            <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
             {!isCompatible && (
               <Button
                 icon="add"
                 onClick={() => (isOAuth ? setShowOAuthModal(true) : setShowAddApiKeyModal(true))}
               >
-                Add Connection
+                {t("addConnection")}
               </Button>
             )}
           </div>
@@ -896,7 +927,29 @@ export default function ProviderDetailPage() {
                       label: conn.name || conn.email || conn.id,
                     })
                   }
-                  hasProxy={!!proxyConfig?.keys?.[conn.id]}
+                  hasProxy={
+                    !!(
+                      proxyConfig?.keys?.[conn.id] ||
+                      proxyConfig?.providers?.[providerId] ||
+                      proxyConfig?.global
+                    )
+                  }
+                  proxySource={
+                    proxyConfig?.keys?.[conn.id]
+                      ? "key"
+                      : proxyConfig?.providers?.[providerId]
+                        ? "provider"
+                        : proxyConfig?.global
+                          ? "global"
+                          : null
+                  }
+                  proxyHost={
+                    (
+                      proxyConfig?.keys?.[conn.id] ||
+                      proxyConfig?.providers?.[providerId] ||
+                      proxyConfig?.global
+                    )?.host || null
+                  }
                 />
               ))}
           </div>
@@ -905,7 +958,7 @@ export default function ProviderDetailPage() {
 
       {/* Models */}
       <Card>
-        <h2 className="text-lg font-semibold mb-4">Available Models</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
         {renderModelsSection()}
 
         {/* Custom Models — available for ALL providers */}
@@ -993,7 +1046,7 @@ export default function ProviderDetailPage() {
             setShowImportModal(false);
           }
         }}
-        title="Importing Models"
+        title={t("importingModelsTitle")}
         size="md"
         closeOnOverlay={false}
         showCloseButton={importProgress.phase === "done" || importProgress.phase === "error"}
@@ -1089,7 +1142,7 @@ export default function ProviderDetailPage() {
           {/* Auto-reload notice */}
           {importProgress.phase === "done" && importProgress.importedCount > 0 && (
             <p className="text-xs text-text-muted text-center animate-pulse">
-              Page will refresh automatically...
+              {t("pageAutoRefresh")}
             </p>
           )}
         </div>
@@ -1099,6 +1152,7 @@ export default function ProviderDetailPage() {
 }
 
 function ModelRow({ model, fullModel, alias, copied, onCopy, onSetAlias, onDeleteAlias }: any) {
+  const t = useTranslations("providers");
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50">
       <span className="material-symbols-outlined text-base text-text-muted">smart_toy</span>
@@ -1108,7 +1162,7 @@ function ModelRow({ model, fullModel, alias, copied, onCopy, onSetAlias, onDelet
       <button
         onClick={() => onCopy(fullModel, `model-${model.id}`)}
         className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
-        title="Copy model"
+        title={t("copyModel")}
       >
         <span className="material-symbols-outlined text-sm">
           {copied === `model-${model.id}` ? "check" : "content_copy"}
@@ -1136,6 +1190,7 @@ function PassthroughModelsSection({
   onSetAlias,
   onDeleteAlias,
 }) {
+  const t = useTranslations("providers");
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -1163,9 +1218,7 @@ function PassthroughModelsSection({
 
     // Check if alias already exists
     if (modelAliases[defaultAlias]) {
-      alert(
-        `Alias "${defaultAlias}" already exists. Please use a different model or edit existing alias.`
-      );
+      alert(t("aliasExistsAlert", { alias: defaultAlias }));
       return;
     }
 
@@ -1182,15 +1235,13 @@ function PassthroughModelsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-muted">
-        OpenRouter supports any model. Add models and create aliases for quick access.
-      </p>
+      <p className="text-sm text-text-muted">{t("openRouterAnyModelHint")}</p>
 
       {/* Add new model */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label htmlFor="new-model-input" className="text-xs text-text-muted mb-1 block">
-            Model ID (from OpenRouter)
+            {t("modelIdFromOpenRouter")}
           </label>
           <input
             id="new-model-input"
@@ -1198,12 +1249,12 @@ function PassthroughModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="anthropic/claude-3-opus"
+            placeholder={t("openRouterModelPlaceholder")}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
         <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModel.trim() || adding}>
-          {adding ? "Adding..." : "Add"}
+          {adding ? t("adding") : t("add")}
         </Button>
       </div>
 
@@ -1236,6 +1287,7 @@ PassthroughModelsSection.propTypes = {
 };
 
 function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias }) {
+  const t = useTranslations("providers");
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-sidebar/50">
       <span className="material-symbols-outlined text-base text-text-muted">smart_toy</span>
@@ -1250,7 +1302,7 @@ function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias
           <button
             onClick={() => onCopy(fullModel, `model-${modelId}`)}
             className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
-            title="Copy model"
+            title={t("copyModel")}
           >
             <span className="material-symbols-outlined text-sm">
               {copied === `model-${modelId}` ? "check" : "content_copy"}
@@ -1263,7 +1315,7 @@ function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias
       <button
         onClick={onDeleteAlias}
         className="p-1 hover:bg-red-50 rounded text-red-500"
-        title="Remove model"
+        title={t("removeModel")}
       >
         <span className="material-symbols-outlined text-sm">delete</span>
       </button>
@@ -1282,6 +1334,7 @@ PassthroughModelRow.propTypes = {
 // ============ Custom Models Section (for ALL providers) ============
 
 function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
+  const t = useTranslations("providers");
   const [customModels, setCustomModels] = useState([]);
   const [newModelId, setNewModelId] = useState("");
   const [newModelName, setNewModelName] = useState("");
@@ -1290,7 +1343,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
 
   const fetchCustomModels = useCallback(async () => {
     try {
-      const res = await fetch(`/api/provider-models?provider=${providerId}`);
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
       if (res.ok) {
         const data = await res.json();
         setCustomModels(data.models || []);
@@ -1334,7 +1387,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const handleRemove = async (modelId) => {
     try {
       await fetch(
-        `/api/provider-models?provider=${providerId}&model=${encodeURIComponent(modelId)}`,
+        `/api/provider-models?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
         {
           method: "DELETE",
         }
@@ -1349,17 +1402,15 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
     <div className="mt-6 pt-6 border-t border-border">
       <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
         <span className="material-symbols-outlined text-base text-primary">tune</span>
-        Custom Models
+        {t("customModels")}
       </h3>
-      <p className="text-xs text-text-muted mb-3">
-        Add model IDs not in the default list. These will be available for routing.
-      </p>
+      <p className="text-xs text-text-muted mb-3">{t("customModelsHint")}</p>
 
       {/* Add form */}
       <div className="flex items-end gap-2 mb-3">
         <div className="flex-1">
           <label htmlFor="custom-model-id" className="text-xs text-text-muted mb-1 block">
-            Model ID
+            {t("modelId")}
           </label>
           <input
             id="custom-model-id"
@@ -1367,13 +1418,13 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
             value={newModelId}
             onChange={(e) => setNewModelId(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="e.g. gpt-4.5-turbo"
+            placeholder={t("customModelPlaceholder")}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
         <div className="w-40">
           <label htmlFor="custom-model-name" className="text-xs text-text-muted mb-1 block">
-            Display Name
+            {t("displayName")}
           </label>
           <input
             id="custom-model-name"
@@ -1381,18 +1432,18 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
             value={newModelName}
             onChange={(e) => setNewModelName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="Optional"
+            placeholder={t("optional")}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
         <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModelId.trim() || adding}>
-          {adding ? "Adding..." : "Add"}
+          {adding ? t("adding") : t("add")}
         </Button>
       </div>
 
       {/* List */}
       {loading ? (
-        <p className="text-xs text-text-muted">Loading...</p>
+        <p className="text-xs text-text-muted">{t("loading")}</p>
       ) : customModels.length > 0 ? (
         <div className="flex flex-col gap-2">
           {customModels.map((model) => {
@@ -1413,7 +1464,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                     <button
                       onClick={() => onCopy(fullModel, copyKey)}
                       className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
-                      title="Copy model"
+                      title={t("copyModel")}
                     >
                       <span className="material-symbols-outlined text-sm">
                         {copied === copyKey ? "check" : "content_copy"}
@@ -1424,7 +1475,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                 <button
                   onClick={() => handleRemove(model.id)}
                   className="p-1 hover:bg-red-50 rounded text-red-500"
-                  title="Remove custom model"
+                  title={t("removeCustomModel")}
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                 </button>
@@ -1433,7 +1484,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
           })}
         </div>
       ) : (
-        <p className="text-xs text-text-muted">No custom models added yet.</p>
+        <p className="text-xs text-text-muted">{t("noCustomModels")}</p>
       )}
     </div>
   );
@@ -1458,9 +1509,11 @@ function CompatibleModelsSection({
   isAnthropic,
   onImportWithProgress,
 }) {
+  const t = useTranslations("providers");
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+  const notify = useNotificationStore();
 
   const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
     (model as string).startsWith(`${providerStorageAlias}/`)
@@ -1490,18 +1543,41 @@ function CompatibleModelsSection({
     const modelId = newModel.trim();
     const resolvedAlias = resolveAlias(modelId);
     if (!resolvedAlias) {
-      alert(
-        "All suggested aliases already exist. Please choose a different model or remove conflicting aliases."
-      );
+      notify.error(t("allSuggestedAliasesExist"));
       return;
     }
 
     setAdding(true);
     try {
+      // Save to customModels DB FIRST - only create alias if this succeeds
+      const customModelRes = await fetch("/api/provider-models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: providerStorageAlias,
+          modelId,
+          modelName: modelId,
+          source: "manual",
+        }),
+      });
+
+      if (!customModelRes.ok) {
+        let errorData: { error?: { message?: string } } = {};
+        try {
+          errorData = await customModelRes.json();
+        } catch (jsonError) {
+          console.error("Failed to parse error response from custom model API:", jsonError);
+        }
+        throw new Error(errorData.error?.message || t("failedSaveCustomModel"));
+      }
+
+      // Only create alias after customModel is saved successfully
       await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
       setNewModel("");
+      notify.success(t("modelAddedSuccess", { modelId }));
     } catch (error) {
-      console.log("Error adding model:", error);
+      console.error("Error adding model:", error);
+      notify.error(error instanceof Error ? error.message : t("failedAddModelTryAgain"));
     } finally {
       setAdding(false);
     }
@@ -1519,7 +1595,7 @@ function CompatibleModelsSection({
         async () => {
           const res = await fetch(`/api/providers/${activeConnection.id}/models`);
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Failed to import models");
+          if (!res.ok) throw new Error(data.error || t("failedImportModels"));
           return data;
         },
         // processModel callback
@@ -1528,12 +1604,32 @@ function CompatibleModelsSection({
           if (!modelId) return false;
           const resolvedAlias = resolveAlias(modelId);
           if (!resolvedAlias) return false;
+
+          // Save to customModels DB FIRST - only create alias if this succeeds
+          const customModelRes = await fetch("/api/provider-models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider: providerStorageAlias,
+              modelId,
+              modelName: model.name || modelId,
+              source: "imported",
+            }),
+          });
+
+          if (!customModelRes.ok) {
+            notify.error(t("failedSaveImportedModel"));
+            return false;
+          }
+
+          // Only create alias after customModel is saved successfully
           await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
           return true;
         }
       );
     } catch (error) {
-      console.log("Error importing models:", error);
+      console.error("Error importing models:", error);
+      notify.error(t("failedImportModelsTryAgain"));
     } finally {
       setImporting(false);
     }
@@ -1541,11 +1637,32 @@ function CompatibleModelsSection({
 
   const canImport = connections.some((conn) => conn.isActive !== false);
 
+  // Handle delete: remove from both alias and customModels DB
+  const handleDeleteModel = async (modelId: string, alias: string) => {
+    try {
+      // Remove from customModels DB
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&model=${encodeURIComponent(modelId)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        throw new Error(t("failedRemoveModelFromDatabase"));
+      }
+      // Also delete the alias
+      await onDeleteAlias(alias);
+      notify.success(t("modelRemovedSuccess"));
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      notify.error(error instanceof Error ? error.message : t("failedDeleteModelTryAgain"));
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-text-muted">
-        Add {isAnthropic ? "Anthropic" : "OpenAI"}-compatible models manually or import them from
-        the /models endpoint.
+        {t("compatibleModelsDescription", {
+          type: isAnthropic ? t("anthropic") : t("openai"),
+        })}
       </p>
 
       <div className="flex items-end gap-2 flex-wrap">
@@ -1554,7 +1671,7 @@ function CompatibleModelsSection({
             htmlFor="new-compatible-model-input"
             className="text-xs text-text-muted mb-1 block"
           >
-            Model ID
+            {t("modelId")}
           </label>
           <input
             id="new-compatible-model-input"
@@ -1562,12 +1679,16 @@ function CompatibleModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={isAnthropic ? "claude-3-opus-20240229" : "gpt-4o"}
+            placeholder={
+              isAnthropic
+                ? t("anthropicCompatibleModelPlaceholder")
+                : t("openaiCompatibleModelPlaceholder")
+            }
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
         <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModel.trim() || adding}>
-          {adding ? "Adding..." : "Add"}
+          {adding ? t("adding") : t("add")}
         </Button>
         <Button
           size="sm"
@@ -1576,13 +1697,11 @@ function CompatibleModelsSection({
           onClick={handleImport}
           disabled={!canImport || importing}
         >
-          {importing ? "Importing..." : "Import from /models"}
+          {importing ? t("importingModels") : t("importFromModels")}
         </Button>
       </div>
 
-      {!canImport && (
-        <p className="text-xs text-text-muted">Add a connection to enable importing models.</p>
-      )}
+      {!canImport && <p className="text-xs text-text-muted">{t("addConnectionToImport")}</p>}
 
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
@@ -1593,7 +1712,7 @@ function CompatibleModelsSection({
               fullModel={`${providerDisplayAlias}/${modelId}`}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={() => onDeleteAlias(alias)}
+              onDeleteAlias={() => handleDeleteModel(modelId, alias)}
             />
           ))}
         </div>
@@ -1657,16 +1776,16 @@ CooldownTimer.propTypes = {
 };
 
 const ERROR_TYPE_LABELS = {
-  runtime_error: { label: "Local runtime", variant: "warning" },
-  upstream_auth_error: { label: "Upstream auth", variant: "error" },
-  auth_missing: { label: "Missing credential", variant: "warning" },
-  token_refresh_failed: { label: "Refresh failed", variant: "warning" },
-  token_expired: { label: "Token expired", variant: "warning" },
-  upstream_rate_limited: { label: "Rate limited", variant: "warning" },
-  upstream_unavailable: { label: "Upstream unavailable", variant: "error" },
-  network_error: { label: "Network error", variant: "warning" },
-  unsupported: { label: "Test unsupported", variant: "default" },
-  upstream_error: { label: "Upstream error", variant: "error" },
+  runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
+  upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
+  auth_missing: { labelKey: "errorTypeMissingCredential", variant: "warning" },
+  token_refresh_failed: { labelKey: "errorTypeRefreshFailed", variant: "warning" },
+  token_expired: { labelKey: "errorTypeTokenExpired", variant: "warning" },
+  upstream_rate_limited: { labelKey: "errorTypeRateLimited", variant: "warning" },
+  upstream_unavailable: { labelKey: "errorTypeUpstreamUnavailable", variant: "error" },
+  network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
+  unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
+  upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
 };
 
 function inferErrorType(connection, isCooldown) {
@@ -1716,11 +1835,11 @@ function inferErrorType(connection, isCooldown) {
   return "upstream_error";
 }
 
-function getStatusPresentation(connection, effectiveStatus, isCooldown) {
+function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
   if (connection.isActive === false) {
     return {
       statusVariant: "default",
-      statusLabel: "disabled",
+      statusLabel: t("statusDisabled"),
       errorType: null,
       errorBadge: null,
       errorTextClass: "text-text-muted",
@@ -1730,7 +1849,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   if (effectiveStatus === "active" || effectiveStatus === "success") {
     return {
       statusVariant: "success",
-      statusLabel: "connected",
+      statusLabel: t("statusConnected"),
       errorType: null,
       errorBadge: null,
       errorTextClass: "text-text-muted",
@@ -1743,7 +1862,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   if (errorType === "runtime_error") {
     return {
       statusVariant: "warning",
-      statusLabel: "runtime issue",
+      statusLabel: t("statusRuntimeIssue"),
       errorType,
       errorBadge,
       errorTextClass: "text-yellow-600 dark:text-yellow-400",
@@ -1758,7 +1877,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   ) {
     return {
       statusVariant: "error",
-      statusLabel: "auth failed",
+      statusLabel: t("statusAuthFailed"),
       errorType,
       errorBadge,
       errorTextClass: "text-red-500",
@@ -1768,7 +1887,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   if (errorType === "upstream_rate_limited") {
     return {
       statusVariant: "warning",
-      statusLabel: "rate limited",
+      statusLabel: t("statusRateLimited"),
       errorType,
       errorBadge,
       errorTextClass: "text-yellow-600 dark:text-yellow-400",
@@ -1778,7 +1897,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   if (errorType === "network_error") {
     return {
       statusVariant: "warning",
-      statusLabel: "network issue",
+      statusLabel: t("statusNetworkIssue"),
       errorType,
       errorBadge,
       errorTextClass: "text-yellow-600 dark:text-yellow-400",
@@ -1788,16 +1907,22 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown) {
   if (errorType === "unsupported") {
     return {
       statusVariant: "default",
-      statusLabel: "test unsupported",
+      statusLabel: t("statusTestUnsupported"),
       errorType,
       errorBadge,
       errorTextClass: "text-text-muted",
     };
   }
 
+  const fallbackStatusMap = {
+    unavailable: t("statusUnavailable"),
+    failed: t("statusFailed"),
+    error: t("statusError"),
+  };
+
   return {
     statusVariant: "error",
-    statusLabel: effectiveStatus || "error",
+    statusLabel: fallbackStatusMap[effectiveStatus] || effectiveStatus || t("statusError"),
     errorType,
     errorBadge,
     errorTextClass: "text-red-500",
@@ -1820,9 +1945,12 @@ function ConnectionRow({
   onReauth,
   onProxy,
   hasProxy,
+  proxySource,
+  proxyHost,
 }) {
+  const t = useTranslations("providers");
   const displayName = isOAuth
-    ? connection.name || connection.email || connection.displayName || "OAuth Account"
+    ? connection.name || connection.email || connection.displayName || t("oauthAccount")
     : connection.name;
 
   // Use useState + useEffect for impure Date.now() to avoid calling during render
@@ -1849,7 +1977,7 @@ function ConnectionRow({
       ? "active" // Cooldown expired → treat as active
       : connection.testStatus;
 
-  const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown);
+  const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
 
   return (
@@ -1888,7 +2016,7 @@ function ConnectionRow({
             )}
             {statusPresentation.errorBadge && connection.isActive !== false && (
               <Badge variant={statusPresentation.errorBadge.variant} size="sm">
-                {statusPresentation.errorBadge.label}
+                {t(statusPresentation.errorBadge.labelKey)}
               </Badge>
             )}
             {connection.lastError && connection.isActive !== false && (
@@ -1901,7 +2029,9 @@ function ConnectionRow({
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>
             {connection.globalPriority && (
-              <span className="text-xs text-text-muted">Auto: {connection.globalPriority}</span>
+              <span className="text-xs text-text-muted">
+                {t("autoPriority", { priority: connection.globalPriority })}
+              </span>
             )}
             {/* Rate Limit Protection — inline toggle with label */}
             <span className="text-text-muted/30 select-none">|</span>
@@ -1913,26 +2043,42 @@ function ConnectionRow({
                   : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
               }`}
               title={
-                rateLimitEnabled
-                  ? "Click to disable rate limit protection"
-                  : "Click to enable rate limit protection"
+                rateLimitEnabled ? t("disableRateLimitProtection") : t("enableRateLimitProtection")
               }
             >
               <span className="material-symbols-outlined text-[13px]">shield</span>
-              {rateLimitEnabled ? "Protected" : "Unprotected"}
+              {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
-            {hasProxy && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/15 text-primary"
-                  title="Proxy configured"
-                >
-                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
-                  Proxy
-                </span>
-              </>
-            )}
+            {hasProxy &&
+              (() => {
+                const colorClass =
+                  proxySource === "global"
+                    ? "bg-emerald-500/15 text-emerald-500"
+                    : proxySource === "provider"
+                      ? "bg-amber-500/15 text-amber-500"
+                      : "bg-blue-500/15 text-blue-500";
+                const label =
+                  proxySource === "global"
+                    ? t("proxySourceGlobal")
+                    : proxySource === "provider"
+                      ? t("proxySourceProvider")
+                      : t("proxySourceKey");
+                return (
+                  <>
+                    <span className="text-text-muted/30 select-none">|</span>
+                    <span
+                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${colorClass}`}
+                      title={t("proxyConfiguredBySource", {
+                        source: label,
+                        host: proxyHost || t("configured"),
+                      })}
+                    >
+                      <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
+                      {proxyHost || t("proxy")}
+                    </span>
+                  </>
+                );
+              })()}
           </div>
         </div>
       </div>
@@ -1945,22 +2091,22 @@ function ConnectionRow({
           disabled={connection.isActive === false}
           onClick={onRetest}
           className="!h-7 !px-2 text-xs"
-          title="Retest authentication"
+          title={t("retestAuthentication")}
         >
-          Retest
+          {t("retest")}
         </Button>
         <Toggle
           size="sm"
           checked={connection.isActive ?? true}
           onChange={onToggleActive}
-          title={(connection.isActive ?? true) ? "Disable connection" : "Enable connection"}
+          title={(connection.isActive ?? true) ? t("disableConnection") : t("enableConnection")}
         />
         <div className="flex gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {onReauth && (
             <button
               onClick={onReauth}
               className="p-2 hover:bg-amber-500/10 rounded text-amber-600 hover:text-amber-500"
-              title="Re-authenticate this connection"
+              title={t("reauthenticateConnection")}
             >
               <span className="material-symbols-outlined text-[18px]">passkey</span>
             </button>
@@ -1974,7 +2120,7 @@ function ConnectionRow({
           <button
             onClick={onProxy}
             className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary"
-            title="Proxy config"
+            title={t("proxyConfig")}
           >
             <span className="material-symbols-outlined text-[18px]">vpn_lock</span>
           </button>
@@ -2027,6 +2173,7 @@ function AddApiKeyModal({
   onSave,
   onClose,
 }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
@@ -2080,7 +2227,7 @@ function AddApiKeyModal({
       }
 
       if (!isValid) {
-        setSaveError("API key validation failed. Please check your key and try again.");
+        setSaveError(t("apiKeyValidationFailed"));
         return;
       }
 
@@ -2091,7 +2238,7 @@ function AddApiKeyModal({
         testStatus: "active",
       });
       if (error) {
-        setSaveError(typeof error === "string" ? error : "Failed to save connection");
+        setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
       }
     } finally {
       setSaving(false);
@@ -2101,17 +2248,21 @@ function AddApiKeyModal({
   if (!provider) return null;
 
   return (
-    <Modal isOpen={isOpen} title={`Add ${providerName || provider} API Key`} onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      title={t("addProviderApiKeyTitle", { provider: providerName || provider })}
+      onClose={onClose}
+    >
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Production Key"
+          placeholder={t("productionKey")}
         />
         <div className="flex gap-2">
           <Input
-            label="API Key"
+            label={t("apiKeyLabel")}
             type="password"
             value={formData.apiKey}
             onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
@@ -2123,13 +2274,13 @@ function AddApiKeyModal({
               disabled={!formData.apiKey || validating || saving}
               variant="secondary"
             >
-              {validating ? "Checking..." : "Check"}
+              {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? "Valid" : "Invalid"}
+            {validationResult === "success" ? t("valid") : t("invalid")}
           </Badge>
         )}
         {saveError && (
@@ -2140,12 +2291,16 @@ function AddApiKeyModal({
         {isCompatible && (
           <p className="text-xs text-text-muted">
             {isAnthropic
-              ? `Validation checks ${providerName || "Anthropic Compatible"} by verifying the API key.`
-              : `Validation checks ${providerName || "OpenAI Compatible"} via /models on your base URL.`}
+              ? t("validationChecksAnthropicCompatible", {
+                  provider: providerName || t("anthropicCompatibleName"),
+                })
+              : t("validationChecksOpenAiCompatible", {
+                  provider: providerName || t("openaiCompatibleName"),
+                })}
           </p>
         )}
         <Input
-          label="Priority"
+          label={t("priorityLabel")}
           type="number"
           value={formData.priority}
           onChange={(e) =>
@@ -2158,10 +2313,10 @@ function AddApiKeyModal({
             fullWidth
             disabled={!formData.name || !formData.apiKey || saving}
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("saving") : t("save")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>
@@ -2180,6 +2335,7 @@ AddApiKeyModal.propTypes = {
 };
 
 function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
@@ -2221,7 +2377,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
       setTestResult({
         valid: false,
         diagnosis: { type: "network_error" },
-        message: "Failed to test connection",
+        message: t("failedTestConnection"),
       });
     } finally {
       setTesting(false);
@@ -2304,23 +2460,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
       : null;
 
   return (
-    <Modal isOpen={isOpen} title="Edit Connection" onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("editConnection")} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={isOAuth ? "Account name" : "Production Key"}
+          placeholder={isOAuth ? t("accountName") : t("productionKey")}
         />
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
-            <p className="text-sm text-text-muted mb-1">Email</p>
+            <p className="text-sm text-text-muted mb-1">{t("email")}</p>
             <p className="font-medium">{connection.email}</p>
           </div>
         )}
         {isOAuth && (
           <Input
-            label="Health Check (min)"
+            label={t("healthCheckMinutes")}
             type="number"
             value={formData.healthCheckInterval}
             onChange={(e) =>
@@ -2329,11 +2485,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
                 healthCheckInterval: Math.max(0, Number.parseInt(e.target.value) || 0),
               })
             }
-            hint="Proactive token refresh interval. 0 = disabled."
+            hint={t("healthCheckHint")}
           />
         )}
         <Input
-          label="Priority"
+          label={t("priorityLabel")}
           type="number"
           value={formData.priority}
           onChange={(e) =>
@@ -2344,12 +2500,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
           <>
             <div className="flex gap-2">
               <Input
-                label="API Key"
+                label={t("apiKeyLabel")}
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder="Enter new API key"
-                hint="Leave blank to keep the current API key."
+                placeholder={t("enterNewApiKey")}
+                hint={t("leaveBlankKeepCurrentApiKey")}
                 className="flex-1"
               />
               <div className="pt-6">
@@ -2358,13 +2514,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
                   disabled={!formData.apiKey || validating || saving}
                   variant="secondary"
                 >
-                  {validating ? "Checking..." : "Check"}
+                  {validating ? t("checking") : t("check")}
                 </Button>
               </div>
             </div>
             {validationResult && (
               <Badge variant={validationResult === "success" ? "success" : "error"}>
-                {validationResult === "success" ? "Valid" : "Invalid"}
+                {validationResult === "success" ? t("valid") : t("invalid")}
               </Badge>
             )}
           </>
@@ -2374,15 +2530,15 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
         {!isCompatible && (
           <div className="flex items-center gap-3">
             <Button onClick={handleTest} variant="secondary" disabled={testing}>
-              {testing ? "Testing..." : "Test Connection"}
+              {testing ? t("testing") : t("testConnection")}
             </Button>
             {testResult && (
               <>
                 <Badge variant={testResult.valid ? "success" : "error"}>
-                  {testResult.valid ? "Valid" : "Failed"}
+                  {testResult.valid ? t("valid") : t("failed")}
                 </Badge>
                 {testErrorMeta && (
-                  <Badge variant={testErrorMeta.variant}>{testErrorMeta.label}</Badge>
+                  <Badge variant={testErrorMeta.variant}>{t(testErrorMeta.labelKey)}</Badge>
                 )}
               </>
             )}
@@ -2391,10 +2547,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
 
         <div className="flex gap-2">
           <Button onClick={handleSubmit} fullWidth disabled={saving}>
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("saving") : t("save")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>
@@ -2417,6 +2573,7 @@ EditConnectionModal.propTypes = {
 };
 
 function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -2442,8 +2599,8 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
   }, [node, isAnthropic]);
 
   const apiTypeOptions = [
-    { value: "chat", label: "Chat Completions" },
-    { value: "responses", label: "Responses API" },
+    { value: "chat", label: t("chatCompletions") },
+    { value: "responses", label: t("responsesApi") },
   ];
 
   const handleSubmit = async () => {
@@ -2490,42 +2647,48 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
   return (
     <Modal
       isOpen={isOpen}
-      title={`Edit ${isAnthropic ? "Anthropic" : "OpenAI"} Compatible`}
+      title={t("editCompatibleTitle", { type: isAnthropic ? t("anthropic") : t("openai") })}
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={`${isAnthropic ? "Anthropic" : "OpenAI"} Compatible (Prod)`}
-          hint="Required. A friendly label for this node."
+          placeholder={t("compatibleProdPlaceholder", {
+            type: isAnthropic ? t("anthropic") : t("openai"),
+          })}
+          hint={t("nameHint")}
         />
         <Input
-          label="Prefix"
+          label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder={isAnthropic ? "ac-prod" : "oc-prod"}
-          hint="Required. Used as the provider prefix for model IDs."
+          placeholder={isAnthropic ? t("anthropicPrefixPlaceholder") : t("openaiPrefixPlaceholder")}
+          hint={t("prefixHint")}
         />
         {!isAnthropic && (
           <Select
-            label="API Type"
+            label={t("apiTypeLabel")}
             options={apiTypeOptions}
             value={formData.apiType}
             onChange={(e) => setFormData({ ...formData, apiType: e.target.value })}
           />
         )}
         <Input
-          label="Base URL"
+          label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder={isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"}
-          hint={`Use the base URL (ending in /v1) for your ${isAnthropic ? "Anthropic" : "OpenAI"}-compatible API.`}
+          placeholder={
+            isAnthropic ? t("anthropicBaseUrlPlaceholder") : t("openaiBaseUrlPlaceholder")
+          }
+          hint={t("compatibleBaseUrlHint", {
+            type: isAnthropic ? t("anthropic") : t("openai"),
+          })}
         />
         <div className="flex gap-2">
           <Input
-            label="API Key (for Check)"
+            label={t("apiKeyForCheck")}
             type="password"
             value={checkKey}
             onChange={(e) => setCheckKey(e.target.value)}
@@ -2537,13 +2700,13 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
               disabled={!checkKey || validating || !formData.baseUrl.trim()}
               variant="secondary"
             >
-              {validating ? "Checking..." : "Check"}
+              {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? "Valid" : "Invalid"}
+            {validationResult === "success" ? t("valid") : t("invalid")}
           </Badge>
         )}
         <div className="flex gap-2">
@@ -2554,10 +2717,10 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
               !formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim() || saving
             }
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("saving") : t("save")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>

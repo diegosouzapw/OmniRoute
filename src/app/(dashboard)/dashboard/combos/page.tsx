@@ -14,6 +14,7 @@ import {
 } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 // Validate combo name: letters, numbers, -, _, /, .
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
@@ -34,6 +35,8 @@ function getModelString(entry) {
 // Main Page
 // ─────────────────────────────────────────────
 export default function CombosPage() {
+  const t = useTranslations("combos");
+  const tc = useTranslations("common");
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -46,6 +49,7 @@ export default function CombosPage() {
   const notify = useNotificationStore();
   const [proxyTargetCombo, setProxyTargetCombo] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const [providerNodes, setProviderNodes] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -57,14 +61,16 @@ export default function CombosPage() {
 
   const fetchData = async () => {
     try {
-      const [combosRes, providersRes, metricsRes] = await Promise.all([
+      const [combosRes, providersRes, metricsRes, nodesRes] = await Promise.all([
         fetch("/api/combos"),
         fetch("/api/providers"),
         fetch("/api/combos/metrics"),
+        fetch("/api/provider-nodes"),
       ]);
       const combosData = await combosRes.json();
       const providersData = await providersRes.json();
       const metricsData = await metricsRes.json();
+      const nodesData = nodesRes.ok ? await nodesRes.json() : { nodes: [] };
 
       if (combosRes.ok) setCombos(combosData.combos || []);
       if (providersRes.ok) {
@@ -74,6 +80,7 @@ export default function CombosPage() {
         setActiveProviders(active);
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
+      setProviderNodes(nodesData.nodes || []);
     } catch (error) {
       console.log("Error fetching data:", error);
     } finally {
@@ -91,13 +98,13 @@ export default function CombosPage() {
       if (res.ok) {
         await fetchData();
         setShowCreateModal(false);
-        notify.success("Combo created successfully");
+        notify.success(t("comboCreated"));
       } else {
         const err = await res.json();
-        notify.error(err.error?.message || err.error || "Failed to create combo");
+        notify.error(err.error?.message || err.error || t("failedCreate"));
       }
     } catch (error) {
-      notify.error("Error creating combo");
+      notify.error(t("errorCreating"));
     }
   };
 
@@ -111,26 +118,26 @@ export default function CombosPage() {
       if (res.ok) {
         await fetchData();
         setEditingCombo(null);
-        notify.success("Combo updated successfully");
+        notify.success(t("comboUpdated"));
       } else {
         const err = await res.json();
-        notify.error(err.error?.message || err.error || "Failed to update combo");
+        notify.error(err.error?.message || err.error || t("failedUpdate"));
       }
     } catch (error) {
-      notify.error("Error updating combo");
+      notify.error(t("errorUpdating"));
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this combo?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     try {
       const res = await fetch(`/api/combos/${id}`, { method: "DELETE" });
       if (res.ok) {
         setCombos(combos.filter((c) => c.id !== id));
-        notify.success("Combo deleted");
+        notify.success(t("comboDeleted"));
       }
     } catch (error) {
-      notify.error("Error deleting combo");
+      notify.error(t("errorDeleting"));
     }
   };
 
@@ -166,8 +173,8 @@ export default function CombosPage() {
       const data = await res.json();
       setTestResults(data);
     } catch (error) {
-      setTestResults({ error: "Test request failed" });
-      notify.error("Test request failed");
+      setTestResults({ error: t("testFailed") });
+      notify.error(t("testFailed"));
     }
   };
 
@@ -186,7 +193,7 @@ export default function CombosPage() {
       setCombos((prev) =>
         prev.map((c) => (c.id === combo.id ? { ...c, isActive: !newActive } : c))
       );
-      notify.error("Failed to toggle combo");
+      notify.error(t("failedToggle"));
     }
   };
 
@@ -204,13 +211,11 @@ export default function CombosPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Combos</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Create model combos with weighted routing and fallback support
-          </p>
+          <h1 className="text-2xl font-semibold">{t("title")}</h1>
+          <p className="text-sm text-text-muted mt-1">{t("description")}</p>
         </div>
         <Button icon="add" onClick={() => setShowCreateModal(true)}>
-          Create Combo
+          {t("createCombo")}
         </Button>
       </div>
 
@@ -218,9 +223,9 @@ export default function CombosPage() {
       {combos.length === 0 ? (
         <EmptyState
           icon="🧩"
-          title="No combos yet"
-          description="Create model combos with weighted routing and fallback support"
-          actionLabel="Create Combo"
+          title={t("noCombosYet")}
+          description={t("description")}
+          actionLabel={t("createCombo")}
           onAction={() => setShowCreateModal(true)}
         />
       ) : (
@@ -230,6 +235,7 @@ export default function CombosPage() {
               key={combo.id}
               combo={combo}
               metrics={metrics[combo.name]}
+              providerNodes={providerNodes}
               copied={copied}
               onCopy={copy}
               onEdit={() => setEditingCombo(combo)}
@@ -253,7 +259,7 @@ export default function CombosPage() {
             setTestResults(null);
             setTestingCombo(null);
           }}
-          title={`Test Results — ${testingCombo}`}
+          title={t("testResults", { name: testingCombo })}
         >
           <TestResultsView results={testResults} />
         </Modal>
@@ -309,10 +315,24 @@ function ComboCard({
   onProxy,
   hasProxy,
   onToggle,
+  providerNodes,
 }) {
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
   const isDisabled = combo.isActive === false;
+  const t = useTranslations("combos");
+  const tc = useTranslations("common");
+
+  // Resolve provider UUID to user-defined name
+  const formatModelDisplay = (modelValue) => {
+    const parts = modelValue.split("/");
+    if (parts.length !== 2) return modelValue;
+    const [providerIdentifier, modelId] = parts;
+    const matchedNode = (providerNodes || []).find(
+      (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
+    );
+    return matchedNode ? `${matchedNode.name}/${modelId}` : modelValue;
+  };
 
   return (
     <Card padding="sm" className={`group ${isDisabled ? "opacity-50" : ""}`}>
@@ -346,7 +366,7 @@ function ComboCard({
               {hasProxy && (
                 <span
                   className="text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary flex items-center gap-0.5"
-                  title="Proxy configured"
+                  title={t("proxyConfigured")}
                 >
                   <span className="material-symbols-outlined text-[11px]">vpn_lock</span>
                   proxy
@@ -358,7 +378,7 @@ function ComboCard({
                   onCopy(combo.name, `combo-${combo.id}`);
                 }}
                 className="p-0.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-                title="Copy combo name"
+                title={t("copyComboName")}
               >
                 <span className="material-symbols-outlined text-[14px]">
                   {copied === `combo-${combo.id}` ? "check" : "content_copy"}
@@ -369,7 +389,7 @@ function ComboCard({
             {/* Model tags with weights */}
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
               {models.length === 0 ? (
-                <span className="text-xs text-text-muted italic">No models</span>
+                <span className="text-xs text-text-muted italic">{t("noModels")}</span>
               ) : (
                 models.slice(0, 3).map((entry, index) => {
                   const { model, weight } = normalizeModelEntry(entry);
@@ -378,14 +398,16 @@ function ComboCard({
                       key={index}
                       className="text-[10px] font-mono bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded text-text-muted"
                     >
-                      {model}
+                      {formatModelDisplay(model)}
                       {strategy === "weighted" && weight > 0 ? ` (${weight}%)` : ""}
                     </code>
                   );
                 })
               )}
               {models.length > 3 && (
-                <span className="text-[10px] text-text-muted">+{models.length - 3} more</span>
+                <span className="text-[10px] text-text-muted">
+                  {t("more", { count: models.length - 3 })}
+                </span>
               )}
             </div>
 
@@ -394,9 +416,11 @@ function ComboCard({
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-[10px] text-text-muted">
                   <span className="text-emerald-500">{metrics.totalSuccesses}</span>/
-                  {metrics.totalRequests} reqs
+                  {metrics.totalRequests} {t("reqs")}
                 </span>
-                <span className="text-[10px] text-text-muted">{metrics.successRate}% success</span>
+                <span className="text-[10px] text-text-muted">
+                  {metrics.successRate}% {t("success")}
+                </span>
                 <span className="text-[10px] text-text-muted">~{metrics.avgLatencyMs}ms</span>
                 {metrics.fallbackRate > 0 && (
                   <span className="text-[10px] text-amber-500">
@@ -414,14 +438,14 @@ function ComboCard({
             size="sm"
             checked={!isDisabled}
             onChange={onToggle}
-            title={isDisabled ? "Enable combo" : "Disable combo"}
+            title={isDisabled ? t("enableCombo") : t("disableCombo")}
           />
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={onTest}
               disabled={testing}
               className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-emerald-500 transition-colors"
-              title="Test combo"
+              title={t("testCombo")}
             >
               <span
                 className={`material-symbols-outlined text-[16px] ${testing ? "animate-spin" : ""}`}
@@ -432,28 +456,28 @@ function ComboCard({
             <button
               onClick={onDuplicate}
               className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
-              title="Duplicate"
+              title={t("duplicate")}
             >
               <span className="material-symbols-outlined text-[16px]">content_copy</span>
             </button>
             <button
               onClick={onProxy}
               className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
-              title="Proxy configuration"
+              title={t("proxyConfig")}
             >
               <span className="material-symbols-outlined text-[16px]">vpn_lock</span>
             </button>
             <button
               onClick={onEdit}
               className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
-              title="Edit"
+              title={tc("edit")}
             >
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </button>
             <button
               onClick={onDelete}
               className="p-1.5 hover:bg-red-500/10 rounded text-red-500 transition-colors"
-              title="Delete"
+              title={tc("delete")}
             >
               <span className="material-symbols-outlined text-[16px]">delete</span>
             </button>
@@ -531,6 +555,8 @@ function TestResultsView({ results }) {
 // Combo Form Modal
 // ─────────────────────────────────────────────
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
+  const t = useTranslations("combos");
+  const tc = useTranslations("common");
   const [name, setName] = useState(combo?.name || "");
   const [models, setModels] = useState(() => {
     return (combo?.models || []).map((m) => normalizeModelEntry(m));
@@ -575,11 +601,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const validateName = (value) => {
     if (!value.trim()) {
-      setNameError("Name is required");
+      setNameError(t("nameRequired"));
       return false;
     }
     if (!VALID_NAME_REGEX.test(value)) {
-      setNameError("Only letters, numbers, -, _, / and . allowed");
+      setNameError(t("nameInvalid"));
       return false;
     }
     setNameError("");
@@ -631,8 +657,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
       const parts = modelValue.split("/");
       if (parts.length !== 2) return modelValue;
 
-      const [providerId, modelId] = parts;
-      const matchedNode = providerNodes.find((node) => node.id === providerId);
+      const [providerIdentifier, modelId] = parts;
+      // Match by node ID or prefix
+      const matchedNode = providerNodes.find(
+        (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
+      );
 
       if (matchedNode) {
         return `${matchedNode.name}/${modelId}`;
@@ -723,25 +752,23 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? "Edit Combo" : "Create Combo"}>
+      <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? t("editCombo") : t("createCombo")}>
         <div className="flex flex-col gap-3">
           {/* Name */}
           <div>
             <Input
-              label="Combo Name"
+              label={t("comboName")}
               value={name}
               onChange={handleNameChange}
-              placeholder="my-combo"
+              placeholder={t("comboNamePlaceholder")}
               error={nameError}
             />
-            <p className="text-[10px] text-text-muted mt-0.5">
-              Letters, numbers, -, _, / and . allowed
-            </p>
+            <p className="text-[10px] text-text-muted mt-0.5">{t("nameHint")}</p>
           </div>
 
           {/* Strategy Toggle */}
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Routing Strategy</label>
+            <label className="text-sm font-medium mb-1.5 block">{t("routingStrategy")}</label>
             <div className="grid grid-cols-3 gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
               {[
                 { value: "priority", label: "Priority", icon: "sort" },
@@ -785,13 +812,13 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
           {/* Models */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium">Models</label>
+              <label className="text-sm font-medium">{t("models")}</label>
               {strategy === "weighted" && models.length > 1 && (
                 <button
                   onClick={handleAutoBalance}
                   className="text-[10px] text-primary hover:text-primary/80 transition-colors"
                 >
-                  Auto-balance
+                  {t("autoBalance")}
                 </button>
               )}
             </div>
@@ -801,7 +828,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 <span className="material-symbols-outlined text-text-muted text-xl mb-1">
                   layers
                 </span>
-                <p className="text-xs text-text-muted">No models added yet</p>
+                <p className="text-xs text-text-muted">{t("noModelsYet")}</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1 max-h-[240px] overflow-y-auto">
@@ -856,7 +883,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                           onClick={() => handleMoveUp(index)}
                           disabled={index === 0}
                           className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title="Move up"
+                          title={t("moveUp")}
                         >
                           <span className="material-symbols-outlined text-[12px]">
                             arrow_upward
@@ -866,7 +893,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                           onClick={() => handleMoveDown(index)}
                           disabled={index === models.length - 1}
                           className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title="Move down"
+                          title={t("moveDown")}
                         >
                           <span className="material-symbols-outlined text-[12px]">
                             arrow_downward
@@ -879,7 +906,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     <button
                       onClick={() => handleRemoveModel(index)}
                       className="p-0.5 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-all"
-                      title="Remove"
+                      title={t("removeModel")}
                     >
                       <span className="material-symbols-outlined text-[12px]">close</span>
                     </button>
@@ -897,7 +924,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
               className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-text-muted hover:text-primary hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
-              Add Model
+              {t("addModel")}
             </button>
           </div>
 
@@ -909,14 +936,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
             <span className="material-symbols-outlined text-[14px]">
               {showAdvanced ? "expand_less" : "expand_more"}
             </span>
-            Advanced Settings
+            {t("advancedSettings")}
           </button>
 
           {showAdvanced && (
             <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-text-muted mb-0.5 block">Max Retries</label>
+                  <label className="text-[10px] text-text-muted mb-0.5 block">
+                    {t("maxRetries")}
+                  </label>
                   <input
                     type="number"
                     min="0"
@@ -934,7 +963,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 </div>
                 <div>
                   <label className="text-[10px] text-text-muted mb-0.5 block">
-                    Retry Delay (ms)
+                    {t("retryDelay")}
                   </label>
                   <input
                     type="number"
@@ -953,7 +982,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-text-muted mb-0.5 block">Timeout (ms)</label>
+                  <label className="text-[10px] text-text-muted mb-0.5 block">{t("timeout")}</label>
                   <input
                     type="number"
                     min="1000"
@@ -971,7 +1000,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-[10px] text-text-muted">Healthcheck</label>
+                  <label className="text-[10px] text-text-muted">{t("healthcheck")}</label>
                   <input
                     type="checkbox"
                     checked={config.healthCheckEnabled !== false}
@@ -984,7 +1013,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                   <div>
                     <label className="text-[10px] text-text-muted mb-0.5 block">
-                      Concurrency / Model
+                      {t("concurrencyPerModel")}
                     </label>
                     <input
                       type="number"
@@ -1003,7 +1032,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   </div>
                   <div>
                     <label className="text-[10px] text-text-muted mb-0.5 block">
-                      Queue Timeout (ms)
+                      {t("queueTimeout")}
                     </label>
                     <input
                       type="number"
@@ -1023,16 +1052,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   </div>
                 </div>
               )}
-              <p className="text-[10px] text-text-muted">
-                Leave empty to use global defaults. These override per-provider settings.
-              </p>
+              <p className="text-[10px] text-text-muted">{t("advancedHint")}</p>
             </div>
           )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
             <Button onClick={onClose} variant="ghost" fullWidth size="sm">
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               onClick={handleSave}
@@ -1040,7 +1067,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
               size="sm"
               disabled={!name.trim() || !!nameError || saving}
             >
-              {saving ? "Saving..." : isEdit ? "Save" : "Create"}
+              {saving ? t("saving") : isEdit ? tc("save") : t("createCombo")}
             </Button>
           </div>
         </div>
@@ -1053,7 +1080,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         onSelect={handleAddModel}
         activeProviders={activeProviders}
         modelAliases={modelAliases}
-        title="Add Model to Combo"
+        title={t("addModelToCombo")}
         selectedModel={null}
       />
     </>

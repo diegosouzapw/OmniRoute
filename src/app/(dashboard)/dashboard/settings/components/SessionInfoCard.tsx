@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
 interface SessionInfo {
   authenticated: boolean;
@@ -21,6 +22,7 @@ interface SessionInfo {
 export default function SessionInfoCard() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("settings");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,7 +32,7 @@ export default function SessionInfoCard() {
       const loginTime = sessionStorage.getItem("omniroute_login_time");
       const now = Date.now();
 
-      let sessionAge = "Unknown";
+      let sessionAge = t("unknown");
       if (loginTime) {
         const elapsed = now - parseInt(loginTime, 10);
         const hours = Math.floor(elapsed / 3600000);
@@ -59,7 +61,7 @@ export default function SessionInfoCard() {
         loginTime: loginTime ? new Date(parseInt(loginTime, 10)).toLocaleString() : null,
         sessionAge,
         ipAddress: "—", // Server-side only
-        userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || "Unknown",
+        userAgent: navigator.userAgent.split(" ").slice(-2).join(" ") || t("unknown"),
       });
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function SessionInfoCard() {
   };
 
   const handleClearStorage = () => {
-    if (confirm("Clear all local data? This will reset your preferences.")) {
+    if (confirm(t("clearLocalDataConfirm"))) {
       localStorage.clear();
       sessionStorage.clear();
       window.location.reload();
@@ -104,46 +106,46 @@ export default function SessionInfoCard() {
             person
           </span>
         </div>
-        <h3 className="text-lg font-semibold">Session</h3>
+        <h3 className="text-lg font-semibold">{t("session")}</h3>
       </div>
 
-      <div className="flex flex-col gap-3" role="list" aria-label="Session details">
+      <div className="flex flex-col gap-3" role="list" aria-label={t("sessionDetailsAria")}>
         <div className="flex justify-between items-center text-sm" role="listitem">
-          <span className="text-text-muted">Status</span>
+          <span className="text-text-muted">{t("status")}</span>
           <span className="flex items-center gap-1.5">
             <span
               className={`w-2 h-2 rounded-full ${session?.authenticated ? "bg-green-500" : "bg-yellow-500"}`}
               aria-hidden="true"
             />
-            {session?.authenticated ? "Authenticated" : "Guest"}
+            {session?.authenticated ? t("authenticated") : t("guest")}
           </span>
         </div>
 
         {session?.loginTime && (
           <div className="flex justify-between items-center text-sm" role="listitem">
-            <span className="text-text-muted">Login Time</span>
+            <span className="text-text-muted">{t("loginTime")}</span>
             <span className="font-mono text-xs">{session.loginTime}</span>
           </div>
         )}
 
         <div className="flex justify-between items-center text-sm" role="listitem">
-          <span className="text-text-muted">Session Age</span>
+          <span className="text-text-muted">{t("sessionAge")}</span>
           <span className="font-mono text-xs">{session?.sessionAge}</span>
         </div>
 
         <div className="flex justify-between items-center text-sm" role="listitem">
-          <span className="text-text-muted">Browser</span>
+          <span className="text-text-muted">{t("browser")}</span>
           <span className="font-mono text-xs truncate max-w-[200px]">{session?.userAgent}</span>
         </div>
       </div>
 
       <div className="flex gap-3 mt-4 pt-4 border-t border-border/50">
         <Button variant="secondary" onClick={handleClearStorage}>
-          Clear Local Data
+          {t("clearLocalData")}
         </Button>
         {session?.authenticated && (
           <Button variant="danger" onClick={handleLogout}>
-            Logout
+            {t("logout")}
           </Button>
         )}
       </div>

@@ -22,9 +22,7 @@ const PROVIDER_MODEL_ALIASES = {
     "gemini-3-flash": "gemini-3-flash-preview",
     "raptor-mini": "oswe-vscode-prime",
   },
-  antigravity: {
-    "gemini-3-flash": "gemini-3-flash-preview",
-  },
+  antigravity: {},
 };
 
 // Reverse index: modelId -> providerIds that expose this model

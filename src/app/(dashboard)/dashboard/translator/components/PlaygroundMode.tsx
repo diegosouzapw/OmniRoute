@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
+
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { EXAMPLE_TEMPLATES, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
+import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 export default function PlaygroundMode() {
+  const t = useTranslations("translator");
+  const tc = useTranslations("common");
   const [sourceFormat, setSourceFormat] = useState("claude");
   const [targetFormat, setTargetFormat] = useState("openai");
   const [inputContent, setInputContent] = useState("");
@@ -16,6 +20,7 @@ export default function PlaygroundMode() {
   const [translating, setTranslating] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState(null);
+  const templates = useMemo(() => getExampleTemplates(t), [t]);
 
   // Auto-detect format when input changes
   const detectFormatFromInput = useCallback(async (content) => {
@@ -114,12 +119,8 @@ export default function PlaygroundMode() {
           info
         </span>
         <div>
-          <p className="font-medium text-text-main mb-0.5">Format Converter</p>
-          <p>
-            Paste or type a JSON request body. The translator will auto-detect the source format and
-            convert it to the target format. Use this to debug how OmniRoute translates requests
-            between formats (OpenAI ↔ Claude ↔ Gemini ↔ Responses API).
-          </p>
+          <p className="font-medium text-text-main mb-0.5">{t("formatConverter")}</p>
+          <p>{t("formatConverterDescription")}</p>
         </div>
       </div>
       {/* Format Controls Bar */}
@@ -128,7 +129,7 @@ export default function PlaygroundMode() {
           {/* Source Format */}
           <div className="flex-1 w-full">
             <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Source Format
+              {t("source")}
             </label>
             <div className="flex items-center gap-2">
               <span className={`material-symbols-outlined text-[20px] text-${srcMeta.color}-500`}>
@@ -145,7 +146,7 @@ export default function PlaygroundMode() {
               />
               {detectedFormat && (
                 <Badge variant="primary" size="sm" icon="auto_awesome">
-                  Auto
+                  {t("auto")}
                 </Badge>
               )}
             </div>
@@ -155,7 +156,7 @@ export default function PlaygroundMode() {
           <button
             onClick={handleSwapFormats}
             className="p-2 rounded-full hover:bg-primary/10 text-text-muted hover:text-primary transition-all mt-4 sm:mt-5"
-            title="Swap formats"
+            title={t("swapFormats")}
           >
             <span className="material-symbols-outlined text-[24px]">swap_horiz</span>
           </button>
@@ -163,7 +164,7 @@ export default function PlaygroundMode() {
           {/* Target Format */}
           <div className="flex-1 w-full">
             <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Target Format
+              {t("target")}
             </label>
             <div className="flex items-center gap-2">
               <span className={`material-symbols-outlined text-[20px] text-${tgtMeta.color}-500`}>
@@ -185,9 +186,9 @@ export default function PlaygroundMode() {
               onClick={handleTranslate}
               loading={translating}
               disabled={!inputContent.trim() || translating}
-              className="whitespace-nowrap"
+              className="w-full sm:w-auto"
             >
-              Translate
+              {t("translateAction")}
             </Button>
           </div>
         </div>
@@ -201,7 +202,7 @@ export default function PlaygroundMode() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-text-muted">input</span>
-                <h3 className="text-sm font-semibold text-text-main">Input</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("input")}</h3>
                 {detectedFormat && (
                   <Badge variant="info" size="sm" dot>
                     {FORMAT_META[detectedFormat]?.label || detectedFormat}
@@ -217,7 +218,7 @@ export default function PlaygroundMode() {
                 <button
                   onClick={() => handleCopy(inputContent)}
                   className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Copy"
+                  title={tc("copy")}
                 >
                   <span className="material-symbols-outlined text-[16px]">content_copy</span>
                 </button>
@@ -229,7 +230,7 @@ export default function PlaygroundMode() {
                     setActiveTemplate(null);
                   }}
                   className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Clear"
+                  title={t("clear")}
                 >
                   <span className="material-symbols-outlined text-[16px]">delete</span>
                 </button>
@@ -250,7 +251,7 @@ export default function PlaygroundMode() {
                   wordWrap: "on",
                   automaticLayout: true,
                   formatOnPaste: true,
-                  placeholder: "Paste a request body here or select a template below...",
+                  placeholder: t("inputPlaceholder"),
                 }}
               />
             </div>
@@ -265,7 +266,7 @@ export default function PlaygroundMode() {
                 <span className="material-symbols-outlined text-[18px] text-text-muted">
                   output
                 </span>
-                <h3 className="text-sm font-semibold text-text-main">Output</h3>
+                <h3 className="text-sm font-semibold text-text-main">{t("output")}</h3>
                 {outputContent && (
                   <Badge variant="success" size="sm" dot>
                     {FORMAT_META[targetFormat]?.label || targetFormat}
@@ -276,7 +277,7 @@ export default function PlaygroundMode() {
                 <button
                   onClick={() => handleCopy(outputContent)}
                   className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Copy"
+                  title={tc("copy")}
                 >
                   <span className="material-symbols-outlined text-[16px]">content_copy</span>
                 </button>
@@ -303,18 +304,18 @@ export default function PlaygroundMode() {
         </Card>
       </div>
 
-      {/* Example Templates */}
+      {/* {t("exampleTemplates")} */}
       <Card>
         <div className="p-4 space-y-3">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px] text-primary">
               library_books
             </span>
-            <h3 className="text-sm font-semibold text-text-main">Example Templates</h3>
-            <span className="text-xs text-text-muted">— Click to load</span>
+            <h3 className="text-sm font-semibold text-text-main">{t("exampleTemplates")}</h3>
+            <span className="text-xs text-text-muted">{t("exampleTemplatesHint")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            {EXAMPLE_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <button
                 key={template.id}
                 onClick={() => loadTemplate(template)}
@@ -339,11 +340,9 @@ export default function PlaygroundMode() {
           {activeTemplate && (
             <div className="flex items-center gap-2 text-xs text-text-muted">
               <span className="material-symbols-outlined text-[14px]">info</span>
-              Template loads the request in{" "}
-              <strong className="text-text-main">
-                {FORMAT_META[sourceFormat]?.label || sourceFormat}
-              </strong>{" "}
-              format. Change Source Format to load in a different format.
+              {t("templateLoadHint", {
+                format: FORMAT_META[sourceFormat]?.label || sourceFormat,
+              })}
             </div>
           )}
         </div>

@@ -3,15 +3,15 @@
 import { useState, Suspense } from "react";
 import { UsageAnalytics, CardSkeleton, SegmentedControl } from "@/shared/components";
 import EvalsTab from "../usage/components/EvalsTab";
+import { useTranslations } from "next-intl";
 
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const t = useTranslations("analytics");
 
   const tabDescriptions = {
-    overview:
-      "Monitor your API usage patterns, token consumption, costs, and activity trends across all providers and models.",
-    evals:
-      "Run evaluation suites to test and validate your LLM endpoints. Compare model quality, detect regressions, and benchmark latency.",
+    overview: t("overviewDescription"),
+    evals: t("evalsDescription"),
   };
 
   return (
@@ -20,15 +20,15 @@ export default function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-[28px]">analytics</span>
-          Analytics
+          {t("title")}
         </h1>
         <p className="text-sm text-text-muted mt-1">{tabDescriptions[activeTab]}</p>
       </div>
 
       <SegmentedControl
         options={[
-          { value: "overview", label: "Overview" },
-          { value: "evals", label: "Evals" },
+          { value: "overview", label: t("overview") },
+          { value: "evals", label: t("evals") },
         ]}
         value={activeTab}
         onChange={setActiveTab}

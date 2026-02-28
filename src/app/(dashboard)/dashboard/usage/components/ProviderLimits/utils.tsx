@@ -229,13 +229,12 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
   }
 
-  if (
-    upper.includes("PRO") ||
-    upper.includes("PLUS") ||
-    upper.includes("PREMIUM") ||
-    upper.includes("PAID")
-  ) {
+  if (upper.includes("PRO") || upper.includes("PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "primary", rank: 3, raw };
+  }
+
+  if (upper.includes("PLUS") || upper.includes("PAID")) {
+    return { key: "plus", label: "Plus", variant: "secondary", rank: 2, raw };
   }
 
   if (

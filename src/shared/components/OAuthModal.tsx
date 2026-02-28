@@ -34,9 +34,11 @@ export default function OAuthModal({
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
 
-  // Detect if running on localhost or private/LAN IP (client-side only)
-  // Google OAuth rejects private IPs (192.168.x.x, 10.x.x.x, etc.) the same as localhost,
-  // requiring device_id/device_name. Treat them identically for redirect URI construction.
+  // Detect if running on true localhost vs LAN IP (client-side only)
+  // - True localhost (127.0.0.1/localhost): popup auto-callback works
+  // - LAN IPs (192.168.x, 10.x, 172.x): redirect URI uses localhost but callback
+  //   won't resolve back to the VPS, so use manual paste mode
+  const [isTrueLocalhost, setIsTrueLocalhost] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
@@ -46,7 +48,9 @@ export default function OAuthModal({
         hostname.startsWith("192.168.") ||
         hostname.startsWith("10.") ||
         /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+      const isTrulyLocal = hostname === "localhost" || hostname === "127.0.0.1";
       setIsLocalhost(isLocal);
+      setIsTrueLocalhost(isTrulyLocal);
       setPlaceholderUrl(`${window.location.origin}/callback?code=...`);
     }
   }, []);
@@ -272,8 +276,8 @@ export default function OAuthModal({
 
       setAuthData({ ...data, redirectUri });
 
-      // For non-localhost: use manual input mode (user pastes callback URL)
-      if (!isLocalhost) {
+      // For non-true-localhost (LAN IPs, remote): use manual input mode (user pastes callback URL)
+      if (!isTrueLocalhost) {
         setStep("input");
         window.open(data.authUrl, "oauth_auth");
       } else {
@@ -290,7 +294,7 @@ export default function OAuthModal({
       setError(err.message);
       setStep("error");
     }
-  }, [provider, isLocalhost, startPolling, onSuccess]);
+  }, [provider, isLocalhost, isTrueLocalhost, startPolling, onSuccess]);
 
   // Reset guard when modal closes
   useEffect(() => {
@@ -493,8 +497,8 @@ export default function OAuthModal({
         {step === "input" && !isDeviceCode && (
           <>
             <div className="space-y-4">
-              {/* Remote server info for Google OAuth providers */}
-              {!isLocalhost && GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
+              {/* Remote/LAN server info for Google OAuth providers */}
+              {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
                   <span className="material-symbols-outlined text-sm align-middle mr-1">
                     warning
@@ -515,7 +519,7 @@ export default function OAuthModal({
                 </div>
               )}
               {/* Generic remote info for other providers */}
-              {!isLocalhost && !GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
+              {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.includes(provider) && (
                 <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
                   <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
                   <strong>Remote access:</strong> Since you&apos;re accessing OmniRoute remotely,

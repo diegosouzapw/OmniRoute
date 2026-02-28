@@ -6,6 +6,7 @@ import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/serv
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 /**
  * Handle CORS preflight
@@ -59,6 +60,10 @@ export async function POST(request, { params }) {
   if (!body.model.includes("/")) {
     body.model = `${rawProvider}/${body.model}`;
   }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, body.model);
+  if (policy.rejection) return policy.rejection;
 
   // Validate provider match
   const modelProvider = body.model.split("/")[0];

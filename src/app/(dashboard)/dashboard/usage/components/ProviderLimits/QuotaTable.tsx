@@ -1,11 +1,12 @@
 "use client";
 
 import { formatResetTime, calculatePercentage } from "./utils";
+import { useLocale, useTranslations } from "next-intl";
 
 /**
  * Format reset time display (Today, 12:00 PM)
  */
-function formatResetTimeDisplay(resetTime) {
+function formatResetTimeDisplay(resetTime, locale, t) {
   if (!resetTime) return null;
 
   try {
@@ -17,20 +18,19 @@ function formatResetTimeDisplay(resetTime) {
 
     let dayStr = "";
     if (date >= today && date < tomorrow) {
-      dayStr = "Today";
+      dayStr = t("today");
     } else if (date >= tomorrow && date < new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000)) {
-      dayStr = "Tomorrow";
+      dayStr = t("tomorrow");
     } else {
-      dayStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      dayStr = date.toLocaleDateString(locale, { month: "short", day: "numeric" });
     }
 
-    const timeStr = date.toLocaleTimeString("en-US", {
+    const timeStr = date.toLocaleTimeString(locale, {
       hour: "numeric",
       minute: "2-digit",
-      hour12: true,
     });
 
-    return `${dayStr}, ${timeStr}`;
+    return t("dayTimeFormat", { day: dayStr, time: timeStr });
   } catch {
     return null;
   }
@@ -71,6 +71,9 @@ function getColorClasses(remainingPercentage) {
  * Quota Table Component - Table-based display for quota data
  */
 export default function QuotaTable({ quotas = [] }) {
+  const t = useTranslations("usage");
+  const locale = useLocale();
+
   if (!quotas || quotas.length === 0) {
     return null;
   }
@@ -92,7 +95,7 @@ export default function QuotaTable({ quotas = [] }) {
 
             const colors = getColorClasses(remaining);
             const countdown = formatResetTime(quota.resetAt);
-            const resetDisplay = formatResetTimeDisplay(quota.resetAt);
+            const resetDisplay = formatResetTimeDisplay(quota.resetAt, locale, t);
 
             return (
               <tr
@@ -137,17 +140,19 @@ export default function QuotaTable({ quotas = [] }) {
 
                 {/* Reset Time */}
                 <td className="py-2 px-3">
-                  {countdown !== "-" || resetDisplay ? (
+                  {countdown !== t("notAvailableSymbol") || resetDisplay ? (
                     <div className="space-y-0.5">
-                      {countdown !== "-" && (
-                        <div className="text-sm text-text-primary font-medium">in {countdown}</div>
+                      {countdown !== t("notAvailableSymbol") && (
+                        <div className="text-sm text-text-primary font-medium">
+                          {t("inDuration", { duration: countdown })}
+                        </div>
                       )}
                       {resetDisplay && (
                         <div className="text-xs text-text-muted">{resetDisplay}</div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-sm text-text-muted italic">N/A</div>
+                    <div className="text-sm text-text-muted italic">{t("notApplicable")}</div>
                   )}
                 </td>
               </tr>

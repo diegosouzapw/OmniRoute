@@ -40,6 +40,39 @@ const COLUMNS = [
 
 const DEFAULT_VISIBLE = Object.fromEntries(COLUMNS.map((c) => [c.key, true]));
 
+/**
+ * Get a friendly display label for compatible providers.
+ * Converts long IDs like "openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441"
+ * to readable labels. If providerNodes are available, uses user-defined name;
+ * otherwise falls back to "OAI-Compat".
+ */
+function getProviderDisplayLabel(provider: string, providerNodes?: any[]): string {
+  if (!provider) return "-";
+  if (provider.startsWith("openai-compatible-") || provider.startsWith("anthropic-compatible-")) {
+    // Try to find user-defined name from provider nodes
+    if (providerNodes?.length) {
+      const matchedNode = providerNodes.find(
+        (node) => node.id === provider || node.prefix === provider
+      );
+      if (matchedNode?.name) return matchedNode.name;
+    }
+    // Fallback to generic labels
+    if (provider.startsWith("openai-compatible-")) {
+      const suffix = provider.replace("openai-compatible-", "");
+      const parts = suffix.split("-");
+      if (parts.length > 1 && parts[1]?.length >= 8) return `OAI-COMPAT`;
+      return `OAI: ${suffix.slice(0, 16).toUpperCase()}`;
+    }
+    if (provider.startsWith("anthropic-compatible-")) {
+      const suffix = provider.replace("anthropic-compatible-", "");
+      const parts = suffix.split("-");
+      if (parts.length > 1 && parts[1]?.length >= 8) return `ANT-COMPAT`;
+      return `ANT: ${suffix.slice(0, 16).toUpperCase()}`;
+    }
+  }
+  return null; // Not a compatible provider, use default PROVIDER_COLORS
+}
+
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
 }
@@ -60,6 +93,7 @@ export default function RequestLoggerV2() {
   const [detailData, setDetailData] = useState(null);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
+  const [providerNodes, setProviderNodes] = useState([]);
 
   // Column visibility with localStorage persistence
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -116,6 +150,14 @@ export default function RequestLoggerV2() {
     hasLoadedRef.current = true;
     fetchLogs(showLoading);
   }, [fetchLogs]);
+
+  // Fetch provider nodes for display labels
+  useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
 
   // Auto-refresh
   useEffect(() => {
@@ -269,10 +311,11 @@ export default function RequestLoggerV2() {
         >
           <option value="">All Providers</option>
           {uniqueProviders.map((p) => {
+            const compatLabel = getProviderDisplayLabel(p, providerNodes);
             const pc = PROVIDER_COLORS[p];
             return (
               <option key={p} value={p}>
-                {pc?.label || p.toUpperCase()}
+                {compatLabel || pc?.label || p.toUpperCase()}
               </option>
             );
           })}
@@ -410,7 +453,13 @@ export default function RequestLoggerV2() {
 
         {/* Dynamic Provider Quick Filters (from data) */}
         {uniqueProviders.map((p) => {
-          const pc = PROVIDER_COLORS[p] || { bg: "#374151", text: "#fff", label: p.toUpperCase() };
+          const compatLabel = getProviderDisplayLabel(p, providerNodes);
+          const pc = PROVIDER_COLORS[p] || {
+            bg: "#374151",
+            text: "#fff",
+            label: compatLabel || p.toUpperCase(),
+          };
+          const displayLabel = compatLabel || pc.label;
           const isActive = selectedProvider === p;
           return (
             <button
@@ -426,7 +475,7 @@ export default function RequestLoggerV2() {
                 color: isActive ? pc.text : pc.bg,
               }}
             >
-              {pc.label}
+              {displayLabel}
             </button>
           );
         })}
@@ -538,11 +587,13 @@ export default function RequestLoggerV2() {
                       text: "#fff",
                       label: (protocolKey || log.provider || "-").toUpperCase(),
                     };
+                  const compatLabel = getProviderDisplayLabel(log.provider, providerNodes);
                   const providerColor = PROVIDER_COLORS[log.provider] || {
                     bg: "#374151",
                     text: "#fff",
-                    label: (log.provider || "-").toUpperCase(),
+                    label: compatLabel || (log.provider || "-").toUpperCase(),
                   };
+                  const providerLabel = compatLabel || providerColor.label;
                   const isError = log.status >= 400;
 
                   return (
@@ -572,7 +623,7 @@ export default function RequestLoggerV2() {
                             className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase"
                             style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
                           >
-                            {providerColor.label}
+                            {providerLabel}
                           </span>
                         </td>
                       )}

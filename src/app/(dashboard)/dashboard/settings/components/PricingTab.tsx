@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
-const PRICING_FIELDS = ["input", "output", "cached", "reasoning", "cache_creation"];
-const FIELD_LABELS = {
-  input: "Input",
-  output: "Output",
-  cached: "Cached",
-  reasoning: "Reasoning",
-  cache_creation: "Cache Write",
+const PRICING_FIELDS = ["input", "output", "cached", "reasoning", "cache_creation"] as const;
+const FIELD_LABEL_KEYS: Record<(typeof PRICING_FIELDS)[number], string> = {
+  input: "input",
+  output: "output",
+  cached: "cached",
+  reasoning: "reasoning",
+  cache_creation: "cacheCreation",
 };
 
 export default function PricingTab() {
@@ -22,6 +23,7 @@ export default function PricingTab() {
   const [expandedProviders, setExpandedProviders] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [editedProviders, setEditedProviders] = useState(new Set());
+  const t = useTranslations("settings");
 
   // Load catalog + pricing
   useEffect(() => {
@@ -50,9 +52,7 @@ export default function PricingTab() {
       .map(([alias, info]: [string, any]) => ({
         alias,
         ...info,
-        pricedModels: pricingData[alias]
-          ? Object.keys(pricingData[alias]).length
-          : 0,
+        pricedModels: pricingData[alias] ? Object.keys(pricingData[alias]).length : 0,
       }))
       .sort((a, b) => b.modelCount - a.modelCount);
     return providers;
@@ -66,11 +66,7 @@ export default function PricingTab() {
       (p) =>
         p.alias.toLowerCase().includes(q) ||
         p.id.toLowerCase().includes(q) ||
-        p.models.some(
-          (m) =>
-            m.id.toLowerCase().includes(q) ||
-            m.name.toLowerCase().includes(q)
-        )
+        p.models.some((m) => m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q))
     );
   }, [allProviders, searchQuery]);
 
@@ -97,23 +93,20 @@ export default function PricingTab() {
     });
   }, []);
 
-  const handlePricingChange = useCallback(
-    (provider, model, field, value) => {
-      const numValue = parseFloat(value);
-      if (isNaN(numValue) || numValue < 0) return;
+  const handlePricingChange = useCallback((provider, model, field, value) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0) return;
 
-      setPricingData((prev) => {
-        const next = { ...prev };
-        if (!next[provider]) next[provider] = {};
-        if (!next[provider][model])
-          next[provider][model] = { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 };
-        next[provider][model] = { ...next[provider][model], [field]: numValue };
-        return next;
-      });
-      setEditedProviders((prev) => new Set(prev).add(provider));
-    },
-    []
-  );
+    setPricingData((prev) => {
+      const next = { ...prev };
+      if (!next[provider]) next[provider] = {};
+      if (!next[provider][model])
+        next[provider][model] = { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 };
+      next[provider][model] = { ...next[provider][model], [field]: numValue };
+      return next;
+    });
+    setEditedProviders((prev) => new Set(prev).add(provider));
+  }, []);
 
   const saveProvider = useCallback(
     async (providerAlias) => {
@@ -128,7 +121,7 @@ export default function PricingTab() {
         });
 
         if (response.ok) {
-          setSaveStatus(`✅ ${providerAlias.toUpperCase()} saved`);
+          setSaveStatus(`✅ ${providerAlias.toUpperCase()} ${t("saved")}`);
           setEditedProviders((prev) => {
             const next = new Set(prev);
             next.delete(providerAlias);
@@ -137,34 +130,28 @@ export default function PricingTab() {
           setTimeout(() => setSaveStatus(""), 3000);
         } else {
           const err = await response.json();
-          setSaveStatus(`❌ Error: ${err.error}`);
+          setSaveStatus(`❌ ${t("errorOccurred")}: ${err.error}`);
         }
       } catch (error) {
-        setSaveStatus(`❌ Save failed: ${error.message}`);
+        setSaveStatus(`❌ ${t("saveFailed")}: ${error.message}`);
       } finally {
         setSaving(false);
       }
     },
-    [pricingData]
+    [pricingData, t]
   );
 
   const resetProvider = useCallback(
     async (providerAlias) => {
-      if (
-        !confirm(
-          `Reset all pricing for ${providerAlias.toUpperCase()} to defaults?`
-        )
-      )
-        return;
+      if (!confirm(t("resetPricingConfirm", { provider: providerAlias.toUpperCase() }))) return;
       try {
-        const response = await fetch(
-          `/api/pricing?provider=${providerAlias}`,
-          { method: "DELETE" }
-        );
+        const response = await fetch(`/api/pricing?provider=${providerAlias}`, {
+          method: "DELETE",
+        });
         if (response.ok) {
           const updated = await response.json();
           setPricingData(updated);
-          setSaveStatus(`🔄 ${providerAlias.toUpperCase()} reset to defaults`);
+          setSaveStatus(`🔄 ${providerAlias.toUpperCase()} ${t("resetDefaults")}`);
           setEditedProviders((prev) => {
             const next = new Set(prev);
             next.delete(providerAlias);
@@ -173,10 +160,10 @@ export default function PricingTab() {
           setTimeout(() => setSaveStatus(""), 3000);
         }
       } catch (error) {
-        setSaveStatus(`❌ Reset failed: ${error.message}`);
+        setSaveStatus(`❌ ${t("resetFailed")}: ${error.message}`);
       }
     },
-    []
+    [t]
   );
 
   const selectProviderFilter = useCallback((alias) => {
@@ -194,9 +181,7 @@ export default function PricingTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="text-text-muted animate-pulse">
-          Loading pricing data...
-        </div>
+        <div className="text-text-muted animate-pulse">{t("loadingPricing")}</div>
       </div>
     );
   }
@@ -206,30 +191,21 @@ export default function PricingTab() {
       {/* Header + Stats */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold">Model Pricing</h2>
-          <p className="text-text-muted text-sm mt-1">
-            Configure cost rates per model • All rates in{" "}
-            <strong>$/1M tokens</strong>
-          </p>
+          <h2 className="text-xl font-bold">{t("modelPricing")}</h2>
+          <p className="text-text-muted text-sm mt-1">{t("modelPricingDesc")}</p>
         </div>
         <div className="flex gap-3 text-sm">
           <div className="bg-bg-subtle rounded-lg px-3 py-2 text-center">
-            <div className="text-text-muted text-xs font-semibold">
-              Providers
-            </div>
+            <div className="text-text-muted text-xs font-semibold">{t("providers")}</div>
             <div className="text-lg font-bold">{stats.providers}</div>
           </div>
           <div className="bg-bg-subtle rounded-lg px-3 py-2 text-center">
-            <div className="text-text-muted text-xs font-semibold">
-              Registry
-            </div>
+            <div className="text-text-muted text-xs font-semibold">{t("registry")}</div>
             <div className="text-lg font-bold">{stats.totalModels}</div>
           </div>
           <div className="bg-bg-subtle rounded-lg px-3 py-2 text-center">
-            <div className="text-text-muted text-xs font-semibold">Priced</div>
-            <div className="text-lg font-bold text-success">
-              {stats.pricedCount as number}
-            </div>
+            <div className="text-text-muted text-xs font-semibold">{t("priced")}</div>
+            <div className="text-lg font-bold text-success">{stats.pricedCount as number}</div>
           </div>
         </div>
       </div>
@@ -249,7 +225,7 @@ export default function PricingTab() {
           </span>
           <input
             type="text"
-            placeholder="Search providers or models..."
+            placeholder={t("searchProvidersModels")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-3 py-2 bg-bg-base border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
@@ -261,7 +237,7 @@ export default function PricingTab() {
             className="px-3 py-2 text-xs bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">close</span>
-            {selectedProvider.toUpperCase()} — Show All
+            {selectedProvider.toUpperCase()} — {t("showAll")}
           </button>
         )}
       </div>
@@ -276,12 +252,11 @@ export default function PricingTab() {
               selectedProvider === p.alias
                 ? "bg-primary text-white shadow-sm"
                 : editedProviders.has(p.alias)
-                ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30"
-                : "bg-bg-subtle text-text-muted hover:bg-bg-hover border border-transparent"
+                  ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30"
+                  : "bg-bg-subtle text-text-muted hover:bg-bg-hover border border-transparent"
             }`}
           >
-            {p.alias.toUpperCase()}{" "}
-            <span className="opacity-60">({p.modelCount})</span>
+            {p.alias.toUpperCase()} <span className="opacity-60">({p.modelCount})</span>
           </button>
         ))}
       </div>
@@ -306,33 +281,22 @@ export default function PricingTab() {
         ))}
 
         {displayProviders.length === 0 && (
-          <div className="text-center py-12 text-text-muted">
-            No providers match your search.
-          </div>
+          <div className="text-center py-12 text-text-muted">{t("noProvidersMatch")}</div>
         )}
       </div>
 
       {/* Info Box */}
       <Card className="p-4 mt-2">
         <h3 className="text-sm font-semibold mb-2">
-          <span className="material-symbols-outlined text-sm align-middle mr-1">
-            info
-          </span>
-          How Pricing Works
+          <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
+          {t("howPricingWorks")}
         </h3>
         <div className="text-xs text-text-muted space-y-1">
           <p>
-            <strong>Input</strong>: tokens sent to the model •{" "}
-            <strong>Output</strong>: tokens generated •{" "}
-            <strong>Cached</strong>: reused input (~50% of input rate) •{" "}
-            <strong>Reasoning</strong>: thinking tokens (falls back to Output) •{" "}
-            <strong>Cache Write</strong>: creating cache entries (falls back to
-            Input)
+            {t("pricingDescInput")} • {t("pricingDescOutput")} • {t("pricingDescCached")} •{" "}
+            {t("pricingDescReasoning")} • {t("pricingDescCacheWrite")}
           </p>
-          <p>
-            Cost = (input × input_rate) + (output × output_rate) + (cached ×
-            cached_rate) per million tokens.
-          </p>
+          <p>{t("pricingDescFormula")}</p>
         </div>
       </Card>
     </div>
@@ -352,20 +316,20 @@ function ProviderSection({
   onReset,
   saving,
 }) {
+  const t = useTranslations("settings");
+  const tGlobal = useTranslations();
   const pricedCount = Object.keys(pricingData).length;
   const authBadge =
     provider.authType === "oauth"
-      ? "OAuth"
+      ? tGlobal("providers.oauthLabel")
       : provider.authType === "apikey"
-      ? "API Key"
-      : provider.authType;
+        ? tGlobal("providers.apiKeyLabel")
+        : provider.authType;
 
   return (
     <div
       className={`border rounded-lg overflow-hidden transition-colors ${
-        isEdited
-          ? "border-yellow-500/40 bg-yellow-500/5"
-          : "border-border"
+        isEdited ? "border-yellow-500/40 bg-yellow-500/5" : "border-border"
       }`}
     >
       {/* Header (click to expand) */}
@@ -385,9 +349,7 @@ function ProviderSection({
             <span className="font-semibold text-sm">
               {provider.id.charAt(0).toUpperCase() + provider.id.slice(1)}
             </span>
-            <span className="text-text-muted text-xs ml-2">
-              ({provider.alias.toUpperCase()})
-            </span>
+            <span className="text-text-muted text-xs ml-2">({provider.alias.toUpperCase()})</span>
           </div>
           <span className="px-1.5 py-0.5 bg-bg-subtle text-text-muted text-[10px] rounded uppercase font-semibold">
             {authBadge}
@@ -397,13 +359,9 @@ function ProviderSection({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {isEdited && (
-            <span className="text-yellow-500 text-xs font-medium">
-              unsaved
-            </span>
-          )}
+          {isEdited && <span className="text-yellow-500 text-xs font-medium">{t("unsaved")}</span>}
           <span className="text-text-muted text-xs">
-            {pricedCount}/{provider.modelCount} priced
+            {pricedCount}/{provider.modelCount} {t("withPricing")}
           </span>
           <div className="w-16 h-1.5 bg-bg-subtle rounded-full overflow-hidden">
             <div
@@ -426,8 +384,7 @@ function ProviderSection({
           {/* Actions bar */}
           <div className="flex items-center justify-between px-4 py-2 bg-bg-subtle/50">
             <span className="text-xs text-text-muted">
-              {provider.modelCount} models •{" "}
-              {pricedCount} with pricing configured
+              {provider.modelCount} {t("models")} • {pricedCount} {t("withPricing")}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -437,7 +394,7 @@ function ProviderSection({
                 }}
                 className="px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/10 rounded border border-red-500/20 transition-colors"
               >
-                Reset Defaults
+                {t("resetDefaults")}
               </button>
               <button
                 onClick={(e) => {
@@ -447,7 +404,7 @@ function ProviderSection({
                 disabled={saving || !isEdited}
                 className="px-2.5 py-1 text-[11px] bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-40"
               >
-                {saving ? "Saving..." : "Save Provider"}
+                {saving ? t("saving") : t("saveProvider")}
               </button>
             </div>
           </div>
@@ -457,13 +414,10 @@ function ProviderSection({
             <table className="w-full text-sm">
               <thead className="text-[11px] text-text-muted uppercase bg-bg-subtle/30">
                 <tr>
-                  <th className="px-4 py-2 text-left font-semibold">Model</th>
+                  <th className="px-4 py-2 text-left font-semibold">{t("model")}</th>
                   {PRICING_FIELDS.map((field) => (
-                    <th
-                      key={field}
-                      className="px-2 py-2 text-right font-semibold w-24"
-                    >
-                      {FIELD_LABELS[field]}
+                    <th key={field} className="px-2 py-2 text-right font-semibold w-24">
+                      {t(FIELD_LABEL_KEYS[field])}
                     </th>
                   ))}
                 </tr>
@@ -474,9 +428,7 @@ function ProviderSection({
                     key={model.id}
                     model={model}
                     pricing={pricingData[model.id]}
-                    onPricingChange={(field, value) =>
-                      onPricingChange(model.id, field, value)
-                    }
+                    onPricingChange={(field, value) => onPricingChange(model.id, field, value)}
                   />
                 ))}
               </tbody>
@@ -491,6 +443,7 @@ function ProviderSection({
 // ── Model Row ────────────────────────────────────────────────────────────
 
 function ModelRow({ model, pricing, onPricingChange }) {
+  const t = useTranslations("settings");
   const hasPricing = pricing && Object.values(pricing).some((v: any) => v > 0);
 
   return (
@@ -498,14 +451,12 @@ function ModelRow({ model, pricing, onPricingChange }) {
       <td className="px-4 py-1.5">
         <div className="flex items-center gap-2">
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              hasPricing ? "bg-success" : "bg-text-muted/30"
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${hasPricing ? "bg-success" : "bg-text-muted/30"}`}
           />
           <span className="font-medium text-xs">{model.name}</span>
           {model.custom && (
             <span className="px-1 py-0.5 text-[8px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 rounded uppercase">
-              custom
+              {t("custom")}
             </span>
           )}
           <span className="text-text-muted text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">

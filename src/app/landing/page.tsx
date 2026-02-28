@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Navigation from "./components/Navigation";
 import HeroSection from "./components/HeroSection";
 import FlowAnimation from "./components/FlowAnimation";
@@ -9,6 +10,7 @@ import GetStarted from "./components/GetStarted";
 import Footer from "./components/Footer";
 
 export default function LandingPage() {
+  const t = useTranslations("landing");
   const router = useRouter();
   return (
     <div className="relative text-white font-sans overflow-x-hidden antialiased selection:bg-[#E54D5E] selection:text-white">
@@ -61,28 +63,27 @@ export default function LandingPage() {
           <Features />
 
           {/* CTA Section */}
-          <section className="py-32 px-6 relative overflow-hidden">
+          <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-t from-[#E54D5E]/5 to-transparent pointer-events-none"></div>
             <div className="max-w-4xl mx-auto text-center relative z-10">
-              <h2 className="text-4xl md:text-5xl font-black mb-6">
-                Ready to Simplify Your AI Infrastructure?
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 break-words">
+                {t("ctaTitle")}
               </h2>
-              <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-                Join developers who are streamlining their AI integrations with OmniRoute. Open
-                source and free to start.
+              <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto break-words">
+                {t("ctaDescription")}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() => router.push("/dashboard")}
                   className="w-full sm:w-auto h-14 px-10 rounded-lg bg-[#E54D5E] hover:bg-[#C93D4E] text-white text-lg font-bold transition-all shadow-[0_0_20px_rgba(229,77,94,0.5)]"
                 >
-                  Start Free
+                  {t("startFree")}
                 </button>
                 <button
                   onClick={() => router.push("/docs")}
                   className="w-full sm:w-auto h-14 px-10 rounded-lg border border-[#2D333B] hover:bg-[#111520] text-white text-lg font-bold transition-all"
                 >
-                  Read Documentation
+                  {t("readDocumentation")}
                 </button>
               </div>
             </div>

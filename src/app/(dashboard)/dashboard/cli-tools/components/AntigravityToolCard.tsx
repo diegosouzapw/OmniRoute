@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Badge, Modal, Input, ModelSelectModal } from "@/shared/components";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function AntigravityToolCard({
   tool,
@@ -14,6 +15,7 @@ export default function AntigravityToolCard({
   hasActiveProviders,
   cloudEnabled,
 }) {
+  const t = useTranslations("cliTools");
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -104,12 +106,12 @@ export default function AntigravityToolCard({
 
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "MITM started" });
+        setMessage({ type: "success", text: t("mitmStarted") });
         setShowPasswordModal(false);
         setSudoPassword("");
         fetchStatus();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to start" });
+        setMessage({ type: "error", text: data.error || t("failedStart") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -130,12 +132,12 @@ export default function AntigravityToolCard({
 
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: "MITM stopped" });
+        setMessage({ type: "success", text: t("mitmStopped") });
         setShowPasswordModal(false);
         setSudoPassword("");
         fetchStatus();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to stop" });
+        setMessage({ type: "error", text: data.error || t("failedStop") });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -146,7 +148,7 @@ export default function AntigravityToolCard({
 
   const handleConfirmPassword = () => {
     if (!sudoPassword.trim()) {
-      setMessage({ type: "error", text: "Sudo password is required" });
+      setMessage({ type: "error", text: t("sudoPasswordRequiredError") });
       return;
     }
     if (status?.running) {
@@ -190,10 +192,10 @@ export default function AntigravityToolCard({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to save mappings");
+        throw new Error(data.error || t("failedSaveMappings"));
       }
 
-      setMessage({ type: "success", text: "Mappings saved!" });
+      setMessage({ type: "success", text: t("mappingsSaved") });
     } catch (error) {
       setMessage({ type: "error", text: error.message });
     } finally {
@@ -225,15 +227,15 @@ export default function AntigravityToolCard({
               <h3 className="font-medium text-sm">{tool.name}</h3>
               {isRunning ? (
                 <Badge variant="success" size="sm">
-                  Active
+                  {t("active")}
                 </Badge>
               ) : (
                 <Badge variant="default" size="sm">
-                  Inactive
+                  {t("inactive")}
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.antigravity")}</p>
           </div>
         </div>
         <span
@@ -254,7 +256,7 @@ export default function AntigravityToolCard({
                 className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-medium text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">stop_circle</span>
-                Stop MITM
+                {t("stopMitm")}
               </button>
             ) : (
               <button
@@ -263,7 +265,7 @@ export default function AntigravityToolCard({
                 className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-medium text-sm flex items-center gap-2 hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-[18px]">play_circle</span>
-                Start MITM
+                {t("startMitm")}
               </button>
             )}
           </div>
@@ -280,7 +282,7 @@ export default function AntigravityToolCard({
             <>
               <div className="flex items-center gap-2">
                 <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                  API Key
+                  {t("apiKey")}
                 </span>
                 <span className="material-symbols-outlined text-text-muted text-[14px]">
                   arrow_forward
@@ -299,9 +301,7 @@ export default function AntigravityToolCard({
                   </select>
                 ) : (
                   <span className="flex-1 text-xs text-text-muted px-2 py-1.5">
-                    {cloudEnabled
-                      ? "No API keys - Create one in Keys page"
-                      : "sk_omniroute (default)"}
+                    {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultOmnirouteKey")}
                   </span>
                 )}
               </div>
@@ -318,7 +318,7 @@ export default function AntigravityToolCard({
                     type="text"
                     value={modelMappings[model.alias] || ""}
                     onChange={(e) => handleModelMappingChange(model.alias, e.target.value)}
-                    placeholder="provider/model-id"
+                    placeholder={t("modelPlaceholder")}
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   <button
@@ -326,13 +326,13 @@ export default function AntigravityToolCard({
                     disabled={!hasActiveProviders}
                     className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
                   >
-                    Select
+                    {t("select")}
                   </button>
                   {modelMappings[model.alias] && (
                     <button
                       onClick={() => handleModelMappingChange(model.alias, "")}
                       className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
-                      title="Clear"
+                      title={t("clear")}
                     >
                       <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
@@ -348,7 +348,7 @@ export default function AntigravityToolCard({
                   disabled={loading || Object.keys(modelMappings).length === 0}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>
-                  Save Mappings
+                  {t("saveMappings")}
                 </Button>
               </div>
             </>
@@ -358,19 +358,19 @@ export default function AntigravityToolCard({
           {!isRunning && (
             <div className="flex flex-col gap-1.5 px-1">
               <p className="text-xs text-text-muted">
-                <span className="font-medium text-text-main">How it works:</span> Intercepts
-                Antigravity traffic via DNS redirect, letting you reroute models through OmniRoute.
+                <span className="font-medium text-text-main">{t("howItWorks")}</span>{" "}
+                {t("antigravityHowWorksDesc")}
               </p>
               <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
-                <span>1. Generates SSL cert & adds to system keychain</span>
+                <span>{t("antigravityStep1")}</span>
                 <span>
-                  2. Redirects{" "}
+                  {t("antigravityStep2Prefix")}{" "}
                   <code className="text-[10px] bg-surface px-1 rounded">
                     daily-cloudcode-pa.googleapis.com
                   </code>{" "}
-                  → localhost
+                  {t("antigravityStep2Suffix")}
                 </span>
-                <span>3. Maps Antigravity models to any provider via OmniRoute</span>
+                <span>{t("antigravityStep3")}</span>
               </div>
             </div>
           )}
@@ -385,20 +385,18 @@ export default function AntigravityToolCard({
           setSudoPassword("");
           setMessage(null);
         }}
-        title="Sudo Password Required"
+        title={t("sudoPasswordRequiredTitle")}
         size="sm"
       >
         <div className="flex flex-col gap-4">
           <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
             <span className="material-symbols-outlined text-yellow-500 text-[20px]">warning</span>
-            <p className="text-xs text-text-muted">
-              Required for SSL certificate and DNS configuration
-            </p>
+            <p className="text-xs text-text-muted">{t("sudoPasswordHint")}</p>
           </div>
 
           <Input
             type="password"
-            placeholder="Enter sudo password"
+            placeholder={t("enterSudoPassword")}
             value={sudoPassword}
             onChange={(e) => setSudoPassword(e.target.value)}
             onKeyDown={(e) => {
@@ -428,10 +426,10 @@ export default function AntigravityToolCard({
               }}
               disabled={loading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="primary" size="sm" onClick={handleConfirmPassword} loading={loading}>
-              Confirm
+              {t("confirm")}
             </Button>
           </div>
         </div>
@@ -444,7 +442,7 @@ export default function AntigravityToolCard({
         onSelect={handleModelSelect}
         selectedModel={currentEditingAlias ? modelMappings[currentEditingAlias] : null}
         activeProviders={activeProviders}
-        title={`Select model for ${currentEditingAlias}`}
+        title={t("selectModelForAlias", { alias: currentEditingAlias || "" })}
       />
     </Card>
   );

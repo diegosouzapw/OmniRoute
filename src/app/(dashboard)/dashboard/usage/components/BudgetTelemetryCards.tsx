@@ -1,9 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { Card } from "@/shared/components";
 
 export default function BudgetTelemetryCards() {
+  const t = useTranslations("usage");
   const [telemetry, setTelemetry] = useState(null);
   const [cache, setCache] = useState(null);
   const [policies, setPolicies] = useState(null);
@@ -28,29 +31,29 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">speed</span>
-          Latency
+          {t("latency")}
         </h3>
         {telemetry ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">p50</span>
+              <span className="text-text-muted">{t("latencyP50")}</span>
               <span className="font-mono">{fmt(telemetry.p50)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">p95</span>
+              <span className="text-text-muted">{t("latencyP95")}</span>
               <span className="font-mono">{fmt(telemetry.p95)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">p99</span>
+              <span className="text-text-muted">{t("latencyP99")}</span>
               <span className="font-mono">{fmt(telemetry.p99)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 mt-2">
-              <span className="text-text-muted">Total requests</span>
+              <span className="text-text-muted">{t("totalRequests")}</span>
               <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
 
@@ -58,29 +61,29 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">cached</span>
-          Prompt Cache
+          {t("promptCache")}
         </h3>
         {cache ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">Entries</span>
+              <span className="text-text-muted">{t("entries")}</span>
               <span className="font-mono">
                 {cache.size}/{cache.maxSize}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Hit Rate</span>
+              <span className="text-text-muted">{t("hitRate")}</span>
               <span className="font-mono">{cache.hitRate?.toFixed(1) ?? 0}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Hits / Misses</span>
+              <span className="text-text-muted">{t("hitsMisses")}</span>
               <span className="font-mono">
                 {cache.hits ?? 0} / {cache.misses ?? 0}
               </span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
 
@@ -88,26 +91,28 @@ export default function BudgetTelemetryCards() {
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">monitor_heart</span>
-          System Health
+          {t("systemHealth")}
         </h3>
         {policies ? (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-text-muted">Circuit Breakers</span>
-              <span className="font-mono">{policies.circuitBreakers?.length ?? 0} active</span>
+              <span className="text-text-muted">{t("circuitBreakers")}</span>
+              <span className="font-mono">
+                {t("activeCount", { count: policies.circuitBreakers?.length ?? 0 })}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Locked IPs</span>
+              <span className="text-text-muted">{t("lockedIPs")}</span>
               <span className="font-mono">{policies.lockedIdentifiers?.length ?? 0}</span>
             </div>
             {policies.circuitBreakers?.some((cb) => cb.state === "OPEN") && (
               <div className="mt-2 px-2 py-1 rounded bg-red-500/10 text-red-400 text-xs">
-                ⚠ Open circuit breakers detected
+                {t("openCircuitBreakersDetected")}
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">No data yet</p>
+          <p className="text-sm text-text-muted">{t("noDataYet")}</p>
         )}
       </Card>
     </div>

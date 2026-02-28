@@ -5,6 +5,7 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import * as log from "@/sse/utils/logger";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 /**
  * Handle CORS preflight
@@ -52,6 +53,10 @@ export async function POST(request, { params }) {
   if (body.model && !body.model.includes("/")) {
     body.model = `${providerAlias}/${body.model}`;
   }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, body.model);
+  if (policy.rejection) return policy.rejection;
 
   // Validate provider match
   if (body.model) {

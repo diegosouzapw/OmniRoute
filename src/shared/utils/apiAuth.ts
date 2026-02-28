@@ -8,6 +8,7 @@
  */
 
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
 
 // ──────────────── Public Routes (No Auth Required) ────────────────
@@ -76,6 +77,46 @@ export async function verifyAuth(request: any): Promise<string | null> {
   }
 
   return "Authentication required";
+}
+
+/**
+ * Check if a request is authenticated — boolean convenience wrapper for route handlers.
+ *
+ * Uses `cookies()` from next/headers (App Router compatible) and Bearer API key.
+ * Returns true if authenticated, false otherwise.
+ *
+ * Unlike `verifyAuth`, this does NOT check `isAuthRequired()` — callers that
+ * need to conditionally skip auth should check that separately.
+ */
+export async function isAuthenticated(request: Request): Promise<boolean> {
+  // 1. Check API key (for external clients)
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const apiKey = authHeader.slice(7);
+    try {
+      const { validateApiKey } = await import("@/lib/db/apiKeys");
+      if (await validateApiKey(apiKey)) return true;
+    } catch {
+      // DB not ready or import error
+    }
+  }
+
+  // 2. Check JWT cookie (for dashboard session)
+  if (process.env.JWT_SECRET) {
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("auth_token")?.value;
+      if (token) {
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        await jwtVerify(token, secret);
+        return true;
+      }
+    } catch {
+      // Invalid/expired token or cookies not available
+    }
+  }
+
+  return false;
 }
 
 /**

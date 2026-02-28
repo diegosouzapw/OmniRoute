@@ -24,9 +24,18 @@ export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite"
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
 
-// Ensure data directory exists
+// Ensure data directory exists — with fallback for restricted home directories (#133)
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
+        `[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
+        `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
+    );
+  }
 }
 
 // ──────────────── Schema ────────────────
@@ -313,28 +322,60 @@ export function getDbInstance() {
     return _db;
   }
 
-  // Detect and replace old incompatible schema
+  // Detect and handle old schema format — preserve data when possible (#146)
   if (fs.existsSync(SQLITE_FILE)) {
     try {
       const probe = new Database(SQLITE_FILE, { readonly: true });
       const hasOldSchema = probe
         .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
-      probe.close();
 
       if (hasOldSchema) {
-        const oldPath = SQLITE_FILE + ".old-schema";
-        console.log(
-          `[DB] Old incompatible schema detected — renaming to ${path.basename(oldPath)}`
-        );
-        fs.renameSync(SQLITE_FILE, oldPath);
-        for (const ext of ["-wal", "-shm"]) {
+        // Check if the DB has actual data we should preserve
+        let hasData = false;
+        try {
+          const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
+            | { c: number }
+            | undefined;
+          hasData = count && count.c > 0;
+        } catch {
+          // Table might not exist at all — truly incompatible
+        }
+        probe.close();
+
+        if (hasData) {
+          // Data exists — preserve it! Just drop the old migration tracking table
+          // and let our new migration system (CREATE TABLE IF NOT EXISTS) take over
+          console.log(
+            `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
+          );
+          const fixDb = new Database(SQLITE_FILE);
           try {
-            if (fs.existsSync(SQLITE_FILE + ext)) fs.unlinkSync(SQLITE_FILE + ext);
-          } catch {
-            /* ok */
+            fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
+            // Clean up WAL/SHM files that might be stale
+            fixDb.pragma("wal_checkpoint(TRUNCATE)");
+          } catch (e) {
+            console.warn("[DB] Could not clean up old schema table:", e.message);
+          } finally {
+            fixDb.close();
+          }
+        } else {
+          // No data — safe to rename and start fresh
+          const oldPath = SQLITE_FILE + ".old-schema";
+          console.log(
+            `[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
+          );
+          fs.renameSync(SQLITE_FILE, oldPath);
+          for (const ext of ["-wal", "-shm"]) {
+            try {
+              if (fs.existsSync(SQLITE_FILE + ext)) fs.unlinkSync(SQLITE_FILE + ext);
+            } catch {
+              /* ok */
+            }
           }
         }
+      } else {
+        probe.close();
       }
     } catch (e) {
       console.warn("[DB] Could not probe existing DB, will create fresh:", e.message);

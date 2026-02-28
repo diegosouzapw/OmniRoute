@@ -8,10 +8,12 @@
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
-import crypto from "crypto";
-
 function ensureJwtSecret(): void {
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === "") {
+    // Use eval to hide require from webpack's static analysis
+    // This code only runs in Node.js runtime (guarded by NEXT_RUNTIME check)
+    // eslint-disable-next-line no-eval
+    const crypto = eval("require")("crypto");
     const generated = crypto.randomBytes(48).toString("base64");
     process.env.JWT_SECRET = generated;
     console.log("[STARTUP] JWT_SECRET auto-generated (random 64-char secret)");
@@ -28,6 +30,9 @@ export async function register() {
 
     const { initGracefulShutdown } = await import("@/lib/gracefulShutdown");
     initGracefulShutdown();
+
+    const { initApiBridgeServer } = await import("@/lib/apiBridgeServer");
+    initApiBridgeServer();
 
     // Compliance: Initialize audit_log table + cleanup expired logs
     try {

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import Image from "next/image";
@@ -10,6 +12,9 @@ import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constant
 import { useNotificationStore } from "@/store/notificationStore";
 
 export default function HomePageClient({ machineId }) {
+  const t = useTranslations("home");
+  const tc = useTranslations("common");
+  const ts = useTranslations("sidebar");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,14 +108,14 @@ export default function HomePageClient({ machineId }) {
   }, [selectedProvider, models]);
 
   const quickStartLinks = [
-    { label: "Documentation", href: "/docs", icon: "menu_book" },
-    { label: "Providers", href: "/dashboard/providers", icon: "dns" },
-    { label: "Combos", href: "/dashboard/combos", icon: "layers" },
-    { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
-    { label: "Health Monitor", href: "/dashboard/health", icon: "health_and_safety" },
-    { label: "CLI Tools", href: "/dashboard/cli-tools", icon: "terminal" },
+    { label: t("documentation"), href: "/docs", icon: "menu_book" },
+    { label: ts("providers"), href: "/dashboard/providers", icon: "dns" },
+    { label: ts("combos"), href: "/dashboard/combos", icon: "layers" },
+    { label: ts("analytics"), href: "/dashboard/analytics", icon: "analytics" },
+    { label: t("healthMonitor"), href: "/dashboard/health", icon: "health_and_safety" },
+    { label: ts("cliTools"), href: "/dashboard/cli-tools", icon: "terminal" },
     {
-      label: "Report issue",
+      label: t("reportIssue"),
       href: "https://github.com/diegosouzapw/OmniRoute/issues",
       external: true,
       icon: "bug_report",
@@ -135,17 +140,15 @@ export default function HomePageClient({ machineId }) {
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Quick Start</h2>
-              <p className="text-sm text-text-muted">
-                Get up and running in 4 steps. Connect providers, route models, monitor everything.
-              </p>
+              <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
+              <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
             </div>
             <Link
               href="/docs"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">menu_book</span>
-              Full Docs
+              {t("fullDocs")}
             </Link>
           </div>
 
@@ -155,13 +158,15 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">key</span>
               </div>
               <div>
-                <span className="font-semibold">1. Create API key</span>
+                <span className="font-semibold">{t("step1Title")}</span>
                 <p className="text-text-muted mt-0.5">
-                  Go to{" "}
-                  <Link href="/dashboard/endpoint" className="text-primary hover:underline">
-                    Endpoint
-                  </Link>{" "}
-                  → Registered Keys. Generate one key per environment.
+                  {t.rich("step1Desc", {
+                    endpoint: (chunks) => (
+                      <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </div>
             </li>
@@ -170,13 +175,15 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">dns</span>
               </div>
               <div>
-                <span className="font-semibold">2. Connect providers</span>
+                <span className="font-semibold">{t("step2Title")}</span>
                 <p className="text-text-muted mt-0.5">
-                  Add accounts in{" "}
-                  <Link href="/dashboard/providers" className="text-primary hover:underline">
-                    Providers
-                  </Link>
-                  . Supports OAuth, API Key, and free tiers.
+                  {t.rich("step2Desc", {
+                    providers: (chunks) => (
+                      <Link href="/dashboard/providers" className="text-primary hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </div>
             </li>
@@ -185,14 +192,8 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">link</span>
               </div>
               <div>
-                <span className="font-semibold">3. Point your client</span>
-                <p className="text-text-muted mt-0.5">
-                  Set base URL to{" "}
-                  <code className="px-1.5 py-0.5 rounded bg-surface text-xs font-mono">
-                    {currentEndpoint}
-                  </code>{" "}
-                  in your IDE or API client.
-                </p>
+                <span className="font-semibold">{t("step3Title")}</span>
+                <p className="text-text-muted mt-0.5">{t("step3Desc", { url: currentEndpoint })}</p>
               </div>
             </li>
             <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
@@ -200,17 +201,20 @@ export default function HomePageClient({ machineId }) {
                 <span className="material-symbols-outlined text-[18px]">analytics</span>
               </div>
               <div>
-                <span className="font-semibold">4. Monitor & optimize</span>
+                <span className="font-semibold">{t("step4Title")}</span>
                 <p className="text-text-muted mt-0.5">
-                  Track tokens, cost and errors in{" "}
-                  <Link href="/dashboard/usage" className="text-primary hover:underline">
-                    Request Logs
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/dashboard/analytics" className="text-primary hover:underline">
-                    Analytics
-                  </Link>
-                  .
+                  {t.rich("step4Desc", {
+                    logs: (chunks) => (
+                      <Link href="/dashboard/usage" className="text-primary hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                    analytics: (chunks) => (
+                      <Link href="/dashboard/analytics" className="text-primary hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </div>
             </li>
@@ -239,22 +243,24 @@ export default function HomePageClient({ machineId }) {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Providers Overview</h2>
+            <h2 className="text-lg font-semibold">{t("providersOverview")}</h2>
             <p className="text-sm text-text-muted">
-              {providerStats.filter((item) => item.total > 0).length} configured of{" "}
-              {providerStats.length} available providers
+              {t("configuredOf", {
+                configured: providerStats.filter((item) => item.total > 0).length,
+                total: providerStats.length,
+              })}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3 text-[11px] text-text-muted">
               <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-green-500" /> Free
+                <span className="size-2 rounded-full bg-green-500" /> {tc("free")}
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-blue-500" /> OAuth
+                <span className="size-2 rounded-full bg-blue-500" /> {t("oauthLabel")}
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-amber-500" /> API Key
+                <span className="size-2 rounded-full bg-amber-500" /> {t("apiKeyLabel")}
               </span>
             </div>
             <Link
@@ -262,7 +268,7 @@ export default function HomePageClient({ machineId }) {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">settings</span>
-              Manage
+              {tc("manage")}
             </Link>
           </div>
         </div>
@@ -297,14 +303,16 @@ HomePageClient.propTypes = {
 
 function ProviderOverviewCard({ item, metrics, onClick }) {
   const [imgError, setImgError] = useState(false);
+  const t = useTranslations("home");
+  const tc = useTranslations("common");
 
   const statusVariant =
     item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
 
   const authTypeConfig = {
-    free: { color: "bg-green-500", label: "Free" },
-    oauth: { color: "bg-blue-500", label: "OAuth" },
-    apikey: { color: "bg-amber-500", label: "API Key" },
+    free: { color: "bg-green-500", label: tc("free") },
+    oauth: { color: "bg-blue-500", label: t("oauthLabel") },
+    apikey: { color: "bg-amber-500", label: t("apiKeyLabel") },
   };
   const authInfo = authTypeConfig[item.authType] || authTypeConfig.apikey;
 
@@ -348,14 +356,14 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
           </div>
           <p className={`text-xs ${statusVariant}`}>
             {item.total === 0
-              ? "Not configured"
-              : `${item.connected} active · ${item.errors} error`}
+              ? tc("notConfigured")
+              : t("activeError", { active: item.connected, errors: item.errors })}
           </p>
           {metrics && metrics.totalRequests > 0 && (
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] text-text-muted">
                 <span className="text-emerald-500">{metrics.totalSuccesses}</span>/
-                {metrics.totalRequests} reqs
+                {t("requestsShort", { count: metrics.totalRequests })}
               </span>
               <span className="text-[10px] text-text-muted">{metrics.successRate}%</span>
               <span className="text-[10px] text-text-muted">~{metrics.avgLatencyMs}ms</span>
@@ -365,7 +373,7 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
 
         <div className="text-right shrink-0">
           <p className="text-xs font-medium text-text-main">{item.modelCount}</p>
-          <p className="text-[10px] text-text-muted">models</p>
+          <p className="text-[10px] text-text-muted">{tc("models")}</p>
         </div>
       </div>
     </button>
@@ -401,6 +409,9 @@ function ProviderModelsModal({ provider, models, onClose }) {
   const [copiedModel, setCopiedModel] = useState(null);
   const notify = useNotificationStore();
   const router = useRouter();
+  const t = useTranslations("home");
+  const tc = useTranslations("common");
+  const ts = useTranslations("sidebar");
 
   const navigateTo = (path) => {
     onClose();
@@ -410,20 +421,29 @@ function ProviderModelsModal({ provider, models, onClose }) {
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedModel(text);
-    notify.success(`Copied: ${text}`);
+    notify.success(t("copiedModel", { model: text }));
     setTimeout(() => setCopiedModel(null), 2000);
   };
 
   return (
-    <Modal isOpen={true} title={`${provider.provider.name} — Models`} onClose={onClose}>
+    <Modal
+      isOpen={true}
+      title={t("providerModelsTitle", { provider: provider.provider.name })}
+      onClose={onClose}
+    >
       <div className="flex flex-col gap-3">
         {/* Summary */}
         <div className="flex items-center gap-2 text-sm text-text-muted">
           <span className="material-symbols-outlined text-[16px]">token</span>
-          {models.length} model{models.length !== 1 ? "s" : ""} available
+          {models.length === 1
+            ? t("modelAvailable", { count: models.length })
+            : t("modelsAvailable", { count: models.length })}
           {provider.total > 0 && (
             <span className="ml-auto text-xs text-green-500">
-              ● {provider.connected} connection{provider.connected !== 1 ? "s" : ""} active
+              ●{" "}
+              {provider.connected === 1
+                ? t("connectionsActive", { count: provider.connected })
+                : t("connectionsActivePlural", { count: provider.connected })}
             </span>
           )}
         </div>
@@ -433,15 +453,9 @@ function ProviderModelsModal({ provider, models, onClose }) {
             <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
               search_off
             </span>
-            <p className="text-sm text-text-muted">No models available for this provider.</p>
+            <p className="text-sm text-text-muted">{t("noModelsAvailable")}</p>
             <p className="text-xs text-text-muted mt-1">
-              Configure a connection first in{" "}
-              <button
-                onClick={() => navigateTo("/dashboard/providers")}
-                className="text-primary hover:underline cursor-pointer"
-              >
-                Providers
-              </button>
+              {t("configureFirst", { providers: ts("providers") })}
             </p>
           </div>
         ) : (
@@ -454,13 +468,15 @@ function ProviderModelsModal({ provider, models, onClose }) {
                 <div className="min-w-0 flex-1">
                   <p className="font-mono text-sm text-text-main truncate">{m.fullModel}</p>
                   {m.alias !== m.model && (
-                    <p className="text-[10px] text-text-muted">alias: {m.alias}</p>
+                    <p className="text-[10px] text-text-muted">
+                      {t("aliasLabel")}: {m.alias}
+                    </p>
                   )}
                 </div>
                 <button
                   onClick={() => handleCopy(m.fullModel)}
                   className="shrink-0 ml-2 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors opacity-0 group-hover:opacity-100"
-                  title="Copy model name"
+                  title={t("copyModelName")}
                 >
                   <span className="material-symbols-outlined text-[14px]">
                     {copiedModel === m.fullModel ? "check" : "content_copy"}
@@ -481,10 +497,10 @@ function ProviderModelsModal({ provider, models, onClose }) {
             className="flex-1"
           >
             <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
-            Configure Provider
+            {t("configureProvider")}
           </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
+            {tc("close")}
           </Button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/serv
 import { parseTranscriptionModel } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 /**
  * Handle CORS preflight
@@ -42,6 +43,10 @@ export async function POST(request) {
   if (!model) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, model as string);
+  if (policy.rejection) return policy.rejection;
 
   const { provider } = parseTranscriptionModel(model);
   if (!provider) {

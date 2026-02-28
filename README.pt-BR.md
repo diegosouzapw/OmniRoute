@@ -104,7 +104,7 @@ _Conecte qualquer IDE ou ferramenta CLI com IA através do OmniRoute — gateway
 
 [🌐 Website](https://omniroute.online) • [🚀 Início Rápido](#-início-rápido) • [💡 Funcionalidades](#-funcionalidades-principais) • [📖 Docs](#-documentação) • [💰 Preços](#-preços-resumidos)
 
-🌐 **Disponível em:** [English](README.md) | [Português](README.pt-BR.md) | [Español](README.es.md) | [Русский](README.ru.md) | [中文](README.zh-CN.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Italiano](README.it.md)
+🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](README.pt-BR.md) | 🇪🇸 [Español](README.es.md) | 🇫🇷 [Français](README.fr.md) | 🇮🇹 [Italiano](README.it.md) | 🇷🇺 [Русский](README.ru.md) | 🇨🇳 [中文 (简体)](README.zh-CN.md) | 🇩🇪 [Deutsch](README.de.md) | 🇮🇳 [हिन्दी](README.in.md) | 🇹🇭 [ไทย](README.th.md) | 🇺🇦 [Українська](README.uk-UA.md) | 🇸🇦 [العربية](README.ar.md) | 🇯🇵 [日本語](README.ja.md) | 🇻🇳 [Tiếng Việt](README.vi.md) | 🇧🇬 [Български](README.bg.md) | 🇩🇰 [Dansk](README.da.md) | 🇫🇮 [Suomi](README.fi.md) | 🇮🇱 [עברית](README.he.md) | 🇭🇺 [Magyar](README.hu.md) | 🇮🇩 [Bahasa Indonesia](README.id.md) | 🇰🇷 [한국어](README.ko.md) | 🇲🇾 [Bahasa Melayu](README.ms.md) | 🇳🇱 [Nederlands](README.nl.md) | 🇳🇴 [Norsk](README.no.md) | 🇵🇹 [Português (Portugal)](README.pt.md) | 🇷🇴 [Română](README.ro.md) | 🇵🇱 [Polski](README.pl.md) | 🇸🇰 [Slovenčina](README.sk.md) | 🇸🇪 [Svenska](README.sv.md) | 🇵🇭 [Filipino](README.phi.md)
 
 </div>
 
@@ -364,16 +364,18 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ### 🛡️ Resiliência e Segurança
 
-| Funcionalidade                     | O que Faz                                                             |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| 🔌 **Circuit Breaker**             | Auto-abertura/fechamento por provedor com limites configuráveis       |
-| 🛡️ **Anti-Thundering Herd**        | Mutex + semáforo rate-limit para provedores com API key               |
-| 🧠 **Cache Semântico**             | Cache de duas camadas (assinatura + semântico) reduz custo e latência |
-| ⚡ **Idempotência de Requisição**  | Janela de dedup de 5s para requisições duplicadas                     |
-| 🔒 **Spoofing de Fingerprint TLS** | Bypass de detecção de bot via TLS com wreq-js                         |
-| 🌐 **Filtragem de IP**             | Allowlist/blocklist para controle de acesso à API                     |
-| 📊 **Rate Limits Editáveis**       | RPM, gap mínimo e concorrência máxima configuráveis                   |
-| 🛡 **Proteção de Endpoint API**    | Gateway de Auth + bloqueio de provedores para o endpoint `/models`    |
+| Funcionalidade                     | O que Faz                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| 🔌 **Circuit Breaker**             | Auto-abertura/fechamento por provedor com limites configuráveis             |
+| 🛡️ **Anti-Thundering Herd**        | Mutex + semáforo rate-limit para provedores com API key                     |
+| 🧠 **Cache Semântico**             | Cache de duas camadas (assinatura + semântico) reduz custo e latência       |
+| ⚡ **Idempotência de Requisição**  | Janela de dedup de 5s para requisições duplicadas                           |
+| 🔒 **Spoofing de Fingerprint TLS** | Bypass de detecção de bot via TLS com wreq-js                               |
+| 🌐 **Filtragem de IP**             | Allowlist/blocklist para controle de acesso à API                           |
+| 📊 **Rate Limits Editáveis**       | RPM, gap mínimo e concorrência máxima configuráveis                         |
+| 🛡 **Proteção de Endpoint API**    | Gateway de Auth + bloqueio de provedores para o endpoint `/models`          |
+| 🔒 **Visibilidade de Proxy**       | Badges coloridos: 🟢 global, 🟡 provedor, 🔵 por-conexão com exibição de IP |
+| 🌐 **Proxy em 3 Níveis**           | Configure proxies em nível global, por provedor ou por conexão              |
 
 ### 📊 Observabilidade e Analytics
 
@@ -399,6 +401,9 @@ Acesso via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 | 🧙 **Assistente de Configuração** | Setup guiado em 4 etapas para novos usuários                                      |
 | 🔧 **Dashboard CLI Tools**        | Configuração em um clique para Claude, Codex, Cline, OpenClaw, Kilo, Antigravity  |
 | 🔄 **Backups de DB**              | Backup, restauração, exportação e importação automática de todas as configurações |
+| 🌐 **Internacionalização**        | i18n completo com next-intl — suporte a 30 idiomas com RTL                        |
+| 🌍 **Seletor de Idioma**          | Ícone de globo no cabeçalho para troca entre 30 idiomas em tempo real             |
+| 📂 **Diretório de Dados Custom**  | Variável `DATA_DIR` para sobrescrever o caminho padrão `~/.omniroute`             |
 
 <details>
 <summary><b>📖 Detalhes das Funcionalidades</b></summary>

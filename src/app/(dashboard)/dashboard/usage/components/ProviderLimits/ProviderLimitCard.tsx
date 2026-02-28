@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import QuotaProgressBar from "./QuotaProgressBar";
@@ -26,6 +27,7 @@ export default function ProviderLimitCard({
 }) {
   const [refreshing, setRefreshing] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const t = useTranslations("usage");
 
   const handleRefresh = async () => {
     if (!onRefresh || refreshing) return;
@@ -70,7 +72,7 @@ export default function ProviderLimitCard({
             ) : (
               <Image
                 src={`/providers/${provider}.png`}
-                alt={provider || "Provider"}
+                alt={provider || t("providerLimits")}
                 width={40}
                 height={40}
                 className="object-contain rounded-lg"
@@ -83,7 +85,10 @@ export default function ProviderLimitCard({
           <div>
             <h3 className="font-semibold text-text-primary">{name || provider}</h3>
             {plan && (
-              <Badge variant={(planVariants as any)[plan?.toLowerCase()] || "default"} size={"xs" as any}>
+              <Badge
+                variant={(planVariants as any)[plan?.toLowerCase()] || "default"}
+                size={"xs" as any}
+              >
                 {plan}
               </Badge>
             )}
@@ -95,7 +100,7 @@ export default function ProviderLimitCard({
           onClick={handleRefresh}
           disabled={refreshing || loading}
           className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refresh quota"
+          title={t("refreshQuota")}
         >
           <span
             className={`material-symbols-outlined text-[20px] text-text-muted ${
@@ -171,7 +176,7 @@ export default function ProviderLimitCard({
       {!loading && !error && !message && quotas?.length === 0 && (
         <div className="text-center py-8 text-text-muted">
           <span className="material-symbols-outlined text-[48px] opacity-20">data_usage</span>
-          <p className="text-sm mt-2">No quota data available</p>
+          <p className="text-sm mt-2">{t("noQuotaDataAvailable")}</p>
         </div>
       )}
     </Card>

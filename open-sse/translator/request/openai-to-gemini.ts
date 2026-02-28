@@ -271,9 +271,11 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
   const projectId = credentials?.projectId || generateProjectId();
 
+  const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
+
   const envelope: Record<string, any> = {
     project: projectId,
-    model: model,
+    model: cleanModel,
     userAgent: isAntigravity ? "antigravity" : "gemini-cli",
     requestId: isAntigravity ? `agent-${generateUUID()}` : generateRequestId(),
     request: {
@@ -315,9 +317,11 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
   const projectId = credentials?.projectId || generateProjectId();
 
+  const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
+
   const envelope: Record<string, any> = {
     project: projectId,
-    model: model,
+    model: cleanModel,
     userAgent: "antigravity",
     requestId: `agent-${generateUUID()}`,
     requestType: "agent",

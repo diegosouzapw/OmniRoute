@@ -10,7 +10,7 @@
  * updates the DB, and logs the result.
  */
 
-import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection, getSettings } from "@/lib/localDb";
 import {
   getAccessToken,
   supportsTokenRefresh,
@@ -21,6 +21,68 @@ import {
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
 const DEFAULT_HEALTH_CHECK_INTERVAL_MIN = 60; // default per-connection interval
 const LOG_PREFIX = "[HealthCheck]";
+
+// ── Logging helper ───────────────────────────────────────────────────────────
+let cachedHideLogs: boolean | null = null;
+let cacheTimestamp = 0;
+let pendingHideLogs: Promise<boolean> | null = null;
+const CACHE_TTL = 30_000; // Cache settings for 30 seconds
+
+async function shouldHideLogs(): Promise<boolean> {
+  const now = Date.now();
+
+  // Return cached value if valid
+  if (cachedHideLogs !== null && now - cacheTimestamp < CACHE_TTL) {
+    return cachedHideLogs;
+  }
+
+  // Return pending promise if a query is already in progress (request coalescing)
+  if (pendingHideLogs !== null) {
+    return pendingHideLogs;
+  }
+
+  // Create new promise for DB query
+  pendingHideLogs = (async () => {
+    try {
+      const settings = await getSettings();
+      cachedHideLogs = settings.hideHealthCheckLogs === true;
+      cacheTimestamp = now;
+      return cachedHideLogs;
+    } catch {
+      return false;
+    } finally {
+      pendingHideLogs = null;
+    }
+  })();
+
+  return pendingHideLogs;
+}
+
+function log(message: string, ...args: any[]) {
+  shouldHideLogs().then((hide) => {
+    if (!hide) console.log(message, ...args);
+  });
+}
+
+function logWarn(message: string, ...args: any[]) {
+  shouldHideLogs().then((hide) => {
+    if (!hide) console.warn(message, ...args);
+  });
+}
+
+function logError(message: string, ...args: any[]) {
+  shouldHideLogs().then((hide) => {
+    if (!hide) console.error(message, ...args);
+  });
+}
+
+/**
+ * Clear the cached hideLogs setting (call when settings are updated).
+ */
+export function clearHealthCheckLogCache() {
+  cachedHideLogs = null;
+  cacheTimestamp = 0;
+}
 
 // ── Singleton guard ──────────────────────────────────────────────────────────
 let initialized = false;
@@ -33,9 +95,7 @@ export function initTokenHealthCheck() {
   if (initialized) return;
   initialized = true;
 
-  console.log(
-    `${LOG_PREFIX} Starting proactive token health-check (tick every ${TICK_MS / 1000}s)`
-  );
+  log(`${LOG_PREFIX} Starting proactive token health-check (tick every ${TICK_MS / 1000}s)`);
 
   // Run first sweep after a short delay so the server finishes booting
   setTimeout(() => {
@@ -67,11 +127,11 @@ async function sweep() {
         await checkConnection(conn);
       } catch (err) {
         // Per-connection isolation: one failure never blocks others
-        console.error(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
+        logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
       }
     }
   } catch (err) {
-    console.error(`${LOG_PREFIX} Sweep error:`, err.message);
+    logError(`${LOG_PREFIX} Sweep error:`, err.message);
   }
 }
 
@@ -91,7 +151,7 @@ async function checkConnection(conn) {
   if (!supportsTokenRefresh(conn.provider)) {
     const now = new Date().toISOString();
     await updateProviderConnection(conn.id, { lastHealthCheckAt: now });
-    console.log(
+    log(
       `${LOG_PREFIX} Skipping ${conn.provider}/${conn.name || conn.email || conn.id} (refresh unsupported)`
     );
     return;
@@ -103,7 +163,7 @@ async function checkConnection(conn) {
   // Not yet due
   if (Date.now() - lastCheck < intervalMs) return;
 
-  console.log(
+  log(
     `${LOG_PREFIX} Refreshing ${conn.provider}/${conn.name || conn.email || conn.id} (interval: ${intervalMin}min)`
   );
 
@@ -114,10 +174,17 @@ async function checkConnection(conn) {
     providerSpecificData: conn.providerSpecificData,
   };
 
+  const hideLogs = await shouldHideLogs();
   const result = await getAccessToken(conn.provider, credentials, {
-    info: (tag, msg) => console.log(`${LOG_PREFIX} [${tag}] ${msg}`),
-    warn: (tag, msg) => console.warn(`${LOG_PREFIX} [${tag}] ${msg}`),
-    error: (tag, msg, extra) => console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || ""),
+    info: (tag, msg) => {
+      if (!hideLogs) console.log(`${LOG_PREFIX} [${tag}] ${msg}`);
+    },
+    warn: (tag, msg) => {
+      if (!hideLogs) console.warn(`${LOG_PREFIX} [${tag}] ${msg}`);
+    },
+    error: (tag, msg, extra) => {
+      if (!hideLogs) console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || "");
+    },
   });
 
   const now = new Date().toISOString();
@@ -138,7 +205,7 @@ async function checkConnection(conn) {
       isActive: false,
       refreshToken: null,
     });
-    console.error(
+    logError(
       `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} — ` +
         `Refresh token is permanently invalid (${result.error}). ` +
         `Connection deactivated. Re-authenticate to restore.`
@@ -168,7 +235,7 @@ async function checkConnection(conn) {
     }
 
     await updateProviderConnection(conn.id, updateData);
-    console.log(`${LOG_PREFIX} ✓ ${conn.provider}/${conn.name || conn.email || conn.id} refreshed`);
+    log(`${LOG_PREFIX} ✓ ${conn.provider}/${conn.name || conn.email || conn.id} refreshed`);
   } else {
     // Refresh failed — record but don't disable the connection
     await updateProviderConnection(conn.id, {
@@ -180,7 +247,7 @@ async function checkConnection(conn) {
       lastErrorSource: "oauth",
       errorCode: "refresh_failed",
     });
-    console.warn(
+    logWarn(
       `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} refresh failed`
     );
   }

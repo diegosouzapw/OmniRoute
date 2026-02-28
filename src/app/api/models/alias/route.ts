@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { getModelAliases, setModelAlias, deleteModelAlias, isCloudEnabled } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 // GET /api/models/alias - Get all aliases
-export async function GET() {
+export async function GET(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const aliases = await getModelAliases();
     return NextResponse.json({ aliases });
   } catch (error) {
@@ -17,6 +23,11 @@ export async function GET() {
 // PUT /api/models/alias - Set model alias
 export async function PUT(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { model, alias } = body;
 
@@ -37,6 +48,11 @@ export async function PUT(request) {
 // DELETE /api/models/alias?alias=xxx - Delete alias
 export async function DELETE(request) {
   try {
+    // Require authentication for security
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const alias = searchParams.get("alias");
 

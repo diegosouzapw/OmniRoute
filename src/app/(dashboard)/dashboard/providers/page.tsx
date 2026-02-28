@@ -23,19 +23,22 @@ import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
 import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
+import { useTranslations } from "next-intl";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
-function getStatusDisplay(connected, error, errorCode) {
+function getStatusDisplay(connected, error, errorCode, t) {
   const parts = [];
   if (connected > 0) {
     parts.push(
       <Badge key="connected" variant="success" size="sm" dot>
-        {connected} Connected
+        {t("connected", { count: connected })}
       </Badge>
     );
   }
   if (error > 0) {
-    const errText = errorCode ? `${error} Error (${errorCode})` : `${error} Error`;
+    const errText = errorCode
+      ? t("errorCount", { count: error, code: errorCode })
+      : t("errorCountNoCode", { count: error });
     parts.push(
       <Badge key="error" variant="error" size="sm" dot>
         {errText}
@@ -43,7 +46,7 @@ function getStatusDisplay(connected, error, errorCode) {
     );
   }
   if (parts.length === 0) {
-    return <span className="text-text-muted">No connections</span>;
+    return <span className="text-text-muted">{t("noConnections")}</span>;
   }
   return parts;
 }
@@ -89,14 +92,16 @@ function getConnectionErrorTag(connection) {
 }
 
 export default function ProvidersPage() {
-  const [connections, setConnections] = useState([]);
-  const [providerNodes, setProviderNodes] = useState([]);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
-  const [testingMode, setTestingMode] = useState(null);
-  const [testResults, setTestResults] = useState(null);
+  const [testingMode, setTestingMode] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<any>(null);
   const notify = useNotificationStore();
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -194,12 +199,12 @@ export default function ProvidersPage() {
       setTestResults(data);
       if (data.summary) {
         const { passed, failed, total } = data.summary;
-        if (failed === 0) notify.success(`All ${total} tests passed`);
-        else notify.warning(`${passed}/${total} passed, ${failed} failed`);
+        if (failed === 0) notify.success(t("allTestsPassed", { total }));
+        else notify.warning(t("testSummary", { passed, failed, total }));
       }
     } catch (error) {
-      setTestResults({ error: "Test request failed" });
-      notify.error("Provider test failed");
+      setTestResults({ error: t("providerTestFailed") });
+      notify.error(t("providerTestFailed"));
     } finally {
       setTestingMode(null);
     }
@@ -209,7 +214,7 @@ export default function ProvidersPage() {
     .filter((node) => node.type === "openai-compatible")
     .map((node) => ({
       id: node.id,
-      name: node.name || "OpenAI Compatible",
+      name: node.name || t("openaiCompatibleName"),
       color: "#10A37F",
       textIcon: "OC",
       apiType: node.apiType,
@@ -219,7 +224,7 @@ export default function ProvidersPage() {
     .filter((node) => node.type === "anthropic-compatible")
     .map((node) => ({
       id: node.id,
-      name: node.name || "Anthropic Compatible",
+      name: node.name || t("anthropicCompatibleName"),
       color: "#D97757",
       textIcon: "AC",
     }));
@@ -239,7 +244,8 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
-            OAuth Providers <span className="size-2.5 rounded-full bg-blue-500" title="OAuth" />
+            {t("oauthProviders")}{" "}
+            <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
           </h2>
           <div className="flex items-center gap-2">
             <ModelAvailabilityBadge />
@@ -251,13 +257,13 @@ export default function ProvidersPage() {
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
-              title="Test all OAuth connections"
-              aria-label="Test all OAuth connections"
+              title={t("testAllOAuth")}
+              aria-label={t("testAllOAuth")}
             >
               <span className="material-symbols-outlined text-[14px]">
                 {testingMode === "oauth" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "oauth" ? "Testing..." : "Test All"}
+              {testingMode === "oauth" ? t("testing") : t("testAll")}
             </button>
           </div>
         </div>
@@ -279,7 +285,8 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
-            Free Providers <span className="size-2.5 rounded-full bg-green-500" title="Free" />
+            {t("freeProviders")}{" "}
+            <span className="size-2.5 rounded-full bg-green-500" title={tc("free")} />
           </h2>
           <button
             onClick={() => handleBatchTest("free")}
@@ -289,13 +296,13 @@ export default function ProvidersPage() {
                 ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                 : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
             }`}
-            title="Test all Free connections"
-            aria-label="Test all Free provider connections"
+            title={t("testAllFree")}
+            aria-label={t("testAllFree")}
           >
             <span className="material-symbols-outlined text-[14px]">
               {testingMode === "free" ? "sync" : "play_arrow"}
             </span>
-            {testingMode === "free" ? "Testing..." : "Test All"}
+            {testingMode === "free" ? t("testing") : t("testAll")}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -316,8 +323,8 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
-            API Key Providers{" "}
-            <span className="size-2.5 rounded-full bg-amber-500" title="API Key" />
+            {t("apiKeyProviders")}{" "}
+            <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
           </h2>
           <button
             onClick={() => handleBatchTest("apikey")}
@@ -327,13 +334,13 @@ export default function ProvidersPage() {
                 ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                 : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
             }`}
-            title="Test all API Key connections"
-            aria-label="Test all API Key connections"
+            title={t("testAllApiKey")}
+            aria-label={t("testAllApiKey")}
           >
             <span className="material-symbols-outlined text-[14px]">
               {testingMode === "apikey" ? "sync" : "play_arrow"}
             </span>
-            {testingMode === "apikey" ? "Testing..." : "Test All"}
+            {testingMode === "apikey" ? t("testing") : t("testAll")}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -354,8 +361,8 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
-            API Key Compatible Providers{" "}
-            <span className="size-2.5 rounded-full bg-orange-500" title="Compatible" />
+            {t("compatibleProviders")}{" "}
+            <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
           </h2>
           <div className="flex gap-2">
             {(compatibleProviders.length > 0 || anthropicCompatibleProviders.length > 0) && (
@@ -367,16 +374,16 @@ export default function ProvidersPage() {
                     ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                     : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
                 }`}
-                title="Test all Compatible connections"
+                title={t("testAllCompatible")}
               >
                 <span className="material-symbols-outlined text-[14px]">
                   {testingMode === "compatible" ? "sync" : "play_arrow"}
                 </span>
-                {testingMode === "compatible" ? "Testing..." : "Test All"}
+                {testingMode === "compatible" ? t("testing") : t("testAll")}
               </button>
             )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
-              Add Anthropic Compatible
+              {t("addAnthropicCompatible")}
             </Button>
             <Button
               size="sm"
@@ -385,7 +392,7 @@ export default function ProvidersPage() {
               onClick={() => setShowAddCompatibleModal(true)}
               className="!bg-white !text-black hover:!bg-gray-100"
             >
-              Add OpenAI Compatible
+              {t("addOpenAICompatible")}
             </Button>
           </div>
         </div>
@@ -394,10 +401,8 @@ export default function ProvidersPage() {
             <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
               extension
             </span>
-            <p className="text-text-muted text-sm">No compatible providers added yet</p>
-            <p className="text-text-muted text-xs mt-1">
-              Use the buttons above to add OpenAI or Anthropic compatible endpoints
-            </p>
+            <p className="text-text-muted text-sm">{t("noCompatibleYet")}</p>
+            <p className="text-text-muted text-xs mt-1">{t("compatibleHint")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -442,11 +447,11 @@ export default function ProvidersPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
-              <h3 className="font-semibold">Test Results</h3>
+              <h3 className="font-semibold">{t("testResults")}</h3>
               <button
                 onClick={() => setTestResults(null)}
                 className="p-1 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-                aria-label="Close test results"
+                aria-label={tc("close")}
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
@@ -462,6 +467,8 @@ export default function ProvidersPage() {
 }
 
 function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const [imgError, setImgError] = useState(false);
 
@@ -471,7 +478,12 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
     apikey: "bg-amber-500",
     compatible: "bg-orange-500",
   };
-  const dotLabels = { free: "Free", oauth: "OAuth", apikey: "API Key", compatible: "Compatible" };
+  const dotLabels = {
+    free: tc("free"),
+    oauth: t("oauthLabel"),
+    apikey: t("apiKeyLabel"),
+    compatible: t("compatibleLabel"),
+  };
 
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group">
@@ -506,7 +518,7 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
                 {provider.name}
                 <span
                   className={`size-2 rounded-full ${dotColors[authType] || dotColors.oauth} shrink-0`}
-                  title={dotLabels[authType] || "OAuth"}
+                  title={dotLabels[authType] || t("oauthLabel")}
                 />
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
@@ -514,12 +526,12 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
                   <Badge variant="default" size="sm">
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">pause_circle</span>
-                      Disabled
+                      {t("disabled")}
                     </span>
                   </Badge>
                 ) : (
                   <>
-                    {getStatusDisplay(connected, error, errorCode)}
+                    {getStatusDisplay(connected, error, errorCode, t)}
                     {errorTime && <span className="text-text-muted">• {errorTime}</span>}
                   </>
                 )}
@@ -540,7 +552,7 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
                   size="sm"
                   checked={!allDisabled}
                   onChange={() => {}}
-                  title={allDisabled ? "Enable provider" : "Disable provider"}
+                  title={allDisabled ? t("enableProvider") : t("disableProvider")}
                 />
               </div>
             )}
@@ -573,6 +585,8 @@ ProviderCard.propTypes = {
 
 // API Key providers - use image with textIcon fallback (same as OAuth providers)
 function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle }) {
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
   const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
@@ -584,7 +598,12 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
     apikey: "bg-amber-500",
     compatible: "bg-orange-500",
   };
-  const dotLabels = { free: "Free", oauth: "OAuth", apikey: "API Key", compatible: "Compatible" };
+  const dotLabels = {
+    free: tc("free"),
+    oauth: t("oauthLabel"),
+    apikey: t("apiKeyLabel"),
+    compatible: t("compatibleLabel"),
+  };
 
   // Determine icon path: OpenAI Compatible providers use specialized icons
   const getIconPath = () => {
@@ -630,7 +649,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                 {provider.name}
                 <span
                   className={`size-2 rounded-full ${dotColors[authType] || dotColors.apikey} shrink-0`}
-                  title={dotLabels[authType] || "API Key"}
+                  title={dotLabels[authType] || t("apiKeyLabel")}
                 />
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
@@ -638,20 +657,20 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                   <Badge variant="default" size="sm">
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">pause_circle</span>
-                      Disabled
+                      {t("disabled")}
                     </span>
                   </Badge>
                 ) : (
                   <>
-                    {getStatusDisplay(connected, error, errorCode)}
+                    {getStatusDisplay(connected, error, errorCode, t)}
                     {isCompatible && (
                       <Badge variant="default" size="sm">
-                        {provider.apiType === "responses" ? "Responses" : "Chat"}
+                        {provider.apiType === "responses" ? t("responses") : t("chat")}
                       </Badge>
                     )}
                     {isAnthropicCompatible && (
                       <Badge variant="default" size="sm">
-                        Messages
+                        {t("messages")}
                       </Badge>
                     )}
                     {errorTime && <span className="text-text-muted">• {errorTime}</span>}
@@ -674,7 +693,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                   size="sm"
                   checked={!allDisabled}
                   onChange={() => {}}
-                  title={allDisabled ? "Enable provider" : "Disable provider"}
+                  title={allDisabled ? t("enableProvider") : t("disableProvider")}
                 />
               </div>
             )}
@@ -707,6 +726,7 @@ ApiKeyProviderCard.propTypes = {
 };
 
 function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -716,11 +736,11 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
+  const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
 
   const apiTypeOptions = [
-    { value: "chat", label: "Chat Completions" },
-    { value: "responses", label: "Responses API" },
+    { value: "chat", label: t("chatCompletions") },
+    { value: "responses", label: t("responsesApi") },
   ];
 
   useEffect(() => {
@@ -787,38 +807,38 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title="Add OpenAI Compatible" onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("addOpenAICompatible")} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="OpenAI Compatible (Prod)"
-          hint="Required. A friendly label for this node."
+          placeholder={t("compatibleProdPlaceholder", { type: t("openai") })}
+          hint={t("nameHint")}
         />
         <Input
-          label="Prefix"
+          label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder="oc-prod"
-          hint="Required. Used as the provider prefix for model IDs."
+          placeholder={t("openaiPrefixPlaceholder")}
+          hint={t("prefixHint")}
         />
         <Select
-          label="API Type"
+          label={t("apiTypeLabel")}
           options={apiTypeOptions}
           value={formData.apiType}
           onChange={(e) => setFormData({ ...formData, apiType: e.target.value })}
         />
         <Input
-          label="Base URL"
+          label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder="https://api.openai.com/v1"
-          hint="Use the base URL (ending in /v1) for your OpenAI-compatible API."
+          placeholder={t("openaiBaseUrlPlaceholder")}
+          hint={t("compatibleBaseUrlHint", { type: t("openai") })}
         />
         <div className="flex gap-2">
           <Input
-            label="API Key (for Check)"
+            label={t("apiKeyForCheck")}
             type="password"
             value={checkKey}
             onChange={(e) => setCheckKey(e.target.value)}
@@ -830,13 +850,13 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
               disabled={!checkKey || validating || !formData.baseUrl.trim()}
               variant="secondary"
             >
-              {validating ? "Checking..." : "Check"}
+              {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? "Valid" : "Invalid"}
+            {validationResult === "success" ? t("valid") : t("invalid")}
           </Badge>
         )}
         <div className="flex gap-2">
@@ -850,10 +870,10 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
               submitting
             }
           >
-            {submitting ? "Creating..." : "Create"}
+            {submitting ? t("creating") : t("add")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>
@@ -868,6 +888,7 @@ AddOpenAICompatibleModal.propTypes = {
 };
 
 function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -876,7 +897,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
+  const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
 
   useEffect(() => {
     // Reset validation when modal opens
@@ -940,32 +961,32 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title="Add Anthropic Compatible" onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("addAnthropicCompatible")} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Anthropic Compatible (Prod)"
-          hint="Required. A friendly label for this node."
+          placeholder={t("compatibleProdPlaceholder", { type: t("anthropic") })}
+          hint={t("nameHint")}
         />
         <Input
-          label="Prefix"
+          label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder="ac-prod"
-          hint="Required. Used as the provider prefix for model IDs."
+          placeholder={t("anthropicPrefixPlaceholder")}
+          hint={t("prefixHint")}
         />
         <Input
-          label="Base URL"
+          label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder="https://api.anthropic.com/v1"
-          hint="Use the base URL (ending in /v1) for your Anthropic-compatible API. The system will append /messages."
+          placeholder={t("anthropicBaseUrlPlaceholder")}
+          hint={t("compatibleBaseUrlHint", { type: t("anthropic") })}
         />
         <div className="flex gap-2">
           <Input
-            label="API Key (for Check)"
+            label={t("apiKeyForCheck")}
             type="password"
             value={checkKey}
             onChange={(e) => setCheckKey(e.target.value)}
@@ -977,13 +998,13 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
               disabled={!checkKey || validating || !formData.baseUrl.trim()}
               variant="secondary"
             >
-              {validating ? "Checking..." : "Check"}
+              {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? "Valid" : "Invalid"}
+            {validationResult === "success" ? t("valid") : t("invalid")}
           </Badge>
         )}
         <div className="flex gap-2">
@@ -997,10 +1018,10 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
               submitting
             }
           >
-            {submitting ? "Creating..." : "Create"}
+            {submitting ? t("creating") : t("add")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>
@@ -1017,6 +1038,9 @@ AddAnthropicCompatibleModal.propTypes = {
 // ─── Provider Test Results View (mirrors combo TestResultsView) ──────────────
 
 function ProviderTestResultsView({ results }) {
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
+
   if (results.error && !results.results) {
     return (
       <div className="text-center py-6">
@@ -1031,11 +1055,12 @@ function ProviderTestResultsView({ results }) {
 
   const modeLabel =
     {
-      oauth: "OAuth",
-      free: "Free",
-      apikey: "API Key",
-      provider: "Provider",
-      all: "All",
+      oauth: t("oauthLabel"),
+      free: tc("free"),
+      apikey: t("apiKeyLabel"),
+      compatible: t("compatibleLabel"),
+      provider: t("providerLabel"),
+      all: tc("all"),
     }[mode] || mode;
 
   return (
@@ -1043,16 +1068,18 @@ function ProviderTestResultsView({ results }) {
       {/* Summary header */}
       {summary && (
         <div className="flex items-center gap-3 text-xs mb-1">
-          <span className="text-text-muted">{modeLabel} Test</span>
+          <span className="text-text-muted">{t("modeTest", { mode: modeLabel })}</span>
           <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium">
-            {summary.passed} passed
+            {t("passedCount", { count: summary.passed })}
           </span>
           {summary.failed > 0 && (
             <span className="px-2 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">
-              {summary.failed} failed
+              {t("failedCount", { count: summary.failed })}
             </span>
           )}
-          <span className="text-text-muted ml-auto">{summary.total} tested</span>
+          <span className="text-text-muted ml-auto">
+            {t("testedCount", { count: summary.total })}
+          </span>
         </div>
       )}
 
@@ -1074,21 +1101,23 @@ function ProviderTestResultsView({ results }) {
             <span className="text-text-muted ml-1.5">({r.provider})</span>
           </div>
           {r.latencyMs !== undefined && (
-            <span className="text-text-muted font-mono tabular-nums">{r.latencyMs}ms</span>
+            <span className="text-text-muted font-mono tabular-nums">
+              {t("millisecondsAbbr", { value: r.latencyMs })}
+            </span>
           )}
           <span
             className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
               r.valid ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
             }`}
           >
-            {r.valid ? "OK" : r.diagnosis?.type || "ERROR"}
+            {r.valid ? t("okShort") : r.diagnosis?.type || t("errorShort")}
           </span>
         </div>
       ))}
 
       {items.length === 0 && (
         <div className="text-center py-4 text-text-muted text-sm">
-          No active connections found for this group.
+          {t("noActiveConnectionsInGroup")}
         </div>
       )}
     </div>
