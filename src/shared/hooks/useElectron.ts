@@ -1,39 +1,56 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
 /**
- * Check if the app is running in Electron
+ * Code Review Fixes Applied:
+ * #7  useIsElectron — useSyncExternalStore for zero re-renders
+ * #11 Import AppInfo type instead of inline duplication
+ * #12 useDataDir — add error state (was swallowed silently)
+ */
+
+// ── Fix #7: Module-level detection (no state, no re-renders) ──
+
+function getIsElectronSnapshot(): boolean {
+  return typeof window !== "undefined" && window.electronAPI?.isElectron === true;
+}
+
+function getServerSnapshot(): boolean {
+  return false; // SSR always returns false
+}
+
+const noop = () => () => {};
+
+/**
+ * Check if running in Electron — zero re-renders via useSyncExternalStore
  */
 export function useIsElectron(): boolean {
-  const [isElectron, setIsElectron] = useState(false);
+  return useSyncExternalStore(noop, getIsElectronSnapshot, getServerSnapshot);
+}
 
-  useEffect(() => {
-    setIsElectron(typeof window !== 'undefined' && window.electronAPI?.isElectron === true);
-  }, []);
-
-  return isElectron;
+/**
+ * App info shape from Electron main process
+ * Fix #11: Single source of truth (matches electron/types.d.ts)
+ */
+interface AppInfo {
+  name: string;
+  version: string;
+  platform: string;
+  isDev: boolean;
+  port: number;
 }
 
 /**
  * Get Electron app information
  */
 export function useElectronAppInfo() {
-  const [appInfo, setAppInfo] = useState<{
-    name: string;
-    version: string;
-    platform: string;
-    isDev: boolean;
-    port: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const hasApi = getIsElectronSnapshot();
+  const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
+  const [loading, setLoading] = useState(hasApi);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.electronAPI) {
-      setLoading(false);
-      return;
-    }
+    if (typeof window === "undefined" || !window.electronAPI) return;
 
     window.electronAPI
       .getAppInfo()
@@ -52,16 +69,16 @@ export function useElectronAppInfo() {
 
 /**
  * Get the data directory path
+ * Fix #12: Now exposes error state (was swallowed silently)
  */
 export function useDataDir() {
+  const hasApi = getIsElectronSnapshot();
   const [dataDir, setDataDir] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(hasApi);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.electronAPI) {
-      setLoading(false);
-      return;
-    }
+    if (typeof window === "undefined" || !window.electronAPI) return;
 
     window.electronAPI
       .getDataDir()
@@ -69,12 +86,13 @@ export function useDataDir() {
         setDataDir(dir);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       });
   }, []);
 
-  return { dataDir, loading };
+  return { dataDir, loading, error };
 }
 
 /**
@@ -101,12 +119,7 @@ export function useWindowControls() {
     }
   }, [isElectron]);
 
-  return {
-    isElectron,
-    minimize,
-    maximize,
-    close,
-  };
+  return { isElectron, minimize, maximize, close };
 }
 
 /**
@@ -120,7 +133,7 @@ export function useOpenExternal() {
       if (isElectron && window.electronAPI) {
         await window.electronAPI.openExternal(url);
       } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        window.open(url, "_blank", "noopener,noreferrer");
       }
     },
     [isElectron]
@@ -150,15 +163,12 @@ export function useServerControls() {
     }
   }, [isElectron]);
 
-  return {
-    isElectron,
-    restart,
-    restarting,
-  };
+  return { isElectron, restart, restarting };
 }
 
 /**
  * Listen for server status updates
+ * Fix #6: Uses disposer returned by preload for precise cleanup
  */
 export function useServerStatus(onStatus: (status: { status: string; port: number }) => void) {
   const isElectron = useIsElectron();
@@ -166,16 +176,14 @@ export function useServerStatus(onStatus: (status: { status: string; port: numbe
   useEffect(() => {
     if (!isElectron || !window.electronAPI) return;
 
-    window.electronAPI.onServerStatus(onStatus);
-
-    return () => {
-      window.electronAPI.removeServerStatusListener();
-    };
+    const dispose = window.electronAPI.onServerStatus(onStatus);
+    return dispose;
   }, [isElectron, onStatus]);
 }
 
 /**
  * Listen for port changes
+ * Fix #6: Uses disposer returned by preload for precise cleanup
  */
 export function usePortChanged(onPortChanged: (port: number) => void) {
   const isElectron = useIsElectron();
@@ -183,10 +191,7 @@ export function usePortChanged(onPortChanged: (port: number) => void) {
   useEffect(() => {
     if (!isElectron || !window.electronAPI) return;
 
-    window.electronAPI.onPortChanged(onPortChanged);
-
-    return () => {
-      window.electronAPI.removePortChangedListener();
-    };
+    const dispose = window.electronAPI.onPortChanged(onPortChanged);
+    return dispose;
   }, [isElectron, onPortChanged]);
 }

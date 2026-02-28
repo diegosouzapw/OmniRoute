@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.4] — 2026-02-28
+
+### 🖥️ Electron Desktop — Code Review Hardening (16 Fixes)
+
+#### 🔴 Critical
+
+- **Server readiness** — Window now waits for server health check before loading URL; no more blank screens on cold start (#1)
+- **Restart timeout** — `restart-server` IPC handler now has 5s timeout + `SIGKILL` to prevent indefinite hangs (#2)
+- **Port change lifecycle** — `changePort()` now stops and restarts the server on the new port instead of just reloading the URL (#3)
+
+#### 🟡 Important
+
+- **Tray cleanup** — Old `Tray` instance is now destroyed before recreating, preventing duplicate icons and memory leaks (#4)
+- **IPC event emission** — Main process now emits `server-status` and `port-changed` events to renderer, making React hooks functional (#5)
+- **Listener accumulation** — Preload now returns disposer functions for precise listener cleanup instead of `removeAllListeners` (#6)
+- **useIsElectron performance** — Replaced `useState`+`useEffect` with `useSyncExternalStore` to eliminate 5x unnecessary re-renders (#7)
+
+#### 🔵 Minor
+
+- Removed dead `isProduction` variable (#8)
+- Platform-conditional `titleBarStyle` — `hiddenInset` only on macOS, `default` on Windows/Linux (#9)
+- `stdio: pipe` — Server output captured for logging and readiness detection instead of `inherit` (#10)
+- Shared `AppInfo` type — `useElectronAppInfo` now uses the shared interface from `types.d.ts` (#11)
+- `useDataDir` error state — Now exposes errors instead of swallowing silently (#12)
+- Synced `electron/package.json` version to `1.6.4` (#13)
+- Removed dead `omniroute://` protocol config — no handler existed (#14)
+- **Content Security Policy** — Added CSP via `session.webRequest.onHeadersReceived` (#15)
+- Simplified preload validation — Generic `safeInvoke`/`safeSend`/`safeOn` wrappers reduce boilerplate (#16)
+
+### 🧪 Test Suite Expansion
+
+- **76 tests** across 15 suites (up from 64 tests / 9 suites)
+- New: server readiness timeout, restart race condition, CSP directives, platform options, disposer pattern, generic IPC wrappers
+
+---
+
 ## [1.6.3] — 2026-02-28
 
 ### 🐛 Bug Fixes

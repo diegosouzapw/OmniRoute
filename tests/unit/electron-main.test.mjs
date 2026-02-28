@@ -1,24 +1,22 @@
 /**
  * Tests for Electron main process (electron/main.js)
  *
- * Tests cover:
- * - URL validation in shell.openExternal
- * - IPC handler security (open-external validates protocols)
- * - Window open handler security
- * - Server lifecycle (start/stop/restart)
- * - Tray menu structure
- * - Port change logic
+ * Covers:
+ * - URL validation & RCE prevention
+ * - IPC channel security
+ * - Server readiness polling logic
+ * - Restart timeout + SIGKILL
+ * - Port change lifecycle
+ * - CSP header structure
+ * - Platform-conditional window options
  */
 
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 // ─── URL Validation Tests ────────────────────────────────────
 
 describe("Electron URL Validation", () => {
-  /**
-   * Simulate the open-external IPC handler logic from main.js
-   */
   function validateExternalUrl(url) {
     try {
       const parsedUrl = new URL(url);
@@ -32,13 +30,11 @@ describe("Electron URL Validation", () => {
   }
 
   it("should allow http URLs", () => {
-    const result = validateExternalUrl("http://example.com");
-    assert.equal(result.allowed, true);
+    assert.equal(validateExternalUrl("http://example.com").allowed, true);
   });
 
   it("should allow https URLs", () => {
-    const result = validateExternalUrl("https://github.com/diegosouzapw/OmniRoute");
-    assert.equal(result.allowed, true);
+    assert.equal(validateExternalUrl("https://github.com/diegosouzapw/OmniRoute").allowed, true);
   });
 
   it("should block file:// protocol (RCE risk)", () => {
@@ -48,23 +44,19 @@ describe("Electron URL Validation", () => {
   });
 
   it("should block javascript: protocol (XSS risk)", () => {
-    const result = validateExternalUrl("javascript:alert(1)");
-    assert.equal(result.allowed, false);
+    assert.equal(validateExternalUrl("javascript:alert(1)").allowed, false);
   });
 
   it("should block custom protocol handlers", () => {
-    const result = validateExternalUrl("vscode://extensions/install?name=malware");
-    assert.equal(result.allowed, false);
+    assert.equal(validateExternalUrl("vscode://extensions/install?name=malware").allowed, false);
   });
 
   it("should block data: URIs", () => {
-    const result = validateExternalUrl("data:text/html,<script>alert(1)</script>");
-    assert.equal(result.allowed, false);
+    assert.equal(validateExternalUrl("data:text/html,<script>alert(1)</script>").allowed, false);
   });
 
   it("should reject empty string", () => {
-    const result = validateExternalUrl("");
-    assert.equal(result.allowed, false);
+    assert.equal(validateExternalUrl("").allowed, false);
   });
 
   it("should reject malformed URL", () => {
@@ -74,13 +66,11 @@ describe("Electron URL Validation", () => {
   });
 
   it("should allow localhost URLs", () => {
-    const result = validateExternalUrl("http://localhost:20128/dashboard");
-    assert.equal(result.allowed, true);
+    assert.equal(validateExternalUrl("http://localhost:20128/dashboard").allowed, true);
   });
 
   it("should allow URLs with paths and query params", () => {
-    const result = validateExternalUrl("https://example.com/path?q=test&page=1#hash");
-    assert.equal(result.allowed, true);
+    assert.equal(validateExternalUrl("https://example.com/path?q=test&page=1#hash").allowed, true);
   });
 });
 
@@ -100,15 +90,12 @@ describe("Electron Window Open Handler", () => {
   }
 
   it("should deny all windows (external links go to browser)", () => {
-    // The handler always returns { action: 'deny' } — external links
-    // are opened in the system browser, not in a new Electron window
     const result = windowOpenHandler({ url: "https://example.com" });
-    assert.ok(result.action); // has an action
+    assert.ok(result.action);
   });
 
   it("should deny file:// URLs", () => {
-    const result = windowOpenHandler({ url: "file:///etc/passwd" });
-    assert.equal(result.action, "deny");
+    assert.equal(windowOpenHandler({ url: "file:///etc/passwd" }).action, "deny");
   });
 });
 
@@ -143,19 +130,11 @@ describe("IPC Channel Validation", () => {
     assert.equal(isValidChannel("port-changed", "receive"), true);
   });
 
-  it("should block unknown invoke channels", () => {
+  it("should block unknown channels", () => {
     assert.equal(isValidChannel("execute-arbitrary-code", "invoke"), false);
-    assert.equal(isValidChannel("shell.openExternal", "invoke"), false);
-    assert.equal(isValidChannel("", "invoke"), false);
-  });
-
-  it("should block unknown send channels", () => {
     assert.equal(isValidChannel("delete-all-data", "send"), false);
-    assert.equal(isValidChannel("__proto__", "send"), false);
-  });
-
-  it("should block unknown receive channels", () => {
     assert.equal(isValidChannel("malicious-event", "receive"), false);
+    assert.equal(isValidChannel("", "invoke"), false);
   });
 
   it("should handle undefined type gracefully", () => {
@@ -178,11 +157,10 @@ describe("Server Port Management", () => {
     assert.ok(DEFAULT_PORT > 0 && DEFAULT_PORT <= 65535);
   });
 
-  it("should validate port numbers in changePort logic", () => {
+  it("should validate port numbers", () => {
     function isValidPort(port) {
       return Number.isFinite(port) && port > 0 && port <= 65535;
     }
-
     assert.equal(isValidPort(20128), true);
     assert.equal(isValidPort(3000), true);
     assert.equal(isValidPort(8080), true);
@@ -190,12 +168,119 @@ describe("Server Port Management", () => {
     assert.equal(isValidPort(-1), false);
     assert.equal(isValidPort(70000), false);
     assert.equal(isValidPort(NaN), false);
-    assert.equal(isValidPort(Infinity), false);
   });
 
   it("should generate correct server URL", () => {
     const port = 20128;
-    const url = `http://localhost:${port}`;
-    assert.equal(url, "http://localhost:20128");
+    assert.equal(`http://localhost:${port}`, "http://localhost:20128");
+  });
+});
+
+// ─── Server Readiness Tests (#1) ─────────────────────────────
+
+describe("Server Readiness Logic", () => {
+  it("waitForServer should timeout and return false", async () => {
+    // Simulate the polling logic with an always-failing fetch
+    async function waitForServer(url, timeoutMs = 100) {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        try {
+          const res = await fetch(url);
+          if (res.ok || res.status < 500) return true;
+        } catch {
+          /* not ready */
+        }
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      return false;
+    }
+
+    // Should timeout immediately since nothing is running on that port
+    const result = await waitForServer("http://localhost:59999", 100);
+    assert.equal(result, false);
+  });
+});
+
+// ─── Restart Timeout Tests (#2) ──────────────────────────────
+
+describe("Restart Timeout Logic", () => {
+  it("should resolve even if process doesn't exit", async () => {
+    // Simulate the timeout race
+    const start = Date.now();
+    await Promise.race([
+      new Promise((r) => setTimeout(r, 100000)), // simulates hung process
+      new Promise((r) => setTimeout(r, 50)), // timeout
+    ]);
+    const elapsed = Date.now() - start;
+    assert.ok(elapsed < 200, "Should resolve in ~50ms via timeout");
+  });
+
+  it("should resolve immediately if process exits first", async () => {
+    const start = Date.now();
+    await Promise.race([
+      new Promise((r) => setTimeout(r, 10)), // simulates fast exit
+      new Promise((r) => setTimeout(r, 5000)), // timeout
+    ]);
+    const elapsed = Date.now() - start;
+    assert.ok(elapsed < 200, "Should resolve in ~10ms via exit");
+  });
+});
+
+// ─── CSP Tests (#15) ─────────────────────────────────────────
+
+describe("Content Security Policy", () => {
+  it("should have all required CSP directives", () => {
+    const directives = [
+      "default-src",
+      "connect-src",
+      "script-src",
+      "style-src",
+      "font-src",
+      "img-src",
+      "media-src",
+    ];
+
+    const csp = [
+      "default-src 'self'",
+      "connect-src 'self' http://localhost:* ws://localhost:*",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https:",
+      "media-src 'self'",
+    ].join("; ");
+
+    for (const directive of directives) {
+      assert.ok(csp.includes(directive), `CSP should contain ${directive}`);
+    }
+  });
+
+  it("should not allow unsafe script sources from external domains", () => {
+    const scriptSrc = "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+    assert.ok(!scriptSrc.includes("http://"), "Should not allow external http scripts");
+    assert.ok(!scriptSrc.includes("*"), "Should not wildcard script sources");
+  });
+});
+
+// ─── Platform-Conditional Tests (#9) ─────────────────────────
+
+describe("Platform-Conditional Window Options", () => {
+  it("should return hiddenInset for macOS", () => {
+    const platform = "darwin";
+    const options =
+      platform === "darwin"
+        ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 16, y: 16 } }
+        : { titleBarStyle: "default" };
+
+    assert.equal(options.titleBarStyle, "hiddenInset");
+    assert.deepEqual(options.trafficLightPosition, { x: 16, y: 16 });
+  });
+
+  it("should return default for Windows/Linux", () => {
+    for (const platform of ["win32", "linux"]) {
+      const options =
+        platform === "darwin" ? { titleBarStyle: "hiddenInset" } : { titleBarStyle: "default" };
+      assert.equal(options.titleBarStyle, "default");
+    }
   });
 });

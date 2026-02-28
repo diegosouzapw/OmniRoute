@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "1.0.0",
+  "version": "1.6.4",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": "OmniRoute Team",
@@ -24,12 +24,6 @@
     "appId": "online.omniroute.desktop",
     "productName": "OmniRoute",
     "copyright": "Copyright © 2025 OmniRoute",
-    "protocols": [
-      {
-        "name": "OmniRoute",
-        "schemes": ["omniroute"]
-      }
-    ],
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
@@ -43,24 +37,32 @@
       {
         "from": "../.next/standalone",
         "to": "app",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../.next/static",
         "to": "app/.next/static",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../public",
         "to": "app/public",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
@@ -69,7 +71,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icon.icns",
@@ -79,7 +84,9 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icons",
