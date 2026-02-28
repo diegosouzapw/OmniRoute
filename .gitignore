@@ -103,6 +103,11 @@ app.log
 # Backup directories
 app.__qa_backup/
 
+# Production standalone build (created by scripts/prepublish.mjs)
+# Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
+# npm publish still includes it via package.json "files" field
+app/
+
 # Electron (subproject dependency lock and build artifacts)
 electron/package-lock.json
 electron/dist-electron/
