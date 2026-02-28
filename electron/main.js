@@ -251,14 +251,16 @@ function setupIpcHandlers() {
 
   // Get data directory
   ipcMain.handle('get-data-dir', () => {
-    const home = require('os').homedir();
-    return path.join(home, '.omniroute');
+    return app.getPath('userData');
   });
 
   // Restart server
   ipcMain.handle('restart-server', async () => {
+    const serverToStop = nextServer;
     stopNextServer();
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (serverToStop) {
+      await new Promise(resolve => serverToStop.once('exit', resolve));
+    }
     startNextServer();
     return { success: true };
   });

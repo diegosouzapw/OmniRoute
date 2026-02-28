@@ -327,7 +327,7 @@ npm install -g omniroute
 mkdir -p ~/.omniroute
 
 # Create .env file (see .env.example)
-cp ~/.omniroute/.env
+cp .env.example ~/.omniroute/.env
 
 # Start server
 omniroute
@@ -421,7 +421,7 @@ For host-integrated mode with CLI binaries, see the Docker section in the main d
 | `AUTH_COOKIE_SECURE`    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
 | `OMNIROUTE_MEMORY_MB`   | `256`                                | Node.js heap limit in MB                                |
 | `PROMPT_CACHE_MAX_SIZE` | `50`                                 | Max prompt cache entries                                |
-| `SEMANTIC_CACHE_MAX_SIZE`| `100`                               | Max semantic cache entries                              |
+| `SEMANTIC_CACHE_MAX_SIZE` | `100` | Max semantic cache entries |
 
 For the full environment variable reference, see the [README](../README.md).
 

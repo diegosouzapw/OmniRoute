@@ -30,6 +30,16 @@ const VALID_CHANNELS = {
 };
 
 /**
+ * Validate IPC channel name for security
+ * @param {string} channel - The channel to validate
+ * @param {'invoke' | 'send' | 'receive'} type - The channel type
+ * @returns {boolean}
+ */
+function isValidChannel(channel, type) {
+  return VALID_CHANNELS[type]?.includes(channel) ?? false;
+}
+
+/**
  * Expose a limited API to the renderer process
  */
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -37,47 +47,81 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * Get application information
    * @returns {Promise<{name: string, version: string, platform: string, isDev: boolean, port: number}>}
    */
-  getAppInfo: () => ipcRenderer.invoke('get-app-info'),
+  getAppInfo: () => {
+    if (!isValidChannel('get-app-info', 'invoke')) {
+      return Promise.reject(new Error('Invalid channel'));
+    }
+    return ipcRenderer.invoke('get-app-info');
+  },
 
   /**
    * Open an external URL in the default browser
    * @param {string} url - The URL to open
    */
-  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  openExternal: (url) => {
+    if (!isValidChannel('open-external', 'invoke')) {
+      return Promise.reject(new Error('Invalid channel'));
+    }
+    return ipcRenderer.invoke('open-external', url);
+  },
 
   /**
    * Get the data directory path
    * @returns {Promise<string>}
    */
-  getDataDir: () => ipcRenderer.invoke('get-data-dir'),
+  getDataDir: () => {
+    if (!isValidChannel('get-data-dir', 'invoke')) {
+      return Promise.reject(new Error('Invalid channel'));
+    }
+    return ipcRenderer.invoke('get-data-dir');
+  },
 
   /**
    * Restart the server
    * @returns {Promise<{success: boolean}>}
    */
-  restartServer: () => ipcRenderer.invoke('restart-server'),
+  restartServer: () => {
+    if (!isValidChannel('restart-server', 'invoke')) {
+      return Promise.reject(new Error('Invalid channel'));
+    }
+    return ipcRenderer.invoke('restart-server');
+  },
 
   /**
    * Minimize the window
    */
-  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  minimizeWindow: () => {
+    if (isValidChannel('window-minimize', 'send')) {
+      ipcRenderer.send('window-minimize');
+    }
+  },
 
   /**
    * Maximize/unmaximize the window
    */
-  maximizeWindow: () => ipcRenderer.send('window-maximize'),
+  maximizeWindow: () => {
+    if (isValidChannel('window-maximize', 'send')) {
+      ipcRenderer.send('window-maximize');
+    }
+  },
 
   /**
    * Close the window
    */
-  closeWindow: () => ipcRenderer.send('window-close'),
+  closeWindow: () => {
+    if (isValidChannel('window-close', 'send')) {
+      ipcRenderer.send('window-close');
+    }
+  },
 
   /**
    * Listen for server status updates
    * @param {function} callback - Callback function
    */
   onServerStatus: (callback) => {
-    ipcRenderer.on('server-status', (event, data) => callback(data));
+    if (isValidChannel('server-status', 'receive')) {
+      ipcRenderer.on('server-status', (event, data) => callback(data));
+    }
   },
 
   /**
@@ -92,7 +136,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * @param {function} callback - Callback function
    */
   onPortChanged: (callback) => {
-    ipcRenderer.on('port-changed', (event, port) => callback(port));
+    if (isValidChannel('port-changed', 'receive')) {
+      ipcRenderer.on('port-changed', (event, port) => callback(port));
+    }
   },
 
   /**
