@@ -211,11 +211,11 @@ function migrateProxyEntry(value: any) {
   try {
     const url = new URL(value);
     return {
-      type: url.protocol.replace(":", "").replace("//", "") || "http",
+      type: url.protocol.replace(":", "") || "http",
       host: url.hostname,
-      port: url.port || (url.protocol === "socks5:" ? "1080" : "8080"),
-      username: url.username || "",
-      password: url.password || "",
+      port: url.port || (url.protocol === "socks5:" ? "1080" : url.protocol === "https:" ? "443" : "8080"),
+      username: url.username ? decodeURIComponent(url.username) : "",
+      password: url.password ? decodeURIComponent(url.password) : "",
     };
   } catch {
     const parts = value.split(":");

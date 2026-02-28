@@ -2,6 +2,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
+COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./

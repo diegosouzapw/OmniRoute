@@ -48,7 +48,11 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
   const [hasOwnProxy, setHasOwnProxy] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const getDefaultPort = (type) => (type === "socks5" ? "1080" : "8080");
+  const getDefaultPort = (type) => {
+    if (type === "socks5") return "1080";
+    if (type === "https") return "443";
+    return "8080";
+  };
 
   // Load existing proxy config when modal opens
   useEffect(() => {
