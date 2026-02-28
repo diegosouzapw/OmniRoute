@@ -131,9 +131,9 @@ export async function proxy(request) {
       if (settings.requireLogin === false) {
         return response;
       }
-      // Skip auth if no password has been set yet (fresh install with no env override)
-      // This prevents an unresolvable loop where requireLogin=true but no password exists
-      if (!settings.password && !process.env.INITIAL_PASSWORD) {
+      // Skip auth ONLY for fresh installs (before onboarding) where no password exists yet.
+      // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
+      if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD) {
         return response;
       }
     } catch (err) {
