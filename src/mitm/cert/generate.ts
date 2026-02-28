@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import os from "os";
+import { resolveDataDir } from "@/lib/dataPaths";
 
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
 
@@ -8,7 +8,7 @@ const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
  * Generate self-signed SSL certificate using selfsigned (pure JS, no openssl needed)
  */
 export async function generateCert() {
-  const certDir = path.join(os.homedir(), ".omniroute", "mitm");
+  const certDir = path.join(resolveDataDir(), "mitm");
   const keyPath = path.join(certDir, "server.key");
   const certPath = path.join(certDir, "server.crt");
 

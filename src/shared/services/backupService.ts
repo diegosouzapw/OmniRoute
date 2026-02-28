@@ -1,8 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
-import os from "os";
+import { resolveDataDir } from "@/lib/dataPaths";
 
-const BACKUP_DIR = path.join(os.homedir(), ".omniroute", "backups");
+const BACKUP_DIR = path.join(resolveDataDir(), "backups");
 const MAX_BACKUPS_PER_TOOL = 5;
 
 /**

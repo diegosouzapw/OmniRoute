@@ -3,10 +3,10 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-import os from "os";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "@/shared/services/cliRuntime";
+import { resolveDataDir } from "@/lib/dataPaths";
 
-const PROFILES_DIR = path.join(os.homedir(), ".omniroute", "codex-profiles");
+const PROFILES_DIR = path.join(resolveDataDir(), "codex-profiles");
 
 /**
  * Ensure profiles directory exists

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] — 2026-02-28
+
+### ✨ New Features
+
+- **16 Pain Points Documentation** — New collapsible section "🎯 What OmniRoute Solves — 16 Real Pain Points" added to the main README and all 29 language-specific READMEs. Each pain point uses `<details>/<summary>` tags for clean, expandable content
+- **Configurable User-Agent per Provider** — User-Agent strings for OAuth providers (Claude, Codex, GitHub, Antigravity, Kiro, iFlow, Qwen, Cursor, Gemini CLI) are now configurable via environment variables. Format: `{PROVIDER_ID}_USER_AGENT=custom-value` ([#155](https://github.com/diegosouzapw/OmniRoute/issues/155))
+
+### 🐛 Fixed
+
+- **Hardcoded `$HOME` Path in Standalone/Bun Builds** — 5 files (`backupService.ts`, `mitm/manager.ts`, `mitm/server.ts`, `mitm/cert/generate.ts`, `codex-profiles/route.ts`) were bypassing the centralized `dataPaths.ts` and using `os.homedir()` directly. This caused paths to bake the build machine's `$HOME` into standalone/bun builds, producing `EACCES: permission denied` errors on other machines. All files now use `resolveDataDir()` from `dataPaths.ts`, respecting `DATA_DIR` env var and XDG conventions ([#156](https://github.com/diegosouzapw/OmniRoute/issues/156))
+
+### 📝 Documentation
+
+- **`.env` and `.env.example` Synced** — Added 9 User-Agent env vars with latest known default values to both environment files
+- **30 README Translations Updated** — All language READMEs now include the 16 Pain Points section
+
+---
+
 ## [1.6.9] — 2026-02-28
 
 ### 🐛 Fixed

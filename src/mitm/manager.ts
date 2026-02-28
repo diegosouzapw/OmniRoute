@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
-import os from "os";
+import { resolveDataDir } from "@/lib/dataPaths";
 import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig";
 import { generateCert } from "./cert/generate";
 import { installCert } from "./cert/install";
@@ -24,7 +24,7 @@ export function clearCachedPassword() {
 }
 
 // server.js is in same directory as this file
-const PID_FILE = path.join(os.homedir(), ".omniroute", "mitm", ".mitm.pid");
+const PID_FILE = path.join(resolveDataDir(), "mitm", ".mitm.pid");
 
 // Check if a PID is alive
 function isProcessAlive(pid) {
@@ -71,7 +71,7 @@ export async function getMitmStatus() {
   }
 
   // Check cert
-  const certDir = path.join(os.homedir(), ".omniroute", "mitm");
+  const certDir = path.join(resolveDataDir(), "mitm");
   const certExists = fs.existsSync(path.join(certDir, "server.crt"));
 
   return { running, pid, dnsConfigured, certExists };
@@ -89,7 +89,7 @@ export async function startMitm(apiKey, sudoPassword) {
   }
 
   // 1. Generate SSL certificate if not exists
-  const certPath = path.join(os.homedir(), ".omniroute", "mitm", "server.crt");
+  const certPath = path.join(resolveDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
     console.log("Generating SSL certificate...");
     await generateCert();

@@ -5,13 +5,21 @@ const dns = require("dns");
 const { promisify } = require("util");
 const os = require("os");
 
+// Resolve data directory — mirrors src/lib/dataPaths.ts logic.
+// This file runs as a standalone CommonJS process and cannot import the ES module.
+function getDataDir() {
+  if (process.env.DATA_DIR) return path.resolve(process.env.DATA_DIR.trim());
+  return path.join(os.homedir(), ".omniroute");
+}
+
 // Configuration
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
 const LOCAL_PORT = 443;
 const ROUTER_URL = "http://localhost:20128/v1/chat/completions";
 const API_KEY = process.env.ROUTER_API_KEY;
-const DB_FILE = path.join(os.homedir(), ".omniroute", "db.json");
-const SQLITE_FILE = path.join(os.homedir(), ".omniroute", "storage.sqlite");
+const DATA_DIR = getDataDir();
+const DB_FILE = path.join(DATA_DIR, "db.json");
+const SQLITE_FILE = path.join(DATA_DIR, "storage.sqlite");
 
 let _sqliteDb = null;
 
@@ -24,7 +32,7 @@ if (!API_KEY) {
 }
 
 // Load SSL certificates
-const certDir = path.join(os.homedir(), ".omniroute", "mitm");
+const certDir = path.join(DATA_DIR, "mitm");
 const sslOptions = {
   key: fs.readFileSync(path.join(certDir, "server.key")),
   cert: fs.readFileSync(path.join(certDir, "server.crt")),

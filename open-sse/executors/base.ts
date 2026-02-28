@@ -43,6 +43,19 @@ export class BaseExecutor {
       ...this.config.headers,
     };
 
+    // Allow per-provider User-Agent override via environment variable.
+    // Example: CLAUDE_USER_AGENT="my-agent/2.0" overrides the default for the Claude provider.
+    const providerId = this.config?.id || this.provider;
+    if (providerId) {
+      const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
+      const envUA = process.env[envKey]?.trim();
+      if (envUA) {
+        // Override both common casing variants
+        headers["User-Agent"] = envUA;
+        if (headers["user-agent"]) headers["user-agent"] = envUA;
+      }
+    }
+
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
