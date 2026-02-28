@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — Cổng AI miễn phí
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Không bao giờ ngừng viết mã. Định tuyến thông minh tới **Mô hình AI MIỄN PHÍ và chi phí thấp** với tính năng dự phòng tự động.
 
 _Proxy API phổ quát của bạn — một điểm cuối, hơn 36 nhà cung cấp, không có thời gian ngừng hoạt động._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Trường hợp sử dụng
-
-### Trường hợp 1: "Tôi có đăng ký Claude Pro"
-
-**Vấn đề:** Hạn ngạch hết hạn không được sử dụng, giới hạn tốc độ trong quá trình mã hóa nặng
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Trường hợp 2: "Tôi muốn chi phí bằng 0"
-
-**Vấn đề:** Không đủ khả năng đăng ký, cần mã hóa AI đáng tin cậy
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Trường hợp 3: "Tôi cần code 24/7, không bị gián đoạn"
-
-**Vấn đề:** Thời hạn, không đủ khả năng cho thời gian ngừng hoạt động
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Trường hợp 4: "Tôi muốn AI MIỄN PHÍ trong OpenClaw"
-
-**Vấn đề:** Cần trợ lý AI trong ứng dụng nhắn tin, hoàn toàn miễn phí
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Tính năng chính
 
 ### 🧠 Định tuyến lõi & thông minh
@@ -516,6 +453,67 @@ OmniRoute bao gồm Sân chơi dịch thuật tích hợp mạnh mẽ với **4 
 - Lưu trữ được mã hóa an toàn
 
 </details>
+
+---
+
+## 🎯 Trường hợp sử dụng
+
+### Trường hợp 1: "Tôi có đăng ký Claude Pro"
+
+**Vấn đề:** Hạn ngạch hết hạn không được sử dụng, giới hạn tốc độ trong quá trình mã hóa nặng
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Trường hợp 2: "Tôi muốn chi phí bằng 0"
+
+**Vấn đề:** Không đủ khả năng đăng ký, cần mã hóa AI đáng tin cậy
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Trường hợp 3: "Tôi cần code 24/7, không bị gián đoạn"
+
+**Vấn đề:** Thời hạn, không đủ khả năng cho thời gian ngừng hoạt động
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Trường hợp 4: "Tôi muốn AI MIỄN PHÍ trong OpenClaw"
+
+**Vấn đề:** Cần trợ lý AI trong ứng dụng nhắn tin, hoàn toàn miễn phí
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Mẫu có sẵn
-
-<details>
-<summary><b>Xem tất cả các mẫu có sẵn</b></summary>
-
-**Mã Claude (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - MIỄN PHÍ:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**Phi công phụ GitHub (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - Tín dụng MIỄN PHÍ:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- Hơn 50 mẫu khác trên [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - 0,6 USD/1 triệu:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - 0,2 USD/1 triệu:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - MIỄN PHÍ:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - MIỄN PHÍ:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - MIỄN PHÍ:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - Hơn 100 mẫu:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Bất kỳ mẫu nào từ [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Đánh giá (Evals)
 
 OmniRoute bao gồm khung đánh giá tích hợp để kiểm tra chất lượng phản hồi LLM dựa trên bộ vàng. Truy cập thông qua **Analytics → Đánh giá** trong bảng điều khiển.
@@ -890,7 +820,58 @@ OmniRoute bao gồm khung đánh giá tích hợp để kiểm tra chất lượ
 
 ---
 
-## 🔐 OAuth trên Servidor Remoto (Thiết lập OAuth từ xa)
+## 🐛 Khắc phục sự cố
+
+<details>
+<summary><b>Nhấp để mở rộng hướng dẫn khắc phục sự cố</b></summary>
+
+**"Mô hình ngôn ngữ không cung cấp tin nhắn"**
+
+- Đã hết hạn ngạch nhà cung cấp → Kiểm tra trình theo dõi hạn ngạch bảng điều khiển
+- Giải pháp: Sử dụng combo dự phòng hoặc chuyển sang tầng rẻ hơn
+
+**Giới hạn tỷ lệ**
+
+- Hết hạn ngạch đăng ký → Dự phòng sang GLM/MiniMax
+- Thêm tổ hợp: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Mã thông báo OAuth đã hết hạn**
+
+- Tự động làm mới bởi OmniRoute
+- Nếu sự cố vẫn tiếp diễn: Bảng điều khiển → Nhà cung cấp → Kết nối lại
+
+**Chi phí cao**
+
+- Kiểm tra số liệu thống kê sử dụng trong Bảng điều khiển → Chi phí
+- Chuyển mô hình chính sang GLM/MiniMax
+- Sử dụng bậc miễn phí (Gemini CLI, iFlow) cho các tác vụ không quan trọng
+
+**Bảng điều khiển mở sai cổng**
+
+- Đặt `PORT=20128` và `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Lỗi đồng bộ hóa đám mây**
+
+- Xác minh `BASE_URL` trỏ tới phiên bản đang chạy của bạn
+- Xác minh `CLOUD_URL` điểm tới điểm cuối đám mây dự kiến của bạn
+- Giữ các giá trị `NEXT_PUBLIC_*` được căn chỉnh với các giá trị phía máy chủ
+
+**Đăng nhập lần đầu không hoạt động**
+
+- Kiểm tra `INITIAL_PASSWORD` trong `.env`
+- Nếu không được đặt, mật khẩu dự phòng là `123456`
+
+**Không có nhật ký yêu cầu**
+
+- Đặt `ENABLE_REQUEST_LOGS=true` trong `.env`
+
+**Kiểm tra kết nối cho thấy "Không hợp lệ" đối với các nhà cung cấp tương thích với OpenAI**
+
+- Nhiều nhà cung cấp không hiển thị điểm cuối `/models`
+- OmniRoute v1.0.6+ bao gồm xác thực dự phòng thông qua hoàn thành trò chuyện
+- Đảm bảo URL cơ sở bao gồm hậu tố `/v1`
+
+### 🔐 OAuth trên Servidor Remoto (Thiết lập OAuth từ xa)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -980,59 +961,6 @@ Nếu không có câu hỏi nào về thông tin xác thực trước đây, b�
 5. Kết nối với nhau **"Kết nối"**
 
 > Chức năng giải pháp này có thể giúp tự động cấp quyền cho URL và có thể chuyển hướng độc lập đến mục tiêu hoặc không.
-
----
-
-## 🐛 Khắc phục sự cố
-
-<details>
-<summary><b>Nhấp để mở rộng hướng dẫn khắc phục sự cố</b></summary>
-
-**"Mô hình ngôn ngữ không cung cấp tin nhắn"**
-
-- Đã hết hạn ngạch nhà cung cấp → Kiểm tra trình theo dõi hạn ngạch bảng điều khiển
-- Giải pháp: Sử dụng combo dự phòng hoặc chuyển sang tầng rẻ hơn
-
-**Giới hạn tỷ lệ**
-
-- Hết hạn ngạch đăng ký → Dự phòng sang GLM/MiniMax
-- Thêm tổ hợp: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Mã thông báo OAuth đã hết hạn**
-
-- Tự động làm mới bởi OmniRoute
-- Nếu sự cố vẫn tiếp diễn: Bảng điều khiển → Nhà cung cấp → Kết nối lại
-
-**Chi phí cao**
-
-- Kiểm tra số liệu thống kê sử dụng trong Bảng điều khiển → Chi phí
-- Chuyển mô hình chính sang GLM/MiniMax
-- Sử dụng bậc miễn phí (Gemini CLI, iFlow) cho các tác vụ không quan trọng
-
-**Bảng điều khiển mở sai cổng**
-
-- Đặt `PORT=20128` và `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Lỗi đồng bộ hóa đám mây**
-
-- Xác minh `BASE_URL` trỏ tới phiên bản đang chạy của bạn
-- Xác minh `CLOUD_URL` điểm tới điểm cuối đám mây dự kiến của bạn
-- Giữ các giá trị `NEXT_PUBLIC_*` được căn chỉnh với các giá trị phía máy chủ
-
-**Đăng nhập lần đầu không hoạt động**
-
-- Kiểm tra `INITIAL_PASSWORD` trong `.env`
-- Nếu không được đặt, mật khẩu dự phòng là `123456`
-
-**Không có nhật ký yêu cầu**
-
-- Đặt `ENABLE_REQUEST_LOGS=true` trong `.env`
-
-**Kiểm tra kết nối cho thấy "Không hợp lệ" đối với các nhà cung cấp tương thích với OpenAI**
-
-- Nhiều nhà cung cấp không hiển thị điểm cuối `/models`
-- OmniRoute v1.0.6+ bao gồm xác thực dự phòng thông qua hoàn thành trò chuyện
-- Đảm bảo URL cơ sở bao gồm hậu tố `/v1`
 
 </details>
 
@@ -1173,85 +1101,6 @@ gh release create v1.0.6 --title "v1.0.6" --generate-notes
 ## 📄 Giấy phép
 
 Giấy phép MIT - xem [LICENSE](LICENSE) để biết chi tiết.
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento thông minh cho **mô hình IA MIỄN PHÍ và baixo tùy chỉnh** và tự động dự phòng.
-
-_Seu proxy phổ quát de API — ừm điểm cuối, hơn 36 điểm đã được chứng minh, không có thời gian ngừng hoạt động._
-
-### 🌐 Quốc tế hóa (i18n)
-
-O bảng điều khiển hỗ trợ OmniRoute **nhiều thành ngữ**. Cuối cùng, bạn có thể giải quyết:
-
-| Thành ngữ             | Código  | Trạng thái    |
-| --------------------- | ------- | ------------- |
-| 🇺🇸 Tiếng Anh          | `en`    | ✅ Hoàn thiện |
-| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Hoàn thiện |
-
-**Para trocar o thành ngữ:** Clique no seletor de Idi chỉ (🇺🇸 EN) không có tiêu đề làm bảng điều khiển → chọn lựa hoặc thành ngữ desejado.
-
-**Thêm một thành ngữ mới:**
-
-1. Khóc `src/i18n/messages/{codigo}.json` dựa trên `en.json`
-2. Adicione hoặc código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
-3. Phục hồi hoặc phục vụ
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Chức năng chính
-
-- **36+ chứng minh của IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, và nhiều hơn nữa
-- **Roteamento inteligente** — Tự động dự phòng trong các phương pháp được chứng minh
-- **Giao dịch định dạng** — OpenAI ↔ Claude ↔ Gemini tự động
-- **Multi-conta** — Nhiều conta được chứng minh bằng cách lựa chọn thông minh
-- **Cache semântico** — Reduz custos và latência
-- **Tự động OAuth** — Tự động đổi mới mã thông báo
-- **Combo cá nhân hóa** — 6 chiến lược roteamento
-- **Hoàn thành bảng điều khiển** — Màn hình, nhật ký, phân tích, cấu hình
-- **Công cụ CLI** — Định cấu hình Mã Claude, Codex, Con trỏ, Cline với một nhóm
-- **100% TypeScript** — Código limbo e tipado
-
-### 📖 Tài liệu
-
-| Tài liệu                                        | Mô tả                                               |
-| ----------------------------------------------- | --------------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combo, CLI, triển khai                  |
-| [Referência da API](docs/API_REFERENCE.md)      | Tất cả các điểm cuối của hệ điều hành như các ví dụ |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Các vấn đề công cộng và giải pháp                   |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Hệ thống Arquitetura và internos                    |
-| [Contribuição](CONTRIBUTING.md)                 | Thiết lập các nguyên tắc phát triển                 |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Hướng dẫn hoàn chỉnh: VM + nginx + Cloudflare       |
-
-### 📧 Hỗ trợ
-
-> 💬 **Entre para a communidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tyre duvidas, compartilhe dicas and fique atualizado.
-
-- **Trang web**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Vấn đề**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

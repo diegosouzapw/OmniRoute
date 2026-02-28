@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — Gateway-ul gratuit AI
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Nu opriți niciodată codificarea. Dirijare inteligentă către **modele AI GRATUITE și cu costuri reduse** cu rezervă automată.
 
 _Proxy-ul dvs. universal API - un punct final, peste 36 de furnizori, zero timpi de nefuncționare._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Cazuri de utilizare
-
-### Cazul 1: „Am abonament Claude Pro”
-
-**Problemă:** Cota expiră neutilizată, limitele ratei în timpul codării grele
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Cazul 2: „Vreau cost zero”
-
-**Problemă:** Nu-mi permit abonamente, au nevoie de codare AI de încredere
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Cazul 3: „Am nevoie de codare 24/7, fără întreruperi”
-
-**Problemă:** Termenele limită, nu-mi permit timpi de nefuncționare
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Cazul 4: „Vreau AI GRATUIT în OpenClaw”
-
-**Problemă:** Aveți nevoie de asistent AI în aplicațiile de mesagerie, complet gratuit
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Caracteristici cheie
 
 ### 🧠 Core Routing & Intelligence
@@ -516,6 +453,67 @@ OmniRoute include un puternic Translator Playground încorporat cu **4 moduri** 
 - Stocare securizată criptată
 
 </details>
+
+---
+
+## 🎯 Cazuri de utilizare
+
+### Cazul 1: „Am abonament Claude Pro”
+
+**Problemă:** Cota expiră neutilizată, limitele ratei în timpul codării grele
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Cazul 2: „Vreau cost zero”
+
+**Problemă:** Nu-mi permit abonamente, au nevoie de codare AI de încredere
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Cazul 3: „Am nevoie de codare 24/7, fără întreruperi”
+
+**Problemă:** Termenele limită, nu-mi permit timpi de nefuncționare
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Cazul 4: „Vreau AI GRATUIT în OpenClaw”
+
+**Problemă:** Aveți nevoie de asistent AI în aplicațiile de mesagerie, complet gratuit
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Modele disponibile
-
-<details>
-<summary><b>Vedeți toate modelele disponibile</b></summary>
-
-**Cod Claude (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**CLI Gemini (`gc/`)** - GRATUIT:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**Copilot GitHub (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - credite GRATUITE:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- Mai mult de 50 de modele pe [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - 0,6 USD/1 milion:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - 0,2 USD/1 milion:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - GRATUIT:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - GRATUIT:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - GRATUIT:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - peste 100 de modele:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Orice model de la [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Evaluări (Evaluări)
 
 OmniRoute include un cadru de evaluare încorporat pentru a testa calitatea răspunsului LLM față de un set de aur. Accesați-l prin **Analitice → Evaluări** în tabloul de bord.
@@ -890,13 +820,64 @@ OmniRoute include un cadru de evaluare încorporat pentru a testa calitatea răs
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (Configurare OAuth la distanță)
+## 🐛 Depanare
+
+<details>
+<summary><b>Faceți clic pentru a extinde ghidul de depanare</b></summary>
+
+**„Modelul de limbă nu a furnizat mesaje”**
+
+- Cota de furnizor epuizată → Verificați instrumentul de urmărire a cotei din tabloul de bord
+- Soluție: utilizați alternativă combinată sau treceți la un nivel mai ieftin
+
+**Limitarea ratei**
+
+- Scăderea cotei de abonament → Fallback la GLM/MiniMax
+- Adăugați combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Tokenul OAuth a expirat**
+
+- Reîmprospătat automat de OmniRoute
+- Dacă problemele persistă: Dashboard → Provider → Reconnect
+
+**Costuri mari**
+
+- Verificați statisticile de utilizare în Tabloul de bord → Costuri
+- Comutați modelul principal la GLM/MiniMax
+- Utilizați nivelul gratuit (Gemini CLI, iFlow) pentru sarcini necritice
+
+**Tabloul de bord se deschide pe portul greșit**
+
+- Setați `PORT=20128` și `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Erori de sincronizare în cloud**
+
+- Verificați `BASE_URL` puncte către instanța dvs. care rulează
+- Verificați `CLOUD_URL` puncte către punctul final din cloud așteptat
+- Păstrați valorile `NEXT_PUBLIC_*` aliniate cu valorile de pe partea serverului
+
+**Prima conectare nu funcționează**
+
+- Verificați `INITIAL_PASSWORD` în `.env`
+- Dacă nu este setată, parola de rezervă este `123456`
+
+**Fără jurnal de solicitare**
+
+- Setați `ENABLE_REQUEST_LOGS=true` în `.env`
+
+**Testul de conectare arată „Invalid” pentru furnizorii compatibili cu OpenAI**
+
+- Mulți furnizori nu expun un punct final `/models`
+- OmniRoute v1.0.6+ include validarea de rezervă prin finalizarea chatului
+- Asigurați-vă că adresa URL de bază include sufixul `/v1`
+
+### 🔐 OAuth em Servidor Remoto (Configurare OAuth la distanță)
 
 <a name="oauth-em-servidor-remoto"></a>
 
 > **⚠️ IMPORTANT pentru utilizatorii cu OmniRoute în VPS/Docker/servidor remoto**
 
-### Por que o OAuth do Antigravity / Gemini CLI falha em serveres remotes?
+#### Por que o OAuth do Antigravity / Gemini CLI falha em serveres remotes?
 
 Pentru autentificare, **Antigravity** și **Gemini CLI** folosesc **Google OAuth 2.0**. O Google exige que a `redirect_uri` utilizat nu fluxo OAuth seja **exatamente** uma das URIs pre-cadastradas no Google Cloud Console do aplicative.
 
@@ -980,59 +961,6 @@ Nu vă rugăm să vă convingeți acum, dar este posibil să utilizați sau să 
 5. Faceți clic pe **„Conectați-vă”**
 
 > Această soluție de soluționare funcționează deoarece codul de autorizare a URL-ului este valabil independent de redirecționare pentru a încărca sau nu.
-
----
-
-## 🐛 Depanare
-
-<details>
-<summary><b>Faceți clic pentru a extinde ghidul de depanare</b></summary>
-
-**„Modelul de limbă nu a furnizat mesaje”**
-
-- Cota de furnizor epuizată → Verificați instrumentul de urmărire a cotei din tabloul de bord
-- Soluție: utilizați alternativă combinată sau treceți la un nivel mai ieftin
-
-**Limitarea ratei**
-
-- Scăderea cotei de abonament → Fallback la GLM/MiniMax
-- Adăugați combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Tokenul OAuth a expirat**
-
-- Reîmprospătat automat de OmniRoute
-- Dacă problemele persistă: Dashboard → Provider → Reconnect
-
-**Costuri mari**
-
-- Verificați statisticile de utilizare în Tabloul de bord → Costuri
-- Comutați modelul principal la GLM/MiniMax
-- Utilizați nivelul gratuit (Gemini CLI, iFlow) pentru sarcini necritice
-
-**Tabloul de bord se deschide pe portul greșit**
-
-- Setați `PORT=20128` și `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Erori de sincronizare în cloud**
-
-- Verificați `BASE_URL` puncte către instanța dvs. care rulează
-- Verificați `CLOUD_URL` puncte către punctul final din cloud așteptat
-- Păstrați valorile `NEXT_PUBLIC_*` aliniate cu valorile de pe partea serverului
-
-**Prima conectare nu funcționează**
-
-- Verificați `INITIAL_PASSWORD` în `.env`
-- Dacă nu este setată, parola de rezervă este `123456`
-
-**Fără jurnal de solicitare**
-
-- Setați `ENABLE_REQUEST_LOGS=true` în `.env`
-
-**Testul de conectare arată „Invalid” pentru furnizorii compatibili cu OpenAI**
-
-- Mulți furnizori nu expun un punct final `/models`
-- OmniRoute v1.0.6+ include validarea de rezervă prin finalizarea chatului
-- Asigurați-vă că adresa URL de bază include sufixul `/v1`
 
 </details>
 
@@ -1173,85 +1101,6 @@ Mulțumiri speciale pentru **[CLIProxyAPI](https://github.com/router-for-me/CLIP
 ## 📄 Licență
 
 Licență MIT - consultați [LICENSE](LICENSE) pentru detalii.
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligente pentru **modele de IA GRATUITE și de baixo custo** com fallback automático.
-
-_Seu proxy universal de API — um endpoint, peste 36 de probe, zero downtime._
-
-### 🌐 Internaționalizare (i18n)
-
-O tablou de bord pentru OmniRoute suportă **multiplos idiomas**. De fapt, sunt disponibile:
-
-| Idioma                  | Cod     | Stare      |
-| ----------------------- | ------- | ---------- |
-| 🇺🇸 engleză              | `en`    | ✅ Complet |
-| 🇧🇷 Português (Brazilia) | `pt-BR` | ✅ Complet |
-
-**Para trocar o idioma:** Clique no selector de idioma (🇺🇸 EN) no header do dashboard → selecione o idioma desejado.
-
-**Para adicionar um nou idioma:**
-
-1. Plânge `src/i18n/messages/{codigo}.json` bazat pe `en.json`
-2. Adăugați codul în `src/i18n/config.ts` → `LOCALES` și `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcționalități principale
-
-- **36+ provedores de IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, și mai mult
-- **Roteamento inteligente** — Fallback automat entre provedores
-- **Tradução de format** — OpenAI ↔ Claude ↔ Gemeni automaticamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
-- **Cache semântico** — Reduz custos e latência
-- **OAuth automat** — Jetoane renovate automat
-- **Combos personalizados** — 6 estratégias de roteamento
-- **Dashboard complet** — Monitorizare, jurnale, analize, configurații
-- **CLI Tools** — Configurați Claude Code, Codex, Cursor, Cline com um clique
-- **100% TypeScript** — Código limpo e tipado
-
-### 📖 Documentação
-
-| Documento                                       | Descriere                                |
-| ----------------------------------------------- | ---------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combo-uri, CLI, implementare |
-| [Referência da API](docs/API_REFERENCE.md)      | Toate punctele finale, cum ar fi exemple |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções              |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema        |
-| [Contribuição](CONTRIBUTING.md)                 | Configurare de dezvoltare și ghiduri     |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Ghid complet: VM + nginx + Cloudflare    |
-
-### 📧 Suport
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **Site web**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Probleme**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

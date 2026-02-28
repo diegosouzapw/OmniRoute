@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — darmowa bramka AI
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Nigdy nie przestawaj kodować. Inteligentne przekierowywanie do **BEZPŁATNYCH i tanich modeli AI** z automatycznym powrotem.
 
 _Twój uniwersalny serwer proxy API — jeden punkt końcowy, ponad 36 dostawców, zero przestojów._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Przypadki użycia
-
-### Przypadek 1: „Mam subskrypcję Claude Pro”
-
-**Problem:** Limit wygasa niewykorzystany, limity szybkości podczas intensywnego kodowania
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Przypadek 2: „Chcę zerowych kosztów”
-
-**Problem:** Nie stać Cię na subskrypcje, potrzebujesz niezawodnego kodowania AI
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Przypadek 3: „Potrzebuję kodowania 24 godziny na dobę, 7 dni w tygodniu, bez przerw”
-
-**Problem:** Terminy, nie mogę sobie pozwolić na przestoje
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Przypadek 4: „Chcę DARMOWEJ sztucznej inteligencji w OpenClaw”
-
-**Problem:** Potrzebujesz asystenta AI w aplikacjach do przesyłania wiadomości, całkowicie za darmo
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Kluczowe funkcje
 
 ### 🧠 Routing i inteligencja rdzenia
@@ -516,6 +453,67 @@ OmniRoute zawiera potężny, wbudowany plac zabaw dla tłumaczy z **4 trybami** 
 - Bezpieczne szyfrowane przechowywanie
 
 </details>
+
+---
+
+## 🎯 Przypadki użycia
+
+### Przypadek 1: „Mam subskrypcję Claude Pro”
+
+**Problem:** Limit wygasa niewykorzystany, limity szybkości podczas intensywnego kodowania
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Przypadek 2: „Chcę zerowych kosztów”
+
+**Problem:** Nie stać Cię na subskrypcje, potrzebujesz niezawodnego kodowania AI
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Przypadek 3: „Potrzebuję kodowania 24 godziny na dobę, 7 dni w tygodniu, bez przerw”
+
+**Problem:** Terminy, nie mogę sobie pozwolić na przestoje
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Przypadek 4: „Chcę DARMOWEJ sztucznej inteligencji w OpenClaw”
+
+**Problem:** Potrzebujesz asystenta AI w aplikacjach do przesyłania wiadomości, całkowicie za darmo
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Dostępne modele
-
-<details>
-<summary><b>Wyświetl wszystkie dostępne modele</b></summary>
-
-**Kod Claude (`cc/`)** – Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Kodeks (`cx/`)** – Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** – BEZPŁATNIE:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**Drugi pilot GitHuba (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - DARMOWE kredyty:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- Ponad 50 więcej modeli na [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** – 0,6 USD/1 mln:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** – 0,2/1 mln USD:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - BEZPŁATNIE:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - ZA DARMO:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - ZA DARMO:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** – ponad 100 modeli:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Dowolny model od [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Oceny (Ewaluacje)
 
 OmniRoute zawiera wbudowaną platformę ewaluacyjną do testowania jakości odpowiedzi LLM na podstawie złotego zestawu. Uzyskaj do niego dostęp poprzez **Analytics → Evals** na pulpicie nawigacyjnym.
@@ -890,13 +820,64 @@ Fabrycznie załadowany „Złoty zestaw OmniRoute” zawiera 10 przypadków test
 
 ---
 
-## 🔐 OAuth na serwerze zdalnym (zdalna konfiguracja OAuth)
+## 🐛 Rozwiązywanie problemów
+
+<details>
+<summary><b>Kliknij, aby rozwinąć przewodnik rozwiązywania problemów</b></summary>
+
+**„Model językowy nie dostarczał komunikatów”**
+
+- Wyczerpany limit dostawcy → Sprawdź moduł śledzenia limitów na pulpicie nawigacyjnym
+- Rozwiązanie: użyj kombinacji zastępczej lub przejdź na tańszy poziom
+
+**Ograniczenie szybkości**
+
+- Limit subskrypcji wyczerpany → Powrót do GLM/MiniMax
+- Dodaj kombinację: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Token OAuth wygasł**
+
+- Automatyczne odświeżanie przez OmniRoute
+- Jeśli problemy nadal występują: Panel kontrolny → Dostawca → Połącz ponownie
+
+**Wysokie koszty**
+
+- Sprawdź statystyki użytkowania w Panelu → Koszty
+- Zmień model podstawowy na GLM/MiniMax
+- Korzystaj z bezpłatnej warstwy (Gemini CLI, iFlow) do zadań niekrytycznych
+
+** Panel otwiera się na złym porcie **
+
+- Ustaw `PORT=20128` i `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Błędy synchronizacji z chmurą**
+
+- Sprawdź, czy `BASE_URL` wskazuje na działającą instancję
+- Sprawdź, czy `CLOUD_URL` wskazuje na oczekiwany punkt końcowy w chmurze
+- Zachowaj wyrównanie wartości `NEXT_PUBLIC_*` z wartościami po stronie serwera
+
+**Pierwsze logowanie nie działa**
+
+- Sprawdź `INITIAL_PASSWORD` w `.env`
+- Jeśli nieustawione, hasło zastępcze to `123456`
+
+**Brak dzienników żądań**
+
+- Ustaw `ENABLE_REQUEST_LOGS=true` w `.env`
+
+**Test połączenia pokazuje „Nieprawidłowy” dla dostawców kompatybilnych z OpenAI**
+
+- Wielu dostawców nie udostępnia punktu końcowego `/models`
+- OmniRoute v1.0.6+ zawiera weryfikację awaryjną poprzez uzupełnianie czatu
+- Upewnij się, że podstawowy adres URL zawiera przyrostek `/v1`
+
+### 🔐 OAuth na serwerze zdalnym (zdalna konfiguracja OAuth)
 
 <a name="oauth-em-servidor-remoto"></a>
 
 > **⚠️ WAŻNE dla zwykłych usług OmniRoute w VPS/Docker/serwidor zdalny**
 
-### Por que o OAuth do Antigravity / Gemini CLI falha na zdalnych serwerach?
+#### Por que o OAuth do Antigravity / Gemini CLI falha na zdalnych serwerach?
 
 Sprawdzone **Antigravity** i **Gemini CLI** używane **Google OAuth 2.0** dla autentyczności. O Google, jeśli potrzebujesz `redirect_uri`, aby nie zmieniać protokołu OAuth seja **exatamente** uma das URI pre-cadastradas no Google Cloud Console to aplicativo.
 
@@ -980,59 +961,6 @@ Jeśli chcesz uzyskać dostęp do **podręcznika URL**:
 5. Kliknij je **„Połącz”**
 
 > To obejście funkcji porque o kodigo de autorização na URL é válido niezależny do przekierowania ter carregado ou não.
-
----
-
-## 🐛 Rozwiązywanie problemów
-
-<details>
-<summary><b>Kliknij, aby rozwinąć przewodnik rozwiązywania problemów</b></summary>
-
-**„Model językowy nie dostarczał komunikatów”**
-
-- Wyczerpany limit dostawcy → Sprawdź moduł śledzenia limitów na pulpicie nawigacyjnym
-- Rozwiązanie: użyj kombinacji zastępczej lub przejdź na tańszy poziom
-
-**Ograniczenie szybkości**
-
-- Limit subskrypcji wyczerpany → Powrót do GLM/MiniMax
-- Dodaj kombinację: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Token OAuth wygasł**
-
-- Automatyczne odświeżanie przez OmniRoute
-- Jeśli problemy nadal występują: Panel kontrolny → Dostawca → Połącz ponownie
-
-**Wysokie koszty**
-
-- Sprawdź statystyki użytkowania w Panelu → Koszty
-- Zmień model podstawowy na GLM/MiniMax
-- Korzystaj z bezpłatnej warstwy (Gemini CLI, iFlow) do zadań niekrytycznych
-
-** Panel otwiera się na złym porcie **
-
-- Ustaw `PORT=20128` i `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Błędy synchronizacji z chmurą**
-
-- Sprawdź, czy `BASE_URL` wskazuje na działającą instancję
-- Sprawdź, czy `CLOUD_URL` wskazuje na oczekiwany punkt końcowy w chmurze
-- Zachowaj wyrównanie wartości `NEXT_PUBLIC_*` z wartościami po stronie serwera
-
-**Pierwsze logowanie nie działa**
-
-- Sprawdź `INITIAL_PASSWORD` w `.env`
-- Jeśli nieustawione, hasło zastępcze to `123456`
-
-**Brak dzienników żądań**
-
-- Ustaw `ENABLE_REQUEST_LOGS=true` w `.env`
-
-**Test połączenia pokazuje „Nieprawidłowy” dla dostawców kompatybilnych z OpenAI**
-
-- Wielu dostawców nie udostępnia punktu końcowego `/models`
-- OmniRoute v1.0.6+ zawiera weryfikację awaryjną poprzez uzupełnianie czatu
-- Upewnij się, że podstawowy adres URL zawiera przyrostek `/v1`
 
 </details>
 
@@ -1173,85 +1101,6 @@ Specjalne podziękowania dla **[CLIProxyAPI](https://github.com/router-for-me/CL
 ## 📄 Licencja
 
 Licencja MIT — szczegółowe informacje można znaleźć w [LICENSE](LICENSE).
-
----
-
----
-
-## 🇧🇷 OmniRoute — bezpłatna bramka IA
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligentne dla **modelos de IA GRATUITOS e de baixo custo** com fallback automático.
-
-_Seu proxy universal de API — punkt końcowy, ponad 36 testów, zero przestojów._
-
-### 🌐 Międzynarodowa analiza (i18n)
-
-Panel obsługi OmniRoute obsługuje **wiele idiomów**. Atualmente disponível je:
-
-| Idioma                  | Kodigo  | Stan         |
-| ----------------------- | ------- | ------------ |
-| 🇺🇸 angielski            | `en`    | ✅ Kompletne |
-| 🇧🇷 Português (Brazylia) | `pt-BR` | ✅ Kompletne |
-
-**Para trocar o idioma:** Kliknij przycisk no seletor de idioma (🇺🇸 EN) no header to dashboard → wybierz idioma desejado.
-
-**Dosłowny nowy idiom:**
-
-1. Płacz `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Adicione o kodigo em `src/i18n/config.ts` → `LOCALES` i `LANGUAGES`
-3. Reinicie lub serwer
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Doker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ dowodów IA** — Claude, GPT, Gemini, Lama, Qwen, DeepSeek i e-mail
-- **Roteamento inteligente** — Automatyczna awaria entre Providores
-- **Przetłumaczenie formatu** — OpenAI ↔ Claude ↔ Gemini automatyczne
-- **Multi-conta** — Múltiplas contas por proofor com seleção inteligente
-- **Cache semantico** — Reduz custos e latência
-- **Automatyczne OAuth** — Automatyczne odnawianie tokenów
-- **Combos personalizados** — 6 estratégias de roteamento
-- **Kompletny pulpit nawigacyjny** — Monitorowanie, logi, analizy, konfiguracje
-- **Narzędzia CLI** — Skonfiguruj kod Claude, Kodeks, Kursor, Cline com um clique
-- **100% TypeScript** — Kodigo limpo e tipado
-
-### 📖 Dokumentacja
-
-| Dokument                                        | Opis                                                        |
-| ----------------------------------------------- | ----------------------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, kombinacje, CLI, wdrażanie                      |
-| [Referência da API](docs/API_REFERENCE.md)      | Wszystkie punkty końcowe systemu operacyjnego z przykładami |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções                                 |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do systemu                           |
-| [Contribuição](CONTRIBUTING.md)                 | Konfiguracja desenvolvimento e wytyczne                     |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Kompletna instrukcja: VM + nginx + Cloudflare               |
-
-### 📧 Wsparcie
-
-> 💬 **Enter para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tyre duvidas, compartilhe dicas e fique atualizado.
-
-- **Strona internetowa**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Problemy**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

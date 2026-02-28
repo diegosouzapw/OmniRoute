@@ -296,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 使用场景
-
-### 场景 1："我有 Claude Pro 订阅"
-
-**问题：** 配额未使用就过期，编程高峰期遇到速率限制
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        （充分使用订阅）
-  2. glm/glm-4.7               （配额用完时的便宜备用）
-  3. if/kimi-k2-thinking       （免费应急后备）
-
-每月成本：$20（订阅）+ ~$5（备用）= $25 总计
-对比：$20 + 遇到限制 = 受挫
-```
-
-### 场景 2："我想要零成本"
-
-**问题：** 无法承担订阅费用，需要可靠的 AI 编程
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         （每月 180K 免费）
-  2. if/kimi-k2-thinking       （无限免费）
-  3. qw/qwen3-coder-plus       （无限免费）
-
-每月成本：$0
-质量：生产级模型
-```
-
-### 场景 3："我需要 24/7 编程，不中断"
-
-**问题：** 截止日期紧迫，不能有停机时间
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        （最佳质量）
-  2. cx/gpt-5.2-codex          （第二个订阅）
-  3. glm/glm-4.7               （便宜，每日重置）
-  4. minimax/MiniMax-M2.1      （最便宜，5小时重置）
-  5. if/kimi-k2-thinking       （免费无限制）
-
-结果：5 层故障转移 = 零停机
-```
-
-### 场景 4："我想在 OpenClaw 中使用免费 AI"
-
-**问题：** 需要在消息应用中使用 AI 助手，完全免费
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                （无限免费）
-  2. if/minimax-m2.1           （无限免费）
-  3. if/kimi-k2-thinking       （无限免费）
-
-每月成本：$0
-访问方式：WhatsApp、Telegram、Slack、Discord、iMessage、Signal...
-```
-
----
-
 ## 💡 核心功能
 
 ### 🧠 路由与智能
@@ -495,6 +434,67 @@ Combo: "my-coding-stack"
 - 安全加密存储
 
 </details>
+
+---
+
+## 🎯 使用场景
+
+### 场景 1："我有 Claude Pro 订阅"
+
+**问题：** 配额未使用就过期，编程高峰期遇到速率限制
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        （充分使用订阅）
+  2. glm/glm-4.7               （配额用完时的便宜备用）
+  3. if/kimi-k2-thinking       （免费应急后备）
+
+每月成本：$20（订阅）+ ~$5（备用）= $25 总计
+对比：$20 + 遇到限制 = 受挫
+```
+
+### 场景 2："我想要零成本"
+
+**问题：** 无法承担订阅费用，需要可靠的 AI 编程
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         （每月 180K 免费）
+  2. if/kimi-k2-thinking       （无限免费）
+  3. qw/qwen3-coder-plus       （无限免费）
+
+每月成本：$0
+质量：生产级模型
+```
+
+### 场景 3："我需要 24/7 编程，不中断"
+
+**问题：** 截止日期紧迫，不能有停机时间
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        （最佳质量）
+  2. cx/gpt-5.2-codex          （第二个订阅）
+  3. glm/glm-4.7               （便宜，每日重置）
+  4. minimax/MiniMax-M2.1      （最便宜，5小时重置）
+  5. if/kimi-k2-thinking       （免费无限制）
+
+结果：5 层故障转移 = 零停机
+```
+
+### 场景 4："我想在 OpenClaw 中使用免费 AI"
+
+**问题：** 需要在消息应用中使用 AI 助手，完全免费
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                （无限免费）
+  2. if/minimax-m2.1           （无限免费）
+  3. if/kimi-k2-thinking       （无限免费）
+
+每月成本：$0
+访问方式：WhatsApp、Telegram、Slack、Discord、iMessage、Signal...
+```
 
 ---
 
@@ -773,74 +773,6 @@ codex "your prompt"
   API Key: [从 OmniRoute 仪表板获取]
   Model: if/kimi-k2-thinking
 ```
-
-</details>
-
----
-
-## 📊 可用模型
-
-<details>
-<summary><b>查看所有可用模型</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - 免费:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - 免费积分:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ 更多模型在 [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - $0.6/1M:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0.2/1M:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - 免费:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - 免费:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - 免费:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ 模型:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- [openrouter.ai/models](https://openrouter.ai/models) 上的任何模型
 
 </details>
 

@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — Gerbang AI Percuma
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Jangan sekali-kali berhenti mengekod. Penghalaan pintar ke **model AI PERCUMA & kos rendah** dengan sandaran automatik.
 
 _Proksi API universal anda — satu titik akhir, 36+ pembekal, masa henti sifar._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Kes Penggunaan
-
-### Kes 1: "Saya mempunyai langganan Claude Pro"
-
-**Masalah:** Kuota tamat tempoh tidak digunakan, had kadar semasa pengekodan berat
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Kes 2: "Saya mahu kos sifar"
-
-**Masalah:** Tidak mampu membayar langganan, memerlukan pengekodan AI yang boleh dipercayai
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Kes 3: "Saya memerlukan pengekodan 24/7, tiada gangguan"
-
-**Masalah:** Tarikh akhir, tidak mampu membayar masa henti
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Kes 4: "Saya mahukan AI PERCUMA dalam OpenClaw"
-
-**Masalah:** Memerlukan pembantu AI dalam apl pemesejan, percuma sepenuhnya
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Ciri Utama
 
 ### 🧠 Penghalaan Teras & Kepintaran
@@ -516,6 +453,67 @@ OmniRoute termasuk Taman Permainan Penterjemah terbina dalam yang berkuasa denga
 - Storan yang disulitkan selamat
 
 </details>
+
+---
+
+## 🎯 Kes Penggunaan
+
+### Kes 1: "Saya mempunyai langganan Claude Pro"
+
+**Masalah:** Kuota tamat tempoh tidak digunakan, had kadar semasa pengekodan berat
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Kes 2: "Saya mahu kos sifar"
+
+**Masalah:** Tidak mampu membayar langganan, memerlukan pengekodan AI yang boleh dipercayai
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Kes 3: "Saya memerlukan pengekodan 24/7, tiada gangguan"
+
+**Masalah:** Tarikh akhir, tidak mampu membayar masa henti
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Kes 4: "Saya mahukan AI PERCUMA dalam OpenClaw"
+
+**Masalah:** Memerlukan pembantu AI dalam apl pemesejan, percuma sepenuhnya
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Model Tersedia
-
-<details>
-<summary><b>Lihat semua model yang tersedia</b></summary>
-
-**Kod Claude (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - PERCUMA:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - Kredit PERCUMA:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ lagi model di [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - $0.6/1J:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0.2/1J:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - PERCUMA:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - PERCUMA:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - PERCUMA:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ model:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Mana-mana model daripada [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Penilaian (Evals)
 
 OmniRoute termasuk rangka kerja penilaian terbina dalam untuk menguji kualiti tindak balas LLM terhadap set emas. Aksesnya melalui **Analytics → Evals** dalam papan pemuka.
@@ -890,7 +820,58 @@ OmniRoute termasuk rangka kerja penilaian terbina dalam untuk menguji kualiti ti
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (Persediaan OAuth Jauh)
+## 🐛 Menyelesaikan masalah
+
+<details>
+<summary><b>Klik untuk mengembangkan panduan penyelesaian masalah</b></summary>
+
+**"Model bahasa tidak memberikan mesej"**
+
+- Kuota pembekal habis → Semak penjejak kuota papan pemuka
+- Penyelesaian: Gunakan sandaran kombo atau tukar kepada peringkat yang lebih murah
+
+**Penghadan kadar**
+
+- Kuota langganan habis → Sandar kepada GLM/MiniMax
+- Tambah kombo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Token OAuth tamat tempoh**
+
+- Dikemas semula secara automatik oleh OmniRoute
+- Jika isu berterusan: Papan Pemuka → Pembekal → Sambung semula
+
+**Kos tinggi**
+
+- Semak statistik penggunaan dalam Papan Pemuka → Kos
+- Tukar model utama kepada GLM/MiniMax
+- Gunakan peringkat percuma (Gemini CLI, iFlow) untuk tugasan yang tidak kritikal
+
+**Papan pemuka dibuka pada port yang salah**
+
+- Tetapkan `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Ralat penyegerakan awan**
+
+- Sahkan `BASE_URL` mata pada contoh larian anda
+- Sahkan `CLOUD_URL` mata ke titik akhir awan anda yang dijangkakan
+- Pastikan nilai `NEXT_PUBLIC_*` sejajar dengan nilai sebelah pelayan
+
+**Log masuk pertama tidak berfungsi**
+
+- Semak `INITIAL_PASSWORD` dalam `.env`
+- Jika tidak ditetapkan, kata laluan sandaran ialah `123456`
+
+**Tiada log permintaan**
+
+- Tetapkan `ENABLE_REQUEST_LOGS=true` dalam `.env`
+
+**Ujian sambungan menunjukkan "Tidak sah" untuk pembekal yang serasi dengan OpenAI**
+
+- Banyak pembekal tidak mendedahkan titik akhir `/models`
+- OmniRoute v1.0.6+ termasuk pengesahan sandaran melalui pelengkapan sembang
+- Pastikan URL asas mengandungi akhiran `/v1`
+
+### 🔐 OAuth em Servidor Remoto (Persediaan OAuth Jauh)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -980,59 +961,6 @@ Jika anda ingin mendapatkan credenciais próprias agora, ada kemungkinan penggun
 5. Klik em **"Sambung"**
 
 > Penyelesaian ini berfungsi sebagai kodigo de autorização na URL adalah bebas untuk mengubah hala mengikut arahan atau tidak.
-
----
-
-## 🐛 Menyelesaikan masalah
-
-<details>
-<summary><b>Klik untuk mengembangkan panduan penyelesaian masalah</b></summary>
-
-**"Model bahasa tidak memberikan mesej"**
-
-- Kuota pembekal habis → Semak penjejak kuota papan pemuka
-- Penyelesaian: Gunakan sandaran kombo atau tukar kepada peringkat yang lebih murah
-
-**Penghadan kadar**
-
-- Kuota langganan habis → Sandar kepada GLM/MiniMax
-- Tambah kombo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Token OAuth tamat tempoh**
-
-- Dikemas semula secara automatik oleh OmniRoute
-- Jika isu berterusan: Papan Pemuka → Pembekal → Sambung semula
-
-**Kos tinggi**
-
-- Semak statistik penggunaan dalam Papan Pemuka → Kos
-- Tukar model utama kepada GLM/MiniMax
-- Gunakan peringkat percuma (Gemini CLI, iFlow) untuk tugasan yang tidak kritikal
-
-**Papan pemuka dibuka pada port yang salah**
-
-- Tetapkan `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Ralat penyegerakan awan**
-
-- Sahkan `BASE_URL` mata pada contoh larian anda
-- Sahkan `CLOUD_URL` mata ke titik akhir awan anda yang dijangkakan
-- Pastikan nilai `NEXT_PUBLIC_*` sejajar dengan nilai sebelah pelayan
-
-**Log masuk pertama tidak berfungsi**
-
-- Semak `INITIAL_PASSWORD` dalam `.env`
-- Jika tidak ditetapkan, kata laluan sandaran ialah `123456`
-
-**Tiada log permintaan**
-
-- Tetapkan `ENABLE_REQUEST_LOGS=true` dalam `.env`
-
-**Ujian sambungan menunjukkan "Tidak sah" untuk pembekal yang serasi dengan OpenAI**
-
-- Banyak pembekal tidak mendedahkan titik akhir `/models`
-- OmniRoute v1.0.6+ termasuk pengesahan sandaran melalui pelengkapan sembang
-- Pastikan URL asas mengandungi akhiran `/v1`
 
 </details>
 
@@ -1173,85 +1101,6 @@ Terima kasih khas kepada **[CLIProxyAPI](https://github.com/router-for-me/CLIPro
 ## 📄 Lesen
 
 Lesen MIT - lihat [LICENSE](LICENSE) untuk butiran.
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento intelligente para **models de IA GRATUITOS e de baixo custo** com fallback automático.
-
-_Seu proksi universal de API — titik akhir, 36+ bukti, masa henti sifar._
-
-### 🌐 Internacionalização (i18n)
-
-Papan pemuka buat OmniRoute menyokong **multipplos idiomas**. Anda boleh membelinya:
-
-| Idioma                | Código  | Status     |
-| --------------------- | ------- | ---------- |
-| 🇺🇸 Bahasa Inggeris    | `en`    | ✅ Lengkap |
-| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Lengkap |
-
-**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) no header do dashboard → selecione o idioma desejado.
-
-**Para adicionar um novo idioma:**
-
-1. Menangis `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Tambah código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ bukti IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, dan lain-lain
-- **Roteamento intelligente** — Fallback automático entre provedores
-- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção intelligente
-- **Cache semântico** — Reduz custos e latência
-- **OAuth automático** — Token renovam automaticamente
-- **Kombo personalizados** — 6 estratégias de roteamento
-- **Papan pemuka siap** — Pemantauan, log, analisis, konfigurasi
-- **Alat CLI** — Konfigurasikan Kod Claude, Codex, Kursor, Cline com um clique
-- **100% TypeScript** — Código limpo dan tipado
-
-### 📖 Dokumentasi
-
-| Dokumentasi                                     | Penerangan                                   |
-| ----------------------------------------------- | -------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, gabungan, CLI, gunakan           |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos              |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Masalah komun dan penyelesaian               |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura dan internos do sistema          |
-| [Contribuição](CONTRIBUTING.md)                 | Persediaan desenvolvimento dan garis panduan |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Panduan lengkap: VM + nginx + Cloudflare     |
-
-### 📧 Sokongan
-
-> 💬 **Entre for a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas and fique atualizado.
-
-- **Laman web**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Isu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

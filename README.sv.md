@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — Den kostnadsfria AI-gatewayen
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Sluta aldrig koda. Smart routing till **GRATIS & lågkostnads ​​AI-modeller** med automatisk reserv.
 
 _Din universella API-proxy — en slutpunkt, 36+ leverantörer, noll driftstopp._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Användningsfall
-
-### Fall 1: "Jag har Claude Pro-abonnemang"
-
-**Problem:** Kvoten går ut oanvänd, hastighetsgränser under tung kodning
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Fall 2: "Jag vill ha noll kostnad"
-
-**Problem:** Har inte råd med prenumerationer, behöver pålitlig AI-kodning
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Fall 3: "Jag behöver kodning dygnet runt, inga avbrott"
-
-**Problem:** Deadlines, har inte råd med driftstopp
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Fall 4: "Jag vill ha GRATIS AI i OpenClaw"
-
-**Problem:** Behöver AI-assistent i meddelandeappar, helt gratis
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Nyckelfunktioner
 
 ### 🧠 Core Routing & Intelligence
@@ -516,6 +453,67 @@ OmniRoute inkluderar en kraftfull inbyggd översättarlekplats med **4 lägen** 
 - Säker krypterad lagring
 
 </details>
+
+---
+
+## 🎯 Användningsfall
+
+### Fall 1: "Jag har Claude Pro-abonnemang"
+
+**Problem:** Kvoten går ut oanvänd, hastighetsgränser under tung kodning
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Fall 2: "Jag vill ha noll kostnad"
+
+**Problem:** Har inte råd med prenumerationer, behöver pålitlig AI-kodning
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Fall 3: "Jag behöver kodning dygnet runt, inga avbrott"
+
+**Problem:** Deadlines, har inte råd med driftstopp
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Fall 4: "Jag vill ha GRATIS AI i OpenClaw"
+
+**Problem:** Behöver AI-assistent i meddelandeappar, helt gratis
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Tillgängliga modeller
-
-<details>
-<summary><b>Visa alla tillgängliga modeller</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - GRATIS:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - GRATIS krediter:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ modeller till på [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - $0,6/1M:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0,2/1M:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - GRATIS:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - GRATIS:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - GRATIS:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ modeller:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Alla modeller från [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Utvärderingar (Evals)
 
 OmniRoute inkluderar ett inbyggt utvärderingsramverk för att testa LLM-svarskvalitet mot en gyllene uppsättning. Få åtkomst till det via **Analytics → Evals** i instrumentpanelen.
@@ -890,7 +820,58 @@ Det förinstallerade "OmniRoute Golden Set" innehåller 10 testfall som täcker:
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (Remote OAuth Setup)
+## 🐛 Felsökning
+
+<details>
+<summary><b>Klicka för att expandera felsökningsguide</b></summary>
+
+**"Språkmodellen gav inga meddelanden"**
+
+- Leverantörskvoten är slut → Kontrollera instrumentpanelens kvotföljare
+- Lösning: Använd kombinationsalternativ eller byt till billigare nivå
+
+**Taxebegränsning**
+
+- Prenumerationskvot ute → Fallback till GLM/MiniMax
+- Lägg till kombination: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**OAuth-token har löpt ut**
+
+- Automatisk uppdatering av OmniRoute
+- Om problemen kvarstår: Dashboard → Leverantör → Återanslut
+
+**Höga kostnader**
+
+- Kontrollera användningsstatistik i Dashboard → Kostnader
+- Byt primär modell till GLM/MiniMax
+- Använd gratis nivå (Gemini CLI, iFlow) för icke-kritiska uppgifter
+
+**Dashboard öppnas på fel port**
+
+- Set `PORT=20128` och `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Molnsynkroniseringsfel**
+
+- Verifiera att `BASE_URL` pekar på din löpinstans
+- Verifiera `CLOUD_URL` poäng till din förväntade molnslutpunkt
+- Håll `NEXT_PUBLIC_*` värden i linje med värden på serversidan
+
+**Första inloggningen fungerar inte**
+
+- Kontrollera `INITIAL_PASSWORD` i `.env`
+- Om det inte är inställt är reservlösenordet `123456`
+
+**Inga förfrågningsloggar**
+
+- Ställ in `ENABLE_REQUEST_LOGS=true` i `.env`
+
+**Anslutningstest visar "Invalid" för OpenAI-kompatibla leverantörer**
+
+- Många leverantörer exponerar inte en `/models` slutpunkt
+- OmniRoute v1.0.6+ inkluderar reservvalidering via chattslutföranden
+- Se till att baswebbadressen innehåller suffixet `/v1`
+
+### 🔐 OAuth em Servidor Remoto (Remote OAuth Setup)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -980,59 +961,6 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 5. Klicka på **"Anslut"**
 
 > Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
----
-
-## 🐛 Felsökning
-
-<details>
-<summary><b>Klicka för att expandera felsökningsguide</b></summary>
-
-**"Språkmodellen gav inga meddelanden"**
-
-- Leverantörskvoten är slut → Kontrollera instrumentpanelens kvotföljare
-- Lösning: Använd kombinationsalternativ eller byt till billigare nivå
-
-**Taxebegränsning**
-
-- Prenumerationskvot ute → Fallback till GLM/MiniMax
-- Lägg till kombination: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth-token har löpt ut**
-
-- Automatisk uppdatering av OmniRoute
-- Om problemen kvarstår: Dashboard → Leverantör → Återanslut
-
-**Höga kostnader**
-
-- Kontrollera användningsstatistik i Dashboard → Kostnader
-- Byt primär modell till GLM/MiniMax
-- Använd gratis nivå (Gemini CLI, iFlow) för icke-kritiska uppgifter
-
-**Dashboard öppnas på fel port**
-
-- Set `PORT=20128` och `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Molnsynkroniseringsfel**
-
-- Verifiera att `BASE_URL` pekar på din löpinstans
-- Verifiera `CLOUD_URL` poäng till din förväntade molnslutpunkt
-- Håll `NEXT_PUBLIC_*` värden i linje med värden på serversidan
-
-**Första inloggningen fungerar inte**
-
-- Kontrollera `INITIAL_PASSWORD` i `.env`
-- Om det inte är inställt är reservlösenordet `123456`
-
-**Inga förfrågningsloggar**
-
-- Ställ in `ENABLE_REQUEST_LOGS=true` i `.env`
-
-**Anslutningstest visar "Invalid" för OpenAI-kompatibla leverantörer**
-
-- Många leverantörer exponerar inte en `/models` slutpunkt
-- OmniRoute v1.0.6+ inkluderar reservvalidering via chattslutföranden
-- Se till att baswebbadressen innehåller suffixet `/v1`
 
 </details>
 
@@ -1173,85 +1101,6 @@ Särskilt tack till **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI
 ## 📄 Licens
 
 MIT-licens - se [LICENSE](LICENSE) för detaljer.
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligente para **modeller de IA GRATUITOS e de baixo custo** com reservautomatisk.
-
-_Seu proxy universal de API — um endpoint, 36+ tester, noll driftstopp._
-
-### 🌐 Internacionalização (i18n)
-
-O instrumentpanelen gör OmniRoute stöder **múltiplos idiomas**. Attualmente disponível em:
-
-| Idiom                    | Código  | Status      |
-| ------------------------ | ------- | ----------- |
-| 🇺🇸 engelska              | `en`    | ✅ Komplett |
-| 🇧🇷 Português (Brasilien) | `pt-BR` | ✅ Komplett |
-
-**Para trocar o idioma:** Clique no selector de idioma (🇺🇸 EN) no header do dashboard → selecione o idioma desejado.
-
-**För att lägga till ett nytt uttryck:**
-
-1. Crie `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Adicione o código em `src/i18n/config.ts` → `LOCALES` och `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Hamnarbetare
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ provedores de IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, e mais
-- **Roteamento inteligente** — Fallback automático entre provedores
-- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
-- **Cache semântico** — Reduz custos e latência
-- **OAuth automático** — Tokens renovam automaticamente
-- **Combos personalizados** — 6 estratégias de roteamento
-- **Dashboard komplett** — Övervakning, loggar, analyser, konfigurationer
-- **CLI-verktyg** — Konfigurera Claude Code, Codex, Cursor, Cline com um clique
-- **100 % TypeScript** — Código limpo e tipado
-
-### 📖 Dokumentation
-
-| Dokument                                        | Beskrivning                                   |
-| ----------------------------------------------- | --------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combos, CLI, distribuera          |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos               |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções                   |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema             |
-| [Contribuição](CONTRIBUTING.md)                 | Inställning av desenvolvimento och riktlinjer |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Komplettera med: VM + nginx + Cloudflare      |
-
-### 📧 Stöd
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **Webbplats**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Frågor**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

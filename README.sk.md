@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — bezplatná brána AI
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Nikdy neprestávajte kódovať. Inteligentné smerovanie na **BEZPLATNÉ a nízkonákladové modely AI** s automatickým vrátením.
 
 _Váš univerzálny proxy server API – jeden koncový bod, 36+ poskytovateľov, nulové prestoje._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Prípady použitia
-
-### Prípad 1: „Mám predplatné Claude Pro“
-
-**Problém:** Platnosť kvóty vyprší nevyužitá, obmedzenia sadzieb počas náročného kódovania
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Prípad 2: „Chcem nulové náklady“
-
-**Problém:** Nemôžem si dovoliť predplatné, potrebujem spoľahlivé kódovanie AI
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Prípad 3: „Potrebujem kódovanie 24/7, žiadne prerušenia“
-
-**Problém:** Termíny, nemôžem si dovoliť prestoje
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Prípad 4: „Chcem AI ZDARMA v OpenClaw“
-
-**Problém:** Potrebujete asistenta AI v aplikáciách na odosielanie správ, úplne zadarmo
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Kľúčové vlastnosti
 
 ### 🧠 Základné smerovanie a inteligencia
@@ -517,6 +454,67 @@ OmniRoute obsahuje výkonné vstavané ihrisko pre prekladateľov so **4 režima
 - Bezpečné šifrované úložisko
 
 </details>
+
+---
+
+## 🎯 Prípady použitia
+
+### Prípad 1: „Mám predplatné Claude Pro“
+
+**Problém:** Platnosť kvóty vyprší nevyužitá, obmedzenia sadzieb počas náročného kódovania
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Prípad 2: „Chcem nulové náklady“
+
+**Problém:** Nemôžem si dovoliť predplatné, potrebujem spoľahlivé kódovanie AI
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Prípad 3: „Potrebujem kódovanie 24/7, žiadne prerušenia“
+
+**Problém:** Termíny, nemôžem si dovoliť prestoje
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Prípad 4: „Chcem AI ZDARMA v OpenClaw“
+
+**Problém:** Potrebujete asistenta AI v aplikáciách na odosielanie správ, úplne zadarmo
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -800,74 +798,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Dostupné modely
-
-<details>
-<summary><b>Zobraziť všetky dostupné modely</b></summary>
-
-**Claude Code (`cc/`)** – Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** – ZDARMA:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** – BEZPLATNÉ kredity:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ ďalších modelov na [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** – 0,6 USD/1 milión:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** – 0,2 USD/1 milión:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** – ZDARMA:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** – ZDARMA:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** – ZDARMA:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** – viac ako 100 modelov:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Akýkoľvek model od [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Hodnotenia (Evals)
 
 OmniRoute obsahuje vstavaný hodnotiaci rámec na testovanie kvality odozvy LLM oproti zlatému súboru. Prístup k nej získate cez **Analytics → Evals** na hlavnom paneli.
@@ -891,7 +821,58 @@ Predinštalovaná sada „OmniRoute Golden Set“ obsahuje 10 testovacích príp
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (Vzdialené nastavenie OAuth)
+## 🐛 Riešenie problémov
+
+<details>
+<summary><b>Kliknutím rozbalíte sprievodcu riešením problémov</b></summary>
+
+**„Jazykový model neposkytol správy“**
+
+- Kvóta poskytovateľa je vyčerpaná → Skontrolujte sledovanie kvót na paneli
+- Riešenie: Použite záložnú kombináciu alebo prejdite na lacnejšiu úroveň
+
+**Obmedzenie sadzby**
+
+- Vyčerpaná kvóta predplatného → Návrat na GLM/MiniMax
+- Pridať kombináciu: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Platnosť tokenu OAuth vypršala**
+
+- Automaticky obnovuje OmniRoute
+- Ak problémy pretrvávajú: Dashboard → Provider → Reconnect
+
+**Vysoké náklady**
+
+- Skontrolujte štatistiky používania v hlavnom paneli → Náklady
+- Prepnite primárny model na GLM/MiniMax
+- Používajte bezplatnú vrstvu (Gemini CLI, iFlow) pre nekritické úlohy
+
+**Palubná doska sa otvára na nesprávnom porte**
+
+- Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Chyby synchronizácie v cloude**
+
+- Overte `BASE_URL` body na vašu spustenú inštanciu
+  – Overte `CLOUD_URL` bodov k očakávanému koncovému bodu cloudu
+- Ponechajte hodnoty `NEXT_PUBLIC_*` zarovnané s hodnotami na strane servera
+
+**Prvé prihlásenie nefunguje**
+
+- Skontrolujte `INITIAL_PASSWORD` v `.env`
+  – Ak nie je nastavené, záložné heslo je `123456`
+
+**Žiadne záznamy žiadostí**
+
+- Nastaviť `ENABLE_REQUEST_LOGS=true` v `.env`
+
+**Test pripojenia ukazuje „Neplatné“ pre poskytovateľov kompatibilných s OpenAI**
+
+- Mnohí poskytovatelia nevystavujú koncový bod `/models`
+- OmniRoute v1.0.6+ zahŕňa záložné overenie prostredníctvom dokončenia chatu
+- Uistite sa, že základná adresa URL obsahuje príponu `/v1`
+
+### 🔐 OAuth em Servidor Remoto (Vzdialené nastavenie OAuth)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -981,59 +962,6 @@ Ak chcete získať prístup k dôvere, môžete použiť **príručku URL**:
 5. Kliknite na **"Pripojiť"**
 
 > Toto riešenie funguje pomocou autorizačného kódu na adrese URL a nezávislého presmerovania.
-
----
-
-## 🐛 Riešenie problémov
-
-<details>
-<summary><b>Kliknutím rozbalíte sprievodcu riešením problémov</b></summary>
-
-**„Jazykový model neposkytol správy“**
-
-- Kvóta poskytovateľa je vyčerpaná → Skontrolujte sledovanie kvót na paneli
-- Riešenie: Použite záložnú kombináciu alebo prejdite na lacnejšiu úroveň
-
-**Obmedzenie sadzby**
-
-- Vyčerpaná kvóta predplatného → Návrat na GLM/MiniMax
-- Pridať kombináciu: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Platnosť tokenu OAuth vypršala**
-
-- Automaticky obnovuje OmniRoute
-- Ak problémy pretrvávajú: Dashboard → Provider → Reconnect
-
-**Vysoké náklady**
-
-- Skontrolujte štatistiky používania v hlavnom paneli → Náklady
-- Prepnite primárny model na GLM/MiniMax
-- Používajte bezplatnú vrstvu (Gemini CLI, iFlow) pre nekritické úlohy
-
-**Palubná doska sa otvára na nesprávnom porte**
-
-- Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Chyby synchronizácie v cloude**
-
-- Overte `BASE_URL` body na vašu spustenú inštanciu
-  – Overte `CLOUD_URL` bodov k očakávanému koncovému bodu cloudu
-- Ponechajte hodnoty `NEXT_PUBLIC_*` zarovnané s hodnotami na strane servera
-
-**Prvé prihlásenie nefunguje**
-
-- Skontrolujte `INITIAL_PASSWORD` v `.env`
-  – Ak nie je nastavené, záložné heslo je `123456`
-
-**Žiadne záznamy žiadostí**
-
-- Nastaviť `ENABLE_REQUEST_LOGS=true` v `.env`
-
-**Test pripojenia ukazuje „Neplatné“ pre poskytovateľov kompatibilných s OpenAI**
-
-- Mnohí poskytovatelia nevystavujú koncový bod `/models`
-- OmniRoute v1.0.6+ zahŕňa záložné overenie prostredníctvom dokončenia chatu
-- Uistite sa, že základná adresa URL obsahuje príponu `/v1`
 
 </details>
 
@@ -1174,85 +1102,6 @@ gh release create v1.0.6 --title "v1.0.6" --generate-notes
 ## 📄 Licencia
 
 Licencia MIT – podrobnosti nájdete na stránke [LICENSE](LICENSE).
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligentné pre **modely IA GRATUITOS a vlastné zálohy** s záložným autom.
-
-_Seu proxy universal de API – um koncový bod, 36+ overorov, nulové prestoje._
-
-### 🌐 Internacionalização (i18n)
-
-Prístrojová doska podporuje OmniRoute **múltiplos idiomas**. Aktuálne k dispozícii:
-
-| Idióm                   | Código  | Stav         |
-| ----------------------- | ------- | ------------ |
-| 🇺🇸 anglicky             | `en`    | ✅ Kompletné |
-| 🇧🇷 Português (Brazília) | `pt-BR` | ✅ Kompletné |
-
-**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) no header to dashboard → selectione o idioma desejado.
-
-**Pre nový idióm:**
-
-1. Plač `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Adicione o kódigo em `src/i18n/config.ts` → `LOCALES` a `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ overores de IA** – Claude, GPT, Gemini, Llama, Qwen, DeepSeek a ďalšie
-- **Roteamento inteligente** — Záložné automaty entre proveores
-- **Preklad formátu** — OpenAI ↔ Claude ↔ Gemini automaticamente
-- **Multi-conta** — Viacnásobné obsahy s vybranými inteligentnými
-- **Cache semântico** — Reduz custos e latência
-- **OAuth automático** — Tokeny renovam automaticamente
-- **Combos personalizados** — 6 estratégias de roteamento
-- **Úplný informačný panel** – Monitorovanie, protokoly, analýzy, konfigurácie
-- **Nástroje CLI** – Konfigurácia Claude Code, Codex, Cursor, Cline com um clique
-- **100 % TypeScript** – jednoduché a jednoduché označenie
-
-### 📖 Dokumentácia
-
-| Documento                                       | Popis                                   |
-| ----------------------------------------------- | --------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combá, CLI, deploy          |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos         |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções             |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do systému       |
-| [Contribuição](CONTRIBUTING.md)                 | Nastavenie desenvolvimento e guidelines |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Guia komplet: VM + nginx + Cloudflare   |
-
-### 📧 Podporte
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — pneumatiky dúvidas, compartilhe dicas e fique atualizado.
-
-- **Web**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Problémy**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 
