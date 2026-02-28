@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — 무료 AI 게이트웨이
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### 코딩을 멈추지 마세요. 자동 폴백을 통해 **무료 및 저가형 AI 모델**로 스마트 라우팅합니다.
 
 _범용 API 프록시 — 하나의 엔드포인트, 36개 이상의 공급자, 가동 중지 시간 없음._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 사용 사례
-
-### 사례 1: "Claude Pro를 구독하고 있습니다."
-
-**문제:** 할당량은 사용되지 않은 상태로 만료되며, 코딩 작업이 많은 동안 속도 제한이 발생합니다.
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### 사례 2: "비용이 0이길 원합니다"
-
-**문제:** 구독료를 감당할 수 없고 안정적인 AI 코딩이 필요함
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### 사례 3: "중단 없이 연중무휴 코딩이 필요합니다."
-
-**문제:** 마감일, 가동 중지 시간을 감당할 수 없음
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### 사례 4: "OpenClaw에서 무료 AI를 원합니다"
-
-**문제:** 메시징 앱에 AI 도우미가 필요하며 완전 무료입니다.
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 주요 기능
 
 ### 🧠 코어 라우팅 및 인텔리전스
@@ -516,6 +453,67 @@ OmniRoute에는 API 번역 디버깅, 테스트 및 모니터링을 위한 **4�
 - 안전한 암호화 저장
 
 </details>
+
+---
+
+## 🎯 사용 사례
+
+### 사례 1: "Claude Pro를 구독하고 있습니다."
+
+**문제:** 할당량은 사용되지 않은 상태로 만료되며, 코딩 작업이 많은 동안 속도 제한이 발생합니다.
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### 사례 2: "비용이 0이길 원합니다"
+
+**문제:** 구독료를 감당할 수 없고 안정적인 AI 코딩이 필요함
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### 사례 3: "중단 없이 연중무휴 코딩이 필요합니다."
+
+**문제:** 마감일, 가동 중지 시간을 감당할 수 없음
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### 사례 4: "OpenClaw에서 무료 AI를 원합니다"
+
+**문제:** 메시징 앱에 AI 도우미가 필요하며 완전 무료입니다.
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 사용 가능한 모델
-
-<details>
-<summary><b>사용 가능한 모든 모델 보기</b></summary>
-
-**Claude 코드(`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**코덱스(`cx/`)** - 플러스/프로:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI(`gc/`)** - 무료:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub 부조종사(`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM(`nvidia/`)** - 무료 크레딧:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- [build.nvidia.com](https://build.nvidia.com)의 50개 이상의 모델
-
-**GLM(`glm/`)** - $0.6/1M:
-
-- `glm/glm-4.7`
-
-**MiniMax(`minimax/`)** - $0.2/1M:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow(`if/`)** - 무료:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen(`qw/`)** - 무료:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**키로(`kr/`)** - 무료:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter(`or/`)** - 100개 이상의 모델:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- [openrouter.ai/models](https://openrouter.ai/models)의 모든 모델
-
-</details>
-
----
-
 ## 🧪 평가(Evals)
 
 OmniRoute에는 골든 세트에 대해 LLM 응답 품질을 테스트하기 위한 내장 평가 프레임워크가 포함되어 있습니다. 대시보드의 **분석 → 평가**를 통해 액세스하세요.
@@ -890,7 +820,58 @@ OmniRoute에는 골든 세트에 대해 LLM 응답 품질을 테스트하기 위
 
 ---
 
-## 🔐 OAuth em Servidor Remoto(원격 OAuth 설정)
+## 🐛 문제 해결
+
+<details>
+<summary><b>문제 해결 가이드를 확장하려면 클릭하세요</b></summary>
+
+**"언어 모델이 메시지를 제공하지 않았습니다"**
+
+- 공급자 할당량 소진 → 대시보드 할당량 추적기 확인
+- 해결 방법: 콤보 폴백을 사용하거나 더 저렴한 계층으로 전환하세요.
+
+**비율 제한**
+
+- 구독 할당량 초과 → GLM/MiniMax로 대체
+- 콤보 추가: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**OAuth 토큰이 만료되었습니다**
+
+- OmniRoute에 의해 자동 새로고침
+- 문제가 지속되는 경우: Dashboard → Provider → Reconnect
+
+**높은 비용**
+
+- 대시보드 → 비용에서 사용 통계를 확인하세요.
+- 기본 모델을 GLM/MiniMax로 전환
+- 중요하지 않은 작업에는 무료 계층(Gemini CLI, iFlow)을 사용합니다.
+
+**대시보드가 잘못된 포트에서 열립니다**
+
+- `PORT=20128` 및 `NEXT_PUBLIC_BASE_URL=http://localhost:20128` 설정
+
+**클라우드 동기화 오류**
+
+- `BASE_URL`이 실행 중인 인스턴스를 가리키는지 확인합니다.
+- `CLOUD_URL`이 예상 클라우드 엔드포인트를 가리키는지 확인하세요.
+- `NEXT_PUBLIC_*` 값을 서버측 값과 일치하도록 유지합니다.
+
+**첫 번째 로그인이 작동하지 않습니다**
+
+- `.env`에서 `INITIAL_PASSWORD`을 확인하세요.
+- 설정되지 않은 경우 대체 비밀번호는 `123456`입니다.
+
+**요청 로그 없음**
+
+- `.env`에 `ENABLE_REQUEST_LOGS=true`을 설정합니다.
+
+**OpenAI 호환 공급자에 대한 연결 테스트에서 "잘못됨"이 표시됩니다**
+
+- 많은 공급자가 `/models` 엔드포인트를 노출하지 않습니다.
+- OmniRoute v1.0.6+에는 채팅 완료를 통한 대체 검증이 포함되어 있습니다.
+- 기본 URL에 `/v1` 접미사가 포함되어 있는지 확인하세요.
+
+### 🔐 OAuth em Servidor Remoto(원격 OAuth 설정)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -980,59 +961,6 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 5. Clique em **"연결"**
 
 > 이 해결 방법은 URL을 통해 자동으로 코드를 확인하거나 독립적으로 리디렉션할 수 있도록 하는 것입니다.
-
----
-
-## 🐛 문제 해결
-
-<details>
-<summary><b>문제 해결 가이드를 확장하려면 클릭하세요</b></summary>
-
-**"언어 모델이 메시지를 제공하지 않았습니다"**
-
-- 공급자 할당량 소진 → 대시보드 할당량 추적기 확인
-- 해결 방법: 콤보 폴백을 사용하거나 더 저렴한 계층으로 전환하세요.
-
-**비율 제한**
-
-- 구독 할당량 초과 → GLM/MiniMax로 대체
-- 콤보 추가: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth 토큰이 만료되었습니다**
-
-- OmniRoute에 의해 자동 새로고침
-- 문제가 지속되는 경우: Dashboard → Provider → Reconnect
-
-**높은 비용**
-
-- 대시보드 → 비용에서 사용 통계를 확인하세요.
-- 기본 모델을 GLM/MiniMax로 전환
-- 중요하지 않은 작업에는 무료 계층(Gemini CLI, iFlow)을 사용합니다.
-
-**대시보드가 잘못된 포트에서 열립니다**
-
-- `PORT=20128` 및 `NEXT_PUBLIC_BASE_URL=http://localhost:20128` 설정
-
-**클라우드 동기화 오류**
-
-- `BASE_URL`이 실행 중인 인스턴스를 가리키는지 확인합니다.
-- `CLOUD_URL`이 예상 클라우드 엔드포인트를 가리키는지 확인하세요.
-- `NEXT_PUBLIC_*` 값을 서버측 값과 일치하도록 유지합니다.
-
-**첫 번째 로그인이 작동하지 않습니다**
-
-- `.env`에서 `INITIAL_PASSWORD`을 확인하세요.
-- 설정되지 않은 경우 대체 비밀번호는 `123456`입니다.
-
-**요청 로그 없음**
-
-- `.env`에 `ENABLE_REQUEST_LOGS=true`을 설정합니다.
-
-**OpenAI 호환 공급자에 대한 연결 테스트에서 "잘못됨"이 표시됩니다**
-
-- 많은 공급자가 `/models` 엔드포인트를 노출하지 않습니다.
-- OmniRoute v1.0.6+에는 채팅 완료를 통한 대체 검증이 포함되어 있습니다.
-- 기본 URL에 `/v1` 접미사가 포함되어 있는지 확인하세요.
 
 </details>
 
@@ -1173,85 +1101,6 @@ gh release create v1.0.6 --title "v1.0.6" --generate-notes
 ## 📄 라이센스
 
 MIT 라이선스 - 자세한 내용은 [LICENSE](LICENSE)을 참조하세요.
-
----
-
----
-
-## 🇧🇷 OmniRoute — IA 무료 게이트웨이
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. **IA 무료 모델 및 사용자 정의**가 자동 대체 기능으로 지능화되었습니다.
-
-_Seu 프록시 범용 API — 음 엔드포인트, 36개 이상의 Prodoores, 가동 중지 시간 없음._
-
-### 🌐 국제화(i18n)
-
-O 대시보드는 OmniRoute를 지원하여 **다양한 관용어**를 지원합니다. 불만이 있는 경우:
-
-| 관용구                | 코디고  | 상태    |
-| --------------------- | ------- | ------- |
-| 🇺🇸 영어               | `en`    | ✅ 완료 |
-| 🇧🇷 포르투갈어(브라질) | `pt-BR` | ✅ 완료 |
-
-**Para trocar o idioma:** Clique no seletor de idioma(🇺🇸 EN) 헤더 없음 대시보드 → selecione o idioma desejado.
-
-**추가적인 표현:**
-
-1. `src/i18n/messages/{codigo}.json` 소리 지르기 `en.json` 기반으로
-2. `src/i18n/config.ts` → `LOCALES` e `LANGUAGES` 코드를 사용하세요.
-3. Reinicie o servidor
-
-### ⚡ 이니시오 라피도
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 도커
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36개 이상의 IA 인증** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek 등
-- **지능형 회전** — 예비 자동 대체
-- **Tradução de formato** — OpenAI ⇔ Claude ⇔ Gemini 자동 번역
-- **다중 연결** — 지능적인 선택을 통해 입증된 여러 콘타스
-- **캐시 의미** — Reduz custos and latência
-- **OAuth 자동** — 토큰 자동 업데이트
-- **맞춤형 콤보** — 6가지 기본 전략
-- **대시보드 완료** — 모니터링, 로그, 분석, 구성
-- **CLI 도구** — Claude Code, Codex, Cursor, Cline com um clique 구성
-- **100% TypeScript** — Código limpo etipado
-
-### 📖 문서
-
-| 도큐멘토                                        | 설명                                 |
-| ----------------------------------------------- | ------------------------------------ |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedore, 콤보, CLI, 배포           |
-| [Referência da API](docs/API_REFERENCE.md)      | 예를 들어 Todos OS 엔드포인트        |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | 문제 및 솔루션 문제                  |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema    |
-| [Contribuição](CONTRIBUTING.md)                 | 자유 의지 설정 지침                  |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | 완전한 기능: VM + nginx + Cloudflare |
-
-### 📧 지원
-
-> 💬 **공동체에 참여하세요!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **웹사이트**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **문제**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

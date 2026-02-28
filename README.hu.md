@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute – Az ingyenes mesterséges intelligencia átjáró
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Soha ne hagyd abba a kódolást. Intelligens útválasztás **INGYENES és alacsony költségű mesterséges intelligencia modellekhez** automatikus visszaállítással.
 
 _Az univerzális API-proxy – egy végpont, 36+ szolgáltató, nulla állásidő._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Használati esetek
-
-### 1. eset: "Claude Pro előfizetésem van"
-
-**Probléma:** A kvóta lejár, kihasználatlanul, sebességkorlátozások erős kódolás közben
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### 2. eset: "Nulla költséget akarok"
-
-**Probléma:** Nem engedheti meg magának az előfizetést, megbízható mesterséges intelligencia kódolásra van szüksége
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### 3. eset: "24 órás kódolásra van szükségem, megszakítás nélkül"
-
-**Probléma:** Határidők, nem engedheti meg magának az állásidőt
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### 4. eset: "INGYENES AI-t akarok az OpenClawban"
-
-**Probléma:** AI-asszisztens szükséges az üzenetküldő alkalmazásokhoz, teljesen ingyenes
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Főbb jellemzők
 
 ### 🧠 Core Routing & Intelligence
@@ -516,6 +453,67 @@ Az OmniRoute egy erőteljes beépített fordítói játszóteret tartalmaz **4 m
 - Biztonságos titkosított tárhely
 
 </details>
+
+---
+
+## 🎯 Használati esetek
+
+### 1. eset: "Claude Pro előfizetésem van"
+
+**Probléma:** A kvóta lejár, kihasználatlanul, sebességkorlátozások erős kódolás közben
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### 2. eset: "Nulla költséget akarok"
+
+**Probléma:** Nem engedheti meg magának az előfizetést, megbízható mesterséges intelligencia kódolásra van szüksége
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### 3. eset: "24 órás kódolásra van szükségem, megszakítás nélkül"
+
+**Probléma:** Határidők, nem engedheti meg magának az állásidőt
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### 4. eset: "INGYENES AI-t akarok az OpenClawban"
+
+**Probléma:** AI-asszisztens szükséges az üzenetküldő alkalmazásokhoz, teljesen ingyenes
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Elérhető modellek
-
-<details>
-<summary><b>Az összes elérhető modell megtekintése</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Kód (`cx/`)** - Plusz/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** – INGYENES:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub másodpilóta (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - INGYENES kreditek:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ további modell itt: [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - 0,6 USD/1 millió:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - 0,2 USD/1 millió:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** – INGYENES:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - INGYENES:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** – INGYENES:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ modell:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Bármelyik modell a [openrouter.ai/models](https://openrouter.ai/models) terméktől
-
-</details>
-
----
-
 ## 🧪 Értékelések (Evals)
 
 Az OmniRoute egy beépített értékelési keretrendszert tartalmaz az LLM-válasz minőségének tesztelésére egy aranykészlettel összehasonlítva. Az irányítópult **Analytics → Evals** menüpontjában érheti el.
@@ -890,7 +820,58 @@ Az előre feltöltött "OmniRoute Golden Set" 10 tesztesetet tartalmaz, amelyek 
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (távoli OAuth beállítás)
+## 🐛 Hibaelhárítás
+
+<details>
+<summary><b>Kattintson a hibaelhárítási útmutató kibontásához</b></summary>
+
+**"A nyelvi modell nem adott üzenetet"**
+
+- A szolgáltatói kvóta kimerült → Ellenőrizze az irányítópult kvótakövetőjét
+- Megoldás: Használjon kombinált tartalékot, vagy váltson olcsóbb szintre
+
+**Drátakorlát**
+
+- Előfizetési kvóta lejárt → Tartalék a GLM/MiniMax-hoz
+- Kombinó hozzáadása: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**OAuth token lejárt**
+
+- Az OmniRoute automatikusan frissíti
+- Ha a problémák továbbra is fennállnak: Irányítópult → Szolgáltató → Újracsatlakozás
+
+**Magas költségek**
+
+- Ellenőrizze a használati statisztikákat az Irányítópult → Költségek menüpontban
+- Állítsa át az elsődleges modellt GLM/MiniMax-ra
+- Használjon ingyenes réteget (Gemini CLI, iFlow) a nem kritikus feladatokhoz
+
+**A műszerfal rossz porton nyílik meg**
+
+- `PORT=20128` és `NEXT_PUBLIC_BASE_URL=http://localhost:20128` beállítása
+
+**Felhő szinkronizálási hibák**
+
+- Ellenőrizze, hogy `BASE_URL` mutat a futó példányra
+- Ellenőrizzen `CLOUD_URL` pontot a várható felhő-végponthoz
+- Tartsa az `NEXT_PUBLIC_*` értékeket a szerveroldali értékekkel összhangban
+
+**Az első bejelentkezés nem működik**
+
+- Ellenőrizze a `INITIAL_PASSWORD`-t itt: `.env`
+- Ha nincs beállítva, a tartalék jelszó: `123456`
+
+**Nincs kérésnapló**
+
+- Állítsa be `ENABLE_REQUEST_LOGS=true` a `.env`-ban
+
+**A csatlakozási teszt „Érvénytelen” üzenetet mutat az OpenAI-kompatibilis szolgáltatók esetében**
+
+- Sok szolgáltató nem tesz közzé `/models` végpontot
+- Az OmniRoute v1.0.6+ tartalmazza a tartalék érvényesítést a csevegés befejezésén keresztül
+- Győződjön meg arról, hogy az alap URL tartalmazza a `/v1` utótagot
+
+### 🔐 OAuth em Servidor Remoto (távoli OAuth beállítás)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -980,59 +961,6 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 5. Kattintson a **"Connect"** gombra
 
 > Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
----
-
-## 🐛 Hibaelhárítás
-
-<details>
-<summary><b>Kattintson a hibaelhárítási útmutató kibontásához</b></summary>
-
-**"A nyelvi modell nem adott üzenetet"**
-
-- A szolgáltatói kvóta kimerült → Ellenőrizze az irányítópult kvótakövetőjét
-- Megoldás: Használjon kombinált tartalékot, vagy váltson olcsóbb szintre
-
-**Drátakorlát**
-
-- Előfizetési kvóta lejárt → Tartalék a GLM/MiniMax-hoz
-- Kombinó hozzáadása: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth token lejárt**
-
-- Az OmniRoute automatikusan frissíti
-- Ha a problémák továbbra is fennállnak: Irányítópult → Szolgáltató → Újracsatlakozás
-
-**Magas költségek**
-
-- Ellenőrizze a használati statisztikákat az Irányítópult → Költségek menüpontban
-- Állítsa át az elsődleges modellt GLM/MiniMax-ra
-- Használjon ingyenes réteget (Gemini CLI, iFlow) a nem kritikus feladatokhoz
-
-**A műszerfal rossz porton nyílik meg**
-
-- `PORT=20128` és `NEXT_PUBLIC_BASE_URL=http://localhost:20128` beállítása
-
-**Felhő szinkronizálási hibák**
-
-- Ellenőrizze, hogy `BASE_URL` mutat a futó példányra
-- Ellenőrizzen `CLOUD_URL` pontot a várható felhő-végponthoz
-- Tartsa az `NEXT_PUBLIC_*` értékeket a szerveroldali értékekkel összhangban
-
-**Az első bejelentkezés nem működik**
-
-- Ellenőrizze a `INITIAL_PASSWORD`-t itt: `.env`
-- Ha nincs beállítva, a tartalék jelszó: `123456`
-
-**Nincs kérésnapló**
-
-- Állítsa be `ENABLE_REQUEST_LOGS=true` a `.env`-ban
-
-**A csatlakozási teszt „Érvénytelen” üzenetet mutat az OpenAI-kompatibilis szolgáltatók esetében**
-
-- Sok szolgáltató nem tesz közzé `/models` végpontot
-- Az OmniRoute v1.0.6+ tartalmazza a tartalék érvényesítést a csevegés befejezésén keresztül
-- Győződjön meg arról, hogy az alap URL tartalmazza a `/v1` utótagot
 
 </details>
 
@@ -1173,85 +1101,6 @@ Külön köszönet **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
 ## 📄 Licenc
 
 MIT-licenc – a részletekért lásd: [LICENSE](LICENSE).
-
----
-
----
-
-## 🇧🇷 OmniRoute — IA ingyenes átjáró
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligente para **modelos de IA GRATUITOS e de baixo custo** com backback automatico.
-
-_Seu proxy univerzális API – um végpont, 36+ gyártó, nulla leállás._
-
-### 🌐 Internacionalização (i18n)
-
-O dashboard do OmniRoute támogatja a **múltiplos idiomas**. Atualmente disponível em:
-
-| Idioma                | Código  | Állapot     |
-| --------------------- | ------- | ----------- |
-| 🇺🇸 angol              | `en`    | ✅ Completo |
-| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Completo |
-
-**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) no header do dashboard → Selectione o idioma desejado.
-
-**Para adicionar um novo idioma:**
-
-1. Sírj `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Adicione o código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ IA produkátor** – Claude, GPT, Gemini, Llama, Qwen, DeepSeek, e mais
-- **Roteamento inteligente** — Fallback automatico entre provedores
-- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automatamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
-- **Cache szemântico** – Reduz custos e latência
-- **OAuth automatico** — Tokens renovam automaticamente
-- **Combos personalizados** - 6 estratégias de roteamento
-- **Befejezett irányítópult** - Monitoring, naplók, elemzések, konfigurációk
-- **CLI eszközök** — Claude Code, Codex, Cursor, Cline com um clique konfigurálása
-- **100% TypeScript** – Código limpo e tipado
-
-### 📖 Documentação
-
-| Documento                                       | Leírás                                 |
-| ----------------------------------------------- | -------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, kombók, CLI, telepítés     |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os végpontok com exemplos        |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções            |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do sistema      |
-| [Contribuição](CONTRIBUTING.md)                 | Setup de desenvolvimento e Guidelines  |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Teljes verzió: VM + nginx + Cloudflare |
-
-### 📧 Támogatás
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **Webhely**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Problémák**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

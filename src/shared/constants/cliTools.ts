@@ -164,6 +164,14 @@ export const CLI_TOOLS = {
       { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium", alias: "gpt-oss-120b-medium" },
     ],
   },
+  copilot: {
+    id: "copilot",
+    name: "GitHub Copilot",
+    image: "/providers/copilot.png",
+    color: "#1F6FEB",
+    description: "GitHub Copilot Chat — VS Code Extension",
+    configType: "custom",
+  },
   // HIDDEN: gemini-cli
   // "gemini-cli": {
   //   id: "gemini-cli",

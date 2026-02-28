@@ -134,8 +134,10 @@ export async function isAuthRequired(): Promise<boolean> {
   try {
     const settings = await getSettings();
     if (settings.requireLogin === false) return false;
-    // If no password set and no env override, don't require auth (fresh install)
-    if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
+    // Only skip auth for fresh installs (not yet onboarded) with no password.
+    // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
+    if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD)
+      return false;
     return true;
   } catch {
     // On error, require auth (secure by default)

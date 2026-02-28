@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — ilmainen tekoälyyhdyskäytävä
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Älä koskaan lopeta koodaamista. Älykäs reititys **ILMAisiin ja edullisiin tekoälymalleihin** automaattisella varalla.
 
 _Universaali API-välityspalvelin – yksi päätepiste, yli 36 palveluntarjoajaa, nolla seisokkia._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Käyttökotelot
-
-### Tapaus 1: "Minulla on Claude Pro -tilaus"
-
-**Ongelma:** Kiintiö vanhenee käyttämättä, nopeusrajoitukset raskaan koodauksen aikana
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Tapaus 2: "Haluan ilman kustannuksia"
-
-**Ongelma:** Ei ole varaa tilauksiin, tarvitaan luotettavaa tekoälykoodausta
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Tapaus 3: "Tarvitsen 24/7-koodausta, ei keskeytyksiä"
-
-**Ongelma:** Määräajat, seisokkeihin ei ole varaa
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Tapaus 4: "Haluan ILMAISTA tekoälyä OpenClawissa"
-
-**Ongelma:** Tarvitset AI-avustajan viestisovelluksissa, täysin ilmainen
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Tärkeimmät ominaisuudet
 
 ### 🧠 Ydinreititys ja älykkyys
@@ -516,6 +453,67 @@ OmniRoute sisältää tehokkaan sisäänrakennetun Translator Playgroundin, joss
 - Suojattu salattu tallennustila
 
 </details>
+
+---
+
+## 🎯 Käyttökotelot
+
+### Tapaus 1: "Minulla on Claude Pro -tilaus"
+
+**Ongelma:** Kiintiö vanhenee käyttämättä, nopeusrajoitukset raskaan koodauksen aikana
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Tapaus 2: "Haluan ilman kustannuksia"
+
+**Ongelma:** Ei ole varaa tilauksiin, tarvitaan luotettavaa tekoälykoodausta
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Tapaus 3: "Tarvitsen 24/7-koodausta, ei keskeytyksiä"
+
+**Ongelma:** Määräajat, seisokkeihin ei ole varaa
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Tapaus 4: "Haluan ILMAISTA tekoälyä OpenClawissa"
+
+**Ongelma:** Tarvitset AI-avustajan viestisovelluksissa, täysin ilmainen
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Saatavilla olevat mallit
-
-<details>
-<summary><b>Näytä kaikki saatavilla olevat mallit</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Koodi (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - ILMAINEN:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - ILMAISIA krediittejä:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- Yli 50 mallia [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - 0,6 $/1 milj.:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - 0,2 $/1 milj.
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - ILMAINEN:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - ILMAINEN:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - ILMAINEN:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ mallia:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Mikä tahansa malli alkaen [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Arvioinnit (Evals)
 
 OmniRoute sisältää sisäänrakennetun arviointikehyksen, jolla testataan LLM-vastauksen laatua kultaiseen joukkoon verrattuna. Käytä sitä kojelaudan **Analytics → Evals** kautta.
@@ -890,7 +820,58 @@ Esiladattu "OmniRoute Golden Set" sisältää 10 testitapausta, jotka kattavat:
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (OAuth-etäasetus)
+## 🐛 Vianetsintä
+
+<details>
+<summary><b>Laajenna vianetsintäopas napsauttamalla</b></summary>
+
+**"Kielimalli ei antanut viestejä"**
+
+- Palveluntarjoajan kiintiö käytetty loppuun → Tarkista kojelaudan kiintiön seuranta
+- Ratkaisu: Käytä yhdistelmävaraa tai vaihda halvempaan tasoon
+
+**hintarajoitus**
+
+- Tilauskiintiö loppu → Varaa GLM/MiniMaxiin
+- Lisää yhdistelmä: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**OAuth-tunnus vanhentunut**
+
+- OmniRoute päivittää automaattisesti
+- Jos ongelmat jatkuvat: Kojelauta → Palveluntarjoaja → Yhdistä uudelleen
+
+**Korkeat kustannukset**
+
+- Tarkista käyttötilastot kohdassa Dashboard → Costs
+- Vaihda ensisijaiseksi malliksi GLM/MiniMax
+- Käytä ilmaista tasoa (Gemini CLI, iFlow) ei-kriittisiin tehtäviin
+
+**Kojelauta avautuu väärään porttiin**
+
+- Aseta `PORT=20128` ja `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Pilvisynkronointivirheet**
+
+- Vahvista `BASE_URL` pistettä käynnissä olevaan esiintymääsi
+- Vahvista `CLOUD_URL` pistettä odotettuun pilvipäätepisteeseen
+- Pidä `NEXT_PUBLIC_*`-arvot kohdakkain palvelinpuolen arvojen kanssa
+
+**Ensimmäinen kirjautuminen ei toimi**
+
+- Tarkista `INITIAL_PASSWORD` kohteessa `.env`
+- Jos ei ole asetettu, varasalasana on `123456`
+
+**Ei pyyntölokeja**
+
+- Aseta `ENABLE_REQUEST_LOGS=true` kohteeseen `.env`
+
+**Yhteystesti näyttää "Virheellinen" OpenAI-yhteensopiville palveluntarjoajille**
+
+- Monet palveluntarjoajat eivät paljasta `/models`-päätepistettä
+- OmniRoute v1.0.6+ sisältää varatarkistuksen chatin loppuunsaattamisen kautta
+- Varmista, että perus-URL sisältää `/v1`-liitteen
+
+### 🔐 OAuth em Servidor Remoto (OAuth-etäasetus)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -969,7 +950,7 @@ Agora o Google redirecionará corretamente para `https://seu-servidor.com/callba
 
 ---
 
-### Workaround temporário (sem configurar credenciais próprias)
+#### Workaround temporário (sem configurar credenciais próprias)
 
 Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
 
@@ -980,59 +961,6 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 5. Klikkaa em **"Yhdistä"**
 
 > Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
----
-
-## 🐛 Vianetsintä
-
-<details>
-<summary><b>Laajenna vianetsintäopas napsauttamalla</b></summary>
-
-**"Kielimalli ei antanut viestejä"**
-
-- Palveluntarjoajan kiintiö käytetty loppuun → Tarkista kojelaudan kiintiön seuranta
-- Ratkaisu: Käytä yhdistelmävaraa tai vaihda halvempaan tasoon
-
-**hintarajoitus**
-
-- Tilauskiintiö loppu → Varaa GLM/MiniMaxiin
-- Lisää yhdistelmä: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth-tunnus vanhentunut**
-
-- OmniRoute päivittää automaattisesti
-- Jos ongelmat jatkuvat: Kojelauta → Palveluntarjoaja → Yhdistä uudelleen
-
-**Korkeat kustannukset**
-
-- Tarkista käyttötilastot kohdassa Dashboard → Costs
-- Vaihda ensisijaiseksi malliksi GLM/MiniMax
-- Käytä ilmaista tasoa (Gemini CLI, iFlow) ei-kriittisiin tehtäviin
-
-**Kojelauta avautuu väärään porttiin**
-
-- Aseta `PORT=20128` ja `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Pilvisynkronointivirheet**
-
-- Vahvista `BASE_URL` pistettä käynnissä olevaan esiintymääsi
-- Vahvista `CLOUD_URL` pistettä odotettuun pilvipäätepisteeseen
-- Pidä `NEXT_PUBLIC_*`-arvot kohdakkain palvelinpuolen arvojen kanssa
-
-**Ensimmäinen kirjautuminen ei toimi**
-
-- Tarkista `INITIAL_PASSWORD` kohteessa `.env`
-- Jos ei ole asetettu, varasalasana on `123456`
-
-**Ei pyyntölokeja**
-
-- Aseta `ENABLE_REQUEST_LOGS=true` kohteeseen `.env`
-
-**Yhteystesti näyttää "Virheellinen" OpenAI-yhteensopiville palveluntarjoajille**
-
-- Monet palveluntarjoajat eivät paljasta `/models`-päätepistettä
-- OmniRoute v1.0.6+ sisältää varatarkistuksen chatin loppuunsaattamisen kautta
-- Varmista, että perus-URL sisältää `/v1`-liitteen
 
 </details>
 
@@ -1173,85 +1101,6 @@ Erityinen kiitos **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)**
 ## 📄 Lisenssi
 
 MIT-lisenssi – katso lisätietoja osoitteesta [LICENSE](LICENSE).
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento inteligente para **mallit de IA GRATUITOS e de baixo custo** com backback automático.
-
-_Seu välityspalvelin universaali de API — um päätepiste, 36+ valmistajaa, nolla seisokkeja._
-
-### 🌐 Internacionalização (i18n)
-
-OmniRoute-kojelauta tukee **múltiplos idiomas**. Atualmente disponível em:
-
-| Idioma                  | Código  | Tila           |
-| ----------------------- | ------- | -------------- |
-| 🇺🇸 englanti             | `en`    | ✅ Täydellinen |
-| 🇧🇷 Português (Brasilia) | `pt-BR` | ✅ Täydellinen |
-
-**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 FI) no header do dashboard → selecione o idioma desejado.
-
-**Para adicionar um novo idioma:**
-
-1. Itke `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Adicione o código em `src/i18n/config.ts` → `LOCALES` ja `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ IA:n tuottajaa** – Claude, GPT, Gemini, Llama, Qwen, DeepSeek, e mais
-- **Roteamento inteligente** — Varastoautomatico entre provedores
-- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção inteligente
-- **Cache semântico** - Reduz custos e latência
-- **OAuth automático** — Tokens renovam automaticamente
-- **Yhdistelmät personoidut** - 6 estratégias de roteamento
-- **Dashboard Completo** - Monitoramento, lokit, analyysit, konfiguraatiot
-- **CLI-työkalut** — Määritä Claude Code, Codex, Cursor, Cline com um clique
-- **100 % TypeScript** - Código limpo e tipado
-
-### 📖 Documentação
-
-| Documento                                       | Kuvaus                                      |
-| ----------------------------------------------- | ------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedorit, yhdistelmät, CLI, käyttöönotto  |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os päätepisteet com exemplos          |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções                 |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura e internos do system            |
-| [Contribuição](CONTRIBUTING.md)                 | Desenvolvimento e -ohjeiden asennus         |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Täydellinen versio: VM + nginx + Cloudflare |
-
-### 📧 Tuki
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **Verkkosivusto**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Ongelmia**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 

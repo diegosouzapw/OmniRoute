@@ -300,67 +300,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Casos de Uso
-
-### Caso 1: "Tengo suscripción Claude Pro"
-
-**Problema:** La cuota expira sin usar, límites de tasa durante programación intensa
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (usar suscripción al máximo)
-  2. glm/glm-4.7               (respaldo barato cuando la cuota se agota)
-  3. if/kimi-k2-thinking       (fallback de emergencia gratuito)
-
-Costo mensual: $20 (suscripción) + ~$5 (respaldo) = $25 total
-vs. $20 + chocar con límites = frustración
-```
-
-### Caso 2: "Quiero costo cero"
-
-**Problema:** No puede pagar suscripciones, necesita IA confiable para programar
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K gratis/mes)
-  2. if/kimi-k2-thinking       (ilimitado gratis)
-  3. qw/qwen3-coder-plus       (ilimitado gratis)
-
-Costo mensual: $0
-Calidad: Modelos listos para producción
-```
-
-### Caso 3: "Necesito programar 24/7, sin interrupciones"
-
-**Problema:** Plazos ajustados, no puede permitirse tiempo de inactividad
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (mejor calidad)
-  2. cx/gpt-5.2-codex          (segunda suscripción)
-  3. glm/glm-4.7               (barato, reset diario)
-  4. minimax/MiniMax-M2.1      (más barato, reset 5h)
-  5. if/kimi-k2-thinking       (gratuito ilimitado)
-
-Resultado: 5 capas de fallback = cero tiempo de inactividad
-```
-
-### Caso 4: "Quiero IA GRATUITA en OpenClaw"
-
-**Problema:** Necesita asistente de IA en apps de mensajería, completamente gratuito
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (ilimitado gratis)
-  2. if/minimax-m2.1           (ilimitado gratis)
-  3. if/kimi-k2-thinking       (ilimitado gratis)
-
-Costo mensual: $0
-Acceso vía: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Características Principales
 
 ### 🧠 Enrutamiento e Inteligencia
@@ -499,6 +438,67 @@ Traducción transparente entre formatos:
 - Almacenamiento cifrado seguro
 
 </details>
+
+---
+
+## 🎯 Casos de Uso
+
+### Caso 1: "Tengo suscripción Claude Pro"
+
+**Problema:** La cuota expira sin usar, límites de tasa durante programación intensa
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (usar suscripción al máximo)
+  2. glm/glm-4.7               (respaldo barato cuando la cuota se agota)
+  3. if/kimi-k2-thinking       (fallback de emergencia gratuito)
+
+Costo mensual: $20 (suscripción) + ~$5 (respaldo) = $25 total
+vs. $20 + chocar con límites = frustración
+```
+
+### Caso 2: "Quiero costo cero"
+
+**Problema:** No puede pagar suscripciones, necesita IA confiable para programar
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K gratis/mes)
+  2. if/kimi-k2-thinking       (ilimitado gratis)
+  3. qw/qwen3-coder-plus       (ilimitado gratis)
+
+Costo mensual: $0
+Calidad: Modelos listos para producción
+```
+
+### Caso 3: "Necesito programar 24/7, sin interrupciones"
+
+**Problema:** Plazos ajustados, no puede permitirse tiempo de inactividad
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (mejor calidad)
+  2. cx/gpt-5.2-codex          (segunda suscripción)
+  3. glm/glm-4.7               (barato, reset diario)
+  4. minimax/MiniMax-M2.1      (más barato, reset 5h)
+  5. if/kimi-k2-thinking       (gratuito ilimitado)
+
+Resultado: 5 capas de fallback = cero tiempo de inactividad
+```
+
+### Caso 4: "Quiero IA GRATUITA en OpenClaw"
+
+**Problema:** Necesita asistente de IA en apps de mensajería, completamente gratuito
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (ilimitado gratis)
+  2. if/minimax-m2.1           (ilimitado gratis)
+  3. if/kimi-k2-thinking       (ilimitado gratis)
+
+Costo mensual: $0
+Acceso vía: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -777,74 +777,6 @@ Configuración → Configuración de API:
   API Key: [del dashboard OmniRoute]
   Model: if/kimi-k2-thinking
 ```
-
-</details>
-
----
-
-## 📊 Modelos Disponibles
-
-<details>
-<summary><b>Ver todos los modelos disponibles</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - GRATUITO:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - Créditos GRATUITOS:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ más modelos en [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - $0.6/1M:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0.2/1M:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - GRATUITO:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - GRATUITO:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - GRATUITO:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ modelos:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Cualquier modelo de [openrouter.ai/models](https://openrouter.ai/models)
 
 </details>
 
