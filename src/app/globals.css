@@ -1,6 +1,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 @import "tailwindcss";
 
+/* Tailwind v4 auto-detection cannot scan directories with parentheses
+   (e.g. Next.js route groups like "(dashboard)"). Explicit @source
+   directives ensure all utility classes in route groups are included. */
+@source "../app/(dashboard)";
+@source "../../open-sse";
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* OpenClaw × ClawHub Color Palette */

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1] — 2026-02-28
+
+### 🐛 Fixed
+
+- **Dashboard Layout Breakage** — Tailwind CSS v4 auto-detection failed to scan Next.js route group directories with parentheses (e.g. `(dashboard)`), causing all responsive grid utilities (`sm:grid-cols-*`, `md:grid-cols-*`, `lg:grid-cols-*`, `xl:grid-cols-*`) to be purged from production CSS. Cards displayed in a single column instead of multi-column grids. Fixed by adding explicit `@source` directives in `globals.css`
+
+---
+
 ## [1.7.0] — 2026-02-28
 
 ### ✨ New Features
