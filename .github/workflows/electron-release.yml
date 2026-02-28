@@ -1,29 +1,71 @@
 name: Build Electron Desktop App
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.6.8)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
+  validate:
+    name: Validate version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate version format
+        id: validate
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Invalid version format. Expected: v1.6.8"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "✓ Valid version: $VERSION"
+
   build:
-    name: Build Electron (${{ matrix.os }})
+    name: Build Electron (${{ matrix.platform }})
+    needs: validate
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows
+          - platform: windows
             runner: windows-latest
             target: win
-          - os: macos
+            ext: .exe
+          - platform: macos-intel
             runner: macos-latest
             target: mac
-          - os: linux
+            ext: .dmg
+          - platform: macos-arm64
+            runner: macos-latest
+            target: mac
+            ext: -arm64.dmg
+          - platform: linux
             runner: ubuntu-latest
             target: linux
+            ext: .AppImage
 
     steps:
       - name: Checkout
@@ -53,13 +95,76 @@ jobs:
         working-directory: electron
         run: npm install --no-audit --no-fund
 
-      - name: Build Electron for ${{ matrix.target }}
+      - name: Build Electron for ${{ matrix.platform }}
         working-directory: electron
         run: npm run build:${{ matrix.target }}
 
-      - name: Upload release assets
+      - name: Collect installers
+        run: |
+          mkdir -p release-assets
+          cd electron/dist-electron
+          # Copy only installer files for this platform
+          for file in *${{ matrix.ext }}; do
+            [ -f "$file" ] && cp "$file" ../../release-assets/
+          done
+          # Windows: also copy portable standalone exe
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            [ -f "OmniRoute.exe" ] && cp OmniRoute.exe ../../release-assets/
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-${{ matrix.platform }}
+          path: release-assets/
+
+  release:
+    name: Create Release
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create source archives
+        run: |
+          # Create source code archives (excluding dev dependencies and build artifacts)
+          export TARBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.tar.gz"
+          export ZIPBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.zip"
+          
+          # Use git archive for clean source export
+          git archive --format=tar.gz --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$TARBALL"
+          git archive --format=zip --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$ZIPBALL"
+          
+          echo "✓ Created source archives:"
+          ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"
+
+      - name: List release files
+        run: ls -la release-assets/
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: electron/dist-electron/**/*
+          tag_name: ${{ needs.validate.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release-assets/*.dmg
+            release-assets/*-arm64.dmg
+            release-assets/*.exe
+            release-assets/*.AppImage
+            release-assets/*.blockmap
+            release-assets/*.source.tar.gz
+            release-assets/*.source.zip
+            release-assets/OmniRoute.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

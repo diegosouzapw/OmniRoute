@@ -100,9 +100,47 @@ npm run build:linux
 
 Built applications are placed in `dist-electron/`:
 
-- Windows: `.exe` installer (NSIS)
-- macOS: `.dmg` installer (universal)
+- Windows: `.exe` installer (NSIS) + portable `.exe`
+- macOS: `.dmg` installer (Intel + Apple Silicon)
 - Linux: `.AppImage`
+
+## Installation
+
+### macOS
+
+1. Download the latest `.dmg` from the [Releases](https://github.com/diegosouzapw/OmniRoute/releases) page.
+2. Open the `.dmg` file.
+3. Drag `OmniRoute.app` to the Applications folder.
+4. Launch from Applications.
+
+> ⚠️ **Note:** The app is not signed with an Apple Developer certificate yet. If macOS blocks the app, run:
+> ```bash
+> xattr -cr /Applications/OmniRoute.app
+> ```
+> Or right-click the app → Open → Open (to bypass Gatekeeper on first launch).
+
+### Windows
+
+**Installer (Recommended):**
+1. Download `OmniRoute.Setup.*.exe` from [Releases](https://github.com/diegosouzapw/OmniRoute/releases).
+2. Run the installer.
+3. Launch from Start Menu or Desktop shortcut.
+
+**Portable (No Installation):**
+1. Download `OmniRoute.exe` from [Releases](https://github.com/diegosouzapw/OmniRoute/releases).
+2. Run directly from any folder.
+
+### Linux
+
+1. Download the `.AppImage` from [Releases](https://github.com/diegosouzapw/OmniRoute/releases).
+2. Make it executable:
+   ```bash
+   chmod +x OmniRoute-*.AppImage
+   ```
+3. Run:
+   ```bash
+   ./OmniRoute-*.AppImage
+   ```
 
 ## Features
 

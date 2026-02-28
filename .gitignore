@@ -103,7 +103,8 @@ app.log
 # Backup directories
 app.__qa_backup/
 
-# Electron (subproject dependency lock)
+# Electron (subproject dependency lock and build artifacts)
 electron/package-lock.json
-icon.iconset/
 electron/dist-electron/
+electron/node_modules/
+icon.iconset/
