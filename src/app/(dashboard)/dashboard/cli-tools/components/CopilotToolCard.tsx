@@ -60,7 +60,7 @@ export default function CopilotToolCard({
       .then((data) => {
         if (cancelled) return;
         const modelList = (data.data || [])
-          .filter((m: any) => m.id) // Only models with valid IDs
+          .filter((m: any) => m && !m.type && !m.parent && m.id) // Only chat models with valid IDs
           .map((m: any) => ({
             value: m.id,
             label: m.id,
@@ -112,11 +112,8 @@ export default function CopilotToolCard({
   };
 
   const getBaseUrlForConfig = () => {
-    // Use window.location.origin directly — works correctly in Docker/reverse-proxy
-    // Per @alpgul feedback: don't use baseUrl prop (has port duplication issues)
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "http://localhost:20128";
-    return `${origin}/v1/chat/completions`;
+    const url = baseUrl;
+    return `${url}/v1/chat/completions`;
   };
 
   // Generate the Copilot chatLanguageModels.json config
