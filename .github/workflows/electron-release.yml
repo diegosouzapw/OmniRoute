@@ -159,6 +159,7 @@ jobs:
           generate_release_notes: true
           files: |
             release-assets/*.dmg
+            release-assets/*-arm64.dmg
             release-assets/*.exe
             release-assets/*.AppImage
             release-assets/*.blockmap
