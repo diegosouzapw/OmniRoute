@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.6] — 2026-02-28
+
+### 🔒 Security Fix
+
+- **Auth bypass after onboarding** — Fixed regression where users could access the dashboard without authentication after upgrading from older versions. The "no password" safeguard (for fresh installs) was incorrectly firing after onboarding was complete, allowing unauthenticated access when `setupComplete=true` but the password DB row was missing ([#151](https://github.com/diegosouzapw/OmniRoute/issues/151))
+
+---
+
 ## [1.6.5] — 2026-02-28
 
 ### 🖥️ Electron Desktop
