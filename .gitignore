@@ -105,3 +105,4 @@ app.__qa_backup/
 
 # Electron (subproject dependency lock)
 electron/package-lock.json
+icon.iconset/
