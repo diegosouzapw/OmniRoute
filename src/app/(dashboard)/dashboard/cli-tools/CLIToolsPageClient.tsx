@@ -17,6 +17,7 @@ import {
   KiloToolCard,
   DefaultToolCard,
   AntigravityToolCard,
+  CopilotToolCard,
 } from "./components";
 import { useTranslations } from "next-intl";
 
@@ -256,6 +257,16 @@ export default function CLIToolsPageClient({ machineId }) {
       case "kilo":
         return (
           <KiloToolCard
+            key={toolId}
+            {...commonProps}
+            activeProviders={getActiveProviders()}
+            hasActiveProviders={hasActiveProviders}
+            cloudEnabled={cloudEnabled}
+          />
+        );
+      case "copilot":
+        return (
+          <CopilotToolCard
             key={toolId}
             {...commonProps}
             activeProviders={getActiveProviders()}
