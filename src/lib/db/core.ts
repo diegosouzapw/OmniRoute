@@ -334,7 +334,9 @@ export function getDbInstance() {
         // Check if the DB has actual data we should preserve
         let hasData = false;
         try {
-          const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get();
+          const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
+            | { c: number }
+            | undefined;
           hasData = count && count.c > 0;
         } catch {
           // Table might not exist at all — truly incompatible

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.3] — 2026-02-28
+
+### 🐛 Bug Fixes
+
+- **Database data preservation on upgrade** — Previously, upgrading from older versions (e.g. v1.2.0 → v1.6.x) could cause data loss by renaming the existing database when a legacy `schema_migrations` table was detected. Now checks for actual data before deciding to reset ([#146](https://github.com/diegosouzapw/OmniRoute/issues/146))
+- **Hardcoded build-machine paths in npm package** — Next.js standalone output baked absolute paths from the build machine into `server.js` and `required-server-files.json`. On other machines these paths don't exist, causing `ENOENT` errors. The prepublish script now sanitizes all build paths to relative ([#147](https://github.com/diegosouzapw/OmniRoute/issues/147))
+
+---
+
 ## [1.6.2] — 2026-02-27
 
 ### ✨ New Features
@@ -769,6 +778,7 @@ New environment variables:
 
 ---
 
+[1.6.3]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.3
 [1.6.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.2
 [1.6.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.1
 [1.6.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.0
