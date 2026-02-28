@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.2] — 2026-02-27
+
+### ✨ New Features
+
+- **Provider labels in Combos** — Combo cards now show user-defined provider names instead of long UUID identifiers, making complex multi-provider combos easier to read ([#121](https://github.com/diegosouzapw/OmniRoute/issues/121))
+- **Improved request log labels** — RequestLoggerV2 resolves OpenAI-compatible provider IDs to user-defined names via provider nodes lookup
+- **Smarter API key display** — `formatApiKey()` now shows the full key name for named keys instead of truncating them
+
+---
+
 ## [1.6.1] — 2026-02-27
 
 ### 🐛 Bug Fixes
@@ -759,6 +769,7 @@ New environment variables:
 
 ---
 
+[1.6.2]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.2
 [1.6.1]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.1
 [1.6.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.6.0
 [1.5.0]: https://github.com/diegosouzapw/OmniRoute/releases/tag/v1.5.0
