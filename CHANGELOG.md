@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.8] — 2026-02-28
+
+### 🔧 Improved
+
+- **Electron Release Workflow** — Refactored CI to trigger on git tags (`v*`) + manual dispatch, with version validation, artifact upload/download pattern across 3 platforms, and a single release job. Only installer files (`.dmg`, `.exe`, `.AppImage`) are uploaded — no more 5K+ unpacked files ([PR #159](https://github.com/diegosouzapw/OmniRoute/pull/159))
+- **Windows Portable Exe** — Added standalone portable `.exe` build alongside the NSIS installer ([PR #159](https://github.com/diegosouzapw/OmniRoute/pull/159))
+- **Source Code Archives** — Releases now include `OmniRoute-vX.Y.Z.source.tar.gz` and `.zip` via `git archive` ([PR #159](https://github.com/diegosouzapw/OmniRoute/pull/159))
+- **Installation Docs** — Added platform-specific installation instructions with macOS Gatekeeper workaround ([PR #159](https://github.com/diegosouzapw/OmniRoute/pull/159))
+
+### 🐛 Fixed
+
+- **Next.js App Router Conflict** — Added `app/` (production standalone build) to `.gitignore`. This directory was conflicting with Next.js App Router detection in dev mode, causing all routes to return 404
+- **Git Tracking** — Added `electron/node_modules/` to `.gitignore`
+
+---
+
 ## [1.6.7] — 2026-02-28
 
 ### ✨ New Feature
