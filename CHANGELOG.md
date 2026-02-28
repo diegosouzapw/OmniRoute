@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.7] — 2026-02-28
+
+### ✨ New Feature
+
+- **GitHub Copilot Configuration Generator** — New tool on the CLI Tools dashboard page. Select models and generate the `chatLanguageModels.json` config block for VS Code GitHub Copilot using the Azure vendor pattern. Features: bulk model selection from `/v1/models` (includes combos/custom), search/filter, configurable tokens/tool-calling/vision, one-click copy, persistent selection via localStorage. Version compatibility warning for VS Code ≥ 1.109 / Copilot Chat ≥ v0.37 ([#142](https://github.com/diegosouzapw/OmniRoute/issues/142))
+
+### 🧹 Housekeeping
+
+- Added `electron/dist-electron/` to `.gitignore` (build artifact)
+
+---
+
 ## [1.6.6] — 2026-02-28
 
 ### 🔒 Security Fix
