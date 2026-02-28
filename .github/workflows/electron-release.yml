@@ -60,6 +60,10 @@ jobs:
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: electron/dist-electron/**/*
+          files: |
+            electron/dist-electron/*.dmg
+            electron/dist-electron/*.exe
+            electron/dist-electron/*.AppImage
+            electron/dist-electron/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
