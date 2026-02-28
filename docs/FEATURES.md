@@ -75,3 +75,19 @@ Real-time request logging with filtering by provider, model, account, and API ke
 Your unified API endpoint with capability breakdown: Chat Completions, Embeddings, Image Generation, Reranking, Audio Transcription, and registered API keys.
 
 ![Endpoint Dashboard](screenshots/09-endpoint.png)
+
+---
+
+## 🖥️ Desktop Application
+
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, and one-click install.
+
+Key features:
+
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

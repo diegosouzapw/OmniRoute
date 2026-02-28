@@ -2,27 +2,43 @@
 
 This directory contains the Electron desktop application wrapper for OmniRoute.
 
-## Structure
+## Architecture (v1.6.4)
 
 ```
 electron/
-├── main.js          # Main process (window management, IPC)
-├── preload.js       # Preload script (secure bridge to renderer)
-├── package.json     # Electron-specific dependencies
-├── types.d.ts       # TypeScript definitions
+├── main.js          # Main process — window, tray, server lifecycle, CSP, IPC
+├── preload.js       # Preload script — secure IPC bridge with disposer pattern
+├── package.json     # Electron-specific dependencies & electron-builder config
+├── types.d.ts       # TypeScript definitions (AppInfo, ServerStatus, ElectronAPI)
 └── assets/          # Application icons and resources
+
+src/shared/hooks/
+└── useElectron.ts   # React hooks — useSyncExternalStore, zero re-renders
 ```
+
+## Key Design Decisions
+
+| Decision                      | Rationale                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `waitForServer()` polling     | Prevents blank screen on cold start — polls `http://localhost:PORT` before loading               |
+| `stdio: 'pipe'`               | Captures server stdout/stderr for logging + readiness detection (not `inherit`)                  |
+| Disposer pattern              | `onServerStatus()` returns `() => void` for precise listener cleanup (no `removeAllListeners`)   |
+| `useSyncExternalStore`        | Zero re-renders for `useIsElectron()` — no `useState` + `useEffect` cycle                        |
+| CSP via session headers       | `Content-Security-Policy` restricts `script-src`, `connect-src` etc. per Electron best practices |
+| Platform-conditional titlebar | `titleBarStyle: 'hiddenInset'` only on macOS; `default` on Windows/Linux                         |
 
 ## Development
 
 ### Prerequisites
 
 1. Build the Next.js app first:
+
 ```bash
 npm run build
 ```
 
 2. Install Electron dependencies:
+
 ```bash
 cd electron
 npm install
@@ -31,11 +47,13 @@ npm install
 ### Running in Development
 
 1. Start the Next.js development server:
+
 ```bash
 npm run dev
 ```
 
 2. In another terminal, start Electron:
+
 ```bash
 cd electron
 npm run dev
@@ -44,11 +62,13 @@ npm run dev
 ### Running in Production Mode
 
 1. Build Next.js in standalone mode:
+
 ```bash
 npm run build
 ```
 
 2. Start Electron:
+
 ```bash
 cd electron
 npm start
@@ -57,6 +77,7 @@ npm start
 ## Building
 
 ### Build for Current Platform
+
 ```bash
 cd electron
 npm run build
@@ -68,7 +89,7 @@ npm run build
 # Windows
 npm run build:win
 
-# macOS
+# macOS (x64 + arm64)
 npm run build:mac
 
 # Linux
@@ -78,72 +99,113 @@ npm run build:linux
 ## Output
 
 Built applications are placed in `dist-electron/`:
+
 - Windows: `.exe` installer (NSIS)
-- macOS: `.dmg` installer
+- macOS: `.dmg` installer (universal)
 - Linux: `.AppImage`
 
 ## Features
 
-- **System Tray Integration**: Minimize to tray, quick actions
-- **Native Notifications**: Desktop notifications
-- **Window Management**: Minimize, maximize, close
-- **Auto-start**: Option to launch on system startup
-- **Offline Support**: Local server bundled with the app
+- **Server Readiness** — Waits for health check before showing window
+- **System Tray** — Minimize to tray with quick actions (open, port change, quit)
+- **Port Management** — Change port from tray menu (server restarts automatically)
+- **Window Controls** — Custom minimize, maximize, close via IPC
+- **Content Security Policy** — Restrictive CSP via session headers
+- **Offline Support** — Bundled Next.js standalone server
+- **Single Instance** — Only one app instance can run at a time
 
 ## Configuration
 
 ### Environment Variables
 
-The Electron app respects these environment variables:
-- `OMNIROUTE_PORT`: Server port (default: 20128)
-- `NODE_ENV`: Set to 'production' for production builds
+| Variable              | Default      | Description                       |
+| --------------------- | ------------ | --------------------------------- |
+| `OMNIROUTE_PORT`      | `20128`      | Server port                       |
+| `OMNIROUTE_MEMORY_MB` | `512`        | Node.js heap limit (64–16384 MB)  |
+| `NODE_ENV`            | `production` | Set to `development` for dev mode |
 
 ### Custom Icon
 
 Place your icons in `assets/`:
-- `icon.ico` - Windows icon (256x256)
-- `icon.icns` - macOS icon bundle
-- `icon.png` - Linux/general use (512x512)
-- `tray-icon.png` - System tray icon (16x16 or 32x32)
+
+- `icon.ico` — Windows icon (256×256)
+- `icon.icns` — macOS icon bundle
+- `icon.png` — Linux/general use (512×512)
+- `tray-icon.png` — System tray icon (16×16 or 32×32)
 
 ## IPC Channels
 
-| Channel | Direction | Description |
-|---------|-----------|-------------|
-| `get-app-info` | Renderer → Main | Get app name, version, platform |
-| `open-external` | Renderer → Main | Open URL in default browser |
-| `get-data-dir` | Renderer → Main | Get data directory path |
-| `restart-server` | Renderer → Main | Restart the internal server |
-| `server-status` | Main → Renderer | Server status updates |
-| `port-changed` | Main → Renderer | Port change notifications |
+### Invoke (Renderer → Main, async)
+
+| Channel          | Returns       | Description                                   |
+| ---------------- | ------------- | --------------------------------------------- |
+| `get-app-info`   | `AppInfo`     | App name, version, platform, isDev, port      |
+| `open-external`  | `void`        | Open URL in default browser (http/https only) |
+| `get-data-dir`   | `string`      | Get userData directory path                   |
+| `restart-server` | `{ success }` | Stop + restart server (5s timeout + SIGKILL)  |
+
+### Send (Renderer → Main, fire-and-forget)
+
+| Channel           | Description                     |
+| ----------------- | ------------------------------- |
+| `window-minimize` | Minimize window                 |
+| `window-maximize` | Toggle maximize/restore         |
+| `window-close`    | Close window (minimize to tray) |
+
+### Receive (Main → Renderer, events)
+
+| Channel         | Payload        | Emitted When                              |
+| --------------- | -------------- | ----------------------------------------- |
+| `server-status` | `ServerStatus` | Server starts, stops, errors, or restarts |
+| `port-changed`  | `number`       | Port change via tray menu                 |
+
+> **Note**: Listeners return disposer functions for precise cleanup. See `useServerStatus` and `usePortChanged` hooks.
 
 ## Security
 
-- `contextIsolation: true` - Isolates renderer from Node.js
-- `nodeIntegration: false` - No direct Node.js access in renderer
-- Preload script validates IPC channels
-- No remote code execution
+| Feature           | Implementation                                                                  |
+| ----------------- | ------------------------------------------------------------------------------- |
+| Context Isolation | `contextIsolation: true` — renderer cannot access Node.js                       |
+| Node Integration  | `nodeIntegration: false` — no `require()` in renderer                           |
+| IPC Whitelist     | Channel names validated in preload via `safeInvoke`/`safeSend`/`safeOn`         |
+| URL Validation    | `shell.openExternal()` only allows `http:` / `https:` protocols                 |
+| CSP               | `Content-Security-Policy` header set via `session.webRequest.onHeadersReceived` |
+| Web Security      | `webSecurity: true` — same-origin policy enforced                               |
+
+## React Hooks
+
+| Hook                   | Returns                         | Description                                      |
+| ---------------------- | ------------------------------- | ------------------------------------------------ |
+| `useIsElectron()`      | `boolean`                       | Zero-render detection via `useSyncExternalStore` |
+| `useElectronAppInfo()` | `{ appInfo, loading, error }`   | App info from main process                       |
+| `useDataDir()`         | `{ dataDir, loading, error }`   | User data directory                              |
+| `useWindowControls()`  | `{ minimize, maximize, close }` | Window control actions                           |
+| `useOpenExternal()`    | `{ openExternal }`              | Open URLs in browser                             |
+| `useServerControls()`  | `{ restart, restarting }`       | Server restart control                           |
+| `useServerStatus(cb)`  | Disposer                        | Listen for server status events                  |
+| `usePortChanged(cb)`   | Disposer                        | Listen for port change events                    |
 
 ## Troubleshooting
 
 ### App Won't Start
 
-1. Check if port 20128 is available
-2. Check logs in the console
-3. Verify the build output exists
+1. Check if port 20128 is available: `lsof -i :20128`
+2. Check console logs for `[Electron]` prefix
+3. Verify the build output exists in `.next/standalone`
 
 ### White Screen
 
-1. Verify Next.js build exists
-2. Check the server URL in main.js
-3. Check for console errors
+1. Verify Next.js build exists — server readiness waits 30s max
+2. Check `[Server]` and `[Server:err]` log output
+3. Look for CSP violations in developer console
 
 ### Build Fails
 
-1. Ensure you have build tools installed:
-   - Windows: Visual Studio Build Tools
-   - macOS: Xcode Command Line Tools
-   - Linux: build-essential, libsecret-1-dev
+Ensure you have build tools installed:
+
+- Windows: Visual Studio Build Tools
+- macOS: Xcode Command Line Tools
+- Linux: `build-essential`, `libsecret-1-dev`
 
 ## License
 
