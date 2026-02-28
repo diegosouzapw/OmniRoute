@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.9] — 2026-02-28
+
+### 🐛 Fixed
+
+- **Proxy Port Preservation** — `new URL()` silently strips default ports (80/443); proxy connections now extract the port from the raw URL string before parsing, preventing connection timeouts ([PR #161](https://github.com/diegosouzapw/OmniRoute/pull/161))
+- **Proxy Credential Encoding** — URL-encode special characters in proxy username/password; decode during legacy migration ([PR #161](https://github.com/diegosouzapw/OmniRoute/pull/161))
+- **HTTPS Proxy Default Port** — Changed from 8080 to 443 in frontend and migration logic ([PR #161](https://github.com/diegosouzapw/OmniRoute/pull/161))
+- **Proxy Dispatcher Cache** — Invalidate cached dispatchers when proxy config is updated or deleted ([PR #161](https://github.com/diegosouzapw/OmniRoute/pull/161))
+- **Proxy Logger SQLite Type** — Cast `proxyPort` to `Number` for INTEGER column ([PR #161](https://github.com/diegosouzapw/OmniRoute/pull/161))
+- **CopilotToolCard URL** — Use `baseUrl` prop directly instead of redundant `window.location.origin`; filter to chat models only (`!m.type && !m.parent`) ([PR #160](https://github.com/diegosouzapw/OmniRoute/pull/160))
+
+---
+
 ## [1.6.8] — 2026-02-28
 
 ### 🔧 Improved
