@@ -247,6 +247,34 @@ docker compose --profile cli up -d
 
 ---
 
+---
+
+## 🖥️ Aplicación de Escritorio — Sin Conexión y Siempre Activo
+
+> 🆕 **¡NUEVO!** OmniRoute ahora está disponible como **aplicación de escritorio nativa** para Windows, macOS y Linux.
+
+Ejecuta OmniRoute como una aplicación de escritorio autónoma — sin terminal, sin navegador, sin internet necesario para modelos locales. La app basada en Electron incluye:
+
+- 🖥️ **Ventana Nativa** — Ventana dedicada con integración en la bandeja del sistema
+- 🔄 **Inicio Automático** — Inicia OmniRoute al iniciar sesión
+- 🔔 **Notificaciones Nativas** — Recibe alertas sobre cuota o problemas de proveedores
+- ⚡ **Instalación con Un Clic** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **Modo Sin Conexión** — Funciona completamente offline con servidor incluido
+
+### Inicio Rápido
+
+```bash
+npm run electron:dev           # Modo desarrollo
+npm run electron:build         # Plataforma actual
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg)
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+📖 Documentación completa: [`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 Precios Resumidos
 
 | Tier               | Proveedor         | Costo                        | Reset de Cuota    | Mejor Para              |

@@ -247,6 +247,30 @@ docker compose --profile cli up -d
 
 ---
 
+---
+
+## 🖥️ 桌面应用 — 离线 & 始终在线
+
+> 🆕 **全新！** OmniRoute 现已提供适用于 Windows、macOS 和 Linux 的**原生桌面应用程序**。
+
+- 🖥️ **原生窗口** — 专属应用窗口，集成系统托盘
+- 🔄 **自动启动** — 系统登录时启动 OmniRoute
+- 🔔 **原生通知** — 配额耗尽或提供商问题时收到提醒
+- ⚡ **一键安装** — NSIS (Windows)、DMG (macOS)、AppImage (Linux)
+- 🌐 **离线模式** — 内置服务器，完全离线工作
+
+```bash
+npm run electron:dev           # 开发模式
+npm run electron:build         # 当前平台
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg)
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+📖 完整文档：[`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 定价概览
 
 | 层级           | 提供商            | 费用                  | 配额重置        | 最适合       |

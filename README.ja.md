@@ -247,6 +247,30 @@ docker compose --profile cli up -d
 
 ---
 
+---
+
+## 🖥️ デスクトップアプリ — オフライン＆常時稼働
+
+> 🆕 **新機能！** OmniRouteが**ネイティブデスクトップアプリケーション**としてWindows、macOS、Linuxで利用可能になりました。
+
+- 🖥️ **ネイティブウィンドウ** — システムトレイ統合付きの専用ウィンドウ
+- 🔄 **自動起動** — システムログイン時にOmniRouteを起動
+- 🔔 **ネイティブ通知** — クォータ枯渇やプロバイダー問題のアラート
+- ⚡ **ワンクリックインストール** — NSIS (Windows)、DMG (macOS)、AppImage (Linux)
+- 🌐 **オフラインモード** — 内蔵サーバーで完全オフライン動作
+
+```bash
+npm run electron:dev           # 開発モード
+npm run electron:build         # 現在のプラットフォーム
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg)
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+📖 完全なドキュメント：[`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 価格の概要
 
 | 階層                      | プロバイダー               | コスト                     | クォータのリセット  | 最適な用途         |

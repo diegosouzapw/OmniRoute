@@ -249,6 +249,30 @@ docker compose --profile cli up -d
 
 ---
 
+---
+
+## 🖥️ 데스크톱 앱 — 오프라인 & 상시 가동
+
+> 🆕 **새 기능!** OmniRoute가 Windows, macOS, Linux용 **네이티브 데스크톱 앱**으로 출시되었습니다.
+
+- 🖥️ **네이티브 윈도우** — 시스템 트레이 통합 전용 창
+- 🔄 **자동 시작** — 시스템 로그인 시 OmniRoute 실행
+- 🔔 **네이티브 알림** — 할당량 소진 또는 공급자 문제 알림
+- ⚡ **원클릭 설치** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **오프라인 모드** — 내장 서버로 완전 오프라인 작동
+
+```bash
+npm run electron:dev           # 개발 모드
+npm run electron:build         # 현재 플랫폼
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg)
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+📖 전체 문서: [`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 가격 한눈에 보기
 
 | 계층          | 공급자              | 비용                  | 할당량 재설정   | 최고의 대상       |

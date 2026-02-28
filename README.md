@@ -259,6 +259,43 @@ docker compose --profile cli up -d
 
 ---
 
+## 🖥️ Desktop App — Offline & Always-On
+
+> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
+
+Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
+
+- 🖥️ **Native Window** — Dedicated app window with system tray integration
+- 🔄 **Auto-Start** — Launch OmniRoute on system login
+- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
+- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **Offline Mode** — Works fully offline with bundled server
+
+### Quick Start
+
+```bash
+# Development mode
+npm run electron:dev
+
+# Build for your platform
+npm run electron:build         # Current platform
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg) — x64 & arm64
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+### System Tray
+
+When minimized, OmniRoute lives in your system tray with quick actions:
+
+- Open dashboard
+- Change server port
+- Quit application
+
+📖 Full documentation: [`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 Pricing at a Glance
 
 | Tier                | Provider          | Cost                    | Quota Reset      | Best For             |

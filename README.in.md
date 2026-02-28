@@ -144,6 +144,30 @@ docker run -d \
 
 ---
 
+---
+
+## 🖥️ Desktop App — Offline & Always-On
+
+> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
+
+- 🖥️ **Native Window** — Dedicated app window with system tray integration
+- 🔄 **Auto-Start** — Launch OmniRoute on system login
+- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
+- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **Offline Mode** — Works fully offline with bundled server
+
+```bash
+npm run electron:dev           # Development mode
+npm run electron:build         # Current platform
+npm run electron:build:win     # Windows (.exe)
+npm run electron:build:mac     # macOS (.dmg)
+npm run electron:build:linux   # Linux (.AppImage)
+```
+
+📖 Full documentation: [`electron/README.md`](electron/README.md)
+
+---
+
 ## 💰 मूल्य निर्धारण एक नज़र में
 
 | टियर              | प्रदाता             | लागत                      | कोटा रीसेट           | के लिए सर्वश्रेष्ठ       |

@@ -1,14 +1,14 @@
 /**
  * OmniRoute Electron Desktop App - Main Process
- * 
+ *
  * This is the entry point for the Electron desktop application.
  * It manages the main window, system tray, and IPC communication.
  */
 
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
-const path = require('path');
-const { spawn } = require('child_process');
-const fs = require('fs');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require("electron");
+const path = require("path");
+const { spawn } = require("child_process");
+const fs = require("fs");
 
 // Single instance lock - prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock();
@@ -17,7 +17,7 @@ if (!gotTheLock) {
   process.exit(0);
 }
 
-app.on('second-instance', () => {
+app.on("second-instance", () => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.show();
@@ -26,13 +26,13 @@ app.on('second-instance', () => {
 });
 
 // Environment detection
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 const isProduction = !isDev;
 
 // Paths
 const APP_PATH = app.getAppPath();
 const RESOURCES_PATH = isProduction ? process.resourcesPath : APP_PATH;
-const NEXT_SERVER_PATH = path.join(RESOURCES_PATH, 'app');
+const NEXT_SERVER_PATH = path.join(RESOURCES_PATH, "app");
 
 // State
 let mainWindow = null;
@@ -52,41 +52,50 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'OmniRoute',
-    icon: path.join(RESOURCES_PATH, 'assets', 'icon.png'),
+    title: "OmniRoute",
+    icon: path.join(RESOURCES_PATH, "assets", "icon.png"),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
     },
     show: false,
-    backgroundColor: '#0a0a0a',
-    titleBarStyle: 'hiddenInset',
+    backgroundColor: "#0a0a0a",
+    titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 16, y: 16 },
   });
 
   // Load the Next.js app
   if (isDev) {
     mainWindow.loadURL(getServerUrl());
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
     mainWindow.loadURL(getServerUrl());
   }
 
   // Show window when ready
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once("ready-to-show", () => {
     mainWindow.show();
   });
 
-  // Handle external links
+  // Handle external links — validate URL protocol to prevent RCE (#150)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: 'deny' };
+    try {
+      const parsedUrl = new URL(url);
+      if (["http:", "https:"].includes(parsedUrl.protocol)) {
+        shell.openExternal(url);
+      } else {
+        console.warn("[Electron] Blocked external URL with unsafe protocol:", parsedUrl.protocol);
+      }
+    } catch {
+      console.error("[Electron] Invalid external URL blocked:", url);
+    }
+    return { action: "deny" };
   });
 
   // Handle window close
-  mainWindow.on('close', (event) => {
+  mainWindow.on("close", (event) => {
     if (!app.isQuitting) {
       event.preventDefault();
       mainWindow.hide();
@@ -94,7 +103,7 @@ function createWindow() {
     return false;
   });
 
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
@@ -103,9 +112,9 @@ function createWindow() {
  * Create system tray icon
  */
 function createTray() {
-  const iconPath = path.join(RESOURCES_PATH, 'assets', 'tray-icon.png');
+  const iconPath = path.join(RESOURCES_PATH, "assets", "tray-icon.png");
   let icon;
-  
+
   try {
     icon = nativeImage.createFromPath(iconPath);
     if (icon.isEmpty()) {
@@ -119,7 +128,7 @@ function createTray() {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Open OmniRoute',
+      label: "Open OmniRoute",
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -128,25 +137,25 @@ function createTray() {
       },
     },
     {
-      label: 'Open Dashboard',
+      label: "Open Dashboard",
       click: () => {
         shell.openExternal(getServerUrl());
       },
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
-      label: 'Server Port',
+      label: "Server Port",
       submenu: [
         { label: `Port: ${serverPort}`, enabled: false },
-        { type: 'separator' },
-        { label: '20128', click: () => changePort(20128) },
-        { label: '3000', click: () => changePort(3000) },
-        { label: '8080', click: () => changePort(8080) },
+        { type: "separator" },
+        { label: "20128", click: () => changePort(20128) },
+        { label: "3000", click: () => changePort(3000) },
+        { label: "8080", click: () => changePort(8080) },
       ],
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
-      label: 'Quit',
+      label: "Quit",
       click: () => {
         app.isQuitting = true;
         app.quit();
@@ -154,10 +163,10 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip('OmniRoute');
+  tray.setToolTip("OmniRoute");
   tray.setContextMenu(contextMenu);
 
-  tray.on('double-click', () => {
+  tray.on("double-click", () => {
     if (mainWindow) {
       mainWindow.show();
       mainWindow.focus();
@@ -182,35 +191,35 @@ function changePort(port) {
  */
 function startNextServer() {
   if (isDev) {
-    console.log('Development mode: Connect to existing Next.js server');
+    console.log("Development mode: Connect to existing Next.js server");
     return;
   }
 
-  const serverScript = path.join(NEXT_SERVER_PATH, 'server.js');
-  
+  const serverScript = path.join(NEXT_SERVER_PATH, "server.js");
+
   if (!fs.existsSync(serverScript)) {
-    console.error('Server script not found:', serverScript);
+    console.error("Server script not found:", serverScript);
     return;
   }
 
-  console.log('Starting Next.js server...');
-  
-  nextServer = spawn('node', [serverScript], {
+  console.log("Starting Next.js server...");
+
+  nextServer = spawn("node", [serverScript], {
     cwd: NEXT_SERVER_PATH,
     env: {
       ...process.env,
       PORT: String(serverPort),
-      NODE_ENV: 'production',
+      NODE_ENV: "production",
     },
-    stdio: 'inherit',
+    stdio: "inherit",
   });
 
-  nextServer.on('error', (err) => {
-    console.error('Failed to start server:', err);
+  nextServer.on("error", (err) => {
+    console.error("Failed to start server:", err);
   });
 
-  nextServer.on('exit', (code) => {
-    console.log('Server exited with code:', code);
+  nextServer.on("exit", (code) => {
+    console.log("Server exited with code:", code);
   });
 }
 
@@ -229,7 +238,7 @@ function stopNextServer() {
  */
 function setupIpcHandlers() {
   // Get app info
-  ipcMain.handle('get-app-info', () => ({
+  ipcMain.handle("get-app-info", () => ({
     name: app.getName(),
     version: app.getVersion(),
     platform: process.platform,
@@ -238,39 +247,39 @@ function setupIpcHandlers() {
   }));
 
   // Open external URL
-  ipcMain.handle('open-external', (event, url) => {
+  ipcMain.handle("open-external", (event, url) => {
     try {
       const parsedUrl = new URL(url);
-      if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+      if (["http:", "https:"].includes(parsedUrl.protocol)) {
         shell.openExternal(url);
       }
     } catch {
-      console.error('Invalid URL:', url);
+      console.error("Invalid URL:", url);
     }
   });
 
   // Get data directory
-  ipcMain.handle('get-data-dir', () => {
-    return app.getPath('userData');
+  ipcMain.handle("get-data-dir", () => {
+    return app.getPath("userData");
   });
 
   // Restart server
-  ipcMain.handle('restart-server', async () => {
+  ipcMain.handle("restart-server", async () => {
     const serverToStop = nextServer;
     stopNextServer();
     if (serverToStop) {
-      await new Promise(resolve => serverToStop.once('exit', resolve));
+      await new Promise((resolve) => serverToStop.once("exit", resolve));
     }
     startNextServer();
     return { success: true };
   });
 
   // Window controls
-  ipcMain.on('window-minimize', () => {
+  ipcMain.on("window-minimize", () => {
     mainWindow?.minimize();
   });
 
-  ipcMain.on('window-maximize', () => {
+  ipcMain.on("window-maximize", () => {
     if (mainWindow) {
       if (mainWindow.isMaximized()) {
         mainWindow.unmaximize();
@@ -280,7 +289,7 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.on('window-close', () => {
+  ipcMain.on("window-close", () => {
     mainWindow?.close();
   });
 }
@@ -293,7 +302,7 @@ app.whenReady().then(() => {
   setupIpcHandlers();
 
   // macOS: recreate window when dock icon clicked
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     } else if (mainWindow) {
@@ -303,23 +312,23 @@ app.whenReady().then(() => {
 });
 
 // Quit when all windows are closed (except on macOS)
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
 // Clean up before quit
-app.on('before-quit', () => {
+app.on("before-quit", () => {
   app.isQuitting = true;
   stopNextServer();
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
 });
 
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled Rejection:', reason);
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
 });

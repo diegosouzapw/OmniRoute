@@ -91,7 +91,7 @@ if (args.includes("--help") || args.includes("-h")) {
 
   \x1b[1mConfig:\x1b[0m
     Loads .env from: ~/.omniroute/.env or ./.env
-    Memory limit: OMNIROUTE_MEMORY_MB (default: 256)
+    Memory limit: OMNIROUTE_MEMORY_MB (default: 512)
 
   \x1b[1mAfter starting:\x1b[0m
     Dashboard:  http://localhost:<dashboard-port>
@@ -175,7 +175,10 @@ if (!existsSync(serverJs)) {
 // ── Start server ───────────────────────────────────────────
 console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-const memoryLimit = process.env.OMNIROUTE_MEMORY_MB || "256";
+// Sanitize memory limit — parseInt to prevent command injection (#150)
+const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
+const memoryLimit =
+  Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
 
 const env = {
   ...process.env,
