@@ -51,7 +51,7 @@ jobs:
 
       - name: Install Electron dependencies
         working-directory: electron
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Build Electron for ${{ matrix.target }}
         working-directory: electron

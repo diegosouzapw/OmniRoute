@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.5] — 2026-02-28
+
+### 🖥️ Electron Desktop
+
+- **Official app icons** — Added proper platform-specific icons derived from the OmniRoute SVG logo: `.icns` (macOS), `.ico` (Windows), `.png` (Linux), and `tray-icon.png` (32×32) — via PR [#154](https://github.com/diegosouzapw/OmniRoute/pull/154)
+- **Automated release workflow** — New GitHub Actions workflow (`electron-release.yml`) builds Electron for Windows/macOS/Linux on every GitHub release publish
+- **CI fix** — Changed `npm ci` → `npm install` in the Electron build step since `electron/package-lock.json` is `.gitignored`
+
+### 📖 Documentation
+
+- **Desktop App section** — Added to all 30 README files (9 fully translated: PT-BR, ES, FR, DE, ZH-CN, JA, RU, KO, AR)
+- **Electron Fix Plan** — Published detailed code review and fix documentation at `docs/ELECTRON_FIX_PLAN.md`
+
+### 🐛 Issue Triage
+
+- **#151** — Auth bypass after v1.6.3 upgrade — triaged, requesting more info from reporter
+- **#142** — Copilot Config Generator — previously triaged, 5 comments
+
+---
+
 ## [1.6.4] — 2026-02-28
 
 ### 🖥️ Electron Desktop — Code Review Hardening (16 Fixes)
