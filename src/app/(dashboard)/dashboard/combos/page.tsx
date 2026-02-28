@@ -49,6 +49,7 @@ export default function CombosPage() {
   const notify = useNotificationStore();
   const [proxyTargetCombo, setProxyTargetCombo] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const [providerNodes, setProviderNodes] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -60,14 +61,16 @@ export default function CombosPage() {
 
   const fetchData = async () => {
     try {
-      const [combosRes, providersRes, metricsRes] = await Promise.all([
+      const [combosRes, providersRes, metricsRes, nodesRes] = await Promise.all([
         fetch("/api/combos"),
         fetch("/api/providers"),
         fetch("/api/combos/metrics"),
+        fetch("/api/provider-nodes"),
       ]);
       const combosData = await combosRes.json();
       const providersData = await providersRes.json();
       const metricsData = await metricsRes.json();
+      const nodesData = nodesRes.ok ? await nodesRes.json() : { nodes: [] };
 
       if (combosRes.ok) setCombos(combosData.combos || []);
       if (providersRes.ok) {
@@ -77,6 +80,7 @@ export default function CombosPage() {
         setActiveProviders(active);
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
+      setProviderNodes(nodesData.nodes || []);
     } catch (error) {
       console.log("Error fetching data:", error);
     } finally {
@@ -231,6 +235,7 @@ export default function CombosPage() {
               key={combo.id}
               combo={combo}
               metrics={metrics[combo.name]}
+              providerNodes={providerNodes}
               copied={copied}
               onCopy={copy}
               onEdit={() => setEditingCombo(combo)}
@@ -310,12 +315,24 @@ function ComboCard({
   onProxy,
   hasProxy,
   onToggle,
+  providerNodes,
 }) {
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
   const isDisabled = combo.isActive === false;
   const t = useTranslations("combos");
   const tc = useTranslations("common");
+
+  // Resolve provider UUID to user-defined name
+  const formatModelDisplay = (modelValue) => {
+    const parts = modelValue.split("/");
+    if (parts.length !== 2) return modelValue;
+    const [providerIdentifier, modelId] = parts;
+    const matchedNode = (providerNodes || []).find(
+      (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
+    );
+    return matchedNode ? `${matchedNode.name}/${modelId}` : modelValue;
+  };
 
   return (
     <Card padding="sm" className={`group ${isDisabled ? "opacity-50" : ""}`}>
@@ -381,7 +398,7 @@ function ComboCard({
                       key={index}
                       className="text-[10px] font-mono bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded text-text-muted"
                     >
-                      {model}
+                      {formatModelDisplay(model)}
                       {strategy === "weighted" && weight > 0 ? ` (${weight}%)` : ""}
                     </code>
                   );

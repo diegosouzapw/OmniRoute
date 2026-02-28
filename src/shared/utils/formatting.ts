@@ -80,16 +80,16 @@ export function maskAccount(account) {
 }
 
 /**
- * Format an API key label, masking both name and ID.
+ * Format an API key label, showing full name but masking the ID.
  * @param {string} apiKeyName - Human-readable name of the key
  * @param {string} apiKeyId - Unique ID of the key
  * @returns {string}
  */
 export function formatApiKeyLabel(apiKeyName, apiKeyId) {
   if (!apiKeyName && !apiKeyId) return "—";
-  const maskedName = apiKeyName ? maskSegment(apiKeyName, 2, 1) : "key";
-  if (!apiKeyId) return maskedName;
-  return `${maskedName} (${maskSegment(apiKeyId, 4, 4)})`;
+  const displayName = apiKeyName || "key";
+  if (!apiKeyId) return displayName;
+  return `${displayName} (${maskSegment(apiKeyId, 4, 4)})`;
 }
 
 /**
