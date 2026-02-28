@@ -134,7 +134,7 @@ export function logProxyEvent(entry: Partial<ProxyLogEntry>) {
         status: log.status,
         proxyType: log.proxy?.type || null,
         proxyHost: log.proxy?.host || null,
-        proxyPort: log.proxy?.port || null,
+        proxyPort: log.proxy?.port ? Number(log.proxy.port) : null,
         level: log.level,
         levelId: log.levelId,
         provider: log.provider,

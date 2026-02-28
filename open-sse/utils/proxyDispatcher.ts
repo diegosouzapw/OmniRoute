@@ -4,11 +4,20 @@ import { socksDispatcher } from "fetch-socks";
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
 
-function getDispatcherCache() {
+function getDispatcherCache(): Map<string, any> {
   if (!globalThis[DISPATCHER_CACHE_KEY]) {
     globalThis[DISPATCHER_CACHE_KEY] = new Map();
   }
   return globalThis[DISPATCHER_CACHE_KEY];
+}
+
+/**
+ * Clear all cached proxy dispatchers.
+ * Call this when proxy configuration changes to avoid stale connections.
+ */
+export function clearDispatcherCache() {
+  const cache = getDispatcherCache();
+  cache.clear();
 }
 
 function defaultPortForProtocol(protocol) {
@@ -96,8 +105,8 @@ export function proxyConfigToUrl(proxyConfig, { allowSocks5 = isSocks5ProxyEnabl
   const proxyUrl = new URL(`${type}://${proxyConfig.host}:${port}`);
 
   if (proxyConfig.username) {
-    proxyUrl.username = proxyConfig.username;
-    proxyUrl.password = proxyConfig.password || "";
+    proxyUrl.username = encodeURIComponent(proxyConfig.username);
+    proxyUrl.password = proxyConfig.password ? encodeURIComponent(proxyConfig.password) : "";
   }
 
   return normalizeProxyUrl(proxyUrl.toString(), "context proxy", { allowSocks5 });

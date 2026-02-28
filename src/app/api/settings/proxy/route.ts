@@ -5,6 +5,7 @@ import {
   deleteProxyForLevel,
   resolveProxyForConnection,
 } from "../../../../lib/localDb";
+import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
@@ -129,6 +130,7 @@ export async function PUT(request) {
     const body = await request.json();
     const normalizedBody = normalizeProxyPayload(body);
     const updated = await setProxyConfig(normalizedBody);
+    clearDispatcherCache();
     return Response.json(updated);
   } catch (error) {
     const status = Number(error?.status) || 500;
@@ -155,6 +157,7 @@ export async function DELETE(request) {
     }
 
     const updated = await deleteProxyForLevel(level, id);
+    clearDispatcherCache();
     return Response.json(updated);
   } catch (error) {
     return Response.json(
