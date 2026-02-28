@@ -107,6 +107,10 @@ jobs:
           for file in *${{ matrix.ext }}; do
             [ -f "$file" ] && cp "$file" ../../release-assets/
           done
+          # Windows: also copy portable standalone exe
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            [ -f "OmniRoute.exe" ] && cp OmniRoute.exe ../../release-assets/
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -160,5 +164,6 @@ jobs:
             release-assets/*.blockmap
             release-assets/*.source.tar.gz
             release-assets/*.source.zip
+            release-assets/OmniRoute.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
