@@ -33,7 +33,6 @@ export default function CLIToolsPageClient({ machineId }) {
   const [apiKeys, setApiKeys] = useState([]);
   const [toolStatuses, setToolStatuses] = useState({});
   const [statusesLoaded, setStatusesLoaded] = useState(false);
-  const [apiBaseUrl, setApiBaseUrl] = useState("");
 
   useEffect(() => {
     fetchConnections();
@@ -48,12 +47,6 @@ export default function CLIToolsPageClient({ machineId }) {
       if (res.ok) {
         const data = await res.json();
         setCloudEnabled(data.cloudEnabled || false);
-        if (typeof window !== "undefined") {
-          const protocol = window.location.protocol;
-          const hostname = window.location.hostname;
-          const apiPort = data?.apiPort || 20128;
-          setApiBaseUrl(`${protocol}//${hostname}:${apiPort}`);
-        }
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
@@ -155,9 +148,8 @@ export default function CLIToolsPageClient({ machineId }) {
     if (cloudEnabled && CLOUD_URL) {
       return CLOUD_URL;
     }
-    if (apiBaseUrl) {
-      return apiBaseUrl;
-    }
+    // Use window.location.origin directly — works correctly in Docker/reverse-proxy
+    // Per @alpgul feedback: don't use baseUrl prop (has port duplication issues)
     if (typeof window !== "undefined") {
       return window.location.origin;
     }
