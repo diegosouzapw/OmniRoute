@@ -107,3 +107,4 @@ app.__qa_backup/
 electron/package-lock.json
 electron/dist-electron/
 electron/node_modules/
+icon.iconset/

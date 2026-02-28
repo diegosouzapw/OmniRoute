@@ -56,7 +56,7 @@ General settings, system storage, backup management (export/import database), ap
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, and Antigravity.
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, and **GitHub Copilot** (config generator for `chatLanguageModels.json`).
 
 ![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 

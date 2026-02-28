@@ -296,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 使用例
-
-### ケース 1: 「Claude Pro サブスクリプションを持っています」
-
-**問題:** 大量のコーディング中にクォータが使用されずに期限切れになり、レート制限が発生する
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### ケース 2: 「コストをゼロにしたい」
-
-**問題:** サブスクリプションを購入する余裕がないため、信頼性の高い AI コーディングが必要です
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### ケース 3: 「24 時間年中無休でコーディングが必要で、中断はありません」
-
-**問題:** 締め切りが迫っており、ダウンタイムを許すことができません
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### ケース 4: 「OpenClaw に無料の AI が欲しい」
-
-**問題:** メッセージング アプリには AI アシスタントが必要ですが、完全に無料です
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 主な機能
 
 ### 🧠 コアルーティングとインテリジェンス
@@ -514,6 +453,67 @@ OmniRoute には、API 翻訳のデバッグ、テスト、監視のための **
 - 安全な暗号化ストレージ
 
 </details>
+
+---
+
+## 🎯 使用例
+
+### ケース 1: 「Claude Pro サブスクリプションを持っています」
+
+**問題:** 大量のコーディング中にクォータが使用されずに期限切れになり、レート制限が発生する
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### ケース 2: 「コストをゼロにしたい」
+
+**問題:** サブスクリプションを購入する余裕がないため、信頼性の高い AI コーディングが必要です
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### ケース 3: 「24 時間年中無休でコーディングが必要で、中断はありません」
+
+**問題:** 締め切りが迫っており、ダウンタイムを許すことができません
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### ケース 4: 「OpenClaw に無料の AI が欲しい」
+
+**問題:** メッセージング アプリには AI アシスタントが必要ですが、完全に無料です
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -796,74 +796,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 利用可能なモデル
-
-<details>
-<summary><b>利用可能なモデルをすべて表示</b></summary>
-
-**クロード コード (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**コーデックス (`cx/`)** - プラス/プロ:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - 無料:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub コパイロット (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - 無料クレジット:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- [build.nvidia.com](https://build.nvidia.com) には 50 以上のモデル
-
-**GLM (`glm/`)** - 0.6 ドル/100 万:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0.2/100 万:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - 無料:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**クウェン (`qw/`)** - 無料:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**キロ (`kr/`)** - 無料:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100 以上のモデル:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- [openrouter.ai/models](https://openrouter.ai/models) の任意のモデル
-
-</details>
-
----
-
 ## 🧪 評価 (Evals)
 
 OmniRoute には、ゴールデン セットに対して LLM 応答品質をテストするための評価フレームワークが組み込まれています。ダッシュボードの **Analytics → Evals** からアクセスします。
@@ -887,7 +819,58 @@ OmniRoute には、ゴールデン セットに対して LLM 応答品質をテ�
 
 ---
 
-## 🔐 サーバーリモートの OAuth (リモート OAuth セットアップ)
+## 🐛 トラブルシューティング
+
+<details>
+<summary><b>クリックしてトラブルシューティング ガイドを展開</b></summary>
+
+**「言語モデルがメッセージを提供しませんでした」**
+
+- プロバイダー クォータが枯渇した → ダッシュボード クォータ トラッカーを確認してください
+- 解決策: コンボフォールバックを使用するか、より安価なレベルに切り替える
+
+**レート制限**
+
+- サブスクリプション クォータ アウト → GLM/MiniMax へのフォールバック
+- コンボを追加: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**OAuth トークンの有効期限が切れました**
+
+- OmniRouteによる自動更新
+- 問題が解決しない場合: ダッシュボード → プロバイダー → 再接続
+
+**高コスト**
+
+- [ダッシュボード] → [コスト] で使用状況の統計を確認します。
+- プライマリ モデルを GLM/MiniMax に切り替えます
+- 重要ではないタスクには無料枠 (Gemini CLI、iFlow) を使用する
+
+**ダッシュボードが間違ったポートで開きます**
+
+- `PORT=20128` および `NEXT_PUBLIC_BASE_URL=http://localhost:20128` を設定します
+
+**クラウド同期エラー**
+
+- `BASE_URL` が実行中のインスタンスを指していることを確認します
+- `CLOUD_URL` が予想されるクラウド エンドポイントを指していることを確認します
+- `NEXT_PUBLIC_*` 値をサーバー側の値と一致させます。
+
+**最初のログインが機能しない**
+
+- `.env` の `INITIAL_PASSWORD` を確認してください
+- 設定されていない場合、フォールバック パスワードは `123456` です
+
+**リクエストログなし**
+
+- `.env` に `ENABLE_REQUEST_LOGS=true` を設定します
+
+**OpenAI 互換プロバイダーの接続テストで「無効」と表示される**
+
+- 多くのプロバイダーは `/models` エンドポイントを公開していません
+- OmniRoute v1.0.6+ には、チャット完了によるフォールバック検証が含まれています
+- ベース URL に `/v1` サフィックスが含まれていることを確認してください
+
+### 🔐 サーバーリモートの OAuth (リモート OAuth セットアップ)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -977,59 +960,6 @@ docker restart omniroute
 5. クリーク**「接続」**
 
 > 自動回避策の機能は URL から独立してリダイレクトされます。
-
----
-
-## 🐛 トラブルシューティング
-
-<details>
-<summary><b>クリックしてトラブルシューティング ガイドを展開</b></summary>
-
-**「言語モデルがメッセージを提供しませんでした」**
-
-- プロバイダー クォータが枯渇した → ダッシュボード クォータ トラッカーを確認してください
-- 解決策: コンボフォールバックを使用するか、より安価なレベルに切り替える
-
-**レート制限**
-
-- サブスクリプション クォータ アウト → GLM/MiniMax へのフォールバック
-- コンボを追加: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth トークンの有効期限が切れました**
-
-- OmniRouteによる自動更新
-- 問題が解決しない場合: ダッシュボード → プロバイダー → 再接続
-
-**高コスト**
-
-- [ダッシュボード] → [コスト] で使用状況の統計を確認します。
-- プライマリ モデルを GLM/MiniMax に切り替えます
-- 重要ではないタスクには無料枠 (Gemini CLI、iFlow) を使用する
-
-**ダッシュボードが間違ったポートで開きます**
-
-- `PORT=20128` および `NEXT_PUBLIC_BASE_URL=http://localhost:20128` を設定します
-
-**クラウド同期エラー**
-
-- `BASE_URL` が実行中のインスタンスを指していることを確認します
-- `CLOUD_URL` が予想されるクラウド エンドポイントを指していることを確認します
-- `NEXT_PUBLIC_*` 値をサーバー側の値と一致させます。
-
-**最初のログインが機能しない**
-
-- `.env` の `INITIAL_PASSWORD` を確認してください
-- 設定されていない場合、フォールバック パスワードは `123456` です
-
-**リクエストログなし**
-
-- `.env` に `ENABLE_REQUEST_LOGS=true` を設定します
-
-**OpenAI 互換プロバイダーの接続テストで「無効」と表示される**
-
-- 多くのプロバイダーは `/models` エンドポイントを公開していません
-- OmniRoute v1.0.6+ には、チャット完了によるフォールバック検証が含まれています
-- ベース URL に `/v1` サフィックスが含まれていることを確認してください
 
 </details>
 

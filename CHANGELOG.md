@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.7] — 2026-02-28
+
+### ✨ New Feature
+
+- **GitHub Copilot Configuration Generator** — New tool on the CLI Tools dashboard page. Select models and generate the `chatLanguageModels.json` config block for VS Code GitHub Copilot using the Azure vendor pattern. Features: bulk model selection from `/v1/models` (includes combos/custom), search/filter, configurable tokens/tool-calling/vision, one-click copy, persistent selection via localStorage. Version compatibility warning for VS Code ≥ 1.109 / Copilot Chat ≥ v0.37 ([#142](https://github.com/diegosouzapw/OmniRoute/issues/142))
+
+### 🧹 Housekeeping
+
+- Added `electron/dist-electron/` to `.gitignore` (build artifact)
+
+---
+
+## [1.6.6] — 2026-02-28
+
+### 🔒 Security Fix
+
+- **Auth bypass after onboarding** — Fixed regression where users could access the dashboard without authentication after upgrading from older versions. The "no password" safeguard (for fresh installs) was incorrectly firing after onboarding was complete, allowing unauthenticated access when `setupComplete=true` but the password DB row was missing ([#151](https://github.com/diegosouzapw/OmniRoute/issues/151))
+
+---
+
+## [1.6.5] — 2026-02-28
+
+### 🖥️ Electron Desktop
+
+- **Official app icons** — Added proper platform-specific icons derived from the OmniRoute SVG logo: `.icns` (macOS), `.ico` (Windows), `.png` (Linux), and `tray-icon.png` (32×32) — via PR [#154](https://github.com/diegosouzapw/OmniRoute/pull/154)
+- **Automated release workflow** — New GitHub Actions workflow (`electron-release.yml`) builds Electron for Windows/macOS/Linux on every GitHub release publish
+- **CI fix** — Changed `npm ci` → `npm install` in the Electron build step since `electron/package-lock.json` is `.gitignored`
+
+### 📖 Documentation
+
+- **Desktop App section** — Added to all 30 README files (9 fully translated: PT-BR, ES, FR, DE, ZH-CN, JA, RU, KO, AR)
+- **Electron Fix Plan** — Published detailed code review and fix documentation at `docs/ELECTRON_FIX_PLAN.md`
+
+### 🐛 Issue Triage
+
+- **#151** — Auth bypass after v1.6.3 upgrade — triaged, requesting more info from reporter
+- **#142** — Copilot Config Generator — previously triaged, 5 comments
+
+---
+
 ## [1.6.4] — 2026-02-28
 
 ### 🖥️ Electron Desktop — Code Review Hardening (16 Fixes)

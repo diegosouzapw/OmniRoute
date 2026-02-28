@@ -3,8 +3,6 @@
   
   # 🚀 OmniRoute — Ang Libreng AI Gateway
 
-🌐 **[English](#-omniroute--the-free-ai-gateway)** | **[Português (BR)](#-omniroute--gateway-de-ia-gratuito)**
-
 ### Huwag kailanman ihinto ang coding. Smart routing sa **LIBRE at murang mga modelo ng AI** na may awtomatikong fallback.
 
 _Iyong unibersal na API proxy — isang endpoint, 36+ provider, zero downtime._
@@ -298,67 +296,6 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ---
 
-## 🎯 Use Cases
-
-### Case 1: "May subscription ako sa Claude Pro"
-
-**Problema:** Nag-e-expire ang quota nang hindi nagamit, mga limitasyon sa rate sa panahon ng mabigat na coding
-
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### Case 2: "Gusto ko ng zero cost"
-
-**Problema:** Hindi kayang bayaran ang mga subscription, kailangan ng maaasahang AI coding
-
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### Case 3: "Kailangan ko ng 24/7 coding, walang mga pagkaantala"
-
-**Problema:** Mga deadline, hindi kayang bayaran ang downtime
-
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-```
-
-### Kaso 4: "Gusto ko ng LIBRENG AI sa OpenClaw"
-
-**Problema:** Kailangan ng AI assistant sa mga app sa pagmemensahe, ganap na libre
-
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
 ## 💡 Mga Pangunahing Tampok
 
 ### 🧠 Core Routing at Intelligence
@@ -516,6 +453,67 @@ Kasama sa OmniRoute ang isang malakas na built-in na Playground ng Translator na
 - Secure na naka-encrypt na imbakan
 
 </details>
+
+---
+
+## 🎯 Use Cases
+
+### Case 1: "May subscription ako sa Claude Pro"
+
+**Problema:** Nag-e-expire ang quota nang hindi nagamit, mga limitasyon sa rate sa panahon ng mabigat na coding
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Case 2: "Gusto ko ng zero cost"
+
+**Problema:** Hindi kayang bayaran ang mga subscription, kailangan ng maaasahang AI coding
+
+```
+Combo: "free-forever"
+  1. gc/gemini-3-flash         (180K free/month)
+  2. if/kimi-k2-thinking       (unlimited free)
+  3. qw/qwen3-coder-plus       (unlimited free)
+
+Monthly cost: $0
+Quality: Production-ready models
+```
+
+### Case 3: "Kailangan ko ng 24/7 coding, walang mga pagkaantala"
+
+**Problema:** Mga deadline, hindi kayang bayaran ang downtime
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
+
+Result: 5 layers of fallback = zero downtime
+```
+
+### Kaso 4: "Gusto ko ng LIBRENG AI sa OpenClaw"
+
+**Problema:** Kailangan ng AI assistant sa mga app sa pagmemensahe, ganap na libre
+
+```
+Combo: "openclaw-free"
+  1. if/glm-4.7                (unlimited free)
+  2. if/minimax-m2.1           (unlimited free)
+  3. if/kimi-k2-thinking       (unlimited free)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
 
 ---
 
@@ -799,74 +797,6 @@ Settings → API Configuration:
 
 ---
 
-## 📊 Mga Magagamit na Modelo
-
-<details>
-<summary><b>Tingnan ang lahat ng available na modelo</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max:
-
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro:
-
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**Gemini CLI (`gc/`)** - LIBRE:
-
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
-
-**GitHub Copilot (`gh/`)**:
-
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
-
-**NVIDIA NIM (`nvidia/`)** - LIBRENG mga kredito:
-
-- `nvidia/llama-3.3-70b-instruct`
-- `nvidia/mistral-7b-instruct`
-- 50+ pang mga modelo sa [build.nvidia.com](https://build.nvidia.com)
-
-**GLM (`glm/`)** - $0.6/1M:
-
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - $0.2/1M:
-
-- `minimax/MiniMax-M2.1`
-
-**iFlow (`if/`)** - LIBRE:
-
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
-- `if/glm-4.7`
-- `if/minimax-m2`
-
-**Qwen (`qw/`)** - LIBRE:
-
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
-
-**Kiro (`kr/`)** - LIBRE:
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-
-**OpenRouter (`or/`)** - 100+ na modelo:
-
-- `or/anthropic/claude-4-sonnet`
-- `or/google/gemini-2.5-pro`
-- Anumang modelo mula sa [openrouter.ai/models](https://openrouter.ai/models)
-
-</details>
-
----
-
 ## 🧪 Mga Pagsusuri (Evals)
 
 Ang OmniRoute ay may kasamang built-in na balangkas ng pagsusuri upang subukan ang kalidad ng pagtugon ng LLM laban sa isang ginintuang hanay. I-access ito sa pamamagitan ng **Analytics → Evals** sa dashboard.
@@ -890,7 +820,58 @@ Ang pre-loaded na "OmniRoute Golden Set" ay naglalaman ng 10 test case na sumasa
 
 ---
 
-## 🔐 OAuth em Servidor Remoto (Remote OAuth Setup)
+## 🐛 Pag-troubleshoot
+
+<details>
+<summary><b>Mag-click upang palawakin ang gabay sa pag-troubleshoot</b></summary>
+
+**"Ang modelo ng wika ay hindi nagbigay ng mga mensahe"**
+
+- Naubos na ang quota ng provider → Suriin ang tracker ng quota ng dashboard
+- Solusyon: Gumamit ng combo fallback o lumipat sa mas murang tier
+
+**Paglilimita sa rate**
+
+- Out na ang quota ng subscription → Fallback sa GLM/MiniMax
+- Magdagdag ng combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+
+**Nag-expire ang token ng OAuth**
+
+- Auto-refresh ng OmniRoute
+- Kung magpapatuloy ang mga isyu: Dashboard → Provider → Muling kumonekta
+
+**Mataas na gastos**
+
+- Suriin ang mga istatistika ng paggamit sa Dashboard → Mga Gastos
+- Ilipat ang pangunahing modelo sa GLM/MiniMax
+- Gumamit ng libreng tier (Gemini CLI, iFlow) para sa mga hindi kritikal na gawain
+
+**Nagbubukas ang dashboard sa maling port**
+
+- Itakda ang `PORT=20128` at `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+
+**Mga error sa cloud sync**
+
+- I-verify ang `BASE_URL` na mga puntos sa iyong running instance
+- I-verify ang `CLOUD_URL` na mga puntos sa iyong inaasahang cloud endpoint
+- Panatilihing nakahanay ang mga value ng `NEXT_PUBLIC_*` sa mga value sa gilid ng server
+
+**Hindi gumagana ang unang pag-login**
+
+- Suriin ang `INITIAL_PASSWORD` sa `.env`
+- Kung hindi nakatakda, ang fallback na password ay `123456`
+
+**Walang mga log ng kahilingan**
+
+- Itakda ang `ENABLE_REQUEST_LOGS=true` sa `.env`
+
+**Ang pagsubok sa koneksyon ay nagpapakita ng "Di-wasto" para sa mga provider na katugma sa OpenAI**
+
+- Maraming provider ang hindi naglalantad ng `/models` endpoint
+- Kasama sa OmniRoute v1.0.6+ ang fallback validation sa pamamagitan ng mga pagkumpleto ng chat
+- Tiyaking may kasamang `/v1` suffix ang base URL
+
+### 🔐 OAuth em Servidor Remoto (Remote OAuth Setup)
 
 <a name="oauth-em-servidor-remoto"></a>
 
@@ -969,7 +950,7 @@ Agora o Google redirectionará corretamente para sa `https://seu-servidor.com/ca
 
 ---
 
-### Workaround temporário (sem configurar credenciais próprias)
+#### Workaround temporário (sem configurar credenciais próprias)
 
 Se não quiser criar credenciais próprias agora, may posibilidad na magamit o fluxo **manual de URL**:
 
@@ -980,59 +961,6 @@ Se não quiser criar credenciais próprias agora, may posibilidad na magamit o f
 5. Clique em **"Kumonekta"**
 
 > Ang workaround na ito ay gumagana sa pamamagitan ng código de authorização na URL ay maaaring mag-redirect sa iyong carregado ou não.
-
----
-
-## 🐛 Pag-troubleshoot
-
-<details>
-<summary><b>Mag-click upang palawakin ang gabay sa pag-troubleshoot</b></summary>
-
-**"Ang modelo ng wika ay hindi nagbigay ng mga mensahe"**
-
-- Naubos na ang quota ng provider → Suriin ang tracker ng quota ng dashboard
-- Solusyon: Gumamit ng combo fallback o lumipat sa mas murang tier
-
-**Paglilimita sa rate**
-
-- Out na ang quota ng subscription → Fallback sa GLM/MiniMax
-- Magdagdag ng combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**Nag-expire ang token ng OAuth**
-
-- Auto-refresh ng OmniRoute
-- Kung magpapatuloy ang mga isyu: Dashboard → Provider → Muling kumonekta
-
-**Mataas na gastos**
-
-- Suriin ang mga istatistika ng paggamit sa Dashboard → Mga Gastos
-- Ilipat ang pangunahing modelo sa GLM/MiniMax
-- Gumamit ng libreng tier (Gemini CLI, iFlow) para sa mga hindi kritikal na gawain
-
-**Nagbubukas ang dashboard sa maling port**
-
-- Itakda ang `PORT=20128` at `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-
-**Mga error sa cloud sync**
-
-- I-verify ang `BASE_URL` na mga puntos sa iyong running instance
-- I-verify ang `CLOUD_URL` na mga puntos sa iyong inaasahang cloud endpoint
-- Panatilihing nakahanay ang mga value ng `NEXT_PUBLIC_*` sa mga value sa gilid ng server
-
-**Hindi gumagana ang unang pag-login**
-
-- Suriin ang `INITIAL_PASSWORD` sa `.env`
-- Kung hindi nakatakda, ang fallback na password ay `123456`
-
-**Walang mga log ng kahilingan**
-
-- Itakda ang `ENABLE_REQUEST_LOGS=true` sa `.env`
-
-**Ang pagsubok sa koneksyon ay nagpapakita ng "Di-wasto" para sa mga provider na katugma sa OpenAI**
-
-- Maraming provider ang hindi naglalantad ng `/models` endpoint
-- Kasama sa OmniRoute v1.0.6+ ang fallback validation sa pamamagitan ng mga pagkumpleto ng chat
-- Tiyaking may kasamang `/v1` suffix ang base URL
 
 </details>
 
@@ -1173,85 +1101,6 @@ Espesyal na salamat sa **[CLIProxyAPI](https://github.com/router-for-me/CLIProxy
 ## 📄 Lisensya
 
 Lisensya ng MIT - tingnan ang [LICENSE](LICENSE) para sa mga detalye.
-
----
-
----
-
-## 🇧🇷 OmniRoute — Gateway de IA Gratuito
-
-<a name="-omniroute--gateway-de-ia-gratuito"></a>
-
-### Nunca pare de codar. Roteamento intelligente para **modelos de IA GRATUITOS e de baixo custo** com fallback automático.
-
-_Seu proxy universal de API — um endpoint, 36+ provedores, zero downtime._
-
-### 🌐 Internacionalização (i18n)
-
-O dashboard ng OmniRoute suporta **multiplos idiomas**. Ibigay ang mga ito:
-
-| Idyoma                | Código  | Katayuan    |
-| --------------------- | ------- | ----------- |
-| 🇺🇸 Ingles             | `en`    | ✅ Kumpleto |
-| 🇧🇷 Português (Brasil) | `pt-BR` | ✅ Kumpleto |
-
-**Para trocar o idioma:** Clique no seletor de idioma (🇺🇸 EN) walang header do dashboard → selecione o idioma desejado.
-
-**Para adicionar um novo idioma:**
-
-1. Sumigaw `src/i18n/messages/{codigo}.json` baseado em `en.json`
-2. Addicione o código em `src/i18n/config.ts` → `LOCALES` e `LANGUAGES`
-3. Reinicie o servidor
-
-### ⚡ Início Rápido
-
-```bash
-# Instalar via npm
-npx omniroute@latest
-
-# Ou rodar do código-fonte
-cp .env.example .env
-npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
-
-### 🐳 Docker
-
-```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
-```
-
-### 🔑 Funcionalidades Principais
-
-- **36+ provedores de IA** — Claude, GPT, Gemini, Llama, Qwen, DeepSeek, at iba pa
-- **Roteamento intelligente** — Fallback automatico entre provedores
-- **Tradução de formato** — OpenAI ↔ Claude ↔ Gemini automaticamente
-- **Multi-conta** — Múltiplas contas por provedor com seleção intelligente
-- **Cache semântico** — Reduz custos at latência
-- **OAuth automático** — Token renovam automaticamente
-- **Combos personalizados** — 6 estratégias de roteamento
-- **Dashboard completo** — Monitoramento, logs, análises, configurações
-- **CLI Tools** — I-configure ang Claude Code, Codex, Cursor, Cline com um clique
-- **100% TypeScript** — Código limpo at tipado
-
-### 📖 Documentação
-
-| Dokumento                                       | Paglalarawan                                |
-| ----------------------------------------------- | ------------------------------------------- |
-| [Guia do Usuário](docs/USER_GUIDE.md)           | Provedores, combos, CLI, deploy             |
-| [Referência da API](docs/API_REFERENCE.md)      | Todos os endpoints com exemplos             |
-| [Solução de Problemas](docs/TROUBLESHOOTING.md) | Problema communs at soluções                |
-| [Arquitetura](docs/ARCHITECTURE.md)             | Arquitetura at internos do sistema          |
-| [Contribuição](CONTRIBUTING.md)                 | Setup ng desenvolvimento at mga alituntunin |
-| [Deploy em VM](docs/VM_DEPLOYMENT_GUIDE.md)     | Guia completo: VM + nginx + Cloudflare      |
-
-### 📧 Suporta
-
-> 💬 **Entre para a comunidade!** [Grupo WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Tire dúvidas, compartilhe dicas e fique atualizado.
-
-- **Website**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Mga Isyu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 
 ---
 
