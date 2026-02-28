@@ -51,6 +51,38 @@ console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
 
+// ── Step 5.5: Sanitize hardcoded build-machine paths ───────
+// Next.js standalone bakes absolute build-time paths into server.js and
+// required-server-files.json (outputFileTracingRoot, appDir, turbopack root).
+// Replace the build machine's absolute path with "." (current directory)
+// so paths resolve relative to wherever the standalone app/ is installed.
+console.log("  🧹 Sanitizing build-machine paths...");
+const buildRoot = ROOT.replace(/\\/g, "/"); // normalise for regex safety
+const sanitizeTargets = [
+  join(APP_DIR, "server.js"),
+  join(APP_DIR, ".next", "required-server-files.json"),
+];
+let sanitisedCount = 0;
+for (const filePath of sanitizeTargets) {
+  if (!existsSync(filePath)) continue;
+  let content = readFileSync(filePath, "utf8");
+  // Escape special regex characters in the path
+  const escaped = buildRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(escaped, "g");
+  const matches = content.match(re);
+  if (matches) {
+    // Replace with "." so Next.js resolves paths relative to the standalone dir
+    content = content.replace(re, ".");
+    writeFileSync(filePath, content);
+    sanitisedCount += matches.length;
+  }
+}
+if (sanitisedCount > 0) {
+  console.log(`  ✅ Sanitised ${sanitisedCount} hardcoded path references`);
+} else {
+  console.log("  ℹ️  No hardcoded paths found to sanitise");
+}
+
 // ── Step 6: Copy static assets ─────────────────────────────
 const staticSrc = join(ROOT, ".next", "static");
 const staticDest = join(APP_DIR, ".next", "static");
