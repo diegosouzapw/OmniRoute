@@ -12,14 +12,68 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { homedir, platform } from "node:os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 const APP_DIR = join(ROOT, "app");
+
+// ── Load .env file (for global npm install) ─────────────────
+function loadEnvFile() {
+  const envPaths = [];
+
+  // 1. DATA_DIR/.env if set
+  if (process.env.DATA_DIR) {
+    envPaths.push(join(process.env.DATA_DIR, ".env"));
+  }
+
+  // 2. ~/.omniroute/.env (default data dir)
+  const home = homedir();
+  if (home) {
+    if (platform() === "win32") {
+      const appData = process.env.APPDATA || join(home, "AppData", "Roaming");
+      envPaths.push(join(appData, "omniroute", ".env"));
+    } else {
+      envPaths.push(join(home, ".omniroute", ".env"));
+    }
+  }
+
+  // 3. ./.env (current working directory)
+  envPaths.push(join(process.cwd(), ".env"));
+
+  for (const envPath of envPaths) {
+    try {
+      if (existsSync(envPath)) {
+        const content = readFileSync(envPath, "utf-8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          // Skip empty lines and comments
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const eqIdx = trimmed.indexOf("=");
+          if (eqIdx > 0) {
+            const key = trimmed.slice(0, eqIdx).trim();
+            const value = trimmed.slice(eqIdx + 1).trim();
+            // Don't override existing env vars
+            if (process.env[key] === undefined) {
+              // Remove surrounding quotes
+              process.env[key] = value.replace(/^["']|["']$/g, "");
+            }
+          }
+        }
+        console.log(`  \x1b[2m📋 Loaded env from ${envPath}\x1b[0m`);
+        return;
+      }
+    } catch {
+      // Ignore errors reading env files
+    }
+  }
+}
+
+loadEnvFile();
 
 // ── Parse args ─────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -34,6 +88,10 @@ if (args.includes("--help") || args.includes("-h")) {
     omniroute --no-open       Don't open browser automatically
     omniroute --help          Show this help
     omniroute --version       Show version
+
+  \x1b[1mConfig:\x1b[0m
+    Loads .env from: ~/.omniroute/.env or ./.env
+    Memory limit: OMNIROUTE_MEMORY_MB (default: 256)
 
   \x1b[1mAfter starting:\x1b[0m
     Dashboard:  http://localhost:<dashboard-port>
@@ -83,11 +141,11 @@ const noOpen = args.includes("--no-open");
 // ── Banner ─────────────────────────────────────────────────
 console.log(`
 \x1b[36m   ____                  _ ____              _
-  / __ \\                (_) __ \\            | |
- | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
- | |  | | '_ \` _ \\| '_ \\ |  _  // _ \\| | | | __/ _ \\
- | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
-  \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
+   / __ \\                (_) __ \\            | |
+  | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
+  | |  | | '_ \` _ \\| '_ \\ |  _  // _ \\| | | | __/ _ \\
+  | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
+   \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
 \x1b[0m`);
 
 // ── Node.js version check ──────────────────────────────────
@@ -117,6 +175,8 @@ if (!existsSync(serverJs)) {
 // ── Start server ───────────────────────────────────────────
 console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
+const memoryLimit = process.env.OMNIROUTE_MEMORY_MB || "256";
+
 const env = {
   ...process.env,
   OMNIROUTE_PORT: String(port),
@@ -125,9 +185,10 @@ const env = {
   API_PORT: String(apiPort),
   HOSTNAME: "0.0.0.0",
   NODE_ENV: "production",
+  NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
 };
 
-const server = spawn("node", [serverJs], {
+const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
   cwd: APP_DIR,
   env,
   stdio: "pipe",

@@ -16,14 +16,15 @@ import { getDbInstance } from "./db/core";
 
 // ─── Singleton ─────────────────
 
-let memoryCache;
+let memoryCache: LRUCache | null = null;
 let stats = { hits: 0, misses: 0, tokensSaved: 0 };
 
 function getMemoryCache() {
   if (!memoryCache) {
     memoryCache = new LRUCache({
-      maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "500", 10),
-      defaultTTL: parseInt(process.env.SEMANTIC_CACHE_TTL_MS || "3600000", 10), // 1h
+      maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "100", 10),
+      maxBytes: parseInt(process.env.SEMANTIC_CACHE_MAX_BYTES || String(4 * 1024 * 1024), 10),
+      defaultTTL: parseInt(process.env.SEMANTIC_CACHE_TTL_MS || "1800000", 10),
     });
   }
   return memoryCache;

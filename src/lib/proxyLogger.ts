@@ -11,7 +11,7 @@ import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
-const MAX_ENTRIES = 500;
+const MAX_ENTRIES = parseInt(process.env.PROXY_LOG_MAX_ENTRIES || "200", 10);
 
 interface ProxyInfo {
   type: string;

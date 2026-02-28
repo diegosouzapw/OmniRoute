@@ -12,7 +12,7 @@ import fs from "fs";
 import { getDbInstance } from "../db/core";
 import { shouldPersistToDisk, CALL_LOGS_DIR } from "./migrations";
 
-const CALL_LOGS_MAX = 500;
+const CALL_LOGS_MAX = parseInt(process.env.CALL_LOGS_MAX || "200", 10);
 const LOG_RETENTION_DAYS = parseInt(process.env.LOG_RETENTION_DAYS || "7", 10);
 
 /** Fields that should always be redacted from logged payloads */

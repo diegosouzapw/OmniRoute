@@ -173,7 +173,7 @@ export class StreamTracker {
 // ─── Active Stream Registry ─────────────────
 
 const activeStreams = new Map<string, StreamTracker>();
-const MAX_COMPLETED_HISTORY = 100;
+const MAX_COMPLETED_HISTORY = parseInt(process.env.STREAM_HISTORY_MAX || "50", 10);
 const completedStreams: ReturnType<StreamTracker["getSummary"]>[] = [];
 
 /**
