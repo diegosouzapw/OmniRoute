@@ -24,6 +24,12 @@
     "appId": "online.omniroute.desktop",
     "productName": "OmniRoute",
     "copyright": "Copyright © 2025 OmniRoute",
+    "protocols": [
+      {
+        "name": "OmniRoute",
+        "schemes": ["omniroute"]
+      }
+    ],
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"

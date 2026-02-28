@@ -10,6 +10,21 @@ const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
 
+// Single instance lock - prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+  process.exit(0);
+}
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  }
+});
+
 // Environment detection
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 const isProduction = !isDev;
@@ -224,7 +239,14 @@ function setupIpcHandlers() {
 
   // Open external URL
   ipcMain.handle('open-external', (event, url) => {
-    shell.openExternal(url);
+    try {
+      const parsedUrl = new URL(url);
+      if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+        shell.openExternal(url);
+      }
+    } catch {
+      console.error('Invalid URL:', url);
+    }
   });
 
   // Get data directory
@@ -239,6 +261,25 @@ function setupIpcHandlers() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     startNextServer();
     return { success: true };
+  });
+
+  // Window controls
+  ipcMain.on('window-minimize', () => {
+    mainWindow?.minimize();
+  });
+
+  ipcMain.on('window-maximize', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+
+  ipcMain.on('window-close', () => {
+    mainWindow?.close();
   });
 }
 
