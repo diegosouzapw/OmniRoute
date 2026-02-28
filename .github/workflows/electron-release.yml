@@ -121,12 +121,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: release-assets
           merge-multiple: true
+
+      - name: Create source archives
+        run: |
+          # Create source code archives (excluding dev dependencies and build artifacts)
+          export TARBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.tar.gz"
+          export ZIPBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.zip"
+          
+          # Use git archive for clean source export
+          git archive --format=tar.gz --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$TARBALL"
+          git archive --format=zip --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$ZIPBALL"
+          
+          echo "✓ Created source archives:"
+          ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"
 
       - name: List release files
         run: ls -la release-assets/
@@ -143,5 +158,7 @@ jobs:
             release-assets/*.exe
             release-assets/*.AppImage
             release-assets/*.blockmap
+            release-assets/*.source.tar.gz
+            release-assets/*.source.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
