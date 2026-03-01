@@ -21,6 +21,42 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { errorResponse } from "../utils/error.ts";
 
 /**
+ * Return a CORS error response from an upstream fetch failure
+ */
+function upstreamErrorResponse(res, errText) {
+  return new Response(errText, {
+    status: res.status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": getCorsOrigin(),
+    },
+  });
+}
+
+/**
+ * Return a CORS audio stream response
+ */
+function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
+  const contentType = res.headers.get("content-type") || defaultContentType;
+  return new Response(res.body, {
+    status: 200,
+    headers: {
+      "Content-Type": contentType,
+      "Access-Control-Allow-Origin": getCorsOrigin(),
+      "Transfer-Encoding": "chunked",
+    },
+  });
+}
+
+/**
+ * Validate a path segment to prevent path traversal / SSRF.
+ * Returns true if safe, false if it contains traversal sequences.
+ */
+function isValidPathSegment(segment: string): boolean {
+  return !segment.includes("..") && !segment.includes("//");
+}
+
+/**
  * Handle Hyperbolic TTS (returns base64 audio in JSON)
  */
 async function handleHyperbolicSpeech(providerConfig, body, token) {
@@ -34,14 +70,7 @@ async function handleHyperbolicSpeech(providerConfig, body, token) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const data = await res.json();
@@ -74,25 +103,10 @@ async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
-  const contentType = res.headers.get("content-type") || "audio/mpeg";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-      "Transfer-Encoding": "chunked",
-    },
-  });
+  return audioStreamResponse(res);
 }
 
 /**
@@ -103,6 +117,9 @@ async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
 async function handleElevenLabsSpeech(providerConfig, body, modelId, token) {
   // ElevenLabs uses voice_id in URL path; default to "21m00Tcm4TlvDq8ikWAM" (Rachel)
   const voiceId = body.voice || "21m00Tcm4TlvDq8ikWAM";
+  if (!isValidPathSegment(voiceId)) {
+    return errorResponse(400, "Invalid voice ID");
+  }
   const url = `${providerConfig.baseUrl}/${voiceId}`;
 
   const res = await fetch(url, {
@@ -118,25 +135,10 @@ async function handleElevenLabsSpeech(providerConfig, body, modelId, token) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
-  const contentType = res.headers.get("content-type") || "audio/mpeg";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-      "Transfer-Encoding": "chunked",
-    },
-  });
+  return audioStreamResponse(res);
 }
 
 /**
@@ -158,25 +160,10 @@ async function handleNvidiaTtsSpeech(providerConfig, body, modelId, token) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
-  const contentType = res.headers.get("content-type") || "audio/wav";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-      "Transfer-Encoding": "chunked",
-    },
-  });
+  return audioStreamResponse(res, "audio/wav");
 }
 
 /**
@@ -184,6 +171,9 @@ async function handleNvidiaTtsSpeech(providerConfig, body, modelId, token) {
  * POST {baseUrl}/{model_id} with { inputs: text } → audio binary
  */
 async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) {
+  if (!isValidPathSegment(modelId)) {
+    return errorResponse(400, "Invalid model ID");
+  }
   const url = `${providerConfig.baseUrl}/${modelId}`;
 
   const res = await fetch(url, {
@@ -196,32 +186,17 @@ async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) 
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
-  const contentType = res.headers.get("content-type") || "audio/wav";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-      "Transfer-Encoding": "chunked",
-    },
-  });
+  return audioStreamResponse(res, "audio/wav");
 }
 
 /**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
-async function handleCoquiSpeech(providerConfig, body, modelId) {
+async function handleCoquiSpeech(providerConfig, body) {
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -232,14 +207,7 @@ async function handleCoquiSpeech(providerConfig, body, modelId) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const contentType = res.headers.get("content-type") || "audio/wav";
@@ -256,7 +224,7 @@ async function handleCoquiSpeech(providerConfig, body, modelId) {
  * Handle Tortoise TTS (local, no auth)
  * POST {baseUrl} with { text, voice } → audio binary
  */
-async function handleTortoiseSpeech(providerConfig, body, modelId) {
+async function handleTortoiseSpeech(providerConfig, body) {
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -267,14 +235,7 @@ async function handleTortoiseSpeech(providerConfig, body, modelId) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const contentType = res.headers.get("content-type") || "audio/wav";
@@ -343,11 +304,11 @@ export async function handleAudioSpeech({ body, credentials }) {
     }
 
     if (providerConfig.format === "coqui") {
-      return handleCoquiSpeech(providerConfig, body, modelId);
+      return handleCoquiSpeech(providerConfig, body);
     }
 
     if (providerConfig.format === "tortoise") {
-      return handleTortoiseSpeech(providerConfig, body, modelId);
+      return handleTortoiseSpeech(providerConfig, body);
     }
 
     // Default: OpenAI-compatible JSON → audio stream proxy (also used by Qwen3)
@@ -367,26 +328,10 @@ export async function handleAudioSpeech({ body, credentials }) {
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return new Response(errText, {
-        status: res.status,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": getCorsOrigin(),
-        },
-      });
+      return upstreamErrorResponse(res, await res.text());
     }
 
-    // Stream audio response back to client
-    const contentType = res.headers.get("content-type") || "audio/mpeg";
-    return new Response(res.body, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-        "Transfer-Encoding": "chunked",
-      },
-    });
+    return audioStreamResponse(res);
   } catch (err) {
     return errorResponse(500, `Speech request failed: ${err.message}`);
   }

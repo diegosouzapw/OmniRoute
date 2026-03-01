@@ -99,6 +99,7 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     baseUrl: "http://localhost:8000/v1/audio/transcriptions",
     authType: "none",
     authHeader: "none",
+    format: "openai",
     models: [
       { id: "qwen3-asr", name: "Qwen3 ASR" },
     ],
@@ -203,6 +204,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     baseUrl: "http://localhost:8000/v1/audio/speech",
     authType: "none",
     authHeader: "none",
+    format: "openai",
     models: [
       { id: "qwen3-tts", name: "Qwen3 TTS" },
     ],

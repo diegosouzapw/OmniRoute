@@ -18,6 +18,26 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { errorResponse } from "../utils/error.ts";
 
 /**
+ * Return a CORS error response from an upstream fetch failure
+ */
+function upstreamErrorResponse(res, errText) {
+  return new Response(errText, {
+    status: res.status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": getCorsOrigin(),
+    },
+  });
+}
+
+/**
+ * Validate a path segment to prevent path traversal / SSRF.
+ */
+function isValidPathSegment(segment: string): boolean {
+  return !segment.includes("..") && !segment.includes("//");
+}
+
+/**
  * Handle Deepgram transcription (raw binary audio, model via query param)
  */
 async function handleDeepgramTranscription(providerConfig, file, modelId, token) {
@@ -37,14 +57,7 @@ async function handleDeepgramTranscription(providerConfig, file, modelId, token)
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const data = await res.json();
@@ -72,14 +85,7 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
   });
 
   if (!uploadRes.ok) {
-    const errText = await uploadRes.text();
-    return new Response(errText, {
-      status: uploadRes.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(uploadRes, await uploadRes.text());
   }
 
   const { upload_url } = await uploadRes.json();
@@ -99,14 +105,7 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
   });
 
   if (!submitRes.ok) {
-    const errText = await submitRes.text();
-    return new Response(errText, {
-      status: submitRes.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(submitRes, await submitRes.text());
   }
 
   const { id: transcriptId } = await submitRes.json();
@@ -155,14 +154,7 @@ async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const data = await res.json();
@@ -177,6 +169,9 @@ async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
  * POST raw binary audio to {baseUrl}/{model_id}, returns { text }
  */
 async function handleHuggingFaceTranscription(providerConfig, file, modelId, token) {
+  if (!isValidPathSegment(modelId)) {
+    return errorResponse(400, "Invalid model ID");
+  }
   const url = `${providerConfig.baseUrl}/${modelId}`;
   const arrayBuffer = await file.arrayBuffer();
 
@@ -190,14 +185,7 @@ async function handleHuggingFaceTranscription(providerConfig, file, modelId, tok
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const data = await res.json();
@@ -291,14 +279,7 @@ export async function handleAudioTranscription({ formData, credentials }) {
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return new Response(errText, {
-        status: res.status,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": getCorsOrigin(),
-        },
-      });
+      return upstreamErrorResponse(res, await res.text());
     }
 
     const data = await res.text();

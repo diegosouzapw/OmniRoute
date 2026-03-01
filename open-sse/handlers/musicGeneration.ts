@@ -21,6 +21,7 @@ import {
   fetchComfyOutput,
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Handle music generation request
@@ -57,6 +58,7 @@ export async function handleMusicGeneration({ body, credentials, log }) {
  * Submits an audio generation workflow (Stable Audio / MusicGen), polls, fetches output
  */
 async function handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log }) {
+  const startTime = Date.now();
   const duration = body.duration || 10; // seconds
 
   // Audio generation workflow template for ComfyUI
@@ -127,12 +129,31 @@ async function handleComfyUIMusicGeneration({ model, provider, providerConfig, b
       audioFiles.push({ b64_json: base64, format: "wav" });
     }
 
+    saveCallLog({
+      method: "POST",
+      path: "/v1/music/generations",
+      status: 200,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      responseBody: { audio_count: audioFiles.length },
+    }).catch(() => {});
+
     return {
       success: true,
       data: { created: Math.floor(Date.now() / 1000), data: audioFiles },
     };
   } catch (err) {
     if (log) log.error("MUSIC", `${provider} comfyui error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/music/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
     return { success: false, status: 502, error: `Music provider error: ${err.message}` };
   }
 }

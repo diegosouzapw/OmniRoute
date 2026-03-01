@@ -22,6 +22,7 @@ import {
   fetchComfyOutput,
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Handle video generation request
@@ -62,6 +63,7 @@ export async function handleVideoGeneration({ body, credentials, log }) {
  * Submits an AnimateDiff or SVD workflow, polls for completion, fetches output video
  */
 async function handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log }) {
+  const startTime = Date.now();
   const [width, height] = (body.size || "512x512").split("x").map(Number);
   const frames = body.frames || 16;
 
@@ -137,12 +139,31 @@ async function handleComfyUIVideoGeneration({ model, provider, providerConfig, b
       videos.push({ b64_json: base64, format: "webp" });
     }
 
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 200,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      responseBody: { videos_count: videos.length },
+    }).catch(() => {});
+
     return {
       success: true,
       data: { created: Math.floor(Date.now() / 1000), data: videos },
     };
   } catch (err) {
     if (log) log.error("VIDEO", `${provider} comfyui error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
     return { success: false, status: 502, error: `Video provider error: ${err.message}` };
   }
 }
@@ -152,6 +173,7 @@ async function handleComfyUIVideoGeneration({ model, provider, providerConfig, b
  * POST to the AnimateDiff API endpoint
  */
 async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, body, log }) {
+  const startTime = Date.now();
   const [width, height] = (body.size || "512x512").split("x").map(Number);
   const url = `${providerConfig.baseUrl}/animatediff/v1/generate`;
 
@@ -181,6 +203,15 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
     if (!response.ok) {
       const errorText = await response.text();
       if (log) log.error("VIDEO", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      saveCallLog({
+        method: "POST",
+        path: "/v1/videos/generations",
+        status: response.status,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText.slice(0, 500),
+      }).catch(() => {});
       return { success: false, status: response.status, error: errorText };
     }
 
@@ -195,12 +226,31 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
       }
     }
 
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 200,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      responseBody: { videos_count: videos.length },
+    }).catch(() => {});
+
     return {
       success: true,
       data: { created: Math.floor(Date.now() / 1000), data: videos },
     };
   } catch (err) {
     if (log) log.error("VIDEO", `${provider} sdwebui error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
     return { success: false, status: 502, error: `Video provider error: ${err.message}` };
   }
 }

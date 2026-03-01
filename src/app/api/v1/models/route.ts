@@ -14,8 +14,8 @@ import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { getAllVideoModels, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { getAllMusicModels, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -314,6 +314,8 @@ export async function GET(request: Request) {
 
     // Add video models (local providers always listed, cloud filtered by active)
     for (const videoModel of getAllVideoModels()) {
+      const vConfig = getVideoProvider(videoModel.provider);
+      if (vConfig?.authType !== "none" && !isProviderActive(videoModel.provider)) continue;
       models.push({
         id: videoModel.id,
         object: "model",
@@ -325,6 +327,8 @@ export async function GET(request: Request) {
 
     // Add music models (local providers always listed, cloud filtered by active)
     for (const musicModel of getAllMusicModels()) {
+      const mConfig = getMusicProvider(musicModel.provider);
+      if (mConfig?.authType !== "none" && !isProviderActive(musicModel.provider)) continue;
       models.push({
         id: musicModel.id,
         object: "model",
