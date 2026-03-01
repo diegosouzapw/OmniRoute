@@ -3,11 +3,11 @@ name: Build Electron Desktop App
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v1.6.8)'
+        description: "Release version (e.g., v1.6.8)"
         required: true
         type: string
 
@@ -100,6 +100,7 @@ jobs:
         run: npm run build:${{ matrix.target }}
 
       - name: Collect installers
+        shell: bash
         run: |
           mkdir -p release-assets
           cd electron/dist-electron
@@ -139,11 +140,11 @@ jobs:
           # Create source code archives (excluding dev dependencies and build artifacts)
           export TARBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.tar.gz"
           export ZIPBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.zip"
-          
+
           # Use git archive for clean source export
           git archive --format=tar.gz --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$TARBALL"
           git archive --format=zip --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$ZIPBALL"
-          
+
           echo "✓ Created source archives:"
           ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"
 
