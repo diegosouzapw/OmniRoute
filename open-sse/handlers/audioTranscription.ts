@@ -6,22 +6,35 @@ import { getCorsOrigin } from "../utils/cors.ts";
  * Proxies multipart/form-data to upstream providers.
  *
  * Supported provider formats:
- * - OpenAI/Groq: standard multipart form-data proxy
+ * - OpenAI/Groq/Qwen3: standard multipart form-data proxy
  * - Deepgram: raw binary audio POST with model via query param
  * - AssemblyAI: async workflow (upload → submit → poll)
+ * - Nvidia NIM: multipart POST, transform response to { text }
+ * - HuggingFace Inference: POST raw binary to /models/{model_id}
  */
 
 import { getTranscriptionProvider, parseTranscriptionModel } from "../config/audioRegistry.ts";
+import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { errorResponse } from "../utils/error.ts";
 
 /**
- * Build auth header for a transcription provider
+ * Return a CORS error response from an upstream fetch failure
  */
-function buildAuthHeader(providerConfig, token) {
-  if (providerConfig.authHeader === "token") {
-    return { Authorization: `Token ${token}` };
-  }
-  return { Authorization: `Bearer ${token}` };
+function upstreamErrorResponse(res, errText) {
+  return new Response(errText, {
+    status: res.status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": getCorsOrigin(),
+    },
+  });
+}
+
+/**
+ * Validate a path segment to prevent path traversal / SSRF.
+ */
+function isValidPathSegment(segment: string): boolean {
+  return !segment.includes("..") && !segment.includes("//");
 }
 
 /**
@@ -37,21 +50,14 @@ async function handleDeepgramTranscription(providerConfig, file, modelId, token)
   const res = await fetch(url.toString(), {
     method: "POST",
     headers: {
-      ...buildAuthHeader(providerConfig, token),
+      ...buildAuthHeaders(providerConfig, token),
       "Content-Type": file.type || "audio/wav",
     },
     body: arrayBuffer,
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    return new Response(errText, {
-      status: res.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(res, await res.text());
   }
 
   const data = await res.json();
@@ -65,7 +71,7 @@ async function handleDeepgramTranscription(providerConfig, file, modelId, token)
  * Handle AssemblyAI transcription (async: upload file → submit → poll)
  */
 async function handleAssemblyAITranscription(providerConfig, file, modelId, token) {
-  const authHeaders = buildAuthHeader(providerConfig, token);
+  const authHeaders = buildAuthHeaders(providerConfig, token);
 
   // Step 1: Upload the audio file
   const arrayBuffer = await file.arrayBuffer();
@@ -79,14 +85,7 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
   });
 
   if (!uploadRes.ok) {
-    const errText = await uploadRes.text();
-    return new Response(errText, {
-      status: uploadRes.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(uploadRes, await uploadRes.text());
   }
 
   const { upload_url } = await uploadRes.json();
@@ -106,14 +105,7 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
   });
 
   if (!submitRes.ok) {
-    const errText = await submitRes.text();
-    return new Response(errText, {
-      status: submitRes.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
-      },
-    });
+    return upstreamErrorResponse(submitRes, await submitRes.text());
   }
 
   const { id: transcriptId } = await submitRes.json();
@@ -147,6 +139,63 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
 }
 
 /**
+ * Handle Nvidia NIM transcription
+ * Multipart POST, transform response to { text }
+ */
+async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
+  const upstreamForm = new FormData();
+  upstreamForm.append("file", /** @type {Blob} */ file, /** @type {any} */ file.name || "audio.wav");
+  upstreamForm.append("model", modelId);
+
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: buildAuthHeaders(providerConfig, token),
+    body: upstreamForm,
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const data = await res.json();
+  // Normalize to { text } — Nvidia may return { text } directly or nested
+  const text = data.text || data.transcript || "";
+
+  return Response.json({ text }, { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } });
+}
+
+/**
+ * Handle HuggingFace Inference transcription
+ * POST raw binary audio to {baseUrl}/{model_id}, returns { text }
+ */
+async function handleHuggingFaceTranscription(providerConfig, file, modelId, token) {
+  if (!isValidPathSegment(modelId)) {
+    return errorResponse(400, "Invalid model ID");
+  }
+  const url = `${providerConfig.baseUrl}/${modelId}`;
+  const arrayBuffer = await file.arrayBuffer();
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      ...buildAuthHeaders(providerConfig, token),
+      "Content-Type": file.type || "audio/wav",
+    },
+    body: arrayBuffer,
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const data = await res.json();
+  // HuggingFace returns { text } directly
+  const text = data.text || "";
+
+  return Response.json({ text }, { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } });
+}
+
+/**
  * Handle audio transcription request
  *
  * @param {Object} options
@@ -172,12 +221,13 @@ export async function handleAudioTranscription({ formData, credentials }) {
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai`
+      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen`
     );
   }
 
-  const token = credentials?.apiKey || credentials?.accessToken;
-  if (!token) {
+  // Skip credential check for local providers (authType: "none")
+  const token = providerConfig.authType === "none" ? null : (credentials?.apiKey || credentials?.accessToken);
+  if (providerConfig.authType !== "none" && !token) {
     return errorResponse(401, `No credentials for transcription provider: ${providerId}`);
   }
 
@@ -190,7 +240,15 @@ export async function handleAudioTranscription({ formData, credentials }) {
     return handleAssemblyAITranscription(providerConfig, file, modelId, token);
   }
 
-  // Default: OpenAI/Groq-compatible multipart proxy
+  if (providerConfig.format === "nvidia-asr") {
+    return handleNvidiaTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "huggingface-asr") {
+    return handleHuggingFaceTranscription(providerConfig, file, modelId, token);
+  }
+
+  // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
   const upstreamForm = new FormData();
   upstreamForm.append(
     "file",
@@ -216,19 +274,12 @@ export async function handleAudioTranscription({ formData, credentials }) {
   try {
     const res = await fetch(providerConfig.baseUrl, {
       method: "POST",
-      headers: buildAuthHeader(providerConfig, token),
+      headers: buildAuthHeaders(providerConfig, token),
       body: upstreamForm,
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return new Response(errText, {
-        status: res.status,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": getCorsOrigin(),
-        },
-      });
+      return upstreamErrorResponse(res, await res.text());
     }
 
     const data = await res.text();

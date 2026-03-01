@@ -1,7 +1,7 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseSpeechModel } from "@omniroute/open-sse/config/audioRegistry.ts";
+import { parseSpeechModel, getSpeechProvider } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -54,9 +54,16 @@ export async function POST(request) {
     );
   }
 
-  const credentials = await getProviderCredentials(provider);
-  if (!credentials) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+  // Check provider config for auth bypass
+  const providerConfig = getSpeechProvider(provider);
+
+  // Get credentials — skip for local providers (authType: "none")
+  let credentials = null;
+  if (providerConfig && providerConfig.authType !== "none") {
+    credentials = await getProviderCredentials(provider);
+    if (!credentials) {
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+    }
   }
 
   return handleAudioSpeech({ body, credentials });

@@ -1,7 +1,7 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
-import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
+import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseImageModel, getAllImageModels, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { parseVideoModel, getAllVideoModels, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
@@ -22,10 +22,10 @@ export async function OPTIONS() {
 }
 
 /**
- * GET /v1/images/generations — list available image models
+ * GET /v1/videos/generations — list available video models
  */
 export async function GET() {
-  const models = getAllImageModels();
+  const models = getAllVideoModels();
   return new Response(
     JSON.stringify({
       object: "list",
@@ -34,8 +34,7 @@ export async function GET() {
         object: "model",
         created: Math.floor(Date.now() / 1000),
         owned_by: m.provider,
-        type: "image",
-        supported_sizes: m.supportedSizes,
+        type: "video",
       })),
     }),
     {
@@ -45,14 +44,14 @@ export async function GET() {
 }
 
 /**
- * POST /v1/images/generations — generate images
+ * POST /v1/videos/generations — generate videos
  */
 export async function POST(request) {
   let body;
   try {
     body = await request.json();
   } catch {
-    log.warn("IMAGE", "Invalid JSON body");
+    log.warn("VIDEO", "Invalid JSON body");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
@@ -81,27 +80,27 @@ export async function POST(request) {
   if (policy.rejection) return policy.rejection;
 
   // Parse model to get provider
-  const { provider } = parseImageModel(body.model);
+  const { provider } = parseVideoModel(body.model);
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
-      `Invalid image model: ${body.model}. Use format: provider/model`
+      `Invalid video model: ${body.model}. Use format: provider/model`
     );
   }
 
   // Check provider config for auth bypass
-  const providerConfig = getImageProvider(provider);
+  const providerConfig = getVideoProvider(provider);
 
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
     credentials = await getProviderCredentials(provider);
     if (!credentials) {
-      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for image provider: ${provider}`);
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for video provider: ${provider}`);
     }
   }
 
-  const result = await handleImageGeneration({ body, credentials, log });
+  const result = await handleVideoGeneration({ body, credentials, log });
 
   if (result.success) {
     return new Response(JSON.stringify((result as any).data), {
@@ -110,7 +109,7 @@ export async function POST(request) {
     });
   }
 
-  const errorPayload = toJsonErrorPayload((result as any).error, "Image generation provider error");
+  const errorPayload = toJsonErrorPayload((result as any).error, "Video generation provider error");
   return new Response(JSON.stringify(errorPayload), {
     status: (result as any).status,
     headers: { "Content-Type": "application/json" },

@@ -108,6 +108,32 @@ export const IMAGE_PROVIDERS = {
     ],
     supportedSizes: ["1024x1024"],
   },
+
+  sdwebui: {
+    id: "sdwebui",
+    baseUrl: "http://localhost:7860/sdapi/v1/txt2img",
+    authType: "none",
+    authHeader: "none",
+    format: "sdwebui",
+    models: [
+      { id: "stable-diffusion-v1-5", name: "Stable Diffusion v1.5" },
+      { id: "sdxl-base-1.0", name: "SDXL Base 1.0" },
+    ],
+    supportedSizes: ["512x512", "768x768", "1024x1024"],
+  },
+
+  comfyui: {
+    id: "comfyui",
+    baseUrl: "http://localhost:8188",
+    authType: "none",
+    authHeader: "none",
+    format: "comfyui",
+    models: [
+      { id: "flux-dev", name: "FLUX Dev" },
+      { id: "sdxl", name: "SDXL" },
+    ],
+    supportedSizes: ["512x512", "768x768", "1024x1024"],
+  },
 };
 
 /**
