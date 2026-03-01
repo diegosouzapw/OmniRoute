@@ -14,6 +14,8 @@ import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -307,6 +309,28 @@ export async function GET(request: Request) {
         created: timestamp,
         owned_by: modModel.provider,
         type: "moderation",
+      });
+    }
+
+    // Add video models (local providers always listed, cloud filtered by active)
+    for (const videoModel of getAllVideoModels()) {
+      models.push({
+        id: videoModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: videoModel.provider,
+        type: "video",
+      });
+    }
+
+    // Add music models (local providers always listed, cloud filtered by active)
+    for (const musicModel of getAllMusicModels()) {
+      models.push({
+        id: musicModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: musicModel.provider,
+        type: "music",
       });
     }
 

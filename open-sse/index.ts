@@ -139,3 +139,28 @@ export {
   parseModerationModel,
   getAllModerationModels,
 } from "./config/moderationRegistry.ts";
+
+// Video Generation
+export { handleVideoGeneration } from "./handlers/videoGeneration.ts";
+export {
+  VIDEO_PROVIDERS,
+  getVideoProvider,
+  parseVideoModel,
+  getAllVideoModels,
+} from "./config/videoRegistry.ts";
+
+// Music Generation
+export { handleMusicGeneration } from "./handlers/musicGeneration.ts";
+export {
+  MUSIC_PROVIDERS,
+  getMusicProvider,
+  parseMusicModel,
+  getAllMusicModels,
+} from "./config/musicRegistry.ts";
+
+// Registry Utilities
+export {
+  parseModelFromRegistry,
+  getAllModelsFromRegistry,
+  buildAuthHeaders,
+} from "./config/registryUtils.ts";

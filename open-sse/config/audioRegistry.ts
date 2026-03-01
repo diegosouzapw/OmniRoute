@@ -70,6 +70,39 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "universal-2", name: "Universal 2" },
     ],
   },
+
+  nvidia: {
+    id: "nvidia",
+    baseUrl: "https://integrate.api.nvidia.com/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "nvidia-asr",
+    models: [
+      { id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" },
+    ],
+  },
+
+  huggingface: {
+    id: "huggingface",
+    baseUrl: "https://api-inference.huggingface.co/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "huggingface-asr",
+    models: [
+      { id: "openai/whisper-large-v3", name: "Whisper Large v3 (HF)" },
+      { id: "openai/whisper-small", name: "Whisper Small (HF)" },
+    ],
+  },
+
+  qwen: {
+    id: "qwen",
+    baseUrl: "http://localhost:8000/v1/audio/transcriptions",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "qwen3-asr", name: "Qwen3 ASR" },
+    ],
+  },
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
@@ -104,6 +137,74 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "aura-asteria-en", name: "Aura Asteria (EN)" },
       { id: "aura-luna-en", name: "Aura Luna (EN)" },
       { id: "aura-stella-en", name: "Aura Stella (EN)" },
+    ],
+  },
+
+  nvidia: {
+    id: "nvidia",
+    baseUrl: "https://integrate.api.nvidia.com/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "nvidia-tts",
+    models: [
+      { id: "nvidia/fastpitch", name: "FastPitch" },
+      { id: "nvidia/tacotron2", name: "Tacotron2" },
+    ],
+  },
+
+  elevenlabs: {
+    id: "elevenlabs",
+    baseUrl: "https://api.elevenlabs.io/v1/text-to-speech",
+    authType: "apikey",
+    authHeader: "xi-api-key",
+    format: "elevenlabs",
+    models: [
+      { id: "eleven_multilingual_v2", name: "Eleven Multilingual v2" },
+      { id: "eleven_turbo_v2_5", name: "Eleven Turbo v2.5" },
+    ],
+  },
+
+  huggingface: {
+    id: "huggingface",
+    baseUrl: "https://api-inference.huggingface.co/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "huggingface-tts",
+    models: [
+      { id: "facebook/mms-tts-eng", name: "MMS TTS English" },
+      { id: "microsoft/speecht5_tts", name: "SpeechT5 TTS" },
+    ],
+  },
+
+  coqui: {
+    id: "coqui",
+    baseUrl: "http://localhost:5002/api/tts",
+    authType: "none",
+    authHeader: "none",
+    format: "coqui",
+    models: [
+      { id: "tts_models/en/ljspeech/tacotron2-DDC", name: "Tacotron2 DDC (LJSpeech)" },
+    ],
+  },
+
+  tortoise: {
+    id: "tortoise",
+    baseUrl: "http://localhost:5000/api/tts",
+    authType: "none",
+    authHeader: "none",
+    format: "tortoise",
+    models: [
+      { id: "tortoise-v2", name: "Tortoise v2" },
+    ],
+  },
+
+  qwen: {
+    id: "qwen",
+    baseUrl: "http://localhost:8000/v1/audio/speech",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "qwen3-tts", name: "Qwen3 TTS" },
     ],
   },
 };
