@@ -37,9 +37,11 @@ export class AntigravityExecutor extends BaseExecutor {
 
   transformRequest(model, body, stream, credentials) {
     const hasRealProject = !!credentials?.projectId;
-    const projectId = credentials?.projectId || this.generateProjectId();
+    // Reuse body.project when already set by the translator to keep the logged ID
+    // consistent with what is sent upstream and to avoid duplicate warnings per request.
+    const projectId = credentials?.projectId || body.project || this.generateProjectId();
 
-    if (!hasRealProject) {
+    if (!hasRealProject && !body.project) {
       console.warn(
         `[Antigravity] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
           `This may cause 404 errors if the account has no active GCP project. ` +
