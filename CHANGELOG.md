@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.11] — 2026-03-02
+
+### ✨ Features
+
+- **Blackbox AI Provider** — Added blackbox.ai as a new OpenAI-compatible provider with 6 default models (GPT-4o, Gemini 2.5 Flash, Claude Sonnet 4, DeepSeek V3, Blackbox AI, Blackbox AI Pro) and provider logo. Fixes #175
+
+### 🐛 Bug Fixes
+
+- **Antigravity 404 Error** — Added warning logs when `generateProjectId()` generates a fallback project ID because `credentials.projectId` is null. The executor now prefers the translator-set `body.project` before generating a new fallback, eliminating duplicate warnings and ID mismatch. Fixes #176. Includes improvements from PRs #184 and #185
+
 ## [1.7.10] — 2026-03-02
 
 ### 🐛 Bug Fixes
