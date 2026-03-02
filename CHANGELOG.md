@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.8] — 2026-03-02
+
+### ✨ New Features
+
+- **Theme Color Customization** — Users can now select from 7 preset accent colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or define a custom color via color picker/hex input. The chosen color dynamically updates `--color-primary` and `--color-primary-hover` CSS variables across the entire UI. PR #174 by @mainer4ik
+
+### 🌐 Multi-Language Sync
+
+- **Theme & Media i18n** — Added `themeCoral`, `themeBlue`, `themeRed`, `themeGreen`, `themeViolet`, `themeOrange`, `themeCyan`, `themeAccent`, `themeAccentDesc`, `themeCustom`, `themeCreate`, and media section translations across all **30 language locales**
+
+### 🔧 Code Quality (Review Improvements)
+
+- Exported `COLOR_THEMES` constant from `themeStore.ts` for DRY reuse
+- Added hex color validation with visual feedback (red border + disabled apply button)
+- Synced local state via Zustand `subscribe` pattern for cross-tab consistency
+- Removed dead `/themes` route from Header.tsx
+- Added CSS `color-mix()` fallback for older browsers
+
 ## [1.7.7] — 2026-03-02
 
 ### 🐛 Bug Fixes
