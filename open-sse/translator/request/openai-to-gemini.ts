@@ -271,7 +271,15 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
+  const hasRealProject = !!credentials?.projectId;
   const projectId = credentials?.projectId || generateProjectId();
+
+  if (!hasRealProject) {
+    console.warn(
+      `[${isAntigravity ? "Antigravity" : "GeminiCLI"}] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
+        `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
+    );
+  }
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
@@ -315,9 +323,16 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
   return envelope;
 }
 
-// Wrap Claude format in Cloud Code envelope for Antigravity
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
+  const hasRealProject = !!credentials?.projectId;
   const projectId = credentials?.projectId || generateProjectId();
+
+  if (!hasRealProject) {
+    console.warn(
+      `[Antigravity/Claude] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
+        `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
+    );
+  }
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 

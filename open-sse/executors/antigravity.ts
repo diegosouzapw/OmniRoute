@@ -36,7 +36,16 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body, stream, credentials) {
+    const hasRealProject = !!credentials?.projectId;
     const projectId = credentials?.projectId || this.generateProjectId();
+
+    if (!hasRealProject) {
+      console.warn(
+        `[Antigravity] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
+          `This may cause 404 errors if the account has no active GCP project. ` +
+          `Ensure the OAuth token includes a valid project.`
+      );
+    }
 
     // Fix contents for Claude models via Antigravity
     const normalizedContents =
