@@ -15,9 +15,9 @@ import {
   tryParseJSON,
   generateRequestId,
   generateSessionId,
-  generateProjectId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
+import { resolveEffectiveProjectId } from "../../../src/lib/oauth/refreshToken";
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(model, body, stream) {
@@ -271,12 +271,17 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
-  const hasRealProject = !!credentials?.projectId;
-  const projectId = credentials?.projectId || generateProjectId();
+  // Resolve effective project ID using refreshToken (priority: managedProjectId > projectId > default)
+  const projectId = resolveEffectiveProjectId(
+    credentials?.refreshToken,
+    credentials?.projectId || "rising-fact-p41fc" // ANTIGRAVITY_DEFAULT_PROJECT_ID
+  );
+
+  const hasRealProject = !!(credentials?.projectId || credentials?.refreshToken);
 
   if (!hasRealProject) {
     console.warn(
-      `[${isAntigravity ? "Antigravity" : "GeminiCLI"}] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
+      `[${isAntigravity ? "Antigravity" : "GeminiCLI"}] ⚠️ No projectId or refreshToken in credentials — using default "${projectId}". ` +
         `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
     );
   }
@@ -324,12 +329,17 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 }
 
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
-  const hasRealProject = !!credentials?.projectId;
-  const projectId = credentials?.projectId || generateProjectId();
+  // Resolve effective project ID using refreshToken (priority: managedProjectId > projectId > default)
+  const projectId = resolveEffectiveProjectId(
+    credentials?.refreshToken,
+    credentials?.projectId || "rising-fact-p41fc" // ANTIGRAVITY_DEFAULT_PROJECT_ID
+  );
+
+  const hasRealProject = !!(credentials?.projectId || credentials?.refreshToken);
 
   if (!hasRealProject) {
     console.warn(
-      `[Antigravity/Claude] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
+      `[Antigravity/Claude] ⚠️ No projectId or refreshToken in credentials — using default "${projectId}". ` +
         `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
     );
   }
