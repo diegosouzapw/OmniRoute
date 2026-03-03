@@ -27,6 +27,17 @@ import {
 
 import { logToolCall } from "./audit.ts";
 
+import {
+  handleSimulateRoute,
+  handleSetBudgetGuard,
+  handleSetResilienceProfile,
+  handleTestCombo,
+  handleGetProviderMetrics,
+  handleBestComboForTask,
+  handleExplainRoute,
+  handleGetSessionSnapshot,
+} from "./tools/advancedTools.ts";
+
 // ============ Configuration ============
 
 const OMNIROUTE_BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
@@ -405,6 +416,94 @@ export function createMcpServer(): McpServer {
       },
     },
     (args) => handleListModelsCatalog(args as any)
+  );
+
+  // ── Advanced Tools (Phase 3) ──────────────────────────────
+
+  server.tool(
+    "omniroute_simulate_route",
+    "Simulates the routing path a request would take without executing it (dry-run)",
+    {
+      model: { type: "string", description: "Target model identifier" },
+      promptTokenEstimate: { type: "number", description: "Estimated prompt token count" },
+      combo: {
+        type: "string",
+        description: "Specific combo to simulate (optional, default: active)",
+      },
+    },
+    (args) => handleSimulateRoute(args as any)
+  );
+
+  server.tool(
+    "omniroute_set_budget_guard",
+    "Sets a session budget limit with configurable action when exceeded (degrade/block/alert)",
+    {
+      maxCost: { type: "number", description: "Maximum cost in USD for the session" },
+      action: { type: "string", description: "Action on exceed: degrade, block, or alert" },
+      degradeToTier: {
+        type: "string",
+        description: "If action=degrade, target tier: cheap or free (optional)",
+      },
+    },
+    (args) => handleSetBudgetGuard(args as any)
+  );
+
+  server.tool(
+    "omniroute_set_resilience_profile",
+    "Applies a resilience profile controlling circuit breakers, retries, timeouts, and fallback depth",
+    {
+      profile: { type: "string", description: "Profile: aggressive, balanced, or conservative" },
+    },
+    (args) => handleSetResilienceProfile(args as any)
+  );
+
+  server.tool(
+    "omniroute_test_combo",
+    "Tests each provider in a combo with a real prompt, reporting latency, cost, and success per provider",
+    {
+      comboId: { type: "string", description: "ID or name of the combo to test" },
+      testPrompt: { type: "string", description: "Short test prompt (max 200 chars)" },
+    },
+    (args) => handleTestCombo(args as any)
+  );
+
+  server.tool(
+    "omniroute_get_provider_metrics",
+    "Returns detailed metrics for a specific provider including latency percentiles and circuit breaker state",
+    {
+      provider: { type: "string", description: "Provider name" },
+    },
+    (args) => handleGetProviderMetrics(args as any)
+  );
+
+  server.tool(
+    "omniroute_best_combo_for_task",
+    "Recommends the best combo for a task type based on provider fitness and constraints",
+    {
+      taskType: {
+        type: "string",
+        description: "Task type: coding, review, planning, analysis, debugging, documentation",
+      },
+      budgetConstraint: { type: "number", description: "Max cost constraint in USD (optional)" },
+      latencyConstraint: { type: "number", description: "Max latency constraint in ms (optional)" },
+    },
+    (args) => handleBestComboForTask(args as any)
+  );
+
+  server.tool(
+    "omniroute_explain_route",
+    "Explains why a request was routed to a specific provider, showing scoring factors and fallbacks",
+    {
+      requestId: { type: "string", description: "Request ID from X-Request-Id header" },
+    },
+    (args) => handleExplainRoute(args as any)
+  );
+
+  server.tool(
+    "omniroute_get_session_snapshot",
+    "Returns a full snapshot of the current working session: cost, tokens, top models, errors, budget status",
+    {},
+    handleGetSessionSnapshot
   );
 
   return server;
