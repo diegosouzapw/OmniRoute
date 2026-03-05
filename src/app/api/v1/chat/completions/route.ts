@@ -53,7 +53,13 @@ export async function POST(request) {
               detections: result.detections.length,
             },
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": CORS_ORIGIN,
+            },
+          }
         );
       }
     }
@@ -67,7 +73,13 @@ export async function POST(request) {
           code: "SECURITY_002",
         },
       }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
+      {
+        status: 503,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": CORS_ORIGIN,
+        },
+      }
     );
   }
 
