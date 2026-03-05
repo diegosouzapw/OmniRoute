@@ -1,4 +1,4 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
+import { CORS_ORIGIN, CORS_HEADERS } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
@@ -53,7 +53,7 @@ export async function POST(request) {
               detections: result.detections.length,
             },
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+          { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
         );
       }
     }
@@ -67,7 +67,7 @@ export async function POST(request) {
           code: "SECURITY_002",
         },
       }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
+      { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   }
 
