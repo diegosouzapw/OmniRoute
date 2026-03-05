@@ -4,6 +4,7 @@ import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { syncToCloud } from "@/lib/cloudSync";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { setQuotaCache } from "@/domain/quotaCache";
 
 /**
  * Sync to cloud if enabled
@@ -147,6 +148,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ conn
     const usage = await runWithProxyContext(proxyInfo?.proxy || null, () =>
       getUsageForProvider(connection)
     );
+
+    // Populate quota cache for quota-aware account selection
+    if (usage?.quotas) {
+      setQuotaCache(connectionId, connection.provider, usage.quotas);
+    }
+
     return Response.json(usage);
   } catch (error) {
     console.error("[Usage API] Error fetching usage:", error);

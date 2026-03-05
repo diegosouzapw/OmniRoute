@@ -34,6 +34,10 @@ export async function register() {
     const { initApiBridgeServer } = await import("@/lib/apiBridgeServer");
     initApiBridgeServer();
 
+    // Quota cache: start background refresh for quota-aware account selection
+    const { startBackgroundRefresh } = await import("@/domain/quotaCache");
+    startBackgroundRefresh();
+
     // Compliance: Initialize audit_log table + cleanup expired logs
     try {
       const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");

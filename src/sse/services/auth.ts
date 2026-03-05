@@ -4,6 +4,7 @@ import {
   updateProviderConnection,
   getSettings,
 } from "@/lib/localDb";
+import { isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -127,6 +128,19 @@ export async function getProviderCredentials(
       return null;
     }
 
+    // Quota-aware: prioritize accounts with available quota
+    const withQuota = availableConnections.filter((c) => !isAccountQuotaExhausted(c.id));
+    const exhaustedQuota = availableConnections.filter((c) => isAccountQuotaExhausted(c.id));
+    const orderedConnections =
+      withQuota.length > 0 ? [...withQuota, ...exhaustedQuota] : availableConnections;
+
+    if (exhaustedQuota.length > 0) {
+      log.debug(
+        "AUTH",
+        `${provider} | quota-aware: ${withQuota.length} with quota, ${exhaustedQuota.length} exhausted`
+      );
+    }
+
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
 
@@ -135,7 +149,7 @@ export async function getProviderCredentials(
       const stickyLimit = settings.stickyRoundRobinLimit || 3;
 
       // Sort by lastUsed (most recent first) to find current candidate
-      const byRecency = [...availableConnections].sort((a: any, b: any) => {
+      const byRecency = [...orderedConnections].sort((a: any, b: any) => {
         if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
         if (!a.lastUsedAt) return 1;
         if (!b.lastUsedAt) return -1;
@@ -155,7 +169,7 @@ export async function getProviderCredentials(
         });
       } else {
         // Pick the least recently used (excluding current if possible)
-        const sortedByOldest = [...availableConnections].sort((a: any, b: any) => {
+        const sortedByOldest = [...orderedConnections].sort((a: any, b: any) => {
           if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
           if (!a.lastUsedAt) return -1;
           if (!b.lastUsedAt) return 1;
@@ -172,14 +186,14 @@ export async function getProviderCredentials(
       }
     } else if (strategy === "p2c") {
       // Power of Two Choices: pick 2 random, choose the one with fewer failures
-      if (availableConnections.length <= 2) {
-        connection = availableConnections[0];
+      if (orderedConnections.length <= 2) {
+        connection = orderedConnections[0];
       } else {
-        const i = Math.floor(Math.random() * availableConnections.length);
-        let j = Math.floor(Math.random() * (availableConnections.length - 1));
+        const i = Math.floor(Math.random() * orderedConnections.length);
+        let j = Math.floor(Math.random() * (orderedConnections.length - 1));
         if (j >= i) j++;
-        const a = availableConnections[i];
-        const b = availableConnections[j];
+        const a = orderedConnections[i];
+        const b = orderedConnections[j];
         // Prefer the one with fewer consecutive uses / better health
         const scoreA = (a.consecutiveUseCount || 0) + (a.lastError ? 10 : 0);
         const scoreB = (b.consecutiveUseCount || 0) + (b.lastError ? 10 : 0);
@@ -187,11 +201,11 @@ export async function getProviderCredentials(
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick
-      const idx = Math.floor(Math.random() * availableConnections.length);
-      connection = availableConnections[idx];
+      const idx = Math.floor(Math.random() * orderedConnections.length);
+      connection = orderedConnections[idx];
     } else if (strategy === "least-used") {
       // Least Used: pick the one with oldest lastUsedAt
-      const sorted = [...availableConnections].sort((a: any, b: any) => {
+      const sorted = [...orderedConnections].sort((a: any, b: any) => {
         if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
         if (!a.lastUsedAt) return -1;
         if (!b.lastUsedAt) return 1;
@@ -201,13 +215,13 @@ export async function getProviderCredentials(
     } else if (strategy === "cost-optimized") {
       // Cost Optimized: sort by priority ascending (lower = cheaper/preferred)
       // Future: can be enhanced with actual cost data per provider
-      const sorted = [...availableConnections].sort(
+      const sorted = [...orderedConnections].sort(
         (a: any, b: any) => (a.priority || 999) - (b.priority || 999)
       );
       connection = sorted[0];
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
-      connection = availableConnections[0];
+      connection = orderedConnections[0];
     }
 
     return {

@@ -31,7 +31,12 @@ import { sanitizeRequest } from "../../shared/utils/inputSanitizer";
 
 // Pipeline integration — wired modules
 import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
-import { isModelAvailable, setModelUnavailable } from "../../domain/modelAvailability";
+import {
+  isModelAvailable,
+  setModelUnavailable,
+  clearModelUnavailability,
+} from "../../domain/modelAvailability";
+import { getQuotaCache, markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { recordCost } from "../../domain/costRules";
@@ -127,7 +132,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   telemetry.startPhase("policy");
   const policy = await enforceApiKeyPolicy(request, modelStr);
   if (policy.rejection) {
-    log.warn("POLICY", `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`);
+    log.warn(
+      "POLICY",
+      `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`
+    );
     return policy.rejection;
   }
   const apiKeyInfo = policy.apiKeyInfo;
@@ -243,6 +251,13 @@ async function handleSingleModelChat(
     const credentials = await getProviderCredentials(provider, excludeConnectionId);
 
     if (!credentials || credentials.allRateLimited) {
+      if (lastStatus === 429 || lastStatus === 503) {
+        setModelUnavailable(provider, model, 60000, `HTTP ${lastStatus}`);
+        log.info(
+          "AVAILABILITY",
+          `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus})`
+        );
+      }
       return handleNoCredentials(
         credentials,
         excludeConnectionId,
@@ -296,22 +311,21 @@ async function handleSingleModelChat(
     });
 
     if (result.success) {
+      if (excludeConnectionId) {
+        clearModelUnavailability(provider, model);
+      }
       recordCostIfNeeded(apiKeyInfo, result);
       if (telemetry) telemetry.startPhase("finalize");
       if (telemetry) telemetry.endPhase();
       return result.response;
     }
 
-    // Pipeline: Mark model unavailable on repeated failures
-    if (result.status === 429 || result.status === 503) {
-      setModelUnavailable(provider, model, 60000, `HTTP ${result.status}`);
-      log.info(
-        "AVAILABILITY",
-        `${provider}/${model} marked unavailable for 60s (HTTP ${result.status})`
-      );
+    // 6. Mark quota-exhausted from 429 if no cached quota data
+    if (result.status === 429 && !getQuotaCache(credentials.connectionId)) {
+      markAccountExhaustedFrom429(credentials.connectionId, provider);
     }
 
-    // 6. Fallback to next account
+    // 7. Fallback to next account
     const { shouldFallback } = await markAccountUnavailable(
       credentials.connectionId,
       result.status,
