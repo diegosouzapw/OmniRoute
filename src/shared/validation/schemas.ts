@@ -79,6 +79,29 @@ export const createComboSchema = z.object({
   config: comboConfigSchema,
 });
 
+// ──── Auto-Combo Schemas ────
+
+const scoringWeightsSchema = z
+  .object({
+    quota: z.number().min(0).max(1),
+    health: z.number().min(0).max(1),
+    costInv: z.number().min(0).max(1),
+    latencyInv: z.number().min(0).max(1),
+    taskFit: z.number().min(0).max(1),
+    stability: z.number().min(0).max(1),
+  })
+  .optional();
+
+export const createAutoComboSchema = z.object({
+  id: z.string().trim().min(1, "id is required").max(100),
+  name: z.string().trim().min(1, "name is required").max(200),
+  candidatePool: z.array(z.string().min(1)).optional().default([]),
+  weights: scoringWeightsSchema,
+  modePack: z.string().max(100).optional(),
+  budgetCap: z.number().positive().optional(),
+  explorationRate: z.number().min(0).max(1).optional().default(0.05),
+});
+
 // ──── Settings Schemas ────
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
