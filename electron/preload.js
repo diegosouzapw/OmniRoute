@@ -13,9 +13,18 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 // ── Channel Whitelist ──────────────────────────────────────
 const VALID_CHANNELS = {
-  invoke: ["get-app-info", "open-external", "get-data-dir", "restart-server"],
+  invoke: [
+    "get-app-info",
+    "open-external",
+    "get-data-dir",
+    "restart-server",
+    "check-for-updates",
+    "download-update",
+    "install-update",
+    "get-app-version",
+  ],
   send: ["window-minimize", "window-maximize", "window-close"],
-  receive: ["server-status", "port-changed"],
+  receive: ["server-status", "port-changed", "update-status"],
 };
 
 // ── Fix #16: Generic IPC wrappers ──────────────────────────
@@ -48,6 +57,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openExternal: (url) => safeInvoke("open-external", url),
   getDataDir: () => safeInvoke("get-data-dir"),
   restartServer: () => safeInvoke("restart-server"),
+  getAppVersion: () => safeInvoke("get-app-version"),
+
+  // ── Auto-Update ──────────────────────────────────────────
+  checkForUpdates: () => safeInvoke("check-for-updates"),
+  downloadUpdate: () => safeInvoke("download-update"),
+  installUpdate: () => safeInvoke("install-update"),
 
   // ── Send (fire-and-forget) ───────────────────────────────
   minimizeWindow: () => safeSend("window-minimize"),
@@ -58,6 +73,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Fix #6: Returns a disposer function for precise cleanup
   onServerStatus: (callback) => safeOn("server-status", callback),
   onPortChanged: (callback) => safeOn("port-changed", callback),
+  onUpdateStatus: (callback) => safeOn("update-status", callback),
 
   // ── Static Properties ────────────────────────────────────
   isElectron: true,

@@ -15,7 +15,9 @@
     "build:linux": "electron-builder --linux",
     "pack": "electron-builder --dir"
   },
-  "dependencies": {},
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  },
   "devDependencies": {
     "electron": "^40.6.1",
     "electron-builder": "^25.1.8"
@@ -27,6 +29,11 @@
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "diegosouzapw",
+      "repo": "OmniRoute"
     },
     "files": [
       "main.js",
