@@ -217,7 +217,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       rate_limited_until, health_check_interval, last_health_check_at,
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
-      token_type, consecutive_use_count, rate_limit_protection, created_at, updated_at
+      token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
       @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -226,7 +226,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
-      @tokenType, @consecutiveUseCount, @rateLimitProtection, @createdAt, @updatedAt
+      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
     )
   `
   ).run({
@@ -267,6 +267,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     consecutiveUseCount: conn.consecutiveUseCount || 0,
     rateLimitProtection:
       conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+    lastUsedAt: conn.lastUsedAt || null,
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -290,6 +291,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       default_model = @defaultModel, token_type = @tokenType,
       consecutive_use_count = @consecutiveUseCount,
       rate_limit_protection = @rateLimitProtection,
+      last_used_at = @lastUsedAt,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -331,6 +333,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     consecutiveUseCount: data.consecutiveUseCount || 0,
     rateLimitProtection:
       data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
+    lastUsedAt: data.lastUsedAt || null,
     updatedAt: now,
   });
 }

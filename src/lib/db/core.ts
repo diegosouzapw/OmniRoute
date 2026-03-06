@@ -79,6 +79,7 @@ const SCHEMA_SQL = `
     token_type TEXT,
     consecutive_use_count INTEGER DEFAULT 0,
     rate_limit_protection INTEGER DEFAULT 0,
+    last_used_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -311,6 +312,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       );
       console.log("[DB] Added provider_connections.rate_limit_protection column");
     }
+    if (!columnNames.has("last_used_at")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
+      console.log("[DB] Added provider_connections.last_used_at column");
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify provider_connections schema:", message);
@@ -483,7 +488,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           rate_limited_until, health_check_interval, last_health_check_at,
           last_tested, api_key, id_token, provider_specific_data,
           expires_in, display_name, global_priority, default_model,
-          token_type, consecutive_use_count, rate_limit_protection, created_at, updated_at
+          token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
         ) VALUES (
           @id, @provider, @authType, @name, @email, @priority, @isActive,
           @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -492,7 +497,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
           @lastTested, @apiKey, @idToken, @providerSpecificData,
           @expiresIn, @displayName, @globalPriority, @defaultModel,
-          @tokenType, @consecutiveUseCount, @rateLimitProtection, @createdAt, @updatedAt
+          @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
         )
       `);
 
@@ -533,6 +538,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           defaultModel: conn.defaultModel || null,
           tokenType: conn.tokenType || null,
           consecutiveUseCount: conn.consecutiveUseCount || 0,
+          lastUsedAt: conn.lastUsedAt || null,
           rateLimitProtection:
             conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
           createdAt: conn.createdAt || new Date().toISOString(),
