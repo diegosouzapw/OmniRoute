@@ -26,7 +26,6 @@ const {
   nativeImage,
   shell,
   session,
-  dialog,
   Notification,
 } = require("electron");
 const path = require("path");
@@ -167,26 +166,18 @@ async function checkForUpdates(silent = false) {
     }
     return;
   }
-  try {
-    await autoUpdater.checkForUpdates();
-  } catch (error) {
-    console.error("[Electron] Check for updates failed:", error);
-    if (!silent) {
-      sendToRenderer("update-status", { status: "error", message: error.message });
-    }
-  }
+  await autoUpdater.checkForUpdates();
 }
 
 async function downloadUpdate() {
-  try {
-    await autoUpdater.downloadUpdate();
-  } catch (error) {
-    console.error("[Electron] Download update failed:", error);
-    sendToRenderer("update-status", { status: "error", message: error.message });
-  }
+  await autoUpdater.downloadUpdate();
 }
 
 function installUpdate() {
+  if (nextServer) {
+    nextServer.kill("SIGTERM");
+    nextServer = null;
+  }
   autoUpdater.quitAndInstall();
 }
 
@@ -486,18 +477,30 @@ function setupIpcHandlers() {
 
   // Auto-update IPC handlers
   ipcMain.handle("check-for-updates", async () => {
-    await checkForUpdates(false);
-    return { success: true };
+    try {
+      await checkForUpdates(false);
+      return { success: true };
+    } catch (error) {
+      console.error("[Electron] Check for updates failed:", error);
+      sendToRenderer("update-status", { status: "error", message: error.message });
+      return { success: false, error: error.message };
+    }
   });
 
   ipcMain.handle("download-update", async () => {
-    await downloadUpdate();
-    return { success: true };
+    try {
+      await downloadUpdate();
+      return { success: true };
+    } catch (error) {
+      console.error("[Electron] Download update failed:", error);
+      sendToRenderer("update-status", { status: "error", message: error.message });
+      return { success: false, error: error.message };
+    }
   });
 
   ipcMain.handle("install-update", () => {
     installUpdate();
-    return { success: true };
+    // No return value — app will quit and restart
   });
 
   ipcMain.handle("get-app-version", () => app.getVersion());
