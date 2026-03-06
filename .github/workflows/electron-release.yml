@@ -172,6 +172,5 @@ jobs:
             release-assets/*.blockmap
             release-assets/*.source.tar.gz
             release-assets/*.source.zip
-            release-assets/OmniRoute.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
