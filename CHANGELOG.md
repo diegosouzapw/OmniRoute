@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.4] — 2026-03-06
+
+> ### 🐛 Bug Fixes — Round-Robin Persistence & Docker Compatibility
+
+### 🐛 Bug Fixes
+
+- **#218 — Round-robin sticks to one account** — Added `last_used_at` column to `provider_connections` schema. Round-robin routing relied on `lastUsedAt` to rotate between accounts, but the column was missing from the database — the value was always `null`, causing selection to fall back to the same account. Includes auto-migration for existing databases
+- **#217 — `Cannot find module 'zod'` in Docker/standalone builds** — Added `zod` to `serverExternalPackages` in `next.config.mjs`. Next.js standalone builds weren't tracing `zod` through dynamic imports, causing crashes on Docker startup. Data is **not lost** — the crash prevented the server from reading the existing database
+
+### 📁 Files Changed
+
+| File                      | Change                                                 |
+| ------------------------- | ------------------------------------------------------ |
+| `src/lib/db/core.ts`      | Schema + migration + JSON migration for `last_used_at` |
+| `src/lib/db/providers.ts` | INSERT + UPDATE SQL for `last_used_at`                 |
+| `next.config.mjs`         | `serverExternalPackages: ['better-sqlite3', 'zod']`    |
+
+---
+
 ## [2.0.3] — 2026-03-05
 
 > ### 🐛 Bug Fixes & Quota System Hardening
