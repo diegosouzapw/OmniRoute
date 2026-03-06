@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.5] — 2026-03-06
+
+> ### 🐛 Bug Fix, Electron Auto-Update & Dependency Bumps
+
+### 🐛 Bug Fixes
+
+- **#224 — Chat→Responses translation creates invalid reasoning IDs** — Removed synthetic reasoning item generation in `openaiToOpenAIResponsesRequest()`. The translator was creating reasoning items with IDs like `reasoning_15`, but OpenAI's Responses API requires server-generated `rs_*` IDs, causing `400 Invalid Request` errors from Responses-compatible upstreams. Fix: omit reasoning items entirely during translation
+- **CI: duplicate OmniRoute.exe in release workflow** — Removed redundant explicit `release-assets/OmniRoute.exe` entry that caused `softprops/action-gh-release` to fail with 404 on duplicate upload. PR #222 by @benzntech
+
+### ✨ New Features
+
+- **Electron Auto-Update** — Added auto-update functionality to the desktop app using `electron-updater`. Includes IPC handlers for check/download/install, "Check for Updates" in system tray menu, desktop notification when update is ready, and silent startup check (3s delay). PR #221 by @benzntech
+
+### 📦 Dependencies
+
+- Bump `actions/cache` from 4 to 5 (#225)
+- Bump `actions/download-artifact` from 4 to 8 (#226)
+- Bump `docker/login-action` from 3 to 4 (#227)
+- Bump `actions/upload-artifact` from 4 to 7 (#228)
+- Bump `docker/build-push-action` from 6 to 7 (#229)
+- Bump `express-rate-limit` from 8.2.1 to 8.3.0 (#230)
+
+### 📁 Files Changed
+
+| File                                              | Change                                               |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| `open-sse/translator/request/openai-responses.ts` | Remove synthetic reasoning item generation           |
+| `.github/workflows/electron-release.yml`          | Remove duplicate exe entry, bump GH Actions          |
+| `.github/workflows/docker-publish.yml`            | Bump docker/login-action and build-push-action       |
+| `electron/main.js`                                | Auto-updater setup, IPC handlers, tray menu          |
+| `electron/package.json`                           | Added electron-updater dep and GitHub publish config |
+| `electron/preload.js`                             | Exposed update APIs via contextBridge                |
+| `package-lock.json`                               | Updated express-rate-limit                           |
+
+---
+
 ## [2.0.4] — 2026-03-06
 
 > ### 🐛 Bug Fixes — Round-Robin Persistence & Docker Compatibility
