@@ -34,7 +34,12 @@ const HTTP_STATUS = {
  * @param {Function} errorResponse - Error response factory
  * @returns {Promise<{ error?: Response, provider: string, model: string, sourceFormat: string, targetFormat: string }>}
  */
-export async function resolveModelOrError(modelStr: string, body: any, log: any, errorResponse: Function) {
+export async function resolveModelOrError(
+  modelStr: string,
+  body: any,
+  log: any,
+  errorResponse: Function
+) {
   const modelInfo = await getModelInfo(modelStr);
 
   if (!modelInfo.provider) {
@@ -44,7 +49,8 @@ export async function resolveModelOrError(modelStr: string, body: any, log: any,
         `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
       log.warn("CHAT", message, {
         model: modelStr,
-        candidates: (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
+        candidates:
+          (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
       });
       return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
     }
@@ -56,7 +62,14 @@ export async function resolveModelOrError(modelStr: string, body: any, log: any,
   const { provider, model } = modelInfo;
   const sourceFormat = detectFormat(body);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  const targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
+
+  // If the custom model specifies apiFormat="responses", override targetFormat
+  // to route through the Responses API translator instead of Chat Completions
+  let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
+  if ((modelInfo as any).apiFormat === "responses") {
+    targetFormat = "openai-responses";
+    log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
+  }
 
   // Log routing
   if (modelStr !== `${provider}/${model}`) {
