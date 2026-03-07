@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -192,10 +193,20 @@ export class BaseExecutor {
             ? mergeAbortSignals(signal, timeoutSignal)
             : signal || timeoutSignal;
 
+        // Apply CLI fingerprint ordering if enabled for this provider
+        let finalHeaders = headers;
+        let bodyString = JSON.stringify(transformedBody);
+
+        if (isCliCompatEnabled(this.provider)) {
+          const fingerprinted = applyFingerprint(this.provider, headers, transformedBody);
+          finalHeaders = fingerprinted.headers;
+          bodyString = fingerprinted.bodyString;
+        }
+
         const fetchOptions: RequestInit = {
           method: "POST",
-          headers,
-          body: JSON.stringify(transformedBody),
+          headers: finalHeaders,
+          body: bodyString,
         };
         if (combinedSignal) fetchOptions.signal = combinedSignal;
 
