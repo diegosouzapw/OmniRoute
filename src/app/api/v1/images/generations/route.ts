@@ -108,6 +108,7 @@ export async function POST(request) {
 
   // Parse model to get provider
   let { provider } = parseImageModel(body.model);
+  let isCustomModel = false;
 
   // If not in built-in registry, check custom models tagged for images
   if (!provider) {
@@ -121,6 +122,7 @@ export async function POST(request) {
           const fullId = `${providerId}/${model.id}`;
           if (fullId === body.model) {
             provider = providerId;
+            isCustomModel = true;
             break;
           }
         }
@@ -149,9 +151,23 @@ export async function POST(request) {
         `No credentials for image provider: ${provider}`
       );
     }
+  } else if (isCustomModel) {
+    // Custom models need credentials from the provider connection
+    credentials = await getProviderCredentials(provider);
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for custom image provider: ${provider}`
+      );
+    }
   }
 
-  const result = await handleImageGeneration({ body, credentials, log });
+  const result = await handleImageGeneration({
+    body,
+    credentials,
+    log,
+    ...(isCustomModel && { resolvedProvider: provider }),
+  });
 
   if (result.success) {
     return new Response(JSON.stringify((result as any).data), {
