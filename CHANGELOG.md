@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.6] — 2026-03-07
+
+> ### 🐛 Bug Fix — Custom Model API Format Routing
+
+### 🐛 Bug Fixes
+
+- **#204 — Custom model `apiFormat` not used in routing** — Custom models configured with `apiFormat: "responses"` in the dashboard were still being routed through the Chat Completions translator. The `apiFormat` field was stored in the DB and displayed in the UI, but never consumed by the routing layer. Fix: `getModelInfo()` now returns `apiFormat` from the custom model DB, and both `resolveModelOrError()` functions override `targetFormat` to `openai-responses` when set. PR #233
+
+### ✅ Issues Closed
+
+- **#205** — Combo endpoint support — Already implemented in v2.0.2
+- **#206** — Manual model→endpoint mapping — Already implemented in v2.0.2
+- **#223** — CLI fingerprint parity — Responded with 4-phase roadmap
+
+### 📁 Files Changed
+
+| File                              | Change                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| `src/sse/services/model.ts`       | Added `lookupCustomModelApiFormat()`, enriched `getModelInfo()` return |
+| `src/sse/handlers/chat.ts`        | Override `targetFormat` when `apiFormat === "responses"`               |
+| `src/sse/handlers/chatHelpers.ts` | Same override in duplicate `resolveModelOrError()`                     |
+
+---
+
 ## [2.0.5] — 2026-03-06
 
 > ### 🐛 Bug Fix, Electron Auto-Update & Dependency Bumps
