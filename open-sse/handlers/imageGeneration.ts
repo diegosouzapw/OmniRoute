@@ -30,9 +30,23 @@ import {
  * @param {object} options.body - Request body
  * @param {object} options.credentials - Provider credentials { apiKey, accessToken }
  * @param {object} options.log - Logger
+ * @param {string} [options.resolvedProvider] - Pre-resolved provider ID (from route layer custom model resolution)
  */
-export async function handleImageGeneration({ body, credentials, log }) {
-  const { provider, model } = parseImageModel(body.model);
+export async function handleImageGeneration({ body, credentials, log, resolvedProvider = null }) {
+  let provider, model;
+
+  if (resolvedProvider) {
+    // Provider was already resolved by the route layer (custom model from DB)
+    // Extract model name from the full "provider/model" string
+    provider = resolvedProvider;
+    const modelStr = body.model || "";
+    model = modelStr.startsWith(provider + "/") ? modelStr.slice(provider.length + 1) : modelStr;
+  } else {
+    // Standard path: resolve from built-in image registry
+    const parsed = parseImageModel(body.model);
+    provider = parsed.provider;
+    model = parsed.model;
+  }
 
   if (!provider) {
     return {
@@ -43,12 +57,42 @@ export async function handleImageGeneration({ body, credentials, log }) {
   }
 
   const providerConfig = getImageProvider(provider);
+
+  // For custom models without a built-in provider config, use OpenAI-compatible handler
+  // with a synthetic config based on the provider's credentials
   if (!providerConfig) {
-    return {
-      success: false,
-      status: 400,
-      error: `Unknown image provider: ${provider}`,
+    if (!resolvedProvider) {
+      return {
+        success: false,
+        status: 400,
+        error: `Unknown image provider: ${provider}`,
+      };
+    }
+
+    // Custom model: use OpenAI-compatible format with provider's base URL
+    // The credentials were already resolved by the route layer
+    if (log) {
+      log.info("IMAGE", `Custom model ${provider}/${model} — using OpenAI-compatible handler`);
+    }
+
+    const syntheticConfig = {
+      id: provider,
+      baseUrl:
+        credentials?.baseUrl ||
+        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`,
+      authType: "apikey",
+      authHeader: "bearer",
+      format: "openai",
     };
+
+    return handleOpenAIImageGeneration({
+      model,
+      provider,
+      providerConfig: syntheticConfig,
+      body,
+      credentials,
+      log,
+    });
   }
 
   // Route to format-specific handler
