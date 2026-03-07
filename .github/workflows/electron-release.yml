@@ -55,12 +55,12 @@ jobs:
             target: win
             ext: .exe
           - platform: macos-intel
-            runner: macos-latest
-            target: mac
+            runner: macos-13
+            target: mac-x64
             ext: .dmg
           - platform: macos-arm64
             runner: macos-latest
-            target: mac
+            target: mac-arm64
             ext: -arm64.dmg
           - platform: linux
             runner: ubuntu-latest

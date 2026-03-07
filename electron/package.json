@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "1.6.9",
+  "version": "2.0.13",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": "OmniRoute Team",
@@ -12,6 +12,8 @@
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
+    "build:mac-x64": "electron-builder --mac --x64",
+    "build:mac-arm64": "electron-builder --mac --arm64",
     "build:linux": "electron-builder --linux",
     "pack": "electron-builder --dir"
   },
@@ -82,13 +84,7 @@
     },
     "mac": {
       "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
+        "dmg"
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity"
