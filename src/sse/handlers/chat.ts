@@ -369,7 +369,14 @@ async function resolveModelOrError(modelStr: string, body: any) {
   const { provider, model } = modelInfo;
   const sourceFormat = detectFormat(body);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  const targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
+
+  // If the custom model specifies apiFormat="responses", override targetFormat
+  // to route through the Responses API translator instead of Chat Completions
+  let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
+  if ((modelInfo as any).apiFormat === "responses") {
+    targetFormat = "openai-responses";
+    log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
+  }
 
   if (modelStr !== `${provider}/${model}`) {
     log.info("ROUTING", `${modelStr} → ${provider}/${model}`);
