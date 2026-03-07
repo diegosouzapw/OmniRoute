@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.7] — 2026-03-07
+
+> ### 🐛 Bug Fixes — Custom Image Models + Codex OAuth Workspace Isolation
+
+### 🐛 Bug Fixes
+
+- **#232 — Custom Gemini image models fail on `/v1/images/generations`** — Custom models tagged with `supportedEndpoints: ["images"]` appeared in the model listing (GET) but were rejected by the POST handler. `parseImageModel()` only checked the built-in `IMAGE_PROVIDERS` registry. Fix: added a custom model DB fallback for models with the `images` endpoint tag. PR #237
+- **#236 — Codex OAuth overwrites existing connection when same email added to another workspace** — The OAuth callback route had 3 upsert blocks matching connections by email-only, bypassing the workspace-aware logic in `createProviderConnection()`. When the same email authenticated to a new workspace, the existing connection's `workspaceId` was silently overwritten. Fix: for Codex, the match now also checks `providerSpecificData.workspaceId`, allowing separate connections per workspace. PR #237
+
+### 📁 Files Changed
+
+| File                                             | Change                                               |
+| ------------------------------------------------ | ---------------------------------------------------- |
+| `src/app/api/v1/images/generations/route.ts`     | Custom model DB fallback in POST handler             |
+| `src/app/api/oauth/[provider]/[action]/route.ts` | Workspace-aware Codex matching in 3 upsert locations |
+
+### ⏭️ Issues Triaged
+
+- **#234** — Playground feature request — Acknowledged, added to roadmap
+- **#235** — ACP support feature request — Acknowledged, added to roadmap
+
+---
+
 ## [2.0.6] — 2026-03-07
 
 > ### 🐛 Bug Fix — Custom Model API Format Routing
