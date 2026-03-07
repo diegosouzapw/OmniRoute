@@ -221,9 +221,15 @@ export async function POST(
       let connection: any;
       if (tokenData.email) {
         const existing = await getProviderConnections({ provider });
-        const match = existing.find(
-          (c: any) => c.email === tokenData.email && c.authType === "oauth"
-        );
+        const match = existing.find((c: any) => {
+          if (c.email !== tokenData.email || c.authType !== "oauth") return false;
+          // For Codex, also check workspaceId to avoid overwriting different workspace connections
+          if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
+            const existingWorkspace = c.providerSpecificData?.workspaceId;
+            return existingWorkspace === tokenData.providerSpecificData.workspaceId;
+          }
+          return true;
+        });
         const matchId = typeof match?.id === "string" ? match.id : null;
         if (matchId) {
           connection = await updateProviderConnection(matchId, {
@@ -285,9 +291,15 @@ export async function POST(
         let connection: any;
         if (result.tokens.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find(
-            (c: any) => c.email === result.tokens.email && c.authType === "oauth"
-          );
+          const match = existing.find((c: any) => {
+            if (c.email !== result.tokens.email || c.authType !== "oauth") return false;
+            // For Codex, also check workspaceId to avoid overwriting different workspace connections
+            if (provider === "codex" && result.tokens.providerSpecificData?.workspaceId) {
+              const existingWorkspace = c.providerSpecificData?.workspaceId;
+              return existingWorkspace === result.tokens.providerSpecificData.workspaceId;
+            }
+            return true;
+          });
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {
@@ -399,9 +411,15 @@ export async function POST(
         let connection: any;
         if (tokenData.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find(
-            (c: any) => c.email === tokenData.email && c.authType === "oauth"
-          );
+          const match = existing.find((c: any) => {
+            if (c.email !== tokenData.email || c.authType !== "oauth") return false;
+            // For Codex, also check workspaceId to avoid overwriting different workspace connections
+            if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
+              const existingWorkspace = c.providerSpecificData?.workspaceId;
+              return existingWorkspace === tokenData.providerSpecificData.workspaceId;
+            }
+            return true;
+          });
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {
