@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.8] — 2026-03-07
+
+> ### 🐛 Bug Fix — Custom Image Model Handler Resolution
+
+### 🐛 Bug Fixes
+
+- **#238 — Custom image models still fail in handler layer** — v2.0.7 fixed the route-layer validation, but the handler (`handleImageGeneration()`) called `parseImageModel()` again internally, rejecting custom models a second time. Fix: handler now accepts an optional `resolvedProvider` parameter; when provided, it skips re-validation and routes custom models to the OpenAI-compatible handler with a synthetic config. PR #239
+
+### 📁 Files Changed
+
+| File                                         | Change                                                                           |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `open-sse/handlers/imageGeneration.ts`       | Added `resolvedProvider` param + custom model fallback                           |
+| `src/app/api/v1/images/generations/route.ts` | Tracks `isCustomModel`, passes `resolvedProvider`, credentials for custom models |
+
+---
+
 ## [2.0.7] — 2026-03-07
 
 > ### 🐛 Bug Fixes — Custom Image Models + Codex OAuth Workspace Isolation
