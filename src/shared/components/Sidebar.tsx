@@ -173,7 +173,7 @@ export default function Sidebar({
     <>
       <aside
         className={cn(
-          "flex flex-col border-r border-black/5 dark:border-white/5 bg-vibrancy backdrop-blur-xl transition-all duration-300 ease-in-out",
+          "flex flex-col h-full border-r border-black/5 dark:border-white/5 bg-vibrancy backdrop-blur-xl transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-72"
         )}
       >

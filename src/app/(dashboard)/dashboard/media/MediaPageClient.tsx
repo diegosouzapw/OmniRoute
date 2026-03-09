@@ -45,7 +45,59 @@ const MODALITY_CONFIG: Record<
   },
 };
 
-const SPEECH_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
+// Provider-aware voice options for the TTS speech tab
+const PROVIDER_VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
+  // OpenAI standard voices (also used as defaults)
+  default: [
+    { id: "alloy", label: "Alloy" },
+    { id: "echo", label: "Echo" },
+    { id: "fable", label: "Fable" },
+    { id: "onyx", label: "Onyx" },
+    { id: "nova", label: "Nova" },
+    { id: "shimmer", label: "Shimmer" },
+  ],
+  // ElevenLabs — popular premade voice IDs
+  elevenlabs: [
+    { id: "21m00Tcm4TlvDq8ikWAM", label: "Rachel (EN, calm)" },
+    { id: "AZnzlk1XvdvUeBnXmlld", label: "Domi (EN, strong)" },
+    { id: "EXAVITQu4vr4xnSDxMaL", label: "Bella (EN, soft)" },
+    { id: "ErXwobaYiN019PkySvjV", label: "Antoni (EN, well-rounded)" },
+    { id: "MF3mGyEYCl7XYWbV9V6O", label: "Elli (EN, young)" },
+    { id: "TxGEqnHWrfWFTfGW9XjX", label: "Josh (EN, deep)" },
+    { id: "VR6AewLTigWG4xSOukaG", label: "Arnold (EN, crisp)" },
+    { id: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN, deep)" },
+    { id: "yoZ06aMxZJJ28mfd3POQ", label: "Sam (EN, raspy)" },
+  ],
+  // Cartesia — Sonic model default voice
+  cartesia: [
+    { id: "a0e99841-438c-4a64-b679-ae501e7d6091", label: "Barbershop Man" },
+    { id: "694f9389-aac1-45b6-b726-9d9369183238", label: "Friendly Reading Man" },
+    { id: "b7d50908-b17c-442d-ad8d-810c63997ed9", label: "California Girl" },
+  ],
+  // Deepgram Aura voices
+  deepgram: [
+    { id: "aura-asteria-en", label: "Asteria (EN)" },
+    { id: "aura-luna-en", label: "Luna (EN)" },
+    { id: "aura-stella-en", label: "Stella (EN)" },
+    { id: "aura-zeus-en", label: "Zeus (EN)" },
+    { id: "aura-orion-en", label: "Orion (EN)" },
+  ],
+  // Inworld TTS voices
+  inworld: [
+    { id: "Eva", label: "Eva (EN)" },
+    { id: "Marcus", label: "Marcus (EN)" },
+  ],
+};
+
+function getVoicePresets(modelId: string) {
+  for (const prefix of Object.keys(PROVIDER_VOICE_PRESETS)) {
+    if (prefix !== "default" && modelId.startsWith(prefix + "/")) {
+      return PROVIDER_VOICE_PRESETS[prefix];
+    }
+  }
+  return PROVIDER_VOICE_PRESETS.default;
+}
+
 const SPEECH_FORMATS = ["mp3", "wav", "opus", "flac", "pcm"];
 
 export default function MediaPageClient() {
@@ -243,9 +295,9 @@ export default function MediaPageClient() {
                   onChange={(e) => setSpeechVoice(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
-                  {SPEECH_VOICES.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
+                  {getVoicePresets(model).map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.label}
                     </option>
                   ))}
                 </select>

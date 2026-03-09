@@ -242,8 +242,8 @@ export default function ProvidersPage() {
     <div className="flex flex-col gap-6">
       {/* OAuth Providers */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
           </h2>
@@ -283,8 +283,8 @@ export default function ProvidersPage() {
 
       {/* Free Providers */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("freeProviders")}{" "}
             <span className="size-2.5 rounded-full bg-green-500" title={tc("free")} />
           </h2>
@@ -321,8 +321,8 @@ export default function ProvidersPage() {
 
       {/* API Key Providers — fixed list */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("apiKeyProviders")}{" "}
             <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
           </h2>
@@ -359,12 +359,12 @@ export default function ProvidersPage() {
 
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("compatibleProviders")}{" "}
             <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {(compatibleProviders.length > 0 || anthropicCompatibleProviders.length > 0) && (
               <button
                 onClick={() => handleBatchTest("compatible")}
