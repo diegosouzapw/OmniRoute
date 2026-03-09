@@ -77,9 +77,7 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "nvidia-asr",
-    models: [
-      { id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" },
-    ],
+    models: [{ id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" }],
   },
 
   huggingface: {
@@ -100,9 +98,7 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authType: "none",
     authHeader: "none",
     format: "openai",
-    models: [
-      { id: "qwen3-asr", name: "Qwen3 ASR" },
-    ],
+    models: [{ id: "qwen3-asr", name: "Qwen3 ASR" }],
   },
 };
 
@@ -183,9 +179,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "none",
     authHeader: "none",
     format: "coqui",
-    models: [
-      { id: "tts_models/en/ljspeech/tacotron2-DDC", name: "Tacotron2 DDC (LJSpeech)" },
-    ],
+    models: [{ id: "tts_models/en/ljspeech/tacotron2-DDC", name: "Tacotron2 DDC (LJSpeech)" }],
   },
 
   tortoise: {
@@ -194,9 +188,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "none",
     authHeader: "none",
     format: "tortoise",
-    models: [
-      { id: "tortoise-v2", name: "Tortoise v2" },
-    ],
+    models: [{ id: "tortoise-v2", name: "Tortoise v2" }],
   },
 
   qwen: {
@@ -205,8 +197,53 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "none",
     authHeader: "none",
     format: "openai",
+    models: [{ id: "qwen3-tts", name: "Qwen3 TTS" }],
+  },
+
+  // ── Cloud TTS Providers (#248) ────────────────────────────────────────────
+
+  inworld: {
+    id: "inworld",
+    // POST https://api.inworld.ai/tts/v1/voice
+    // Auth: Authorization: Basic <api-key>
+    // Response: JSON { audioContent: "<base64>", contentType, sampleRateHertz }
+    baseUrl: "https://api.inworld.ai/tts/v1/voice",
+    authType: "apikey",
+    authHeader: "basic",
+    format: "inworld",
     models: [
-      { id: "qwen3-tts", name: "Qwen3 TTS" },
+      { id: "inworld-tts-1.5-max", name: "Inworld TTS 1.5 Max" },
+      { id: "inworld-tts-1.5-mini", name: "Inworld TTS 1.5 Mini" },
+    ],
+  },
+
+  cartesia: {
+    id: "cartesia",
+    // POST https://api.cartesia.ai/tts/bytes
+    // Auth: X-API-Key header, Cartesia-Version: 2024-06-10
+    // Response: binary audio bytes
+    baseUrl: "https://api.cartesia.ai/tts/bytes",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    format: "cartesia",
+    models: [
+      { id: "sonic-2", name: "Sonic 2" },
+      { id: "sonic-3", name: "Sonic 3" },
+    ],
+  },
+
+  playht: {
+    id: "playht",
+    // POST https://api.play.ht/api/v2/tts/stream
+    // Auth: X-USER-ID + Authorization: Bearer <api-key>
+    // Response: audio stream (mp3/wav)
+    baseUrl: "https://api.play.ht/api/v2/tts/stream",
+    authType: "apikey",
+    authHeader: "playht",
+    format: "playht",
+    models: [
+      { id: "PlayDialog", name: "PlayDialog" },
+      { id: "Play3.0-mini", name: "Play3.0 Mini" },
     ],
   },
 };
@@ -228,7 +265,10 @@ export function getSpeechProvider(providerId: string): AudioProvider | null {
 /**
  * Parse audio model string (format: "provider/model" or just "model")
  */
-function parseAudioModel(modelStr: string | null, registry: Record<string, AudioProvider>): { provider: string | null; model: string | null } {
+function parseAudioModel(
+  modelStr: string | null,
+  registry: Record<string, AudioProvider>
+): { provider: string | null; model: string | null } {
   if (!modelStr) return { provider: null, model: null };
 
   for (const [providerId, config] of Object.entries(registry)) {

@@ -8,6 +8,8 @@ import {
   getRateLimitStatus,
   getAllRateLimitStatus,
 } from "@omniroute/open-sse/services/rateLimitManager.ts";
+import { getAccountDisplayName } from "@/lib/display/names";
+
 import { toggleRateLimitSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -36,7 +38,7 @@ export async function GET() {
       const name =
         (typeof conn.name === "string" && conn.name.trim()) ||
         (typeof conn.email === "string" && conn.email.trim()) ||
-        (connectionId ? connectionId.slice(0, 8) : "unknown");
+        getAccountDisplayName({ id: connectionId });
 
       return {
         connectionId,

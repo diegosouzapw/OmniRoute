@@ -22,6 +22,7 @@ const ENDPOINT_OPTIONS = [
   { value: "responses", label: "Responses" },
   { value: "images", label: "Image Generation" },
   { value: "embeddings", label: "Embeddings" },
+  { value: "speech", label: "Text to Speech" },
 ];
 
 const DEFAULT_BODIES: Record<string, object> = {
@@ -47,6 +48,12 @@ const DEFAULT_BODIES: Record<string, object> = {
     input: "Hello world",
     encoding_format: "float",
   },
+  speech: {
+    model: "openai/tts-1",
+    input: "Hello, this is a test of the text-to-speech endpoint.",
+    voice: "alloy",
+    response_format: "mp3",
+  },
 };
 
 const ENDPOINT_PATHS: Record<string, string> = {
@@ -54,6 +61,7 @@ const ENDPOINT_PATHS: Record<string, string> = {
   responses: "/v1/responses",
   images: "/v1/images/generations",
   embeddings: "/v1/embeddings",
+  speech: "/v1/audio/speech",
 };
 
 export default function PlaygroundPage() {
@@ -64,6 +72,7 @@ export default function PlaygroundPage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState("chat");
   const [requestBody, setRequestBody] = useState("");
   const [responseBody, setResponseBody] = useState("");
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [responseDuration, setResponseDuration] = useState<number | null>(null);
@@ -142,6 +151,7 @@ export default function PlaygroundPage() {
     if (!requestBody.trim()) return;
     setLoading(true);
     setResponseBody("");
+    setAudioUrl(null);
     setResponseStatus(null);
     setResponseDuration(null);
 
@@ -163,7 +173,13 @@ export default function PlaygroundPage() {
       setResponseDuration(Date.now() - startTime);
 
       const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("text/event-stream")) {
+      if (contentType.startsWith("audio/")) {
+        // TTS binary response — create a Blob URL and show inline audio player
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        setResponseBody(`// Audio response (${contentType})\n// Click play below to listen.`);
+      } else if (contentType.includes("text/event-stream")) {
         // Handle streaming
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
@@ -376,21 +392,35 @@ export default function PlaygroundPage() {
               </div>
             </div>
             <div className="border border-border rounded-lg overflow-hidden">
-              <Editor
-                height="400px"
-                defaultLanguage="json"
-                value={responseBody}
-                theme="vs-dark"
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 12,
-                  lineNumbers: "on",
-                  scrollBeyondLastLine: false,
-                  wordWrap: "on",
-                  automaticLayout: true,
-                  readOnly: true,
-                }}
-              />
+              {audioUrl ? (
+                <div className="p-4 space-y-3">
+                  <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
+                  <a
+                    href={audioUrl}
+                    download="speech.mp3"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    Download audio
+                  </a>
+                </div>
+              ) : (
+                <Editor
+                  height="400px"
+                  defaultLanguage="json"
+                  value={responseBody}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 12,
+                    lineNumbers: "on",
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    readOnly: true,
+                  }}
+                />
+              )}
             </div>
           </div>
         </Card>

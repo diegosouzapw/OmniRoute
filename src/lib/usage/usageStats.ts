@@ -9,6 +9,7 @@
 
 import { getDbInstance } from "../db/core";
 import { getPendingRequests } from "./usageHistory";
+import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
 
 type JsonRecord = Record<string, unknown>;
@@ -73,7 +74,8 @@ export async function getUsageStats() {
   for (const [connectionId, models] of Object.entries(pendingRequests.byAccount)) {
     for (const [modelKey, count] of Object.entries(models)) {
       if (count > 0) {
-        const accountName = connectionMap[connectionId] || `Account ${connectionId.slice(0, 8)}...`;
+        const accountName =
+          connectionMap[connectionId] || getAccountDisplayName({ id: connectionId });
         const match = modelKey.match(/^(.*) \((.*)\)$/);
         stats.activeRequests.push({
           model: match ? match[1] : modelKey,
@@ -173,7 +175,8 @@ export async function getUsageStats() {
 
     // By Account
     if (connectionId) {
-      const accountName = connectionMap[connectionId] || `Account ${connectionId.slice(0, 8)}...`;
+      const accountName =
+        connectionMap[connectionId] || getAccountDisplayName({ id: connectionId });
       const accountKey = `${model} (${provider} - ${accountName})`;
       if (!stats.byAccount[accountKey]) {
         stats.byAccount[accountKey] = {

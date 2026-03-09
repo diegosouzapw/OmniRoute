@@ -193,6 +193,115 @@ async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) 
 }
 
 /**
+ * Handle Inworld TTS
+ * POST { text, voiceId, modelId, audioConfig } → JSON { audioContent: "<base64>" }
+ * Docs: https://docs.inworld.ai/api-reference/ttsAPI/texttospeech/synthesize-speech
+ */
+async function handleInworldSpeech(providerConfig, body, modelId, token) {
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${token}`,
+    },
+    body: JSON.stringify({
+      text: body.input,
+      voiceId: body.voice || undefined,
+      modelId,
+      audioConfig: {
+        audioEncoding: body.response_format === "wav" ? "LINEAR16" : "MP3",
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const data = await res.json();
+  // Decode base64 audioContent to binary
+  const audioBuffer = Uint8Array.from(atob(data.audioContent ?? ""), (c) => c.charCodeAt(0));
+  const mimeType = body.response_format === "wav" ? "audio/wav" : "audio/mpeg";
+
+  return new Response(audioBuffer, {
+    status: 200,
+    headers: {
+      "Content-Type": mimeType,
+      "Access-Control-Allow-Origin": getCorsOrigin(),
+    },
+  });
+}
+
+/**
+ * Handle Cartesia TTS
+ * POST { model_id, transcript, voice, output_format } → binary audio bytes
+ * Docs: https://docs.cartesia.ai/api-reference/tts/bytes
+ */
+async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
+  const outputFormat =
+    body.response_format === "wav"
+      ? { container: "wav", sample_rate: 44100 }
+      : { container: "mp3", bit_rate: 128000, sample_rate: 44100 };
+
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": token,
+      "Cartesia-Version": "2024-06-10",
+    },
+    body: JSON.stringify({
+      model_id: modelId,
+      transcript: body.input,
+      ...(body.voice ? { voice: { mode: "id", id: body.voice } } : {}),
+      output_format: outputFormat,
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  return audioStreamResponse(res);
+}
+
+/**
+ * Handle PlayHT TTS
+ * POST { text, voice, voice_engine, output_format } → audio stream
+ * Auth: X-USER-ID header (from token string "userId:apiKey")
+ * Docs: https://docs.play.ht/reference/api-generate-tts-audio-stream
+ */
+async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
+  // PlayHT tokens are stored as "userId:apiKey"
+  const [userId, apiKey] = (token || ":").split(":");
+
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+      "X-USER-ID": userId || "",
+      Authorization: `Bearer ${apiKey || token}`,
+    },
+    body: JSON.stringify({
+      text: body.input,
+      voice:
+        body.voice ||
+        "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
+      voice_engine: modelId || "PlayDialog",
+      output_format: body.response_format || "mp3",
+      speed: body.speed || 1,
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  return audioStreamResponse(res);
+}
+
+/**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
@@ -271,7 +380,7 @@ export async function handleAudioSpeech({ body, credentials }) {
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, coqui, tortoise, qwen`
     );
   }
 
@@ -302,6 +411,18 @@ export async function handleAudioSpeech({ body, credentials }) {
 
     if (providerConfig.format === "huggingface-tts") {
       return handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "inworld") {
+      return handleInworldSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "cartesia") {
+      return handleCartesiaSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "playht") {
+      return handlePlayHtSpeech(providerConfig, body, modelId, token);
     }
 
     if (providerConfig.format === "coqui") {

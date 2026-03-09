@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-type Modality = "image" | "video" | "music";
+type Modality = "image" | "video" | "music" | "speech";
 type GenerationResult = {
   type: Modality;
   data: any;
   timestamp: number;
+  audioUrl?: string;
 };
 
 const MODALITY_CONFIG: Record<
@@ -35,7 +36,17 @@ const MODALITY_CONFIG: Record<
     placeholder: "Upbeat electronic music with synth pads...",
     color: "from-orange-500 to-yellow-500",
   },
+  speech: {
+    icon: "record_voice_over",
+    endpoint: "/api/v1/audio/speech",
+    label: "Text to Speech",
+    placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
+    color: "from-green-500 to-teal-500",
+  },
 };
+
+const SPEECH_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
+const SPEECH_FORMATS = ["mp3", "wav", "opus", "flac", "pcm"];
 
 export default function MediaPageClient() {
   const t = useTranslations("media");
@@ -47,9 +58,17 @@ export default function MediaPageClient() {
   const [loadingModels, setLoadingModels] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Speech-specific state
+  const [speechVoice, setSpeechVoice] = useState("alloy");
+  const [speechFormat, setSpeechFormat] = useState("mp3");
 
   // Fetch available models for each modality
   const fetchModels = async (modality: Modality) => {
+    if (modality === "speech") {
+      // Models come from /v1/models filtered by speech providers
+      setModels([]);
+      return;
+    }
     setLoadingModels(true);
     try {
       const res = await fetch(MODALITY_CONFIG[modality].endpoint);
@@ -81,6 +100,37 @@ export default function MediaPageClient() {
 
     try {
       const config = MODALITY_CONFIG[activeTab];
+
+      if (activeTab === "speech") {
+        // TTS: returns binary audio stream — create a Blob URL for <audio>
+        const res = await fetch(config.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: model || "openai/tts-1",
+            input: prompt.trim(),
+            voice: speechVoice,
+            response_format: speechFormat,
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `TTS failed (${res.status})`);
+        }
+
+        const blob = await res.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        setResult({
+          type: "speech",
+          data: { format: speechFormat },
+          timestamp: Date.now(),
+          audioUrl,
+        });
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch(config.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,34 +193,86 @@ export default function MediaPageClient() {
 
       {/* Generation Form */}
       <div className="bg-surface/30 rounded-xl border border-black/5 dark:border-white/5 p-6 space-y-4">
-        {/* Model selector */}
-        <div>
-          <label className="block text-sm font-medium text-text-main mb-2">{t("model")}</label>
-          {loadingModels ? (
-            <div className="flex items-center gap-2 text-text-muted text-sm">
-              <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-              {t("loadingModels")}
-            </div>
-          ) : models.length > 0 ? (
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.id}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <p className="text-text-muted text-sm">{t("noModels")}</p>
-          )}
-        </div>
+        {/* Model selector (not shown for speech — use manual model input) */}
+        {activeTab !== "speech" && (
+          <div>
+            <label className="block text-sm font-medium text-text-main mb-2">{t("model")}</label>
+            {loadingModels ? (
+              <div className="flex items-center gap-2 text-text-muted text-sm">
+                <span className="material-symbols-outlined animate-spin text-[16px]">
+                  progress_activity
+                </span>
+                {t("loadingModels")}
+              </div>
+            ) : models.length > 0 ? (
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                {models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.id}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-text-muted text-sm">{t("noModels")}</p>
+            )}
+          </div>
+        )}
 
-        {/* Prompt */}
+        {/* Speech: model input + voice + format */}
+        {activeTab === "speech" && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-2">{t("model")}</label>
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="openai/tts-1 · elevenlabs/eleven_multilingual_v2 · cartesia/sonic-3"
+                className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-main mb-2">Voice</label>
+                <select
+                  value={speechVoice}
+                  onChange={(e) => setSpeechVoice(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  {SPEECH_VOICES.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-main mb-2">Format</label>
+                <select
+                  value={speechFormat}
+                  onChange={(e) => setSpeechFormat(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  {SPEECH_FORMATS.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Prompt / Text */}
         <div>
-          <label className="block text-sm font-medium text-text-main mb-2">{t("prompt")}</label>
+          <label className="block text-sm font-medium text-text-main mb-2">
+            {activeTab === "speech" ? "Text" : t("prompt")}
+          </label>
           <textarea
             rows={3}
             value={prompt}
@@ -185,18 +287,24 @@ export default function MediaPageClient() {
           onClick={handleGenerate}
           disabled={loading || !prompt.trim()}
           className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-all bg-gradient-to-r ${config.color} ${
-            loading || !prompt.trim() ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 hover:shadow-lg"
+            loading || !prompt.trim()
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:opacity-90 hover:shadow-lg"
           }`}
         >
           {loading ? (
             <>
-              <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-              {t("generating")}
+              <span className="material-symbols-outlined animate-spin text-[18px]">
+                progress_activity
+              </span>
+              {activeTab === "speech" ? "Synthesizing..." : t("generating")}
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-              {t("generate")} {config.label}
+              <span className="material-symbols-outlined text-[18px]">
+                {activeTab === "speech" ? "volume_up" : "auto_awesome"}
+              </span>
+              {activeTab === "speech" ? "Synthesize Speech" : `${t("generate")} ${config.label}`}
             </>
           )}
         </button>
@@ -217,7 +325,9 @@ export default function MediaPageClient() {
       {result && (
         <div className="bg-surface/30 rounded-xl border border-black/5 dark:border-white/5 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <span className={`material-symbols-outlined text-[20px] bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <span
+              className={`material-symbols-outlined text-[20px] bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}
+            >
               {config.icon}
             </span>
             <h3 className="text-sm font-medium text-text-main">{t("result")}</h3>
@@ -225,14 +335,30 @@ export default function MediaPageClient() {
               {new Date(result.timestamp).toLocaleTimeString()}
             </span>
           </div>
-          <pre className="bg-surface rounded-lg p-4 text-xs text-text-muted overflow-auto max-h-96 custom-scrollbar">
-            {JSON.stringify(result.data, null, 2)}
-          </pre>
+
+          {/* Audio player for TTS results */}
+          {result.type === "speech" && result.audioUrl ? (
+            <div className="space-y-3">
+              <audio controls src={result.audioUrl} className="w-full rounded-lg" autoPlay />
+              <a
+                href={result.audioUrl}
+                download={`speech.${result.data?.format || "mp3"}`}
+                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
+                Download {result.data?.format?.toUpperCase() || "MP3"}
+              </a>
+            </div>
+          ) : (
+            <pre className="bg-surface rounded-lg p-4 text-xs text-text-muted overflow-auto max-h-96 custom-scrollbar">
+              {JSON.stringify(result.data, null, 2)}
+            </pre>
+          )}
         </div>
       )}
 
       {/* Info cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {(Object.keys(MODALITY_CONFIG) as Modality[]).map((key) => {
           const cfg = MODALITY_CONFIG[key];
           return (
@@ -241,14 +367,16 @@ export default function MediaPageClient() {
               className="bg-surface/30 rounded-xl border border-black/5 dark:border-white/5 p-4"
             >
               <div className="flex items-center gap-2 mb-2">
-                <div className={`flex items-center justify-center size-8 rounded-lg bg-gradient-to-r ${cfg.color}`}>
-                  <span className="material-symbols-outlined text-white text-[16px]">{cfg.icon}</span>
+                <div
+                  className={`flex items-center justify-center size-8 rounded-lg bg-gradient-to-r ${cfg.color}`}
+                >
+                  <span className="material-symbols-outlined text-white text-[16px]">
+                    {cfg.icon}
+                  </span>
                 </div>
                 <span className="text-sm font-medium text-text-main">{cfg.label}</span>
               </div>
-              <p className="text-xs text-text-muted">
-                {t(`${key}Description`)}
-              </p>
+              <p className="text-xs text-text-muted">{t(`${key}Description`)}</p>
               <code className="block mt-2 text-xs text-primary/70 bg-primary/5 rounded px-2 py-1">
                 POST {cfg.endpoint}
               </code>
