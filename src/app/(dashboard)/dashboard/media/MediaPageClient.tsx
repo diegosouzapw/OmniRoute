@@ -335,7 +335,7 @@ export default function MediaPageClient() {
   const [error, setError] = useState<string | null>(null);
 
   // Speech-specific
-  const [speechVoice, setSpeechVoice] = useState("");
+  const [speechVoice, setSpeechVoice] = useState(getInitialVoice("openai"));
   const [customSpeechVoice, setCustomSpeechVoice] = useState("");
   const [speechFormat, setSpeechFormat] = useState("mp3");
 
@@ -382,7 +382,6 @@ export default function MediaPageClient() {
     const firstProvider = providers[0];
     setSelectedProvider(firstProvider?.id ?? "");
     setSelectedModel(firstProvider?.models[0]?.id ?? "");
-    setSpeechVoice(getInitialVoice(firstProvider?.id ?? ""));
   }
 
   const handleGenerate = async () => {
