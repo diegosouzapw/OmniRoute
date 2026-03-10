@@ -127,12 +127,22 @@ export function prepareClaudeRequest(body, provider = null) {
     }
 
     // Pass 1.4: Filter out tool_use blocks with empty names (causes Claude 400 error)
+    // Apply to ALL roles (assistant tool_use + any user messages that may carry tool_use)
+    // Also filter tool_result blocks with missing tool_use_id
     for (const msg of filtered) {
-      if (msg.role === "assistant" && Array.isArray(msg.content)) {
+      if (Array.isArray(msg.content)) {
         msg.content = msg.content.filter(
-          (block) => block.type !== "tool_use" || (block.name && block.name.trim())
+          (block) => block.type !== "tool_use" || (block.name && block.name?.trim())
+        );
+        msg.content = msg.content.filter(
+          (block) => block.type !== "tool_result" || block.tool_use_id
         );
       }
+    }
+
+    // Also filter top-level tool declarations with empty names
+    if (body.tools && Array.isArray(body.tools)) {
+      body.tools = body.tools.filter((tool) => tool.name && tool.name?.trim());
     }
 
     // Pass 1.5: Fix tool_use/tool_result ordering

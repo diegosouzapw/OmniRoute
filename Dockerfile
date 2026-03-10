@@ -29,6 +29,8 @@ RUN mkdir -p /app/data
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
+# Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
+COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
 COPY --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs

@@ -175,6 +175,9 @@ export function openaiToClaudeRequest(model, body, stream) {
       };
     });
 
+    // Filter out tools with empty names (would cause Claude 400 error)
+    result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
+
     // Add cache_control to last tool that doesn't have defer_loading
     // Tools with defer_loading=true cannot have cache_control (API rejects it)
     for (let i = result.tools.length - 1; i >= 0; i--) {
@@ -227,6 +230,8 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
         if (part.type === "text" && part.text) {
           blocks.push({ type: "text", text: part.text });
         } else if (part.type === "tool_result") {
+          // Skip tool_result with no tool_use_id (would be useless and may cause errors)
+          if (!part.tool_use_id) continue;
           blocks.push({
             type: "tool_result",
             tool_use_id: part.tool_use_id,
