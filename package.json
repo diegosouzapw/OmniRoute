@@ -76,7 +76,8 @@
     "check": "npm run lint && npm run test",
     "prepublishOnly": "npm run build:cli",
     "postinstall": "node scripts/postinstall.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "system-info": "node scripts/system-info.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",

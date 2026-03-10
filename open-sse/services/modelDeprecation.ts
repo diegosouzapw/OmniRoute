@@ -31,6 +31,24 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "gpt-4-0125-preview": "gpt-4-turbo",
   "gpt-4-1106-preview": "gpt-4-turbo",
   "gpt-3.5-turbo-0125": "gpt-3.5-turbo",
+
+  // Kimi/Moonshot — Fireworks long-path aliases (#265)
+  "accounts/fireworks/models/kimi-k2p5": "moonshotai/Kimi-K2.5",
+  "fireworks/accounts/fireworks/models/kimi-k2p5": "moonshotai/Kimi-K2.5",
+  "kimi-k2p5": "moonshotai/Kimi-K2.5",
+  "accounts/fireworks/models/kimi-k2": "moonshotai/Kimi-K2",
+  "fireworks/accounts/fireworks/models/kimi-k2": "moonshotai/Kimi-K2",
+  "kimi-k2": "moonshotai/Kimi-K2",
+
+  // Mistral short aliases
+  "mistral-large": "mistral-large-latest",
+  "mistral-small": "mistral-small-latest",
+  codestral: "codestral-latest",
+
+  // Llama short aliases
+  "llama-3.3": "llama-3.3-70b-versatile",
+  "llama-3-70b": "llama-3.3-70b-versatile",
+  "llama-3-8b": "llama3-8b-8192",
 };
 
 // ── Custom Aliases (persisted via Settings API) ─────────────────────────────
