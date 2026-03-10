@@ -15,7 +15,6 @@ import {
   tryParseJSON,
   generateRequestId,
   generateSessionId,
-  generateProjectId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 
@@ -321,13 +320,11 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
-  const hasRealProject = !!credentials?.projectId;
-  const projectId = credentials?.projectId || generateProjectId();
+  const projectId = credentials?.projectId;
 
-  if (!hasRealProject) {
-    console.warn(
-      `[${isAntigravity ? "Antigravity" : "GeminiCLI"}] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
-        `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
+  if (!projectId) {
+    throw new Error(
+      `${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. Reconnect OAuth to load your real Cloud Code project before sending requests.`
     );
   }
 
@@ -374,13 +371,11 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 }
 
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
-  const hasRealProject = !!credentials?.projectId;
-  const projectId = credentials?.projectId || generateProjectId();
+  const projectId = credentials?.projectId;
 
-  if (!hasRealProject) {
-    console.warn(
-      `[Antigravity/Claude] ⚠️ No projectId in credentials — using generated fallback "${projectId}". ` +
-        `This may cause 404 errors. Ensure the OAuth token includes a valid GCP project.`
+  if (!projectId) {
+    throw new Error(
+      "Antigravity/Claude account is missing projectId. Reconnect OAuth to load your real Cloud Code project before sending requests."
     );
   }
 

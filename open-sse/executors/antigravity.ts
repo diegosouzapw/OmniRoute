@@ -38,14 +38,11 @@ export class AntigravityExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const bodyProjectId = body?.project;
     const credentialsProjectId = credentials?.projectId;
-    const hasExplicitProject = !!(bodyProjectId || credentialsProjectId);
-    const projectId = bodyProjectId || credentialsProjectId || this.generateProjectId();
+    const projectId = bodyProjectId || credentialsProjectId;
 
-    if (!hasExplicitProject) {
-      console.warn(
-        `[Antigravity] ⚠️ No projectId provided via body or credentials — using generated fallback "${projectId}". ` +
-          `This may cause 404 errors if the account has no active GCP project. ` +
-          `Ensure the OAuth token includes a valid project or the request includes a project field.`
+    if (!projectId) {
+      throw new Error(
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth so OmniRoute can fetch your real Cloud Code project (loadCodeAssist)."
       );
     }
 
@@ -126,12 +123,6 @@ export class AntigravityExecutor extends BaseExecutor {
       log?.error?.("TOKEN", `Antigravity refresh error: ${error.message}`);
       return null;
     }
-  }
-
-  generateProjectId() {
-    const adj = ["useful", "bright", "swift", "calm", "bold"][Math.floor(Math.random() * 5)];
-    const noun = ["fuze", "wave", "spark", "flow", "core"][Math.floor(Math.random() * 5)];
-    return `${adj}-${noun}-${crypto.randomUUID().slice(0, 5)}`;
   }
 
   generateSessionId() {
