@@ -247,6 +247,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  "ollama-cloud": {
+    url: "https://api.ollama.com/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.models || data.data || [],
+  },
 };
 
 /**
@@ -389,7 +397,13 @@ export async function GET(request, { params }) {
     // Get auth token
     const token = accessToken || apiKey;
     if (!token) {
-      return NextResponse.json({ error: "No valid token found" }, { status: 401 });
+      return NextResponse.json(
+        {
+          error:
+            "No API key configured for this provider. Please add an API key in the provider settings.",
+        },
+        { status: 400 }
+      );
     }
 
     // Build request URL
