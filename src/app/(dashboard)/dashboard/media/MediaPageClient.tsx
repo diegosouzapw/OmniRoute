@@ -272,7 +272,7 @@ const PROVIDER_MODELS: Record<
 
 // Voice presets per TTS provider
 const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
-  default: [
+  openai: [
     { id: "alloy", label: "Alloy" },
     { id: "echo", label: "Echo" },
     { id: "fable", label: "Fable" },
@@ -310,9 +310,15 @@ const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
 };
 
 const SPEECH_FORMATS = ["mp3", "wav", "opus", "flac", "pcm"];
+const CUSTOM_VOICE_VALUE = "__custom_voice__";
 
 function getVoiceList(providerId: string) {
-  return VOICE_PRESETS[providerId] ?? VOICE_PRESETS.default;
+  return VOICE_PRESETS[providerId] ?? [];
+}
+
+function getInitialVoice(providerId: string) {
+  const firstPreset = getVoiceList(providerId)[0]?.id;
+  return firstPreset || CUSTOM_VOICE_VALUE;
 }
 
 export default function MediaPageClient() {
@@ -329,7 +335,8 @@ export default function MediaPageClient() {
   const [error, setError] = useState<string | null>(null);
 
   // Speech-specific
-  const [speechVoice, setSpeechVoice] = useState("alloy");
+  const [speechVoice, setSpeechVoice] = useState("");
+  const [customSpeechVoice, setCustomSpeechVoice] = useState("");
   const [speechFormat, setSpeechFormat] = useState("mp3");
 
   // Transcription-specific
@@ -351,7 +358,8 @@ export default function MediaPageClient() {
     const firstModel = firstProvider?.models[0]?.id ?? "";
     setSelectedModel(firstModel);
     if (tab === "speech") {
-      setSpeechVoice(getVoiceList(firstProvider?.id ?? "")[0]?.id ?? "alloy");
+      setSpeechVoice(getInitialVoice(firstProvider?.id ?? ""));
+      setCustomSpeechVoice("");
     }
   };
 
@@ -361,7 +369,8 @@ export default function MediaPageClient() {
     const firstModel = models[0]?.id ?? "";
     setSelectedModel(firstModel);
     if (activeTab === "speech") {
-      setSpeechVoice(getVoiceList(providerId)[0]?.id ?? "alloy");
+      setSpeechVoice(getInitialVoice(providerId));
+      setCustomSpeechVoice("");
     }
   };
 
@@ -373,6 +382,7 @@ export default function MediaPageClient() {
     const firstProvider = providers[0];
     setSelectedProvider(firstProvider?.id ?? "");
     setSelectedModel(firstProvider?.models[0]?.id ?? "");
+    setSpeechVoice(getInitialVoice(firstProvider?.id ?? ""));
   }
 
   const handleGenerate = async () => {
@@ -396,7 +406,10 @@ export default function MediaPageClient() {
           body: JSON.stringify({
             model: modelId,
             input: prompt.trim(),
-            voice: speechVoice,
+            voice:
+              speechVoice === CUSTOM_VOICE_VALUE
+                ? (customSpeechVoice.trim() || undefined)
+                : speechVoice,
             response_format: speechFormat,
           }),
         });
@@ -534,12 +547,18 @@ export default function MediaPageClient() {
 
         {/* Speech: voice + format */}
         {activeTab === "speech" && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-main mb-2">Voice</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-text-main">Voice</label>
               <select
                 value={speechVoice}
-                onChange={(e) => setSpeechVoice(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSpeechVoice(value);
+                  if (value !== CUSTOM_VOICE_VALUE) {
+                    setCustomSpeechVoice("");
+                  }
+                }}
                 className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
                 {voiceList.map((v) => (
@@ -547,7 +566,18 @@ export default function MediaPageClient() {
                     {v.label}
                   </option>
                 ))}
+                <option value={CUSTOM_VOICE_VALUE}>Custom voice ID…</option>
               </select>
+
+              {speechVoice === CUSTOM_VOICE_VALUE && (
+                <input
+                  type="text"
+                  value={customSpeechVoice}
+                  onChange={(e) => setCustomSpeechVoice(e.target.value)}
+                  placeholder="Enter provider voice ID/name"
+                  className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-text-main mb-2">Format</label>
