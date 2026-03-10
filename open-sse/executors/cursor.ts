@@ -148,12 +148,17 @@ function parseCursorJsonErrorFrame(text: string) {
   }
 }
 
-function isToolBoundaryAbort(jsonError: any, toolCallCount: number) {
+function isToolBoundaryAbort(jsonError: unknown, toolCallCount: number) {
   if (!jsonError || toolCallCount <= 0) return false;
-  const code = jsonError?.error?.code || "";
-  const debugError = jsonError?.error?.details?.[0]?.debug?.error || "";
-  const title = jsonError?.error?.details?.[0]?.debug?.details?.title || "";
-  const detail = jsonError?.error?.details?.[0]?.debug?.details?.detail || "";
+  const e = jsonError as Record<string, unknown>;
+  const err = e?.error as Record<string, unknown> | undefined;
+  const details = (err?.details as Record<string, unknown>[] | undefined)?.[0];
+  const debug = details?.debug as Record<string, unknown> | undefined;
+  const debugDetails = debug?.details as Record<string, unknown> | undefined;
+  const code = (err?.code as string) || "";
+  const debugError = (debug?.error as string) || "";
+  const title = (debugDetails?.title as string) || "";
+  const detail = (debugDetails?.detail as string) || "";
   const message = `${title} ${detail}`.toLowerCase();
   const isAbortedCode = code === "aborted" || debugError === "ERROR_USER_ABORTED_REQUEST";
   return isAbortedCode && message.includes("tool call ended before result was received");
