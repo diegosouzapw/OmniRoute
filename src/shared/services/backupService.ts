@@ -6,10 +6,23 @@ const BACKUP_DIR = path.join(resolveDataDir(), "backups");
 const MAX_BACKUPS_PER_TOOL = 5;
 
 /**
+ * Resolve a path within BACKUP_DIR and verify it stays within bounds.
+ * Throws if the resolved path escapes BACKUP_DIR (path traversal guard).
+ */
+function safePath(...segments: string[]): string {
+  const resolved = path.resolve(BACKUP_DIR, ...segments);
+  const base = path.resolve(BACKUP_DIR);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) {
+    throw new Error("Invalid path: directory traversal detected");
+  }
+  return resolved;
+}
+
+/**
  * Get backup directory for a specific tool
  */
 function getToolBackupDir(toolId: string) {
-  return path.join(BACKUP_DIR, toolId);
+  return safePath(toolId);
 }
 
 /**
@@ -136,7 +149,8 @@ export async function listBackups(toolId: string) {
  */
 export async function restoreBackup(toolId: string, backupId: string) {
   const dir = getToolBackupDir(toolId);
-  const backupPath = path.join(dir, backupId);
+  // Anchor backupId within the tool dir — prevent path traversal via backupId
+  const backupPath = safePath(toolId, backupId);
   const metaPath = backupPath + ".meta.json";
 
   // Read metadata to find original path
@@ -174,8 +188,8 @@ export async function restoreBackup(toolId: string, backupId: string) {
  * Delete a specific backup by its id.
  */
 export async function deleteBackup(toolId: string, backupId: string) {
-  const dir = getToolBackupDir(toolId);
-  const backupPath = path.join(dir, backupId);
+  // Anchor backupId within the tool dir — prevent path traversal via backupId
+  const backupPath = safePath(toolId, backupId);
   const metaPath = backupPath + ".meta.json";
 
   try {

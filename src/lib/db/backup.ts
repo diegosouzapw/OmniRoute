@@ -159,11 +159,26 @@ export async function listDbBackups() {
 
 export async function restoreDbBackup(backupId: string) {
   const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
-  const backupPath = path.join(backupDir, backupId);
 
-  if (!backupId.startsWith("db_") || !backupId.endsWith(".sqlite")) {
+  // Validate format: must be db_<timestamp>_<reason>.sqlite, no path separators
+  if (
+    !backupId.startsWith("db_") ||
+    !backupId.endsWith(".sqlite") ||
+    backupId.includes(path.sep) ||
+    backupId.includes("/")
+  ) {
     throw new Error("Invalid backup ID");
   }
+
+  const backupPath = path.resolve(backupDir, backupId);
+  // Prevent path traversal: resolved path must stay within backupDir
+  if (
+    !backupPath.startsWith(path.resolve(backupDir) + path.sep) &&
+    backupPath !== path.resolve(backupDir)
+  ) {
+    throw new Error("Invalid backup ID: path traversal detected");
+  }
+
   if (!fs.existsSync(backupPath)) {
     throw new Error(`Backup not found: ${backupId}`);
   }

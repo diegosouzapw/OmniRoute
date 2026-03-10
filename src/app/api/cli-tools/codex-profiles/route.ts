@@ -11,6 +11,19 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 const PROFILES_DIR = path.join(resolveDataDir(), "codex-profiles");
 
 /**
+ * Resolve a path inside PROFILES_DIR and verify it stays within bounds.
+ * Throws on path traversal attempts.
+ */
+function safeProfilePath(...segments: string[]): string {
+  const resolved = path.resolve(PROFILES_DIR, ...segments);
+  const base = path.resolve(PROFILES_DIR);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) {
+    throw new Error("Invalid path: directory traversal detected");
+  }
+  return resolved;
+}
+
+/**
  * Ensure profiles directory exists
  */
 async function ensureProfilesDir() {

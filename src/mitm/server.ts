@@ -45,12 +45,22 @@ const CHAT_URL_PATTERNS = [":generateContent", ":streamGenerateContent"];
 const LOG_DIR = path.join(__dirname, "../../logs/mitm");
 if (ENABLE_FILE_LOG && !fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
 
+// Safe log filename: only alphanumeric + hyphens, anchored inside LOG_DIR
+function safeLogPath(name) {
+  const safe = name.replace(/[^a-zA-Z0-9_\-]/g, "_").substring(0, 80);
+  const resolved = path.resolve(LOG_DIR, safe);
+  if (!resolved.startsWith(path.resolve(LOG_DIR) + path.sep)) {
+    throw new Error("Path traversal attempt detected in log filename");
+  }
+  return resolved;
+}
+
 function saveRequestLog(url, bodyBuffer) {
   if (!ENABLE_FILE_LOG) return;
   try {
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const urlSlug = url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 60);
-    const filePath = path.join(LOG_DIR, `${ts}_${urlSlug}.json`);
+    const filePath = safeLogPath(`${ts}_${urlSlug}.json`);
     const body = JSON.parse(bodyBuffer.toString());
     fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
     console.log(`💾 Saved request: ${filePath}`);
@@ -64,7 +74,7 @@ function saveResponseLog(url, data) {
   try {
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const urlSlug = url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 60);
-    const filePath = path.join(LOG_DIR, `${ts}_${urlSlug}_response.txt`);
+    const filePath = safeLogPath(`${ts}_${urlSlug}_response.txt`);
     fs.writeFileSync(filePath, data);
     console.log(`💾 Saved response: ${filePath}`);
   } catch {
@@ -156,6 +166,10 @@ function getMappedModel(model) {
 async function passthrough(req, res, bodyBuffer) {
   const targetIP = await resolveTargetIP();
 
+  // TLS validation is enabled by default. Set MITM_DISABLE_TLS_VERIFY=1 only
+  // in controlled local environments where the target uses a self-signed cert.
+  const rejectUnauthorized = process.env.MITM_DISABLE_TLS_VERIFY !== "1";
+
   const forwardReq = https.request(
     {
       hostname: targetIP,
@@ -164,7 +178,7 @@ async function passthrough(req, res, bodyBuffer) {
       method: req.method,
       headers: { ...req.headers, host: TARGET_HOST },
       servername: TARGET_HOST,
-      rejectUnauthorized: false,
+      rejectUnauthorized,
     },
     (forwardRes) => {
       res.writeHead(forwardRes.statusCode, forwardRes.headers);

@@ -35,8 +35,8 @@ const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
 } = {
-  byModel: {},
-  byAccount: {},
+  byModel: Object.create(null) as Record<string, number>,
+  byAccount: Object.create(null) as Record<string, Record<string, number>>,
 };
 
 /**
@@ -50,16 +50,22 @@ export function trackPendingRequest(
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
 
-  if (!pendingRequests.byModel[modelKey]) pendingRequests.byModel[modelKey] = 0;
+  // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
+  if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
+    pendingRequests.byModel[modelKey] = 0;
+  }
   pendingRequests.byModel[modelKey] = Math.max(
     0,
     pendingRequests.byModel[modelKey] + (started ? 1 : -1)
   );
 
   if (connectionId) {
-    if (!pendingRequests.byAccount[connectionId]) pendingRequests.byAccount[connectionId] = {};
-    if (!pendingRequests.byAccount[connectionId][modelKey])
+    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
+      pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
+    }
+    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
+    }
     pendingRequests.byAccount[connectionId][modelKey] = Math.max(
       0,
       pendingRequests.byAccount[connectionId][modelKey] + (started ? 1 : -1)
