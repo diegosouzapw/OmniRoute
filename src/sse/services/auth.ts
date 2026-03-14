@@ -218,27 +218,58 @@ export async function getProviderCredentials(
     if (strategy === "round-robin") {
       const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
 
-      // Sort by lastUsed (most recent first) to find current candidate
-      const byRecency = [...orderedConnections].sort((a: any, b: any) => {
-        if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
-        if (!a.lastUsedAt) return 1;
-        if (!b.lastUsedAt) return -1;
-        return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
-      });
+      // If excluding an account (fallback scenario), skip sticky logic and go straight to LRU
+      // This prevents the system from getting stuck on a failed account
+      const isFallbackScenario = excludeConnectionId !== null;
 
-      const current = byRecency[0];
-      const currentCount = current?.consecutiveUseCount || 0;
-
-      if (current && current.lastUsedAt && currentCount < stickyLimit) {
-        // Stay with current account
-        connection = current;
-        // Update lastUsedAt and increment count (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
+      if (!isFallbackScenario) {
+        // Sort by lastUsed (most recent first) to find current candidate
+        const byRecency = [...orderedConnections].sort((a: any, b: any) => {
+          if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
+          if (!a.lastUsedAt) return 1;
+          if (!b.lastUsedAt) return -1;
+          return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
         });
+
+        const current = byRecency[0];
+        const currentCount = current?.consecutiveUseCount || 0;
+
+        if (current && current.lastUsedAt && currentCount < stickyLimit) {
+          // Stay with current account
+          connection = current;
+          log.debug(
+            "AUTH",
+            `${provider} round-robin: staying with ${current.id?.slice(0, 8)}... (count=${currentCount}/${stickyLimit})`
+          );
+          // Update lastUsedAt and increment count (await to ensure persistence)
+          await updateProviderConnection(connection.id, {
+            lastUsedAt: new Date().toISOString(),
+            consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
+          });
+        } else {
+          // Pick the least recently used (excluding current if possible)
+          const sortedByOldest = [...orderedConnections].sort((a: any, b: any) => {
+            if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
+            if (!a.lastUsedAt) return -1;
+            if (!b.lastUsedAt) return 1;
+            return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+          });
+
+          connection = sortedByOldest[0];
+          log.debug(
+            "AUTH",
+            `${provider} round-robin: switching to LRU ${connection.id?.slice(0, 8)}... (current count=${currentCount} >= limit=${stickyLimit} or no lastUsedAt)`
+          );
+
+          // Update lastUsedAt and reset count to 1 (await to ensure persistence)
+          await updateProviderConnection(connection.id, {
+            lastUsedAt: new Date().toISOString(),
+            consecutiveUseCount: 1,
+          });
+        }
       } else {
-        // Pick the least recently used (excluding current if possible)
+        // Fallback scenario: excluded an account due to failure
+        // Always pick the least recently used to ensure proper cycling
         const sortedByOldest = [...orderedConnections].sort((a: any, b: any) => {
           if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
           if (!a.lastUsedAt) return -1;
@@ -247,6 +278,10 @@ export async function getProviderCredentials(
         });
 
         connection = sortedByOldest[0];
+        log.info(
+          "AUTH",
+          `${provider} round-robin: FALLBACK MODE - excluded ${excludeConnectionId?.slice(0, 8)}..., picked LRU ${connection.id?.slice(0, 8)}...`
+        );
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
         await updateProviderConnection(connection.id, {
