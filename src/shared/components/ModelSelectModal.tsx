@@ -27,6 +27,7 @@ export default function ModelSelectModal({
   activeProviders = [],
   title = "Select Model",
   modelAliases = {},
+  addedModelValues = [],
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [combos, setCombos] = useState<any[]>([]);
@@ -330,6 +331,7 @@ export default function ModelSelectModal({
             <div className="flex flex-wrap gap-1.5">
               {group.models.map((model) => {
                 const isSelected = selectedModel === model.value;
+                const isAdded = addedModelValues.includes(model.value);
                 return (
                   <button
                     key={model.id}
@@ -339,10 +341,13 @@ export default function ModelSelectModal({
                       ${
                         isSelected
                           ? "bg-primary text-white border-primary"
-                          : "bg-surface border-border text-text-main hover:border-primary/50 hover:bg-primary/5"
+                          : isAdded
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+                            : "bg-surface border-border text-text-main hover:border-primary/50 hover:bg-primary/5"
                       }
                     `}
                   >
+                    {isAdded && <span className="mr-0.5 opacity-70">✓</span>}
                     {model.name}
                     {model.isCustom ? " ★" : ""}
                   </button>
@@ -375,4 +380,5 @@ ModelSelectModal.propTypes = {
   ),
   title: PropTypes.string,
   modelAliases: PropTypes.object,
+  addedModelValues: PropTypes.arrayOf(PropTypes.string),
 };

@@ -141,7 +141,8 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedTitle: "Balanced load",
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
-  freeStackDesc: "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
+  freeStackDesc:
+    "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
 };
 
 const COMBO_TEMPLATES = [
@@ -1513,7 +1514,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`material-symbols-outlined text-[16px] ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}>
+                      <span
+                        className={`material-symbols-outlined text-[16px] ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
+                      >
                         {template.icon}
                       </span>
                       <span className="text-[12px] font-semibold text-text-main">
@@ -1528,7 +1531,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     <p className="text-[10px] text-text-muted mt-1.5 leading-[1.5]">
                       {getI18nOrFallback(t, template.descKey, template.fallbackDesc)}
                     </p>
-                    <p className={`text-[10px] mt-1.5 font-medium ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}>
+                    <p
+                      className={`text-[10px] mt-1.5 font-medium ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
+                    >
                       {getI18nOrFallback(t, "templateApply", COMBO_TEMPLATE_FALLBACK.apply)} →
                     </p>
                   </button>
@@ -1996,6 +2001,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         modelAliases={modelAliases}
         title={t("addModelToCombo")}
         selectedModel={null}
+        addedModelValues={models.map((m) => m.model)}
       />
     </>
   );

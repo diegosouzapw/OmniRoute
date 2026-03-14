@@ -188,7 +188,23 @@ export function hasValidUsage(usage) {
 export function extractUsage(chunk) {
   if (!chunk || typeof chunk !== "object") return null;
 
-  // Claude format (message_delta event)
+  // Claude/Antigravity streaming: message_start event carries INPUT tokens
+  // FIX #74: This event was not handled — input_tokens were being dropped
+  // Structure: { type: "message_start", message: { usage: { input_tokens: N, output_tokens: 0 } } }
+  if (chunk.type === "message_start" && chunk.message?.usage) {
+    const u = chunk.message.usage;
+    const inputTokens = u.input_tokens || u.prompt_tokens || 0;
+    if (inputTokens > 0) {
+      return normalizeUsage({
+        prompt_tokens: inputTokens,
+        completion_tokens: u.output_tokens || u.completion_tokens || 0,
+        cache_read_input_tokens: u.cache_read_input_tokens,
+        cache_creation_input_tokens: u.cache_creation_input_tokens,
+      });
+    }
+  }
+
+  // Claude format (message_delta event) — carries OUTPUT tokens
   if (chunk.type === "message_delta" && chunk.usage && typeof chunk.usage === "object") {
     return normalizeUsage({
       prompt_tokens: chunk.usage.input_tokens || 0,
