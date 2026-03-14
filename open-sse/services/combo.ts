@@ -163,6 +163,41 @@ function shuffleArray(arr) {
   return arr;
 }
 
+// ─── Strict-Random: Shuffle Deck for Combos ──────────────────────────────────
+// Keyed by combo name — persists across requests, resets on server restart.
+const comboShuffleDecks = new Map();
+
+/**
+ * Returns the next model ID from a shuffle deck for the given combo.
+ * Uses each model exactly once per cycle before reshuffling (Fisher-Yates).
+ * Guarantees the last model of the previous cycle is not the first of the next.
+ */
+function getNextModelFromDeck(comboName, modelIds) {
+  if (modelIds.length === 0) return "";
+  if (modelIds.length === 1) return modelIds[0];
+
+  const deck = comboShuffleDecks.get(comboName);
+  const idsKey = [...modelIds].sort().join(",");
+
+  // If deck exists, is for the same model set, and is not exhausted — advance
+  if (deck && deck.idsKey === idsKey && deck.index < deck.order.length) {
+    const id = deck.order[deck.index];
+    comboShuffleDecks.set(comboName, { ...deck, index: deck.index + 1 });
+    return id;
+  }
+
+  // Reshuffle — ensure last of previous cycle is not first of new cycle
+  const lastId = deck && deck.idsKey === idsKey ? deck.order[deck.order.length - 1] : undefined;
+  let newOrder = shuffleArray([...modelIds]);
+  if (lastId !== undefined && newOrder[0] === lastId && newOrder.length > 1) {
+    const swapIdx = Math.floor(Math.random() * (newOrder.length - 1)) + 1;
+    [newOrder[0], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[0]];
+  }
+
+  comboShuffleDecks.set(comboName, { order: newOrder, index: 1, idsKey });
+  return newOrder[0];
+}
+
 /**
  * Sort models by pricing (cheapest first) for cost-optimized strategy
  * @param {Array<string>} models - Model strings in "provider/model" format
@@ -287,7 +322,16 @@ export async function handleComboChat({
   }
 
   // Apply strategy-specific ordering
-  if (strategy === "random") {
+  if (strategy === "strict-random") {
+    const selectedId = getNextModelFromDeck(combo.name, orderedModels);
+    // Put selected model first so the fallback loop tries it first
+    const rest = orderedModels.filter((m) => m !== selectedId);
+    orderedModels = [selectedId, ...rest];
+    log.info(
+      "COMBO",
+      `Strict-random deck: ${selectedId} selected (${orderedModels.length} models)`
+    );
+  } else if (strategy === "random") {
     orderedModels = shuffleArray([...orderedModels]);
     log.info("COMBO", `Random shuffle: ${orderedModels.length} models`);
   } else if (strategy === "least-used") {

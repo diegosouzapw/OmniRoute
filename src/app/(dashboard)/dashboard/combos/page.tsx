@@ -27,6 +27,7 @@ const STRATEGY_OPTIONS = [
   { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
   { value: "least-used", labelKey: "leastUsed", descKey: "leastUsedDesc", icon: "low_priority" },
   { value: "cost-optimized", labelKey: "costOpt", descKey: "costOptimizedDesc", icon: "savings" },
+  { value: "strict-random", labelKey: "strictRandom", descKey: "strictRandomDesc", icon: "casino" },
 ];
 
 const STRATEGY_GUIDANCE_FALLBACK = {
@@ -59,6 +60,11 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     when: "Use when minimizing cost is the top priority.",
     avoid: "Avoid when pricing data is missing or outdated.",
     example: "Example: Batch or background jobs where lower cost matters most.",
+  },
+  "strict-random": {
+    when: "Use when you want perfectly even spread — each model used once before repeating.",
+    avoid: "Avoid when models have different quality or latency and order matters.",
+    example: "Example: Multiple accounts of the same model to distribute usage evenly.",
   },
 };
 
@@ -124,6 +130,15 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Ensure pricing coverage for all selected models.",
       "Keep a quality fallback for hard prompts.",
       "Use for batch/background jobs where cost is the main KPI.",
+    ],
+  },
+  "strict-random": {
+    title: "Shuffle deck distribution",
+    description: "Each model is used exactly once per cycle before reshuffling.",
+    tips: [
+      "Use at least 2 models for meaningful distribution.",
+      "Ideal for same-model accounts to evenly spread quota.",
+      "Guarantees no model is skipped or repeated within a cycle.",
     ],
   },
 };

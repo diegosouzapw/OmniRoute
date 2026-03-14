@@ -87,6 +87,73 @@ let selectionMutex = Promise.resolve();
 // unavailable in parallel, which was the root cause of cascading 502 lockouts.
 const markMutexes = new Map<string, Promise<void>>();
 
+// ─── Strict-Random: Shuffle Deck ─────────────────────────────────────────────
+interface ShuffleDeck {
+  order: readonly string[];
+  index: number;
+}
+
+const shuffleDecks = new Map<string, ShuffleDeck>();
+
+/**
+ * Fisher-Yates shuffle — returns a new shuffled copy of the array.
+ */
+export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = result[i];
+    result[i] = result[j];
+    result[j] = tmp;
+  }
+  return result;
+}
+
+/**
+ * Get next connection ID from the shuffle deck for the given provider.
+ * - If the deck is valid and not exhausted, returns the next ID and advances the index.
+ * - If exhausted or invalid (connection list changed), reshuffles.
+ * - On reshuffle, guarantees the last ID of the previous cycle is not the first of the new one.
+ */
+export function getNextFromDeck(provider: string, connectionIds: readonly string[]): string {
+  if (connectionIds.length === 0) return "";
+  if (connectionIds.length === 1) return connectionIds[0];
+
+  const existing = shuffleDecks.get(provider);
+
+  // Check if deck is still valid (same set of connection IDs)
+  const deckValid =
+    existing !== undefined &&
+    existing.order.length === connectionIds.length &&
+    existing.order.every((id) => connectionIds.includes(id));
+
+  if (deckValid && existing.index < existing.order.length) {
+    const id = existing.order[existing.index];
+    shuffleDecks.set(provider, { order: existing.order, index: existing.index + 1 });
+    return id;
+  }
+
+  // Need to reshuffle — remember the last used ID to avoid repeating it first
+  const lastUsedId =
+    existing !== undefined && existing.order.length > 0
+      ? existing.order[Math.min(existing.index, existing.order.length) - 1]
+      : undefined;
+
+  let newOrder = fisherYatesShuffle(connectionIds);
+
+  // If the first of the new cycle equals the last of the previous, swap it away
+  if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
+    // Pick a random position > 0 and swap
+    const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
+    const tmp = newOrder[0];
+    newOrder[0] = newOrder[swapIdx];
+    newOrder[swapIdx] = tmp;
+  }
+
+  shuffleDecks.set(provider, { order: newOrder, index: 1 });
+  return newOrder[0];
+}
+
 /**
  * Get provider credentials from localDb
  * Filters out unavailable accounts and returns the selected account based on strategy
@@ -324,6 +391,11 @@ export async function getProviderCredentials(
         (a, b) => (a.priority || 999) - (b.priority || 999)
       );
       connection = sorted[0];
+    } else if (strategy === "strict-random") {
+      // Strict Random: shuffle deck — uses each account once before reshuffling
+      const ids = orderedConnections.map((c) => c.id);
+      const selectedId = getNextFromDeck(provider, ids);
+      connection = orderedConnections.find((c) => c.id === selectedId) || orderedConnections[0];
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = orderedConnections[0];

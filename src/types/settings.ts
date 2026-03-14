@@ -10,7 +10,8 @@ export interface Settings {
     | "p2c"
     | "random"
     | "least-used"
-    | "cost-optimized";
+    | "cost-optimized"
+    | "strict-random";
   stickyRoundRobinLimit: number;
   jwtSecret?: string;
 }

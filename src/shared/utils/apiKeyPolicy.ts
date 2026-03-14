@@ -15,14 +15,92 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 
+interface AccessSchedule {
+  enabled: boolean;
+  from: string;
+  until: string;
+  days: number[];
+  tz: string;
+}
+
 /** Metadata stored for an API key in the local database. */
 export interface ApiKeyMetadata {
   id: string;
   name?: string;
   allowedModels?: string[];
+  allowedConnections?: string[];
   noLog?: boolean;
+  autoResolve?: boolean;
   budget?: number;
   usedBudget?: number;
+  isActive?: boolean;
+  accessSchedule?: AccessSchedule | null;
+}
+
+/**
+ * Returns true if the current time (in the schedule's timezone) is within
+ * the configured window.
+ * Supports overnight ranges (e.g. 22:00 until 06:00).
+ */
+function isWithinSchedule(schedule: AccessSchedule): boolean {
+  if (!schedule.enabled) return true;
+
+  const now = new Date();
+
+  // Convert current UTC time to the configured timezone
+  let localTimeStr: string;
+  try {
+    localTimeStr = new Intl.DateTimeFormat("en-US", {
+      timeZone: schedule.tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(now);
+  } catch {
+    // Invalid timezone — fail open (don't block)
+    return true;
+  }
+
+  // Intl may return "24:xx" instead of "00:xx" — normalize
+  const normalizedTime = localTimeStr.replace(/^24:/, "00:");
+  const [localHour, localMin] = normalizedTime.split(":").map(Number);
+  const localMinutes = localHour * 60 + localMin;
+
+  // Determine current weekday in the configured timezone
+  let localDayStr: string;
+  try {
+    localDayStr = new Intl.DateTimeFormat("en-US", {
+      timeZone: schedule.tz,
+      weekday: "short",
+    }).format(now);
+  } catch {
+    return true;
+  }
+
+  const dayMap: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+  const localDay = dayMap[localDayStr] ?? now.getDay();
+
+  if (!schedule.days.includes(localDay)) return false;
+
+  const [fromHour, fromMin] = schedule.from.split(":").map(Number);
+  const [untilHour, untilMin] = schedule.until.split(":").map(Number);
+  const fromMinutes = fromHour * 60 + fromMin;
+  const untilMinutes = untilHour * 60 + untilMin;
+
+  // Overnight window (e.g. 22:00 → 06:00)
+  if (untilMinutes < fromMinutes) {
+    return localMinutes >= fromMinutes || localMinutes < untilMinutes;
+  }
+
+  return localMinutes >= fromMinutes && localMinutes < untilMinutes;
 }
 
 export interface ApiKeyPolicyResult {
@@ -82,7 +160,31 @@ export async function enforceApiKeyPolicy(
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
 
-  // ── Check 1: Model restriction ──
+  // ── Check 1: is_active — hard block regardless of schedule ──
+  if (apiKeyInfo.isActive === false) {
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
+    };
+  }
+
+  // ── Check 2: access_schedule — time-based access window ──
+  if (apiKeyInfo.accessSchedule && apiKeyInfo.accessSchedule.enabled) {
+    if (!isWithinSchedule(apiKeyInfo.accessSchedule)) {
+      const { from, until, tz } = apiKeyInfo.accessSchedule;
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.FORBIDDEN,
+          `Access denied outside allowed hours (${from}–${until} ${tz})`
+        ),
+      };
+    }
+  }
+
+  // ── Check 3: Model restriction ──
   if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
     const allowed = await isModelAllowedForKey(apiKey, modelStr);
     if (!allowed) {
@@ -97,7 +199,7 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  // ── Check 2: Budget limit ──
+  // ── Check 4: Budget limit ──
   if (apiKeyInfo.id) {
     try {
       const budgetOk = checkBudget(apiKeyInfo.id);
