@@ -26,10 +26,10 @@ const LEVEL_ORDER: Record<string, number> = {
 // Map pino numeric levels to string levels
 const NUMERIC_LEVEL_MAP: Record<number, string> = {
   10: "trace",
-  20: "info",
-  30: "warn",
-  40: "error",
-  50: "fatal",
+  20: "debug",
+  30: "info",
+  40: "warn",
+  50: "error",
   60: "fatal",
 };
 

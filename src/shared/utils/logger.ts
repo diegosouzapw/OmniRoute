@@ -30,6 +30,14 @@ const baseConfig: pino.LoggerOptions = {
   },
 };
 
+function getTransportCompatibleConfig(): pino.LoggerOptions {
+  const { formatters, ...rest } = baseConfig;
+  if (!formatters) return rest;
+
+  const { level: _levelFormatter, ...safeFormatters } = formatters;
+  return Object.keys(safeFormatters).length > 0 ? { ...rest, formatters: safeFormatters } : rest;
+}
+
 /**
  * Build the logger with optional file transport.
  * Uses pino transport targets for all destinations.
@@ -37,6 +45,7 @@ const baseConfig: pino.LoggerOptions = {
 function buildLogger(): pino.Logger {
   const logConfig = getLogConfig();
   const logLevel = (baseConfig.level as string) || "info";
+  const transportConfig = getTransportCompatibleConfig();
 
   // If file logging is enabled, set up dual transport (stdout + file)
   if (logConfig.logToFile) {
@@ -50,7 +59,7 @@ function buildLogger(): pino.Logger {
       if (isDev) {
         // Dev: pino-pretty → stdout, JSON → file
         return pino({
-          ...baseConfig,
+          ...transportConfig,
           transport: {
             targets: [
               {
@@ -76,7 +85,7 @@ function buildLogger(): pino.Logger {
 
       // Production: JSON → stdout + JSON → file
       return pino({
-        ...baseConfig,
+        ...transportConfig,
         transport: {
           targets: [
             {
