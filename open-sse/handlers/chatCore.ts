@@ -94,6 +94,12 @@ export async function handleChatCore({
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
 
+  // T07: Inject connectionId into credentials so executors can rotate API keys
+  // using providerSpecificData.extraApiKeys (API Key Round-Robin feature)
+  if (connectionId && credentials && !credentials.connectionId) {
+    credentials.connectionId = connectionId;
+  }
+
   const sourceFormat = detectFormat(body);
   const endpointPath = (clientRawRequest?.endpoint || "").toLowerCase();
   const isResponsesEndpoint = endpointPath.endsWith("/responses");

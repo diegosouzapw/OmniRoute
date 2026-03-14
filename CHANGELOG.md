@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
-## [2.4.3] - 2026-03-14
+## [2.4.4] - 2026-03-14
+
+> API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
+
+### ✨ New Features
+
+- **API Key Round-Robin (T07)**: Provider connections can now hold multiple API keys (Edit Connection → Extra API Keys). Requests rotate round-robin between primary + extra keys via `providerSpecificData.extraApiKeys[]`. Keys are held in-memory indexed per connection — no DB schema changes required.
+
+### 📝 Already Implemented (confirmed in audit)
+
+- **Wildcard Model Routing (T13)**: `wildcardRouter.ts` with glob-style wildcard matching (`gpt*`, `claude-?-sonnet`, etc.) is already integrated into `model.ts` with specificity ranking.
+- **Quota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` already auto-advances the window — if `Date.now() > entry.until`, lock is deleted immediately (no stale blocking).
 
 > UI polish, routing strategy additions, and graceful error handling for usage limits.
 

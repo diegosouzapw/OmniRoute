@@ -1,5 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -23,6 +24,7 @@ export type ProviderCredentials = {
   refreshToken?: string;
   apiKey?: string;
   expiresAt?: string;
+  connectionId?: string; // T07: used for API key rotation index
   providerSpecificData?: JsonRecord;
 };
 
@@ -131,7 +133,14 @@ export class BaseExecutor {
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
-      headers["Authorization"] = `Bearer ${credentials.apiKey}`;
+      // T07: rotate between primary + extra API keys when extraApiKeys is configured
+      const extraKeys =
+        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+      const effectiveKey =
+        extraKeys.length > 0 && credentials.connectionId
+          ? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
+          : credentials.apiKey;
+      headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 
     if (stream) {
