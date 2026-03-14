@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Card from "./Card";
 import RequestLoggerDetail from "./RequestLoggerDetail";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 import {
   PROTOCOL_COLORS,
   PROVIDER_COLORS,
@@ -230,30 +231,8 @@ export default function RequestLoggerV2() {
     setDetailData(null);
   };
 
-  // Copy to clipboard
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      // Fallback for non-HTTPS or older browsers
-      try {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-  };
-
   // Unique accounts and providers for dropdowns
+
   const uniqueAccounts = [...new Set(logs.map((l) => l.account).filter((a) => a && a !== "-"))];
   const uniqueModels = [...new Set(logs.map((l) => l.model).filter(Boolean))].sort();
   const uniqueProviders = [

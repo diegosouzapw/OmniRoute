@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 interface LogEntry {
   timestamp: string;
@@ -89,12 +90,11 @@ export default function ConsoleLogViewer() {
     }
   }, [logs, autoScroll]);
 
-  const handleCopy = (entry: LogEntry, idx: number) => {
+  const handleCopy = async (entry: LogEntry, idx: number) => {
     const text = JSON.stringify(entry, null, 2);
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx(null), 2000);
-    });
+    await copyToClipboard(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
   };
 
   const formatTime = (ts: string) => {

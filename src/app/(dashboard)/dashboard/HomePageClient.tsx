@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 export default function HomePageClient({ machineId }) {
   const t = useTranslations("home");
@@ -418,8 +419,8 @@ function ProviderModelsModal({ provider, models, onClose }) {
     router.push(path);
   };
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text) => {
+    await copyToClipboard(text);
     setCopiedModel(text);
     notify.success(t("copiedModel", { model: text }));
     setTimeout(() => setCopiedModel(null), 2000);

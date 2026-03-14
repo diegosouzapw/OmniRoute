@@ -7,6 +7,7 @@ import McpDashboardPage from "../mcp/page";
 import A2ADashboardPage from "../a2a/page";
 import ApiEndpointsTab from "./ApiEndpointsTab";
 import { useTranslations } from "next-intl";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 type ServiceStatus = {
   online: boolean;
@@ -111,7 +112,11 @@ function TransportSelector({
   const options: { value: McpTransport; label: string; desc: string }[] = [
     { value: "stdio", label: "stdio", desc: "Local — IDE spawns process via omniroute --mcp" },
     { value: "sse", label: "SSE", desc: "Remote — Server-Sent Events over HTTP" },
-    { value: "streamable-http", label: "Streamable HTTP", desc: "Remote — Modern bidirectional HTTP" },
+    {
+      value: "streamable-http",
+      label: "Streamable HTTP",
+      desc: "Remote — Modern bidirectional HTTP",
+    },
   ];
 
   const urlMap: Record<McpTransport, string> = {
@@ -145,8 +150,7 @@ function TransportSelector({
             disabled={disabled}
             className="flex flex-col items-start px-4 py-2.5 rounded-lg border transition-all duration-200 text-left"
             style={{
-              borderColor:
-                value === opt.value ? "var(--color-primary)" : "var(--color-border)",
+              borderColor: value === opt.value ? "var(--color-primary)" : "var(--color-border)",
               background:
                 value === opt.value
                   ? "rgba(var(--color-primary-rgb, 99,102,241), 0.1)"
@@ -163,10 +167,7 @@ function TransportSelector({
             >
               {opt.label}
             </span>
-            <span
-              className="text-xs mt-0.5"
-              style={{ color: "var(--color-text-muted)" }}
-            >
+            <span className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
               {opt.desc}
             </span>
           </button>
@@ -184,10 +185,7 @@ function TransportSelector({
         >
           {value === "stdio" ? "terminal" : "link"}
         </span>
-        <code
-          className="text-xs break-all"
-          style={{ color: "var(--color-text-muted)" }}
-        >
+        <code className="text-xs break-all" style={{ color: "var(--color-text-muted)" }}>
           {urlMap[value]}
         </code>
         {value !== "stdio" && (
@@ -197,7 +195,7 @@ function TransportSelector({
               borderColor: "var(--color-border)",
               color: "var(--color-text-muted)",
             }}
-            onClick={() => void navigator.clipboard.writeText(urlMap[value])}
+            onClick={() => void copyToClipboard(urlMap[value])}
             title="Copy URL"
           >
             Copy
@@ -276,7 +274,7 @@ export default function EndpointPage() {
         setToggling(false);
       }
     },
-    [mcpEnabled, a2aEnabled, patchSetting],
+    [mcpEnabled, a2aEnabled, patchSetting]
   );
 
   const changeTransport = useCallback(
@@ -291,7 +289,7 @@ export default function EndpointPage() {
         setTransportSaving(false);
       }
     },
-    [patchSetting],
+    [patchSetting]
   );
 
   const refreshMcpStatus = useCallback(async () => {

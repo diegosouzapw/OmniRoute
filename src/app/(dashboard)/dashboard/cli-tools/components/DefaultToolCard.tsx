@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 export default function DefaultToolCard({
   toolId,
@@ -100,7 +101,7 @@ export default function DefaultToolCard({
   };
 
   const handleCopy = async (text, field) => {
-    await navigator.clipboard.writeText(replaceVars(text));
+    await copyToClipboard(replaceVars(text));
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
   };

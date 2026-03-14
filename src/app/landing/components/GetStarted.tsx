@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 export default function GetStarted() {
   const t = useTranslations("landing");
@@ -10,8 +11,8 @@ export default function GetStarted() {
   const dashboardUrl = `${endpoint}/dashboard`;
   const command = "npx omniroute";
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text: string) => {
+    await copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
