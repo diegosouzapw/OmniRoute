@@ -5,6 +5,7 @@
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
+import { invalidateDbCache } from "./readCache";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -80,6 +81,7 @@ export async function updateSettings(updates: Record<string, unknown>) {
   });
   tx();
   backupDbFile("pre-write");
+  invalidateDbCache("settings"); // Bust the read cache immediately
   return getSettings();
 }
 
@@ -169,7 +171,7 @@ export async function updatePricing(pricingData: PricingByProvider) {
   });
   tx();
   backupDbFile("pre-write");
-
+  invalidateDbCache("pricing"); // Bust the pricing read cache
   const updated: PricingByProvider = {};
   const allRows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
   for (const row of allRows) {

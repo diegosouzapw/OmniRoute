@@ -77,6 +77,16 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   }
   telemetry.endPhase();
 
+  // T01 — Accept header negotiation
+  // If client asks for text/event-stream via the Accept header, treat it as
+  // stream=true even when the JSON body omits the field or sets it to false.
+  // This ensures compatibility with curl/httpx and similar non-OpenAI clients.
+  const acceptHeader = request.headers.get("accept") || "";
+  if (acceptHeader.includes("text/event-stream") && body.stream !== true) {
+    body = { ...body, stream: true };
+    log.debug("STREAM", "Accept: text/event-stream header → overriding stream=true");
+  }
+
   // Build clientRawRequest for logging (if not provided)
   if (!clientRawRequest) {
     const url = new URL(request.url);

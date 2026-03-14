@@ -95,3 +95,11 @@ export {
   listDbBackups,
   restoreDbBackup,
 } from "./db/backup";
+
+export {
+  // Read Cache (cached wrappers for hot read paths)
+  getCachedSettings,
+  getCachedPricing,
+  getCachedProviderConnections,
+  invalidateDbCache,
+} from "./db/readCache";

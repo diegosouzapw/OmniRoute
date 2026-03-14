@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core";
 import { backupDbFile } from "./backup";
 import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
+import { invalidateDbCache } from "./readCache";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -200,6 +201,7 @@ export async function createProviderConnection(data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
   backupDbFile("pre-write");
+  invalidateDbCache("connections"); // Bust connections read cache
 
   return cleanNulls(connection);
 }
@@ -344,6 +346,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   const merged = { ...rowToCamel(existing), ...data, updatedAt: new Date().toISOString() };
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
+  invalidateDbCache("connections"); // Bust connections read cache
 
   if (data.priority !== undefined) {
     const existingRecord = toRecord(existing);
@@ -370,6 +373,7 @@ export async function deleteProviderConnection(id: string) {
       : String(existingRecord.provider || "");
   _reorderConnections(db, providerId);
   backupDbFile("pre-write");
+  invalidateDbCache("connections"); // Bust connections read cache
   return true;
 }
 
