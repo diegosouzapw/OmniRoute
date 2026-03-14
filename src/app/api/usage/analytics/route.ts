@@ -10,9 +10,11 @@ export async function GET(request) {
     const db = await getUsageDb();
     const history = db.data.history || [];
 
-    // Build connection map for account names
+    // Build connection map (connectionId → display name) and provider name map (provider → label)
+    // Fix #356: providerNameMap resolves internal provider IDs to human-readable labels
     const { getProviderConnections } = await import("@/lib/localDb");
     const connectionMap: Record<string, string> = {};
+    const providerNameMap: Record<string, string> = {};
     try {
       const connections = await getProviderConnections();
       for (const connRaw of connections as unknown[]) {
@@ -29,12 +31,22 @@ export async function GET(request) {
           (typeof conn.email === "string" && conn.email.trim()) ||
           connectionId;
         connectionMap[connectionId] = name;
+
+        // Map provider internal ID → display name (for Analytics charts)
+        const providerId = typeof conn.provider === "string" ? conn.provider : null;
+        if (providerId && !providerNameMap[providerId]) {
+          const providerLabel =
+            (typeof conn.providerLabel === "string" && conn.providerLabel.trim()) ||
+            (typeof conn.providerName === "string" && conn.providerName.trim()) ||
+            providerId;
+          providerNameMap[providerId] = providerLabel;
+        }
       }
     } catch {
       /* ignore */
     }
 
-    const analytics = await computeAnalytics(history, range, connectionMap);
+    const analytics = await computeAnalytics(history, range, connectionMap, providerNameMap);
 
     return NextResponse.json(analytics);
   } catch (error) {

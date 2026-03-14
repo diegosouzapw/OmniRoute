@@ -72,7 +72,12 @@ function shortModelName(model: string) {
  * @param {Object} connectionMap - Map of connectionId → account name
  * @returns {Object} Analytics data
  */
-export async function computeAnalytics(history: any[], range = "30d", connectionMap: Record<string, string> = {}) {
+export async function computeAnalytics(
+  history: any[],
+  range = "30d",
+  connectionMap: Record<string, string> = {},
+  providerNameMap: Record<string, string> = {}
+) {
   const { start, end } = getDateRange(range);
 
   // ---- Filtered entries ----
@@ -205,8 +210,9 @@ export async function computeAnalytics(history: any[], range = "30d", connection
     byAccountMap[accountName].requests++;
     byAccountMap[accountName].cost += cost;
 
-    // By provider
-    const prov = entry.provider || "unknown";
+    // By provider — fix #356: show display name instead of raw internal ID
+    const rawProv = entry.provider || "unknown";
+    const prov = providerNameMap[rawProv] || rawProv;
     if (!byProviderMap[prov]) {
       byProviderMap[prov] = {
         provider: prov,
