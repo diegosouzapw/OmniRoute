@@ -2,7 +2,12 @@ import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -84,6 +89,7 @@ export async function POST(request, { params }) {
   const result = await handleEmbedding({ body, credentials, log });
 
   if (result.success) {
+    await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify(result.data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

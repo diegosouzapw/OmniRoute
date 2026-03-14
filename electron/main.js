@@ -65,7 +65,8 @@ let serverPort = 20128;
 const getServerUrl = () => `http://localhost:${serverPort}`;
 
 function resolveDataDir(overridePath, env = process.env) {
-  if (overridePath && overridePath.trim()) return path.resolve(overridePath);
+  // Use optional chaining (matches bootstrap-env.mjs) — rejects null, undefined, and whitespace-only
+  if (overridePath?.trim()) return path.resolve(overridePath);
 
   const configured = env.DATA_DIR?.trim();
   if (configured) return path.resolve(configured);
@@ -465,6 +466,9 @@ function startNextServer() {
 
   const preferredEnvPath = getPreferredEnvFilePath(process.env);
   const preferredEnv = preferredEnvPath ? parseEnvFile(preferredEnvPath) : {};
+  // preferredEnv is derived from process.env *before* merging so that DATA_DIR from the .env
+  // file takes precedence for resolveDataDir, but process.env always wins over .env values
+  // in the final merged env. This is intentional — shell variables override config files.
   const dataDir = resolveDataDir(null, { ...preferredEnv, ...process.env });
   const serverEnvPath = path.join(dataDir, "server.env");
   const persisted = parseEnvFile(serverEnvPath);

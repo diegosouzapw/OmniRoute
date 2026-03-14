@@ -80,6 +80,7 @@ const SCHEMA_SQL = `
     consecutive_use_count INTEGER DEFAULT 0,
     rate_limit_protection INTEGER DEFAULT 0,
     last_used_at TEXT,
+    "group" TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -315,6 +316,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     if (!columnNames.has("last_used_at")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
       console.log("[DB] Added provider_connections.last_used_at column");
+    }
+    if (!columnNames.has("group")) {
+      db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
+      console.log('[DB] Added provider_connections."group" column');
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

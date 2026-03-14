@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   parseEmbeddingModel,
   getAllEmbeddingModels,
@@ -126,6 +131,7 @@ export async function POST(request) {
   const result = await handleEmbedding({ body, credentials, log });
 
   if (result.success) {
+    await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify(result.data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

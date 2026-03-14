@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -64,5 +69,9 @@ export async function POST(request) {
     );
   }
 
-  return handleModeration({ body: { ...body, model }, credentials });
+  const response = await handleModeration({ body: { ...body, model }, credentials });
+  if (response?.ok) {
+    await clearRecoveredProviderState(credentials);
+  }
+  return response;
 }

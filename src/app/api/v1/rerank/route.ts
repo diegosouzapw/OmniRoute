@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import { parseRerankModel } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -66,7 +71,7 @@ export async function POST(request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
   }
 
-  return handleRerank({
+  const response = await handleRerank({
     model: body.model,
     query: body.query,
     documents: body.documents,
@@ -74,4 +79,8 @@ export async function POST(request) {
     return_documents: body.return_documents,
     credentials,
   });
+  if (response?.ok) {
+    await clearRecoveredProviderState(credentials);
+  }
+  return response;
 }

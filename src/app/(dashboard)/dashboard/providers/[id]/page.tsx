@@ -32,6 +32,17 @@ import {
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
+function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
+  const record =
+    policy && typeof policy === "object" && !Array.isArray(policy)
+      ? (policy as Record<string, unknown>)
+      : {};
+  return {
+    use5h: typeof record.use5h === "boolean" ? record.use5h : true,
+    useWeekly: typeof record.useWeekly === "boolean" ? record.useWeekly : true,
+  };
+}
+
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,6 +60,7 @@ export default function ProviderDetailPage() {
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
+  const notify = useNotificationStore();
   const hasAutoOpened = useRef(false);
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
@@ -311,6 +323,63 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const handleToggleCodexLimit = async (connectionId, field, enabled) => {
+    try {
+      const target = connections.find((connection) => connection.id === connectionId);
+      if (!target) return;
+
+      const providerSpecificData =
+        target.providerSpecificData && typeof target.providerSpecificData === "object"
+          ? target.providerSpecificData
+          : {};
+      const existingPolicy =
+        providerSpecificData.codexLimitPolicy &&
+        typeof providerSpecificData.codexLimitPolicy === "object"
+          ? providerSpecificData.codexLimitPolicy
+          : {};
+
+      const nextPolicy = {
+        ...normalizeCodexLimitPolicy(existingPolicy),
+        [field]: enabled,
+      };
+
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: {
+            ...providerSpecificData,
+            codexLimitPolicy: nextPolicy,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update Codex limit policy");
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId
+            ? {
+                ...connection,
+                providerSpecificData: {
+                  ...(connection.providerSpecificData || {}),
+                  codexLimitPolicy: nextPolicy,
+                },
+              }
+            : connection
+        )
+      );
+      notify.success("Codex limit policy updated");
+    } catch (error) {
+      console.error("Error toggling Codex quota policy:", error);
+      notify.error("Failed to update Codex limit policy");
+    }
+  };
+
   const handleRetestConnection = async (connectionId) => {
     if (!connectionId || retestingId) return;
     setRetestingId(connectionId);
@@ -331,7 +400,6 @@ export default function ProviderDetailPage() {
 
   // T12: Manual token refresh
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
-  const notify = useNotificationStore();
   const handleRefreshToken = async (connectionId: string) => {
     if (refreshingId) return;
     setRefreshingId(connectionId);
@@ -941,6 +1009,11 @@ export default function ProviderDetailPage() {
                   onMoveDown={() => handleSwapPriority(conn, connections[index + 1])}
                   onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                   onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                  isCodex={providerId === "codex"}
+                  onToggleCodex5h={(enabled) => handleToggleCodexLimit(conn.id, "use5h", enabled)}
+                  onToggleCodexWeekly={(enabled) =>
+                    handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                  }
                   onRetest={() => handleRetestConnection(conn.id)}
                   isRetesting={retestingId === conn.id}
                   onEdit={() => {
@@ -2175,12 +2248,15 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
 function ConnectionRow({
   connection,
   isOAuth,
+  isCodex,
   isFirst,
   isLast,
   onMoveUp,
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleCodex5h,
+  onToggleCodexWeekly,
   onRetest,
   isRetesting,
   onEdit,
@@ -2242,6 +2318,16 @@ function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
+  const codexPolicy =
+    connection.providerSpecificData &&
+    typeof connection.providerSpecificData === "object" &&
+    connection.providerSpecificData.codexLimitPolicy &&
+    typeof connection.providerSpecificData.codexLimitPolicy === "object"
+      ? connection.providerSpecificData.codexLimitPolicy
+      : {};
+  const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
+  const codex5hEnabled = normalizedCodexPolicy.use5h;
+  const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
 
   return (
     <div
@@ -2331,6 +2417,35 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isCodex && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleCodex5h?.(!codex5hEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    codex5hEnabled
+                      ? "bg-blue-500/15 text-blue-500 hover:bg-blue-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title="Toggle Codex 5h limit policy"
+                >
+                  <span className="material-symbols-outlined text-[13px]">timer</span>
+                  5h {codex5hEnabled ? "ON" : "OFF"}
+                </button>
+                <button
+                  onClick={() => onToggleCodexWeekly?.(!codexWeeklyEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    codexWeeklyEnabled
+                      ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title="Toggle Codex weekly limit policy"
+                >
+                  <span className="material-symbols-outlined text-[13px]">date_range</span>
+                  Weekly {codexWeeklyEnabled ? "ON" : "OFF"}
+                </button>
+              </>
+            )}
             {hasProxy &&
               (() => {
                 const colorClass =
@@ -2425,7 +2540,7 @@ function ConnectionRow({
           <button
             onClick={onDelete}
             className="p-2 hover:bg-red-500/10 rounded text-red-500"
-            title={t("deleteConnection")}
+            title={t("delete")}
           >
             <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
@@ -2451,14 +2566,18 @@ ConnectionRow.propTypes = {
     lastErrorSource: PropTypes.string,
     errorCode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     globalPriority: PropTypes.number,
+    providerSpecificData: PropTypes.object,
   }).isRequired,
   isOAuth: PropTypes.bool.isRequired,
+  isCodex: PropTypes.bool,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired,
   onMoveUp: PropTypes.func.isRequired,
   onMoveDown: PropTypes.func.isRequired,
   onToggleActive: PropTypes.func.isRequired,
   onToggleRateLimit: PropTypes.func.isRequired,
+  onToggleCodex5h: PropTypes.func,
+  onToggleCodexWeekly: PropTypes.func,
   onRetest: PropTypes.func.isRequired,
   isRetesting: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,

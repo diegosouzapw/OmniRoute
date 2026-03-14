@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import { parseSpeechModel, getSpeechProvider } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -70,5 +75,9 @@ export async function POST(request) {
     }
   }
 
-  return handleAudioSpeech({ body, credentials });
+  const response = await handleAudioSpeech({ body, credentials });
+  if (response?.ok) {
+    await clearRecoveredProviderState(credentials);
+  }
+  return response;
 }

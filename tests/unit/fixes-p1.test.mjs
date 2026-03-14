@@ -141,6 +141,63 @@ test("provider connection persists rateLimitProtection across reopen", async () 
   assert.equal(secondRead.rateLimitProtection, true);
 });
 
+test('provider connection migration adds "group" column for existing databases', async () => {
+  await resetStorage();
+
+  const sqlitePath = core.SQLITE_FILE;
+  core.resetDbInstance();
+
+  const Database = (await import("better-sqlite3")).default;
+  const db = new Database(sqlitePath);
+  db.exec(`
+    CREATE TABLE provider_connections (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      auth_type TEXT,
+      name TEXT,
+      email TEXT,
+      priority INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      access_token TEXT,
+      refresh_token TEXT,
+      expires_at TEXT,
+      token_expires_at TEXT,
+      scope TEXT,
+      project_id TEXT,
+      test_status TEXT,
+      error_code TEXT,
+      last_error TEXT,
+      last_error_at TEXT,
+      last_error_type TEXT,
+      last_error_source TEXT,
+      backoff_level INTEGER DEFAULT 0,
+      rate_limited_until TEXT,
+      health_check_interval INTEGER,
+      last_health_check_at TEXT,
+      last_tested TEXT,
+      api_key TEXT,
+      id_token TEXT,
+      provider_specific_data TEXT,
+      expires_in INTEGER,
+      display_name TEXT,
+      global_priority INTEGER,
+      default_model TEXT,
+      token_type TEXT,
+      consecutive_use_count INTEGER DEFAULT 0,
+      rate_limit_protection INTEGER DEFAULT 0,
+      last_used_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  db.close();
+
+  const reopened = core.getDbInstance();
+  const columns = reopened.prepare("PRAGMA table_info(provider_connections)").all();
+  const names = new Set(columns.map((column) => column.name));
+  assert.equal(names.has("group"), true);
+});
+
 test("resolveProxyForConnection applies combo proxy for object/string model entries", async () => {
   await resetStorage();
 

@@ -1,7 +1,15 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleAudioTranscription } from "@omniroute/open-sse/handlers/audioTranscription.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
-import { parseTranscriptionModel, getTranscriptionProvider } from "@omniroute/open-sse/config/audioRegistry.ts";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
+import {
+  parseTranscriptionModel,
+  getTranscriptionProvider,
+} from "@omniroute/open-sse/config/audioRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -68,5 +76,9 @@ export async function POST(request) {
     }
   }
 
-  return handleAudioTranscription({ formData, credentials });
+  const response = await handleAudioTranscription({ formData, credentials });
+  if (response?.ok) {
+    await clearRecoveredProviderState(credentials);
+  }
+  return response;
 }

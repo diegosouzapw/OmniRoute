@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   parseMusicModel,
   getAllMusicModels,
@@ -110,6 +115,7 @@ export async function POST(request) {
   const result = await handleMusicGeneration({ body, credentials, log });
 
   if (result.success) {
+    await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify((result as any).data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

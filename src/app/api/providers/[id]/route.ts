@@ -10,6 +10,30 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
+function normalizeCodexLimitPolicy(
+  incoming: unknown,
+  existing: unknown
+): { use5h: boolean; useWeekly: boolean } {
+  const incomingRecord =
+    incoming && typeof incoming === "object" && !Array.isArray(incoming)
+      ? (incoming as Record<string, unknown>)
+      : {};
+  const existingRecord =
+    existing && typeof existing === "object" && !Array.isArray(existing)
+      ? (existing as Record<string, unknown>)
+      : {};
+
+  const existingUse5h = typeof existingRecord.use5h === "boolean" ? existingRecord.use5h : true;
+  const existingUseWeekly =
+    typeof existingRecord.useWeekly === "boolean" ? existingRecord.useWeekly : true;
+
+  return {
+    use5h: typeof incomingRecord.use5h === "boolean" ? incomingRecord.use5h : existingUse5h,
+    useWeekly:
+      typeof incomingRecord.useWeekly === "boolean" ? incomingRecord.useWeekly : existingUseWeekly,
+  };
+}
+
 // GET /api/providers/[id] - Get single connection
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -105,7 +129,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         existing.providerSpecificData && typeof existing.providerSpecificData === "object"
           ? existing.providerSpecificData
           : {};
-      updateData.providerSpecificData = { ...existingPsd, ...incomingPsd };
+      const mergedPsd = { ...existingPsd, ...incomingPsd };
+
+      // Deep-merge and normalize Codex limit policy defaults.
+      if (existing.provider === "codex") {
+        const incomingRecord = incomingPsd as Record<string, unknown>;
+        if ("codexLimitPolicy" in incomingRecord || "codexLimitPolicy" in existingPsd) {
+          mergedPsd.codexLimitPolicy = normalizeCodexLimitPolicy(
+            incomingRecord.codexLimitPolicy,
+            (existingPsd as Record<string, unknown>).codexLimitPolicy
+          );
+        }
+      }
+
+      updateData.providerSpecificData = mergedPsd;
     }
 
     const updated = await updateProviderConnection(id, updateData);

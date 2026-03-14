@@ -4,7 +4,7 @@ import {
   updateProviderConnection,
   getSettings,
 } from "@/lib/localDb";
-import { isAccountQuotaExhausted } from "@/domain/quotaCache";
+import { getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -35,9 +35,23 @@ interface ProviderConnectionView {
   consecutiveUseCount: number;
   priority: number;
   lastError: string | null;
+  lastErrorType: string | null;
+  lastErrorSource: string | null;
   errorCode: string | number | null;
   backoffLevel: number;
 }
+
+interface RecoverableConnectionState {
+  connectionId: string;
+  testStatus?: string | null;
+  lastError?: string | null;
+  rateLimitedUntil?: string | null;
+  errorCode?: string | number | null;
+  lastErrorType?: string | null;
+  lastErrorSource?: string | null;
+}
+
+const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -74,10 +88,46 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
     priority: toNumber(row.priority, 999),
     lastError: toStringOrNull(row.lastError),
+    lastErrorType: toStringOrNull(row.lastErrorType),
+    lastErrorSource: toStringOrNull(row.lastErrorSource),
     errorCode:
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
   };
+}
+
+function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
+  use5h: boolean;
+  useWeekly: boolean;
+} {
+  const policy = asRecord(providerSpecificData.codexLimitPolicy);
+  return {
+    use5h: toBooleanOrDefault(policy.use5h, true),
+    useWeekly: toBooleanOrDefault(policy.useWeekly, true),
+  };
+}
+
+function parseFutureDateMs(value: string | null): number | null {
+  if (!value) return null;
+  const ms = new Date(value).getTime();
+  if (!Number.isFinite(ms) || ms <= Date.now()) return null;
+  return ms;
+}
+
+function getEarliestFutureDate(candidates: Array<string | null>): string | null {
+  return (
+    candidates
+      .map((candidate) => ({
+        raw: candidate,
+        ms: parseFutureDateMs(candidate),
+      }))
+      .filter((entry) => entry.ms !== null)
+      .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null
+  );
 }
 
 // Mutex to prevent race conditions during account selection
@@ -209,11 +259,84 @@ export async function getProviderCredentials(
       return null;
     }
 
+    let policyEligibleConnections = availableConnections;
+    if (provider === "codex") {
+      const blockedByPolicy: Array<{
+        id: string;
+        reasons: string[];
+        resetAt: string | null;
+      }> = [];
+
+      policyEligibleConnections = availableConnections.filter((connection) => {
+        const policy = getCodexLimitPolicy(connection.providerSpecificData);
+        const sessionStatus = policy.use5h
+          ? getQuotaWindowStatus(connection.id, "session", CODEX_QUOTA_THRESHOLD_PERCENT)
+          : null;
+        const weeklyStatus = policy.useWeekly
+          ? getQuotaWindowStatus(connection.id, "weekly", CODEX_QUOTA_THRESHOLD_PERCENT)
+          : null;
+
+        const reasons: string[] = [];
+        const resetCandidates: Array<string | null> = [];
+
+        if (policy.use5h && sessionStatus?.reachedThreshold) {
+          reasons.push(`5h usage ${Math.round(sessionStatus.usedPercentage)}%`);
+          resetCandidates.push(sessionStatus.resetAt);
+        }
+
+        if (policy.useWeekly && weeklyStatus?.reachedThreshold) {
+          reasons.push(`weekly usage ${Math.round(weeklyStatus.usedPercentage)}%`);
+          resetCandidates.push(weeklyStatus.resetAt);
+        }
+
+        if (reasons.length > 0) {
+          const nextResetAt = getEarliestFutureDate(resetCandidates);
+
+          blockedByPolicy.push({
+            id: connection.id,
+            reasons,
+            resetAt: nextResetAt,
+          });
+          return false;
+        }
+
+        return true;
+      });
+
+      if (blockedByPolicy.length > 0) {
+        log.info(
+          "AUTH",
+          `${provider} | quota policy filtered ${blockedByPolicy.length} account(s): ${blockedByPolicy
+            .map((entry) => `${entry.id.slice(0, 8)}(${entry.reasons.join(", ")})`)
+            .join("; ")}`
+        );
+      }
+
+      if (policyEligibleConnections.length === 0 && availableConnections.length > 0) {
+        const earliestResetAt = getEarliestFutureDate(
+          blockedByPolicy.map((entry) => entry.resetAt)
+        );
+        const earliestResetMs = parseFutureDateMs(earliestResetAt);
+
+        const retryAfter = earliestResetMs
+          ? new Date(earliestResetMs).toISOString()
+          : new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+        return {
+          allRateLimited: true,
+          retryAfter,
+          retryAfterHuman: formatRetryAfter(retryAfter),
+          lastError: "All Codex accounts reached configured quota threshold",
+          lastErrorCode: 429,
+        };
+      }
+    }
+
     // Quota-aware: prioritize accounts with available quota
-    const withQuota = availableConnections.filter((c) => !isAccountQuotaExhausted(c.id));
-    const exhaustedQuota = availableConnections.filter((c) => isAccountQuotaExhausted(c.id));
+    const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
+    const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
     const orderedConnections =
-      withQuota.length > 0 ? [...withQuota, ...exhaustedQuota] : availableConnections;
+      withQuota.length > 0 ? [...withQuota, ...exhaustedQuota] : policyEligibleConnections;
 
     if (exhaustedQuota.length > 0) {
       log.debug(
@@ -360,6 +483,9 @@ export async function getProviderCredentials(
       // Include current status for optimization check
       testStatus: connection.testStatus,
       lastError: connection.lastError,
+      lastErrorType: connection.lastErrorType,
+      lastErrorSource: connection.lastErrorSource,
+      errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
     };
   } finally {
@@ -460,12 +586,18 @@ export async function markAccountUnavailable(
  * Clear account error status (only if currently has error)
  * Optimized to avoid unnecessary DB updates
  */
-export async function clearAccountError(connectionId: string, currentConnection: any) {
+export async function clearAccountError(
+  connectionId: string,
+  currentConnection: Partial<RecoverableConnectionState>
+) {
   // Only update if currently has error status
   const hasError =
-    currentConnection.testStatus === "unavailable" ||
+    (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
     currentConnection.lastError ||
-    currentConnection.rateLimitedUntil;
+    currentConnection.rateLimitedUntil ||
+    currentConnection.errorCode ||
+    currentConnection.lastErrorType ||
+    currentConnection.lastErrorSource;
 
   if (!hasError) return; // Skip if already clean
 
@@ -473,10 +605,20 @@ export async function clearAccountError(connectionId: string, currentConnection:
     testStatus: "active",
     lastError: null,
     lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
     rateLimitedUntil: null,
     backoffLevel: 0,
   });
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
+}
+
+export async function clearRecoveredProviderState(
+  credentials: Partial<RecoverableConnectionState> | null
+) {
+  if (!credentials?.connectionId) return;
+  await clearAccountError(credentials.connectionId, credentials);
 }
 
 /**

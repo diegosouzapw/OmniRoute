@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   parseVideoModel,
   getAllVideoModels,
@@ -110,6 +115,7 @@ export async function POST(request) {
   const result = await handleVideoGeneration({ body, credentials, log });
 
   if (result.success) {
+    await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify((result as any).data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

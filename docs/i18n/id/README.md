@@ -1059,6 +1059,23 @@ Models:
   cx/gpt-5.1-codex-max
 ```
 
+#### Manajemen Limit Akun Codex (5h + Mingguan)
+
+Setiap akun Codex sekarang punya toggle kebijakan di `Dashboard -> Providers`:
+
+- `5h` (ON/OFF): menerapkan kebijakan ambang untuk jendela 5 jam.
+- `Weekly` (ON/OFF): menerapkan kebijakan ambang untuk jendela mingguan.
+- Perilaku ambang: saat jendela yang aktif mencapai >=90% penggunaan, akun tersebut di-skip.
+- Perilaku rotasi: OmniRoute otomatis merutekan ke akun Codex berikutnya yang masih eligible.
+- Perilaku reset: saat waktu `resetAt` provider sudah lewat, akun otomatis bisa dipakai lagi.
+
+Skenario:
+
+- `5h ON` + `Weekly ON`: akun di-skip jika salah satu jendela mencapai ambang.
+- `5h OFF` + `Weekly ON`: hanya penggunaan mingguan yang bisa memblokir akun.
+- `5h ON` + `Weekly OFF`: hanya penggunaan 5 jam yang bisa memblokir akun.
+- `resetAt` sudah lewat: akun otomatis masuk rotasi lagi (tanpa enable manual).
+
 ### Gemini CLI (GRATIS 180K/bulan!)
 
 ```bash

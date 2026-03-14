@@ -1,6 +1,11 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   parseImageModel,
   getAllImageModels,
@@ -170,6 +175,7 @@ export async function POST(request) {
   });
 
   if (result.success) {
+    await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify((result as any).data), {
       status: 200,
       headers: { "Content-Type": "application/json" },
