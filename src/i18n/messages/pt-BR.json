@@ -63,6 +63,7 @@
     "dashboard": "Painel",
     "providers": "Provedores",
     "combos": "Combos",
+    "autoCombo": "Auto Combo",
     "usage": "Uso",
     "analytics": "Análises",
     "costs": "Custos",
@@ -235,6 +236,26 @@
     "keyCreatedNote": "Copie e armazene esta chave agora — ela não será mostrada novamente.",
     "done": "Pronto",
     "savePermissions": "Salvar Permissões",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Resolve automaticamente nomes ambíguos de modelo para o provedor nativo desta API key.",
+    "keyActive": "Chave Ativa",
+    "keyActiveDesc": "Ativa ou desativa esta API key. Chaves desativadas são bloqueadas com 403.",
+    "accessSchedule": "Horário de Acesso",
+    "accessScheduleDesc": "Restrinja o acesso a horários e dias da semana específicos.",
+    "scheduleFrom": "Das",
+    "scheduleUntil": "Até",
+    "scheduleDays": "Dias",
+    "scheduleTimezone": "Fuso Horário",
+    "scheduleTimezoneHint": "Use nomes IANA, ex: America/Sao_Paulo",
+    "scheduleActive": "Agenda",
+    "disabled": "Desativada",
+    "daySun": "Dom",
+    "dayMon": "Seg",
+    "dayTue": "Ter",
+    "dayWed": "Qua",
+    "dayThu": "Qui",
+    "dayFri": "Sex",
+    "daySat": "Sáb",
     "allowAll": "Permitir Tudo",
     "restrict": "Restringir",
     "allowAllInfo": "Esta chave pode acessar todos os modelos disponíveis.",
@@ -604,6 +625,8 @@
     "randomDesc": "Seleção aleatória uniforme, depois fallback para modelos restantes",
     "leastUsedDesc": "Escolhe o modelo com menos requisições, equilibrando carga ao longo do tempo",
     "costOptimizedDesc": "Roteia para o modelo mais barato primeiro baseado em preços",
+    "strictRandom": "Aleatório Estrito",
+    "strictRandomDesc": "Baralho embaralhado — usa cada modelo uma vez antes de reembaralhar",
     "models": "Modelos",
     "autoBalance": "Auto-balancear",
     "advancedSettings": "Configurações Avançadas",
@@ -652,6 +675,11 @@
         "when": "Redução de custo é a prioridade principal.",
         "avoid": "A base de preços está ausente ou desatualizada.",
         "example": "Jobs em lote ou segundo plano focados em menor custo."
+      },
+      "strict-random": {
+        "when": "Você quer distribuição perfeitamente uniforme — cada modelo é usado uma vez antes de repetir.",
+        "avoid": "Os modelos têm qualidade ou latência muito diferentes e a ordem importa.",
+        "example": "Múltiplas contas do mesmo modelo para distribuir uso de forma equilibrada."
       }
     },
     "advancedHelp": {
@@ -705,46 +733,53 @@
     "recommendationsApplied": "Recommendations applied to this combo.",
     "strategyRecommendations": {
       "priority": {
-        "title": "Fail-safe baseline",
-        "description": "Use one primary model and keep fallback chain short and reliable.",
-        "tip1": "Put your most reliable model first.",
-        "tip2": "Keep 1-2 backup models with similar quality.",
-        "tip3": "Use safe retries to absorb transient provider failures."
+        "title": "Fail-safe básico",
+        "description": "Use um modelo principal e mantenha a cadeia de fallback curta e confiável.",
+        "tip1": "Coloque o modelo mais confiável em primeiro.",
+        "tip2": "Mantenha 1-2 modelos de backup com qualidade similar.",
+        "tip3": "Use retries seguros para absorver falhas transitórias do provedor."
       },
       "weighted": {
-        "title": "Controlled traffic split",
-        "description": "Great for canary rollouts and gradual migration between models.",
-        "tip1": "Start with conservative split like 90/10.",
-        "tip2": "Keep the total at 100% and auto-balance after changes.",
-        "tip3": "Monitor success and latency before increasing canary weight."
+        "title": "Divisão controlada de tráfego",
+        "description": "Ótimo para rollouts canário e migração gradual entre modelos.",
+        "tip1": "Comece com divisão conservadora tipo 90/10.",
+        "tip2": "Mantenha o total em 100% e rebalanceie após mudanças.",
+        "tip3": "Monitore sucesso e latência antes de aumentar o peso canário."
       },
       "round-robin": {
-        "title": "Predictable load sharing",
-        "description": "Best when models are equivalent and you need smooth distribution.",
-        "tip1": "Use at least 2 models.",
-        "tip2": "Set concurrency limits to avoid burst overload.",
-        "tip3": "Use queue timeout to fail fast under saturation."
+        "title": "Distribuição previsível de carga",
+        "description": "Melhor quando os modelos são equivalentes e você precisa de distribuição uniforme.",
+        "tip1": "Use pelo menos 2 modelos.",
+        "tip2": "Configure limites de concorrência para evitar sobrecarga.",
+        "tip3": "Use timeout de fila para falhar rápido sob saturação."
       },
       "random": {
-        "title": "Quick spread with low setup",
-        "description": "Use when you need simple distribution without strict guarantees.",
-        "tip1": "Use models with similar latency profiles.",
-        "tip2": "Keep retries enabled to absorb random misses.",
-        "tip3": "Prefer this for experimentation, not strict SLAs."
+        "title": "Distribuição rápida com baixa configuração",
+        "description": "Use quando precisar de distribuição simples sem garantias rígidas.",
+        "tip1": "Use modelos com perfis de latência semelhantes.",
+        "tip2": "Mantenha retries habilitados para absorver falhas aleatórias.",
+        "tip3": "Prefira para experimentação, não para SLAs rígidos."
       },
       "least-used": {
-        "title": "Adaptive balancing",
-        "description": "Routes to less-used models to reduce hotspots over time.",
-        "tip1": "Works better under continuous traffic.",
-        "tip2": "Combine with health checks for safer balancing.",
-        "tip3": "Track per-model usage to validate distribution gains."
+        "title": "Balanceamento adaptativo",
+        "description": "Roteia para modelos menos usados para reduzir hotspots ao longo do tempo.",
+        "tip1": "Funciona melhor sob tráfego contínuo.",
+        "tip2": "Combine com health checks para balanceamento mais seguro.",
+        "tip3": "Acompanhe uso por modelo para validar ganhos na distribuição."
       },
       "cost-optimized": {
-        "title": "Budget-first routing",
-        "description": "Routes to lower-cost models when pricing metadata is available.",
-        "tip1": "Ensure pricing coverage for all selected models.",
-        "tip2": "Keep a quality fallback for hard prompts.",
-        "tip3": "Use for batch/background jobs where cost is the main KPI."
+        "title": "Roteamento por orçamento",
+        "description": "Roteia para modelos mais baratos quando metadados de preço estão disponíveis.",
+        "tip1": "Garanta cobertura de preços para todos os modelos selecionados.",
+        "tip2": "Mantenha um fallback de qualidade para prompts difíceis.",
+        "tip3": "Use para jobs em lote/background onde custo é o KPI principal."
+      },
+      "strict-random": {
+        "title": "Distribuição estritamente uniforme",
+        "description": "Cada modelo é usado exatamente uma vez antes de reembaralhar o baralho.",
+        "tip1": "Ideal para múltiplas contas do mesmo modelo.",
+        "tip2": "Garante que nenhuma conta é repetida antes de todas serem usadas.",
+        "tip3": "Combine com health checks para pular contas indisponíveis sem quebrar o ciclo."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -1378,6 +1413,8 @@
     "email": "Email",
     "healthCheckMinutes": "Health Check (min)",
     "healthCheckHint": "Intervalo proativo de renovação de token. 0 = desativado.",
+    "groupLabel": "Ambiente",
+    "groupPlaceholder": "ex: eKaizen, Pessoal",
     "failedTestConnection": "Falha ao testar conexão",
     "failed": "Falhou",
     "leaveBlankKeepCurrentApiKey": "Deixe em branco para manter a chave de API atual.",
@@ -1548,6 +1585,8 @@
     "leastUsedDesc": "Escolher a conta usada menos recentemente",
     "costOpt": "Custo Otimizado",
     "costOptDesc": "Preferir conta mais barata disponível",
+    "strictRandom": "Aleatório Estrito",
+    "strictRandomDesc": "Baralho embaralhado — usa cada conta uma vez antes de reembaralhar",
     "stickyLimit": "Limite Fixo",
     "stickyLimitDesc": "Chamadas por conta antes de trocar",
     "modelAliases": "Aliases de Modelo",
@@ -2072,6 +2111,9 @@
     "rawPlanWithValue": "Plano bruto: {plan}",
     "noPlanFromProvider": "Sem plano do provedor",
     "noQuotaData": "Sem dados de cota",
+    "ungrouped": "Sem grupo",
+    "viewFlat": "Lista",
+    "viewByEnvironment": "Por Ambiente",
     "noQuotaDataAvailable": "Nenhum dado de cota disponível",
     "noAccountsForTierFilter": "Nenhuma conta encontrada para o filtro de plano",
     "tierAll": "Todos",

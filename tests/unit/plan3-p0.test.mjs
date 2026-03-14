@@ -6,7 +6,7 @@ import { getModelInfoCore } from "../../open-sse/services/model.ts";
 import { detectFormat } from "../../open-sse/services/provider.ts";
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
-import { CodexExecutor } from "../../open-sse/executors/codex.ts";
+import { CodexExecutor, setDefaultFastServiceTierEnabled } from "../../open-sse/executors/codex.ts";
 import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.ts";
 import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.ts";
 import { parseSSEToResponsesOutput } from "../../open-sse/handlers/sseParser.ts";
@@ -21,6 +21,12 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   const info = await getModelInfoCore("gpt-4o", {});
   assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-4o");
+});
+
+test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.4", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.4");
 });
 
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
@@ -58,6 +64,32 @@ test("CodexExecutor forces stream=true for upstream compatibility", () => {
     false
   );
   assert.equal(transformed.stream, true);
+});
+
+test("CodexExecutor maps fast service tier to priority", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.1-codex",
+    { model: "gpt-5.1-codex", input: [], service_tier: "fast" },
+    true
+  );
+  assert.equal(transformed.service_tier, "priority");
+});
+
+test("CodexExecutor can force fast service tier from settings", () => {
+  setDefaultFastServiceTierEnabled(true);
+
+  try {
+    const executor = new CodexExecutor();
+    const transformed = executor.transformRequest(
+      "gpt-5.1-codex",
+      { model: "gpt-5.1-codex", input: [] },
+      true
+    );
+    assert.equal(transformed.service_tier, "priority");
+  } finally {
+    setDefaultFastServiceTierEnabled(false);
+  }
 });
 
 test("CodexExecutor always requests SSE accept header", () => {
@@ -164,6 +196,24 @@ test("translateRequest normalizes openai-responses input string into list payloa
   assert.equal(translated.input[0].role, "user");
   assert.equal(translated.input[0].content[0].type, "input_text");
   assert.equal(translated.input[0].content[0].text, "hello from responses");
+});
+
+test("translateRequest preserves service_tier when converting openai to openai-responses", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.1-codex",
+    {
+      model: "gpt-5.1-codex",
+      messages: [{ role: "user", content: "hello from chat completions" }],
+      service_tier: "fast",
+      stream: false,
+    },
+    false
+  );
+
+  assert.equal(translated.service_tier, "fast");
+  assert.ok(Array.isArray(translated.input));
 });
 
 test("parseSSEToResponsesOutput parses completed response from SSE payload", () => {

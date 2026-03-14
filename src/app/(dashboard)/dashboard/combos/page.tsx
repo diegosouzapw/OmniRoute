@@ -34,6 +34,7 @@ const STRATEGY_OPTIONS = [
     icon: "stacked_bar_chart",
   },
   { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "compare_arrows" },
+  { value: "strict-random", labelKey: "strictRandom", descKey: "strictRandomDesc", icon: "casino" },
 ];
 
 const STRATEGY_GUIDANCE_FALLBACK = {
@@ -76,6 +77,11 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     when: "Use when you want low-latency selection using Power-of-Two-Choices algorithm.",
     avoid: "Avoid for small combos with 2 or fewer models — no benefit over round-robin.",
     example: "Example: High-throughput inference across 4+ equivalent model endpoints.",
+  },
+  "strict-random": {
+    when: "Use when you want perfectly even spread — each model used once before repeating.",
+    avoid: "Avoid when models have different quality or latency and order matters.",
+    example: "Example: Multiple accounts of the same model to distribute usage evenly.",
   },
 };
 
@@ -160,6 +166,15 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Use with 4+ models for best effect.",
       "Requires latency telemetry enabled in Settings.",
       "Great replacement for round-robin in high-throughput combos.",
+    ],
+  },
+  "strict-random": {
+    title: "Shuffle deck distribution",
+    description: "Each model is used exactly once per cycle before reshuffling.",
+    tips: [
+      "Use at least 2 models for meaningful distribution.",
+      "Ideal for same-model accounts to evenly spread quota.",
+      "Guarantees no model is skipped or repeated within a cycle.",
     ],
   },
 };

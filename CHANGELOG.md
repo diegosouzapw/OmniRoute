@@ -2,7 +2,27 @@
 
 ## [Unreleased]
 
-## [2.4.4] - 2026-03-14
+## [2.5.0] - 2026-03-14
+
+> Major release: strict-random routing strategy, API key access controls, connection groups, external pricing sync, and critical bug fixes for thinking models, combo testing, and tool name validation.
+
+### ✨ New Features (PRs #363 & #365)
+
+- **Strict-Random Routing Strategy**: Fisher-Yates shuffle deck with anti-repeat guarantee and mutex serialization for concurrent requests. Independent decks per combo and per provider.
+- **API Key Access Controls**: `allowedConnections` (restrict which connections a key can use), `is_active` (enable/disable key with 403), `accessSchedule` (time-based access control), `autoResolve` toggle, rename keys via PATCH.
+- **Connection Groups**: Group provider connections by environment. Accordion view in Limits page with localStorage persistence and smart auto-switch.
+- **External Pricing Sync (LiteLLM)**: 3-tier pricing resolution (user overrides → synced → defaults). Opt-in via `PRICING_SYNC_ENABLED=true`. MCP tool `omniroute_sync_pricing`. 23 new tests.
+- **i18n**: 30 languages updated with strict-random strategy, API key management strings. pt-BR fully translated.
+
+### 🐛 Bug Fixes
+
+- **fix #355**: Stream idle timeout increased from 60s to 300s — prevents aborting extended-thinking models (claude-opus-4-6, o3, etc.) during long reasoning phases. Configurable via `STREAM_IDLE_TIMEOUT_MS`.
+- **fix #350**: Combo test now bypasses `REQUIRE_API_KEY=true` using internal header, and uses OpenAI-compatible format universally. Timeout extended from 15s to 20s.
+- **fix #346**: Tools with empty `function.name` (forwarded by Claude Code) are now filtered before upstream providers receive them, preventing "Invalid input[N].name: empty string" errors.
+
+### 🗑️ Closed Issues
+
+- **#341**: Debug section removed — replacement is `/dashboard/logs` and `/dashboard/health`.
 
 > API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
 

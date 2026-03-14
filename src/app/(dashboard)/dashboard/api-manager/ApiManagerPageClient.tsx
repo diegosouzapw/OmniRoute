@@ -52,13 +52,32 @@ function validateKeyName(
   return { valid: true };
 }
 
+interface AccessSchedule {
+  enabled: boolean;
+  from: string;
+  until: string;
+  days: number[];
+  tz: string;
+}
+
 interface ApiKey {
   id: string;
   name: string;
   key: string;
   allowedModels: string[] | null;
+  allowedConnections: string[] | null;
   noLog?: boolean;
+  autoResolve?: boolean;
+  isActive?: boolean;
+  accessSchedule?: AccessSchedule | null;
   createdAt: string;
+}
+
+interface ProviderConnection {
+  id: string;
+  name: string;
+  provider: string;
+  isActive: boolean;
 }
 
 interface KeyUsageStats {
@@ -79,6 +98,7 @@ export default function ApiManagerPageClient() {
   const tc = useTranslations("common");
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
@@ -95,6 +115,7 @@ export default function ApiManagerPageClient() {
   useEffect(() => {
     fetchData();
     fetchModels();
+    fetchConnections();
   }, []);
 
   const fetchModels = async () => {
@@ -106,6 +127,18 @@ export default function ApiManagerPageClient() {
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+    }
+  };
+
+  const fetchConnections = async () => {
+    try {
+      const res = await fetch("/api/providers");
+      if (res.ok) {
+        const data = await res.json();
+        setAllConnections(data.connections || []);
+      }
+    } catch (error) {
+      console.log("Error fetching connections:", error);
     }
   };
 
@@ -227,7 +260,14 @@ export default function ApiManagerPageClient() {
     setShowPermissionsModal(true);
   };
 
-  const handleUpdatePermissions = async (allowedModels: string[], noLog: boolean) => {
+  const handleUpdatePermissions = async (
+    allowedModels: string[],
+    noLog: boolean,
+    allowedConnections: string[],
+    autoResolve: boolean,
+    isActive: boolean,
+    accessSchedule: AccessSchedule | null
+  ) => {
     if (!editingKey || !editingKey.id) return;
 
     // Validate models array
@@ -247,6 +287,11 @@ export default function ApiManagerPageClient() {
       (id) => typeof id === "string" && id.length > 0 && id.length < 200
     );
 
+    // Validate connections (must be UUIDs)
+    const validConnections = allowedConnections.filter(
+      (id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)
+    );
+
     setIsSubmitting(true);
     clearError();
 
@@ -254,7 +299,14 @@ export default function ApiManagerPageClient() {
       const res = await fetch(`/api/keys/${encodeURIComponent(editingKey.id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ allowedModels: validModels, noLog }),
+        body: JSON.stringify({
+          allowedModels: validModels,
+          allowedConnections: validConnections,
+          noLog,
+          autoResolve,
+          isActive,
+          accessSchedule,
+        }),
       });
 
       if (res.ok) {
@@ -449,7 +501,11 @@ export default function ApiManagerPageClient() {
             {keys.map((key) => {
               const stats = usageStats[key.id];
               const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
+              const hasConnectionRestrictions =
+                Array.isArray(key.allowedConnections) && key.allowedConnections.length > 0;
               const noLogEnabled = key.noLog === true;
+              const keyIsActive = key.isActive !== false; // default true
+              const hasSchedule = key.accessSchedule?.enabled === true;
               return (
                 <div
                   key={key.id}
@@ -496,12 +552,41 @@ export default function ApiManagerPageClient() {
                           {t("allModels")}
                         </button>
                       )}
+                      {hasConnectionRestrictions && (
+                        <button
+                          onClick={() => handleOpenPermissions(key)}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">cable</span>
+                          {key.allowedConnections.length} conn
+                        </button>
+                      )}
                       {noLogEnabled && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">
                             visibility_off
                           </span>
                           No-Log
+                        </span>
+                      )}
+                      {key.autoResolve && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">
+                            auto_fix_high
+                          </span>
+                          Auto-Resolve
+                        </span>
+                      )}
+                      {!keyIsActive && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">block</span>
+                          {t("disabled")}
+                        </span>
+                      )}
+                      {hasSchedule && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">schedule</span>
+                          {t("scheduleActive")}
                         </span>
                       )}
                     </div>
@@ -659,6 +744,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={allModels}
+          allConnections={allConnections}
           searchModel={searchModel}
           onSearchChange={setSearchModel}
           onSave={handleUpdatePermissions}
@@ -676,6 +762,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  allConnections,
   searchModel,
   onSearchChange,
   onSave,
@@ -685,18 +772,42 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  allConnections: ProviderConnection[];
   searchModel: string;
   onSearchChange: (v: string) => void;
-  onSave: (models: string[], noLog: boolean) => void;
+  onSave: (
+    models: string[],
+    noLog: boolean,
+    connections: string[],
+    autoResolve: boolean,
+    isActive: boolean,
+    accessSchedule: AccessSchedule | null
+  ) => void;
 }) {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
 
   // Initialize state from props - component remounts when key prop changes
   const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
+  const initialConnections = Array.isArray(apiKey?.allowedConnections)
+    ? apiKey.allowedConnections
+    : [];
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
+  const [autoResolveEnabled, setAutoResolveEnabled] = useState(apiKey?.autoResolve === true);
+  const [keyIsActive, setKeyIsActive] = useState(apiKey?.isActive !== false);
+  const [scheduleEnabled, setScheduleEnabled] = useState(apiKey?.accessSchedule?.enabled === true);
+  const [scheduleFrom, setScheduleFrom] = useState(apiKey?.accessSchedule?.from ?? "08:00");
+  const [scheduleUntil, setScheduleUntil] = useState(apiKey?.accessSchedule?.until ?? "18:00");
+  const [scheduleDays, setScheduleDays] = useState<number[]>(
+    apiKey?.accessSchedule?.days ?? [1, 2, 3, 4, 5]
+  );
+  const [scheduleTz, setScheduleTz] = useState(
+    apiKey?.accessSchedule?.tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+  const [selectedConnections, setSelectedConnections] = useState<string[]>(initialConnections);
+  const [allowAllConnections, setAllowAllConnections] = useState(initialConnections.length === 0);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => {
     // Expand all providers by default when in restrict mode with existing selections
     if (initialModels.length > 0) {
@@ -769,9 +880,51 @@ const PermissionsModal = memo(function PermissionsModal({
     setSelectedModels([]);
   }, []);
 
+  const handleToggleConnection = useCallback(
+    (connectionId: string) => {
+      if (allowAllConnections) return;
+      setSelectedConnections((prev) =>
+        prev.includes(connectionId)
+          ? prev.filter((c) => c !== connectionId)
+          : [...prev, connectionId]
+      );
+    },
+    [allowAllConnections]
+  );
+
   const handleSave = useCallback(() => {
-    onSave(allowAll ? [] : selectedModels, noLogEnabled);
-  }, [onSave, allowAll, selectedModels, noLogEnabled]);
+    const schedule: AccessSchedule | null = scheduleEnabled
+      ? {
+          enabled: true,
+          from: scheduleFrom,
+          until: scheduleUntil,
+          days: scheduleDays,
+          tz: scheduleTz,
+        }
+      : null;
+    onSave(
+      allowAll ? [] : selectedModels,
+      noLogEnabled,
+      allowAllConnections ? [] : selectedConnections,
+      autoResolveEnabled,
+      keyIsActive,
+      schedule
+    );
+  }, [
+    onSave,
+    allowAll,
+    selectedModels,
+    noLogEnabled,
+    allowAllConnections,
+    selectedConnections,
+    autoResolveEnabled,
+    keyIsActive,
+    scheduleEnabled,
+    scheduleFrom,
+    scheduleUntil,
+    scheduleDays,
+    scheduleTz,
+  ]);
 
   const selectedCount = selectedModels.length;
   const totalModels = allModels.length;
@@ -833,6 +986,129 @@ const PermissionsModal = memo(function PermissionsModal({
           </p>
         </div>
 
+        {/* Key Active Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("keyActive")}</p>
+            <p className="text-xs text-text-muted">{t("keyActiveDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={keyIsActive}
+            onClick={() => setKeyIsActive((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              keyIsActive
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                : "bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {keyIsActive ? "check_circle" : "block"}
+            </span>
+            {keyIsActive ? tc("enabled") : tc("disabled")}
+          </button>
+        </div>
+
+        {/* Access Schedule */}
+        <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-text-main">{t("accessSchedule")}</p>
+              <p className="text-xs text-text-muted">{t("accessScheduleDesc")}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={scheduleEnabled}
+              onClick={() => setScheduleEnabled((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                scheduleEnabled
+                  ? "bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30"
+                  : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">schedule</span>
+              {scheduleEnabled ? tc("enabled") : tc("disabled")}
+            </button>
+          </div>
+          {scheduleEnabled && (
+            <div className="flex flex-col gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-text-muted mb-1 block">{t("scheduleFrom")}</label>
+                  <input
+                    type="time"
+                    value={scheduleFrom}
+                    onChange={(e) => setScheduleFrom(e.target.value)}
+                    className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-text-muted mb-1 block">{t("scheduleUntil")}</label>
+                  <input
+                    type="time"
+                    value={scheduleUntil}
+                    onChange={(e) => setScheduleUntil(e.target.value)}
+                    className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-muted mb-1.5 block">{t("scheduleDays")}</label>
+                <div className="flex gap-1 flex-wrap">
+                  {(
+                    [
+                      [0, t("daySun")],
+                      [1, t("dayMon")],
+                      [2, t("dayTue")],
+                      [3, t("dayWed")],
+                      [4, t("dayThu")],
+                      [5, t("dayFri")],
+                      [6, t("daySat")],
+                    ] as [number, string][]
+                  ).map(([dayIdx, label]) => {
+                    const selected = scheduleDays.includes(dayIdx);
+                    return (
+                      <button
+                        key={dayIdx}
+                        type="button"
+                        onClick={() =>
+                          setScheduleDays((prev) =>
+                            prev.includes(dayIdx)
+                              ? prev.filter((d) => d !== dayIdx)
+                              : [...prev, dayIdx].sort((a, b) => a - b)
+                          )
+                        }
+                        className={`px-2 py-1 text-[11px] font-medium rounded transition-all ${
+                          selected
+                            ? "bg-primary text-white"
+                            : "bg-surface border border-border text-text-muted hover:border-primary/50"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-text-muted mb-1 block">
+                  {t("scheduleTimezone")}
+                </label>
+                <input
+                  type="text"
+                  value={scheduleTz}
+                  onChange={(e) => setScheduleTz(e.target.value)}
+                  placeholder="America/Sao_Paulo"
+                  className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main font-mono"
+                />
+                <p className="text-[10px] text-text-muted mt-1">{t("scheduleTimezoneHint")}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Privacy Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
@@ -856,6 +1132,30 @@ const PermissionsModal = memo(function PermissionsModal({
               {noLogEnabled ? "visibility_off" : "visibility"}
             </span>
             {noLogEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+        </div>
+
+        {/* Auto-Resolve Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("autoResolve")}</p>
+            <p className="text-xs text-text-muted">{t("autoResolveDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={autoResolveEnabled}
+            onClick={() => setAutoResolveEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              autoResolveEnabled
+                ? "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {autoResolveEnabled ? "auto_fix_high" : "auto_fix_normal"}
+            </span>
+            {autoResolveEnabled ? tc("enabled") : tc("disabled")}
           </button>
         </div>
 
@@ -1022,6 +1322,97 @@ const PermissionsModal = memo(function PermissionsModal({
               )}
             </div>
           </>
+        )}
+
+        {/* Allowed Connections Section */}
+        {allConnections.length > 0 && (
+          <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-text-main">Allowed Connections</p>
+              <div className="flex gap-1 p-0.5 bg-surface rounded-md">
+                <button
+                  onClick={() => {
+                    setAllowAllConnections(true);
+                    setSelectedConnections([]);
+                  }}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                    allowAllConnections
+                      ? "bg-primary text-white"
+                      : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setAllowAllConnections(false)}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                    !allowAllConnections
+                      ? "bg-primary text-white"
+                      : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+                  }`}
+                >
+                  Restrict
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-text-muted">
+              {allowAllConnections
+                ? "This key can use any active connection."
+                : `Restricted to ${selectedConnections.length} connection${selectedConnections.length !== 1 ? "s" : ""}.`}
+            </p>
+            {!allowAllConnections && (
+              <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                {Object.entries(
+                  allConnections.reduce<Record<string, ProviderConnection[]>>((acc, conn) => {
+                    const p = conn.provider || "Other";
+                    if (!acc[p]) acc[p] = [];
+                    acc[p].push(conn);
+                    return acc;
+                  }, {})
+                )
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([provider, conns]) => (
+                    <div key={provider}>
+                      <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">
+                        {provider}
+                      </p>
+                      {conns.map((conn) => {
+                        const isSelected = selectedConnections.includes(conn.id);
+                        return (
+                          <button
+                            key={conn.id}
+                            onClick={() => handleToggleConnection(conn.id)}
+                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-xs transition-all ${
+                              isSelected
+                                ? "bg-primary/10 text-primary"
+                                : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+                            }`}
+                          >
+                            <div
+                              className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                                isSelected ? "bg-primary border-primary" : "border-border"
+                              }`}
+                            >
+                              {isSelected && (
+                                <span className="material-symbols-outlined text-white text-[10px]">
+                                  check
+                                </span>
+                              )}
+                            </div>
+                            <span className="truncate flex-1">
+                              {conn.name || conn.id.slice(0, 8)}
+                            </span>
+                            {!conn.isActive && (
+                              <span className="text-[9px] text-red-400 shrink-0">inactive</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Actions */}

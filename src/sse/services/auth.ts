@@ -15,6 +15,7 @@ import {
   lockModel,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import * as log from "../utils/logger";
+import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -123,6 +124,11 @@ let selectionMutex = Promise.resolve();
 // unavailable in parallel, which was the root cause of cascading 502 lockouts.
 const markMutexes = new Map<string, Promise<void>>();
 
+// Strict-Random shuffle deck moved to src/shared/utils/shuffleDeck.ts
+// auth.ts uses getNextFromDeckSync (already inside selectionMutex).
+// Re-export for backwards compat with existing test imports.
+export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
+
 /**
  * Get provider credentials from localDb
  * Filters out unavailable accounts and returns the selected account based on strategy
@@ -131,7 +137,8 @@ const markMutexes = new Map<string, Promise<void>>();
  */
 export async function getProviderCredentials(
   provider: string,
-  excludeConnectionId: string | null = null
+  excludeConnectionId: string | null = null,
+  allowedConnections: string[] | null = null
 ) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
@@ -144,9 +151,13 @@ export async function getProviderCredentials(
     await currentMutex;
 
     const connectionsRaw = await getProviderConnections({ provider, isActive: true });
-    const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
+    let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
       .map(toProviderConnection)
       .filter((conn) => conn.id.length > 0);
+    // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
+    if (allowedConnections && allowedConnections.length > 0) {
+      connections = connections.filter((conn) => allowedConnections.includes(conn.id));
+    }
     log.debug(
       "AUTH",
       `${provider} | total connections: ${connections.length}, excludeId: ${excludeConnectionId || "none"}`
@@ -433,6 +444,11 @@ export async function getProviderCredentials(
         (a, b) => (a.priority || 999) - (b.priority || 999)
       );
       connection = sorted[0];
+    } else if (strategy === "strict-random") {
+      // Strict Random: shuffle deck — uses each account once before reshuffling
+      const ids = orderedConnections.map((c) => c.id);
+      const selectedId = getNextFromDeckSync(`conn:${provider}`, ids);
+      connection = orderedConnections.find((c) => c.id === selectedId) || orderedConnections[0];
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = orderedConnections[0];

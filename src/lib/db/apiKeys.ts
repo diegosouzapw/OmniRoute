@@ -20,12 +20,24 @@ interface CacheEntry<TValue> {
   value: TValue;
 }
 
+export interface AccessSchedule {
+  enabled: boolean;
+  from: string;
+  until: string;
+  days: number[];
+  tz: string;
+}
+
 interface ApiKeyMetadata {
   id: string;
   name: string;
   machineId: string | null;
   allowedModels: string[];
+  allowedConnections: string[];
   noLog: boolean;
+  autoResolve: boolean;
+  isActive: boolean;
+  accessSchedule: AccessSchedule | null;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -36,8 +48,16 @@ interface ApiKeyRow extends JsonRecord {
   machineId?: unknown;
   allowed_models?: unknown;
   allowedModels?: unknown;
+  allowed_connections?: unknown;
+  allowedConnections?: unknown;
   no_log?: unknown;
   noLog?: unknown;
+  auto_resolve?: unknown;
+  autoResolve?: unknown;
+  is_active?: unknown;
+  isActive?: unknown;
+  access_schedule?: unknown;
+  accessSchedule?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -63,7 +83,11 @@ interface ApiKeysStatements {
 interface ApiKeyView extends JsonRecord {
   id?: string;
   allowedModels: string[];
+  allowedConnections: string[];
   noLog: boolean;
+  autoResolve: boolean;
+  isActive: boolean;
+  accessSchedule: AccessSchedule | null;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -147,6 +171,22 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
       db.exec("ALTER TABLE api_keys ADD COLUMN no_log INTEGER NOT NULL DEFAULT 0");
       console.log("[DB] Added api_keys.no_log column");
     }
+    if (!columnNames.has("allowed_connections")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN allowed_connections TEXT");
+      console.log("[DB] Added api_keys.allowed_connections column");
+    }
+    if (!columnNames.has("auto_resolve")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN auto_resolve INTEGER NOT NULL DEFAULT 0");
+      console.log("[DB] Added api_keys.auto_resolve column");
+    }
+    if (!columnNames.has("is_active")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1");
+      console.log("[DB] Added api_keys.is_active column");
+    }
+    if (!columnNames.has("access_schedule")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN access_schedule TEXT");
+      console.log("[DB] Added api_keys.access_schedule column");
+    }
     _schemaChecked = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -172,7 +212,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
     _stmtValidateKey = db.prepare<JsonRecord>("SELECT 1 FROM api_keys WHERE key = ?");
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, no_log FROM api_keys WHERE key = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule FROM api_keys WHERE key = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -208,7 +248,11 @@ export async function getApiKeys() {
   return rows.map((row) => {
     const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
     camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+    camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
     camelRow.noLog = parseNoLog(camelRow.noLog);
+    camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
+    camelRow.isActive = parseIsActive(camelRow.isActive);
+    camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -223,7 +267,11 @@ export async function getApiKeyById(id: string) {
   if (!row) return null;
   const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
   camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+  camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
   camelRow.noLog = parseNoLog(camelRow.noLog);
+  camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
+  camelRow.isActive = parseIsActive(camelRow.isActive);
+  camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -251,6 +299,63 @@ function parseNoLog(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
+function parseAutoResolve(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
+function parseIsActive(value: unknown): boolean {
+  // DEFAULT 1 — active unless explicitly set to 0
+  if (value === 0 || value === "0" || value === false) return false;
+  return true;
+}
+
+function parseAccessSchedule(value: unknown): AccessSchedule | null {
+  if (!value || typeof value !== "string" || value.trim() === "") return null;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const obj = parsed as Record<string, unknown>;
+    if (
+      typeof obj["enabled"] !== "boolean" ||
+      typeof obj["from"] !== "string" ||
+      typeof obj["until"] !== "string" ||
+      !Array.isArray(obj["days"]) ||
+      typeof obj["tz"] !== "string"
+    ) {
+      return null;
+    }
+    const days = (obj["days"] as unknown[]).filter(
+      (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
+    );
+    return {
+      enabled: obj["enabled"],
+      from: obj["from"],
+      until: obj["until"],
+      days,
+      tz: obj["tz"],
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Helper function to safely parse allowed_connections JSON
+ */
+function parseAllowedConnections(value: unknown): string[] {
+  if (!value || typeof value !== "string" || value.trim() === "") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function createApiKey(name: string, machineId: string) {
   if (!machineId) {
     throw new Error("machineId is required");
@@ -268,6 +373,7 @@ export async function createApiKey(name: string, machineId: string) {
     key: result.key,
     machineId: machineId,
     allowedModels: [], // Empty array means all models allowed
+    allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
     createdAt: now,
   };
@@ -290,7 +396,17 @@ export async function createApiKey(name: string, machineId: string) {
 
 export async function updateApiKeyPermissions(
   id: string,
-  update: string[] | { allowedModels?: string[]; noLog?: boolean }
+  update:
+    | string[]
+    | {
+        name?: string;
+        allowedModels?: string[];
+        allowedConnections?: string[];
+        noLog?: boolean;
+        autoResolve?: boolean;
+        isActive?: boolean;
+        accessSchedule?: AccessSchedule | null;
+      }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
   getPreparedStatements(db);
@@ -299,16 +415,43 @@ export async function updateApiKeyPermissions(
     Array.isArray(update) || update === undefined
       ? { allowedModels: update || [] }
       : {
+          name: update.name,
           allowedModels: update.allowedModels,
+          allowedConnections: update.allowedConnections,
           noLog: update.noLog,
+          autoResolve: update.autoResolve,
+          isActive: update.isActive,
+          accessSchedule: update.accessSchedule,
         };
 
-  if (normalized.allowedModels === undefined && normalized.noLog === undefined) {
+  if (
+    normalized.name === undefined &&
+    normalized.allowedModels === undefined &&
+    normalized.allowedConnections === undefined &&
+    normalized.noLog === undefined &&
+    normalized.autoResolve === undefined &&
+    normalized.isActive === undefined &&
+    normalized.accessSchedule === undefined
+  ) {
     return false;
   }
 
   const updates: string[] = [];
-  const params: { id: string; allowedModels?: string; noLog?: number } = { id };
+  const params: {
+    id: string;
+    name?: string;
+    allowedModels?: string;
+    allowedConnections?: string;
+    noLog?: number;
+    autoResolve?: number;
+    isActive?: number;
+    accessSchedule?: string | null;
+  } = { id };
+
+  if (normalized.name !== undefined) {
+    updates.push("name = @name");
+    params.name = normalized.name;
+  }
 
   if (normalized.allowedModels !== undefined) {
     // Empty array means all models are allowed
@@ -316,9 +459,31 @@ export async function updateApiKeyPermissions(
     params.allowedModels = JSON.stringify(normalized.allowedModels || []);
   }
 
+  if (normalized.allowedConnections !== undefined) {
+    // Empty array means all connections are allowed
+    updates.push("allowed_connections = @allowedConnections");
+    params.allowedConnections = JSON.stringify(normalized.allowedConnections || []);
+  }
+
   if (normalized.noLog !== undefined) {
     updates.push("no_log = @noLog");
     params.noLog = normalized.noLog ? 1 : 0;
+  }
+
+  if (normalized.autoResolve !== undefined) {
+    updates.push("auto_resolve = @autoResolve");
+    params.autoResolve = normalized.autoResolve ? 1 : 0;
+  }
+
+  if (normalized.isActive !== undefined) {
+    updates.push("is_active = @isActive");
+    params.isActive = normalized.isActive ? 1 : 0;
+  }
+
+  if (normalized.accessSchedule !== undefined) {
+    updates.push("access_schedule = @accessSchedule");
+    params.accessSchedule =
+      normalized.accessSchedule !== null ? JSON.stringify(normalized.accessSchedule) : null;
   }
 
   const result = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
@@ -414,7 +579,13 @@ export async function getApiKeyMetadata(
     name: metadataName,
     machineId: metadataMachineId,
     allowedModels: parseAllowedModels(record.allowed_models ?? record.allowedModels),
+    allowedConnections: parseAllowedConnections(
+      record.allowed_connections ?? record.allowedConnections
+    ),
     noLog: parseNoLog(record.no_log ?? record.noLog),
+    autoResolve: parseAutoResolve(record.auto_resolve ?? record.autoResolve),
+    isActive: parseIsActive(record.is_active ?? record.isActive),
+    accessSchedule: parseAccessSchedule(record.access_schedule ?? record.accessSchedule),
   };
 
   if (!metadata.id) {

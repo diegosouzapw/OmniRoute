@@ -52,7 +52,10 @@ export async function register() {
     try {
       const { getSettings } = await import("@/lib/db/settings");
       const { setCustomAliases } = await import("@omniroute/open-sse/services/modelDeprecation.ts");
+      const { setDefaultFastServiceTierEnabled } =
+        await import("@omniroute/open-sse/executors/codex.ts");
       const settings = await getSettings();
+
       if (settings.modelAliases) {
         const aliases =
           typeof settings.modelAliases === "string"
@@ -65,9 +68,21 @@ export async function register() {
           );
         }
       }
+
+      const persisted =
+        typeof settings.codexServiceTier === "string"
+          ? JSON.parse(settings.codexServiceTier)
+          : settings.codexServiceTier;
+
+      if (typeof persisted?.enabled === "boolean") {
+        setDefaultFastServiceTierEnabled(persisted.enabled);
+        console.log(
+          `[STARTUP] Restored Codex fast service tier: ${persisted.enabled ? "on" : "off"}`
+        );
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Could not restore model aliases:", msg);
+      console.warn("[STARTUP] Could not restore runtime settings:", msg);
     }
 
     // Compliance: Initialize audit_log table + cleanup expired logs

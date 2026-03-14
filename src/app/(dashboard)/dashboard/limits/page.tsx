@@ -12,8 +12,8 @@ export default function LimitsPage() {
       <Suspense fallback={<CardSkeleton />}>
         <ProviderLimits />
       </Suspense>
-      <RateLimitStatus />
       <SessionsTab />
+      <RateLimitStatus />
     </div>
   );
 }

@@ -363,6 +363,7 @@ export function openaiToOpenAIResponsesRequest(
   }
 
   // Pass through relevant fields
+  if (root.service_tier !== undefined) result.service_tier = root.service_tier;
   if (root.temperature !== undefined) result.temperature = root.temperature;
   if (root.max_tokens !== undefined) result.max_tokens = root.max_tokens;
   if (root.top_p !== undefined) result.top_p = root.top_p;

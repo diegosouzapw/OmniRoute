@@ -6,6 +6,20 @@ import { refreshCodexToken } from "../services/tokenRefresh.ts";
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
+const CODEX_FAST_WIRE_VALUE = "priority";
+let defaultFastServiceTierEnabled = false;
+
+function normalizeServiceTierValue(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === "fast") return CODEX_FAST_WIRE_VALUE;
+  return normalized;
+}
+
+export function setDefaultFastServiceTierEnabled(enabled: boolean): void {
+  defaultFastServiceTierEnabled = enabled;
+}
 
 /**
  * Maximum reasoning effort allowed per Codex model.
@@ -102,6 +116,13 @@ export class CodexExecutor extends BaseExecutor {
 
     // Ensure store is false (Codex requirement)
     body.store = false;
+
+    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
+    if (requestServiceTier) {
+      body.service_tier = requestServiceTier;
+    } else if (defaultFastServiceTierEnabled) {
+      body.service_tier = CODEX_FAST_WIRE_VALUE;
+    }
 
     // Extract thinking level from model name suffix
     // e.g., gpt-5.3-codex-high → high, gpt-5.3-codex → medium (default)

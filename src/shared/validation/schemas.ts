@@ -51,6 +51,7 @@ const comboStrategySchema = z.enum([
   "random",
   "least-used",
   "cost-optimized",
+  "strict-random",
 ]);
 
 const comboRuntimeConfigSchema = z
@@ -77,6 +78,7 @@ export const createComboSchema = z.object({
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboConfigSchema,
+  allowedProviders: z.array(z.string().max(200)).optional(),
 });
 
 // ──── Auto-Combo Schemas ────
@@ -125,7 +127,15 @@ export const updateSettingsSchema = z.object({
   hideHealthCheckLogs: z.boolean().optional(),
   // Routing settings (#134)
   fallbackStrategy: z
-    .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])
+    .enum([
+      "fill-first",
+      "round-robin",
+      "p2c",
+      "random",
+      "least-used",
+      "cost-optimized",
+      "strict-random",
+    ])
     .optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
@@ -439,6 +449,12 @@ export const updateThinkingBudgetSchema = z
     }
   });
 
+export const updateCodexServiceTierSchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .strict();
+
 const ipFilterModeSchema = z.enum(["blacklist", "whitelist"]);
 const tempBanSchema = z.object({
   ip: z.string().trim().min(1),
@@ -676,6 +692,7 @@ export const updateComboSchema = z
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
     isActive: z.boolean().optional(),
+    allowedProviders: z.array(z.string().max(200)).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -683,7 +700,8 @@ export const updateComboSchema = z
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&
-      value.isActive === undefined
+      value.isActive === undefined &&
+      value.allowedProviders === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -706,13 +724,34 @@ export const evalRunSuiteSchema = z.object({
   outputs: z.record(z.string(), z.string()),
 });
 
+const accessScheduleSchema = z.object({
+  enabled: z.boolean(),
+  from: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+  until: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+  days: z.array(z.number().int().min(0).max(6)).min(1, "At least one day is required").max(7),
+  tz: z.string().min(1).max(100),
+});
+
 export const updateKeyPermissionsSchema = z
   .object({
+    name: z.string().trim().min(1).max(200).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
+    autoResolve: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.allowedModels === undefined && value.noLog === undefined) {
+    if (
+      value.name === undefined &&
+      value.allowedModels === undefined &&
+      value.allowedConnections === undefined &&
+      value.noLog === undefined &&
+      value.autoResolve === undefined &&
+      value.isActive === undefined &&
+      value.accessSchedule === undefined
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "No valid fields to update",
@@ -770,6 +809,7 @@ export const updateProviderConnectionSchema = z
     rateLimitedUntil: z.union([z.string(), z.null()]).optional(),
     lastTested: z.union([z.string(), z.null()]).optional(),
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
+    group: z.union([z.string().max(100), z.null()]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z.record(z.string(), z.unknown()).optional(),
   })

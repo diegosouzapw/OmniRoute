@@ -9,6 +9,7 @@ import { recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
+import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
@@ -150,18 +151,8 @@ function orderModelsForWeightedFallback(models, selectedModel) {
   return [selected, ...rest].filter(Boolean).map((e) => e.model);
 }
 
-/**
- * Fisher-Yates shuffle (in-place)
- * @param {Array} arr
- * @returns {Array} The shuffled array
- */
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
+// shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
+// combo.ts now uses the shared, mutex-protected getNextFromDeck with "combo:" namespace.
 
 /**
  * Sort models by pricing (cheapest first) for cost-optimized strategy
@@ -287,8 +278,17 @@ export async function handleComboChat({
   }
 
   // Apply strategy-specific ordering
-  if (strategy === "random") {
-    orderedModels = shuffleArray([...orderedModels]);
+  if (strategy === "strict-random") {
+    const selectedId = await getNextFromDeck(`combo:${combo.name}`, orderedModels);
+    // Put selected model first so the fallback loop tries it first
+    const rest = orderedModels.filter((m) => m !== selectedId);
+    orderedModels = [selectedId, ...rest];
+    log.info(
+      "COMBO",
+      `Strict-random deck: ${selectedId} selected (${orderedModels.length} models)`
+    );
+  } else if (strategy === "random") {
+    orderedModels = fisherYatesShuffle([...orderedModels]);
     log.info("COMBO", `Random shuffle: ${orderedModels.length} models`);
   } else if (strategy === "least-used") {
     orderedModels = sortModelsByUsage(orderedModels, combo.name);

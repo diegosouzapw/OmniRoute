@@ -49,6 +49,7 @@ export async function POST(request) {
       const startTime = Date.now();
       try {
         // Send a minimal chat request to the internal SSE handler
+        // Use OpenAI-compatible format — universally accepted by all providers via the translator
         const testBody = {
           model: modelStr,
           messages: [{ role: "user", content: "Hi" }],
@@ -58,11 +59,15 @@ export async function POST(request) {
 
         const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout (was 15s, slow providers need more)
 
         const res = await fetch(internalUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            // Fix #350: bypass REQUIRE_API_KEY for internal admin combo tests
+            "X-Internal-Test": "combo-health-check",
+          },
           body: JSON.stringify(testBody),
           signal: controller.signal,
         });
