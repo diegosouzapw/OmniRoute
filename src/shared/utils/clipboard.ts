@@ -27,19 +27,24 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 
   // Method 2: Legacy execCommand fallback (works on HTTP)
-  if (typeof document !== "undefined") {
+  if (typeof document !== "undefined" && document.body) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0;pointer-events:none;";
+    let appended = false;
+
     try {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0;pointer-events:none;";
       document.body.appendChild(textArea);
+      appended = true;
       textArea.focus();
       textArea.select();
-      const success = document.execCommand("copy");
-      document.body.removeChild(textArea);
-      return success;
+      return document.execCommand("copy");
     } catch {
       return false;
+    } finally {
+      if (appended && document.body.contains(textArea)) {
+        document.body.removeChild(textArea);
+      }
     }
   }
 

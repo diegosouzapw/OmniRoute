@@ -92,7 +92,13 @@ export default function ConsoleLogViewer() {
 
   const handleCopy = async (entry: LogEntry, idx: number) => {
     const text = JSON.stringify(entry, null, 2);
-    await copyToClipboard(text);
+    const success = await copyToClipboard(text);
+    if (!success) {
+      setError("Failed to copy log entry");
+      return;
+    }
+
+    setError(null);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   };

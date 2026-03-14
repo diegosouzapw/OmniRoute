@@ -63,16 +63,32 @@ export function claudeToOpenAIRequest(model, body, stream) {
 
   // Tools
   if (body.tools && Array.isArray(body.tools)) {
-    result.tools = body.tools
-      .filter((tool) => tool.name && tool.name.trim()) // skip tools with empty name
-      .map((tool) => ({
-        type: "function",
-        function: {
-          name: tool.name,
-          description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
-          parameters: tool.input_schema || { type: "object", properties: {} },
-        },
-      }));
+    const normalizedTools = body.tools
+      .map((tool) => {
+        const name = typeof tool.name === "string" ? tool.name.trim() : "";
+        if (!name) return null; // skip tools with empty/invalid name
+
+        return {
+          type: "function",
+          function: {
+            name,
+            description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
+            parameters: tool.input_schema || { type: "object", properties: {} },
+          },
+        };
+      })
+      .filter(
+        (
+          tool
+        ): tool is {
+          type: "function";
+          function: { name: string; description: string; parameters: unknown };
+        } => Boolean(tool)
+      );
+
+    if (normalizedTools.length > 0) {
+      result.tools = normalizedTools;
+    }
   }
 
   // Tool choice
