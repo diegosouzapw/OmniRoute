@@ -203,6 +203,7 @@ export default function AgentsPage() {
                 "kimi-coding",
                 "kilocode",
                 "cline",
+                "qwen",
               ] as const
             ).map((providerId) => {
               const providerMeta = Object.values(AI_PROVIDERS).find(
