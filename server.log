@@ -1,0 +1,37 @@
+
+[36m   ____                  _ ____              _
+  / __ \                (_) __ \            | |
+ | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
+ | |  | | '_ ` _ \| '_ \ |  _  // _ \| | | | __/ _ \
+ | |__| | | | | | | | | | | | \ \ (_) | |_| | ||  __/
+  \____/|_| |_| |_|_| |_|_|_|  \_\___/ \__,_|\__\___|
+[0m
+  [2m⏳ Starting server...[0m
+
+▲ Next.js 16.1.6
+- Local:         http://localhost:20128
+- Network:       http://0.0.0.0:20128
+
+✓ Starting...
+[STARTUP] JWT_SECRET auto-generated (random 64-char secret)
+[Shutdown] Graceful shutdown handlers registered.
+✓ Ready in 849ms
+
+  [32m✔ OmniRoute is running![0m
+
+  [1m  Dashboard:[0m  http://localhost:20128
+  [1m  API Base:[0m   http://localhost:20128/v1
+
+  [2m  Point your CLI tool (Cursor, Cline, Codex) to:[0m
+  [33m  http://localhost:20128/v1[0m
+
+  [2m  Press Ctrl+C to stop[0m
+  
+[DB] SQLite database ready: /home/codespace/.omniroute/storage.sqlite
+[COMPLIANCE] Audit log table initialized
+[CREDENTIALS] No external credentials file found, using defaults.
+[HealthCheck] Starting proactive token health-check (tick every 60s)
+[DB] SQLite database ready: /home/codespace/.omniroute/storage.sqlite
+[logger] Failed to set up file transport, falling back to console only
+[DB] SQLite database ready: /home/codespace/.omniroute/storage.sqlite
+[DB] Backup created: /home/codespace/.omniroute/db_backups/db_2026-03-15T20-04-12-778Z_pre-write.sqlite (303104 bytes)
