@@ -24,7 +24,7 @@ export default function LoginPage() {
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
       try {
-        const res = await fetch(`${baseUrl}/api/settings`, {
+        const res = await fetch(`${baseUrl}/api/settings/require-login`, {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);

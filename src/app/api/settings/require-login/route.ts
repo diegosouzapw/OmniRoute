@@ -8,9 +8,15 @@ export async function GET() {
   try {
     const settings = await getSettings();
     const requireLogin = settings.requireLogin !== false;
-    return NextResponse.json({ requireLogin });
+    const hasPassword = !!settings.password || !!process.env.INITIAL_PASSWORD;
+    const setupComplete = !!settings.setupComplete;
+    return NextResponse.json({ requireLogin, hasPassword, setupComplete });
   } catch (error) {
-    return NextResponse.json({ requireLogin: true }, { status: 200 });
+    console.error("[API] Error fetching require-login settings:", error);
+    return NextResponse.json(
+      { requireLogin: true, hasPassword: true, setupComplete: true },
+      { status: 200 }
+    );
   }
 }
 
