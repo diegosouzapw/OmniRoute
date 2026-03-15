@@ -8,7 +8,7 @@ const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["better-sqlite3", "zod"],
   transpilePackages: ["@omniroute/open-sse"],
-  allowedDevOrigins: ["192.168.*"],
+  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
