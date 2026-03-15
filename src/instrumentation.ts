@@ -1,5 +1,3 @@
-import { randomBytes } from "node:crypto";
-
 /**
  * Next.js Instrumentation Hook
  *
@@ -9,6 +7,20 @@ import { randomBytes } from "node:crypto";
  *
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
+
+function getRandomBytes(byteLength: number): Uint8Array {
+  const bytes = new Uint8Array(byteLength);
+  globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function toBase64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 
 async function ensureSecrets(): Promise<void> {
   let getPersistedSecret = (_key: string): string | null => null;
@@ -26,7 +38,7 @@ async function ensureSecrets(): Promise<void> {
       process.env.JWT_SECRET = persisted;
       console.log("[STARTUP] JWT_SECRET restored from persistent store");
     } else {
-      const generated = randomBytes(48).toString("base64");
+      const generated = toBase64(getRandomBytes(48));
       process.env.JWT_SECRET = generated;
       persistSecret("jwtSecret", generated);
       console.log("[STARTUP] JWT_SECRET auto-generated and persisted (random 64-char secret)");
@@ -38,7 +50,7 @@ async function ensureSecrets(): Promise<void> {
     if (persisted) {
       process.env.API_KEY_SECRET = persisted;
     } else {
-      const generated = randomBytes(32).toString("hex");
+      const generated = toHex(getRandomBytes(32));
       process.env.API_KEY_SECRET = generated;
       persistSecret("apiKeySecret", generated);
       console.log(
