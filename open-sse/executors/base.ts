@@ -26,6 +26,7 @@ export type ProviderCredentials = {
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index
   providerSpecificData?: JsonRecord;
+  requestEndpointPath?: string;
 };
 
 export type ExecutorLog = {

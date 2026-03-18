@@ -9,6 +9,17 @@ type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
 let defaultFastServiceTierEnabled = false;
 
+function getResponsesSubpath(endpointPath: unknown): string | null {
+  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
+  const match = normalizedEndpoint.match(/(?:^|\/)responses(?:(\/.*))?$/i);
+  if (!match) return null;
+  return match[1] || "";
+}
+
+function isCompactResponsesEndpoint(endpointPath: unknown): boolean {
+  return getResponsesSubpath(endpointPath)?.toLowerCase() === "/compact";
+}
+
 function normalizeServiceTierValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
@@ -60,13 +71,31 @@ export class CodexExecutor extends BaseExecutor {
     super("codex", PROVIDERS.codex);
   }
 
+  buildUrl(model, stream, urlIndex = 0, credentials = null) {
+    void model;
+    void stream;
+    void urlIndex;
+
+    const responsesSubpath = getResponsesSubpath(credentials?.requestEndpointPath);
+    if (responsesSubpath !== null) {
+      const baseUrl = String(this.config.baseUrl || "").replace(/\/$/, "");
+      if (baseUrl.endsWith("/responses")) {
+        return `${baseUrl}${responsesSubpath}`;
+      }
+      return `${baseUrl}/responses${responsesSubpath}`;
+    }
+
+    return super.buildUrl(model, stream, urlIndex, credentials);
+  }
+
   /**
    * Codex Responses endpoint is SSE-first.
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
   buildHeaders(credentials, stream = true) {
-    const headers = super.buildHeaders(credentials, true);
+    const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
+    const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;
@@ -107,9 +136,15 @@ export class CodexExecutor extends BaseExecutor {
    */
   transformRequest(model, body, stream, credentials) {
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
+    const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
 
-    // Codex /responses rejects stream=false; we aggregate SSE back to JSON when needed.
-    body.stream = true;
+    // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
+    if (isCompactRequest) {
+      delete body.stream;
+      delete body.stream_options;
+    } else {
+      body.stream = true;
+    }
     delete body._nativeCodexPassthrough;
 
     const requestServiceTier = normalizeServiceTierValue(body.service_tier);

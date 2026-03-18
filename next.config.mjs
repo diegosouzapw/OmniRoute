@@ -122,6 +122,10 @@ const nextConfig = {
         destination: "/api/v1/responses",
       },
       {
+        source: "/responses/:path*",
+        destination: "/api/v1/responses/:path*",
+      },
+      {
         source: "/models",
         destination: "/api/v1/models",
       },

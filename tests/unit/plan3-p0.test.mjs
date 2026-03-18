@@ -112,6 +112,24 @@ test("shouldUseNativeCodexPassthrough only enables responses-native Codex reques
     shouldUseNativeCodexPassthrough({
       provider: "codex",
       sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/responses/compact",
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/responses/items/history",
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
       endpointPath: "/v1/chat/completions",
     }),
     false
@@ -140,6 +158,18 @@ test("CodexExecutor always requests SSE accept header", () => {
   assert.equal(headers.Accept, "text/event-stream");
 });
 
+test("CodexExecutor does not request SSE accept header for compact requests", () => {
+  const executor = new CodexExecutor();
+  const headers = executor.buildHeaders(
+    {
+      accessToken: "test-token",
+      requestEndpointPath: "/v1/responses/compact",
+    },
+    false
+  );
+  assert.equal(headers.Accept, undefined);
+});
+
 test("CodexExecutor preserves native responses payloads for Codex passthrough", () => {
   const executor = new CodexExecutor();
   const transformed = executor.transformRequest(
@@ -165,6 +195,41 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.deepEqual(transformed.metadata, { source: "codex-client" });
   assert.equal(transformed.reasoning_effort, "high");
   assert.ok(!("_nativeCodexPassthrough" in transformed));
+});
+
+test("CodexExecutor strips streaming fields for compact passthrough", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.1-codex",
+    {
+      model: "gpt-5.1-codex",
+      input: "compact this session",
+      stream: false,
+      stream_options: { include_usage: true },
+      _nativeCodexPassthrough: true,
+    },
+    false,
+    {
+      requestEndpointPath: "/v1/responses/compact",
+    }
+  );
+
+  assert.equal("stream" in transformed, false);
+  assert.equal("stream_options" in transformed, false);
+  assert.ok(!("_nativeCodexPassthrough" in transformed));
+});
+
+test("CodexExecutor routes responses subpaths to matching upstream paths", () => {
+  const executor = new CodexExecutor();
+  const compactUrl = executor.buildUrl("gpt-5.1-codex", true, 0, {
+    requestEndpointPath: "/v1/responses/compact",
+  });
+  assert.match(compactUrl, /\/responses\/compact$/);
+
+  const genericSubpathUrl = executor.buildUrl("gpt-5.1-codex", true, 0, {
+    requestEndpointPath: "/v1/responses/items/history",
+  });
+  assert.match(genericSubpathUrl, /\/responses\/items\/history$/);
 });
 
 test("translateNonStreamingResponse converts Responses API payload to OpenAI chat.completion", () => {

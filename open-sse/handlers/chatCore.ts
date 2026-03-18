@@ -60,9 +60,8 @@ export function shouldUseNativeCodexPassthrough({
 }): boolean {
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  return String(endpointPath || "")
-    .toLowerCase()
-    .endsWith("/responses");
+  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
+  return /(?:^|\/)responses(?:\/.*)?$/i.test(normalizedEndpoint);
 }
 
 /**
@@ -140,8 +139,8 @@ export async function handleChatCore({
   }
 
   const sourceFormat = detectFormat(body);
-  const endpointPath = (clientRawRequest?.endpoint || "").toLowerCase();
-  const isResponsesEndpoint = endpointPath.endsWith("/responses");
+  const endpointPath = String(clientRawRequest?.endpoint || "");
+  const isResponsesEndpoint = /(?:^|\/)responses(?:\/.*)?$/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
     sourceFormat,
@@ -385,6 +384,8 @@ export async function handleChatCore({
 
   // Get executor for this provider
   const executor = getExecutor(provider);
+  const getExecutionCredentials = () =>
+    nativeCodexPassthrough ? { ...credentials, requestEndpointPath: endpointPath } : credentials;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({ onDisconnect, log, provider, model });
@@ -405,7 +406,7 @@ export async function handleChatCore({
           model: modelToCall,
           body: bodyToSend,
           stream,
-          credentials,
+          credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
           extendedContext,
@@ -545,7 +546,7 @@ export async function handleChatCore({
           model,
           body: translatedBody,
           stream,
-          credentials,
+          credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
           extendedContext,
