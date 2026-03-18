@@ -4,6 +4,21 @@
 
 ---
 
+## [2.7.7] — 2026-03-18
+
+> Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
+
+### 🐛 Bug Fixes
+
+- **fix(docker)**: `pino-abstract-transport` and `pino-pretty` now explicitly copied in Docker runner stage — Next.js standalone trace misses these peer deps, causing `Cannot find module pino-abstract-transport` crash on startup (#449)
+- **fix(responses)**: Remove `initTranslators()` from `/v1/responses` route — was crashing Next.js worker with `the worker has exited` uncaughtException on Codex CLI requests (#450)
+
+### 🔧 Maintenance
+
+- **chore(deps)**: `package-lock.json` now committed on every version bump to ensure Docker `npm ci` uses exact dependency versions
+
+---
+
 ## [2.7.5] — 2026-03-18
 
 > Sprint: UX improvements and Windows CLI healthcheck fix.
