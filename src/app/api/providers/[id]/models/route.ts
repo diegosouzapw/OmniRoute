@@ -28,6 +28,14 @@ type ProviderModelsConfigEntry = {
   parseResponse: (data: any) => any;
 };
 
+const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://api.kimi.com/coding/v1/models",
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  authHeader: "x-api-key",
+  parseResponse: (data) => data.data || data.models || [],
+};
+
 // Providers that return hardcoded models (no remote /models API)
 const STATIC_MODEL_PROVIDERS = {
   deepgram: () => [
@@ -134,18 +142,10 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     parseResponse: (data) => data.data || [],
   },
   "kimi-coding": {
-    url: "https://api.kimi.com/coding/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "x-api-key",
-    parseResponse: (data) => data.data || data.models || [],
+    ...KIMI_CODING_MODELS_CONFIG,
   },
   "kimi-coding-apikey": {
-    url: "https://api.kimi.com/coding/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "x-api-key",
-    parseResponse: (data) => data.data || data.models || [],
+    ...KIMI_CODING_MODELS_CONFIG,
   },
   anthropic: {
     url: "https://api.anthropic.com/v1/models",

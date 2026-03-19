@@ -78,6 +78,22 @@ interface LegacyProvider {
   clientVersion?: string;
 }
 
+const KIMI_CODING_SHARED = {
+  format: "claude",
+  executor: "default",
+  baseUrl: "https://api.kimi.com/coding/v1/messages",
+  authHeader: "x-api-key",
+  headers: {
+    "Anthropic-Version": "2023-06-01",
+    "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+  },
+  models: [
+    { id: "kimi-k2.5", name: "Kimi K2.5" },
+    { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
+    { id: "kimi-latest", name: "Kimi Latest" },
+  ] as RegistryModel[],
+} as const;
+
 // ── Registry ──────────────────────────────────────────────────────────────
 
 export const REGISTRY: Record<string, RegistryEntry> = {
@@ -559,16 +575,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
-    format: "claude",
-    executor: "default",
-    baseUrl: "https://api.kimi.com/coding/v1/messages",
+    ...KIMI_CODING_SHARED,
     urlSuffix: "?beta=true",
     authType: "oauth",
-    authHeader: "x-api-key",
-    headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
-    },
     oauth: {
       clientIdEnv: "KIMI_CODING_OAUTH_CLIENT_ID",
       clientIdDefault: "17e5f671-d194-4dfb-9706-5516cb48c098",
@@ -576,30 +585,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       refreshUrl: "https://auth.kimi.com/api/oauth/token",
       authUrl: "https://auth.kimi.com/api/oauth/device_authorization",
     },
-    models: [
-      { id: "kimi-k2.5", name: "Kimi K2.5" },
-      { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
-      { id: "kimi-latest", name: "Kimi Latest" },
-    ],
   },
 
   "kimi-coding-apikey": {
     id: "kimi-coding-apikey",
     alias: "kmca",
-    format: "claude",
-    executor: "default",
-    baseUrl: "https://api.kimi.com/coding/v1/messages",
+    ...KIMI_CODING_SHARED,
     authType: "apikey",
-    authHeader: "x-api-key",
-    headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
-    },
-    models: [
-      { id: "kimi-k2.5", name: "Kimi K2.5" },
-      { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
-      { id: "kimi-latest", name: "Kimi Latest" },
-    ],
   },
 
   kilocode: {

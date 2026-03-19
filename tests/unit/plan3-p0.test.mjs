@@ -7,10 +7,8 @@ import { detectFormat } from "../../open-sse/services/provider.ts";
 import { shouldUseNativeCodexPassthrough } from "../../open-sse/handlers/chatCore.ts";
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
-import {
-  CodexExecutor,
-  setDefaultFastServiceTierEnabled,
-} from "../../open-sse/executors/codex.ts";
+import { DefaultExecutor } from "../../open-sse/executors/default.ts";
+import { CodexExecutor, setDefaultFastServiceTierEnabled } from "../../open-sse/executors/codex.ts";
 import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.ts";
 import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.ts";
 import { parseSSEToResponsesOutput } from "../../open-sse/handlers/sseParser.ts";
@@ -58,6 +56,14 @@ test("GithubExecutor keeps non-codex model on /chat/completions", () => {
   const executor = new GithubExecutor();
   const url = executor.buildUrl("gpt-5", true);
   assert.match(url, /\/chat\/completions$/);
+});
+
+test("DefaultExecutor uses x-api-key for kimi-coding-apikey", () => {
+  const executor = new DefaultExecutor("kimi-coding-apikey");
+  const headers = executor.buildHeaders({ apiKey: "sk-kimi-test" }, true);
+
+  assert.equal(headers["x-api-key"], "sk-kimi-test");
+  assert.equal(headers.Authorization, undefined);
 });
 
 test("CodexExecutor forces stream=true for upstream compatibility", () => {
