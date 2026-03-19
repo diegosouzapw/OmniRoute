@@ -213,10 +213,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                     // message_start carries input_tokens, message_delta carries output_tokens
                     if (!usage) usage = {};
                     if (extracted.prompt_tokens > 0) usage.prompt_tokens = extracted.prompt_tokens;
-                    if (extracted.completion_tokens > 0) usage.completion_tokens = extracted.completion_tokens;
+                    if (extracted.completion_tokens > 0)
+                      usage.completion_tokens = extracted.completion_tokens;
                     if (extracted.total_tokens > 0) usage.total_tokens = extracted.total_tokens;
-                    if (extracted.cache_read_input_tokens) usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
-                    if (extracted.cache_creation_input_tokens) usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
+                    if (extracted.cache_read_input_tokens)
+                      usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
+                    if (extracted.cache_creation_input_tokens)
+                      usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
                   }
                   // Track content length from Claude format
                   if (parsed.delta?.text) totalContentLength += parsed.delta.text.length;
@@ -428,6 +431,12 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (buffer.trim()) {
             const parsed = parseSSELine(buffer.trim());
             if (parsed && !parsed.done) {
+              // Extract usage from remaining buffer — if the usage-bearing event
+              // (e.g. response.completed) is the last SSE line, it ends up here
+              // in the flush handler where extractUsage was not called.
+              const extracted = extractUsage(parsed);
+              if (extracted) state.usage = extracted;
+
               const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
 
               // Log OpenAI intermediate chunks
