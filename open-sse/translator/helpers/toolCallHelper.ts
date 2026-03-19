@@ -1,26 +1,67 @@
 // Tool call helper functions for translator
 
-// Generate unique tool call ID
+const ALPHANUM9 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+// Generate unique tool call ID (default long form)
 export function generateToolCallId() {
   return `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-// Ensure all tool_calls have id field and arguments is string (some providers require it)
-export function ensureToolCallIds(body) {
+// Generate 9-char [a-zA-Z0-9] id for providers that require it (e.g. Mistral)
+function generateToolCallId9(): string {
+  let s = "";
+  for (let i = 0; i < 9; i++) {
+    s += ALPHANUM9[Math.floor(Math.random() * ALPHANUM9.length)];
+  }
+  return s;
+}
+
+/** @param options.use9CharId - When true, normalize ids to 9-char [a-zA-Z0-9] (e.g. Mistral); when false, only fix type/arguments, leave ids as-is */
+export function ensureToolCallIds(body, options?: { use9CharId?: boolean }) {
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
-  for (const msg of body.messages) {
-    if (msg.role === "assistant" && msg.tool_calls && Array.isArray(msg.tool_calls)) {
-      for (const tc of msg.tool_calls) {
-        if (!tc.id) {
-          tc.id = generateToolCallId();
-        }
-        if (!tc.type) {
-          tc.type = "function";
-        }
-        // Ensure arguments is JSON string, not object
-        if (tc.function?.arguments && typeof tc.function.arguments !== "string") {
-          tc.function.arguments = JSON.stringify(tc.function.arguments);
+  const use9CharId = options?.use9CharId === true;
+
+  for (let i = 0; i < body.messages.length; i++) {
+    const msg = body.messages[i];
+    if (msg.role !== "assistant" || !msg.tool_calls || !Array.isArray(msg.tool_calls)) continue;
+
+    const used9 = new Set<string>();
+    const newIdsInOrder: string[] = [];
+
+    for (const tc of msg.tool_calls) {
+      if (!tc.type) {
+        tc.type = "function";
+      }
+      if (tc.function?.arguments && typeof tc.function.arguments !== "string") {
+        tc.function.arguments = JSON.stringify(tc.function.arguments);
+      }
+      if (use9CharId) {
+        let newId: string;
+        do {
+          newId = generateToolCallId9();
+        } while (used9.has(newId));
+        used9.add(newId);
+        newIdsInOrder.push(newId);
+        tc.id = newId;
+      } else {
+        // Leave id as-is, only ensure it exists for later tool message matching
+        const id =
+          tc.id != null && String(tc.id).trim() !== "" ? String(tc.id) : generateToolCallId();
+        tc.id = id;
+        newIdsInOrder.push(id);
+      }
+    }
+
+    // Tool responses (role "tool") follow in same order as tool_calls; set tool_call_id by index
+    if (newIdsInOrder.length > 0) {
+      let idx = 0;
+      for (let j = i + 1; j < body.messages.length; j++) {
+        const later = body.messages[j];
+        if (later.role !== "tool") continue;
+        if (idx < newIdsInOrder.length) {
+          later.tool_call_id = newIdsInOrder[idx];
+          idx++;
         }
       }
     }

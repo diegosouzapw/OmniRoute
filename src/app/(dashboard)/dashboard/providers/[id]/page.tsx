@@ -1473,6 +1473,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
+  const [editingNormalizeToolCallId, setEditingNormalizeToolCallId] = useState(false);
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
 
   const fetchCustomModels = useCallback(async () => {
@@ -1544,12 +1545,14 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
         ? model.supportedEndpoints
         : ["chat"]
     );
+    setEditingNormalizeToolCallId(Boolean(model.normalizeToolCallId));
   };
 
   const cancelEdit = () => {
     setEditingModelId(null);
     setEditingApiFormat("chat-completions");
     setEditingEndpoints(["chat"]);
+    setEditingNormalizeToolCallId(false);
     setSavingModelId(null);
   };
 
@@ -1573,6 +1576,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
           source: model?.source || "manual",
           apiFormat: editingApiFormat,
           supportedEndpoints: editingEndpoints,
+          normalizeToolCallId: editingNormalizeToolCallId,
         }),
       });
 
@@ -1734,6 +1738,14 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                         🔊 Audio
                       </span>
                     )}
+                    {model.normalizeToolCallId && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-500/15 text-slate-400 font-medium"
+                        title="9-char tool call ID (Mistral)"
+                      >
+                        ID×9
+                      </span>
+                    )}
                   </div>
 
                   {editingModelId === model.id && (
@@ -1786,6 +1798,16 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                             ))}
                           </div>
                         </div>
+
+                        <label className="flex items-center gap-2 text-xs text-text-main cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editingNormalizeToolCallId}
+                            onChange={(e) => setEditingNormalizeToolCallId(e.target.checked)}
+                            className="rounded border-border"
+                          />
+                          Normalize Tool Call ID (9 chars, Mistral)
+                        </label>
                       </div>
                       <div className="mt-3 flex items-center gap-2">
                         <Button

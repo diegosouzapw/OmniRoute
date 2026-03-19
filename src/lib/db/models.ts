@@ -200,6 +200,9 @@ export async function updateCustomModel(providerId, modelId, updates = {}) {
     ...(updates.supportedEndpoints !== undefined
       ? { supportedEndpoints: updates.supportedEndpoints }
       : {}),
+    ...(updates.normalizeToolCallId !== undefined
+      ? { normalizeToolCallId: Boolean(updates.normalizeToolCallId) }
+      : {}),
   };
 
   models[index] = next;
@@ -211,4 +214,20 @@ export async function updateCustomModel(providerId, modelId, updates = {}) {
 
   backupDbFile("pre-write");
   return next;
+}
+
+/**
+ * Whether the given provider/model has "normalize tool call id" (9-char Mistral-style) enabled.
+ * Only custom models can have this set; returns false for built-in models.
+ */
+export function getModelNormalizeToolCallId(providerId: string, modelId: string): boolean {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+    .get(providerId);
+  const value = getKeyValue(row).value;
+  if (!value) return false;
+  const models = JSON.parse(value);
+  const m = models.find((x: { id: string }) => x.id === modelId);
+  return Boolean(m?.normalizeToolCallId);
 }

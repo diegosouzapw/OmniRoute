@@ -66,6 +66,7 @@ function normalizeOpenAIResponsesRequest(body) {
   return normalized;
 }
 
+/** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
 // Translate request: source -> openai -> target
 export function translateRequest(
   sourceFormat,
@@ -75,9 +76,11 @@ export function translateRequest(
   stream = true,
   credentials = null,
   provider = null,
-  reqLogger = null
+  reqLogger = null,
+  options?: { normalizeToolCallId?: boolean }
 ) {
   let result = body;
+  const use9CharId = options?.normalizeToolCallId === true;
 
   // Phase 2: Apply thinking budget control before normalization
   result = applyThinkingBudget(result);
@@ -85,8 +88,8 @@ export function translateRequest(
   // Normalize thinking config: remove if lastMessage is not user
   normalizeThinkingConfig(result);
 
-  // Always ensure tool_calls have id (some providers require it)
-  ensureToolCallIds(result);
+  // Ensure tool_calls have id; optionally normalize to 9-char for providers like Mistral
+  ensureToolCallIds(result, { use9CharId });
 
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
@@ -139,6 +142,10 @@ export function translateRequest(
   if (targetFormat === FORMATS.OPENAI_RESPONSES) {
     result = normalizeOpenAIResponsesRequest(result);
   }
+
+  // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)
+  ensureToolCallIds(result, { use9CharId });
+  fixMissingToolResponses(result);
 
   return result;
 }

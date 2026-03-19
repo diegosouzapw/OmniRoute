@@ -113,12 +113,14 @@ export async function PUT(request) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
 
-    const { provider, modelId, modelName, apiFormat, supportedEndpoints } = validation.data;
+    const { provider, modelId, modelName, apiFormat, supportedEndpoints, normalizeToolCallId } =
+      validation.data;
 
     const model = await updateCustomModel(provider, modelId, {
       modelName,
       apiFormat,
       supportedEndpoints,
+      normalizeToolCallId,
     });
 
     if (!model) {

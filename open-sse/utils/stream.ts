@@ -30,6 +30,8 @@ type StreamLogger = {
 type StreamCompletePayload = {
   status: number;
   usage: unknown;
+  /** Minimal response body for call log (streaming: usage + note; non-streaming not used) */
+  responseBody?: unknown;
 };
 
 type StreamOptions = {
@@ -51,6 +53,8 @@ type TranslateState = ReturnType<typeof initState> & {
   toolNameMap?: unknown;
   usage?: unknown;
   finishReason?: unknown;
+  /** Accumulated message content for call log response body */
+  accumulatedContent?: string;
 };
 
 function getOpenAIIntermediateChunks(value: unknown): unknown[] {
@@ -106,14 +110,21 @@ export function createSSEStream(options: StreamOptions = {}) {
   let buffer = "";
   let usage = null;
 
-  // State for translate mode
+  // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
     mode === STREAM_MODE.TRANSLATE
-      ? { ...(initState(sourceFormat) as TranslateState), provider, toolNameMap }
+      ? {
+          ...(initState(sourceFormat) as TranslateState),
+          provider,
+          toolNameMap,
+          accumulatedContent: "",
+        }
       : null;
 
   // Track content length for usage estimation (both modes)
   let totalContentLength = 0;
+  // Passthrough: accumulate content for call log response body
+  let passthroughAccumulatedContent = "";
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -201,9 +212,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (extracted) {
                     usage = extracted;
                   }
-                  // Track content length from Responses format
+                  // Track content length and accumulate for call log
                   if (parsed.delta && typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
+                    passthroughAccumulatedContent += parsed.delta;
                   }
                 } else if (isClaudeSSE) {
                   // Claude SSE: extract usage, track content, forward as-is
@@ -213,14 +225,23 @@ export function createSSEStream(options: StreamOptions = {}) {
                     // message_start carries input_tokens, message_delta carries output_tokens
                     if (!usage) usage = {};
                     if (extracted.prompt_tokens > 0) usage.prompt_tokens = extracted.prompt_tokens;
-                    if (extracted.completion_tokens > 0) usage.completion_tokens = extracted.completion_tokens;
+                    if (extracted.completion_tokens > 0)
+                      usage.completion_tokens = extracted.completion_tokens;
                     if (extracted.total_tokens > 0) usage.total_tokens = extracted.total_tokens;
-                    if (extracted.cache_read_input_tokens) usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
-                    if (extracted.cache_creation_input_tokens) usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
+                    if (extracted.cache_read_input_tokens)
+                      usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
+                    if (extracted.cache_creation_input_tokens)
+                      usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
                   }
-                  // Track content length from Claude format
-                  if (parsed.delta?.text) totalContentLength += parsed.delta.text.length;
-                  if (parsed.delta?.thinking) totalContentLength += parsed.delta.thinking.length;
+                  // Track content length and accumulate from Claude format
+                  if (parsed.delta?.text) {
+                    totalContentLength += parsed.delta.text.length;
+                    passthroughAccumulatedContent += parsed.delta.text;
+                  }
+                  if (parsed.delta?.thinking) {
+                    totalContentLength += parsed.delta.thinking.length;
+                    passthroughAccumulatedContent += parsed.delta.thinking;
+                  }
                 } else {
                   // Chat Completions: full sanitization pipeline
                   parsed = sanitizeStreamingChunk(parsed);
@@ -246,6 +267,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (content && typeof content === "string") {
                     totalContentLength += content.length;
                   }
+                  if (typeof delta?.content === "string")
+                    passthroughAccumulatedContent += delta.content;
+                  if (typeof delta?.reasoning_content === "string")
+                    passthroughAccumulatedContent += delta.reasoning_content;
 
                   const extracted = extractUsage(parsed);
                   if (extracted) {
@@ -301,23 +326,45 @@ export function createSSEStream(options: StreamOptions = {}) {
             continue;
           }
 
-          // Track content length for estimation (from various formats)
-          // Include both regular content and reasoning/thinking content
+          // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
+          // Do this before translation so we capture content regardless of translator output shape
 
           // Claude format
           if (parsed.delta?.text) {
-            totalContentLength += parsed.delta.text.length;
+            const t = parsed.delta.text;
+            totalContentLength += t.length;
+            if (state?.accumulatedContent !== undefined && typeof t === "string")
+              state.accumulatedContent += t;
           }
           if (parsed.delta?.thinking) {
-            totalContentLength += parsed.delta.thinking.length;
+            const t = parsed.delta.thinking;
+            totalContentLength += t.length;
+            if (state?.accumulatedContent !== undefined && typeof t === "string")
+              state.accumulatedContent += t;
           }
 
           // OpenAI format
           if (parsed.choices?.[0]?.delta?.content) {
-            totalContentLength += parsed.choices[0].delta.content.length;
+            const c = parsed.choices[0].delta.content;
+            if (typeof c === "string") {
+              totalContentLength += c.length;
+              if (state?.accumulatedContent !== undefined) state.accumulatedContent += c;
+            } else if (Array.isArray(c)) {
+              for (const part of c) {
+                if (part?.text && typeof part.text === "string") {
+                  totalContentLength += part.text.length;
+                  if (state?.accumulatedContent !== undefined)
+                    state.accumulatedContent += part.text;
+                }
+              }
+            }
           }
           if (parsed.choices?.[0]?.delta?.reasoning_content) {
-            totalContentLength += parsed.choices[0].delta.reasoning_content.length;
+            const r = parsed.choices[0].delta.reasoning_content;
+            if (typeof r === "string") {
+              totalContentLength += r.length;
+              if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
+            }
           }
 
           // Gemini format - may have multiple parts
@@ -325,7 +372,27 @@ export function createSSEStream(options: StreamOptions = {}) {
             for (const part of parsed.candidates[0].content.parts) {
               if (part.text && typeof part.text === "string") {
                 totalContentLength += part.text.length;
+                if (state?.accumulatedContent !== undefined) state.accumulatedContent += part.text;
               }
+            }
+          }
+
+          // Generic fallback: delta string, top-level content/text (e.g. some SSE payloads)
+          if (state?.accumulatedContent !== undefined) {
+            if (typeof (parsed as JsonRecord).delta === "string") {
+              const d = (parsed as JsonRecord).delta as string;
+              state.accumulatedContent += d;
+              totalContentLength += d.length;
+            }
+            if (typeof (parsed as JsonRecord).content === "string") {
+              const c = (parsed as JsonRecord).content as string;
+              state.accumulatedContent += c;
+              totalContentLength += c.length;
+            }
+            if (typeof (parsed as JsonRecord).text === "string") {
+              const t = (parsed as JsonRecord).text as string;
+              state.accumulatedContent += t;
+              totalContentLength += t.length;
             }
           }
 
@@ -344,6 +411,9 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (translated?.length > 0) {
             for (const item of translated) {
+              // Content for call log is accumulated only from parsed (above) to avoid double-counting;
+              // do not add again from item here.
+
               // Filter empty chunks
               if (!hasValuableContent(item, sourceFormat)) {
                 continue; // Skip this empty chunk
@@ -415,10 +485,30 @@ export function createSSEStream(options: StreamOptions = {}) {
                 status: "200 OK",
               }).catch(() => {});
             }
-            // Notify caller for call log persistence
+            // Notify caller for call log persistence (include full response body with accumulated content)
             if (onComplete) {
               try {
-                onComplete({ status: 200, usage });
+                const u = usage as Record<string, unknown> | null;
+                const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
+                const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
+                const content = passthroughAccumulatedContent.trim() || "";
+                const responseBody = {
+                  choices: [
+                    {
+                      message: {
+                        role: "assistant",
+                        content,
+                      },
+                    },
+                  ],
+                  usage: {
+                    prompt_tokens: prompt,
+                    completion_tokens: completion,
+                    total_tokens: prompt + completion,
+                  },
+                  _streamed: true,
+                };
+                onComplete({ status: 200, usage, responseBody });
               } catch {}
             }
             return;
@@ -497,10 +587,30 @@ export function createSSEStream(options: StreamOptions = {}) {
               status: "200 OK",
             }).catch(() => {});
           }
-          // Notify caller for call log persistence
+          // Notify caller for call log persistence (include full response body with accumulated content)
           if (onComplete) {
             try {
-              onComplete({ status: 200, usage: state?.usage });
+              const u = state?.usage as Record<string, unknown> | null | undefined;
+              const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
+              const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
+              const content = (state?.accumulatedContent ?? "").trim() || "";
+              const responseBody = {
+                choices: [
+                  {
+                    message: {
+                      role: "assistant",
+                      content,
+                    },
+                  },
+                ],
+                usage: {
+                  prompt_tokens: prompt,
+                  completion_tokens: completion,
+                  total_tokens: prompt + completion,
+                },
+                _streamed: true,
+              };
+              onComplete({ status: 200, usage: state?.usage, responseBody });
             } catch {}
           }
         } catch (error) {

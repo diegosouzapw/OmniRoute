@@ -23,6 +23,7 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
+import { getModelNormalizeToolCallId } from "@/lib/db/models";
 import { getExecutor } from "../executors/index.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
@@ -310,6 +311,7 @@ export async function handleChatCore({
         }
       }
 
+      const normalizeToolCallId = getModelNormalizeToolCallId(provider || "", model || "");
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
@@ -318,7 +320,8 @@ export async function handleChatCore({
         stream,
         credentials,
         provider,
-        reqLogger
+        reqLogger,
+        { normalizeToolCallId }
       );
     }
   } catch (error) {
@@ -871,8 +874,12 @@ export async function handleChatCore({
   // Create transform stream with logger for streaming response
   let transformStream;
 
-  // Callback to save call log when stream completes (streaming calls were never logged before!)
-  const onStreamComplete = ({ status: streamStatus, usage: streamUsage }) => {
+  // Callback to save call log when stream completes (include responseBody when provided by stream)
+  const onStreamComplete = ({
+    status: streamStatus,
+    usage: streamUsage,
+    responseBody: streamResponseBody,
+  }) => {
     saveCallLog({
       method: "POST",
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
@@ -883,6 +890,7 @@ export async function handleChatCore({
       duration: Date.now() - startTime,
       tokens: streamUsage || {},
       requestBody: body,
+      responseBody: streamResponseBody ?? undefined,
       sourceFormat,
       targetFormat,
       comboName,
