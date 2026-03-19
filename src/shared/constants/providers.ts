@@ -53,6 +53,7 @@ export const OAUTH_PROVIDERS = {
   },
 };
 
+// API Key Providers
 export const APIKEY_PROVIDERS = {
   openrouter: {
     id: "openrouter",
@@ -99,6 +100,24 @@ export const APIKEY_PROVIDERS = {
     color: "#DC2626",
     textIcon: "MC",
     website: "https://www.minimaxi.com",
+  },
+  alicode: {
+    id: "alicode",
+    alias: "alicode",
+    name: "Alibaba",
+    icon: "cloud",
+    color: "#FF6A00",
+    textIcon: "ALi",
+    website: "https://bailian.console.aliyun.com",
+  },
+  "alicode-intl": {
+    id: "alicode-intl",
+    alias: "alicode-intl",
+    name: "Alibaba Intl",
+    icon: "cloud",
+    color: "#FF6A00",
+    textIcon: "ALi",
+    website: "https://modelstudio.console.alibabacloud.com",
   },
   openai: {
     id: "openai",

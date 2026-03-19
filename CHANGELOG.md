@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [Unreleased] - 2026-03-19
+
+### ✨ Features
+
+- **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models.
 
 ---
 
