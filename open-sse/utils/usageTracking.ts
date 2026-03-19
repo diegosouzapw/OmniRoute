@@ -400,8 +400,10 @@ export function logUsage(provider, usage, model = null, connectionId = null, api
   console.log(msg);
 
   // Save to usage DB
+  // input = total input tokens (non-cached + cache_read + cache_creation)
+  // This ensures analytics show correct totals for heavily-cached requests
   const tokens = {
-    input: inTokens,
+    input: inTokens + (cacheRead || 0) + (cacheCreation || 0),
     output: outTokens,
     cacheRead: cacheRead || 0,
     cacheCreation: cacheCreation || 0,
