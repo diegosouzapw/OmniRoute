@@ -55,6 +55,8 @@ logs/*
 # analysis directories (generated, not tracked)
 .analysis/
 antigravity-manager-analysis/
+.sisyphus/
+.plans/
 
 # docs (allow specific tracked files)
 docs/*
