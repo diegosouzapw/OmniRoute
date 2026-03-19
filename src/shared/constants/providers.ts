@@ -82,6 +82,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "KM",
     website: "https://kimi.moonshot.cn",
   },
+  "kimi-coding-apikey": {
+    id: "kimi-coding-apikey",
+    alias: "kmca",
+    name: "Kimi Coding (API Key)",
+    icon: "psychology",
+    color: "#1E40AF",
+    textIcon: "KC",
+    website: "https://kimi.com",
+  },
   minimax: {
     id: "minimax",
     alias: "minimax",

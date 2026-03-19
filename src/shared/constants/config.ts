@@ -35,6 +35,7 @@ export const PROVIDER_ENDPOINTS = {
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   kimi: "https://api.moonshot.ai/v1/chat/completions",
   "kimi-coding": "https://api.kimi.com/coding/v1/messages",
+  "kimi-coding-apikey": "https://api.kimi.com/coding/v1/messages",
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
   openai: "https://api.openai.com/v1/chat/completions",

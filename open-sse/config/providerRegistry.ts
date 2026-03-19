@@ -583,6 +583,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "kimi-coding-apikey": {
+    id: "kimi-coding-apikey",
+    alias: "kmca",
+    format: "claude",
+    executor: "default",
+    baseUrl: "https://api.kimi.com/coding/v1/messages",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    headers: {
+      "Anthropic-Version": "2023-06-01",
+      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+    },
+    models: [
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
+      { id: "kimi-latest", name: "Kimi Latest" },
+    ],
+  },
+
   kilocode: {
     id: "kilocode",
     alias: "kc",

@@ -140,6 +140,13 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authHeader: "x-api-key",
     parseResponse: (data) => data.data || data.models || [],
   },
+  "kimi-coding-apikey": {
+    url: "https://api.kimi.com/coding/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "x-api-key",
+    parseResponse: (data) => data.data || data.models || [],
+  },
   anthropic: {
     url: "https://api.anthropic.com/v1/models",
     method: "GET",
