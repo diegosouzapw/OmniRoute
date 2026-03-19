@@ -73,6 +73,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "GL",
     website: "https://open.bigmodel.cn",
   },
+  "bailian-coding-plan": {
+    id: "bailian-coding-plan",
+    alias: "bcp",
+    name: "Alibaba Coding Plan",
+    icon: "code",
+    color: "#FF6A00",
+    textIcon: "BCP",
+    website: "https://www.alibabacloud.com/help/en/model-studio/coding-plan",
+  },
   kimi: {
     id: "kimi",
     alias: "kimi",

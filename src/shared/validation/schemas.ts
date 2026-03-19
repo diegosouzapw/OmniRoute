@@ -15,6 +15,24 @@ export const createProviderSchema = z.object({
   globalPriority: z.number().int().min(1).max(100).nullable().optional(),
   defaultModel: z.string().max(200).nullable().optional(),
   testStatus: z.string().max(50).optional(),
+  providerSpecificData: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .refine(
+      (data) => {
+        if (!data) return true;
+        const baseUrl = data.baseUrl;
+        if (baseUrl === undefined) return true;
+        if (typeof baseUrl !== "string") return false;
+        try {
+          new URL(baseUrl);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: "providerSpecificData.baseUrl must be a valid URL" }
+    ),
 });
 
 // ──── API Key Schemas ────
@@ -945,7 +963,24 @@ export const updateProviderConnectionSchema = z
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
-    providerSpecificData: z.record(z.string(), z.unknown()).optional(),
+    providerSpecificData: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .refine(
+        (data) => {
+          if (!data) return true;
+          const baseUrl = data.baseUrl;
+          if (baseUrl === undefined) return true;
+          if (typeof baseUrl !== "string") return false;
+          try {
+            new URL(baseUrl);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { message: "providerSpecificData.baseUrl must be a valid URL" }
+      ),
   })
   .superRefine((value, ctx) => {
     if (Object.keys(value).length === 0) {

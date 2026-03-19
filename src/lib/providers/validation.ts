@@ -300,6 +300,42 @@ async function validateInworldProvider({ apiKey }: any) {
   }
 }
 
+async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const baseUrl =
+      normalizeBaseUrl(providerSpecificData.baseUrl) ||
+      "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+    // bailian-coding-plan uses DashScope Anthropic-compatible messages endpoint
+    // It does NOT expose /v1/models — use messages probe directly
+    const messagesUrl = `${baseUrl}/messages`;
+
+    const response = await fetch(messagesUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "qwen3-coder-plus",
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      }),
+    });
+
+    // 401/403 => invalid key
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // Non-auth 4xx (e.g., 400 bad request) means auth passed but request was malformed
+    // This matches the existing policy for other specialty providers
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -537,6 +573,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     nanobanana: validateNanoBananaProvider,
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    "bailian-coding-plan": validateBailianCodingPlanProvider,
     // Search providers — use factored validator
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [

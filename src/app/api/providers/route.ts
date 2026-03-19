@@ -46,8 +46,16 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, apiKey, name, priority, globalPriority, defaultModel, testStatus } =
-      validation.data;
+    const {
+      provider,
+      apiKey,
+      name,
+      priority,
+      globalPriority,
+      defaultModel,
+      testStatus,
+      providerSpecificData: incomingPsd,
+    } = validation.data;
 
     // Business validation
     const isValidProvider =
@@ -59,7 +67,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
     }
 
-    let providerSpecificData: Record<string, any> | null = null;
+    let providerSpecificData = incomingPsd || null;
     const allowMultipleCompatibleConnections =
       process.env.ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE === "true";
 
@@ -78,6 +86,7 @@ export async function POST(request: Request) {
       }
 
       providerSpecificData = {
+        ...(providerSpecificData || {}),
         prefix: node.prefix,
         apiType: node.apiType,
         baseUrl: node.baseUrl,
@@ -100,6 +109,7 @@ export async function POST(request: Request) {
       }
 
       providerSpecificData = {
+        ...(providerSpecificData || {}),
         prefix: node.prefix,
         baseUrl: node.baseUrl,
         nodeName: node.name,

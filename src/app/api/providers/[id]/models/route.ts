@@ -29,7 +29,7 @@ type ProviderModelsConfigEntry = {
 };
 
 // Providers that return hardcoded models (no remote /models API)
-const STATIC_MODEL_PROVIDERS = {
+const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: string }>> = {
   deepgram: () => [
     { id: "nova-3", name: "Nova 3 (Transcription)" },
     { id: "nova-2", name: "Nova 2 (Transcription)" },
@@ -53,7 +53,30 @@ const STATIC_MODEL_PROVIDERS = {
     { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro (Advanced CoT + Search)" },
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
+  "bailian-coding-plan": () => [
+    { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
+    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
+    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
+    { id: "glm-5", name: "GLM 5" },
+    { id: "glm-4.7", name: "GLM 4.7" },
+    { id: "kimi-k2.5", name: "Kimi K2.5" },
+  ],
 };
+
+/**
+ * Get static models for a provider (if available).
+ * Exported for testing purposes.
+ * @param provider - Provider ID
+ * @returns Array of models or undefined if provider doesn't use static models
+ */
+export function getStaticModelsForProvider(
+  provider: string
+): Array<{ id: string; name: string }> | undefined {
+  const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
+  return staticModelsFn ? staticModelsFn() : undefined;
+}
 
 // Provider models endpoints configuration
 const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
