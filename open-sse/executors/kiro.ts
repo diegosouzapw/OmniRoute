@@ -77,10 +77,13 @@ export class KiroExecutor extends BaseExecutor {
   }
 
   transformRequest(model: string, body: unknown, stream: boolean, credentials: unknown): unknown {
-    void model;
     void stream;
     void credentials;
-    return body;
+    // Kiro uses conversationState.currentMessage.userInputMessage.modelId,
+    // not a top-level "model" field. chatCore injects translatedBody.model
+    // which Kiro API rejects as unknown top-level field.
+    const { model: _model, ...rest } = body as Record<string, unknown>;
+    return rest;
   }
 
   /**
