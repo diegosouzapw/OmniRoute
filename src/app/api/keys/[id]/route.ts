@@ -55,9 +55,26 @@ export async function PATCH(request, { params }) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { allowedModels, noLog } = validation.data;
+    const {
+      name,
+      allowedModels,
+      allowedConnections,
+      noLog,
+      autoResolve,
+      isActive,
+      accessSchedule,
+    } = validation.data;
 
-    const updated = await updateApiKeyPermissions(id, { allowedModels, noLog });
+    const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
+    if (name !== undefined) payload.name = name;
+    if (allowedModels !== undefined) payload.allowedModels = allowedModels;
+    if (allowedConnections !== undefined) payload.allowedConnections = allowedConnections;
+    if (noLog !== undefined) payload.noLog = noLog;
+    if (autoResolve !== undefined) payload.autoResolve = autoResolve;
+    if (isActive !== undefined) payload.isActive = isActive;
+    if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
+
+    const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
@@ -67,8 +84,13 @@ export async function PATCH(request, { params }) {
 
     return NextResponse.json({
       message: "API key settings updated successfully",
-      allowedModels,
-      noLog,
+      ...(name !== undefined && { name }),
+      ...(allowedModels !== undefined && { allowedModels }),
+      ...(allowedConnections !== undefined && { allowedConnections }),
+      ...(noLog !== undefined && { noLog }),
+      ...(autoResolve !== undefined && { autoResolve }),
+      ...(isActive !== undefined && { isActive }),
+      ...(accessSchedule !== undefined && { accessSchedule }),
     });
   } catch (error) {
     console.log("Error updating key permissions:", error);

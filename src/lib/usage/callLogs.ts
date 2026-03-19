@@ -184,8 +184,14 @@ export async function saveCallLog(entry: any) {
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
-      tokensIn: entry.tokens?.prompt_tokens || 0,
-      tokensOut: entry.tokens?.completion_tokens || 0,
+      tokensIn:
+        toNumber(entry.tokens?.prompt_tokens) ||
+        toNumber(entry.tokens?.input_tokens) ||
+        0,
+      tokensOut:
+        toNumber(entry.tokens?.completion_tokens) ||
+        toNumber(entry.tokens?.output_tokens) ||
+        0,
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,

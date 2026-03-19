@@ -135,9 +135,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     log.debug("AUTH", "No API key provided (local mode)");
   }
 
-  // Optional strict API key mode for /v1 endpoints.
-  // Keep disabled by default to preserve local-mode compatibility.
-  // Exception: X-Internal-Test header bypasses auth for admin-side combo health checks (#350)
+  // Optional strict API key mode for /v1 endpoints (require key on every request).
   const isInternalTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
   if (process.env.REQUIRE_API_KEY === "true" && !isInternalTest) {
     if (!apiKey) {
@@ -147,6 +145,13 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     const valid = await isValidApiKey(apiKey);
     if (!valid) {
       log.warn("AUTH", "Invalid API key while REQUIRE_API_KEY=true");
+      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+    }
+  } else if (apiKey && !isInternalTest) {
+    // Client sent a Bearer key — it must exist in DB (otherwise reject to avoid "key ignored" confusion).
+    const valid = await isValidApiKey(apiKey);
+    if (!valid) {
+      log.warn("AUTH", "API key not found or invalid (must be created in API Manager)");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
     }
   }
