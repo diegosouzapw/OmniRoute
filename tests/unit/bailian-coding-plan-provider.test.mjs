@@ -464,6 +464,64 @@ test("validateProviderApiKey returns valid for 200 response (bailian-coding-plan
   }
 });
 
+test("validateProviderApiKey returns invalid for 500 response (bailian-coding-plan)", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "upstream unavailable" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const result = await validateProviderApiKey({
+      provider: "bailian-coding-plan",
+      apiKey: "bad-key",
+      providerSpecificData: {
+        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+      },
+    });
+
+    assert.equal(result.valid, false, "Should return invalid for 500");
+    assert.equal(result.error, "Validation failed: 500");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("validateProviderApiKey avoids double /messages suffix for bailian-coding-plan", async () => {
+  const originalFetch = globalThis.fetch;
+  const urls = [];
+
+  globalThis.fetch = async (url) => {
+    urls.push(String(url));
+    return new Response(JSON.stringify({ error: "invalid request" }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const result = await validateProviderApiKey({
+      provider: "bailian-coding-plan",
+      apiKey: "valid-key",
+      providerSpecificData: {
+        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
+      },
+    });
+
+    assert.equal(result.valid, true);
+    assert.equal(urls.length, 1);
+    assert.equal(
+      urls[0],
+      "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
+      "Should probe exactly one /messages suffix"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 // ============================================================================
 // SCENARIO A TESTS: POST /api/providers create flow validation
 // These test that the schema (used by POST route) accepts valid bailian data
@@ -507,6 +565,19 @@ test("POST /api/providers validation: bailian-coding-plan with custom baseUrl pa
   }
 });
 
+test("POST /api/providers validation rejects non-http(s) baseUrl", () => {
+  const validation = validateBody(createProviderSchema, {
+    provider: "bailian-coding-plan",
+    apiKey: "sk-placeholder-key",
+    name: "Bad URL Scheme",
+    providerSpecificData: {
+      baseUrl: "ftp://example.com/v1",
+    },
+  });
+
+  assert.equal(validation.success, false, "Schema should reject non-http(s) URL schemes");
+});
+
 // ============================================================================
 // SCENARIO B TESTS: PUT /api/providers/{id} update flow validation
 // These test that the schema (used by PUT route) accepts valid baseUrl updates
@@ -547,4 +618,14 @@ test("PUT /api/providers/{id} validation: baseUrl update with other fields passe
     assert.equal(validation.data.priority, 5);
     assert.equal(validation.data.providerSpecificData?.baseUrl, "https://new-url.example.com/v1");
   }
+});
+
+test("PUT /api/providers/{id} validation rejects non-http(s) baseUrl", () => {
+  const validation = validateBody(updateProviderConnectionSchema, {
+    providerSpecificData: {
+      baseUrl: "file:///etc/passwd",
+    },
+  });
+
+  assert.equal(validation.success, false, "Schema should reject non-http(s) URL schemes");
 });

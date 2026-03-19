@@ -302,9 +302,12 @@ async function validateInworldProvider({ apiKey }: any) {
 
 async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
-    const baseUrl =
+    const rawBaseUrl =
       normalizeBaseUrl(providerSpecificData.baseUrl) ||
       "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+    const baseUrl = rawBaseUrl.endsWith("/messages")
+      ? rawBaseUrl.slice(0, -"/messages".length)
+      : rawBaseUrl;
     // bailian-coding-plan uses DashScope Anthropic-compatible messages endpoint
     // It does NOT expose /v1/models — use messages probe directly
     const messagesUrl = `${baseUrl}/messages`;
@@ -329,8 +332,15 @@ async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData 
     }
 
     // Non-auth 4xx (e.g., 400 bad request) means auth passed but request was malformed
-    // This matches the existing policy for other specialty providers
-    return { valid: true, error: null };
+    if (response.status >= 400 && response.status < 500) {
+      return { valid: true, error: null };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed" };
   }
