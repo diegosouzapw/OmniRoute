@@ -434,8 +434,29 @@ export function createSSEStream(options: StreamOptions = {}) {
               // Extract usage from remaining buffer — if the usage-bearing event
               // (e.g. response.completed) is the last SSE line, it ends up here
               // in the flush handler where extractUsage was not called.
+              // Non-destructive merge: some providers send usage across multiple
+              // events (e.g. prompt_tokens in message_start, completion_tokens
+              // in message_delta). Direct assignment would lose earlier data.
               const extracted = extractUsage(parsed);
-              if (extracted) state.usage = extracted;
+              if (extracted) {
+                if (!state.usage) {
+                  state.usage = extracted;
+                } else {
+                  if (extracted.prompt_tokens > 0)
+                    state.usage.prompt_tokens = extracted.prompt_tokens;
+                  if (extracted.completion_tokens > 0)
+                    state.usage.completion_tokens = extracted.completion_tokens;
+                  if (extracted.total_tokens > 0) state.usage.total_tokens = extracted.total_tokens;
+                  if (extracted.cache_read_input_tokens > 0)
+                    state.usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
+                  if (extracted.cache_creation_input_tokens > 0)
+                    state.usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
+                  if (extracted.cached_tokens > 0)
+                    state.usage.cached_tokens = extracted.cached_tokens;
+                  if (extracted.reasoning_tokens > 0)
+                    state.usage.reasoning_tokens = extracted.reasoning_tokens;
+                }
+              }
 
               const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
 
