@@ -53,11 +53,13 @@ export function ensureToolCallIds(body, options?: { use9CharId?: boolean }) {
       }
     }
 
-    // Tool responses (role "tool") follow in same order as tool_calls; set tool_call_id by index
+    // Tool responses (role "tool") follow in same order as tool_calls; set tool_call_id by index.
+    // Stop when we hit another assistant so we only link tool messages that immediately follow this one.
     if (newIdsInOrder.length > 0) {
       let idx = 0;
       for (let j = i + 1; j < body.messages.length; j++) {
         const later = body.messages[j];
+        if (later.role === "assistant") break;
         if (later.role !== "tool") continue;
         if (idx < newIdsInOrder.length) {
           later.tool_call_id = newIdsInOrder[idx];
