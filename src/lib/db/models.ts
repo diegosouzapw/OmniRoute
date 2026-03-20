@@ -7,6 +7,82 @@ import { backupDbFile } from "./backup";
 
 type JsonRecord = Record<string, unknown>;
 
+/** Built-in / alias models: tool-call + developer-role flags without a full custom row */
+const MODEL_COMPAT_NAMESPACE = "modelCompatOverrides";
+
+export type ModelCompatOverride = {
+  id: string;
+  normalizeToolCallId?: boolean;
+  preserveOpenAIDeveloperRole?: boolean;
+};
+
+function readCompatList(providerId: string): ModelCompatOverride[] {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(MODEL_COMPAT_NAMESPACE, providerId);
+  const value = getKeyValue(row).value;
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCompatList(providerId: string, list: ModelCompatOverride[]) {
+  const db = getDbInstance();
+  if (list.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(
+      MODEL_COMPAT_NAMESPACE,
+      providerId
+    );
+  } else {
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      MODEL_COMPAT_NAMESPACE,
+      providerId,
+      JSON.stringify(list)
+    );
+  }
+  backupDbFile("pre-write");
+}
+
+export function getModelCompatOverrides(providerId: string): ModelCompatOverride[] {
+  return readCompatList(providerId);
+}
+
+export function mergeModelCompatOverride(
+  providerId: string,
+  modelId: string,
+  patch: Partial<Pick<ModelCompatOverride, "normalizeToolCallId" | "preserveOpenAIDeveloperRole">>
+) {
+  const list = readCompatList(providerId);
+  const idx = list.findIndex((e) => e.id === modelId);
+  const prev = idx >= 0 ? { ...list[idx] } : { id: modelId };
+  const next: ModelCompatOverride = { ...prev, id: modelId };
+  if ("normalizeToolCallId" in patch) {
+    if (patch.normalizeToolCallId) next.normalizeToolCallId = true;
+    else delete next.normalizeToolCallId;
+  }
+  if ("preserveOpenAIDeveloperRole" in patch) {
+    next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
+  }
+  const filtered = list.filter((e) => e.id !== modelId);
+  const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
+  if (next.normalizeToolCallId || hasPreserveFlag) {
+    filtered.push(next);
+  }
+  writeCompatList(providerId, filtered);
+}
+
+export function removeModelCompatOverride(providerId: string, modelId: string) {
+  const list = readCompatList(providerId);
+  const filtered = list.filter((e) => e.id !== modelId);
+  if (filtered.length === list.length) return;
+  writeCompatList(providerId, filtered);
+}
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -174,11 +250,16 @@ export async function removeCustomModel(providerId, modelId) {
     );
   }
 
+  removeModelCompatOverride(providerId, modelId);
   backupDbFile("pre-write");
   return true;
 }
 
-export async function updateCustomModel(providerId, modelId, updates = {}) {
+export async function updateCustomModel(
+  providerId: string,
+  modelId: string,
+  updates: Record<string, unknown> = {}
+) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
@@ -203,6 +284,9 @@ export async function updateCustomModel(providerId, modelId, updates = {}) {
     ...(updates.normalizeToolCallId !== undefined
       ? { normalizeToolCallId: Boolean(updates.normalizeToolCallId) }
       : {}),
+    ...(updates.preserveOpenAIDeveloperRole !== undefined
+      ? { preserveOpenAIDeveloperRole: Boolean(updates.preserveOpenAIDeveloperRole) }
+      : {}),
   };
 
   models[index] = next;
@@ -216,24 +300,57 @@ export async function updateCustomModel(providerId, modelId, updates = {}) {
   return next;
 }
 
-/**
- * Whether the given provider/model has "normalize tool call id" (9-char Mistral-style) enabled.
- * Only custom models can have this set; returns false for built-in models.
- */
-export function getModelNormalizeToolCallId(providerId: string, modelId: string): boolean {
+/** Single custom model row from key_value customModels, or null */
+function getCustomModelRow(providerId: string, modelId: string): JsonRecord | null {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
     .get(providerId);
   const value = getKeyValue(row).value;
-  if (!value) return false;
-  let models: { id: string; normalizeToolCallId?: boolean }[];
+  if (!value) return null;
   try {
-    models = JSON.parse(value);
+    const models = JSON.parse(value) as unknown;
+    if (!Array.isArray(models)) return null;
+    const m = models.find((x: unknown) => {
+      if (!x || typeof x !== "object" || Array.isArray(x)) return false;
+      return (x as { id?: string }).id === modelId;
+    }) as JsonRecord | undefined;
+    return m ?? null;
   } catch {
-    return false;
+    return null;
   }
-  if (!Array.isArray(models)) return false;
-  const m = models.find((x: { id: string }) => x.id === modelId);
-  return Boolean(m?.normalizeToolCallId);
+}
+
+/**
+ * Whether the given provider/model has "normalize tool call id" (9-char Mistral-style) enabled.
+ * Custom model row wins; otherwise {@link getModelCompatOverrides}.
+ */
+export function getModelNormalizeToolCallId(providerId: string, modelId: string): boolean {
+  const m = getCustomModelRow(providerId, modelId);
+  if (m) return Boolean(m.normalizeToolCallId);
+  const co = readCompatList(providerId).find((e) => e.id === modelId);
+  return Boolean(co?.normalizeToolCallId);
+}
+
+/**
+ * Explicit preserve-openai-developer preference for this provider/model.
+ * `undefined` = unset → routing keeps legacy default (preserve developer for OpenAI format).
+ * `false` = map developer → system (e.g. MiniMax). `true` = keep developer.
+ */
+export function getModelPreserveOpenAIDeveloperRole(
+  providerId: string,
+  modelId: string
+): boolean | undefined {
+  const m = getCustomModelRow(providerId, modelId);
+  if (m) {
+    if (Object.prototype.hasOwnProperty.call(m, "preserveOpenAIDeveloperRole")) {
+      return Boolean(m.preserveOpenAIDeveloperRole);
+    }
+    return undefined;
+  }
+  const co = readCompatList(providerId).find((e) => e.id === modelId);
+  if (co && Object.prototype.hasOwnProperty.call(co, "preserveOpenAIDeveloperRole")) {
+    return Boolean(co.preserveOpenAIDeveloperRole);
+  }
+  return undefined;
 }

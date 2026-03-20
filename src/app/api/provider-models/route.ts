@@ -4,6 +4,8 @@ import {
   addCustomModel,
   removeCustomModel,
   updateCustomModel,
+  getModelCompatOverrides,
+  mergeModelCompatOverride,
 } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
@@ -27,8 +29,9 @@ export async function GET(request) {
     const provider = searchParams.get("provider");
 
     const models = provider ? await getCustomModels(provider) : await getAllCustomModels();
+    const modelCompatOverrides = provider ? getModelCompatOverrides(provider) : [];
 
-    return Response.json({ models });
+    return Response.json({ models, modelCompatOverrides });
   } catch (error) {
     return Response.json(
       { error: { message: error.message, type: "server_error" } },
@@ -113,17 +116,55 @@ export async function PUT(request) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
 
-    const { provider, modelId, modelName, apiFormat, supportedEndpoints, normalizeToolCallId } =
-      validation.data;
-
-    const model = await updateCustomModel(provider, modelId, {
+    const {
+      provider,
+      modelId,
       modelName,
       apiFormat,
       supportedEndpoints,
       normalizeToolCallId,
-    });
+      preserveOpenAIDeveloperRole,
+    } = validation.data;
+
+    const raw = rawBody as Record<string, unknown>;
+    const updates: Record<string, unknown> = {};
+    if ("modelName" in raw) updates.modelName = modelName;
+    if ("apiFormat" in raw) updates.apiFormat = apiFormat;
+    if ("supportedEndpoints" in raw) updates.supportedEndpoints = supportedEndpoints;
+    if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
+    if ("preserveOpenAIDeveloperRole" in raw)
+      updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+
+    const model = await updateCustomModel(provider, modelId, updates);
 
     if (!model) {
+      const rawKeys = Object.keys(raw);
+      const compatOnly =
+        rawKeys.length > 0 &&
+        rawKeys.every((k) =>
+          ["provider", "modelId", "normalizeToolCallId", "preserveOpenAIDeveloperRole"].includes(k)
+        ) &&
+        ("normalizeToolCallId" in raw || "preserveOpenAIDeveloperRole" in raw);
+      if (compatOnly) {
+        const patch: {
+          normalizeToolCallId?: boolean;
+          preserveOpenAIDeveloperRole?: boolean;
+        } = {};
+        if ("normalizeToolCallId" in raw && typeof normalizeToolCallId === "boolean") {
+          patch.normalizeToolCallId = normalizeToolCallId;
+        }
+        if (
+          "preserveOpenAIDeveloperRole" in raw &&
+          typeof preserveOpenAIDeveloperRole === "boolean"
+        ) {
+          patch.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+        }
+        mergeModelCompatOverride(provider, modelId, patch);
+        return Response.json({
+          ok: true,
+          modelCompatOverrides: getModelCompatOverrides(provider),
+        });
+      }
       return Response.json(
         { error: { message: "Model not found", type: "not_found" } },
         { status: 404 }

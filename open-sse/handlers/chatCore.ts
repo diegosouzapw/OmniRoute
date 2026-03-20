@@ -23,7 +23,7 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
-import { getModelNormalizeToolCallId } from "@/lib/db/models";
+import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
@@ -318,6 +318,10 @@ export async function handleChatCore({
       }
 
       const normalizeToolCallId = getModelNormalizeToolCallId(provider || "", model || "");
+      const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+        provider || "",
+        model || ""
+      );
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
@@ -327,7 +331,7 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId }
+        { normalizeToolCallId, preserveDeveloperRole }
       );
     }
   } catch (error) {

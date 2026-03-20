@@ -43,6 +43,78 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
   };
 }
 
+function ModelCompatPopover({
+  t,
+  normalizeToolCallId,
+  preserveDeveloperRole,
+  showDeveloperToggle = true,
+  onNormalizeChange,
+  onPreserveChange,
+  disabled,
+}: {
+  t: (key: string) => string;
+  normalizeToolCallId: boolean;
+  preserveDeveloperRole?: boolean;
+  showDeveloperToggle?: boolean;
+  onNormalizeChange: (v: boolean) => void;
+  onPreserveChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border bg-sidebar/50 hover:bg-sidebar text-text-muted hover:text-text-main disabled:opacity-50"
+        title={t("compatAdjustmentsTitle")}
+      >
+        <span className="material-symbols-outlined text-sm">tune</span>
+        {t("compatButtonLabel")}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 min-w-[200px] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted mb-2">
+            {t("compatAdjustmentsTitle")}
+          </p>
+          <div className="flex flex-col gap-3">
+            <Toggle
+              size="sm"
+              label={t("compatToolIdShort")}
+              title={t("normalizeToolCallIdLabel")}
+              checked={normalizeToolCallId}
+              onChange={onNormalizeChange}
+              disabled={disabled}
+            />
+            {showDeveloperToggle && (
+              <Toggle
+                size="sm"
+                label={t("compatDoNotPreserveDeveloper")}
+                title={t("preserveDeveloperRoleLabel")}
+                checked={preserveDeveloperRole === false}
+                onChange={(checked) => onPreserveChange(!checked)}
+                disabled={disabled}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -76,6 +148,15 @@ export default function ProviderDetailPage() {
     error: "",
     importedCount: 0,
   });
+  const [modelMeta, setModelMeta] = useState<{
+    customModels: Record<string, unknown>[];
+    modelCompatOverrides: {
+      id: string;
+      normalizeToolCallId?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+    }[];
+  }>({ customModels: [], modelCompatOverrides: [] });
+  const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
 
   const providerInfo = providerNode
     ? {
@@ -118,6 +199,23 @@ export default function ProviderDetailPage() {
       console.log("Error fetching aliases:", error);
     }
   }, []);
+
+  const fetchProviderModelMeta = useCallback(async () => {
+    if (isSearchProvider) return;
+    try {
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setModelMeta({
+        customModels: data.models || [],
+        modelCompatOverrides: data.modelCompatOverrides || [],
+      });
+    } catch (e) {
+      console.error("fetchProviderModelMeta", e);
+    }
+  }, [providerId, isSearchProvider]);
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -185,6 +283,11 @@ export default function ProviderDetailPage() {
       .then((c) => setProxyConfig(c))
       .catch(() => {});
   }, [fetchConnections, fetchAliases]);
+
+  useEffect(() => {
+    if (loading || isSearchProvider) return;
+    fetchProviderModelMeta();
+  }, [loading, isSearchProvider, fetchProviderModelMeta]);
 
   // Auto-open Add Connection modal when no connections exist (better UX)
   // Only fires once on initial load, not on HMR remounts or after user dismissal
@@ -670,6 +773,79 @@ export default function ProviderDetailPage() {
 
   const canImportModels = connections.some((conn) => conn.isActive !== false);
 
+  const effectiveModelNormalize = (modelId: string) => {
+    const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as
+      | { normalizeToolCallId?: boolean }
+      | undefined;
+    if (c) return Boolean(c.normalizeToolCallId);
+    const o = modelMeta.modelCompatOverrides.find((e) => e.id === modelId);
+    return Boolean(o?.normalizeToolCallId);
+  };
+
+  const effectiveModelPreserveDeveloper = (modelId: string) => {
+    const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as
+      | Record<string, unknown>
+      | undefined;
+    if (c && Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
+      return Boolean(c.preserveOpenAIDeveloperRole);
+    }
+    const o = modelMeta.modelCompatOverrides.find((e) => e.id === modelId);
+    if (o && Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole")) {
+      return Boolean(o.preserveOpenAIDeveloperRole);
+    }
+    return true;
+  };
+
+  const saveModelCompatFlags = async (
+    modelId: string,
+    patch: { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }
+  ) => {
+    setCompatSavingModelId(modelId);
+    try {
+      const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as Record<
+        string,
+        unknown
+      > | null;
+      let body: Record<string, unknown>;
+      if (c) {
+        body = {
+          provider: providerId,
+          modelId,
+          modelName: (c.name as string) || modelId,
+          source: (c.source as string) || "manual",
+          apiFormat: (c.apiFormat as string) || "chat-completions",
+          supportedEndpoints:
+            Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
+              ? c.supportedEndpoints
+              : ["chat"],
+          normalizeToolCallId:
+            patch.normalizeToolCallId !== undefined
+              ? patch.normalizeToolCallId
+              : Boolean(c.normalizeToolCallId),
+          preserveOpenAIDeveloperRole:
+            patch.preserveOpenAIDeveloperRole !== undefined
+              ? patch.preserveOpenAIDeveloperRole
+              : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
+                ? Boolean(c.preserveOpenAIDeveloperRole)
+                : true,
+        };
+      } else {
+        body = { provider: providerId, modelId, ...patch };
+      }
+      const res = await fetch("/api/provider-models", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) await fetchProviderModelMeta();
+      else notify.error(t("failedSaveCustomModel"));
+    } catch {
+      notify.error(t("failedSaveCustomModel"));
+    } finally {
+      setCompatSavingModelId(null);
+    }
+  };
+
   const renderModelsSection = () => {
     if (isCompatible) {
       return (
@@ -684,6 +860,12 @@ export default function ProviderDetailPage() {
           connections={connections}
           isAnthropic={isAnthropicCompatible}
           onImportWithProgress={handleCompatibleImportWithProgress}
+          t={t}
+          effectiveModelNormalize={effectiveModelNormalize}
+          effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+          saveModelCompatFlags={saveModelCompatFlags}
+          compatSavingModelId={compatSavingModelId}
+          onModelsChanged={fetchProviderModelMeta}
         />
       );
     }
@@ -711,6 +893,11 @@ export default function ProviderDetailPage() {
             onCopy={copy}
             onSetAlias={handleSetAlias}
             onDeleteAlias={handleDeleteAlias}
+            t={t}
+            effectiveModelNormalize={effectiveModelNormalize}
+            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            saveModelCompatFlags={saveModelCompatFlags}
+            compatSavingModelId={compatSavingModelId}
           />
         </div>
       );
@@ -759,8 +946,17 @@ export default function ProviderDetailPage() {
                 alias={existingAlias}
                 copied={copied}
                 onCopy={copy}
-                onSetAlias={(alias) => handleSetAlias(model.id, alias, providerStorageAlias)}
-                onDeleteAlias={() => handleDeleteAlias(existingAlias)}
+                t={t}
+                showDeveloperToggle
+                normalizeToolCallId={effectiveModelNormalize(model.id)}
+                preserveDeveloperRole={effectiveModelPreserveDeveloper(model.id)}
+                onNormalizeChange={(v) =>
+                  saveModelCompatFlags(model.id, { normalizeToolCallId: v })
+                }
+                onPreserveChange={(v) =>
+                  saveModelCompatFlags(model.id, { preserveOpenAIDeveloperRole: v })
+                }
+                compatDisabled={compatSavingModelId === model.id}
               />
             );
           })}
@@ -1078,6 +1274,7 @@ export default function ProviderDetailPage() {
               providerAlias={providerDisplayAlias}
               copied={copied}
               onCopy={copy}
+              onModelsChanged={fetchProviderModelMeta}
             />
           )}
         </Card>
@@ -1282,23 +1479,48 @@ export default function ProviderDetailPage() {
   );
 }
 
-function ModelRow({ model, fullModel, alias, copied, onCopy, onSetAlias, onDeleteAlias }: any) {
-  const t = useTranslations("providers");
+function ModelRow({
+  model,
+  fullModel,
+  alias,
+  copied,
+  onCopy,
+  t,
+  showDeveloperToggle = true,
+  normalizeToolCallId,
+  preserveDeveloperRole,
+  onNormalizeChange,
+  onPreserveChange,
+  compatDisabled,
+}: any) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50">
-      <span className="material-symbols-outlined text-base text-text-muted">smart_toy</span>
-      <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
-        {fullModel}
-      </code>
-      <button
-        onClick={() => onCopy(fullModel, `model-${model.id}`)}
-        className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
-        title={t("copyModel")}
-      >
-        <span className="material-symbols-outlined text-sm">
-          {copied === `model-${model.id}` ? "check" : "content_copy"}
+    <div className="flex flex-col px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50 min-w-[220px] max-w-md">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="material-symbols-outlined text-base text-text-muted shrink-0">
+          smart_toy
         </span>
-      </button>
+        <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
+          {fullModel}
+        </code>
+        <button
+          onClick={() => onCopy(fullModel, `model-${model.id}`)}
+          className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+          title={t("copyModel")}
+        >
+          <span className="material-symbols-outlined text-sm">
+            {copied === `model-${model.id}` ? "check" : "content_copy"}
+          </span>
+        </button>
+      </div>
+      <ModelCompatPopover
+        t={t}
+        normalizeToolCallId={Boolean(normalizeToolCallId)}
+        preserveDeveloperRole={preserveDeveloperRole}
+        showDeveloperToggle={showDeveloperToggle}
+        onNormalizeChange={onNormalizeChange}
+        onPreserveChange={onPreserveChange}
+        disabled={compatDisabled}
+      />
     </div>
   );
 }
@@ -1311,6 +1533,13 @@ ModelRow.propTypes = {
   alias: PropTypes.string,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
+  t: PropTypes.func,
+  showDeveloperToggle: PropTypes.bool,
+  normalizeToolCallId: PropTypes.bool,
+  preserveDeveloperRole: PropTypes.bool,
+  onNormalizeChange: PropTypes.func,
+  onPreserveChange: PropTypes.func,
+  compatDisabled: PropTypes.bool,
 };
 
 function PassthroughModelsSection({
@@ -1320,12 +1549,15 @@ function PassthroughModelsSection({
   onCopy,
   onSetAlias,
   onDeleteAlias,
+  t,
+  effectiveModelNormalize,
+  effectiveModelPreserveDeveloper,
+  saveModelCompatFlags,
+  compatSavingModelId,
 }) {
-  const t = useTranslations("providers");
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
 
-  // Filter aliases for this provider - models are persisted via alias
   const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
     (model as string).startsWith(`${providerAlias}/`)
   );
@@ -1400,6 +1632,15 @@ function PassthroughModelsSection({
               copied={copied}
               onCopy={onCopy}
               onDeleteAlias={() => onDeleteAlias(alias)}
+              t={t}
+              showDeveloperToggle
+              normalizeToolCallId={effectiveModelNormalize(modelId)}
+              preserveDeveloperRole={effectiveModelPreserveDeveloper(modelId)}
+              onNormalizeChange={(v) => saveModelCompatFlags(modelId, { normalizeToolCallId: v })}
+              onPreserveChange={(v) =>
+                saveModelCompatFlags(modelId, { preserveOpenAIDeveloperRole: v })
+              }
+              compatDisabled={compatSavingModelId === modelId}
             />
           ))}
         </div>
@@ -1415,41 +1656,69 @@ PassthroughModelsSection.propTypes = {
   onCopy: PropTypes.func.isRequired,
   onSetAlias: PropTypes.func.isRequired,
   onDeleteAlias: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+  effectiveModelNormalize: PropTypes.func.isRequired,
+  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  saveModelCompatFlags: PropTypes.func.isRequired,
+  compatSavingModelId: PropTypes.string,
 };
 
-function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias }) {
-  const t = useTranslations("providers");
+function PassthroughModelRow({
+  modelId,
+  fullModel,
+  copied,
+  onCopy,
+  onDeleteAlias,
+  t,
+  showDeveloperToggle = true,
+  normalizeToolCallId,
+  preserveDeveloperRole,
+  onNormalizeChange,
+  onPreserveChange,
+  compatDisabled,
+}: any) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-sidebar/50">
-      <span className="material-symbols-outlined text-base text-text-muted">smart_toy</span>
-
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{modelId}</p>
-
-        <div className="flex items-center gap-1 mt-1">
-          <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
-            {fullModel}
-          </code>
-          <button
-            onClick={() => onCopy(fullModel, `model-${modelId}`)}
-            className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
-            title={t("copyModel")}
-          >
-            <span className="material-symbols-outlined text-sm">
-              {copied === `model-${modelId}` ? "check" : "content_copy"}
-            </span>
-          </button>
+    <div className="flex flex-col gap-0 p-3 rounded-lg border border-border hover:bg-sidebar/50">
+      <div className="flex items-start gap-3">
+        <span className="material-symbols-outlined text-base text-text-muted shrink-0">
+          smart_toy
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{modelId}</p>
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
+              {fullModel}
+            </code>
+            <button
+              onClick={() => onCopy(fullModel, `model-${modelId}`)}
+              className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+              title={t("copyModel")}
+            >
+              <span className="material-symbols-outlined text-sm">
+                {copied === `model-${modelId}` ? "check" : "content_copy"}
+              </span>
+            </button>
+          </div>
         </div>
+        <button
+          onClick={onDeleteAlias}
+          className="p-1 hover:bg-red-50 rounded text-red-500 shrink-0"
+          title={t("removeModel")}
+        >
+          <span className="material-symbols-outlined text-sm">delete</span>
+        </button>
       </div>
-
-      {/* Delete button */}
-      <button
-        onClick={onDeleteAlias}
-        className="p-1 hover:bg-red-50 rounded text-red-500"
-        title={t("removeModel")}
-      >
-        <span className="material-symbols-outlined text-sm">delete</span>
-      </button>
+      <div className="pl-9">
+        <ModelCompatPopover
+          t={t}
+          normalizeToolCallId={Boolean(normalizeToolCallId)}
+          preserveDeveloperRole={preserveDeveloperRole}
+          showDeveloperToggle={showDeveloperToggle}
+          onNormalizeChange={onNormalizeChange}
+          onPreserveChange={onPreserveChange}
+          disabled={compatDisabled}
+        />
+      </div>
     </div>
   );
 }
@@ -1460,11 +1729,18 @@ PassthroughModelRow.propTypes = {
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   onDeleteAlias: PropTypes.func.isRequired,
+  t: PropTypes.func,
+  showDeveloperToggle: PropTypes.bool,
+  normalizeToolCallId: PropTypes.bool,
+  preserveDeveloperRole: PropTypes.bool,
+  onNormalizeChange: PropTypes.func,
+  onPreserveChange: PropTypes.func,
+  compatDisabled: PropTypes.bool,
 };
 
 // ============ Custom Models Section (for ALL providers) ============
 
-function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
+function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onModelsChanged }) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
   const [customModels, setCustomModels] = useState([]);
@@ -1478,6 +1754,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
   const [editingNormalizeToolCallId, setEditingNormalizeToolCallId] = useState(false);
+  const [editingPreserveDeveloperRole, setEditingPreserveDeveloperRole] = useState(false);
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
 
   const fetchCustomModels = useCallback(async () => {
@@ -1519,6 +1796,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
         setNewApiFormat("chat-completions");
         setNewEndpoints(["chat"]);
         await fetchCustomModels();
+        onModelsChanged?.();
       }
     } catch (e) {
       console.error("Failed to add custom model:", e);
@@ -1536,6 +1814,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
         }
       );
       await fetchCustomModels();
+      onModelsChanged?.();
     } catch (e) {
       console.error("Failed to remove custom model:", e);
     }
@@ -1550,6 +1829,11 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
         : ["chat"]
     );
     setEditingNormalizeToolCallId(Boolean(model.normalizeToolCallId));
+    setEditingPreserveDeveloperRole(
+      Object.prototype.hasOwnProperty.call(model, "preserveOpenAIDeveloperRole")
+        ? Boolean(model.preserveOpenAIDeveloperRole)
+        : true
+    );
   };
 
   const cancelEdit = () => {
@@ -1557,6 +1841,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
     setEditingApiFormat("chat-completions");
     setEditingEndpoints(["chat"]);
     setEditingNormalizeToolCallId(false);
+    setEditingPreserveDeveloperRole(true);
     setSavingModelId(null);
   };
 
@@ -1581,6 +1866,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
           apiFormat: editingApiFormat,
           supportedEndpoints: editingEndpoints,
           normalizeToolCallId: editingNormalizeToolCallId,
+          preserveOpenAIDeveloperRole: editingPreserveDeveloperRole,
         }),
       });
 
@@ -1589,6 +1875,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
       }
 
       await fetchCustomModels();
+      onModelsChanged?.();
       notify.success("Saved model endpoint settings");
       cancelEdit();
     } catch (e) {
@@ -1745,9 +2032,17 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                     {model.normalizeToolCallId && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-500/15 text-slate-400 font-medium"
-                        title="9-char tool call ID (Mistral)"
+                        title={t("normalizeToolCallIdLabel")}
                       >
                         ID×9
+                      </span>
+                    )}
+                    {model.preserveOpenAIDeveloperRole === false && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-medium"
+                        title={t("compatDoNotPreserveDeveloper")}
+                      >
+                        {t("compatBadgeNoPreserve")}
                       </span>
                     )}
                   </div>
@@ -1802,16 +2097,17 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                             ))}
                           </div>
                         </div>
-
-                        <label className="flex items-center gap-2 text-xs text-text-main cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={editingNormalizeToolCallId}
-                            onChange={(e) => setEditingNormalizeToolCallId(e.target.checked)}
-                            className="rounded border-border"
-                          />
-                          Normalize Tool Call ID (9 chars, Mistral)
-                        </label>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-border/80 w-full">
+                        <ModelCompatPopover
+                          t={t}
+                          normalizeToolCallId={editingNormalizeToolCallId}
+                          preserveDeveloperRole={editingPreserveDeveloperRole}
+                          showDeveloperToggle
+                          onNormalizeChange={setEditingNormalizeToolCallId}
+                          onPreserveChange={setEditingPreserveDeveloperRole}
+                          disabled={savingModelId === model.id}
+                        />
                       </div>
                       <div className="mt-3 flex items-center gap-2">
                         <Button
@@ -1860,6 +2156,7 @@ CustomModelsSection.propTypes = {
   providerAlias: PropTypes.string.isRequired,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
+  onModelsChanged: PropTypes.func,
 };
 
 function CompatibleModelsSection({
@@ -1873,8 +2170,13 @@ function CompatibleModelsSection({
   connections,
   isAnthropic,
   onImportWithProgress,
+  t,
+  effectiveModelNormalize,
+  effectiveModelPreserveDeveloper,
+  saveModelCompatFlags,
+  compatSavingModelId,
+  onModelsChanged,
 }) {
-  const t = useTranslations("providers");
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -1940,6 +2242,7 @@ function CompatibleModelsSection({
       await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
       setNewModel("");
       notify.success(t("modelAddedSuccess", { modelId }));
+      onModelsChanged?.();
     } catch (error) {
       console.error("Error adding model:", error);
       notify.error(error instanceof Error ? error.message : t("failedAddModelTryAgain"));
@@ -2016,6 +2319,7 @@ function CompatibleModelsSection({
       // Also delete the alias
       await onDeleteAlias(alias);
       notify.success(t("modelRemovedSuccess"));
+      onModelsChanged?.();
     } catch (error) {
       console.error("Error deleting model:", error);
       notify.error(error instanceof Error ? error.message : t("failedDeleteModelTryAgain"));
@@ -2078,6 +2382,15 @@ function CompatibleModelsSection({
               copied={copied}
               onCopy={onCopy}
               onDeleteAlias={() => handleDeleteModel(modelId, alias)}
+              t={t}
+              showDeveloperToggle={!isAnthropic}
+              normalizeToolCallId={effectiveModelNormalize(modelId)}
+              preserveDeveloperRole={effectiveModelPreserveDeveloper(modelId)}
+              onNormalizeChange={(v) => saveModelCompatFlags(modelId, { normalizeToolCallId: v })}
+              onPreserveChange={(v) =>
+                saveModelCompatFlags(modelId, { preserveOpenAIDeveloperRole: v })
+              }
+              compatDisabled={compatSavingModelId === modelId}
             />
           ))}
         </div>
@@ -2102,6 +2415,12 @@ CompatibleModelsSection.propTypes = {
   ).isRequired,
   isAnthropic: PropTypes.bool,
   onImportWithProgress: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+  effectiveModelNormalize: PropTypes.func.isRequired,
+  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  saveModelCompatFlags: PropTypes.func.isRequired,
+  compatSavingModelId: PropTypes.string,
+  onModelsChanged: PropTypes.func,
 };
 
 function CooldownTimer({ until }) {

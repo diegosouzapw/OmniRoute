@@ -76,26 +76,27 @@ function supportsSystemRole(provider: string, model: string): boolean {
 }
 
 /**
- * Normalize the `developer` role to `system` for non-OpenAI providers.
- * OpenAI introduced `developer` as a replacement for `system` in newer models,
- * but most other providers still expect `system`.
+ * Normalize the `developer` role to `system` when the upstream does not support it.
+ * OpenAI Responses API sends `developer`; MiniMax and most OpenAI-compatible gateways
+ * only accept system/user/assistant/tool and return "role param error" otherwise.
  *
  * @param messages - Array of messages
  * @param targetFormat - The target format (e.g., "openai", "claude", "gemini")
- * @returns Modified messages array
+ * @param preserveDeveloperRole - For targetFormat openai: undefined/true = keep developer (legacy default); false = map to system (MiniMax etc.)
  */
 export function normalizeDeveloperRole(
   messages: NormalizedMessage[] | unknown,
-  targetFormat: string
+  targetFormat: string,
+  preserveDeveloperRole?: boolean
 ): NormalizedMessage[] | unknown {
   if (!Array.isArray(messages)) return messages;
 
-  // For OpenAI format, keep developer role as-is (it's valid)
-  // For all other formats, convert developer → system
-  if (targetFormat === "openai") return messages;
+  if (targetFormat === "openai" && preserveDeveloperRole !== false) return messages;
 
   return messages.map((msg: NormalizedMessage) => {
-    if (msg.role === "developer") {
+    if (!msg || typeof msg !== "object") return msg;
+    const role = typeof msg.role === "string" ? msg.role : "";
+    if (role.toLowerCase() === "developer") {
       return { ...msg, role: "system" };
     }
     return msg;
@@ -170,24 +171,18 @@ export function normalizeSystemRole(
  * Full role normalization pipeline.
  * Call this before sending the request to the provider.
  *
- * @param messages - Array of messages
- * @param provider - Provider name/id
- * @param model - Model name
- * @param targetFormat - Target API format
- * @returns Normalized messages array
+ * @param preserveDeveloperRole - See {@link normalizeDeveloperRole}
  */
 export function normalizeRoles(
   messages: NormalizedMessage[] | unknown,
   provider: string,
   model: string,
-  targetFormat: string
+  targetFormat: string,
+  preserveDeveloperRole?: boolean
 ): NormalizedMessage[] | unknown {
   if (!Array.isArray(messages)) return messages;
 
-  // Step 1: Normalize developer → system (for non-OpenAI formats)
-  let result = normalizeDeveloperRole(messages, targetFormat);
-
-  // Step 2: Normalize system → user (for providers that don't support system role)
+  let result = normalizeDeveloperRole(messages, targetFormat, preserveDeveloperRole);
   result = normalizeSystemRole(result, provider, model);
 
   return result;
