@@ -463,18 +463,18 @@ Adresář | Účel
 
 Trasa | Metody | Účel
 --- | --- | ---
-`/api/provider-models` | ZÍSKAT/ODESLAT/SMAZAT | CRUD pro vlastní modely na poskytovatele
-`/api/models/catalog` | ZÍSKAT | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele
-`/api/settings/proxy` | ZÍSKAT/VLOŽIT/ODSTRANIT | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )
-`/api/settings/proxy/test` | ZVEŘEJNIT | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci
-`/v1/providers/[provider]/chat/completions` | ZVEŘEJNIT | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/embeddings` | ZVEŘEJNIT | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/images/generations` | ZVEŘEJNIT | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu
-`/api/settings/ip-filter` | ZÍSKAT/VLOŽIT | Správa povolených/blokovaných IP adres
-`/api/settings/thinking-budget` | ZÍSKAT/VLOŽIT | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)
-`/api/settings/system-prompt` | ZÍSKAT/VLOŽIT | Globální vložení systémového promptu pro všechny požadavky
-`/api/sessions` | ZÍSKAT | Sledování a metriky aktivních relací
-`/api/rate-limits` | ZÍSKAT | Stav limitu sazby na účet
+`/api/provider-models` | GET/POST/DELETE | CRUD pro vlastní modely na poskytovatele
+`/api/models/catalog` | GET | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele
+`/api/settings/proxy` | GET/PUT/DELETE | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )
+`/api/settings/proxy/test` | POST | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci
+`/v1/providers/[provider]/chat/completions` | POST | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu
+`/v1/providers/[provider]/embeddings` | POST | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu
+`/v1/providers/[provider]/images/generations` | POST | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu
+`/api/settings/ip-filter` | GET/PUT | Správa povolených/blokovaných IP adres
+`/api/settings/thinking-budget` | GET/PUT | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)
+`/api/settings/system-prompt` | GET/PUT | Globální vložení systémového promptu pro všechny požadavky
+`/api/sessions` | GET | Sledování a metriky aktivních relací
+`/api/rate-limits` | GET | Stav limitu sazby na účet
 
 ---
 

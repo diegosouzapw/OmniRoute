@@ -176,13 +176,13 @@ Koncový bod | Metoda | Popis
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/providers` | GET/ODESLAT | Seznam / vytvoření poskytovatelů
-`/api/providers/[id]` | GET/PUT/ODSTRANIT | Správa poskytovatele
+`/api/providers` | GET/POST | Seznam / vytvoření poskytovatelů
+`/api/providers/[id]` | GET/PUT/DELETE | Správa poskytovatele
 `/api/providers/[id]/test` | POST | Testovací připojení poskytovatele
 `/api/providers/[id]/models` | GET | Seznam modelů poskytovatelů
 `/api/providers/validate` | POST | Ověření konfigurace poskytovatele
 `/api/provider-nodes*` | Různé | Správa uzlů poskytovatelů
-`/api/provider-models` | GET/ODESLAT/SMAZAT | Vlastní modely
+`/api/provider-models` | GET/POST/DELETE | Vlastní modely
 
 ### Toky OAuth
 
@@ -194,7 +194,7 @@ Koncový bod | Metoda | Popis
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/models/alias` | GET/ODESLAT | Aliasy modelů
+`/api/models/alias` | GET/POST | Aliasy modelů
 `/api/models/catalog` | GET | Všechny modely podle poskytovatele + typu
 `/api/combos*` | Různé | Správa kombinací
 `/api/keys*` | Různé | Správa klíčů API
@@ -227,7 +227,7 @@ Koncový bod | Metoda | Popis
 `/api/sessions` | GET | Sledování aktivních relací
 `/api/rate-limits` | GET | Limity sazeb na účet
 `/api/monitoring/health` | GET | Kontrola stavu
-`/api/cache` | GET/SMAZAT | Statistiky mezipaměti / vymazat
+`/api/cache` | GET/DELETE | Statistiky mezipaměti / vymazat
 
 ### Zálohování a export/import
 
@@ -283,13 +283,13 @@ Koncový bod | Metoda | Popis
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/evals` | GET/ODESLAT | Vypsat eval sady / spustit vyhodnocení
+`/api/evals` | GET/POST | Vypsat eval sady / spustit vyhodnocení
 
 ### Zásady
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/policies` | GET/ODESLAT/SMAZAT | Správa směrovacích zásad
+`/api/policies` | GET/POST/DELETE | Správa směrovacích zásad
 
 ### Dodržování
 
