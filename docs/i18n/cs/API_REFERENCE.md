@@ -110,16 +110,16 @@ Authorization: Bearer your-api-key
 
 Metoda | Cesta | Formát
 --- | --- | ---
-ZVEŘEJNIT | `/v1/chat/completions` | OpenAI
-ZVEŘEJNIT | `/v1/messages` | Antropický
-ZVEŘEJNIT | `/v1/responses` | Reakce OpenAI
-ZVEŘEJNIT | `/v1/embeddings` | OpenAI
-ZVEŘEJNIT | `/v1/images/generations` | OpenAI
-ZÍSKAT | `/v1/models` | OpenAI
-ZVEŘEJNIT | `/v1/messages/count_tokens` | Antropický
-ZÍSKAT | `/v1beta/models` | Blíženci
-ZVEŘEJNIT | `/v1beta/models/{...path}` | Gemini generuje obsah
-ZVEŘEJNIT | `/v1/api/chat` | Ollama
+POST | `/v1/chat/completions` | OpenAI
+POST | `/v1/messages` | Antropický
+POST | `/v1/responses` | Reakce OpenAI
+POST | `/v1/embeddings` | OpenAI
+POST | `/v1/images/generations` | OpenAI
+GET | `/v1/models` | OpenAI
+POST | `/v1/messages/count_tokens` | Antropický
+GET | `/v1beta/models` | Blíženci
+POST | `/v1beta/models/{...path}` | Gemini generuje obsah
+POST | `/v1/api/chat` | Ollama
 
 ### Vyhrazené trasy poskytovatelů
 
@@ -168,21 +168,21 @@ Příklad odpovědi:
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/auth/login` | ZVEŘEJNIT | Přihlášení
-`/api/auth/logout` | ZVEŘEJNIT | Odhlásit se
-`/api/settings/require-login` | ZÍSKAT/VLOŽIT | Vyžaduje se přepnutí přihlášení
+`/api/auth/login` | POST | Přihlášení
+`/api/auth/logout` | POST | Odhlásit se
+`/api/settings/require-login` | GET/PUT | Vyžaduje se přepnutí přihlášení
 
 ### Správa poskytovatelů
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/providers` | ZÍSKAT/ODESLAT | Seznam / vytvoření poskytovatelů
-`/api/providers/[id]` | ZÍSKAT/VLOŽIT/ODSTRANIT | Správa poskytovatele
-`/api/providers/[id]/test` | ZVEŘEJNIT | Testovací připojení poskytovatele
-`/api/providers/[id]/models` | ZÍSKAT | Seznam modelů poskytovatelů
-`/api/providers/validate` | ZVEŘEJNIT | Ověření konfigurace poskytovatele
+`/api/providers` | GET/ODESLAT | Seznam / vytvoření poskytovatelů
+`/api/providers/[id]` | GET/PUT/ODSTRANIT | Správa poskytovatele
+`/api/providers/[id]/test` | POST | Testovací připojení poskytovatele
+`/api/providers/[id]/models` | GET | Seznam modelů poskytovatelů
+`/api/providers/validate` | POST | Ověření konfigurace poskytovatele
 `/api/provider-nodes*` | Různé | Správa uzlů poskytovatelů
-`/api/provider-models` | ZÍSKAT/ODESLAT/SMAZAT | Vlastní modely
+`/api/provider-models` | GET/ODESLAT/SMAZAT | Vlastní modely
 
 ### Toky OAuth
 
@@ -194,69 +194,69 @@ Koncový bod | Metoda | Popis
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/models/alias` | ZÍSKAT/ODESLAT | Aliasy modelů
-`/api/models/catalog` | ZÍSKAT | Všechny modely podle poskytovatele + typu
+`/api/models/alias` | GET/ODESLAT | Aliasy modelů
+`/api/models/catalog` | GET | Všechny modely podle poskytovatele + typu
 `/api/combos*` | Různé | Správa kombinací
 `/api/keys*` | Různé | Správa klíčů API
-`/api/pricing` | ZÍSKAT | Cena modelu
+`/api/pricing` | GET | Cena modelu
 
 ### Využití a analýzy
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/usage/history` | ZÍSKAT | Historie používání
-`/api/usage/logs` | ZÍSKAT | Protokoly používání
-`/api/usage/request-logs` | ZÍSKAT | Protokoly na úrovni požadavků
-`/api/usage/[connectionId]` | ZÍSKAT | Využití na připojení
+`/api/usage/history` | GET | Historie používání
+`/api/usage/logs` | GET | Protokoly používání
+`/api/usage/request-logs` | GET | Protokoly na úrovni požadavků
+`/api/usage/[connectionId]` | GET | Využití na připojení
 
 ### Nastavení
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/settings` | ZÍSKAT/VLOŽIT | Obecná nastavení
-`/api/settings/proxy` | ZÍSKAT/VLOŽIT | Konfigurace síťového proxy serveru
-`/api/settings/proxy/test` | ZVEŘEJNIT | Testovací připojení k proxy serveru
-`/api/settings/ip-filter` | ZÍSKAT/VLOŽIT | Seznam povolených/blokovaných IP adres
-`/api/settings/thinking-budget` | ZÍSKAT/VLOŽIT | Zdůvodnění rozpočtu tokenů
-`/api/settings/system-prompt` | ZÍSKAT/VLOŽIT | Globální systémový výzva
+`/api/settings` | GET/PUT | Obecná nastavení
+`/api/settings/proxy` | GET/PUT | Konfigurace síťového proxy serveru
+`/api/settings/proxy/test` | POST | Testovací připojení k proxy serveru
+`/api/settings/ip-filter` | GET/PUT | Seznam povolených/blokovaných IP adres
+`/api/settings/thinking-budget` | GET/PUT | Zdůvodnění rozpočtu tokenů
+`/api/settings/system-prompt` | GET/PUT | Globální systémový výzva
 
 ### Monitorování
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/sessions` | ZÍSKAT | Sledování aktivních relací
-`/api/rate-limits` | ZÍSKAT | Limity sazeb na účet
-`/api/monitoring/health` | ZÍSKAT | Kontrola stavu
-`/api/cache` | ZÍSKAT/SMAZAT | Statistiky mezipaměti / vymazat
+`/api/sessions` | GET | Sledování aktivních relací
+`/api/rate-limits` | GET | Limity sazeb na účet
+`/api/monitoring/health` | GET | Kontrola stavu
+`/api/cache` | GET/SMAZAT | Statistiky mezipaměti / vymazat
 
 ### Zálohování a export/import
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/db-backups` | ZÍSKAT | Seznam dostupných záloh
+`/api/db-backups` | GET | Seznam dostupných záloh
 `/api/db-backups` | DÁT | Vytvořte ruční zálohu
-`/api/db-backups` | ZVEŘEJNIT | Obnovení z konkrétní zálohy
-`/api/db-backups/export` | ZÍSKAT | Stáhnout databázi jako soubor .sqlite
-`/api/db-backups/import` | ZVEŘEJNIT | Nahrajte soubor .sqlite pro nahrazení databáze
-`/api/db-backups/exportAll` | ZÍSKAT | Stáhnout plnou zálohu jako archiv .tar.gz
+`/api/db-backups` | POST | Obnovení z konkrétní zálohy
+`/api/db-backups/export` | GET | Stáhnout databázi jako soubor .sqlite
+`/api/db-backups/import` | POST | Nahrajte soubor .sqlite pro nahrazení databáze
+`/api/db-backups/exportAll` | GET | Stáhnout plnou zálohu jako archiv .tar.gz
 
 ### Synchronizace s cloudem
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
 `/api/sync/cloud` | Různé | Operace synchronizace s cloudem
-`/api/sync/initialize` | ZVEŘEJNIT | Inicializovat synchronizaci
+`/api/sync/initialize` | POST | Inicializovat synchronizaci
 `/api/cloud/*` | Různé | Správa cloudu
 
 ### Nástroje CLI
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/cli-tools/claude-settings` | ZÍSKAT | Stav Clauda CLI
-`/api/cli-tools/codex-settings` | ZÍSKAT | Stav příkazového řádku Codexu
-`/api/cli-tools/droid-settings` | ZÍSKAT | Stav příkazového řádku Droidu
-`/api/cli-tools/openclaw-settings` | ZÍSKAT | Stav rozhraní příkazového řádku OpenClaw
-`/api/cli-tools/runtime/[toolId]` | ZÍSKAT | Generické běhové prostředí CLI
+`/api/cli-tools/claude-settings` | GET | Stav Clauda CLI
+`/api/cli-tools/codex-settings` | GET | Stav příkazového řádku Codexu
+`/api/cli-tools/droid-settings` | GET | Stav příkazového řádku Droidu
+`/api/cli-tools/openclaw-settings` | GET | Stav rozhraní příkazového řádku OpenClaw
+`/api/cli-tools/runtime/[toolId]` | GET | Generické běhové prostředí CLI
 
 Mezi odpovědi CLI patří: `installed` , `runnable` , `command` , `commandPath` , `runtimeMode` , `reason` .
 
@@ -264,8 +264,8 @@ Mezi odpovědi CLI patří: `installed` , `runnable` , `command` , `commandPath`
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/acp/agents` | ZÍSKAT | Zobrazit seznam všech detekovaných agentů (vestavěných + vlastních) se stavem
-`/api/acp/agents` | ZVEŘEJNIT | Přidat vlastního agenta nebo obnovit mezipaměť detekce
+`/api/acp/agents` | GET | Zobrazit seznam všech detekovaných agentů (vestavěných + vlastních) se stavem
+`/api/acp/agents` | POST | Přidat vlastního agenta nebo obnovit mezipaměť detekce
 `/api/acp/agents` | VYMAZAT | Odebrání vlastního agenta podle parametru dotazu `id`
 
 Odpověď GET obsahuje `agents[]` (id, name, binary, version, installed, protocol, isCustom) a `summary` (total, installed, notFound, builtIn, custom).
@@ -274,35 +274,35 @@ Odpověď GET obsahuje `agents[]` (id, name, binary, version, installed, protoco
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/resilience` | ZÍSKAT/VLOŽIT | Získání/aktualizace profilů odolnosti
-`/api/resilience/reset` | ZVEŘEJNIT | Resetujte jističe
-`/api/rate-limits` | ZÍSKAT | Stav limitu sazby na účet
-`/api/rate-limit` | ZÍSKAT | Konfigurace globálního limitu rychlosti
+`/api/resilience` | GET/PUT | Získání/aktualizace profilů odolnosti
+`/api/resilience/reset` | POST | Resetujte jističe
+`/api/rate-limits` | GET | Stav limitu sazby na účet
+`/api/rate-limit` | GET | Konfigurace globálního limitu rychlosti
 
 ### Evals
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/evals` | ZÍSKAT/ODESLAT | Vypsat eval sady / spustit vyhodnocení
+`/api/evals` | GET/ODESLAT | Vypsat eval sady / spustit vyhodnocení
 
 ### Zásady
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/policies` | ZÍSKAT/ODESLAT/SMAZAT | Správa směrovacích zásad
+`/api/policies` | GET/ODESLAT/SMAZAT | Správa směrovacích zásad
 
 ### Dodržování
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/compliance/audit-log` | ZÍSKAT | Protokol auditu shody (poslední N)
+`/api/compliance/audit-log` | GET | Protokol auditu shody (poslední N)
 
 ### v1beta (kompatibilní s Gemini)
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/v1beta/models` | ZÍSKAT | Seznam modelů ve formátu Gemini
-`/v1beta/models/{...path}` | ZVEŘEJNIT | Koncový bod Gemini `generateContent`
+`/v1beta/models` | GET | Seznam modelů ve formátu Gemini
+`/v1beta/models/{...path}` | POST | Koncový bod Gemini `generateContent`
 
 Tyto koncové body zrcadlí formát API Gemini pro klienty, kteří očekávají nativní kompatibilitu sady Gemini SDK.
 
@@ -310,10 +310,10 @@ Tyto koncové body zrcadlí formát API Gemini pro klienty, kteří očekávají
 
 Koncový bod | Metoda | Popis
 --- | --- | ---
-`/api/init` | ZÍSKAT | Kontrola inicializace aplikace (používá se při prvním spuštění)
-`/api/tags` | ZÍSKAT | Tagy modelů kompatibilní s Ollamou (pro klienty Ollamy)
-`/api/restart` | ZVEŘEJNIT | Spustit řádný restart serveru
-`/api/shutdown` | ZVEŘEJNIT | Spustit řádné vypnutí serveru
+`/api/init` | GET | Kontrola inicializace aplikace (používá se při prvním spuštění)
+`/api/tags` | GET | Tagy modelů kompatibilní s Ollamou (pro klienty Ollamy)
+`/api/restart` | POST | Spustit řádný restart serveru
+`/api/shutdown` | POST | Spustit řádné vypnutí serveru
 
 > **Poznámka:** Tyto koncové body používá interně systém nebo pro kompatibilitu s klienty Ollama. Koncoví uživatelé je obvykle nevolají.
 
