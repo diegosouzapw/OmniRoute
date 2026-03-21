@@ -819,24 +819,28 @@ Quando minimizado, o OmniRoute fica na bandeja do sistema com ações rápidas:
 
 ## 💰 Preços Resumidos
 
-| Tier              | Provedor          | Custo                        | Reset de Cota     | Melhor Para             |
-| ----------------- | ----------------- | ---------------------------- | ----------------- | ----------------------- |
-| **💳 ASSINATURA** | Claude Code (Pro) | $20/mês                      | 5h + semanal      | Já é assinante          |
-|                   | Codex (Plus/Pro)  | $20-200/mês                  | 5h + semanal      | Usuários OpenAI         |
-|                   | Gemini CLI        | **GRATUITO**                 | 180K/mês + 1K/dia | Todos!                  |
-|                   | GitHub Copilot    | $10-19/mês                   | Mensal            | Usuários GitHub         |
-| **🔑 API KEY**    | NVIDIA NIM        | **GRATUITO** (1000 créditos) | Único             | Testes gratuitos        |
-|                   | DeepSeek          | Por uso                      | Nenhum            | Melhor preço/qualidade  |
-|                   | Groq              | Tier gratuito + pago         | Limitado          | Inferência ultra-rápida |
-|                   | xAI (Grok)        | Por uso                      | Nenhum            | Modelos Grok            |
-|                   | Mistral           | Tier gratuito + pago         | Limitado          | IA Europeia             |
-|                   | OpenRouter        | Por uso                      | Nenhum            | 100+ modelos            |
-| **💰 BARATO**     | GLM-4.7           | $0.6/1M                      | Diário 10h        | Backup econômico        |
-|                   | MiniMax M2.1      | $0.2/1M                      | Rotativo 5h       | Opção mais barata       |
-|                   | Kimi K2           | $9/mês fixo                  | 10M tokens/mês    | Custo previsível        |
-| **🆓 GRATUITO**   | iFlow             | $0                           | Ilimitado         | 8 modelos gratuitos     |
-|                   | Qwen              | $0                           | Ilimitado         | 3 modelos gratuitos     |
-|                   | Kiro              | $0                           | Ilimitado         | Claude gratuito         |
+| Tier              | Provedor          | Custo                        | Reset de Cota     | Melhor Para                    |
+| ----------------- | ----------------- | ---------------------------- | ----------------- | ------------------------------ |
+| **💳 ASSINATURA** | Claude Code (Pro) | $20/mês                      | 5h + semanal      | Já é assinante                 |
+|                   | Codex (Plus/Pro)  | $20-200/mês                  | 5h + semanal      | Usuários OpenAI                |
+|                   | Gemini CLI        | **GRATUITO**                 | 180K/mês + 1K/dia | Todos!                         |
+|                   | GitHub Copilot    | $10-19/mês                   | Mensal            | Usuários GitHub                |
+| **🔑 API KEY**    | NVIDIA NIM        | **GRATUITO** (1000 créditos) | Único             | Testes gratuitos               |
+|                   | DeepSeek          | Por uso                      | Nenhum            | Melhor preço/qualidade         |
+|                   | Groq              | Tier gratuito + pago         | Limitado          | Inferência ultra-rápida        |
+|                   | xAI (Grok)        | Por uso                      | Nenhum            | Modelos Grok                   |
+|                   | Mistral           | Tier gratuito + pago         | Limitado          | IA Europeia                    |
+|                   | OpenRouter        | Por uso                      | Nenhum            | 100+ modelos                   |
+| **💰 BARATO**     | GLM-4.7           | $0.6/1M                      | Diário 10h        | Backup econômico               |
+|                   | MiniMax M2.1      | $0.2/1M                      | Rotativo 5h       | Opção mais barata              |
+|                   | Kimi K2           | $9/mês fixo                  | 10M tokens/mês    | Custo previsível               |
+| **🆓 GRATUITO**   | iFlow             | $0                           | Ilimitado         | 8 modelos gratuitos            |
+|                   | Qwen              | $0                           | Ilimitado         | 3 modelos gratuitos            |
+|                   | Kiro              | $0                           | Ilimitado         | Claude gratuito                |
+|                   | LongCat 🆕        | **$0** (50M tok/dia 🔥)      | 1 req/s           | Maior cota grátis do mundo     |
+|                   | Pollinations 🆕   | **$0** (sem chave API)       | 1 req/15s         | GPT-5, Claude, DeepSeek, Llama |
+|                   | Cloudflare AI 🆕  | **$0** (10K Neurons/dia)     | ~150 resp/dia     | 50+ modelos, edge global       |
+|                   | Scaleway AI 🆕    | **$0** (1M tokens total)     | Limitado por taxa | EU/GDPR, Qwen3 235B, Llama 70B |
 
 **💡 Dica Pro:** Comece com Gemini CLI (180K grátis/mês) + iFlow (ilimitado grátis) = $0 de custo!
 
@@ -1222,6 +1226,53 @@ Modelos:
   kr/claude-sonnet-4.5
   kr/claude-haiku-4.5
 ```
+
+### LongCat AI (GRATUITO 50M tokens/dia!) 🆕
+
+1. Cadastre-se: [longcat.chat](https://longcat.chat) com e-mail ou telefone
+2. Gere uma chave de API gratuita
+3. Dashboard → Adicionar Provedor → LongCat
+
+**Modelos:**
+
+- `lc/LongCat-Flash-Lite` — **50M tokens/dia** 💥 (maior cota gratuita do mundo!)
+- `lc/LongCat-Flash-Chat` — 500K tokens/dia
+- `lc/LongCat-Flash-Thinking` — 500K tokens/dia (raciocínio)
+
+> 100% gratuito durante o beta público. Reset diário à meia-noite UTC.
+
+### Pollinations AI (SEM CHAVE NECESSÁRIA!) 🆕
+
+1. Adicione o provedor Pollinations no Dashboard
+2. Deixe o campo de chave API vazio (ou coloque qualquer string)
+3. Comece a usar imediatamente!
+
+**Modelos via `pol/`:** `openai` (GPT-5), `claude`, `gemini`, `deepseek`, `llama` (Llama 4)
+
+> Sem cadastro, sem chave, sem cartão de crédito. 1 req/15s ilimitado.
+
+### Cloudflare Workers AI (GRATUITO 10K Neurons/dia!) 🆕
+
+1. Cadastre-se: [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Gere um API Token em Profile → API Tokens
+3. Copie seu Account ID (coluna direita do dashboard)
+4. Dashboard → Adicionar Provedor → Cloudflare AI
+   - API Key: seu token
+   - Account ID: seu account ID
+
+**Modelos via `cf/`:** `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, 50+ mais
+
+> 10K Neurons/dia ≈ 150 respostas de LLM ou 500s de transcrição Whisper gratuita!
+
+### Scaleway AI (1M tokens gratuitos!) 🆕
+
+1. Cadastre-se: [console.scaleway.com](https://console.scaleway.com)
+2. Gere uma chave de API IAM
+3. Dashboard → Adicionar Provedor → Scaleway
+
+**Modelos via `scw/`:** `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-instruct`
+
+> 1M tokens gratuitos para novas contas. Dados processados na 🇫🇷 França (EU/GDPR).
 
 </details>
 

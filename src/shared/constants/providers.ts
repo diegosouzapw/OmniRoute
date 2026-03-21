@@ -161,11 +161,14 @@ export const APIKEY_PROVIDERS = {
   gemini: {
     id: "gemini",
     alias: "gemini",
-    name: "Gemini",
+    name: "Gemini (Google AI Studio)",
     icon: "diamond",
     color: "#4285F4",
     textIcon: "GE",
     website: "https://ai.google.dev",
+    hasFree: true,
+    freeNote:
+      "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
   },
   deepseek: {
     id: "deepseek",
@@ -231,6 +234,9 @@ export const APIKEY_PROVIDERS = {
     color: "#0F6FFF",
     textIcon: "TG",
     website: "https://www.together.ai",
+    hasFree: true,
+    freeNote:
+      "$25 signup credits + 3 permanently free models: Llama 3.3 70B, Vision, DeepSeek-R1 distill",
   },
   fireworks: {
     id: "fireworks",
@@ -499,6 +505,67 @@ export const APIKEY_PROVIDERS = {
     textIcon: "AL",
     website: "https://dashscope-intl.aliyuncs.com",
     hasFree: false,
+  },
+  longcat: {
+    id: "longcat",
+    alias: "lc",
+    name: "LongCat AI",
+    icon: "auto_awesome",
+    color: "#FF6B9D",
+    textIcon: "LC",
+    website: "https://longcat.chat",
+    hasFree: true,
+    freeNote:
+      "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
+  },
+  pollinations: {
+    id: "pollinations",
+    alias: "pol",
+    name: "Pollinations AI",
+    icon: "local_florist",
+    color: "#4CAF50",
+    textIcon: "PO",
+    website: "https://pollinations.ai",
+    hasFree: true,
+    freeNote:
+      "No API key needed — access GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 free (1 req/15s)",
+  },
+  "cloudflare-ai": {
+    id: "cloudflare-ai",
+    alias: "cf",
+    name: "Cloudflare Workers AI",
+    icon: "cloud",
+    color: "#F48120",
+    textIcon: "CF",
+    website: "https://developers.cloudflare.com/workers-ai/",
+    hasFree: true,
+    freeNote:
+      "Free 10K Neurons/day: ~150 LLM responses or 500s Whisper audio — edge inference globally",
+    authHint: "Requires API Token AND Account ID (found at dash.cloudflare.com)",
+  },
+  scaleway: {
+    id: "scaleway",
+    alias: "scw",
+    name: "Scaleway AI",
+    icon: "cloud",
+    color: "#4F0599",
+    textIcon: "SCW",
+    website: "https://www.scaleway.com/en/ai/generative-apis/",
+    hasFree: true,
+    freeNote: "1M free tokens for new accounts — EU/GDPR compliant (Paris), Qwen3 235B & Llama 70B",
+  },
+  aimlapi: {
+    id: "aimlapi",
+    alias: "aiml",
+    name: "AI/ML API",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "AI",
+    website: "https://aimlapi.com",
+    hasFree: true,
+    freeNote:
+      "$0.025/day free credits — 200+ models (GPT-4o, Claude, Gemini, Llama) via single endpoint",
+    passthroughModels: true,
   },
 };
 

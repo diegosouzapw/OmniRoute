@@ -883,6 +883,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", name: "Llama 3.3 70B Turbo (🆓 Free)" },
+      { id: "meta-llama/Llama-Vision-Free", name: "Llama Vision (🆓 Free)" },
+      {
+        id: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free",
+        name: "DeepSeek R1 Distill 70B (🆓 Free)",
+      },
       { id: "meta-llama/Llama-3.3-70B-Instruct-Turbo", name: "Llama 3.3 70B Turbo" },
       { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
       { id: "Qwen/Qwen3-235B-A22B", name: "Qwen3 235B" },
@@ -1151,6 +1157,104 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwq-32b", name: "QwQ 32B" },
       { id: "qwen3-32b", name: "Qwen3 32B" },
       { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
+    ],
+    passthroughModels: true,
+  },
+
+  // ── New Free Providers (2026) ─────────────────────────────────────────────
+
+  longcat: {
+    id: "longcat",
+    alias: "lc",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://longcat.chat/api/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // Free tier: 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta
+    models: [
+      { id: "LongCat-Flash-Lite", name: "LongCat Flash-Lite (50M tok/day 🆓)" },
+      { id: "LongCat-Flash-Chat", name: "LongCat Flash-Chat (500K tok/day 🆓)" },
+      { id: "LongCat-Flash-Thinking", name: "LongCat Flash-Thinking (500K tok/day 🆓)" },
+      { id: "LongCat-Flash-Thinking-2601", name: "LongCat Flash-Thinking-2601 (🆓)" },
+      { id: "LongCat-Flash-Omni-2603", name: "LongCat Flash-Omni-2603 (🆓)" },
+    ],
+  },
+
+  pollinations: {
+    id: "pollinations",
+    alias: "pol",
+    format: "openai",
+    executor: "pollinations",
+    // No API key required for basic use. Proxy to GPT-5, Claude, Gemini, DeepSeek, Llama 4.
+    baseUrl: "https://text.pollinations.ai/openai/chat/completions",
+    authType: "apikey", // Optional — works without one too
+    authHeader: "bearer",
+    models: [
+      { id: "openai", name: "GPT-5 via Pollinations (🆓)" },
+      { id: "claude", name: "Claude via Pollinations (🆓)" },
+      { id: "gemini", name: "Gemini via Pollinations (🆓)" },
+      { id: "deepseek", name: "DeepSeek V3 via Pollinations (🆓)" },
+      { id: "llama", name: "Llama 4 via Pollinations (🆓)" },
+      { id: "mistral", name: "Mistral via Pollinations (🆓)" },
+    ],
+  },
+
+  "cloudflare-ai": {
+    id: "cloudflare-ai",
+    alias: "cf",
+    format: "openai",
+    executor: "cloudflare-ai",
+    // URL is dynamic: uses accountId from credentials. The executor builds it.
+    baseUrl: "https://api.cloudflare.com/client/v4/accounts",
+    authType: "apikey",
+    authHeader: "bearer",
+    // 10K Neurons/day free: ~150 LLM responses or 500s Whisper audio — global edge
+    models: [
+      { id: "@cf/meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B (🆓 ~150 resp/day)" },
+      { id: "@cf/meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B (🆓)" },
+      { id: "@cf/google/gemma-3-12b-it", name: "Gemma 3 12B (🆓)" },
+      { id: "@cf/mistral/mistral-7b-instruct-v0.2-lora", name: "Mistral 7B (🆓)" },
+      { id: "@cf/qwen/qwen2.5-coder-15b-instruct", name: "Qwen 2.5 Coder 15B (🆓)" },
+      { id: "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", name: "DeepSeek R1 Distill 32B (🆓)" },
+    ],
+  },
+
+  scaleway: {
+    id: "scaleway",
+    alias: "scw",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.scaleway.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // 1M tokens free for new accounts — EU/GDPR (Paris), no credit card needed under limit
+    models: [
+      { id: "qwen3-235b-a22b-instruct-2507", name: "Qwen3 235B A22B (1M free tok 🆓)" },
+      { id: "llama-3.1-70b-instruct", name: "Llama 3.1 70B (🆓 EU)" },
+      { id: "llama-3.1-8b-instruct", name: "Llama 3.1 8B (🆓 EU)" },
+      { id: "mistral-small-3.2-24b-instruct-2506", name: "Mistral Small 3.2 (🆓 EU)" },
+      { id: "deepseek-v3-0324", name: "DeepSeek V3 (🆓 EU)" },
+      { id: "gpt-oss-120b", name: "GPT-OSS 120B (🆓 EU)" },
+    ],
+  },
+
+  aimlapi: {
+    id: "aimlapi",
+    alias: "aiml",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.aimlapi.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // $0.025/day free credits — 200+ models via single aggregator endpoint
+    models: [
+      { id: "gpt-4o", name: "GPT-4o (via AI/ML API)" },
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet (via AI/ML API)" },
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (via AI/ML API)" },
+      { id: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", name: "Llama 3.1 70B (via AI/ML API)" },
+      { id: "deepseek-chat", name: "DeepSeek Chat (via AI/ML API)" },
+      { id: "mistral-large-latest", name: "Mistral Large (via AI/ML API)" },
     ],
     passthroughModels: true,
   },
