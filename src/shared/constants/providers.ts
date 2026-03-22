@@ -490,6 +490,22 @@ export const APIKEY_PROVIDERS = {
     website: "https://tavily.com",
     authHint: "API key from app.tavily.com (format: tvly-...)",
   },
+  "opencode-zen": {
+    id: "opencode-zen",
+    alias: "opencode-zen",
+    name: "OpenCode Zen",
+    icon: "opencode",
+    color: "#6366f1",
+    website: "https://opencode.ai/zen",
+  },
+  "opencode-go": {
+    id: "opencode-go",
+    alias: "opencode-go",
+    name: "OpenCode Go",
+    icon: "opencode",
+    color: "#6366f1",
+    website: "https://opencode.ai/zen/go",
+  },
   alibaba: {
     id: "alibaba",
     alias: "ali",
