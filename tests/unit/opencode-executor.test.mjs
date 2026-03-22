@@ -1,124 +1,189 @@
-import { beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts");
-const { getModelTargetFormat } = await import("../../open-sse/config/providerModels.ts");
+const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
-function setRequestFormat(executor, provider, model, overrideFormat) {
-  executor._requestFormat = overrideFormat ?? getModelTargetFormat(provider, model);
+function createMockResponse() {
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function createInput(model, stream = true, credentials = { apiKey: "test-key" }) {
+  return {
+    model,
+    stream,
+    credentials,
+    body: {
+      model,
+      stream,
+      messages: [{ role: "user", content: "hello" }],
+    },
+  };
+}
+
+function registerModel(provider, model) {
+  PROVIDER_MODELS[provider] = [...(PROVIDER_MODELS[provider] || []), model];
 }
 
 describe("OpencodeExecutor", () => {
   let zenExecutor;
   let goExecutor;
+  let fetchCalls;
+  let originalFetch;
+  let originalZenModels;
+  let originalGoModels;
 
   beforeEach(() => {
     zenExecutor = new OpencodeExecutor("opencode-zen");
     goExecutor = new OpencodeExecutor("opencode-go");
+    fetchCalls = [];
+    originalFetch = globalThis.fetch;
+    originalZenModels = [...(PROVIDER_MODELS["opencode-zen"] || [])];
+    originalGoModels = [...(PROVIDER_MODELS["opencode-go"] || [])];
+    globalThis.fetch = async (url, options) => {
+      fetchCalls.push({ url, options });
+      return createMockResponse();
+    };
   });
 
-  describe("buildUrl", () => {
-    it("returns chat completions for opencode zen default models", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "minimax-m2.5-free");
-      assert.equal(
-        zenExecutor.buildUrl("minimax-m2.5-free", true),
-        "https://opencode.ai/zen/v1/chat/completions"
-      );
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    PROVIDER_MODELS["opencode-zen"] = originalZenModels;
+    PROVIDER_MODELS["opencode-go"] = originalGoModels;
+  });
 
-      setRequestFormat(zenExecutor, "opencode-zen", "big-pickle");
-      assert.equal(
-        zenExecutor.buildUrl("big-pickle", true),
-        "https://opencode.ai/zen/v1/chat/completions"
-      );
+  describe("execute", () => {
+    it("routes opencode zen default models to chat completions", async () => {
+      const minimaxResult = await zenExecutor.execute(createInput("minimax-m2.5-free"));
+      assert.equal(minimaxResult.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
 
-      setRequestFormat(zenExecutor, "opencode-zen", "gpt-5-nano");
-      assert.equal(
-        zenExecutor.buildUrl("gpt-5-nano", true),
-        "https://opencode.ai/zen/v1/chat/completions"
-      );
+      const pickleResult = await zenExecutor.execute(createInput("big-pickle"));
+      assert.equal(pickleResult.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[1].url, "https://opencode.ai/zen/v1/chat/completions");
+
+      const nanoResult = await zenExecutor.execute(createInput("gpt-5-nano"));
+      assert.equal(nanoResult.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[2].url, "https://opencode.ai/zen/v1/chat/completions");
     });
 
-    it("returns messages endpoint for claude target format models", () => {
-      setRequestFormat(goExecutor, "opencode-go", "minimax-m2.7");
-      assert.equal(
-        goExecutor.buildUrl("minimax-m2.7", true),
-        "https://opencode.ai/zen/go/v1/messages"
+    it("routes claude target format models to messages endpoint", async () => {
+      const m27Result = await goExecutor.execute(
+        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
       );
+      assert.equal(m27Result.url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(m27Result.headers["anthropic-version"], "2023-06-01");
 
-      setRequestFormat(goExecutor, "opencode-go", "minimax-m2.5");
-      assert.equal(
-        goExecutor.buildUrl("minimax-m2.5", true),
-        "https://opencode.ai/zen/go/v1/messages"
+      const m25Result = await goExecutor.execute(
+        createInput("minimax-m2.5", true, { apiKey: "claude-key" })
       );
+      assert.equal(m25Result.url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(fetchCalls[1].url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(m25Result.headers["anthropic-version"], "2023-06-01");
     });
 
-    it("returns responses endpoint for openai responses target format", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "gpt-5-nano", "openai-responses");
-      assert.equal(
-        zenExecutor.buildUrl("gpt-5-nano", true),
-        "https://opencode.ai/zen/v1/responses"
-      );
+    it("routes openai responses target format models to responses endpoint", async () => {
+      registerModel("opencode-zen", {
+        id: "gpt-5-responses",
+        name: "GPT 5 Responses",
+        targetFormat: "openai-responses",
+      });
+
+      const result = await zenExecutor.execute(createInput("gpt-5-responses"));
+
+      assert.equal(result.url, "https://opencode.ai/zen/v1/responses");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/responses");
     });
 
-    it("returns gemini streaming endpoint when stream is true", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "gemini-2.5-pro", "gemini");
+    it("routes gemini streaming requests to streamGenerateContent", async () => {
+      registerModel("opencode-zen", {
+        id: "gemini-2.5-pro",
+        name: "Gemini 2.5 Pro",
+        targetFormat: "gemini",
+      });
+
+      const result = await zenExecutor.execute(createInput("gemini-2.5-pro"));
+
       assert.equal(
-        zenExecutor.buildUrl("gemini-2.5-pro", true),
+        result.url,
+        "https://opencode.ai/zen/v1/models/gemini-2.5-pro:streamGenerateContent?alt=sse"
+      );
+      assert.equal(
+        fetchCalls[0].url,
         "https://opencode.ai/zen/v1/models/gemini-2.5-pro:streamGenerateContent?alt=sse"
       );
     });
 
-    it("returns gemini non streaming endpoint when stream is false", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "gemini-2.5-pro", "gemini");
+    it("routes gemini non streaming requests to generateContent", async () => {
+      registerModel("opencode-zen", {
+        id: "gemini-2.5-pro",
+        name: "Gemini 2.5 Pro",
+        targetFormat: "gemini",
+      });
+
+      const result = await zenExecutor.execute(createInput("gemini-2.5-pro", false));
+
+      assert.equal(result.url, "https://opencode.ai/zen/v1/models/gemini-2.5-pro:generateContent");
       assert.equal(
-        zenExecutor.buildUrl("gemini-2.5-pro", false),
+        fetchCalls[0].url,
         "https://opencode.ai/zen/v1/models/gemini-2.5-pro:generateContent"
       );
     });
 
-    it("falls back to chat completions for unknown models", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "unknown-model");
-      assert.equal(
-        zenExecutor.buildUrl("unknown-model", true),
-        "https://opencode.ai/zen/v1/chat/completions"
-      );
-    });
-  });
+    it("falls back to chat completions for unknown models", async () => {
+      const result = await zenExecutor.execute(createInput("unknown-model"));
 
-  describe("buildHeaders", () => {
-    it("builds default headers for standard models", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "gpt-5-nano");
-      assert.deepEqual(zenExecutor.buildHeaders({ apiKey: "test-key" }), {
+      assert.equal(result.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+    });
+
+    it("builds default headers for standard models", async () => {
+      const result = await zenExecutor.execute(createInput("gpt-5-nano"));
+
+      assert.deepEqual(result.headers, {
         Authorization: "Bearer test-key",
         "Content-Type": "application/json",
         Accept: "text/event-stream",
       });
+      assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
 
-    it("adds anthropic version for claude target format", () => {
-      setRequestFormat(goExecutor, "opencode-go", "minimax-m2.7");
-      assert.deepEqual(goExecutor.buildHeaders({ apiKey: "claude-key" }), {
+    it("adds anthropic version for claude target format", async () => {
+      const result = await goExecutor.execute(
+        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
+      );
+
+      assert.deepEqual(result.headers, {
         Authorization: "Bearer claude-key",
         "Content-Type": "application/json",
         "anthropic-version": "2023-06-01",
         Accept: "text/event-stream",
       });
+      assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
 
-    it("omits accept header when stream is false", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "big-pickle");
-      assert.deepEqual(zenExecutor.buildHeaders({ apiKey: "test-key" }, false), {
+    it("omits accept header when stream is false", async () => {
+      const result = await zenExecutor.execute(createInput("big-pickle", false));
+
+      assert.deepEqual(result.headers, {
         Authorization: "Bearer test-key",
         "Content-Type": "application/json",
       });
+      assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
 
-    it("omits authorization when credentials are missing", () => {
-      setRequestFormat(zenExecutor, "opencode-zen", "minimax-m2.5-free");
-      assert.deepEqual(zenExecutor.buildHeaders(null), {
+    it("omits authorization when credentials are missing", async () => {
+      const result = await zenExecutor.execute(createInput("minimax-m2.5-free", true, null));
+
+      assert.deepEqual(result.headers, {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
       });
+      assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
   });
 });
