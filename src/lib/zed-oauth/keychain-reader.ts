@@ -8,6 +8,9 @@
  */
 
 import keytar from 'keytar';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 export interface ZedCredential {
   provider: string;
@@ -92,6 +95,12 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
       const creds = await keytar.findCredentials(pattern);
       
       for (const cred of creds) {
+        // FIX #1: Add null check for cred.password
+        if (!cred.password) {
+          console.debug(`Skipping credential with missing password: ${pattern}/${cred.account}`);
+          continue;
+        }
+
         credentials.push({
           provider: extractProviderFromService(pattern),
           service: pattern,
@@ -99,8 +108,8 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
           token: cred.password
         });
       }
-    } catch (error) {
-      console.debug(`No credentials found for ${pattern}:`, error.message);
+    } catch (error: any) {
+      console.debug(`No credentials found for ${pattern}:`, error?.message || error);
       // Continue to next pattern
     }
   }
@@ -110,6 +119,10 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
 
 /**
  * Gets a specific Zed credential for a provider
+ * 
+ * FIX #2: Instead of hardcoded account names, first try findCredentials
+ * which will return all actual credentials for the service, then fallback
+ * to common patterns only if needed.
  * 
  * @param provider - Provider name (openai, anthropic, google, etc.)
  * @returns The credential if found, null otherwise
@@ -121,7 +134,18 @@ export async function getZedCredential(provider: string): Promise<ZedCredential 
 
   for (const pattern of patterns) {
     try {
-      // Try common account names
+      // First, try findCredentials to get all actual credentials
+      const creds = await keytar.findCredentials(pattern);
+      if (creds.length > 0 && creds[0].password) {
+        return {
+          provider,
+          service: pattern,
+          account: creds[0].account,
+          token: creds[0].password
+        };
+      }
+
+      // Fallback: Try common account name patterns
       const accountNames = ['api-key', 'token', 'oauth', provider];
       
       for (const account of accountNames) {
@@ -135,19 +159,8 @@ export async function getZedCredential(provider: string): Promise<ZedCredential 
           };
         }
       }
-
-      // If no specific account found, try finding all for this service
-      const creds = await keytar.findCredentials(pattern);
-      if (creds.length > 0) {
-        return {
-          provider,
-          service: pattern,
-          account: creds[0].account,
-          token: creds[0].password
-        };
-      }
-    } catch (error) {
-      console.debug(`Failed to get credential for ${pattern}:`, error.message);
+    } catch (error: any) {
+      console.debug(`Failed to get credential for ${pattern}:`, error?.message || error);
     }
   }
 
@@ -157,13 +170,11 @@ export async function getZedCredential(provider: string): Promise<ZedCredential 
 /**
  * Checks if Zed IDE appears to be installed and configured
  * 
+ * FIX #3: Convert to ES imports instead of CommonJS require()
+ * 
  * @returns true if Zed config directory exists
  */
 export async function isZedInstalled(): Promise<boolean> {
-  const fs = require('fs');
-  const os = require('os');
-  const path = require('path');
-  
   const homeDir = os.homedir();
   const zedConfigPaths = [
     path.join(homeDir, '.config', 'zed'),  // Linux
