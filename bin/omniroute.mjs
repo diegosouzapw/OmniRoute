@@ -116,10 +116,8 @@ if (args.includes("--help") || args.includes("-h")) {
 
 if (args.includes("--version") || args.includes("-v")) {
   try {
-    const pkg = await import(join(ROOT, "package.json"), {
-      with: { type: "json" },
-    });
-    console.log(pkg.default.version);
+    const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+    console.log(version);
   } catch {
     console.log("unknown");
   }
