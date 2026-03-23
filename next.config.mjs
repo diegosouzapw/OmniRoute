@@ -13,6 +13,9 @@ const nextConfig = {
   },
   output: "standalone",
   serverExternalPackages: [
+    "pino",
+    "pino-pretty",
+    "thread-stream",
     "better-sqlite3",
     "zod",
     "child_process",
@@ -37,8 +40,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (isServer) {
+      // Webpack IgnorePlugin: skip thread-stream test files that contain
+      // intentionally broken syntax/imports (they cause Turbopack build errors)
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /\/test\//,
+          contextRegExp: /thread-stream/,
+        })
+      );
       // ── Turbopack / Next.js 16 module-hash patch (#394, #396, #398) ────────
       //
       // Next.js 16 (with or without Turbopack) compiles the instrumentation hook

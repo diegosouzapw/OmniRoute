@@ -149,6 +149,21 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Requested Model
+              </div>
+              <div
+                className={`text-sm font-medium font-mono ${
+                  (detail?.requestedModel || log.requestedModel) &&
+                  (detail?.requestedModel || log.requestedModel) !== log.model
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-text-muted"
+                }`}
+              >
+                {detail?.requestedModel || log.requestedModel || "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                 Provider
               </div>
               <span

@@ -905,6 +905,7 @@ export const updateKeyPermissionsSchema = z
     noLog: z.boolean().optional(),
     autoResolve: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    maxSessions: z.number().int().min(0).max(10000).optional(),
     accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
   })
   .superRefine((value, ctx) => {
@@ -915,6 +916,7 @@ export const updateKeyPermissionsSchema = z
       value.noLog === undefined &&
       value.autoResolve === undefined &&
       value.isActive === undefined &&
+      value.maxSessions === undefined &&
       value.accessSchedule === undefined
     ) {
       ctx.addIssue({
@@ -1028,6 +1030,7 @@ export const providersBatchTestSchema = z
 export const validateProviderApiKeySchema = z.object({
   provider: z.string().trim().min(1, "Provider and API key required"),
   apiKey: z.string().trim().min(1, "Provider and API key required"),
+  validationModelId: z.string().trim().optional(),
 });
 
 const geminiPartSchema = z

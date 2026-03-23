@@ -99,8 +99,10 @@ async function validateOpenAILikeProvider({
     return { valid: false, error: `Validation failed: ${modelsRes.status}` };
   }
 
+  const testModelId = (providerSpecificData as any)?.validationModelId || modelId;
+
   const testBody = {
-    model: modelId,
+    model: testModelId,
     messages: [{ role: "user", content: "test" }],
     max_tokens: 1,
   };
@@ -131,7 +133,13 @@ async function validateOpenAILikeProvider({
   return { valid: true, error: null };
 }
 
-async function validateAnthropicLikeProvider({ apiKey, baseUrl, modelId, headers = {} }: any) {
+async function validateAnthropicLikeProvider({
+  apiKey,
+  baseUrl,
+  modelId,
+  headers = {},
+  providerSpecificData = {},
+}: any) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
@@ -149,11 +157,14 @@ async function validateAnthropicLikeProvider({ apiKey, baseUrl, modelId, headers
     requestHeaders["anthropic-version"] = "2023-06-01";
   }
 
+  const testModelId =
+    providerSpecificData?.validationModelId || modelId || "claude-3-5-sonnet-20241022";
+
   const response = await fetch(baseUrl, {
     method: "POST",
     headers: requestHeaders,
     body: JSON.stringify({
-      model: modelId || "claude-3-5-sonnet-20241022",
+      model: testModelId,
       max_tokens: 1,
       messages: [{ role: "user", content: "test" }],
     }),
@@ -352,22 +363,49 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
   }
 
+  const validationModelId =
+    typeof providerSpecificData?.validationModelId === "string"
+      ? providerSpecificData.validationModelId.trim()
+      : "";
+
   // Step 1: Try GET /models
+  let modelsReachable = false;
   try {
     const modelsRes = await fetch(`${baseUrl}/models`, {
       method: "GET",
       headers: buildBearerHeaders(apiKey),
     });
 
+    modelsReachable = true;
+
     if (modelsRes.ok) {
-      return { valid: true, error: null };
+      return { valid: true, error: null, method: "models_endpoint" };
     }
 
     if (modelsRes.status === 401 || modelsRes.status === 403) {
       return { valid: false, error: "Invalid API key" };
     }
+
+    // Endpoint responded and auth seems valid, but quota is exhausted/rate-limited.
+    if (modelsRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "models_endpoint",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
   } catch {
     // /models fetch failed (network error, etc.) — fall through to chat test
+  }
+
+  // T25: if /models cannot be used and no custom model was provided, return a
+  // clear actionable message instead of a generic connection error.
+  if (!validationModelId) {
+    return {
+      valid: false,
+      error: "Endpoint /models unavailable. Provide a Model ID to validate via /chat/completions.",
+    };
   }
 
   // Step 2: Fallback — try a minimal chat completion request
@@ -375,29 +413,54 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   const apiType = providerSpecificData.apiType || "chat";
   const chatSuffix = apiType === "responses" ? "/responses" : "/chat/completions";
   const chatUrl = `${baseUrl}${chatSuffix}`;
+  const testModelId = validationModelId;
 
   try {
     const chatRes = await fetch(chatUrl, {
       method: "POST",
       headers: buildBearerHeaders(apiKey),
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: testModelId,
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
     });
 
     if (chatRes.ok) {
-      return { valid: true, error: null };
+      return { valid: true, error: null, method: "chat_completions" };
     }
 
     if (chatRes.status === 401 || chatRes.status === 403) {
       return { valid: false, error: "Invalid API key" };
     }
 
+    if (chatRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "chat_completions",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    // If /models was reachable but returned non-auth error, and chat succeeds
+    // auth-wise, this still confirms credentials are valid.
+    if (chatRes.status === 400) {
+      return {
+        valid: true,
+        error: null,
+        method: "inference_available",
+        warning: "Model ID may be invalid, but credentials are valid",
+      };
+    }
+
     // 4xx other than auth (e.g. 400 bad model, 422) usually means auth passed
     if (chatRes.status >= 400 && chatRes.status < 500) {
-      return { valid: true, error: null };
+      return {
+        valid: true,
+        error: null,
+        method: "inference_available",
+      };
     }
 
     if (chatRes.status >= 500) {
@@ -410,6 +473,10 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   // Step 3: Final fallback — simple connectivity check
   // For local providers (Ollama, LM Studio, etc.) that may not respond to
   // standard OpenAI endpoints but are still reachable
+  if (!modelsReachable) {
+    return { valid: false, error: "Connection failed while testing /chat/completions" };
+  }
+
   try {
     const pingRes = await fetch(baseUrl, {
       method: "GET",
@@ -464,12 +531,13 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
   }
 
   // Step 2: Fallback — try a minimal messages request
+  const testModelId = providerSpecificData?.validationModelId || "claude-3-5-sonnet-20241022";
   try {
     const messagesRes = await fetch(`${baseUrl}/messages`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20241022",
+        model: testModelId,
         max_tokens: 1,
         messages: [{ role: "user", content: "test" }],
       }),
@@ -646,6 +714,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         baseUrl: requestBaseUrl,
         modelId,
         headers: requestHeaders,
+        providerSpecificData,
       });
     }
 

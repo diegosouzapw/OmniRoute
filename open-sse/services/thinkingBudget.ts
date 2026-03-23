@@ -13,12 +13,14 @@ export const ThinkingMode = {
   ADAPTIVE: "adaptive", // Scale based on request complexity
 };
 
+import { capThinkingBudget, getDefaultThinkingBudget } from "@/shared/constants/modelSpecs";
+
 // Effort → budget token mapping
 export const EFFORT_BUDGETS = {
   none: 0,
   low: 1024,
   medium: 10240,
-  high: 131072,
+  high: 131072, // Handled globally by capThinkingBudget later
   max: 131072, // T11: Claude "max" / "xhigh" — full budget
   xhigh: 131072, // T11: explicit alias used internally
 };
@@ -27,9 +29,9 @@ export const EFFORT_BUDGETS = {
 // Used when clients send string-based thinking levels (e.g., VS Code Copilot)
 export const THINKING_LEVEL_MAP = {
   none: 0,
-  low: 1024,
-  medium: 10240,
-  high: 131072,
+  low: 4096,
+  medium: 8192,
+  high: 24576,
   max: 131072, // T11: max = full Claude budget (sub2api: xhigh)
   xhigh: 131072, // T11: explicit xhigh alias
 };
@@ -72,8 +74,9 @@ export function normalizeThinkingLevel(body) {
 
   // Handle top-level thinkingLevel or thinking_level string fields
   const levelStr = result.thinkingLevel || result.thinking_level;
-  if (typeof levelStr === "string" && THINKING_LEVEL_MAP[levelStr] !== undefined) {
-    const budget = THINKING_LEVEL_MAP[levelStr];
+  if (typeof levelStr === "string" && THINKING_LEVEL_MAP[levelStr.toLowerCase()] !== undefined) {
+    const rawBudget = THINKING_LEVEL_MAP[levelStr.toLowerCase()];
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     // Convert to Claude thinking format as canonical representation
     result.thinking = {
       type: budget > 0 ? "enabled" : "disabled",
@@ -87,15 +90,22 @@ export function normalizeThinkingLevel(body) {
   const geminiLevel =
     result.generationConfig?.thinkingConfig?.thinkingLevel ||
     result.generationConfig?.thinking_config?.thinkingLevel;
-  if (typeof geminiLevel === "string" && THINKING_LEVEL_MAP[geminiLevel] !== undefined) {
-    const budget = THINKING_LEVEL_MAP[geminiLevel];
+  if (
+    typeof geminiLevel === "string" &&
+    THINKING_LEVEL_MAP[geminiLevel.toLowerCase()] !== undefined
+  ) {
+    const rawBudget = THINKING_LEVEL_MAP[geminiLevel.toLowerCase()];
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     result.generationConfig = {
       ...result.generationConfig,
-      thinking_config: { thinking_budget: budget },
+      thinkingConfig: { ...result.generationConfig.thinkingConfig, thinkingBudget: budget },
     };
-    // Clean up camelCase variant if it was the source
+    // Clean up string variants
     if (result.generationConfig.thinkingConfig) {
-      delete result.generationConfig.thinkingConfig;
+      delete result.generationConfig.thinkingConfig.thinkingLevel;
+    }
+    if (result.generationConfig.thinking_config) {
+      delete result.generationConfig.thinking_config;
     }
   }
 
@@ -122,7 +132,7 @@ export function ensureThinkingConfig(body) {
   const result = { ...body };
   result.thinking = {
     type: "enabled",
-    budget_tokens: EFFORT_BUDGETS.medium, // 10240 default
+    budget_tokens: getDefaultThinkingBudget(model) || EFFORT_BUDGETS.medium,
   };
   return result;
 }
@@ -257,8 +267,11 @@ function applyAdaptiveBudget(body, cfg) {
   if (toolCount > 3) multiplier += 0.5;
   if (lastMsgLength > 2000) multiplier += 0.3;
 
-  const baseBudget = EFFORT_BUDGETS[cfg.effortLevel] || EFFORT_BUDGETS.medium;
-  const budget = Math.min(Math.ceil(baseBudget * multiplier), 131072);
+  const baseBudget =
+    EFFORT_BUDGETS[cfg.effortLevel] ||
+    getDefaultThinkingBudget(body.model || "") ||
+    EFFORT_BUDGETS.medium;
+  const budget = capThinkingBudget(body.model || "", Math.ceil(baseBudget * multiplier));
 
   return setCustomBudget(body, budget);
 }

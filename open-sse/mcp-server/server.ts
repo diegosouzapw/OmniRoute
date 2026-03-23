@@ -433,23 +433,48 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
   const start = Date.now();
   try {
     let path = "/v1/models";
-    const params = new URLSearchParams();
-    if (args.provider) params.set("provider", args.provider);
-    if (args.capability) params.set("capability", args.capability);
-    if (params.toString()) path += `?${params.toString()}`;
+    let isProviderSpecific = false;
+    let source = "local_catalog";
+    let warning = undefined;
+
+    if (args.provider && !args.capability) {
+      // Use direct provider fetch to get real-time API status
+      path = `/api/providers/${encodeURIComponent(args.provider)}/models`;
+      isProviderSpecific = true;
+    } else {
+      const params = new URLSearchParams();
+      if (args.provider) params.set("provider", args.provider);
+      if (args.capability) params.set("capability", args.capability);
+      if (params.toString()) path += `?${params.toString()}`;
+    }
 
     const raw = toRecord(await omniRouteFetch(path));
+
+    // If we used the direct provider endpoint
+    let rawModels = [];
+    if (isProviderSpecific) {
+      rawModels = Array.isArray(raw.models) ? raw.models : [];
+      source = typeof raw.source === "string" ? raw.source : "api";
+      if (raw.warning) warning = String(raw.warning);
+    } else {
+      rawModels = Array.isArray(raw.data) ? raw.data : [];
+      source = "local_catalog";
+      // OmniRoute's global /v1/models is always a cached/local catalog
+    }
+
     const result = {
-      models: toArray(raw.data).map((rawModel) => {
+      models: rawModels.map((rawModel) => {
         const model = toRecord(rawModel);
         return {
           id: toString(model.id, ""),
-          provider: toString(model.owned_by, toString(model.provider, "unknown")),
+          provider: toString(model.owned_by, toString(model.provider, args.provider || "unknown")),
           capabilities: toStringArray(model.capabilities, ["chat"]),
           status: toString(model.status, "available"),
           pricing: model.pricing,
         };
       }),
+      source,
+      ...(warning ? { warning } : {}),
     };
 
     await logToolCall(

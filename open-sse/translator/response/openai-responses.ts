@@ -257,6 +257,17 @@ function emitToolCall(state, emit, tc) {
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
+  // T37: If we already have a tool call at this index but the ID changed,
+  // we must close the current one and start a new one to prevent merging.
+  if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
+    closeToolCall(state, emit, tcIdx);
+    delete state.funcCallIds[tcIdx];
+    delete state.funcNames[tcIdx];
+    delete state.funcArgsBuf[tcIdx];
+    delete state.funcArgsDone[tcIdx];
+    delete state.funcItemDone[tcIdx];
+  }
+
   if (funcName) state.funcNames[tcIdx] = funcName;
 
   if (!state.funcCallIds[tcIdx] && newCallId) {

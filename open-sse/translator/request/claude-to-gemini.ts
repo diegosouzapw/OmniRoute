@@ -1,6 +1,10 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { DEFAULT_SAFETY_SETTINGS, tryParseJSON } from "../helpers/geminiHelper.ts";
+import {
+  DEFAULT_SAFETY_SETTINGS,
+  tryParseJSON,
+  cleanJSONSchemaForAntigravity,
+} from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 
 /**
@@ -154,7 +158,9 @@ export function claudeToGeminiRequest(model, body, stream) {
         functionDeclarations.push({
           name: tool.name,
           description: tool.description || "",
-          parameters: tool.input_schema || { type: "object", properties: {} },
+          parameters: cleanJSONSchemaForAntigravity(
+            tool.input_schema || { type: "object", properties: {} }
+          ),
         });
       }
     }

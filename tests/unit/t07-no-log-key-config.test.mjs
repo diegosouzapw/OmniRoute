@@ -59,6 +59,11 @@ test("updateKeyPermissionsSchema accepts noLog-only updates and rejects empty pa
   const noLogOnly = schemas.validateBody(schemas.updateKeyPermissionsSchema, { noLog: true });
   assert.equal(noLogOnly.success, true);
 
+  const maxSessionsOnly = schemas.validateBody(schemas.updateKeyPermissionsSchema, {
+    maxSessions: 3,
+  });
+  assert.equal(maxSessionsOnly.success, true);
+
   const emptyPayload = schemas.validateBody(schemas.updateKeyPermissionsSchema, {});
   assert.equal(emptyPayload.success, false);
 });

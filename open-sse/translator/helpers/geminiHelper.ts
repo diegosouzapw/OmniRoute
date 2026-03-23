@@ -172,6 +172,9 @@ function convertEnumValuesToStrings(obj) {
 
   if (obj.enum && Array.isArray(obj.enum)) {
     obj.enum = obj.enum.map((v) => String(v));
+    if (!obj.type) {
+      obj.type = "string";
+    }
   }
 
   for (const value of Object.values(obj)) {

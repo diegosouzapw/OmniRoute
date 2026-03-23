@@ -62,6 +62,7 @@ export async function PATCH(request, { params }) {
       noLog,
       autoResolve,
       isActive,
+      maxSessions,
       accessSchedule,
     } = validation.data;
 
@@ -72,6 +73,7 @@ export async function PATCH(request, { params }) {
     if (noLog !== undefined) payload.noLog = noLog;
     if (autoResolve !== undefined) payload.autoResolve = autoResolve;
     if (isActive !== undefined) payload.isActive = isActive;
+    if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
 
     const updated = await updateApiKeyPermissions(id, payload);
@@ -90,6 +92,7 @@ export async function PATCH(request, { params }) {
       ...(noLog !== undefined && { noLog }),
       ...(autoResolve !== undefined && { autoResolve }),
       ...(isActive !== undefined && { isActive }),
+      ...(maxSessions !== undefined && { maxSessions }),
       ...(accessSchedule !== undefined && { accessSchedule }),
     });
   } catch (error) {

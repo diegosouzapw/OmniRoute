@@ -122,6 +122,7 @@ export default function ProviderLimits() {
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
   const lastFetchTimeRef = useRef({});
+  const staleProbeRef = useRef({});
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -137,11 +138,12 @@ export default function ProviderLimits() {
     }
   }, []);
 
-  const fetchQuota = useCallback(async (connectionId, provider) => {
+  const fetchQuota = useCallback(async (connectionId, provider, options = {}) => {
+    const force = options?.force === true;
     // Debounce: skip if last fetch was < MIN_FETCH_INTERVAL_MS ago
     const now = Date.now();
     const lastFetch = lastFetchTimeRef.current[connectionId] || 0;
-    if (now - lastFetch < MIN_FETCH_INTERVAL_MS) {
+    if (!force && now - lastFetch < MIN_FETCH_INTERVAL_MS) {
       return; // Skip, data is still fresh
     }
     lastFetchTimeRef.current[connectionId] = now;
@@ -165,6 +167,20 @@ export default function ProviderLimits() {
       }
       const data = await response.json();
       const parsedQuotas = parseQuotaData(provider, data);
+
+      // T13: If resetAt already passed but provider still returned stale cumulative usage,
+      // display 0 immediately and trigger a background probe to refresh snapshot.
+      const hasStaleAfterReset = parsedQuotas.some((q) => q?.staleAfterReset === true);
+      if (hasStaleAfterReset) {
+        const lastProbeAt = staleProbeRef.current[connectionId] || 0;
+        if (Date.now() - lastProbeAt >= MIN_FETCH_INTERVAL_MS) {
+          staleProbeRef.current[connectionId] = Date.now();
+          setTimeout(() => {
+            fetchQuota(connectionId, provider, { force: true }).catch(() => {});
+          }, 5000);
+        }
+      }
+
       setQuotaData((prev) => ({
         ...prev,
         [connectionId]: {
@@ -571,6 +587,7 @@ export default function ProviderLimits() {
                       const colors = getBarColor(remaining);
                       const cd = formatCountdown(q.resetAt);
                       const shortName = getShortModelName(q.name);
+                      const staleAfterReset = q.staleAfterReset === true;
 
                       return (
                         <div key={i} className="flex items-center gap-1.5 min-w-[200px] shrink-0">
@@ -583,11 +600,15 @@ export default function ProviderLimits() {
                           </span>
 
                           {/* Countdown */}
-                          {cd && (
+                          {staleAfterReset ? (
+                            <span className="text-[10px] text-text-muted whitespace-nowrap">
+                              ⟳ Refreshing...
+                            </span>
+                          ) : cd ? (
                             <span className="text-[10px] text-text-muted whitespace-nowrap">
                               ⏱ {cd}
                             </span>
-                          )}
+                          ) : null}
 
                           {/* Progress bar */}
                           <div className="flex-1 h-1.5 rounded-sm bg-white/[0.06] min-w-[60px] overflow-hidden">

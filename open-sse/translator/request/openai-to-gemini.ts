@@ -3,6 +3,11 @@ import { FORMATS } from "../formats.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
+import {
+  capMaxOutputTokens,
+  capThinkingBudget,
+  getDefaultThinkingBudget,
+} from "../../../src/shared/constants/modelSpecs.ts";
 
 function generateUUID() {
   return crypto.randomUUID();
@@ -88,7 +93,9 @@ function openaiToGeminiBase(model, body, stream) {
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    result.generationConfig.maxOutputTokens = body.max_tokens;
+    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+  } else {
+    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model);
   }
 
   // Build tool_call_id -> name map
@@ -283,8 +290,12 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
   // Add thinking config for CLI
   if (body.reasoning_effort) {
-    const budgetMap = { low: 1024, medium: 8192, high: 32768 };
-    const budget = budgetMap[body.reasoning_effort] || 8192;
+    const budgetMap = {
+      low: 1024,
+      medium: getDefaultThinkingBudget(model) || 8192,
+      high: capThinkingBudget(model, 32768),
+    };
+    const budget = budgetMap[body.reasoning_effort] || getDefaultThinkingBudget(model) || 8192;
     gemini.generationConfig.thinkingConfig = {
       thinkingBudget: budget,
       include_thoughts: true,

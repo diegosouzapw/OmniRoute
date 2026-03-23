@@ -11,6 +11,7 @@ const {
   addToWhitelist,
   removeFromWhitelist,
   getIPFilterConfig,
+  checkRequestIP,
   resetIPFilter,
 } = await import("../../open-sse/services/ipFilter.ts");
 
@@ -109,6 +110,48 @@ test("addToWhitelist/removeFromWhitelist: dynamic updates", () => {
 test("normalizes ::ffff: prefix", () => {
   configureIPFilter({ enabled: true, mode: "blacklist", blacklist: ["1.2.3.4"] });
   assert.equal(checkIP("::ffff:1.2.3.4").allowed, false);
+});
+
+// ─── T07: X-Forwarded-For validation ───────────────────────────────────────
+
+test("checkRequestIP: skips invalid XFF entries and uses next valid IP", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["1.2.3.4"] });
+  const req = {
+    headers: {
+      get(name) {
+        if (name === "x-forwarded-for") return "unknown, 1.2.3.4";
+        return null;
+      },
+    },
+  };
+  assert.equal(checkRequestIP(req).allowed, true);
+});
+
+test("checkRequestIP: all-invalid XFF falls back to x-real-ip", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["9.9.9.9"] });
+  const req = {
+    headers: {
+      get(name) {
+        if (name === "x-forwarded-for") return "unknown, -, not_an_ip";
+        if (name === "x-real-ip") return "9.9.9.9";
+        return null;
+      },
+    },
+  };
+  assert.equal(checkRequestIP(req).allowed, true);
+});
+
+test("checkRequestIP: empty headers fall back to request.ip", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["7.7.7.7"] });
+  const req = {
+    headers: {
+      get() {
+        return null;
+      },
+    },
+    ip: "7.7.7.7",
+  };
+  assert.equal(checkRequestIP(req).allowed, true);
 });
 
 // ─── Config API ─────────────────────────────────────────────────────────────

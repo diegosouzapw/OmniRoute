@@ -6,6 +6,8 @@
  * is auto-generated from this registry.
  */
 
+import { platform, arch } from "os";
+
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export interface RegistryModel {
@@ -96,6 +98,32 @@ const KIMI_CODING_SHARED = {
   ] as RegistryModel[],
 } as const;
 
+function mapStainlessOs() {
+  switch (platform()) {
+    case "darwin":
+      return "MacOS";
+    case "win32":
+      return "Windows";
+    case "linux":
+      return "Linux";
+    default:
+      return `Other::${platform()}`;
+  }
+}
+
+function mapStainlessArch() {
+  switch (arch()) {
+    case "x64":
+      return "x64";
+    case "arm64":
+      return "arm64";
+    case "ia32":
+      return "x86";
+    default:
+      return `other::${arch()}`;
+  }
+}
+
 // ── Registry ──────────────────────────────────────────────────────────────
 
 export const REGISTRY: Record<string, RegistryEntry> = {
@@ -112,19 +140,19 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     headers: {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta":
-        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27",
+        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05",
       "Anthropic-Dangerous-Direct-Browser-Access": "true",
-      "User-Agent": "claude-cli/1.0.83 (external, cli)",
+      "User-Agent": "claude-cli/2.1.63 (external, cli)",
       "X-App": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
       "X-Stainless-Runtime-Version": "v24.3.0",
-      "X-Stainless-Package-Version": "0.55.1",
+      "X-Stainless-Package-Version": "0.74.0",
       "X-Stainless-Runtime": "node",
       "X-Stainless-Lang": "js",
-      "X-Stainless-Arch": "arm64",
-      "X-Stainless-Os": "MacOS",
-      "X-Stainless-Timeout": "60",
+      "X-Stainless-Arch": mapStainlessArch(),
+      "X-Stainless-Os": mapStainlessOs(),
+      "X-Stainless-Timeout": "600",
     },
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
@@ -159,9 +187,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -191,9 +223,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -322,7 +358,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "ag",
     format: "antigravity",
     executor: "antigravity",
-    baseUrls: ["https://daily-cloudcode-pa.googleapis.com", "https://cloudcode-pa.googleapis.com"],
+    baseUrls: [
+      "https://daily-cloudcode-pa.googleapis.com",
+      "https://daily-cloudcode-pa.sandbox.googleapis.com",
+      "https://cloudcode-pa.googleapis.com",
+    ],
     urlBuilder: (base, model, stream) => {
       const path = stream
         ? "/v1internal:streamGenerateContent?alt=sse"
@@ -332,7 +372,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     headers: {
-      "User-Agent": "antigravity/1.104.0 darwin/arm64",
+      "User-Agent": `antigravity/1.107.0 ${platform()}/${arch()}`,
     },
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
@@ -361,9 +401,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.107.1",
-      "editor-plugin-version": "copilot-chat/0.26.7",
-      "user-agent": "GitHubCopilotChat/0.26.7",
+      "editor-version": "vscode/1.110.0",
+      "editor-plugin-version": "copilot-chat/0.38.0",
+      "user-agent": "GitHubCopilotChat/0.38.0",
       "openai-intent": "conversation-panel",
       "x-github-api-version": "2025-04-01",
       "x-vscode-user-agent-library-version": "electron-fetch",
@@ -746,6 +786,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
     models: [
+      // T12/T28: MiniMax default upgraded from M2.5 to M2.7
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
+      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
       { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
@@ -767,6 +811,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
+      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
       { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
@@ -1146,7 +1193,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "vertex",
     // Vertex AI uses Google's generateContent format (same as Gemini)
     format: "gemini",
-    executor: "default",
+    executor: "vertex",
     // URL uses {project_id} and {region} from providerSpecificData — handled by custom executor or fallback
     // Default to us-central1 / generic endpoint; users configure project via providerSpecificData
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
@@ -1160,10 +1207,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview (Vertex)" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview (Vertex)" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview (Vertex)" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Vertex)" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Vertex)" },
       { id: "gemini-2.0-flash-thinking-exp", name: "Gemini 2.0 Flash Thinking Exp (Vertex)" },
       { id: "gemma-2-27b-it", name: "Gemma 2 27B (Vertex)" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2 (Vertex Partner)" },
+      { id: "qwen3-next-80b", name: "Qwen3 Next 80B (Vertex Partner)" },
+      { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
       { id: "claude-opus-4-5@20251101", name: "Claude Opus 4.5 (Vertex)" },
       { id: "claude-sonnet-4-5@20251101", name: "Claude Sonnet 4.5 (Vertex)" },
     ],

@@ -330,7 +330,7 @@ export async function getCallLogs(filter: any = {}) {
   }
 
   if (filter.model) {
-    conditions.push("model LIKE @modelQ");
+    conditions.push("(model LIKE @modelQ OR requested_model LIKE @modelQ)");
     params.modelQ = `%${filter.model}%`;
   }
   if (filter.provider) {
@@ -351,7 +351,8 @@ export async function getCallLogs(filter: any = {}) {
   if (filter.search) {
     conditions.push(`(
       model LIKE @searchQ OR path LIKE @searchQ OR account LIKE @searchQ OR
-      provider LIKE @searchQ OR api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
+      requested_model LIKE @searchQ OR provider LIKE @searchQ OR
+      api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
       combo_name LIKE @searchQ OR CAST(status AS TEXT) LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
@@ -408,6 +409,7 @@ export async function getCallLogById(id: string) {
     path: toStringOrNull(entryRow.path),
     status: toNumber(entryRow.status),
     model: toStringOrNull(entryRow.model),
+    requestedModel: toStringOrNull(entryRow.requested_model),
     provider: toStringOrNull(entryRow.provider),
     account: toStringOrNull(entryRow.account),
     connectionId: toStringOrNull(entryRow.connection_id),

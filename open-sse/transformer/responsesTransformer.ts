@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
@@ -401,6 +401,16 @@ export function createResponsesApiTransformStream(logger = null) {
             const tcIdx = tc.index ?? 0;
             const newCallId = tc.id;
             const funcName = tc.function?.name;
+
+            // T37: Prevent merging if a new tool_call uses the same index
+            if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
+              closeToolCall(controller, tcIdx);
+              delete state.funcCallIds[tcIdx];
+              delete state.funcNames[tcIdx];
+              delete state.funcArgsBuf[tcIdx];
+              delete state.funcArgsDone[tcIdx];
+              delete state.funcItemDone[tcIdx];
+            }
 
             if (funcName) state.funcNames[tcIdx] = funcName;
 

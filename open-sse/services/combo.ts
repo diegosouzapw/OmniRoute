@@ -841,7 +841,8 @@ export async function handleComboChat({
         errorText,
         0,
         null,
-        provider
+        provider,
+        result.headers
       );
 
       // Record failure in circuit breaker for transient errors
@@ -865,6 +866,12 @@ export async function handleComboChat({
       if (!lastStatus) lastStatus = result.status;
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
+
+      if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+        log.info("COMBO", `Waiting ${cooldownMs}ms before fallback to next model`);
+        await new Promise((r) => setTimeout(r, cooldownMs));
+      }
+
       break; // Move to next model
     }
   }
@@ -886,7 +893,20 @@ export async function handleComboChat({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All combo models unavailable";
 
   if (earliestRetryAfter) {
@@ -941,7 +961,7 @@ async function handleRoundRobinCombo({
 
   const modelCount = orderedModels.length;
   if (modelCount === 0) {
-    return unavailableResponse(406, "Round-robin combo has no models");
+    return unavailableResponse(503, "Round-robin combo has no models");
   }
 
   // Get and increment atomic counter
@@ -1077,7 +1097,8 @@ async function handleRoundRobinCombo({
           errorText,
           0,
           null,
-          provider
+          provider,
+          result.headers
         );
 
         // Transient errors → mark in semaphore AND record circuit breaker failure
@@ -1106,6 +1127,12 @@ async function handleRoundRobinCombo({
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
+
+        if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+          log.info("COMBO-RR", `Waiting ${cooldownMs}ms before fallback to next model`);
+          await new Promise((r) => setTimeout(r, cooldownMs));
+        }
+
         break;
       }
     } finally {
@@ -1136,7 +1163,20 @@ async function handleRoundRobinCombo({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All round-robin combo models unavailable";
 
   if (earliestRetryAfter) {

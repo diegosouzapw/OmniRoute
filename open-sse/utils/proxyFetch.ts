@@ -6,6 +6,7 @@ import {
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
+import { isProxyReachable } from "@/lib/proxyHealth";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -133,6 +134,22 @@ export async function runWithProxyContext(proxyConfig, fn) {
   }
 
   const resolvedProxyUrl = proxyConfig ? proxyConfigToUrl(proxyConfig) : null;
+
+  // T14: Proxy Fast-Fail
+  // Perform a short TCP reachability check before issuing upstream requests.
+  if (resolvedProxyUrl) {
+    const reachable = await isProxyReachable(resolvedProxyUrl);
+    if (!reachable) {
+      const proxyLabel = proxyUrlForLogs(resolvedProxyUrl);
+      const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
+        code?: string;
+        statusCode?: number;
+      };
+      err.code = "PROXY_UNREACHABLE";
+      err.statusCode = 503;
+      throw err;
+    }
+  }
 
   return proxyContext.run(proxyConfig || null, async () => {
     if (resolvedProxyUrl) {

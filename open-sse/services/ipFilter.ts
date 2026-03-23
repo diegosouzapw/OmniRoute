@@ -4,6 +4,8 @@
  * IP-based access control with blacklist, whitelist, priority modes, and temporary bans.
  */
 
+import { isIP } from "node:net";
+
 // In-memory IP lists
 let _config = {
   enabled: false,
@@ -161,10 +163,10 @@ export function createIPFilterMiddleware() {
  */
 export function checkRequestIP(request) {
   const ip =
-    request.headers?.get?.("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers?.get?.("x-real-ip") ||
-    request.headers?.get?.("cf-connecting-ip") ||
-    request.ip ||
+    pickFirstValidIp(request.headers?.get?.("cf-connecting-ip")) ||
+    pickFirstValidIp(request.headers?.get?.("x-forwarded-for")) ||
+    pickFirstValidIp(request.headers?.get?.("x-real-ip")) ||
+    normalizeIP(request.ip || "") ||
     "unknown";
   return checkIP(ip);
 }
@@ -175,6 +177,18 @@ function normalizeIP(ip) {
   if (!ip) return "";
   // Remove IPv6 prefix from IPv4-mapped addresses
   return ip.replace(/^::ffff:/, "").trim();
+}
+
+function pickFirstValidIp(rawValue) {
+  if (typeof rawValue !== "string" || rawValue.trim().length === 0) return null;
+  const candidates = rawValue.split(",");
+  for (const candidate of candidates) {
+    const normalized = normalizeIP(candidate);
+    if (normalized && isIP(normalized) !== 0) {
+      return normalized;
+    }
+  }
+  return null;
 }
 
 function matchesAny(ip, ipSet) {
@@ -225,12 +239,13 @@ function matchesWildcard(ip, pattern) {
 }
 
 function extractClientIP(req) {
+  const headers = req.headers || {};
   return (
-    req.headers?.["x-forwarded-for"]?.split(",")[0].trim() ||
-    req.headers?.["x-real-ip"] ||
-    req.headers?.["cf-connecting-ip"] ||
-    req.socket?.remoteAddress ||
-    req.ip ||
+    pickFirstValidIp(headers["cf-connecting-ip"]) ||
+    pickFirstValidIp(headers["x-forwarded-for"]) ||
+    pickFirstValidIp(headers["x-real-ip"]) ||
+    pickFirstValidIp(req.socket?.remoteAddress) ||
+    pickFirstValidIp(req.ip) ||
     "unknown"
   );
 }

@@ -101,6 +101,7 @@ const MODEL_UNAVAILABLE_FRAGMENTS = [
   "does not support",
   "not enabled for",
   "access to model",
+  "improperly formed request", // Kiro 400 (model unavailable)
 ];
 
 /**

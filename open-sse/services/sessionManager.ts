@@ -41,7 +41,13 @@ const SESSION_TTL_MS = 30 * 60 * 1000;
 const _cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of sessions) {
-    if (now - entry.lastActive > SESSION_TTL_MS) sessions.delete(key);
+    if (now - entry.lastActive > SESSION_TTL_MS) {
+      sessions.delete(key);
+      for (const [apiKeyId, sessionSet] of activeSessionsByKey) {
+        sessionSet.delete(key);
+        if (sessionSet.size === 0) activeSessionsByKey.delete(apiKeyId);
+      }
+    }
   }
 }, 60_000);
 _cleanupTimer.unref();
@@ -192,6 +198,17 @@ export function getActiveSessionCountForKey(apiKeyId: string): number {
 }
 
 /**
+ * Snapshot of active session counts per API key.
+ */
+export function getAllActiveSessionCountsByKey(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [apiKeyId, sessionIds] of activeSessionsByKey) {
+    out[apiKeyId] = sessionIds.size;
+  }
+  return out;
+}
+
+/**
  * T08: Register a session as belonging to an API key.
  * Call this after session creation is allowed (i.e., limit check passed).
  */
@@ -200,6 +217,13 @@ export function registerKeySession(apiKeyId: string, sessionId: string): void {
     activeSessionsByKey.set(apiKeyId, new Set());
   }
   activeSessionsByKey.get(apiKeyId)!.add(sessionId);
+}
+
+/**
+ * Check whether a given session is already registered for an API key.
+ */
+export function isSessionRegisteredForKey(apiKeyId: string, sessionId: string): boolean {
+  return activeSessionsByKey.get(apiKeyId)?.has(sessionId) === true;
 }
 
 /**
@@ -256,6 +280,7 @@ export function extractExternalSessionId(
   const h = headers as Headers;
   const raw =
     h.get("x-session-id") ?? // Preferred: hyphenated (passes through Nginx)
+    h.get("x_session_id") ?? // Underscore variant (direct HTTP / custom clients)
     h.get("x-omniroute-session") ?? // OmniRoute-specific form
     h.get("session-id") ?? // Bare session-id
     null;

@@ -12,6 +12,7 @@ import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody, lockModel } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { DEFAULT_API_LIMITS } from "../config/constants.ts";
+import { getCodexRateLimitKey } from "../executors/codex.ts";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -195,8 +196,15 @@ export function isRateLimitEnabled(connectionId) {
 /**
  * Get or create a limiter for a given provider+connection combination
  */
+function getLimiterKey(provider, connectionId, model = null) {
+  if (provider === "codex" && model) {
+    return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
+  }
+  return `${provider}:${connectionId}`;
+}
+
 function getLimiter(provider, connectionId, model = null) {
-  const key = model ? `${provider}:${connectionId}:${model}` : `${provider}:${connectionId}`;
+  const key = getLimiterKey(provider, connectionId, model);
 
   if (!limiters.has(key)) {
     const limiter = new Bottleneck({
@@ -235,7 +243,7 @@ export async function withRateLimit(provider, connectionId, model, fn) {
     return fn();
   }
 
-  const limiter = getLimiter(provider, connectionId, null);
+  const limiter = getLimiter(provider, connectionId, model);
   return limiter.schedule(fn);
 }
 
@@ -320,7 +328,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   if (!enabledConnections.has(connectionId)) return;
   if (!headers) return;
 
-  const limiter = getLimiter(provider, connectionId, null);
+  const limiter = getLimiter(provider, connectionId, model);
   const headerMap =
     provider === "claude" || provider === "anthropic" ? ANTHROPIC_HEADERS : STANDARD_HEADERS;
 
@@ -340,7 +348,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   if (status === 429) {
     const retryAfterMs = parseResetTime(retryAfterStr) || 60000; // Default 60s
     const counts = limiter.counts();
-    const limiterKey = `${provider}:${connectionId}`;
+    const limiterKey = getLimiterKey(provider, connectionId, model);
     console.log(
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — 429 received, pausing for ${Math.ceil(retryAfterMs / 1000)}s, dropping ${counts.QUEUED} queued request(s)`
     );
@@ -397,7 +405,12 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     limiter.updateSettings(updates);
 
     // Persist learned limits (debounced)
-    recordLearnedLimit(provider, connectionId, { limit, remaining, minTime: updates.minTime });
+    recordLearnedLimit(
+      provider,
+      connectionId,
+      { limit, remaining, minTime: updates.minTime },
+      model
+    );
   }
 }
 
@@ -459,9 +472,10 @@ export function getLearnedLimits() {
 function recordLearnedLimit(
   provider: string,
   connectionId: string,
-  limits: Partial<Omit<LearnedLimitEntry, "provider" | "connectionId" | "lastUpdated">>
+  limits: Partial<Omit<LearnedLimitEntry, "provider" | "connectionId" | "lastUpdated">>,
+  model: string | null = null
 ) {
-  const key = `${provider}:${connectionId}`;
+  const key = getLimiterKey(provider, connectionId, model);
   learnedLimits[key] = {
     ...limits,
     provider,

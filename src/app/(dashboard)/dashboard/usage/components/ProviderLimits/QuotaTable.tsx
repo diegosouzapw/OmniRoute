@@ -92,6 +92,7 @@ export default function QuotaTable({ quotas = [] }) {
               quota.remainingPercentage !== undefined
                 ? Math.round(quota.remainingPercentage)
                 : calculatePercentage(quota.used, quota.total);
+            const staleAfterReset = quota.staleAfterReset === true;
 
             const colors = getColorClasses(remaining);
             const countdown = formatResetTime(quota.resetAt);
@@ -140,7 +141,9 @@ export default function QuotaTable({ quotas = [] }) {
 
                 {/* Reset Time */}
                 <td className="py-2 px-3">
-                  {countdown !== t("notAvailableSymbol") || resetDisplay ? (
+                  {staleAfterReset ? (
+                    <div className="text-xs text-text-muted">⟳ Refreshing...</div>
+                  ) : countdown !== t("notAvailableSymbol") || resetDisplay ? (
                     <div className="space-y-0.5">
                       {countdown !== t("notAvailableSymbol") && (
                         <div className="text-sm text-text-primary font-medium">

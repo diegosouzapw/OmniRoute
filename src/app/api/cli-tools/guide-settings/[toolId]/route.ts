@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
+import { mergeOpenCodeConfig } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -10,7 +12,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * POST /api/cli-tools/guide-settings/:toolId
  *
  * Save configuration for guide-based tools that have config files.
- * Currently supports: continue
+ * Currently supports: continue, opencode
  */
 export async function POST(request, { params }) {
   let rawBody;
@@ -131,50 +133,39 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save OpenCode config to ~/.config/opencode/config.toml (XDG_CONFIG_HOME aware).
+ * Save OpenCode config to:
+ * - Linux/macOS: ~/.config/opencode/opencode.json (XDG_CONFIG_HOME aware)
+ * - Windows: %APPDATA%/opencode/opencode.json
+ *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
 async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
-  const { apiPort } = getRuntimePorts();
-  // Honour $XDG_CONFIG_HOME if set, otherwise use ~/.config per the XDG Base Directory spec
-  const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
-  const configPath = path.join(xdgConfigHome, "opencode", "config.toml");
+  const configPath = getOpenCodeConfigPath();
   const configDir = path.dirname(configPath);
 
-  // Ensure ~/.config/opencode/ exists
+  // Ensure config directory exists
   await fs.mkdir(configDir, { recursive: true });
 
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
 
-  // Read existing TOML to preserve any user settings outside our block
-  let existingContent = "";
+  // Read existing JSON to preserve other provider entries
+  let existingConfig: Record<string, any> = {};
   try {
-    existingContent = await fs.readFile(configPath, "utf-8");
+    const raw = await fs.readFile(configPath, "utf-8");
+    existingConfig = JSON.parse(raw);
   } catch {
-    // File doesn't exist yet — start fresh
+    // File doesn't exist or invalid JSON — start fresh
   }
 
-  // Build the OmniRoute TOML block.
-  // opencode config.toml uses the [provider.X] table format.
-  void apiPort; // available for future port-based detection
-  const omniBlock = `
-# OmniRoute managed — updated automatically by OmniRoute CLI Tools
-[provider.omniroute]
-api_key = "${apiKey || "sk_omniroute"}"
-base_url = "${normalizedBaseUrl}"
-model = "${model}"
-`;
+  const nextConfig = mergeOpenCodeConfig(existingConfig, {
+    baseUrl: normalizedBaseUrl,
+    apiKey,
+    model,
+  });
 
-  // Remove old OmniRoute-managed block (if any) then append fresh one
-  const cleanedContent = existingContent
-    .replace(/\n?# OmniRoute managed[\s\S]*?(?=\n\[|$)/, "")
-    .trimEnd();
-
-  const newContent = (cleanedContent ? cleanedContent + "\n" : "") + omniBlock;
-
-  await fs.writeFile(configPath, newContent, "utf-8");
+  await fs.writeFile(configPath, JSON.stringify(nextConfig, null, 2), "utf-8");
 
   return NextResponse.json({
     success: true,

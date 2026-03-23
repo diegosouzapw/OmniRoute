@@ -134,7 +134,36 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         controller.enqueue(value);
       } catch (error) {
         streamController.handleError(error);
-        controller.error(error);
+
+        // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
+        // This prevents TransferEncodingError on the client side
+        const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
+        const statusCode =
+          typeof error === "object" && error !== null && "statusCode" in error
+            ? (error as any).statusCode
+            : 500;
+
+        const errorEvent = {
+          object: "chat.completion.chunk",
+          choices: [
+            {
+              index: 0,
+              delta: {},
+              finish_reason: "error",
+            },
+          ],
+          error: {
+            message: errorMsg,
+            type: "upstream_error",
+            code: statusCode,
+          },
+        };
+
+        const encoder = new TextEncoder();
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
+        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+
+        controller.close();
       }
     },
 
