@@ -1164,7 +1164,7 @@
     "target": "Cíl",
     "details": "Podrobnosti",
     "ipAddress": "IP adresa",
-    "notAvailable": "Není k dispozici",
+    "notAvailable": "-",
     "noEntries": "Nenalezeny žádné položky protokolu auditu",
     "previous": "Předchozí",
     "next": "Další"
