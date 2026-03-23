@@ -422,7 +422,7 @@
     "notReady": "Nepřipraven",
     "active": "Aktivní",
     "inactive": "Neaktivní",
-    "startMitm": "Spustit MITM proxy",
+    "startMitm": "Start MITM proxy",
     "stopMitm": "Stop MITM proxy",
     "mitmStarted": "MITM úspěšně zahájen!",
     "mitmStopped": "MITM úspěšně zastaven!",
