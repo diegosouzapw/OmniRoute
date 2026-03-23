@@ -36,7 +36,7 @@ function PayloadSection({ title, json, onCopy }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 rounded-xl bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-primary max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
         {json}
       </pre>
     </div>
@@ -138,7 +138,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
                 <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
                   In: {(detail?.tokens?.in || log.tokens?.in || 0).toLocaleString()}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
                   Out: {(detail?.tokens?.out || log.tokens?.out || 0).toLocaleString()}
                 </span>
               </div>
@@ -198,7 +198,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Combo</div>
               {detail?.comboName || log.comboName ? (
-                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
                   {detail?.comboName || log.comboName}
                 </span>
               ) : (
@@ -210,10 +210,12 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
           {/* Error Message */}
           {(detail?.error || log.error) && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-              <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1 font-bold">
+              <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider mb-1 font-bold">
                 Error
               </div>
-              <div className="text-sm text-red-300 font-mono">{detail?.error || log.error}</div>
+              <div className="text-sm text-red-600 dark:text-red-300 font-mono">
+                {detail?.error || log.error}
+              </div>
             </div>
           )}
 
