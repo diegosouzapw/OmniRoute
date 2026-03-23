@@ -1582,7 +1582,7 @@
     "thinkingBudgetDesc": "Řízení využití tokenů AI uvažování ve všech požadavcích",
     "passthrough": "Průchod",
     "passthroughDesc": "Žádné změny – klient kontroluje rozpočet",
-    "auto": "Automaticky",
+    "auto": "Auto",
     "autoDesc": "Odstraňte veškerou konfiguraci myšlenek – nechte rozhodnutí poskytovatele",
     "custom": "Zvyk",
     "customDesc": "Nastavte fixní rozpočet tokenů pro všechny požadavky",
