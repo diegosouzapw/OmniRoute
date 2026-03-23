@@ -267,6 +267,18 @@ export default function CLIToolsPageClient({ machineId }) {
           />
         );
       default:
+        // #487: Any tool with configType "mitm" should use the MITM card (Start/Stop controls)
+        if (tool.configType === "mitm") {
+          return (
+            <AntigravityToolCard
+              key={toolId}
+              {...commonProps}
+              activeProviders={getActiveProviders()}
+              hasActiveProviders={hasActiveProviders}
+              cloudEnabled={cloudEnabled}
+            />
+          );
+        }
         return (
           <DefaultToolCard
             key={toolId}

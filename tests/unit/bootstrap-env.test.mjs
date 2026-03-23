@@ -44,6 +44,7 @@ function withTempEnv(fn) {
 
 test("bootstrapEnv prefers ~/.omniroute/.env over server.env", () => {
   withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
     fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(
       path.join(dataDir, ".env"),
@@ -65,6 +66,7 @@ test("bootstrapEnv prefers ~/.omniroute/.env over server.env", () => {
 
 test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
   withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
     fs.mkdirSync(dataDir, { recursive: true });
     const db = new Database(path.join(dataDir, "storage.sqlite"));
     try {
@@ -77,8 +79,10 @@ test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
           id_token TEXT
         );
       `);
-      db.prepare("INSERT INTO provider_connections (id, access_token) VALUES (?, ?)")
-        .run("conn-1", "enc:v1:deadbeef:feedface:cafebabe");
+      db.prepare("INSERT INTO provider_connections (id, access_token) VALUES (?, ?)").run(
+        "conn-1",
+        "enc:v1:deadbeef:feedface:cafebabe"
+      );
     } finally {
       db.close();
     }
@@ -92,17 +96,16 @@ test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
 
 test("bootstrapEnv fails closed when existing database cannot be inspected", () => {
   withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
     fs.mkdirSync(path.join(dataDir, "storage.sqlite"), { recursive: true });
 
-    assert.throws(
-      () => bootstrapEnv({ quiet: true }),
-      /Unable to inspect existing database/
-    );
+    assert.throws(() => bootstrapEnv({ quiet: true }), /Unable to inspect existing database/);
   });
 });
 
 test("bootstrapEnv ignores blank dataDirOverride values", () => {
   withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
     fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(path.join(dataDir, ".env"), "JWT_SECRET=jwt-from-dot-env\n", "utf8");
 

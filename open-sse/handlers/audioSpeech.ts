@@ -28,13 +28,17 @@ function upstreamErrorResponse(res, errText) {
   let errorMessage: string;
   try {
     const parsed = JSON.parse(errText);
-    errorMessage =
+    // Extract a human-readable message from various error response shapes.
+    // Guard against `parsed.error` being an object (e.g. ElevenLabs returns
+    // { error: { message: "...", status_code: 401 } } or { detail: { ... } })
+    const raw =
       parsed?.err_msg ||
       parsed?.error?.message ||
-      parsed?.error ||
+      (typeof parsed?.error === "string" ? parsed.error : null) ||
       parsed?.message ||
-      parsed?.detail ||
-      errText;
+      (typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
+      null;
+    errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
   } catch {
     errorMessage = errText || `Upstream error (${res.status})`;
   }

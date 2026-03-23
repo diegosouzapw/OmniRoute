@@ -24,6 +24,35 @@ let _lastBackupAt = 0;
 const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes
 const MAX_DB_BACKUPS = 20;
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function unlinkFileWithRetry(
+  filePath: string,
+  options?: { maxAttempts?: number; retryableCodes?: string[]; baseDelayMs?: number }
+) {
+  const maxAttempts = Math.max(1, options?.maxAttempts ?? 10);
+  const retryableCodes = new Set(options?.retryableCodes ?? ["EBUSY", "EPERM"]);
+  const baseDelayMs = Math.max(0, options?.baseDelayMs ?? 100);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      return;
+    } catch (err: unknown) {
+      const code =
+        err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : "";
+      if (code === "ENOENT") return;
+      if (retryableCodes.has(String(code)) && attempt < maxAttempts - 1) {
+        await sleep(baseDelayMs * (attempt + 1));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 // ──────────────── Backup ────────────────
 
 export function backupDbFile(reason = "auto") {
@@ -197,9 +226,22 @@ export async function restoreDbBackup(backupId: string) {
     throw new Error(`Backup file is corrupt: ${message}`);
   }
 
-  // Force pre-restore backup (bypass throttle)
+  // Force pre-restore backup (bypass throttle) and await so the DB is not closed while backup runs
   _lastBackupAt = 0;
-  backupDbFile("pre-restore");
+  const backupDirForPre = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+  if (SQLITE_FILE && fs.existsSync(SQLITE_FILE)) {
+    const stat = fs.statSync(SQLITE_FILE);
+    if (stat.size >= 4096) {
+      if (!fs.existsSync(backupDirForPre)) fs.mkdirSync(backupDirForPre, { recursive: true });
+      const preBackupPath = path.join(
+        backupDirForPre,
+        `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
+      );
+      const dbForBackup = getDbInstance();
+      await dbForBackup.backup(preBackupPath);
+      _lastBackupAt = Date.now();
+    }
+  }
 
   // Close and reset current connection
   resetDbInstance();
@@ -212,7 +254,11 @@ export async function restoreDbBackup(backupId: string) {
     throw new Error("SQLITE_FILE is unavailable in local backup restore");
   }
 
+  // On Windows, the file handle may be released asynchronously after close; give it a moment.
+  await sleep(500);
+
   // Remove main file and WAL sidecars to avoid stale frame replay after restore.
+  // Retry unlink on EBUSY/EPERM (Windows may hold the handle briefly).
   const sqliteFilesToReplace = [
     sqliteFile,
     `${sqliteFile}-wal`,
@@ -221,9 +267,7 @@ export async function restoreDbBackup(backupId: string) {
   ];
   for (const filePath of sqliteFilesToReplace) {
     if (!filePath) continue;
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    await unlinkFileWithRetry(filePath);
   }
 
   // Copy backup over current DB

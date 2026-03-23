@@ -41,7 +41,14 @@ export {
   addCustomModel,
   removeCustomModel,
   updateCustomModel,
+  getModelCompatOverrides,
+  mergeModelCompatOverride,
+  removeModelCompatOverride,
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
 } from "./db/models";
+
+export type { ModelCompatPerProtocol, ModelCompatPatch } from "./db/models";
 
 export {
   // Combos

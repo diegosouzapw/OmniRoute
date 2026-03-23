@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 2.8.5
+  version: 2.9.5
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,

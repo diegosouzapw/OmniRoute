@@ -34,7 +34,11 @@ interface Message {
 
 // ── Context Caching Tag ─────────────────────────────────────────────────────
 
-const CACHE_TAG_PATTERN = /<omniModel>([^<]+)<\/omniModel>/;
+// Handles both actual newlines (U+000A) and literal \n sequences injected
+// by combo.ts streaming around the <omniModel> tag (#531). Non-global so that
+// .exec() and .test() stay stateless; callers that need full replacement use
+// String.prototype.replace() which replaces all non-overlapping matches.
+const CACHE_TAG_PATTERN = /(?:\\n|\n)?<omniModel>([^<]+)<\/omniModel>(?:\\n|\n)?/;
 
 /**
  * Inject the model tag into the last assistant message (or append a new one).

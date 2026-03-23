@@ -16,7 +16,8 @@ const { dashboardPort } = runtimePorts;
 const env = bootstrapEnv();
 
 const args = ["./node_modules/next/dist/bin/next", mode, "--port", String(dashboardPort)];
-if (mode === "dev") {
+// Default: use webpack (stable). Set OMNIROUTE_USE_TURBOPACK=1 to use Turbopack (faster dev).
+if (mode === "dev" && process.env.OMNIROUTE_USE_TURBOPACK !== "1") {
   args.splice(2, 0, "--webpack");
 }
 

@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Мультимодальные API
 
-| Функция                      | Что делает                                          |
-| ---------------------------- | --------------------------------------------------- |
-| 🖼️ **Генерация изображений** | `/v1/images/generations` — 4 провайдера, 9+ моделей |
-| 📐 **Embeddings**            | `/v1/embeddings` — 6 провайдеров, 9+ моделей        |
-| 🎤 **Транскрипция аудио**    | `/v1/audio/transcriptions` — Совместимо с Whisper   |
-| 🔊 **Текст в речь**          | `/v1/audio/speech` — Мульти-провайдерный синтез     |
-| 🛡️ **Модерация**             | `/v1/moderations` — Проверки безопасности контента  |
-| 🔀 **Reranking**             | `/v1/rerank` — Переранжирование релевантности       |
+| Функция                      | Что делает                                                                                                                                                                 |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Генерация изображений** | `/v1/images/generations` — 4 провайдера, 9+ моделей                                                                                                                        |
+| 📐 **Embeddings**            | `/v1/embeddings` — 6 провайдеров, 9+ моделей                                                                                                                               |
+| 🎤 **Транскрипция аудио**    | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Текст в речь**          | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Модерация**             | `/v1/moderations` — Проверки безопасности контента                                                                                                                         |
+| 🔀 **Reranking**             | `/v1/rerank` — Переранжирование релевантности                                                                                                                              |
 
 ### 🛡️ Устойчивость и безопасность
 

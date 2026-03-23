@@ -80,18 +80,14 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   /**
-   * For compatible providers, ensure the model name sent upstream
-   * is the clean model name without internal routing prefixes.
-   * e.g. "openapi-chat-anti/claude-opus-4-6-thinking" → "claude-opus-4-6-thinking"
+   * For compatible providers, the model name is already clean by the time
+   * it reaches the executor (chatCore sets body.model = modelInfo.model,
+   * which is the parsed model ID without internal routing prefixes).
+   *
+   * Models may legitimately contain "/" as part of their ID (e.g. "zai-org/GLM-5-FP8",
+   * "org/model-name") — we must NOT strip path segments. (Fix #493)
    */
   transformRequest(model, body, stream, credentials) {
-    if (
-      this.provider?.startsWith?.("openai-compatible-") ||
-      this.provider?.startsWith?.("anthropic-compatible-")
-    ) {
-      const cleanModel = model.includes("/") ? model.split("/").slice(1).join("/") : model;
-      return { ...body, model: cleanModel };
-    }
     return body;
   }
 

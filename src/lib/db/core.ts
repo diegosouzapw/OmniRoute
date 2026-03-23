@@ -302,8 +302,24 @@ export function cleanNulls(obj: unknown): JsonRecord {
 }
 
 // ──────────────── Singleton DB Instance ────────────────
+// Use globalThis to survive Next.js dev HMR module re-evaluation.
+// Module-level `let` resets on every webpack recompile, causing connection leaks.
 
-let _db: SqliteDatabase | null = null;
+declare global {
+  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+}
+
+function getDb(): SqliteDatabase | null {
+  return globalThis.__omnirouteDb ?? null;
+}
+
+function setDb(db: SqliteDatabase | null): void {
+  if (db) {
+    globalThis.__omnirouteDb = db;
+  } else {
+    delete globalThis.__omnirouteDb;
+  }
+}
 
 function ensureProviderConnectionsColumns(db: SqliteDatabase) {
   try {
@@ -361,7 +377,8 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
 }
 
 export function getDbInstance(): SqliteDatabase {
-  if (_db) return _db;
+  const existing = getDb();
+  if (existing) return existing;
 
   if (isCloud || isBuildPhase) {
     if (isBuildPhase) {
@@ -371,7 +388,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
-    _db = memoryDb;
+    setDb(memoryDb);
     return memoryDb;
   }
 
@@ -382,6 +399,7 @@ export function getDbInstance(): SqliteDatabase {
   const jsonDbFile = JSON_DB_FILE;
 
   // Detect and handle old schema format — preserve data when possible (#146)
+  // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
     try {
       const probe = new Database(sqliteFile, { readonly: true });
@@ -390,7 +408,6 @@ export function getDbInstance(): SqliteDatabase {
         .get();
 
       if (hasOldSchema) {
-        // Check if the DB has actual data we should preserve
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
@@ -403,15 +420,12 @@ export function getDbInstance(): SqliteDatabase {
         probe.close();
 
         if (hasData) {
-          // Data exists — preserve it! Just drop the old migration tracking table
-          // and let our new migration system (CREATE TABLE IF NOT EXISTS) take over
           console.log(
             `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
           const fixDb = new Database(sqliteFile);
           try {
             fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
-            // Clean up WAL/SHM files that might be stale
             fixDb.pragma("wal_checkpoint(TRUNCATE)");
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
@@ -420,7 +434,6 @@ export function getDbInstance(): SqliteDatabase {
             fixDb.close();
           }
         } else {
-          // No data — safe to rename and start fresh
           const oldPath = sqliteFile + ".old-schema";
           console.log(
             `[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
@@ -481,7 +494,7 @@ export function getDbInstance(): SqliteDatabase {
   );
   versionStmt.run();
 
-  _db = db;
+  setDb(db);
   console.log(`[DB] SQLite database ready: ${sqliteFile}`);
   return db;
 }
@@ -490,9 +503,10 @@ export function getDbInstance(): SqliteDatabase {
  * Reset the singleton (used by restore).
  */
 export function resetDbInstance() {
-  if (_db) {
-    _db.close();
-    _db = null;
+  const db = getDb();
+  if (db) {
+    db.close();
+    setDb(null);
   }
 }
 

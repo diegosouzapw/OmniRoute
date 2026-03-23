@@ -67,6 +67,7 @@ function normalizeOpenAIResponsesRequest(body) {
 }
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
+/** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
 // Translate request: source -> openai -> target
 export function translateRequest(
   sourceFormat,
@@ -77,10 +78,11 @@ export function translateRequest(
   credentials = null,
   provider = null,
   reqLogger = null,
-  options?: { normalizeToolCallId?: boolean }
+  options?: { normalizeToolCallId?: boolean; preserveDeveloperRole?: boolean }
 ) {
   let result = body;
   const use9CharId = options?.normalizeToolCallId === true;
+  const preserveDeveloperRole = options?.preserveDeveloperRole;
 
   // Phase 2: Apply thinking budget control before normalization
   result = applyThinkingBudget(result);
@@ -94,9 +96,17 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
-  // Normalize roles: developer→system for non-OpenAI, system→user for incompatible models
+  // Normalize roles: developer→system unless preserved, system→user for incompatible models.
+  // This handles (1) sourceFormat openai with messages containing developer → non-openai target
+  // or preserveDeveloperRole=false, and (2) all other paths where result.messages already exists.
   if (result.messages && Array.isArray(result.messages)) {
-    result.messages = normalizeRoles(result.messages, provider || "", model || "", targetFormat);
+    result.messages = normalizeRoles(
+      result.messages,
+      provider || "",
+      model || "",
+      targetFormat,
+      preserveDeveloperRole
+    );
   }
 
   // If same format, skip translation steps
@@ -141,6 +151,24 @@ export function translateRequest(
   // Normalize openai-responses input shape for providers that require list input.
   if (targetFormat === FORMATS.OPENAI_RESPONSES) {
     result = normalizeOpenAIResponsesRequest(result);
+  }
+
+  // Second role normalization: only for OPENAI_RESPONSES. Here messages are built from input
+  // after the translation step, so the first normalizeRoles (above) did not see them. For
+  // sourceFormat openai with messages already on the body, the first block handles developer
+  // → system (non-openai target or preserveDeveloperRole=false); no second pass needed.
+  if (
+    sourceFormat === FORMATS.OPENAI_RESPONSES &&
+    result.messages &&
+    Array.isArray(result.messages)
+  ) {
+    result.messages = normalizeRoles(
+      result.messages,
+      provider || "",
+      model || "",
+      targetFormat,
+      preserveDeveloperRole
+    );
   }
 
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)

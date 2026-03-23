@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 APIs multimodais
 
-| Recurso                           | O que faz                                                   |
-| --------------------------------- | ----------------------------------------------------------- |
-| 🖼️ **Geração de imagens**         | `/v1/images/generations` — 4 provedores, mais de 9 modelos  |
-| 📐 **Incorporações**              | `/v1/embeddings` — 6 provedores, mais de 9 modelos          |
-| 🎤 **Transcrição de áudio**       | `/v1/audio/transcriptions` — Compatível com sussurro        |
-| 🔊 **Conversão de texto em fala** | `/v1/audio/speech` — Síntese de áudio multiprovedor         |
-| 🛡️ **Moderações**                 | `/v1/moderations` — Verificações de segurança de conteúdo   |
-| 🔀 **Reclassificação**            | `/v1/rerank` — Reclassificação da relevância dos documentos |
+| Recurso                           | O que faz                                                                                                                                                                  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Geração de imagens**         | `/v1/images/generations` — 4 provedores, mais de 9 modelos                                                                                                                 |
+| 📐 **Incorporações**              | `/v1/embeddings` — 6 provedores, mais de 9 modelos                                                                                                                         |
+| 🎤 **Transcrição de áudio**       | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Conversão de texto em fala** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderações**                 | `/v1/moderations` — Verificações de segurança de conteúdo                                                                                                                  |
+| 🔀 **Reclassificação**            | `/v1/rerank` — Reclassificação da relevância dos documentos                                                                                                                |
 
 ### 🛡️ Resiliência e segurança
 

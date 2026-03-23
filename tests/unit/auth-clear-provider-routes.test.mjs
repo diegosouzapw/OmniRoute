@@ -106,3 +106,60 @@ test("embeddings route clears stale provider error metadata on success", async (
     globalThis.fetch = originalFetch;
   }
 });
+
+test("embeddings route uses provider node id for compatible provider credentials", async () => {
+  await resetStorage();
+
+  const providerNode = await providersDb.createProviderNode({
+    id: "openai-compatible-responses-google-embeddings",
+    type: "openai-compatible",
+    name: "Gemini Embeddings",
+    prefix: "google",
+    apiType: "responses",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+  });
+
+  const created = await providersDb.createProviderConnection({
+    provider: providerNode.id,
+    authType: "apikey",
+    email: null,
+    name: "google-compatible-key",
+    apiKey: "google-compatible-test-key",
+    testStatus: "active",
+    lastError: null,
+    lastErrorType: "token_refresh_failed",
+    lastErrorSource: "oauth",
+    errorCode: "refresh_failed",
+    rateLimitedUntil: null,
+    backoffLevel: 2,
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, "https://generativelanguage.googleapis.com/v1beta/openai/embeddings");
+    assert.equal(init?.headers?.Authorization, "Bearer google-compatible-test-key");
+    return Response.json({
+      data: [{ object: "embedding", index: 0, embedding: [0.1, 0.2] }],
+      usage: { prompt_tokens: 3, total_tokens: 3 },
+    });
+  };
+
+  try {
+    const request = new Request("http://localhost/v1/embeddings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-embedding-001", input: "hello" }),
+    });
+
+    const response = await embeddingsRoute.POST(request);
+    assert.equal(response.status, 200);
+
+    const updated = await readConnection(created.id);
+    assert.equal(updated.testStatus, "active");
+    assert.equal(updated.errorCode, undefined);
+    assert.equal(updated.lastErrorType, undefined);
+    assert.equal(updated.lastErrorSource, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

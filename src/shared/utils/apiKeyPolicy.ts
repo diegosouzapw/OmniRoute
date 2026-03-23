@@ -35,6 +35,8 @@ export interface ApiKeyMetadata {
   usedBudget?: number;
   isActive?: boolean;
   accessSchedule?: AccessSchedule | null;
+  maxRequestsPerDay?: number | null;
+  maxRequestsPerMinute?: number | null;
 }
 
 /**
@@ -101,6 +103,65 @@ function isWithinSchedule(schedule: AccessSchedule): boolean {
   }
 
   return localMinutes >= fromMinutes && localMinutes < untilMinutes;
+}
+
+// ── In-memory request counter for per-key rate limits (#452) ──
+
+/** Sliding-window request timestamps per API key */
+const _requestTimestamps = new Map<string, number[]>();
+const REQUEST_COUNTER_MAX_KEYS = 5000;
+const REQUEST_DAY_MS = 24 * 60 * 60 * 1000;
+const REQUEST_MINUTE_MS = 60 * 1000;
+
+/** Record a request and check per-key limits. Returns null if OK, or an error message. */
+function checkRequestCountLimits(
+  apiKeyId: string,
+  maxPerDay: number | null | undefined,
+  maxPerMinute: number | null | undefined
+): string | null {
+  if (!maxPerDay && !maxPerMinute) return null;
+
+  const now = Date.now();
+
+  // Get or create timestamp array for this key
+  let timestamps = _requestTimestamps.get(apiKeyId);
+  if (!timestamps) {
+    timestamps = [];
+    _requestTimestamps.set(apiKeyId, timestamps);
+    // Prevent unbounded growth
+    if (_requestTimestamps.size > REQUEST_COUNTER_MAX_KEYS) {
+      const firstKey = _requestTimestamps.keys().next().value;
+      if (firstKey) _requestTimestamps.delete(firstKey);
+    }
+  }
+
+  // Prune timestamps older than 24h
+  const dayAgo = now - REQUEST_DAY_MS;
+  while (timestamps.length > 0 && timestamps[0] < dayAgo) {
+    timestamps.shift();
+  }
+
+  // Check per-minute limit (before recording this request)
+  if (maxPerMinute && maxPerMinute > 0) {
+    const minuteAgo = now - REQUEST_MINUTE_MS;
+    const recentCount = timestamps.filter((t) => t >= minuteAgo).length;
+    if (recentCount >= maxPerMinute) {
+      return `Per-minute request limit exceeded (${maxPerMinute} RPM). Try again in a few seconds.`;
+    }
+  }
+
+  // Check per-day limit
+  if (maxPerDay && maxPerDay > 0) {
+    if (timestamps.length >= maxPerDay) {
+      return `Daily request limit exceeded (${maxPerDay} RPD). Resets in ${Math.ceil(
+        (timestamps[0] + REQUEST_DAY_MS - now) / 60000
+      )} minutes.`;
+    }
+  }
+
+  // All checks passed — record this request
+  timestamps.push(now);
+  return null;
 }
 
 export interface ApiKeyPolicyResult {
@@ -220,6 +281,22 @@ export async function enforceApiKeyPolicy(
         apiKey,
         apiKeyInfo,
         rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable"),
+      };
+    }
+  }
+
+  // ── Check 5: Request-count limits (#452) ──
+  if (apiKeyInfo.id && (apiKeyInfo.maxRequestsPerDay || apiKeyInfo.maxRequestsPerMinute)) {
+    const limitError = checkRequestCountLimits(
+      apiKeyInfo.id,
+      apiKeyInfo.maxRequestsPerDay,
+      apiKeyInfo.maxRequestsPerMinute
+    );
+    if (limitError) {
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(HTTP_STATUS.RATE_LIMITED, limitError),
       };
     }
   }

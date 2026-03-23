@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 マルチモーダル API
 
-| 特集                    | 何をするのか                                                    |
-| ----------------------- | --------------------------------------------------------------- |
-| 🖼️ **画像生成**         | `/v1/images/generations` — 4 つのプロバイダー、9 つ以上のモデル |
-| 📐 **埋め込み**         | `/v1/embeddings` — 6 つのプロバイダー、9 つ以上のモデル         |
-| 🎤 **音声文字起こし**   | `/v1/audio/transcriptions` — ウィスパー互換                     |
-| 🔊 **テキスト読み上げ** | `/v1/audio/speech` — マルチプロバイダーのオーディオ合成         |
-| 🛡️ **モデレーション**   | `/v1/moderations` — コンテンツの安全性チェック                  |
-| 🔀 **再ランキング**     | `/v1/rerank` — ドキュメントの関連性の再ランキング               |
+| 特集                    | 何をするのか                                                                                                                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **画像生成**         | `/v1/images/generations` — 4 つのプロバイダー、9 つ以上のモデル                                                                                                            |
+| 📐 **埋め込み**         | `/v1/embeddings` — 6 つのプロバイダー、9 つ以上のモデル                                                                                                                    |
+| 🎤 **音声文字起こし**   | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **テキスト読み上げ** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **モデレーション**   | `/v1/moderations` — コンテンツの安全性チェック                                                                                                                             |
+| 🔀 **再ランキング**     | `/v1/rerank` — ドキュメントの関連性の再ランキング                                                                                                                          |
 
 ### 🛡️ 復元力とセキュリティ
 

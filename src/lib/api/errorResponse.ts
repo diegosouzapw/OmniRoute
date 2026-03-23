@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 
 export type ApiErrorType = "invalid_request" | "not_found" | "conflict" | "server_error";
 

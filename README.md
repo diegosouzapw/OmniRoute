@@ -11,7 +11,9 @@ _Your universal API proxy — one endpoint, 44+ providers, zero downtime. Now wi
 <div align="center">
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
+[![npm downloads](https://img.shields.io/npm/dm/omniroute?color=cb3837&logo=npm&label=npm%20downloads)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?logo=docker&color=2496ED&label=docker%20pulls)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
@@ -716,7 +718,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 **Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
 
-> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day).
+> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
 
 ## ⚡ Quick Start
 
@@ -921,18 +923,28 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 | **🆓 FREE**         | iFlow                       | **$0**                    | Unlimited        | 5 models unlimited                |
 |                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
 |                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
+|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
+|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
 > 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
 **💡 $0 Combo Stack — The Complete Free Setup:**
 
 ```
-Gemini CLI (180K/mo free)
-  → iFlow (unlimited: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1)
-  → Kiro (Claude Sonnet 4.5 + Haiku — unlimited, via AWS Builder ID)
-  → Qwen (4 models — unlimited)
-  → Groq (14.4K req/day — ultra-fast)
-  → NVIDIA NIM (70+ models — 40 RPM forever)
+# 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
+Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
+iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
+Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
+Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
+Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
+Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
+Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
+NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
 **Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
@@ -1003,19 +1015,66 @@ Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
 
 Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
 
-> **💡 The Ultimate Free Stack:**
+### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
+
+| Model                         | Prefix | Daily Free Quota  | Notes                   |
+| ----------------------------- | ------ | ----------------- | ----------------------- |
+| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Largest free quota ever |
+| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
+| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
+| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
+| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+
+> 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
+
+### 🟢 POLLINATIONS AI (No API Key Required) 🆕
+
+| Model      | Prefix | Rate Limit | Provider Behind    |
+| ---------- | ------ | ---------- | ------------------ |
+| `openai`   | `pol/` | 1 req/15s  | GPT-5              |
+| `claude`   | `pol/` | 1 req/15s  | Anthropic Claude   |
+| `gemini`   | `pol/` | 1 req/15s  | Google Gemini      |
+| `deepseek` | `pol/` | 1 req/15s  | DeepSeek V3        |
+| `llama`    | `pol/` | 1 req/15s  | Meta Llama 4 Scout |
+| `mistral`  | `pol/` | 1 req/15s  | Mistral AI         |
+
+> ✨ **Zero friction:** No signup, no API key. Add the Pollinations provider with an empty key field and it works immediately.
+
+### 🟠 CLOUDFLARE WORKERS AI (Free API Key — cloudflare.com) 🆕
+
+| Tier | Daily Neurons | Equivalent Usage                        | Notes                   |
+| ---- | ------------- | --------------------------------------- | ----------------------- |
+| Free | **10,000**    | ~150 LLM resp / 500s audio / 15K embeds | Global edge, 50+ models |
+
+Popular free models: `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, `@cf/openai/whisper-large-v3-turbo` (free audio!), `@cf/qwen/qwen2.5-coder-15b-instruct`
+
+> Requires API Token + Account ID from [dash.cloudflare.com](https://dash.cloudflare.com). Store Account ID in provider settings.
+
+### 🟣 SCALEWAY AI (1M Free Tokens — scaleway.com) 🆕
+
+| Tier | Free Quota    | Location     | Notes                               |
+| ---- | ------------- | ------------ | ----------------------------------- |
+| Free | **1M tokens** | 🇫🇷 Paris, EU | No credit card needed within limits |
+
+Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-instruct`, `mistral-small-3.2-24b-instruct-2506`, `deepseek-v3-0324`
+
+> EU/GDPR compliant. Get API key at [console.scaleway.com](https://console.scaleway.com).
+
+> **💡 The Ultimate Free Stack (11 Providers, $0 Forever):**
 >
 > ```
-> Kiro (Claude, unlimited)
->  → iFlow (5 models, unlimited)
->  → Qwen (4 models, unlimited)
->  → Gemini CLI (180K/mo)
->  → Cerebras (1M tok/day)
->  → Groq (14.4K req/day)
->  → NVIDIA NIM (40 RPM, 70+ models)
+> Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
+> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+> Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
+> Qwen (qw/)             → qwen3-coder models UNLIMITED
+> Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free
+> Cloudflare AI (cf/)    → 50+ models — 10K Neurons/day
+> Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
+> Groq (groq/)           → Llama/Gemma — 14.4K req/day ultra-fast
+> NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+> Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 > ```
->
-> Configure this as an OmniRoute combo and you'll never pay for AI again.
 
 ## 🎙️ Free Transcription Combo
 
@@ -1105,17 +1164,17 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
 ### 🎵 Multi-Modal APIs
 
-| Feature                    | What It Does                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                       |
-| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                |
-| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` (Whisper and additional providers)                                                |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` (multiple engines/providers)                                                              |
-| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                      |
-| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                  |
-| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                              |
-| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                           |
-| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache |
+| Feature                    | What It Does                                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                                                                                     |
+| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                                                                              |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) with correct error messages          |
+| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                                                                                    |
+| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                                                                                |
+| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
+| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                                                                                         |
+| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
 
 ### 🛡️ Resilience, Security & Governance
 

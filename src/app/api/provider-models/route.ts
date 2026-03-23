@@ -4,7 +4,15 @@ import {
   addCustomModel,
   removeCustomModel,
   updateCustomModel,
+  getModelCompatOverrides,
+  mergeModelCompatOverride,
+  type ModelCompatPatch,
 } from "@/lib/localDb";
+import {
+  AI_PROVIDERS,
+  isOpenAICompatibleProvider,
+  isAnthropicCompatibleProvider,
+} from "@/shared/constants/providers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -27,11 +35,12 @@ export async function GET(request) {
     const provider = searchParams.get("provider");
 
     const models = provider ? await getCustomModels(provider) : await getAllCustomModels();
+    const modelCompatOverrides = provider ? getModelCompatOverrides(provider) : [];
 
-    return Response.json({ models });
-  } catch (error) {
+    return Response.json({ models, modelCompatOverrides });
+  } catch {
     return Response.json(
-      { error: { message: error.message, type: "server_error" } },
+      { error: { message: "Failed to fetch provider models", type: "server_error" } },
       { status: 500 }
     );
   }
@@ -113,17 +122,83 @@ export async function PUT(request) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
 
-    const { provider, modelId, modelName, apiFormat, supportedEndpoints, normalizeToolCallId } =
-      validation.data;
-
-    const model = await updateCustomModel(provider, modelId, {
+    const {
+      provider,
+      modelId,
       modelName,
       apiFormat,
       supportedEndpoints,
       normalizeToolCallId,
-    });
+      preserveOpenAIDeveloperRole,
+      compatByProtocol,
+    } = validation.data;
+
+    const raw = rawBody as Record<string, unknown>;
+    const updates: Record<string, unknown> = {};
+    if ("modelName" in raw) updates.modelName = modelName;
+    if ("apiFormat" in raw) updates.apiFormat = apiFormat;
+    if ("supportedEndpoints" in raw) updates.supportedEndpoints = supportedEndpoints;
+    if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
+    if ("preserveOpenAIDeveloperRole" in raw)
+      updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+    if ("compatByProtocol" in raw && compatByProtocol !== undefined) {
+      updates.compatByProtocol = compatByProtocol;
+    }
+
+    const model = await updateCustomModel(provider, modelId, updates);
 
     if (!model) {
+      const rawKeys = Object.keys(raw);
+      const compatOnly =
+        rawKeys.length > 0 &&
+        rawKeys.every((k) =>
+          [
+            "provider",
+            "modelId",
+            "normalizeToolCallId",
+            "preserveOpenAIDeveloperRole",
+            "compatByProtocol",
+          ].includes(k)
+        ) &&
+        ("normalizeToolCallId" in raw ||
+          "preserveOpenAIDeveloperRole" in raw ||
+          "compatByProtocol" in raw);
+      if (compatOnly) {
+        const knownProvider =
+          !!provider &&
+          (Object.prototype.hasOwnProperty.call(
+            AI_PROVIDERS as Record<string, unknown>,
+            provider
+          ) ||
+            isOpenAICompatibleProvider(provider) ||
+            isAnthropicCompatibleProvider(provider));
+        if (!knownProvider) {
+          return Response.json(
+            { error: { message: "Unknown provider", type: "validation_error" } },
+            { status: 400 }
+          );
+        }
+        const patch: ModelCompatPatch = {};
+        if ("normalizeToolCallId" in raw && typeof normalizeToolCallId === "boolean") {
+          patch.normalizeToolCallId = normalizeToolCallId;
+        }
+        if ("preserveOpenAIDeveloperRole" in raw) {
+          patch.preserveOpenAIDeveloperRole =
+            preserveOpenAIDeveloperRole === null || typeof preserveOpenAIDeveloperRole === "boolean"
+              ? preserveOpenAIDeveloperRole
+              : undefined;
+        }
+        if ("compatByProtocol" in raw && compatByProtocol && typeof compatByProtocol === "object") {
+          patch.compatByProtocol = compatByProtocol;
+        }
+        if (Object.keys(patch).length > 0) {
+          mergeModelCompatOverride(provider, modelId, patch);
+        }
+        return Response.json({
+          ok: true,
+          modelCompatOverrides: getModelCompatOverrides(provider),
+        });
+      }
       return Response.json(
         { error: { message: "Model not found", type: "not_found" } },
         { status: 404 }

@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 API đa phương thức
 
-| Tính năng                             | Nó làm gì                                                    |
-| ------------------------------------- | ------------------------------------------------------------ |
-| 🖼️ **Tạo hình ảnh**                   | `/v1/images/generations` — 4 nhà cung cấp, hơn 9 mô hình     |
-| 📐 **Nhúng**                          | `/v1/embeddings` — 6 nhà cung cấp, hơn 9 mô hình             |
-| 🎤 **Phiên âm âm thanh**              | `/v1/audio/transcriptions` — Tương thích với lời thì thầm    |
-| 🔊 **Chuyển văn bản thành giọng nói** | `/v1/audio/speech` — Tổng hợp âm thanh từ nhiều nhà cung cấp |
-| 🛡️ **Kiểm duyệt**                     | `/v1/moderations` — Kiểm tra an toàn nội dung                |
-| 🔀 **Sắp xếp lại**                    | `/v1/rerank` — Sắp xếp lại mức độ liên quan của tài liệu     |
+| Tính năng                             | Nó làm gì                                                                                                                                                                  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Tạo hình ảnh**                   | `/v1/images/generations` — 4 nhà cung cấp, hơn 9 mô hình                                                                                                                   |
+| 📐 **Nhúng**                          | `/v1/embeddings` — 6 nhà cung cấp, hơn 9 mô hình                                                                                                                           |
+| 🎤 **Phiên âm âm thanh**              | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Chuyển văn bản thành giọng nói** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Kiểm duyệt**                     | `/v1/moderations` — Kiểm tra an toàn nội dung                                                                                                                              |
+| 🔀 **Sắp xếp lại**                    | `/v1/rerank` — Sắp xếp lại mức độ liên quan của tài liệu                                                                                                                   |
 
 ### 🛡️ Khả năng phục hồi và bảo mật
 

@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Wielomodalne interfejsy API
 
-| Funkcja                       | Co to robi                                             |
-| ----------------------------- | ------------------------------------------------------ |
-| 🖼️ **Generowanie obrazu**     | `/v1/images/generations` — 4 dostawców, ponad 9 modeli |
-| 📐 **Osadzenia**              | `/v1/embeddings` — 6 dostawców, ponad 9 modeli         |
-| 🎤 **Transkrypcja audio**     | `/v1/audio/transcriptions` — Kompatybilny z szeptem    |
-| 🔊 **Zamiana tekstu na mowę** | `/v1/audio/speech` — Synteza dźwięku wielu dostawców   |
-| 🛡️ **Moderacje**              | `/v1/moderations` — Kontrola bezpieczeństwa treści     |
-| 🔀 **Ponowna pozycja**        | `/v1/rerank` — Zmiana rankingu trafności dokumentu     |
+| Funkcja                       | Co to robi                                                                                                                                                                 |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Generowanie obrazu**     | `/v1/images/generations` — 4 dostawców, ponad 9 modeli                                                                                                                     |
+| 📐 **Osadzenia**              | `/v1/embeddings` — 6 dostawców, ponad 9 modeli                                                                                                                             |
+| 🎤 **Transkrypcja audio**     | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Zamiana tekstu na mowę** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderacje**              | `/v1/moderations` — Kontrola bezpieczeństwa treści                                                                                                                         |
+| 🔀 **Ponowna pozycja**        | `/v1/rerank` — Zmiana rankingu trafności dokumentu                                                                                                                         |
 
 ### 🛡️ Odporność i bezpieczeństwo
 

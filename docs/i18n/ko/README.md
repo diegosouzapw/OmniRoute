@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 다중 모드 API
 
-| 기능                    | 그것이 하는 일                                         |
-| ----------------------- | ------------------------------------------------------ |
-| 🖼️ **이미지 생성**      | `/v1/images/generations` — 4개 공급자, 9개 이상의 모델 |
-| 📐 **임베딩**           | `/v1/embeddings` — 6개 공급자, 9개 이상의 모델         |
-| 🎤 **오디오 전사**      | `/v1/audio/transcriptions` — 속삭임 호환               |
-| 🔊 **텍스트 음성 변환** | `/v1/audio/speech` — 다중 제공자 오디오 합성           |
-| 🛡️ **조정**             | `/v1/moderations` — 콘텐츠 안전 확인                   |
-| 🔀 **재순위**           | `/v1/rerank` — 문서 관련성 재순위                      |
+| 기능                    | 그것이 하는 일                                                                                                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **이미지 생성**      | `/v1/images/generations` — 4개 공급자, 9개 이상의 모델                                                                                                                     |
+| 📐 **임베딩**           | `/v1/embeddings` — 6개 공급자, 9개 이상의 모델                                                                                                                             |
+| 🎤 **오디오 전사**      | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **텍스트 음성 변환** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **조정**             | `/v1/moderations` — 콘텐츠 안전 확인                                                                                                                                       |
+| 🔀 **재순위**           | `/v1/rerank` — 문서 관련성 재순위                                                                                                                                          |
 
 ### 🛡️ 복원력 및 보안
 

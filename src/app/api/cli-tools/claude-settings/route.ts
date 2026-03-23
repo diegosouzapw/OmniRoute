@@ -12,6 +12,7 @@ import { createBackup } from "@/shared/services/backupService";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliSettingsEnvSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { getApiKeyById } from "@/lib/localDb";
 
 // Get claude settings path based on OS
 const getClaudeSettingsPath = () => getCliPrimaryConfigPath("claude");
@@ -99,6 +100,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { env } = validation.data;
+
+    // (#523/#526) If a keyId was provided, resolve the real API key from DB.
+    // The /api/keys list endpoint returns masked key strings — sending those to
+    // disk would save an unusable half-hidden token. Resolving by ID guarantees
+    // we always write the full key value to the config file.
+    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+    if (keyId) {
+      try {
+        const keyRecord = await getApiKeyById(keyId);
+        if (keyRecord?.key) {
+          env.ANTHROPIC_AUTH_TOKEN = keyRecord.key as string;
+        }
+      } catch {
+        // Non-critical: fall back to whatever value was in env (e.g. sk_omniroute)
+      }
+    }
 
     const settingsPath = getClaudeSettingsPath();
     const claudeDir = path.dirname(settingsPath);

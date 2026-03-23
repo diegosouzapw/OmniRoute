@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multimodaaliset sovellusliittymät
 
-| Ominaisuus                | Mitä se tekee                                             |
-| ------------------------- | --------------------------------------------------------- |
-| 🖼️ **Kuvan luominen**     | `/v1/images/generations` — 4 toimittajaa, 9+ mallia       |
-| 📐 **Upotukset**          | `/v1/embeddings` — 6 toimittajaa, 9+ mallia               |
-| 🎤 **Äänitranskriptio**   | `/v1/audio/transcriptions` — Kuiskausyhteensopiva         |
-| 🔊 **Tekstistä puheeksi** | `/v1/audio/speech` — Usean palveluntarjoajan äänisynteesi |
-| 🛡️ **Moderaatiot**        | `/v1/moderations` — Sisällön turvallisuustarkistukset     |
-| 🔀 **Uudelleenjärjestys** | `/v1/rerank` — Asiakirjan osuvuuden uudelleensijoitus     |
+| Ominaisuus                | Mitä se tekee                                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Kuvan luominen**     | `/v1/images/generations` — 4 toimittajaa, 9+ mallia                                                                                                                        |
+| 📐 **Upotukset**          | `/v1/embeddings` — 6 toimittajaa, 9+ mallia                                                                                                                                |
+| 🎤 **Äänitranskriptio**   | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Tekstistä puheeksi** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderaatiot**        | `/v1/moderations` — Sisällön turvallisuustarkistukset                                                                                                                      |
+| 🔀 **Uudelleenjärjestys** | `/v1/rerank` — Asiakirjan osuvuuden uudelleensijoitus                                                                                                                      |
 
 ### 🛡️ Joustavuus ja turvallisuus
 

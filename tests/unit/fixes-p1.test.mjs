@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+const isWindows = process.platform === "win32";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fixes-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -39,7 +40,20 @@ async function withEnv(name, value, fn) {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      if (fs.existsSync(TEST_DATA_DIR)) {
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      }
+      break;
+    } catch (err) {
+      if ((err?.code === "EBUSY" || err?.code === "EPERM") && attempt < 9) {
+        await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
+      } else {
+        throw err;
+      }
+    }
+  }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -87,38 +101,88 @@ test("token refresh dedupe key avoids collision for same-prefix tokens", async (
   }
 });
 
-test("restoreDbBackup clears stale sqlite sidecars before reopen", async () => {
-  await resetStorage();
+test(
+  "restoreDbBackup clears stale sqlite sidecars before reopen",
+  { skip: isWindows },
+  async () => {
+    await resetStorage();
 
-  const db = core.getDbInstance();
-  const now = new Date().toISOString();
-  db.prepare(
-    "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run("restore-test-conn", "openai", "apikey", "restore-test", 1, now, now);
+    const db = core.getDbInstance();
+    const now = new Date().toISOString();
+    db.prepare(
+      "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run("restore-test-conn", "openai", "apikey", "restore-test", 1, now, now);
 
-  const backupId = "db_2000-01-01T00-00-00-000Z_manual.sqlite";
-  const backupPath = path.join(core.DB_BACKUPS_DIR, backupId);
-  fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
-  await db.backup(backupPath);
+    const backupId = "db_2000-01-01T00-00-00-000Z_manual.sqlite";
+    const backupPath = path.join(core.DB_BACKUPS_DIR, backupId);
+    fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
+    await db.backup(backupPath);
 
-  fs.writeFileSync(`${core.SQLITE_FILE}-wal`, "STALE-WAL-MARKER");
-  fs.writeFileSync(`${core.SQLITE_FILE}-shm`, "STALE-SHM-MARKER");
-  fs.writeFileSync(`${core.SQLITE_FILE}-journal`, "STALE-JOURNAL-MARKER");
+    core.resetDbInstance();
+    fs.writeFileSync(`${core.SQLITE_FILE}-wal`, "STALE-WAL-MARKER");
+    fs.writeFileSync(`${core.SQLITE_FILE}-shm`, "STALE-SHM-MARKER");
+    fs.writeFileSync(`${core.SQLITE_FILE}-journal`, "STALE-JOURNAL-MARKER");
 
-  await backupDb.restoreDbBackup(backupId);
+    await backupDb.restoreDbBackup(backupId);
 
-  for (const suffix of ["-wal", "-shm", "-journal"]) {
-    const sidecarPath = `${core.SQLITE_FILE}${suffix}`;
-    if (!fs.existsSync(sidecarPath)) continue;
-    const text = fs.readFileSync(sidecarPath, "utf8");
-    assert.equal(text.includes("STALE-"), false, `sidecar ${suffix} still contains stale marker`);
+    for (const suffix of ["-wal", "-shm", "-journal"]) {
+      const sidecarPath = `${core.SQLITE_FILE}${suffix}`;
+      if (!fs.existsSync(sidecarPath)) continue;
+      const text = fs.readFileSync(sidecarPath, "utf8");
+      assert.equal(text.includes("STALE-"), false, `sidecar ${suffix} still contains stale marker`);
+    }
+
+    const reopenedDb = core.getDbInstance();
+    const row = reopenedDb
+      .prepare("SELECT COUNT(*) AS cnt FROM provider_connections WHERE id = ?")
+      .get("restore-test-conn");
+    assert.equal(row.cnt, 1);
   }
+);
 
-  const reopenedDb = core.getDbInstance();
-  const row = reopenedDb
-    .prepare("SELECT COUNT(*) AS cnt FROM provider_connections WHERE id = ?")
-    .get("restore-test-conn");
-  assert.equal(row.cnt, 1);
+test("unlinkFileWithRetry retries EBUSY/EPERM and eventually succeeds", async () => {
+  const target = path.join(TEST_DATA_DIR, "retry-target.tmp");
+  fs.writeFileSync(target, "retry-me");
+
+  const originalExistsSync = fs.existsSync;
+  const originalUnlinkSync = fs.unlinkSync;
+  const seenCodes = [];
+  let attempts = 0;
+
+  fs.existsSync = (filePath) => {
+    if (filePath === target) return attempts < 3 || originalExistsSync(filePath);
+    return originalExistsSync(filePath);
+  };
+
+  fs.unlinkSync = (filePath) => {
+    if (filePath === target) {
+      attempts++;
+      if (attempts === 1) {
+        const err = new Error("busy");
+        err.code = "EBUSY";
+        seenCodes.push(err.code);
+        throw err;
+      }
+      if (attempts === 2) {
+        const err = new Error("perm");
+        err.code = "EPERM";
+        seenCodes.push(err.code);
+        throw err;
+      }
+    }
+    return originalUnlinkSync(filePath);
+  };
+
+  try {
+    await backupDb.unlinkFileWithRetry(target, { maxAttempts: 5, baseDelayMs: 1 });
+    assert.equal(attempts, 3);
+    assert.deepEqual(seenCodes, ["EBUSY", "EPERM"]);
+    assert.equal(fs.existsSync(target), false);
+  } finally {
+    fs.existsSync = originalExistsSync;
+    fs.unlinkSync = originalUnlinkSync;
+    if (originalExistsSync(target)) originalUnlinkSync(target);
+  }
 });
 
 test("provider connection persists rateLimitProtection across reopen", async () => {

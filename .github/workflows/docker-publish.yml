@@ -21,18 +21,18 @@ jobs:
       IMAGE_NAME: diegosouzapw/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
 
       - name: Set up QEMU (for multi-arch builds)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
           echo "Publishing Docker image: $IMAGE_NAME:$VERSION"
 
       - name: Build and push multi-arch image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: runner-base
@@ -70,7 +70,7 @@ jobs:
           docker buildx imagetools inspect "${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
 
       - name: Update Docker Hub description
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

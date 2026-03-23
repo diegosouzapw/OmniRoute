@@ -934,8 +934,8 @@ OmniRoute v2.0 er bygget som en operationel platform, ikke kun en relæ-proxy.
 | Funktion | Hvad det gør || -------------------------- | -------------------------------------------------------------------- |
 | 🖼️ **Billedgenerering** | `/v1/images/generations` med cloud og lokale backends |
 | 📐 **Indlejringer** | `/v1/embeddings` til søgning og RAG-rørledninger |
-| 🎤 **Lydtransskription** | `/v1/audio/transcriptions` (Whisper og yderligere udbydere) |
-| 🔊 **Tekst-til-tale** | `/v1/audio/speech` (flere motorer/udbydere) |
+| 🎤 **Lydtransskription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Tekst-til-tale** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) |
 | 🎬 **Videogenerering** | `/v1/videos/generations` (ComfyUI + SD WebUI-arbejdsgange) |
 | 🎵 **Music Generation** | `/v1/music/generations` (ComfyUI-arbejdsgange) |
 | 🛡️ **Moderationer** | `/v1/moderations` sikkerhedstjek |

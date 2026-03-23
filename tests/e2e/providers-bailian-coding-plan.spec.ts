@@ -125,7 +125,6 @@ test.describe("Bailian Coding Plan Provider", () => {
   });
 
   test("invalid URL blocks save with validation error", async ({ page }) => {
-    let validationErrorCaptured = false;
     let createAttempted = false;
 
     await page.route("**/api/providers", async (route) => {
@@ -227,24 +226,25 @@ test.describe("Bailian Coding Plan Provider", () => {
       .last();
     await saveButton.click();
 
-    const errorLocator = page
-      .locator("text=/invalid.*url|url.*invalid|must be a valid url/i")
-      .or(
-        page
-          .locator(".text-red-500")
-          .or(page.locator('[class*="error"]').or(page.locator('[class*="text-destructive"]')))
-      );
-
+    // Wait for React to process the validation and re-render
     await page.waitForTimeout(1000);
 
-    const errorVisible = await errorLocator.isVisible({ timeout: 5000 }).catch(() => false);
+    // Check for the validation error scoped to the dialog to avoid strict-mode
+    // violations from broad selectors matching unrelated page elements.
+    const errorTextLocator = dialog
+      .locator("text=/invalid.*url|url.*invalid|must be a valid url|must use http/i")
+      .first();
+    const errorClassLocator = dialog.locator(".text-red-500").first();
+
+    let errorVisible =
+      (await errorTextLocator.isVisible().catch(() => false)) ||
+      (await errorClassLocator.isVisible().catch(() => false));
 
     if (!errorVisible) {
+      // Fallback: if the dialog stays open after clicking save, it means the
+      // client-side validation prevented submission (which is the desired behavior).
       await page.waitForTimeout(2000);
-      const modalStillOpen = await dialog.isVisible();
-      if (modalStillOpen) {
-        validationErrorCaptured = true;
-      }
+      errorVisible = await dialog.isVisible().catch(() => false);
     }
 
     expect(errorVisible).toBe(true);

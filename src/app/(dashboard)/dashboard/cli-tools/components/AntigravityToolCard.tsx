@@ -41,7 +41,7 @@ export default function AntigravityToolCard({
 
   const loadSavedMappings = async () => {
     try {
-      const res = await fetch("/api/cli-tools/antigravity-mitm/alias?tool=antigravity");
+      const res = await fetch(`/api/cli-tools/antigravity-mitm/alias?tool=${tool.id}`);
       if (res.ok) {
         const data = await res.json();
         const aliases = data.aliases || {};
@@ -187,7 +187,7 @@ export default function AntigravityToolCard({
       const res = await fetch("/api/cli-tools/antigravity-mitm/alias", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tool: "antigravity", mappings: modelMappings }),
+        body: JSON.stringify({ tool: tool.id, mappings: modelMappings }),
       });
 
       if (!res.ok) {
@@ -211,7 +211,7 @@ export default function AntigravityToolCard({
         <div className="flex items-center gap-3">
           <div className="size-8 flex items-center justify-center shrink-0">
             <Image
-              src="/providers/antigravity.png"
+              src={tool.image || "/providers/antigravity.png"}
               alt={tool.name}
               width={32}
               height={32}
@@ -235,7 +235,7 @@ export default function AntigravityToolCard({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.antigravity")}</p>
+            <p className="text-xs text-text-muted truncate">{tool.description}</p>
           </div>
         </div>
         <span
@@ -306,7 +306,7 @@ export default function AntigravityToolCard({
                 )}
               </div>
 
-              {tool.defaultModels.map((model) => (
+              {(tool.defaultModels || []).map((model) => (
                 <div key={model.alias} className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
                     {model.name}
@@ -355,25 +355,33 @@ export default function AntigravityToolCard({
           )}
 
           {/* When stopped: how it works */}
-          {!isRunning && (
-            <div className="flex flex-col gap-1.5 px-1">
-              <p className="text-xs text-text-muted">
-                <span className="font-medium text-text-main">{t("howItWorks")}</span>{" "}
-                {t("antigravityHowWorksDesc")}
-              </p>
-              <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
-                <span>{t("antigravityStep1")}</span>
-                <span>
-                  {t("antigravityStep2Prefix")}{" "}
-                  <code className="text-[10px] bg-surface px-1 rounded">
-                    daily-cloudcode-pa.googleapis.com
-                  </code>{" "}
-                  {t("antigravityStep2Suffix")}
-                </span>
-                <span>{t("antigravityStep3")}</span>
-              </div>
-            </div>
-          )}
+          {!isRunning &&
+            (() => {
+              // Dynamic MITM instructions per tool (#505)
+              const mitmDomains: Record<string, string> = {
+                antigravity: "daily-cloudcode-pa.googleapis.com",
+                kiro: "api.anthropic.com",
+              };
+              const toolName = tool.name || tool.id;
+              const domain = mitmDomains[tool.id] || mitmDomains.antigravity;
+              return (
+                <div className="flex flex-col gap-1.5 px-1">
+                  <p className="text-xs text-text-muted">
+                    <span className="font-medium text-text-main">{t("howItWorks")}</span>{" "}
+                    {t("mitmHowWorksDesc", { toolName })}
+                  </p>
+                  <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
+                    <span>{t("mitmStep1")}</span>
+                    <span>
+                      {t("mitmStep2Prefix")}{" "}
+                      <code className="text-[10px] bg-surface px-1 rounded">{domain}</code>{" "}
+                      {t("mitmStep2Suffix")}
+                    </span>
+                    <span>{t("mitmStep3", { toolName })}</span>
+                  </div>
+                </div>
+              );
+            })()}
         </div>
       )}
 

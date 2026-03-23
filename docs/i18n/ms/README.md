@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 API Berbilang Modal
 
-| Ciri                     | Apa yang Dilakukan                                     |
-| ------------------------ | ------------------------------------------------------ |
-| 🖼️ **Penjanaan Imej**    | `/v1/images/generations` — 4 pembekal, 9+ model        |
-| 📐 **Pembenaman**        | `/v1/embeddings` — 6 pembekal, 9+ model                |
-| 🎤 **Transkripsi Audio** | `/v1/audio/transcriptions` — Serasi dengan bisikan     |
-| 🔊 **Teks-ke-Ucapan**    | `/v1/audio/speech` — Sintesis audio berbilang pembekal |
-| 🛡️ **Kesederhanaan**     | `/v1/moderations` — Pemeriksaan keselamatan kandungan  |
-| 🔀 **Penyusunan semula** | `/v1/rerank` — Penarafan semula perkaitan dokumen      |
+| Ciri                     | Apa yang Dilakukan                                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Penjanaan Imej**    | `/v1/images/generations` — 4 pembekal, 9+ model                                                                                                                            |
+| 📐 **Pembenaman**        | `/v1/embeddings` — 6 pembekal, 9+ model                                                                                                                                    |
+| 🎤 **Transkripsi Audio** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Teks-ke-Ucapan**    | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Kesederhanaan**     | `/v1/moderations` — Pemeriksaan keselamatan kandungan                                                                                                                      |
+| 🔀 **Penyusunan semula** | `/v1/rerank` — Penarafan semula perkaitan dokumen                                                                                                                          |
 
 ### 🛡️ Ketahanan & Keselamatan
 

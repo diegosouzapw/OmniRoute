@@ -1,26 +1,51 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it, beforeEach, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
 import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
 
-// ─── Test Setup: Use temp DB ────────────────────────
+function assertAlmostEqual(actual, expected, epsilon = 1e-9, message = "") {
+  assert.ok(
+    Math.abs(actual - expected) <= epsilon,
+    message || `expected ${actual} to be within ${epsilon} of ${expected}`
+  );
+}
 
-let tmpDir;
-let originalEnv;
+// ─── Test Setup: Single temp dir for whole file (core caches DATA_DIR at first import) ────────
 
-beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-domain-test-"));
-  originalEnv = process.env.DATA_DIR;
-  process.env.DATA_DIR = tmpDir;
+const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-domain-test-"));
+const originalDataDir = process.env.DATA_DIR;
+process.env.DATA_DIR = fileTmpDir;
+
+async function removeStorageFiles(dir) {
+  const storage = path.join(dir, "storage.sqlite");
+  try {
+    const core = await import("../../src/lib/db/core.ts");
+    core.resetDbInstance();
+  } catch {
+    /* core may not be loaded yet */
+  }
+  for (const suffix of ["", "-wal", "-shm", "-journal"]) {
+    const p = storage + suffix;
+    try {
+      if (fs.existsSync(p)) fs.unlinkSync(p);
+    } catch {}
+  }
+}
+
+beforeEach(async () => {
+  await removeStorageFiles(fileTmpDir);
 });
 
-afterEach(() => {
-  process.env.DATA_DIR = originalEnv;
-  if (tmpDir && fs.existsSync(tmpDir)) {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  }
+afterEach(async () => {
+  const core = await import("../../src/lib/db/core.ts");
+  core.resetDbInstance();
+});
+
+after(() => {
+  process.env.DATA_DIR = originalDataDir;
+  if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
 });
 
 // ─── Fallback Policy Tests ────────────────────────
@@ -151,7 +176,7 @@ describe("costRules persistence", () => {
     recordCost("key2", 1.0);
 
     const total = getDailyTotal("key2");
-    assert.ok(total >= 4.5);
+    assertAlmostEqual(total, 4.5, 1e-9, `daily total ${total} should equal 4.5 (3.5 + 1.0)`);
 
     // Should still be allowed
     const check = checkBudget("key2", 0);
@@ -187,8 +212,18 @@ describe("costRules persistence", () => {
     recordCost("key3", 2.5);
 
     const summary = getCostSummary("key3");
-    assert.ok(summary.dailyTotal >= 4.0);
-    assert.ok(summary.monthlyTotal >= 4.0);
+    assertAlmostEqual(
+      summary.dailyTotal,
+      4.0,
+      1e-9,
+      `dailyTotal ${summary.dailyTotal} should equal 4.0 (1.5 + 2.5)`
+    );
+    assertAlmostEqual(
+      summary.monthlyTotal,
+      4.0,
+      1e-9,
+      `monthlyTotal ${summary.monthlyTotal} should equal 4.0`
+    );
     assert.equal(summary.budget.dailyLimitUsd, 100);
 
     resetCostData();

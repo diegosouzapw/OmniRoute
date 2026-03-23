@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 

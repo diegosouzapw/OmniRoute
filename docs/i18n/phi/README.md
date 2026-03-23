@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Mga Multi-Modal na API
 
-| Tampok                     | Ano ang Ginagawa Nito                                        |
-| -------------------------- | ------------------------------------------------------------ |
-| 🖼️ **Pagbuo ng Larawan**   | `/v1/images/generations` — 4 na provider, 9+ na modelo       |
-| 📐 **Mga Pag-embed**       | `/v1/embeddings` — 6 na provider, 9+ na modelo               |
-| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — Whisper-compatible              |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — Multi-provider audio synthesis          |
-| 🛡️ **Mga Pag-moderate**    | `/v1/moderations` — Mga pagsusuri sa kaligtasan ng nilalaman |
-| 🔀 **Reranking**           | `/v1/rerank` — Muling pagraranggo ng kaugnayan ng dokumento  |
+| Tampok                     | Ano ang Ginagawa Nito                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Pagbuo ng Larawan**   | `/v1/images/generations` — 4 na provider, 9+ na modelo                                                                                                                     |
+| 📐 **Mga Pag-embed**       | `/v1/embeddings` — 6 na provider, 9+ na modelo                                                                                                                             |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Mga Pag-moderate**    | `/v1/moderations` — Mga pagsusuri sa kaligtasan ng nilalaman                                                                                                               |
+| 🔀 **Reranking**           | `/v1/rerank` — Muling pagraranggo ng kaugnayan ng dokumento                                                                                                                |
 
 ### 🛡️ Katatagan at Seguridad
 

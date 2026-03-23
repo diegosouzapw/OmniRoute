@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 多模态 API
 
-| 功能              | 功能描述                                       |
-| ----------------- | ---------------------------------------------- |
-| 🖼️ **图像生成**   | `/v1/images/generations` — 4 个提供商，9+ 模型 |
-| 📐 **Embeddings** | `/v1/embeddings` — 6 个提供商，9+ 模型         |
-| 🎤 **音频转录**   | `/v1/audio/transcriptions` — Whisper 兼容      |
-| 🔊 **文字转语音** | `/v1/audio/speech` — 多提供商音频合成          |
-| 🛡️ **内容审核**   | `/v1/moderations` — 内容安全检查               |
-| 🔀 **重排序**     | `/v1/rerank` — 文档相关性重排序                |
+| 功能              | 功能描述                                                                                                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **图像生成**   | `/v1/images/generations` — 4 个提供商，9+ 模型                                                                                                                             |
+| 📐 **Embeddings** | `/v1/embeddings` — 6 个提供商，9+ 模型                                                                                                                                     |
+| 🎤 **音频转录**   | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **文字转语音** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **内容审核**   | `/v1/moderations` — 内容安全检查                                                                                                                                           |
+| 🔀 **重排序**     | `/v1/rerank` — 文档相关性重排序                                                                                                                                            |
 
 ### 🛡️ 弹性与安全
 

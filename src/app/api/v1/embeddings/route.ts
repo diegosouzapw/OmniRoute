@@ -12,6 +12,7 @@ import {
   getEmbeddingProvider,
   buildDynamicEmbeddingProvider,
   type EmbeddingProviderNodeRow,
+  type EmbeddingProvider,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -116,9 +117,9 @@ export async function POST(request) {
   // Load local provider_nodes for embedding routing (only localhost — prevents auth bypass/SSRF)
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
-    const nodes = await getProviderNodes();
+    const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
     dynamicProviders = (Array.isArray(nodes) ? nodes : [])
-      .filter((n: EmbeddingProviderNodeRow) => {
+      .filter((n) => {
         // provider_nodes apiType is "chat" or "responses" (not "embeddings") — local OpenAI-compatible
         // backends expose /embeddings under the same base URL as chat, so we build the URL as baseUrl + /embeddings.
         if (n.apiType !== "chat" && n.apiType !== "responses") return false;
@@ -157,8 +158,39 @@ export async function POST(request) {
   }
 
   // Resolve provider config — dynamic first (local override), then hardcoded
-  const providerConfig =
+  let providerConfig: EmbeddingProvider | null =
     dynamicProviders.find((dp) => dp.id === provider) || getEmbeddingProvider(provider) || null;
+  let credentialsProviderId = provider;
+
+  // #496: Fallback — resolve from ALL provider_nodes (not just localhost)
+  // This enables custom embedding models (e.g. google/gemini-embedding-001) whose
+  // providers have remote baseUrls. Safe because getProviderCredentials() authenticates.
+  if (!providerConfig) {
+    try {
+      const allNodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
+      const matchingNode = (Array.isArray(allNodes) ? allNodes : []).find(
+        (n) =>
+          n.prefix === provider && (n.apiType === "chat" || n.apiType === "responses") && n.baseUrl
+      );
+      if (matchingNode) {
+        const baseUrl = String(matchingNode.baseUrl).replace(/\/+$/, "");
+        providerConfig = {
+          id: matchingNode.prefix,
+          baseUrl: `${baseUrl}/embeddings`,
+          authType: "apikey",
+          authHeader: "bearer",
+          models: [],
+        };
+        credentialsProviderId = matchingNode.id || provider;
+        log.info(
+          "EMBED",
+          `Resolved custom embedding provider: ${provider} → ${providerConfig.baseUrl}`
+        );
+      }
+    } catch (err) {
+      log.error("EMBED", `Failed to resolve custom embedding provider ${provider}: ${err}`);
+    }
+  }
 
   if (!providerConfig) {
     return errorResponse(
@@ -170,7 +202,7 @@ export async function POST(request) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentials(credentialsProviderId);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,

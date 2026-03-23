@@ -17,6 +17,7 @@ export interface EmbeddingProvider {
 }
 
 export interface EmbeddingProviderNodeRow {
+  id?: string;
   prefix: string;
   name: string;
   baseUrl: string;

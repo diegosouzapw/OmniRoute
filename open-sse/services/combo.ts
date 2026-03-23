@@ -447,8 +447,10 @@ export async function handleComboChat({
   const handleSingleModelWrapped = combo.context_cache_protection
     ? async (b, modelStr) => {
         const res = await handleSingleModel(b, modelStr);
-        // Inject tag only on success and only for non-streaming non-binary responses
-        if (res.ok && !b.stream) {
+        if (!res.ok) return res;
+
+        // Non-streaming: inject tag into JSON response (existing logic)
+        if (!b.stream) {
           try {
             const json = await res.clone().json();
             const msgs = Array.isArray(json?.messages) ? json.messages : [];
@@ -460,10 +462,71 @@ export async function handleComboChat({
               });
             }
           } catch {
-            /* non-JSON or stream — skip tagging */
+            /* non-JSON — skip tagging */
           }
+          return res;
         }
-        return res;
+
+        // Streaming (Fix #490 + #511): prepend omniModel tag into the first
+        // non-empty content chunk so it arrives BEFORE finish_reason:stop.
+        // SDKs close the connection on finish_reason, so anything sent after
+        // that marker is silently dropped.
+        if (!res.body) return res;
+        const tagContent = `\\n<omniModel>${modelStr}</omniModel>\\n`;
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        let tagInjected = false;
+
+        const transform = new TransformStream({
+          transform(chunk, controller) {
+            if (tagInjected) {
+              // Already injected — passthrough
+              controller.enqueue(chunk);
+              return;
+            }
+
+            const text = decoder.decode(chunk, { stream: true });
+
+            // Look for the first SSE data line with non-empty content
+            // Pattern: "content":"<non-empty>" — we inject tag at the start
+            const contentMatch = text.match(/"content":"([^"]+)/);
+            if (contentMatch) {
+              // Inject tag at the beginning of the first content value
+              const injected = text.replace(
+                /"content":"([^"]+)/,
+                `"content":"${tagContent.replace(/"/g, '\\"')}$1`
+              );
+              tagInjected = true;
+              controller.enqueue(encoder.encode(injected));
+              return;
+            }
+
+            // No content yet — passthrough
+            controller.enqueue(chunk);
+          },
+          flush(controller) {
+            // If stream ends without ever finding content (edge case),
+            // inject tag as a standalone chunk before the stream closes
+            if (!tagInjected) {
+              const tagChunk = `data: ${JSON.stringify({
+                choices: [
+                  {
+                    delta: { content: tagContent },
+                    index: 0,
+                    finish_reason: null,
+                  },
+                ],
+              })}\n\n`;
+              controller.enqueue(encoder.encode(tagChunk));
+            }
+          },
+        });
+
+        const transformedStream = res.body.pipeThrough(transform);
+        return new Response(transformedStream, {
+          status: res.status,
+          headers: res.headers,
+        });
       }
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────

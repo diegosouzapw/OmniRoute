@@ -932,8 +932,8 @@ npm run electron:build:linux   # Linux (.AppImage)
 | ميزة | ماذا يفعل || -------------------------- | ------------------------------------------------------------- |
 | 🖼️ **إنشاء الصور** | `/v1/images/generations` مع الواجهات الخلفية السحابية والمحلية |
 | 📐 **المضامين** | `/v1/embeddings` للبحث وخطوط أنابيب RAG |
-| 🎤 **نسخ صوتي** | `/v1/audio/transcriptions` (مقدمو خدمات الهمس والإضافيون) |
-| 🔊 **تحويل النص إلى كلام** | `/v1/audio/speech` (محركات/موفرو متعددون) |
+| 🎤 **نسخ صوتي** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **تحويل النص إلى كلام** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) |
 | 🎬 **توليد الفيديو** | `/v1/videos/generations` (سير عمل ComfyUI + SD WebUI) |
 | 🎵 **جيل الموسيقى** | `/v1/music/generations` (سير عمل ComfyUI) |
 | 🛡️ **اعتدالات** | فحوصات السلامة `/v1/moderations` |

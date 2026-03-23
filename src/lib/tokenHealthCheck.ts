@@ -99,23 +99,34 @@ export function clearHealthCheckLogCache() {
   cacheTimestamp = 0;
 }
 
-// ── Singleton guard ──────────────────────────────────────────────────────────
-let initialized = false;
-let intervalHandle = null;
+// ── Singleton guard (globalThis survives HMR re-evaluation) ─────────────────
+
+declare global {
+  var __omnirouteTokenHC:
+    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null }
+    | undefined;
+}
+
+function getHCState() {
+  if (!globalThis.__omnirouteTokenHC) {
+    globalThis.__omnirouteTokenHC = { initialized: false, interval: null };
+  }
+  return globalThis.__omnirouteTokenHC;
+}
 
 /**
  * Start the health-check scheduler (idempotent).
  */
 export function initTokenHealthCheck() {
-  if (initialized || isHealthCheckDisabled()) return;
-  initialized = true;
+  const state = getHCState();
+  if (state.initialized || isHealthCheckDisabled()) return;
+  state.initialized = true;
 
   log(`${LOG_PREFIX} Starting proactive token health-check (tick every ${TICK_MS / 1000}s)`);
 
-  // Run first sweep after a short delay so the server finishes booting
   setTimeout(() => {
     sweep();
-    intervalHandle = setInterval(sweep, TICK_MS);
+    state.interval = setInterval(sweep, TICK_MS);
   }, 10_000);
 }
 
@@ -123,11 +134,12 @@ export function initTokenHealthCheck() {
  * Stop the scheduler (useful for tests / hot-reload).
  */
 export function stopTokenHealthCheck() {
-  if (intervalHandle) {
-    clearInterval(intervalHandle);
-    intervalHandle = null;
+  const state = getHCState();
+  if (state.interval) {
+    clearInterval(state.interval);
+    state.interval = null;
   }
-  initialized = false;
+  state.initialized = false;
 }
 
 // ── Core sweep ───────────────────────────────────────────────────────────────

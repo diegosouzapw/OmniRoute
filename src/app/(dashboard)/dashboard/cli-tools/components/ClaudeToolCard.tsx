@@ -58,8 +58,10 @@ export default function ClaudeToolCard({
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   useEffect(() => {
+    // (#523) Store the key *id* (not the masked string) so the backend can
+    // resolve the real secret from DB before writing to settings.json.
     if (apiKeys?.length > 0 && !selectedApiKey) {
-      setSelectedApiKey(apiKeys[0].key);
+      setSelectedApiKey(apiKeys[0].id);
     }
   }, [apiKeys, selectedApiKey]);
 
@@ -95,10 +97,11 @@ export default function ClaudeToolCard({
           }
         }
       });
-      // Only set selectedApiKey if it exists in apiKeys list
+      // Restore selected key from file: match token stored in file against known keys
       const tokenFromFile = env.ANTHROPIC_AUTH_TOKEN;
-      if (tokenFromFile && apiKeys?.some((k) => k.key === tokenFromFile)) {
-        setSelectedApiKey(tokenFromFile);
+      if (tokenFromFile) {
+        const matchedKey = apiKeys?.find((k) => k.key === tokenFromFile);
+        if (matchedKey) setSelectedApiKey(matchedKey.id);
       }
     }
   }, [claudeStatus, apiKeys, tool.defaultModels, onModelMappingChange]);
@@ -132,24 +135,27 @@ export default function ClaudeToolCard({
     try {
       const env: any = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
 
-      // Get key from dropdown, fallback to first key or sk_omniroute for localhost
-      const keyToUse =
-        selectedApiKey?.trim() ||
-        (apiKeys?.length > 0 ? apiKeys[0].key : null) ||
-        (!cloudEnabled ? "sk_omniroute" : null);
+      // (#523) Prefer keyId lookup so the backend writes the real key to disk.
+      // Fall back to sk_omniroute for localhost-only setups without a key.
+      const selectedKeyId = selectedApiKey?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+      const skOmnirouteFallback = !cloudEnabled ? "sk_omniroute" : null;
 
-      if (keyToUse) {
-        env.ANTHROPIC_AUTH_TOKEN = keyToUse;
+      if (!selectedKeyId && skOmnirouteFallback) {
+        env.ANTHROPIC_AUTH_TOKEN = skOmnirouteFallback;
       }
 
       tool.defaultModels.forEach((model) => {
         const targetModel = modelMappings[model.alias];
         if (targetModel && model.envKey) env[model.envKey] = targetModel;
       });
+
+      const postBody: Record<string, unknown> = { env };
+      if (selectedKeyId) postBody.keyId = selectedKeyId;
+
       const res = await fetch("/api/cli-tools/claude-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ env }),
+        body: JSON.stringify(postBody),
       });
       const data = await res.json();
       if (res.ok) {
@@ -412,7 +418,7 @@ export default function ClaudeToolCard({
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >
                       {apiKeys.map((key) => (
-                        <option key={key.id} value={key.key}>
+                        <option key={key.id} value={key.id}>
                           {key.key}
                         </option>
                       ))}

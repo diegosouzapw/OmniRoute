@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 API Multi-modali
 
-| Funzionalità                | Cosa Fa                                              |
-| --------------------------- | ---------------------------------------------------- |
-| 🖼️ **Generazione immagini** | `/v1/images/generations` — 4 provider, 9+ modelli    |
-| 📐 **Embeddings**           | `/v1/embeddings` — 6 provider, 9+ modelli            |
-| 🎤 **Trascrizione audio**   | `/v1/audio/transcriptions` — Compatibile Whisper     |
-| 🔊 **Testo a voce**         | `/v1/audio/speech` — Sintesi audio multi-provider    |
-| 🛡️ **Moderazioni**          | `/v1/moderations` — Controlli di sicurezza           |
-| 🔀 **Reranking**            | `/v1/rerank` — Riclassificazione rilevanza documenti |
+| Funzionalità                | Cosa Fa                                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Generazione immagini** | `/v1/images/generations` — 4 provider, 9+ modelli                                                                                                                          |
+| 📐 **Embeddings**           | `/v1/embeddings` — 6 provider, 9+ modelli                                                                                                                                  |
+| 🎤 **Trascrizione audio**   | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Testo a voce**         | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderazioni**          | `/v1/moderations` — Controlli di sicurezza                                                                                                                                 |
+| 🔀 **Reranking**            | `/v1/rerank` — Riclassificazione rilevanza documenti                                                                                                                       |
 
 ### 🛡️ Resilienza & Sicurezza
 

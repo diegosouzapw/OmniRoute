@@ -875,14 +875,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 API-uri multimodale
 
-| Caracteristica            | Ce face                                                    |
-| ------------------------- | ---------------------------------------------------------- |
-| 🖼️ **Generarea imaginii** | `/v1/images/generations` — 4 furnizori, peste 9 modele     |
-| 📐 **Inglobări**          | `/v1/embeddings` — 6 furnizori, peste 9 modele             |
-| 🎤 **Transcriere audio**  | `/v1/audio/transcriptions` — Compatibil cu Whisper         |
-| 🔊 **Text-to-speech**     | `/v1/audio/speech` — Sinteză audio cu mai mulți furnizori  |
-| 🛡️ **Moderații**          | `/v1/moderations` — Verificări de siguranță a conținutului |
-| 🔀 **Reclasificare**      | `/v1/rerank` — Reclasificarea relevanței documentului      |
+| Caracteristica            | Ce face                                                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Generarea imaginii** | `/v1/images/generations` — 4 furnizori, peste 9 modele                                                                                                                     |
+| 📐 **Inglobări**          | `/v1/embeddings` — 6 furnizori, peste 9 modele                                                                                                                             |
+| 🎤 **Transcriere audio**  | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-speech**     | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderații**          | `/v1/moderations` — Verificări de siguranță a conținutului                                                                                                                 |
+| 🔀 **Reclasificare**      | `/v1/rerank` — Reclasificarea relevanței documentului                                                                                                                      |
 
 ### 🛡️ Reziliență și securitate
 

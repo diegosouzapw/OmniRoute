@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 ממשקי API רב-מודאליים
 
-| תכונה               | מה זה עושה                                    |
-| ------------------- | --------------------------------------------- |
-| 🖼️ **יצירת תמונות** | `/v1/images/generations` — 4 ספקים, 9+ דגמים  |
-| 📐 **הטבעות**       | `/v1/embeddings` — 6 ספקים, 9+ דגמים          |
-| 🎤 **תמלול אודיו**  | `/v1/audio/transcriptions` — תואם לחישה       |
-| 🔊 **טקסט לדיבור**  | `/v1/audio/speech` — סינתזת אודיו מרובה ספקים |
-| 🛡️ **מנחים**        | `/v1/moderations` — בדיקות בטיחות תוכן        |
-| 🔀 **דירוג מחדש**   | `/v1/rerank` — דירוג מחדש של רלוונטיות המסמך  |
+| תכונה               | מה זה עושה                                                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **יצירת תמונות** | `/v1/images/generations` — 4 ספקים, 9+ דגמים                                                                                                                               |
+| 📐 **הטבעות**       | `/v1/embeddings` — 6 ספקים, 9+ דגמים                                                                                                                                       |
+| 🎤 **תמלול אודיו**  | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **טקסט לדיבור**  | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **מנחים**        | `/v1/moderations` — בדיקות בטיחות תוכן                                                                                                                                     |
+| 🔀 **דירוג מחדש**   | `/v1/rerank` — דירוג מחדש של רלוונטיות המסמך                                                                                                                               |
 
 ### 🛡️ חוסן וביטחון
 

@@ -828,12 +828,18 @@ Po minimalizaci se OmniRoute nachází v systémové liště a nabízí rychlé 
 **💡 Kombinovaný balík za 0 $ — Kompletní bezplatná instalace:**
 
 ```
-Gemini CLI (180K/mo free)
-  → iFlow (unlimited: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1)
-  → Kiro (Claude Sonnet 4.5 + Haiku — unlimited, via AWS Builder ID)
-  → Qwen (4 models — unlimited)
-  → Groq (14.4K req/day — ultra-fast)
-  → NVIDIA NIM (70+ models — 40 RPM forever)
+# 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
+Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
+iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
+Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
+Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
+Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
+Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
+Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
+NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
 **Nulové náklady. Nikdy nepřestávejte s kódováním.** Nakonfigurujte si to jako jednu kombinaci OmniRoute a všechny záložní režimy se provede automaticky – žádné ruční přepínání.
@@ -1673,6 +1679,14 @@ Pokud si teď nechcete nastavovat vlastní přihlašovací údaje, můžete stá
 #### Řešení temporário (sem configurar credenciais próprias)
 
 Chcete-li získat přístup k kriterii pověření, můžete použít adresu **URL** :
+
+1. O OmniRoute abrirá a URL autorização Google
+2. Após você autorizar, nebo Google tentará redirecionar para `localhost` (que falha no servidor remoto)
+3. **Zkopírujte úplnou** adresu URL prohlížeče do svého prohlížeče (mesmo que a pagina não carregue)
+4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+5. Klikněte na **„Připojit se“**
+
+> Toto řešení funguje na základě autorizačního kódu na adrese URL a nezávislého přesměrování přesměrování nebo jiného.
 
 ---
 

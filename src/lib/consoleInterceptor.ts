@@ -16,7 +16,9 @@ import { dirname, resolve } from "path";
 const logToFile = process.env.LOG_TO_FILE !== "false";
 const logFilePath = resolve(process.env.LOG_FILE_PATH || "logs/application/app.log");
 
-let initialized = false;
+declare global {
+  var __omnirouteConsoleInterceptorInit: boolean | undefined;
+}
 
 /**
  * Map console method names to log levels.
@@ -92,7 +94,7 @@ function writeEntry(level: string, args: unknown[]) {
  * Safe to call multiple times — only initializes once.
  */
 export function initConsoleInterceptor(): void {
-  if (!logToFile || initialized) return;
+  if (!logToFile || globalThis.__omnirouteConsoleInterceptorInit) return;
 
   try {
     ensureDir();
@@ -101,7 +103,7 @@ export function initConsoleInterceptor(): void {
     return;
   }
 
-  initialized = true;
+  globalThis.__omnirouteConsoleInterceptorInit = true;
 
   // Save original methods
   const originalMethods = {

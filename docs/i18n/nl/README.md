@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multimodale API's
 
-| Kenmerk                  | Wat het doet                                              |
-| ------------------------ | --------------------------------------------------------- |
-| 🖼️ **Beeldgeneratie**    | `/v1/images/generations` — 4 providers, 9+ modellen       |
-| 📐 **Insluitingen**      | `/v1/embeddings` — 6 providers, 9+ modellen               |
-| 🎤 **Audiotranscriptie** | `/v1/audio/transcriptions` — Whisper-compatibel           |
-| 🔊 **Tekst-naar-spraak** | `/v1/audio/speech` — Audiosynthese van meerdere providers |
-| 🛡️ **Moderaties**        | `/v1/moderations` — Veiligheidscontroles van inhoud       |
-| 🔀 **Herschikking**      | `/v1/rerank` — Herschikking van documentrelevantie        |
+| Kenmerk                  | Wat het doet                                                                                                                                                               |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Beeldgeneratie**    | `/v1/images/generations` — 4 providers, 9+ modellen                                                                                                                        |
+| 📐 **Insluitingen**      | `/v1/embeddings` — 6 providers, 9+ modellen                                                                                                                                |
+| 🎤 **Audiotranscriptie** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Tekst-naar-spraak** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderaties**        | `/v1/moderations` — Veiligheidscontroles van inhoud                                                                                                                        |
+| 🔀 **Herschikking**      | `/v1/rerank` — Herschikking van documentrelevantie                                                                                                                         |
 
 ### 🛡️ Veerkracht en veiligheid
 

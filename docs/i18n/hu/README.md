@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multimodális API-k
 
-| Funkció                | Mit csinál                                                   |
-| ---------------------- | ------------------------------------------------------------ |
-| 🖼️ **Képgenerálás**    | `/v1/images/generations` — 4 szolgáltató, 9+ modell          |
-| 📐 **Beágyazás**       | `/v1/embeddings` — 6 szolgáltató, 9+ modell                  |
-| 🎤 **Audio átírás**    | `/v1/audio/transcriptions` — Suttogás-kompatibilis           |
-| 🔊 **Szövegfelolvasó** | `/v1/audio/speech` — Hangszintézis több szolgáltatónál       |
-| 🛡️ **Moderálás**       | `/v1/moderations` — Tartalombiztonsági ellenőrzések          |
-| 🔀 **Átsorolás**       | `/v1/rerank` — A dokumentumok relevancia szerinti átsorolása |
+| Funkció                | Mit csinál                                                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Képgenerálás**    | `/v1/images/generations` — 4 szolgáltató, 9+ modell                                                                                                                        |
+| 📐 **Beágyazás**       | `/v1/embeddings` — 6 szolgáltató, 9+ modell                                                                                                                                |
+| 🎤 **Audio átírás**    | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Szövegfelolvasó** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderálás**       | `/v1/moderations` — Tartalombiztonsági ellenőrzések                                                                                                                        |
+| 🔀 **Átsorolás**       | `/v1/rerank` — A dokumentumok relevancia szerinti átsorolása                                                                                                               |
 
 ### 🛡️ Rugalmasság és biztonság
 

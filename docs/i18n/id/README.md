@@ -874,14 +874,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 API Multi-Modal
 
-| Fitur                      | Apa Fungsinya                                          |
-| -------------------------- | ------------------------------------------------------ |
-| 🖼️ **Pembuatan Gambar**    | `/v1/images/generations` — 4 penyedia, 9+ model        |
-| 📐 **Sematan**             | `/v1/embeddings` — 6 penyedia, 9+ model                |
-| 🎤 **Transkripsi Audio**   | `/v1/audio/transcriptions` — Kompatibel dengan bisikan |
-| 🔊 **Teks-ke-Ucapan**      | `/v1/audio/speech` — Sintesis audio multi-penyedia     |
-| 🛡️ **Moderasi**            | `/v1/moderations` — Pemeriksaan keamanan konten        |
-| 🔀 **Pemeringkatan Ulang** | `/v1/rerank` — Pemeringkatan ulang relevansi dokumen   |
+| Fitur                      | Apa Fungsinya                                                                                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Pembuatan Gambar**    | `/v1/images/generations` — 4 penyedia, 9+ model                                                                                                                            |
+| 📐 **Sematan**             | `/v1/embeddings` — 6 penyedia, 9+ model                                                                                                                                    |
+| 🎤 **Transkripsi Audio**   | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Teks-ke-Ucapan**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderasi**            | `/v1/moderations` — Pemeriksaan keamanan konten                                                                                                                            |
+| 🔀 **Pemeringkatan Ulang** | `/v1/rerank` — Pemeringkatan ulang relevansi dokumen                                                                                                                       |
 
 ### 🛡️ Ketahanan & Keamanan
 

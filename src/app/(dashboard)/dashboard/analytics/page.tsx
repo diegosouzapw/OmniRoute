@@ -3,15 +3,17 @@
 import { useState, Suspense } from "react";
 import { UsageAnalytics, CardSkeleton, SegmentedControl } from "@/shared/components";
 import EvalsTab from "../usage/components/EvalsTab";
+import SearchAnalyticsTab from "./SearchAnalyticsTab";
 import { useTranslations } from "next-intl";
 
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const t = useTranslations("analytics");
 
-  const tabDescriptions = {
+  const tabDescriptions: Record<string, string> = {
     overview: t("overviewDescription"),
     evals: t("evalsDescription"),
+    search: "Search request analytics — provider breakdown, cache hit rate, and cost tracking.",
   };
 
   return (
@@ -29,6 +31,7 @@ export default function AnalyticsPage() {
         options={[
           { value: "overview", label: t("overview") },
           { value: "evals", label: t("evals") },
+          { value: "search", label: "Search" },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -40,6 +43,7 @@ export default function AnalyticsPage() {
         </Suspense>
       )}
       {activeTab === "evals" && <EvalsTab />}
+      {activeTab === "search" && <SearchAnalyticsTab />}
     </div>
   );
 }

@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multimodala API:er
 
-| Funktion                 | Vad det gör                                            |
-| ------------------------ | ------------------------------------------------------ |
-| 🖼️ **Bildgenerering**    | `/v1/images/generations` — 4 leverantörer, 9+ modeller |
-| 📐 **Inbäddningar**      | `/v1/embeddings` — 6 leverantörer, 9+ modeller         |
-| 🎤 **Ljudtranskription** | `/v1/audio/transcriptions` — Whisper-kompatibel        |
-| 🔊 **Text-till-tal**     | `/v1/audio/speech` — Ljudsyntes med flera leverantörer |
-| 🛡️ **Moderationer**      | `/v1/moderations` — Innehållssäkerhetskontroller       |
-| 🔀 **Omrankning**        | `/v1/rerank` — Omrankning av dokumentrelevans          |
+| Funktion                 | Vad det gör                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Bildgenerering**    | `/v1/images/generations` — 4 leverantörer, 9+ modeller                                                                                                                     |
+| 📐 **Inbäddningar**      | `/v1/embeddings` — 6 leverantörer, 9+ modeller                                                                                                                             |
+| 🎤 **Ljudtranskription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-till-tal**     | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderationer**      | `/v1/moderations` — Innehållssäkerhetskontroller                                                                                                                           |
+| 🔀 **Omrankning**        | `/v1/rerank` — Omrankning av dokumentrelevans                                                                                                                              |
 
 ### 🛡️ Motståndskraft och säkerhet
 

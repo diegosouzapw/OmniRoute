@@ -939,8 +939,8 @@ OmniRoute v2.0 ist als Betriebsplattform konzipiert und nicht nur als Relay-Prox
 | Funktion | Was es tut || -------------------------- | ------------------------------------------------------------- |
 | 🖼️ **Bilderzeugung** | `/v1/images/generations` mit Cloud- und lokalen Backends |
 | 📐 **Einbettungen** | `/v1/embeddings` für Such- und RAG-Pipelines |
-| 🎤 **Audio-Transkription** | `/v1/audio/transcriptions` (Whisper und zusätzliche Anbieter) |
-| 🔊 **Text-to-Speech** | `/v1/audio/speech` (mehrere Engines/Anbieter) |
+| 🎤 **Audio-Transkription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-Speech** | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) |
 | 🎬 **Videogenerierung** | `/v1/videos/generations` (ComfyUI + SD WebUI-Workflows) |
 | 🎵 **Musikgeneration** | `/v1/music/generations` (ComfyUI-Workflows) |
 | 🛡️ **Moderationen** | `/v1/moderations` Sicherheitsprüfungen |

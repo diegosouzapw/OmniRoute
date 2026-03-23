@@ -1,4 +1,8 @@
-import { getProviderConnectionById, updateProviderConnection, resolveProxyForConnection } from "@/lib/localDb";
+import {
+  getProviderConnectionById,
+  updateProviderConnection,
+  resolveProxyForConnection,
+} from "@/lib/localDb";
 import { getMachineId } from "@/shared/utils/machine";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
@@ -109,7 +113,10 @@ async function refreshAndUpdateCredentials(connection: any) {
 /**
  * GET /api/usage/[connectionId] - Get usage data for a specific connection
  */
-export async function GET(request: Request, { params }: { params: Promise<{ connectionId: string }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ connectionId: string }> }
+) {
   try {
     const { connectionId } = await params;
 
@@ -155,7 +162,34 @@ export async function GET(request: Request, { params }: { params: Promise<{ conn
 
     // Populate quota cache for quota-aware account selection
     if (isRecord(usage?.quotas)) {
-      setQuotaCache(connectionId, connection.provider, usage.quotas);
+      setQuotaCache(
+        connectionId,
+        connection.provider as string,
+        usage.quotas as Record<string, unknown>
+      );
+    }
+
+    // (#491) If the live usage check returned an auth error, sync the expired status
+    // back to the DB so the Providers page reflects the same degraded state as
+    // Limits & Quotas (which performs the live check).
+    const errorMessage = typeof usage?.message === "string" ? usage.message.toLowerCase() : "";
+    const isAuthError =
+      errorMessage.includes("token expired") ||
+      errorMessage.includes("access denied") ||
+      errorMessage.includes("re-authenticate") ||
+      errorMessage.includes("unauthorized");
+
+    if (isAuthError && connection.testStatus !== "expired") {
+      try {
+        await updateProviderConnection(connection.id as string, {
+          testStatus: "expired",
+          lastErrorType: "token_expired",
+          lastErrorAt: new Date().toISOString(),
+        });
+      } catch (dbErr) {
+        // Non-critical: log but don't block the response
+        console.error("[Usage API] Failed to sync expired status to DB:", dbErr);
+      }
     }
 
     return Response.json(usage);

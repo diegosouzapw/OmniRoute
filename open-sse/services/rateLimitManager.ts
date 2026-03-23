@@ -339,14 +339,19 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   // Handle 429 — rate limited
   if (status === 429) {
     const retryAfterMs = parseResetTime(retryAfterStr) || 60000; // Default 60s
+    const counts = limiter.counts();
+    const limiterKey = `${provider}:${connectionId}`;
     console.log(
-      `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — 429 received, pausing for ${Math.ceil(retryAfterMs / 1000)}s`
+      `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — 429 received, pausing for ${Math.ceil(retryAfterMs / 1000)}s, dropping ${counts.QUEUED} queued request(s)`
     );
 
-    limiter.updateSettings({
-      reservoir: 0,
-      reservoirRefreshAmount: limit || 60,
-      reservoirRefreshInterval: retryAfterMs,
+    // Stop the limiter and drop all waiting jobs so they fail immediately
+    // instead of hanging in the queue until reservoir refreshes (which can
+    // be hours for providers like Codex with long rate limit windows).
+    // This lets upstream callers (e.g. LiteLLM) trigger fallback to other providers.
+    // After stop, delete from Map so getLimiter() creates a fresh instance.
+    limiter.stop({ dropWaitingJobs: true }).finally(() => {
+      limiters.delete(limiterKey);
     });
     return;
   }

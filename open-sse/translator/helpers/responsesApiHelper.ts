@@ -93,10 +93,11 @@ export function convertResponsesApiFormat(body) {
   }
 
   // Cleanup Responses API specific fields
+  // Note: prompt_cache_key is intentionally preserved — it is used by Codex and other
+  // providers as a cache-affinity signal. Stripping it breaks prompt caching (#517).
   delete result.input;
   delete result.instructions;
   delete result.include;
-  delete result.prompt_cache_key;
   delete result.store;
   delete result.reasoning;
 

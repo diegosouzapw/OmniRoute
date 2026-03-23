@@ -32,11 +32,32 @@ const CHECK_TIMEOUT_MS = 5_000;
 const INITIAL_DELAY_MS = 15_000; // Wait for server boot before first sweep
 const LOG_PREFIX = "[LocalHealthCheck]";
 
-// ── State ────────────────────────────────────────────────────────────────
+// ── State (globalThis survives HMR re-evaluation) ───────────────────────
 
-const healthCache = new Map<string, HealthStatus>();
-let initialized = false;
-let sweepTimer: ReturnType<typeof setTimeout> | null = null;
+declare global {
+  var __omnirouteLocalHC:
+    | {
+        initialized: boolean;
+        sweepTimer: ReturnType<typeof setTimeout> | null;
+        healthCache: Map<string, HealthStatus>;
+        sweepInProgress: boolean;
+      }
+    | undefined;
+}
+
+function getLHCState() {
+  if (!globalThis.__omnirouteLocalHC) {
+    globalThis.__omnirouteLocalHC = {
+      initialized: false,
+      sweepTimer: null,
+      healthCache: new Map(),
+      sweepInProgress: false,
+    };
+  }
+  return globalThis.__omnirouteLocalHC;
+}
+
+const healthCache = getLHCState().healthCache;
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -101,12 +122,11 @@ async function checkNode(node: {
   }
 }
 
-let sweepInProgress = false;
-
 /** Single sweep: check all local provider_nodes in parallel. */
 export async function sweep(): Promise<void> {
-  if (sweepInProgress) return; // Prevent concurrent sweeps
-  sweepInProgress = true;
+  const state = getLHCState();
+  if (state.sweepInProgress) return;
+  state.sweepInProgress = true;
 
   try {
     let nodes: Array<{ id: string; prefix: string; baseUrl: string }>;
@@ -149,15 +169,15 @@ export async function sweep(): Promise<void> {
       }
     }
   } finally {
-    sweepInProgress = false;
-    // Schedule next sweep with backoff based on worst-case failure count
+    state.sweepInProgress = false;
     scheduleSweep();
   }
 }
 
 function scheduleSweep(): void {
-  if (!initialized) return; // Don't schedule if stopped
-  if (sweepTimer) clearTimeout(sweepTimer);
+  const state = getLHCState();
+  if (!state.initialized) return;
+  if (state.sweepTimer) clearTimeout(state.sweepTimer);
 
   // Use the maximum consecutive failures across all nodes to determine interval
   let maxFailures = 0;
@@ -168,7 +188,7 @@ function scheduleSweep(): void {
   }
 
   const interval = getNextInterval(maxFailures);
-  sweepTimer = setTimeout(sweep, interval);
+  state.sweepTimer = setTimeout(sweep, interval);
 }
 
 // ── Public API ───────────────────────────────────────────────────────────
@@ -191,27 +211,28 @@ export function getAllHealthStatuses(): Record<string, HealthStatus> {
 
 /** Start the health check scheduler (idempotent). */
 export function initLocalHealthCheck(): void {
-  if (initialized) return;
-  initialized = true;
+  const state = getLHCState();
+  if (state.initialized) return;
+  state.initialized = true;
 
   console.log(
     LOG_PREFIX,
     `Starting local provider health check (initial delay ${INITIAL_DELAY_MS / 1000}s)`
   );
 
-  // Delay first sweep to let the server finish booting
-  sweepTimer = setTimeout(() => {
+  state.sweepTimer = setTimeout(() => {
     sweep().catch((err) => console.error(LOG_PREFIX, "Initial sweep failed:", err));
   }, INITIAL_DELAY_MS);
 }
 
 /** Stop the scheduler (for tests / hot-reload). */
 export function stopLocalHealthCheck(): void {
-  if (sweepTimer) {
-    clearTimeout(sweepTimer);
-    sweepTimer = null;
+  const state = getLHCState();
+  if (state.sweepTimer) {
+    clearTimeout(state.sweepTimer);
+    state.sweepTimer = null;
   }
-  initialized = false;
+  state.initialized = false;
 }
 
 // Auto-initialize on first import (same pattern as tokenHealthCheck.ts:272)

@@ -877,14 +877,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multimodálne API
 
-| Funkcia                     | Čo to robí                                                       |
-| --------------------------- | ---------------------------------------------------------------- |
-| 🖼️ **Generovanie obrázkov** | `/v1/images/generations` — 4 poskytovatelia, 9+ modelov          |
-| 📐 **Vloženie**             | `/v1/embeddings` — 6 poskytovateľov, 9+ modelov                  |
-| 🎤 **Prepis zvuku**         | `/v1/audio/transcriptions` — Kompatibilné so šepotom             |
-| 🔊 **Prevod textu na reč**  | `/v1/audio/speech` — Zvuková syntéza od viacerých poskytovateľov |
-| 🛡️ **Moderovania**          | `/v1/moderations` — Kontroly bezpečnosti obsahu                  |
-| 🔀 **Reranking**            | `/v1/rerank` — Zmena poradia relevantnosti dokumentu             |
+| Funkcia                     | Čo to robí                                                                                                                                                                 |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Generovanie obrázkov** | `/v1/images/generations` — 4 poskytovatelia, 9+ modelov                                                                                                                    |
+| 📐 **Vloženie**             | `/v1/embeddings` — 6 poskytovateľov, 9+ modelov                                                                                                                            |
+| 🎤 **Prepis zvuku**         | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Prevod textu na reč**  | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderovania**          | `/v1/moderations` — Kontroly bezpečnosti obsahu                                                                                                                            |
+| 🔀 **Reranking**            | `/v1/rerank` — Zmena poradia relevantnosti dokumentu                                                                                                                       |
 
 ### 🛡️ Odolnosť a bezpečnosť
 

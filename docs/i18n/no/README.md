@@ -873,14 +873,14 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 🎵 Multi-Modal APIer
 
-| Funksjon                | Hva det gjør                                           |
-| ----------------------- | ------------------------------------------------------ |
-| 🖼️ **Bildegenerering**  | `/v1/images/generations` — 4 leverandører, 9+ modeller |
-| 📐 **Innbygging**       | `/v1/embeddings` — 6 leverandører, 9+ modeller         |
-| 🎤 **Lydtranskripsjon** | `/v1/audio/transcriptions` — Whisper-kompatibel        |
-| 🔊 **Tekst-til-tale**   | `/v1/audio/speech` — Multi-leverandør lydsyntese       |
-| 🛡️ **Moderasjoner**     | `/v1/moderations` — Innholdssikkerhetssjekker          |
-| 🔀 **Omrangering**      | `/v1/rerank` — Rerangering av dokumentrelevans         |
+| Funksjon                | Hva det gjør                                                                                                                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Bildegenerering**  | `/v1/images/generations` — 4 leverandører, 9+ modeller                                                                                                                     |
+| 📐 **Innbygging**       | `/v1/embeddings` — 6 leverandører, 9+ modeller                                                                                                                             |
+| 🎤 **Lydtranskripsjon** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Tekst-til-tale**   | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise)                                      |
+| 🛡️ **Moderasjoner**     | `/v1/moderations` — Innholdssikkerhetssjekker                                                                                                                              |
+| 🔀 **Omrangering**      | `/v1/rerank` — Rerangering av dokumentrelevans                                                                                                                             |
 
 ### 🛡️ Spenst og sikkerhet
 

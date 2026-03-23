@@ -12,21 +12,28 @@
  * @module lib/gracefulShutdown
  */
 
-/** Whether we are currently shutting down */
-let isShuttingDown = false;
-
-/** Number of in-flight requests being tracked */
-let activeRequests = 0;
-
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
+
+declare global {
+  var __omnirouteShutdown:
+    | { init: boolean; shuttingDown: boolean; activeRequests: number }
+    | undefined;
+}
+
+function getShutdownState() {
+  if (!globalThis.__omnirouteShutdown) {
+    globalThis.__omnirouteShutdown = { init: false, shuttingDown: false, activeRequests: 0 };
+  }
+  return globalThis.__omnirouteShutdown;
+}
 
 /**
  * Check if the server is currently shutting down.
  * Route handlers can use this to reject new requests.
  */
 export function isDraining(): boolean {
-  return isShuttingDown;
+  return getShutdownState().shuttingDown;
 }
 
 /**
@@ -34,12 +41,13 @@ export function isDraining(): boolean {
  * Returns a done callback.
  */
 export function trackRequest(): () => void {
-  activeRequests++;
+  const state = getShutdownState();
+  state.activeRequests++;
   let called = false;
   return () => {
     if (!called) {
       called = true;
-      activeRequests--;
+      state.activeRequests--;
     }
   };
 }
@@ -48,19 +56,20 @@ export function trackRequest(): () => void {
  * Get current active request count (for monitoring/health endpoints).
  */
 export function getActiveRequestCount(): number {
-  return activeRequests;
+  return getShutdownState().activeRequests;
 }
 
 /**
  * Wait for all in-flight requests to complete, with timeout.
  */
 async function waitForDrain(): Promise<void> {
+  const state = getShutdownState();
   const start = Date.now();
   const CHECK_INTERVAL_MS = 250;
 
   return new Promise((resolve) => {
     const check = () => {
-      if (activeRequests <= 0) {
+      if (state.activeRequests <= 0) {
         console.log("[Shutdown] All in-flight requests drained.");
         resolve();
         return;
@@ -68,13 +77,13 @@ async function waitForDrain(): Promise<void> {
 
       if (Date.now() - start > SHUTDOWN_TIMEOUT_MS) {
         console.warn(
-          `[Shutdown] Timeout after ${SHUTDOWN_TIMEOUT_MS}ms with ${activeRequests} active requests. Forcing exit.`
+          `[Shutdown] Timeout after ${SHUTDOWN_TIMEOUT_MS}ms with ${state.activeRequests} active requests. Forcing exit.`
         );
         resolve();
         return;
       }
 
-      console.log(`[Shutdown] Waiting for ${activeRequests} in-flight request(s)...`);
+      console.log(`[Shutdown] Waiting for ${state.activeRequests} in-flight request(s)...`);
       setTimeout(check, CHECK_INTERVAL_MS);
     };
 
@@ -87,7 +96,6 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
   try {
-    // Close SQLite database — import dynamically to avoid circular deps
     const { getDbInstance } = await import("@/lib/db/core");
     const db = getDbInstance();
     if (db && typeof db.close === "function") {
@@ -104,11 +112,15 @@ async function cleanup(): Promise<void> {
  * Should be called once during server startup.
  */
 export function initGracefulShutdown(): void {
-  const shutdown = async (signal: string) => {
-    if (isShuttingDown) return; // Prevent double-shutdown
-    isShuttingDown = true;
+  const state = getShutdownState();
+  if (state.init) return;
+  state.init = true;
 
-    console.log(`\n[Shutdown] Received ${signal}. Draining ${activeRequests} request(s)...`);
+  const shutdown = async (signal: string) => {
+    if (state.shuttingDown) return;
+    state.shuttingDown = true;
+
+    console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
 
     await waitForDrain();
     await cleanup();

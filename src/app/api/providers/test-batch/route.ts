@@ -90,13 +90,23 @@ export async function POST(request) {
       });
     }
 
-    // Test each connection sequentially via direct function call (no HTTP self-call)
-    const results = [];
+    // Test each connection with timeout and concurrency limits (prevents server crash on large groups)
+    const PER_CONNECTION_TIMEOUT = 30_000; // 30s per connection
+    const CONCURRENCY = 5; // max parallel tests
 
-    for (const conn of connectionsToTest) {
+    const testOne = async (conn) => {
       try {
-        const data = await testSingleConnection(conn.id);
-        results.push({
+        const result = await Promise.race([
+          testSingleConnection(conn.id),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Connection test timed out after 30s")),
+              PER_CONNECTION_TIMEOUT
+            )
+          ),
+        ]);
+        const data = result as any;
+        return {
           provider: conn.provider,
           connectionId: conn.id,
           connectionName: conn.name || conn.email || conn.provider,
@@ -107,9 +117,9 @@ export async function POST(request) {
           diagnosis: data.diagnosis || null,
           statusCode: data.statusCode || null,
           testedAt: data.testedAt || new Date().toISOString(),
-        });
+        };
       } catch (error) {
-        results.push({
+        return {
           provider: conn.provider,
           connectionId: conn.id,
           connectionName: conn.name || conn.email || conn.provider,
@@ -120,7 +130,37 @@ export async function POST(request) {
           diagnosis: { type: "network_error", source: "local", code: null, message: error.message },
           statusCode: null,
           testedAt: new Date().toISOString(),
-        });
+        };
+      }
+    };
+
+    // Execute with concurrency limit
+    const results = [];
+    for (let i = 0; i < connectionsToTest.length; i += CONCURRENCY) {
+      const batch = connectionsToTest.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.allSettled(batch.map(testOne));
+      for (const r of batchResults) {
+        results.push(
+          r.status === "fulfilled"
+            ? r.value
+            : {
+                provider: "unknown",
+                connectionId: "unknown",
+                connectionName: "unknown",
+                authType: "unknown",
+                valid: false,
+                latencyMs: 0,
+                error: r.reason?.message || "Test failed",
+                diagnosis: {
+                  type: "network_error",
+                  source: "local",
+                  code: null,
+                  message: r.reason?.message || "Test failed",
+                },
+                statusCode: null,
+                testedAt: new Date().toISOString(),
+              }
+        );
       }
     }
 
