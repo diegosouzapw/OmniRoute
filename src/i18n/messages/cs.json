@@ -309,7 +309,7 @@
     "refreshAuditLogAria": "Obnovit protokol auditu",
     "tableAria": "Záznamy protokolu auditu",
     "failedFetchAuditLog": "Nepodařilo se načíst protokol auditu",
-    "notAvailable": "Není k dispozici",
+    "notAvailable": "-",
     "description": "Administrativní akce a bezpečnostní události",
     "showing": "Zobrazeno {count} záznamů (offset {offset})",
     "previous": "Předchozí"
