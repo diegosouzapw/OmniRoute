@@ -1123,7 +1123,7 @@
     "queuedCount": "{count} ve frontě",
     "running": "běh",
     "runningCount": "{count} běží",
-    "ok": "V pořádku",
+    "ok": "OK",
     "activeLockouts": "Aktivní výluky",
     "resetConfirm": "Resetovat všechny jističe do funkčního stavu? Tímto se vymažou všechny počty poruch a všichni poskytovatelé se vrátí do provozního stavu.",
     "resetAllTitle": "Resetujte všechny jističe do funkčního stavu",
