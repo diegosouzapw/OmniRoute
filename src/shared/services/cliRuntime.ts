@@ -204,6 +204,61 @@ const getRuntimeMode = () => {
  */
 const DANGEROUS_PATH_CHARS = ["&", "|", ";", "<", ">", "(", ")", "`", "$", "^", "%", "!"];
 
+/**
+ * Check if a path is within a parent directory (case-insensitive, handles mixed separators).
+ * Normalizes both paths to forward slashes before comparison to handle
+ * inconsistent separator styles on Windows.
+ */
+const isPathWithin = (childPath: string, parentPath: string): boolean => {
+  // Normalize to forward slashes for consistent comparison
+  const normalize = (p: string) => path.normalize(p).toLowerCase().replace(/\\/g, "/");
+  const normalizedChild = normalize(childPath);
+  const normalizedParent = normalize(parentPath);
+
+  if (normalizedChild === normalizedParent) return true;
+
+  // Ensure parent ends with / for proper prefix matching
+  const parentWithSep = normalizedParent.endsWith("/") ? normalizedParent : normalizedParent + "/";
+
+  return normalizedChild.startsWith(parentWithSep);
+};
+
+/**
+ * Pre-compute expected parent directories at module startup for performance.
+ * These are the allowed directories for CLI binary installation locations.
+ */
+const getExpectedParentPaths = (): string[] => {
+  const home = os.homedir();
+  const userProfile = process.env.USERPROFILE || home;
+
+  const validatedAppData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
+  const validatedLocalAppData = validateEnvPath(process.env.LOCALAPPDATA, [
+    path.join(home, "AppData", "Local"),
+    path.join(userProfile, "AppData", "Local"),
+    userProfile,
+  ]);
+  const validatedProgramFiles = validateEnvPath(process.env.ProgramFiles, [
+    "C:\\Program Files",
+    "C:\\Program Files (x86)",
+  ]);
+  const validatedProgramFilesX86 = validateEnvPath(process.env["ProgramFiles(x86)"], [
+    "C:\\Program Files",
+    "C:\\Program Files (x86)",
+  ]);
+
+  return [
+    home,
+    userProfile,
+    validatedAppData,
+    validatedLocalAppData,
+    validatedProgramFiles,
+    validatedProgramFilesX86,
+  ].filter(Boolean);
+};
+
+// Cache expected parent paths at module startup (avoid recalculation on every checkKnownPath call)
+const EXPECTED_PARENT_PATHS = getExpectedParentPaths();
+
 const isSafePath = (execPath: string): boolean => {
   if (!execPath || !path.isAbsolute(execPath)) return false;
   if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
@@ -232,11 +287,7 @@ const validateEnvPath = (value: string | undefined, allowedParents: string[]): s
 
   // Reject if outside allowed parent directories
   if (allowedParents.length > 0) {
-    const withinAllowed = allowedParents.some(
-      (parent) =>
-        normalized.toLowerCase().startsWith(parent.toLowerCase() + path.sep) ||
-        normalized.toLowerCase() === parent.toLowerCase()
-    );
+    const withinAllowed = allowedParents.some((parent) => isPathWithin(normalized, parent));
     if (!withinAllowed) return "";
   }
 
@@ -277,6 +328,9 @@ const getKnownToolPaths = (toolId: string): string[] => {
     userProfile,
   ]);
 
+  // Cache nvm node path to avoid duplicate detection calls
+  const nvmNodePath = getNvmNodePath();
+
   // Tool-specific known installation paths (verified locations only)
   const knownPaths: Record<string, string[]> = {
     claude: [
@@ -285,7 +339,7 @@ const getKnownToolPaths = (toolId: string): string[] => {
       ...(localAppData ? [path.join(localAppData, "Programs", "Claude", "claude.exe")] : []),
       ...(localAppData ? [path.join(localAppData, "claude-code", "claude.exe")] : []),
       // npm global (only if nvm-windows is detected)
-      ...(getNvmNodePath() ? [path.join(getNvmNodePath()!, "claude-code.cmd")] : []),
+      ...(nvmNodePath ? [path.join(nvmNodePath, "claude-code.cmd")] : []),
     ],
     codex: [
       path.join(home, ".local", "bin", "codex"),
@@ -328,17 +382,9 @@ const getKnownToolPaths = (toolId: string): string[] => {
  * Returns the directory containing node.exe if nvm is detected, null otherwise.
  */
 const getNvmNodePath = (): string | null => {
-  // Try to detect nvm-windows from the current Node.js executable
-  const nodeDir = path.dirname(process.execPath);
-
-  // Check if the node directory contains nvm indicators
-  // nvm-windows typically installs to %APPDATA%\nvm\<version>\
-  // but the node.exe will be in that version's directory
-  const nvmIndicator = path.join(nodeDir, "nvm.exe");
-
   // Simple heuristic: if process.execPath includes "nvm", use its directory
   if (process.execPath.toLowerCase().includes("nvm")) {
-    return nodeDir;
+    return path.dirname(process.execPath);
   }
 
   return null;
@@ -447,41 +493,8 @@ const checkKnownPath = async (commandPath: string) => {
     const realPath = await fs.realpath(commandPath);
 
     // Verify the resolved path is still within expected directories
-    // Use validateEnvPath to ensure we're comparing against validated paths
-    const home = os.homedir();
-    const userProfile = process.env.USERPROFILE || home;
-    const validatedAppData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
-    const validatedLocalAppData = validateEnvPath(process.env.LOCALAPPDATA, [
-      path.join(home, "AppData", "Local"),
-      path.join(userProfile, "AppData", "Local"),
-      userProfile,
-    ]);
-    const validatedProgramFiles = validateEnvPath(process.env.ProgramFiles, [
-      "C:\\Program Files",
-      "C:\\Program Files (x86)",
-    ]);
-    const validatedProgramFilesX86 = validateEnvPath(process.env["ProgramFiles(x86)"], [
-      "C:\\Program Files",
-      "C:\\Program Files (x86)",
-    ]);
-
-    const expectedParents = [
-      home,
-      userProfile,
-      validatedAppData,
-      validatedLocalAppData,
-      validatedProgramFiles,
-      validatedProgramFilesX86,
-    ].filter(Boolean);
-
-    const isWithinExpected = expectedParents.some((parent) => {
-      const normalizedParent = path.normalize(parent).toLowerCase();
-      const normalizedRealPath = realPath.toLowerCase();
-      return (
-        normalizedRealPath.startsWith(normalizedParent + path.sep) ||
-        normalizedRealPath === normalizedParent
-      );
-    });
+    // Use pre-computed expected parent paths (cached at module startup for performance)
+    const isWithinExpected = EXPECTED_PARENT_PATHS.some((parent) => isPathWithin(realPath, parent));
 
     if (!isWithinExpected) {
       return { installed: false, commandPath: null, reason: "symlink_escape" };
@@ -600,10 +613,7 @@ export const getCliConfigHome = () => {
   // Must be within user's home directory (prevent reading from system dirs)
   const home = os.homedir();
   const normalized = path.normalize(override);
-  if (
-    !normalized.toLowerCase().startsWith(home.toLowerCase() + path.sep) &&
-    normalized.toLowerCase() !== home.toLowerCase()
-  ) {
+  if (!isPathWithin(normalized, home)) {
     return home; // Silently fall back to home
   }
 
