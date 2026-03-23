@@ -197,15 +197,159 @@ const getRuntimeMode = () => {
   return VALID_RUNTIME_MODES.has(mode) ? mode : "auto";
 };
 
+/**
+ * T12: Validate a CLI executable path to prevent shell injection.
+ * Enforces: absolute path, no dangerous shell metacharacters, must exist and be a file.
+ * Inspired by Antigravity Manager commit 96732c2 (Mar 11, 2026).
+ */
+const DANGEROUS_PATH_CHARS = ["&", "|", ";", "<", ">", "(", ")", "`", "$", "^", "%", "!"];
+
+const isSafePath = (execPath: string): boolean => {
+  if (!execPath || !path.isAbsolute(execPath)) return false;
+  if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
+  // Allow path.sep and path.delimiter — no further character filtering needed
+  return true;
+};
+
+/**
+ * Validate that an environment variable value is a safe, absolute path
+ * within acceptable directory trees. Rejects traversal, special chars,
+ * and paths outside expected locations.
+ */
+const validateEnvPath = (value: string | undefined, allowedParents: string[]): string => {
+  if (!value) return "";
+  const trimmed = value.trim();
+
+  // Reject if not absolute
+  if (!path.isAbsolute(trimmed)) return "";
+
+  // Reject dangerous characters (same as isSafePath but applied to env vars)
+  if (DANGEROUS_PATH_CHARS.some((c) => trimmed.includes(c))) return "";
+
+  // Reject if contains path traversal segments
+  const normalized = path.normalize(trimmed);
+  if (normalized.includes("..")) return "";
+
+  // Reject if outside allowed parent directories
+  if (allowedParents.length > 0) {
+    const withinAllowed = allowedParents.some(
+      (parent) =>
+        normalized.toLowerCase().startsWith(parent.toLowerCase() + path.sep) ||
+        normalized.toLowerCase() === parent.toLowerCase()
+    );
+    if (!withinAllowed) return "";
+  }
+
+  return normalized;
+};
+
 const getExtraPaths = () =>
   String(process.env.CLI_EXTRA_PATHS || "")
     .split(path.delimiter)
     .map((segment) => segment.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((p) => {
+      // Must be absolute
+      if (!path.isAbsolute(p)) return false;
+      // No dangerous characters
+      if (DANGEROUS_PATH_CHARS.some((c) => p.includes(c))) return false;
+      // No path traversal
+      if (path.normalize(p).includes("..")) return false;
+      return true;
+    });
+
+/**
+ * Get known installation paths for a specific CLI tool on Windows.
+ * Returns ONLY verified, tool-specific paths - NOT generic user bin directories.
+ * This is more secure than searching PATH as it checks known locations only.
+ */
+const getKnownToolPaths = (toolId: string): string[] => {
+  if (!isWindows()) return [];
+
+  const home = os.homedir();
+  const userProfile = process.env.USERPROFILE || home;
+
+  // Validate environment paths against allowed parent directories
+  const appData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
+  const localAppData = validateEnvPath(process.env.LOCALAPPDATA, [
+    path.join(home, "AppData", "Local"),
+    path.join(userProfile, "AppData", "Local"),
+    userProfile,
+  ]);
+
+  // Tool-specific known installation paths (verified locations only)
+  const knownPaths: Record<string, string[]> = {
+    claude: [
+      // Official Claude Code standalone installer locations
+      path.join(home, ".local", "bin", "claude.exe"),
+      ...(localAppData ? [path.join(localAppData, "Programs", "Claude", "claude.exe")] : []),
+      ...(localAppData ? [path.join(localAppData, "claude-code", "claude.exe")] : []),
+      // npm global (only if nvm-windows is detected)
+      ...(getNvmNodePath() ? [path.join(getNvmNodePath()!, "claude-code.cmd")] : []),
+    ],
+    codex: [
+      path.join(home, ".local", "bin", "codex"),
+      ...(appData ? [path.join(appData, "npm", "codex.cmd")] : []),
+    ],
+    droid: [
+      path.join(home, ".local", "bin", "droid"),
+      ...(appData ? [path.join(appData, "npm", "droid.cmd")] : []),
+    ],
+    openclaw: [
+      path.join(home, ".local", "bin", "openclaw"),
+      ...(appData ? [path.join(appData, "npm", "openclaw.cmd")] : []),
+    ],
+    cursor: [
+      path.join(home, ".local", "bin", "agent"),
+      path.join(home, ".local", "bin", "cursor"),
+      ...(appData ? [path.join(appData, "npm", "agent.cmd")] : []),
+      ...(appData ? [path.join(appData, "npm", "cursor.cmd")] : []),
+    ],
+    cline: [
+      path.join(home, ".local", "bin", "cline"),
+      ...(appData ? [path.join(appData, "npm", "cline.cmd")] : []),
+    ],
+    kilo: [
+      path.join(home, ".local", "bin", "kilocode"),
+      ...(appData ? [path.join(appData, "npm", "kilocode.cmd")] : []),
+    ],
+    opencode: [
+      path.join(home, ".local", "bin", "opencode"),
+      ...(appData ? [path.join(appData, "npm", "opencode.cmd")] : []),
+    ],
+    // Add other tools as needed with their specific known paths
+  };
+
+  return knownPaths[toolId] || [];
+};
+
+/**
+ * Detect nvm-windows installation path dynamically from current Node.js executable.
+ * Returns the directory containing node.exe if nvm is detected, null otherwise.
+ */
+const getNvmNodePath = (): string | null => {
+  // Try to detect nvm-windows from the current Node.js executable
+  const nodeDir = path.dirname(process.execPath);
+
+  // Check if the node directory contains nvm indicators
+  // nvm-windows typically installs to %APPDATA%\nvm\<version>\
+  // but the node.exe will be in that version's directory
+  const nvmIndicator = path.join(nodeDir, "nvm.exe");
+
+  // Simple heuristic: if process.execPath includes "nvm", use its directory
+  if (process.execPath.toLowerCase().includes("nvm")) {
+    return nodeDir;
+  }
+
+  return null;
+};
 
 const getLookupEnv = () => {
   const env = { ...process.env };
   const extraPaths = getExtraPaths();
+
+  // Only add user-specified extra paths, NOT generic user directories
+  // This is more secure - user explicitly opts in via CLI_EXTRA_PATHS
   if (extraPaths.length > 0) {
     env.PATH = [...extraPaths, env.PATH || ""].filter(Boolean).join(path.delimiter);
   }
@@ -221,20 +365,6 @@ const resolveToolCommands = (toolId: string): string[] => {
     return tool.defaultCommands.filter(Boolean);
   }
   return tool.defaultCommand ? [tool.defaultCommand] : [];
-};
-
-/**
- * T12: Validate a CLI executable path to prevent shell injection.
- * Enforces: absolute path, no dangerous shell metacharacters, must exist and be a file.
- * Inspired by Antigravity Manager commit 96732c2 (Mar 11, 2026).
- */
-const DANGEROUS_PATH_CHARS = ["&", "|", ";", "<", ">", "(", ")", "`", "$", "^", "%", "!"];
-
-const isSafePath = (execPath: string): boolean => {
-  if (!execPath || !path.isAbsolute(execPath)) return false;
-  if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
-  // Allow path.sep and path.delimiter — no further character filtering needed
-  return true;
 };
 
 const checkExplicitPath = async (commandPath: string) => {
@@ -294,14 +424,126 @@ const locateCommand = async (command: string, env: Record<string, string | undef
   return { installed: !!first, commandPath: first, reason: first ? null : "not_found" };
 };
 
+/**
+ * Check if a command exists at a specific absolute path.
+ * Used for known installation locations.
+ *
+ * Security hardening:
+ * - Resolves symlinks and verifies target stays within expected directories
+ * - Verifies file is a regular file (not directory, pipe, or device)
+ * - Checks file size bounds (1KB - 100MB) to detect suspicious binaries
+ */
+const checkKnownPath = async (commandPath: string) => {
+  if (!path.isAbsolute(commandPath)) {
+    return { installed: false, commandPath: null, reason: "not_absolute" };
+  }
+
+  if (!isSafePath(commandPath)) {
+    return { installed: false, commandPath: null, reason: "unsafe_path" };
+  }
+
+  try {
+    // Resolve symlinks to get the real path and detect symlink escapes
+    const realPath = await fs.realpath(commandPath);
+
+    // Verify the resolved path is still within expected directories
+    // Use validateEnvPath to ensure we're comparing against validated paths
+    const home = os.homedir();
+    const userProfile = process.env.USERPROFILE || home;
+    const validatedAppData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
+    const validatedLocalAppData = validateEnvPath(process.env.LOCALAPPDATA, [
+      path.join(home, "AppData", "Local"),
+      path.join(userProfile, "AppData", "Local"),
+      userProfile,
+    ]);
+    const validatedProgramFiles = validateEnvPath(process.env.ProgramFiles, [
+      "C:\\Program Files",
+      "C:\\Program Files (x86)",
+    ]);
+    const validatedProgramFilesX86 = validateEnvPath(process.env["ProgramFiles(x86)"], [
+      "C:\\Program Files",
+      "C:\\Program Files (x86)",
+    ]);
+
+    const expectedParents = [
+      home,
+      userProfile,
+      validatedAppData,
+      validatedLocalAppData,
+      validatedProgramFiles,
+      validatedProgramFilesX86,
+    ].filter(Boolean);
+
+    const isWithinExpected = expectedParents.some((parent) => {
+      const normalizedParent = path.normalize(parent).toLowerCase();
+      const normalizedRealPath = realPath.toLowerCase();
+      return (
+        normalizedRealPath.startsWith(normalizedParent + path.sep) ||
+        normalizedRealPath === normalizedParent
+      );
+    });
+
+    if (!isWithinExpected) {
+      return { installed: false, commandPath: null, reason: "symlink_escape" };
+    }
+
+    // Verify it's a regular file with reasonable size
+    const stat = await fs.stat(realPath);
+    if (!stat.isFile()) {
+      return { installed: false, commandPath: null, reason: "not_file" };
+    }
+
+    // CLI binaries should be > 1KB and < 100MB
+    // This catches suspicious files while allowing for wrapper scripts
+    if (stat.size < 1024 || stat.size > 100 * 1024 * 1024) {
+      return { installed: false, commandPath: null, reason: "suspicious_size" };
+    }
+  } catch (error) {
+    const errorCode = (error as NodeJS.ErrnoException).code;
+    if (errorCode === "ENOENT") {
+      return { installed: false, commandPath: null, reason: "not_found" };
+    }
+    if (errorCode === "EINVAL") {
+      return { installed: false, commandPath: null, reason: "invalid_path" };
+    }
+    return { installed: false, commandPath: null, reason: "access_error" };
+  }
+
+  try {
+    await fs.access(commandPath, fs.constants.X_OK);
+    return { installed: true, commandPath, reason: null };
+  } catch {
+    return { installed: true, commandPath, reason: "not_executable" };
+  }
+};
+
 const locateCommandCandidate = async (
   commands: string[],
-  env: Record<string, string | undefined>
+  env: Record<string, string | undefined>,
+  toolId?: string
 ) => {
   if (!Array.isArray(commands) || commands.length === 0) {
     return { command: null, installed: false, commandPath: null, reason: "missing_command" };
   }
 
+  // SECURITY: First check known installation paths for this specific tool
+  // This avoids searching PATH and reduces attack surface
+  if (toolId && isWindows()) {
+    const knownPaths = getKnownToolPaths(toolId);
+    for (const knownPath of knownPaths) {
+      const result = await checkKnownPath(knownPath);
+      if (result.installed && result.reason === null) {
+        return {
+          command: commands[0],
+          installed: true,
+          commandPath: result.commandPath,
+          reason: null,
+        };
+      }
+    }
+  }
+
+  // Fallback: search PATH (user can set CLI_EXTRA_PATHS if needed)
   for (const command of commands) {
     const located = await locateCommand(command, env);
     if (located.installed || located.reason !== "not_found") {
@@ -317,10 +559,18 @@ const checkRunnable = async (
   env: Record<string, string | undefined>,
   timeoutMs = 4000
 ) => {
+  // Minimal environment to prevent credential leakage to potentially malicious binaries
+  const minimalEnv: Record<string, string | undefined> = {
+    PATH: env.PATH,
+    HOME: env.HOME || env.USERPROFILE,
+    SystemRoot: env.SystemRoot, // Windows needs this
+  };
+
   for (const args of [["--version"], ["-v"]]) {
-    const result = await runProcess(commandPath, args, { env, timeoutMs });
-    if (result.ok) {
-      return { runnable: true, reason: null };
+    const result = await runProcess(commandPath, args, { env: minimalEnv, timeoutMs });
+    // Validate output: must be non-empty and reasonable length (< 4KB)
+    if (result.ok && result.stdout.length > 0 && result.stdout.length < 4096) {
+      return { runnable: true, reason: null, version: result.stdout.trim() };
     }
   }
   return { runnable: false, reason: "healthcheck_failed" };
@@ -334,8 +584,31 @@ export const ensureCliConfigWriteAllowed = () => {
   return "CLI config writes are disabled (CLI_ALLOW_CONFIG_WRITES=false)";
 };
 
-export const getCliConfigHome = () =>
-  String(process.env.CLI_CONFIG_HOME || "").trim() || os.homedir();
+export const getCliConfigHome = () => {
+  const override = String(process.env.CLI_CONFIG_HOME || "").trim();
+  if (!override) return os.homedir();
+
+  // Must be absolute
+  if (!path.isAbsolute(override)) return os.homedir();
+
+  // Must not contain dangerous characters
+  if (DANGEROUS_PATH_CHARS.some((c) => override.includes(c))) return os.homedir();
+
+  // Must not contain path traversal
+  if (path.normalize(override).includes("..")) return os.homedir();
+
+  // Must be within user's home directory (prevent reading from system dirs)
+  const home = os.homedir();
+  const normalized = path.normalize(override);
+  if (
+    !normalized.toLowerCase().startsWith(home.toLowerCase() + path.sep) &&
+    normalized.toLowerCase() !== home.toLowerCase()
+  ) {
+    return home; // Silently fall back to home
+  }
+
+  return normalized;
+};
 
 export const getCliConfigPaths = (toolId: string) => {
   const tool = CLI_TOOLS[toolId];
@@ -387,7 +660,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
     };
   }
 
-  const located = await locateCommandCandidate(commands, env);
+  const located = await locateCommandCandidate(commands, env, toolId);
   const command = located.command;
 
   if (!located.installed) {

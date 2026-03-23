@@ -16,6 +16,7 @@ export const CLI_TOOLS = {
     },
     modelAliases: ["default", "sonnet", "opus", "haiku", "opusplan"],
     settingsFile: "~/.claude/settings.json",
+    defaultCommand: "claude",
     defaultModels: [
       {
         id: "opus",
@@ -47,6 +48,7 @@ export const CLI_TOOLS = {
     color: "#10A37F",
     description: "OpenAI Codex CLI",
     configType: "custom",
+    defaultCommand: "codex",
   },
   droid: {
     id: "droid",
@@ -55,6 +57,7 @@ export const CLI_TOOLS = {
     color: "#00D4FF",
     description: "Factory Droid AI Assistant",
     configType: "custom",
+    defaultCommand: "droid",
   },
   openclaw: {
     id: "openclaw",
@@ -63,6 +66,7 @@ export const CLI_TOOLS = {
     color: "#FF6B35",
     description: "Open Claw AI Assistant",
     configType: "custom",
+    defaultCommand: "openclaw",
   },
   cursor: {
     id: "cursor",
@@ -72,6 +76,7 @@ export const CLI_TOOLS = {
     description: "Cursor AI Code Editor",
     configType: "guide",
     requiresCloud: true,
+    defaultCommands: ["agent", "cursor"],
     notes: [
       { type: "warning", text: "Requires Cursor Pro account to use this feature." },
       {
@@ -95,6 +100,7 @@ export const CLI_TOOLS = {
     color: "#00D1B2",
     description: "Cline AI Coding Assistant CLI",
     configType: "custom",
+    defaultCommand: "cline",
   },
   kilo: {
     id: "kilo",
@@ -103,6 +109,7 @@ export const CLI_TOOLS = {
     color: "#FF6B6B",
     description: "Kilo Code AI Assistant CLI",
     configType: "custom",
+    defaultCommand: "kilocode",
   },
   continue: {
     id: "continue",
@@ -180,6 +187,7 @@ export const CLI_TOOLS = {
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",
     configType: "guide",
+    defaultCommand: "opencode",
     guideSteps: [
       { step: 1, title: "Install OpenCode", desc: "Install via npm: npm install -g opencode-ai" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
