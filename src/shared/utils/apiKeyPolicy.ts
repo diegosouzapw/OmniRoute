@@ -37,6 +37,7 @@ export interface ApiKeyMetadata {
   accessSchedule?: AccessSchedule | null;
   maxRequestsPerDay?: number | null;
   maxRequestsPerMinute?: number | null;
+  maxSessions?: number | null;
 }
 
 /**

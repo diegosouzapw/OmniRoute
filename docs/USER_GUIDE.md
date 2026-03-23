@@ -578,6 +578,22 @@ Configure via **Dashboard → Settings → Routing**.
 | **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
 | **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
 
+#### External Sticky Session Header
+
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
+
+```http
+X-Session-Id: your-session-key
+```
+
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
+
+If you use Nginx and send underscore-form headers, enable:
+
+```nginx
+underscores_in_headers on;
+```
+
 #### Wildcard Model Aliases
 
 Create wildcard patterns to remap model names:

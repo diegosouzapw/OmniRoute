@@ -131,3 +131,6 @@ vscode-extension/
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
+
+# Compiled npm-package build artifact (not source, should not be in git)
+/app

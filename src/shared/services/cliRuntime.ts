@@ -98,7 +98,7 @@ const CLI_TOOLS: Record<string, any> = {
     // opencode takes several seconds on cold start environments
     healthcheckTimeoutMs: 15000,
     paths: {
-      config: ".config/opencode/config.toml",
+      config: ".config/opencode/opencode.json",
     },
   },
 };
@@ -337,9 +337,39 @@ export const ensureCliConfigWriteAllowed = () => {
 export const getCliConfigHome = () =>
   String(process.env.CLI_CONFIG_HOME || "").trim() || os.homedir();
 
+export const resolveOpencodeConfigDir = (
+  platform = process.platform,
+  env: NodeJS.ProcessEnv = process.env,
+  homeDir = os.homedir()
+) => {
+  const isWin = platform === "win32";
+  if (isWin) {
+    const appData = String(env.APPDATA || "").trim();
+    return appData || path.join(homeDir, "AppData", "Roaming");
+  }
+
+  const xdgConfigHome = String(env.XDG_CONFIG_HOME || "").trim();
+  return xdgConfigHome || path.join(homeDir, ".config");
+};
+
+export const resolveOpencodeConfigPath = (
+  platform = process.platform,
+  env: NodeJS.ProcessEnv = process.env,
+  homeDir = os.homedir()
+) => path.join(resolveOpencodeConfigDir(platform, env, homeDir), "opencode", "opencode.json");
+
+export const getOpenCodeConfigPath = () => resolveOpencodeConfigPath();
+
 export const getCliConfigPaths = (toolId: string) => {
   const tool = CLI_TOOLS[toolId];
   if (!tool) return null;
+
+  if (toolId === "opencode") {
+    return {
+      config: getOpenCodeConfigPath(),
+    };
+  }
+
   const home = getCliConfigHome();
   return Object.fromEntries(
     Object.entries(tool.paths).map(([key, relativePath]) => [

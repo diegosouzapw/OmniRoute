@@ -13,7 +13,7 @@ test("handleImageGeneration(nanobanana): async submit+poll returns URL payload",
     if (u.includes("/generate-pro")) {
       const body = JSON.parse(options.body);
       assert.equal(body.prompt, "galaxy test");
-      assert.equal(body.aspectRatio, "4:5");
+      assert.equal(body.aspectRatio, "1:1");
       assert.equal(body.resolution, "2K");
 
       return new Response(

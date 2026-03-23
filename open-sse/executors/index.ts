@@ -10,6 +10,7 @@ import { PollinationsExecutor } from "./pollinations.ts";
 import { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 import { OpencodeExecutor } from "./opencode.ts";
 import { PuterExecutor } from "./puter.ts";
+import { VertexExecutor } from "./vertex.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -28,6 +29,7 @@ const executors = {
   "opencode-go": new OpencodeExecutor("opencode-go"),
   puter: new PuterExecutor(),
   pu: new PuterExecutor(), // Alias
+  vertex: new VertexExecutor(),
 };
 
 const defaultCache = new Map();
@@ -55,3 +57,4 @@ export { PollinationsExecutor } from "./pollinations.ts";
 export { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 export { OpencodeExecutor } from "./opencode.ts";
 export { PuterExecutor } from "./puter.ts";
+export { VertexExecutor } from "./vertex.ts";

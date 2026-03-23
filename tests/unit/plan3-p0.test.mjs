@@ -11,7 +11,10 @@ import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import { CodexExecutor, setDefaultFastServiceTierEnabled } from "../../open-sse/executors/codex.ts";
 import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.ts";
 import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.ts";
-import { parseSSEToResponsesOutput } from "../../open-sse/handlers/sseParser.ts";
+import {
+  parseSSEToOpenAIResponse,
+  parseSSEToResponsesOutput,
+} from "../../open-sse/handlers/sseParser.ts";
 
 test("getModelInfoCore resolves unique non-openai unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4-5-20251001", {});
@@ -381,4 +384,57 @@ test("parseSSEToResponsesOutput parses completed response from SSE payload", () 
 test("parseSSEToResponsesOutput returns null for invalid payload", () => {
   const parsed = parseSSEToResponsesOutput("data: not-json\n\ndata: [DONE]\n", "fallback-model");
   assert.equal(parsed, null);
+});
+
+test("parseSSEToOpenAIResponse merges split tool call chunks by id without duplication", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      id: "chatcmpl_1",
+      object: "chat.completion.chunk",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                id: "call_abc",
+                index: 0,
+                type: "function",
+                function: { name: "sum", arguments: '{"a":' },
+              },
+            ],
+          },
+        },
+      ],
+    })}`,
+    `data: ${JSON.stringify({
+      id: "chatcmpl_1",
+      object: "chat.completion.chunk",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                id: "call_abc",
+                index: 0,
+                type: "function",
+                function: { arguments: "1}" },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    })}`,
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToOpenAIResponse(rawSSE, "gpt-5.1-codex");
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].finish_reason, "tool_calls");
+  assert.equal(parsed.choices[0].message.tool_calls.length, 1);
+  assert.equal(parsed.choices[0].message.tool_calls[0].id, "call_abc");
+  assert.equal(parsed.choices[0].message.tool_calls[0].function.name, "sum");
+  assert.equal(parsed.choices[0].message.tool_calls[0].function.arguments, '{"a":1}');
 });

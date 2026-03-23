@@ -29,6 +29,7 @@ const STATUS_FILTERS = [
 const COLUMNS = [
   { key: "status", label: "Status" },
   { key: "model", label: "Model" },
+  { key: "requestedModel", label: "Requested" },
   { key: "provider", label: "Provider" },
   { key: "protocol", label: "Protocol" },
   { key: "account", label: "Account" },
@@ -234,7 +235,9 @@ export default function RequestLoggerV2() {
   // Unique accounts and providers for dropdowns
 
   const uniqueAccounts = [...new Set(logs.map((l) => l.account).filter((a) => a && a !== "-"))];
-  const uniqueModels = [...new Set(logs.map((l) => l.model).filter(Boolean))].sort();
+  const uniqueModels = [
+    ...new Set(logs.flatMap((l) => [l.model, l.requestedModel]).filter((value) => Boolean(value))),
+  ].sort();
   const uniqueProviders = [
     ...new Set(logs.map((l) => l.provider).filter((p) => p && p !== "-")),
   ].sort();
@@ -514,6 +517,11 @@ export default function RequestLoggerV2() {
                       Model
                     </th>
                   )}
+                  {visibleColumns.requestedModel && (
+                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                      Requested
+                    </th>
+                  )}
                   {visibleColumns.provider && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
                       Provider
@@ -594,6 +602,28 @@ export default function RequestLoggerV2() {
                       {visibleColumns.model && (
                         <td className="px-3 py-2 font-medium text-primary font-mono text-[11px]">
                           {log.model}
+                        </td>
+                      )}
+                      {visibleColumns.requestedModel && (
+                        <td className="px-3 py-2 font-mono text-[11px]">
+                          {log.requestedModel ? (
+                            <span
+                              className={
+                                log.requestedModel !== log.model
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-text-muted"
+                              }
+                              title={
+                                log.requestedModel !== log.model
+                                  ? `Requested ${log.requestedModel}, routed as ${log.model}`
+                                  : log.requestedModel
+                              }
+                            >
+                              {log.requestedModel}
+                            </span>
+                          ) : (
+                            <span className="text-text-muted text-[10px]">—</span>
+                          )}
                         </td>
                       )}
                       {visibleColumns.provider && (

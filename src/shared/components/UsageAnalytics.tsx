@@ -114,7 +114,7 @@ export default function UsageAnalytics() {
       </div>
 
       {/* Summary Cards — Row 1: Core metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
         <StatCard
           icon="generating_tokens"
           label="Total Tokens"
@@ -142,10 +142,17 @@ export default function UsageAnalytics() {
         <StatCard icon="group" label="Accounts" value={s.uniqueAccounts || 0} />
         <StatCard icon="vpn_key" label="API Keys" value={s.uniqueApiKeys || 0} />
         <StatCard icon="model_training" label="Models" value={s.uniqueModels || 0} />
+        <StatCard
+          icon="swap_horiz"
+          label="Fallback Rate"
+          value={`${Number(s.fallbackRatePct || 0).toFixed(1)}%`}
+          subValue={`${fmtFull(s.fallbackCount || 0)} fallbacks`}
+          color="text-amber-500"
+        />
       </div>
 
       {/* Summary Cards — Row 2: Derived insights */}
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
         <StatCard
           icon="speed"
           label="Avg Tokens/Req"
@@ -168,6 +175,12 @@ export default function UsageAnalytics() {
         <StatCard icon="cloud" label="Top Provider" value={topProvider} color="text-teal-500" />
         <StatCard icon="today" label="Busiest Day" value={busiestDay} color="text-rose-500" />
         <StatCard icon="dns" label="Providers" value={providerCount} color="text-indigo-500" />
+        <StatCard
+          icon="rule"
+          label="Requested Coverage"
+          value={`${Number(s.requestedModelCoveragePct || 0).toFixed(1)}%`}
+          color="text-sky-500"
+        />
       </div>
 
       {/* Activity Heatmap + Weekly Widgets */}

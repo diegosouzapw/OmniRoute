@@ -180,12 +180,46 @@ export const CLI_TOOLS = {
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",
     configType: "guide",
+    notes: [
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.config/opencode/opencode.json • Windows %APPDATA%\\\\opencode\\\\opencode.json",
+      },
+      {
+        type: "warning",
+        text: 'Thinking variant example: opencode run "implement this feature" --model omniroute/claude-sonnet-4-5-thinking --variant high',
+      },
+    ],
     guideSteps: [
       { step: 1, title: "Install OpenCode", desc: "Install via npm: npm install -g opencode-ai" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Set Base URL", desc: "opencode config set baseUrl {{baseUrl}}" },
       { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Use Thinking Variant",
+        desc: "For thinking models, run with --variant high/low/max (example command below).",
+      },
     ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "providers": {
+    "omniroute": {
+      "name": "OmniRoute",
+      "api": "openai",
+      "baseURL": "{{baseUrl}}",
+      "apiKey": "{{apiKey}}",
+      "models": [
+        "{{model}}",
+        "claude-sonnet-4-5-thinking",
+        "gemini-3.1-pro-high",
+        "gemini-3-flash"
+      ]
+    }
+  }
+}`,
+    },
   },
   kiro: {
     id: "kiro",

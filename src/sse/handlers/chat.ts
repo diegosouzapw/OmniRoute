@@ -47,6 +47,14 @@ import {
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
 import {
+  generateSessionId as generateStableSessionId,
+  touchSession,
+  extractExternalSessionId,
+  checkSessionLimit,
+  registerKeySession,
+  isSessionRegisteredForKey,
+} from "@omniroute/open-sse/services/sessionManager.ts";
+import {
   isFallbackDecision,
   shouldUseFallback,
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
@@ -161,6 +169,13 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
 
+  // T04: client-provided external session header has priority over generated fingerprint.
+  const externalSessionId = extractExternalSessionId(request.headers);
+  const sessionId = externalSessionId || generateStableSessionId(body);
+  if (sessionId) {
+    touchSession(sessionId);
+  }
+
   // Pipeline: API key policy enforcement (model restrictions + budget limits)
   telemetry.startPhase("policy");
   const policy = await enforceApiKeyPolicy(request, modelStr);
@@ -173,6 +188,25 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   }
   const apiKeyInfo = policy.apiKeyInfo;
   telemetry.endPhase();
+
+  // T08: per-key active session limit (0 = unlimited).
+  if (apiKeyInfo?.id && sessionId) {
+    const maxSessions =
+      typeof apiKeyInfo.maxSessions === "number" && apiKeyInfo.maxSessions > 0
+        ? apiKeyInfo.maxSessions
+        : 0;
+
+    if (maxSessions > 0 && !isSessionRegisteredForKey(apiKeyInfo.id, sessionId)) {
+      const sessionViolation = checkSessionLimit(apiKeyInfo.id, maxSessions);
+      if (sessionViolation) {
+        return withSessionHeader(
+          errorResponse(HTTP_STATUS.RATE_LIMITED, sessionViolation.message),
+          sessionId
+        );
+      }
+      registerKeySession(apiKeyInfo.id, sessionId);
+    }
+  }
 
   // T05 — Task-Aware Smart Routing
   // Detect the semantic task type and optionally route to the optimal model
@@ -221,7 +255,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       const creds = await getProviderCredentials(
         provider,
         null,
-        apiKeyInfo?.allowedConnections ?? null
+        apiKeyInfo?.allowedConnections ?? null,
+        modelInfo.model || modelString
       );
       if (!creds || creds.allRateLimited) return false;
       return true;
@@ -238,7 +273,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       body,
       combo,
       handleSingleModel: (b: any, m: string) =>
-        handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry),
+        handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry, {
+          sessionId,
+        }),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
@@ -247,7 +284,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
     // Record telemetry
     recordTelemetry(telemetry);
-    return response;
+    return withSessionHeader(response, sessionId);
   }
   telemetry.endPhase();
 
@@ -259,10 +296,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     request,
     null,
     apiKeyInfo,
-    telemetry
+    telemetry,
+    { sessionId }
   );
   recordTelemetry(telemetry);
-  return response;
+  return withSessionHeader(response, sessionId);
 }
 
 /**
@@ -280,7 +318,7 @@ async function handleSingleModelChat(
   comboName: string | null = null,
   apiKeyInfo: any = null,
   telemetry: any = null,
-  runtimeOptions: { emergencyFallbackTried?: boolean } = {}
+  runtimeOptions: { emergencyFallbackTried?: boolean; sessionId?: string | null } = {}
 ) {
   // 1. Resolve model → provider/model
   const resolved = await resolveModelOrError(modelStr, body);
@@ -310,7 +348,8 @@ async function handleSingleModelChat(
     const credentials = await getProviderCredentials(
       provider,
       excludeConnectionId,
-      apiKeyInfo?.allowedConnections ?? null
+      apiKeyInfo?.allowedConnections ?? null,
+      model
     );
 
     if (!credentials || credentials.allRateLimited) {
@@ -333,6 +372,9 @@ async function handleSingleModelChat(
 
     const accountId = credentials.connectionId.slice(0, 8);
     log.info("AUTH", `Using ${provider} account: ${accountId}...`);
+    if (runtimeOptions.sessionId) {
+      touchSession(runtimeOptions.sessionId, credentials.connectionId);
+    }
 
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
     const proxyInfo = await safeResolveProxy(credentials.connectionId);
@@ -604,6 +646,23 @@ async function executeChatWithBreaker({
         tlsFingerprintUsed: false,
       };
     }
+
+    // T14: Proxy Fast-Fail should be converted into an upstream-unavailable result
+    // so account fallback logic can continue with another connection.
+    if (cbErr?.code === "PROXY_UNREACHABLE" || /proxy unreachable/i.test(cbErr?.message || "")) {
+      const detail = cbErr?.message || "Proxy unreachable";
+      log.warn("PROXY", detail);
+      return {
+        result: {
+          success: false,
+          response: (unavailableResponse as any)(HTTP_STATUS.SERVICE_UNAVAILABLE, detail, 2),
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          error: detail,
+        },
+        tlsFingerprintUsed: false,
+      };
+    }
+
     throw cbErr;
   }
 }
@@ -709,4 +768,21 @@ function safeLogEvents({
       comboName: comboName || null,
     });
   } catch {}
+}
+
+function withSessionHeader(response: Response, sessionId: string | null): Response {
+  if (!response || !sessionId) return response;
+
+  try {
+    response.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
 }

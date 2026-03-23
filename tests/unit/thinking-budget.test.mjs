@@ -169,9 +169,9 @@ test("EFFORT_BUDGETS has expected keys", () => {
 
 test("THINKING_LEVEL_MAP has all expected levels", () => {
   assert.equal(THINKING_LEVEL_MAP.none, 0);
-  assert.equal(THINKING_LEVEL_MAP.low, 1024);
-  assert.equal(THINKING_LEVEL_MAP.medium, 10240);
-  assert.equal(THINKING_LEVEL_MAP.high, 131072);
+  assert.equal(THINKING_LEVEL_MAP.low, 4096);
+  assert.equal(THINKING_LEVEL_MAP.medium, 8192);
+  assert.equal(THINKING_LEVEL_MAP.high, 24576);
 });
 
 test("normalizeThinkingLevel: converts thinkingLevel 'high' to budget", () => {
@@ -182,7 +182,7 @@ test("normalizeThinkingLevel: converts thinkingLevel 'high' to budget", () => {
   };
   const result = normalizeThinkingLevel(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, 131072);
+  assert.equal(result.thinking.budget_tokens, 24576);
   assert.equal(result.thinkingLevel, undefined);
 });
 
@@ -194,7 +194,7 @@ test("normalizeThinkingLevel: converts thinking_level 'low' to budget", () => {
   };
   const result = normalizeThinkingLevel(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, 1024);
+  assert.equal(result.thinking.budget_tokens, 4096);
   assert.equal(result.thinking_level, undefined);
 });
 
@@ -213,8 +213,8 @@ test("normalizeThinkingLevel: converts Gemini thinkingConfig.thinkingLevel", () 
     },
   };
   const result = normalizeThinkingLevel(body);
-  assert.equal(result.generationConfig.thinking_config.thinking_budget, 131072);
-  assert.equal(result.generationConfig.thinkingConfig, undefined);
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 24576);
+  assert.equal(result.generationConfig.thinking_config, undefined);
 });
 
 test("normalizeThinkingLevel: ignores unknown string values", () => {
@@ -269,7 +269,7 @@ test("applyThinkingBudget: thinkingLevel 'high' + PASSTHROUGH = converts and pas
     messages: [{ role: "user", content: "hello" }],
   };
   const result = applyThinkingBudget(body);
-  assert.equal(result.thinking.budget_tokens, 131072);
+  assert.equal(result.thinking.budget_tokens, 24576);
   assert.equal(result.thinkingLevel, undefined);
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });

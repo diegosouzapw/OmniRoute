@@ -12,6 +12,7 @@ type PendingToolCall = {
 export function transformToOllama(response, model) {
   let buffer = "";
   let pendingToolCalls: Record<number, PendingToolCall> = {};
+  const completedToolCalls: PendingToolCall[] = [];
 
   const transform = new TransformStream({
     transform(chunk, controller) {
@@ -41,6 +42,13 @@ export function transformToOllama(response, model) {
           if (toolCalls) {
             for (const tc of toolCalls) {
               const idx = tc.index;
+
+              // T37: Prevent merging tool_calls on same index if ID changes
+              if (pendingToolCalls[idx] && tc.id && pendingToolCalls[idx].id !== tc.id) {
+                completedToolCalls.push(pendingToolCalls[idx]);
+                delete pendingToolCalls[idx];
+              }
+
               if (!pendingToolCalls[idx]) {
                 pendingToolCalls[idx] = { id: tc.id, function: { name: "", arguments: "" } };
               }
@@ -59,7 +67,7 @@ export function transformToOllama(response, model) {
 
           const finishReason = parsed.choices?.[0]?.finish_reason;
           if (finishReason === "tool_calls" || finishReason === "stop") {
-            const toolCallsArr = Object.values(pendingToolCalls);
+            const toolCallsArr = [...completedToolCalls, ...Object.values(pendingToolCalls)];
             if (toolCallsArr.length > 0) {
               const formattedCalls = toolCallsArr.map((tc) => ({
                 function: {

@@ -71,6 +71,7 @@ export default function QuotaProgressBar({
   total = 0,
   unlimited = false,
   resetTime = null,
+  staleAfterReset = false,
 }) {
   const colors = getColorClasses(percentage);
   const countdown = formatResetTime(resetTime);
@@ -105,12 +106,17 @@ export default function QuotaProgressBar({
         <span>
           {used.toLocaleString()} / {total.toLocaleString()} requests
         </span>
-        {countdown !== "-" && (
+        {staleAfterReset ? (
+          <div className="flex items-center gap-1">
+            <span>⟳</span>
+            <span className="font-medium">Refreshing...</span>
+          </div>
+        ) : countdown !== "-" ? (
           <div className="flex items-center gap-1">
             <span>•</span>
             <span className="font-medium">Reset in {countdown}</span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Reset time display */}

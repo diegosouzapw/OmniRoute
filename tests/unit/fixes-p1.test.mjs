@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import net from "node:net";
 
 const isWindows = process.platform === "win32";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fixes-"));
@@ -342,11 +343,29 @@ test("proxy fetch rejects socks5 context when feature flag is disabled", async (
 
 test("proxy fetch accepts socks5 context when feature flag is enabled", async () => {
   await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
-    const result = await proxyFetch.runWithProxyContext(
-      { type: "socks5", host: "127.0.0.1", port: "1080" },
-      async () => "ok"
-    );
-    assert.equal(result, "ok");
+    const server = net.createServer();
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", resolve);
+    });
+
+    const address = server.address();
+    assert.ok(address && typeof address === "object");
+
+    try {
+      const result = await proxyFetch.runWithProxyContext(
+        { type: "socks5", host: "127.0.0.1", port: String(address.port) },
+        async () => "ok"
+      );
+      assert.equal(result, "ok");
+    } finally {
+      await new Promise((resolve, reject) => {
+        server.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
   });
 });
 

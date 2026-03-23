@@ -4,6 +4,7 @@ import {
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
+import { PROVIDER_MODELS } from "@/shared/constants/models";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -336,39 +337,85 @@ export async function GET(request, { params }) {
         );
       }
 
-      let modelsUrl = baseUrl.replace(/\/$/, "");
-      if (modelsUrl.endsWith("/chat/completions")) {
-        modelsUrl = modelsUrl.slice(0, -17) + "/models";
-      } else if (modelsUrl.endsWith("/completions")) {
-        modelsUrl = modelsUrl.slice(0, -12) + "/models";
-      } else {
-        modelsUrl = `${modelsUrl}/models`;
+      let base = baseUrl.replace(/\/$/, "");
+      if (base.endsWith("/chat/completions")) {
+        base = base.slice(0, -17);
+      } else if (base.endsWith("/completions")) {
+        base = base.slice(0, -12);
+      } else if (base.endsWith("/v1")) {
+        base = base.slice(0, -3);
       }
 
-      const response = await fetch(modelsUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
+      // T39: Try multiple endpoint formats
+      const endpoints = [
+        `${base}/v1/models`,
+        `${base}/models`,
+        `${baseUrl.replace(/\/$/, "")}/models`, // Original fallback
+      ];
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log(`Error fetching models from ${provider}:`, errorText);
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
+      // Remove duplicates
+      const uniqueEndpoints = [...new Set(endpoints)];
+      let models = null;
+      let lastErrorStatus = null;
+
+      for (const modelsUrl of uniqueEndpoints) {
+        try {
+          const response = await fetch(modelsUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            signal: AbortSignal.timeout(5000), // Quick timeout for fallbacks
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            models = data.data || data.models || [];
+            break; // Success!
+          }
+
+          if (response.status === 401 || response.status === 403) {
+            lastErrorStatus = response.status;
+            throw new Error("auth_failed");
+          }
+        } catch (err: any) {
+          if (err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+        }
       }
 
-      const data = await response.json();
-      const models = data.data || data.models || [];
+      // If all endpoints failed (but not because of auth), fallback to local catalog
+      if (!models) {
+        if (lastErrorStatus === 401 || lastErrorStatus === 403) {
+          return NextResponse.json(
+            { error: `Auth failed: ${lastErrorStatus}` },
+            { status: lastErrorStatus }
+          );
+        }
+
+        console.warn(`[models] All endpoints failed for ${provider}, using local catalog`);
+        const localModels = PROVIDER_MODELS[provider] || [];
+        models = localModels.map((m: any) => ({
+          id: m.id,
+          name: m.name || m.id,
+          owned_by: provider,
+        }));
+      }
+
+      // Track source for MCP tool T39 requirement
+      const source =
+        models === null || (models && models.length > 0 && models[0].owned_by === provider)
+          ? "local_catalog"
+          : "api";
 
       return NextResponse.json({
         provider,
         connectionId,
         models,
+        source,
+        ...(source === "local_catalog"
+          ? { warning: "API unavailable — using cached catalog" }
+          : {}),
       });
     }
 

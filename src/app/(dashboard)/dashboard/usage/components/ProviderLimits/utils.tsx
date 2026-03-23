@@ -76,6 +76,40 @@ export function calculatePercentage(used, total) {
   return Math.round(((total - used) / total) * 100);
 }
 
+function isPastResetWindow(resetAt) {
+  if (!resetAt) return false;
+  const resetTime =
+    typeof resetAt === "number" ? resetAt : typeof resetAt === "string" ? Date.parse(resetAt) : NaN;
+  if (!Number.isFinite(resetTime)) return false;
+  return Date.now() >= resetTime;
+}
+
+function normalizeQuotaEntry(name, quota = {}, extras = {}) {
+  const usedRaw = Number(quota?.used || 0);
+  const totalRaw = Number(quota?.total || 0);
+  const resetAt = quota?.resetAt || null;
+  const staleAfterReset = isPastResetWindow(resetAt);
+  const used = staleAfterReset ? 0 : usedRaw;
+  const total = Number.isFinite(totalRaw) ? totalRaw : 0;
+  const remainingPercentageRaw = safePercentage(quota?.remainingPercentage);
+  const remainingPercentage =
+    staleAfterReset && total > 0
+      ? 100
+      : remainingPercentageRaw !== undefined
+        ? remainingPercentageRaw
+        : undefined;
+
+  return {
+    name,
+    used: Number.isFinite(used) ? used : 0,
+    total,
+    resetAt,
+    staleAfterReset,
+    ...(remainingPercentage !== undefined ? { remainingPercentage } : {}),
+    ...extras,
+  };
+}
+
 /**
  * Parse provider-specific quota structures into normalized array
  * @param {string} provider - Provider name (github, antigravity, codex, kiro, claude)
@@ -95,13 +129,7 @@ export function parseQuotaData(provider, data) {
             if (quota?.unlimited && (!quota?.total || quota.total <= 0)) {
               return;
             }
-            normalizedQuotas.push({
-              name,
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-              remainingPercentage: safePercentage(quota.remainingPercentage),
-            });
+            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
           });
         }
         break;
@@ -109,14 +137,11 @@ export function parseQuotaData(provider, data) {
       case "antigravity":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
-            normalizedQuotas.push({
-              name: quota.displayName || modelKey,
-              modelKey: modelKey, // Keep modelKey for sorting
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-              remainingPercentage: safePercentage(quota.remainingPercentage),
-            });
+            normalizedQuotas.push(
+              normalizeQuotaEntry(quota.displayName || modelKey, quota, {
+                modelKey: modelKey, // Keep modelKey for sorting
+              })
+            );
           });
         }
         break;
@@ -124,12 +149,7 @@ export function parseQuotaData(provider, data) {
       case "codex":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
-            normalizedQuotas.push({
-              name: quotaType,
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-            });
+            normalizedQuotas.push(normalizeQuotaEntry(quotaType, quota));
           });
         }
         break;
@@ -137,12 +157,7 @@ export function parseQuotaData(provider, data) {
       case "kiro":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
-            normalizedQuotas.push({
-              name: quotaType,
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-            });
+            normalizedQuotas.push(normalizeQuotaEntry(quotaType, quota));
           });
         }
         break;
@@ -159,13 +174,7 @@ export function parseQuotaData(provider, data) {
           });
         } else if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push({
-              name,
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-              remainingPercentage: safePercentage(quota.remainingPercentage),
-            });
+            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
           });
         }
         break;
@@ -174,12 +183,7 @@ export function parseQuotaData(provider, data) {
         // Generic fallback for unknown providers
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push({
-              name,
-              used: quota.used || 0,
-              total: quota.total || 0,
-              resetAt: quota.resetAt || null,
-            });
+            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
           });
         }
     }
@@ -218,11 +222,7 @@ export function normalizePlanTier(plan) {
 
   const upper = raw.toUpperCase();
 
-  if (
-    upper.includes("PRO+") ||
-    upper.includes("PRO PLUS") ||
-    upper.includes("PROPLUS")
-  ) {
+  if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {
     return { key: "plus", label: "Pro+", variant: "secondary", rank: 4, raw };
   }
 

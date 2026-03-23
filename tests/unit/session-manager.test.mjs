@@ -8,6 +8,11 @@ const {
   getSessionConnection,
   getActiveSessionCount,
   getActiveSessions,
+  extractExternalSessionId,
+  checkSessionLimit,
+  registerKeySession,
+  unregisterKeySession,
+  isSessionRegisteredForKey,
   clearSessions,
 } = await import("../../open-sse/services/sessionManager.ts");
 
@@ -39,11 +44,17 @@ test("generateSessionId: different model = different ID", () => {
 test("generateSessionId: different system prompt = different ID", () => {
   const body1 = {
     model: "claude-sonnet-4-20250514",
-    messages: [{ role: "system", content: "A" }, { role: "user", content: "hi" }],
+    messages: [
+      { role: "system", content: "A" },
+      { role: "user", content: "hi" },
+    ],
   };
   const body2 = {
     model: "claude-sonnet-4-20250514",
-    messages: [{ role: "system", content: "B" }, { role: "user", content: "hi" }],
+    messages: [
+      { role: "system", content: "B" },
+      { role: "user", content: "hi" },
+    ],
   };
   assert.notEqual(generateSessionId(body1), generateSessionId(body2));
 });
@@ -146,4 +157,26 @@ test("clearSessions: empties store", () => {
 test("touchSession with null sessionId: no-op", () => {
   touchSession(null);
   assert.equal(getActiveSessionCount(), 0);
+});
+
+test("extractExternalSessionId accepts hyphen and underscore variants", () => {
+  const h1 = new Headers({ "x-session-id": "abc-123" });
+  const h2 = new Headers({ x_session_id: "def-456" });
+
+  assert.equal(extractExternalSessionId(h1), "ext:abc-123");
+  assert.equal(extractExternalSessionId(h2), "ext:def-456");
+});
+
+test("checkSessionLimit enforces max_sessions for new sessions only", () => {
+  const keyId = "key-1";
+  registerKeySession(keyId, "ext:sess-a");
+  assert.equal(isSessionRegisteredForKey(keyId, "ext:sess-a"), true);
+
+  const violation = checkSessionLimit(keyId, 1);
+  assert.ok(violation);
+  assert.equal(violation.code, "SESSION_LIMIT_EXCEEDED");
+
+  unregisterKeySession(keyId, "ext:sess-a");
+  assert.equal(isSessionRegisteredForKey(keyId, "ext:sess-a"), false);
+  assert.equal(checkSessionLimit(keyId, 1), null);
 });

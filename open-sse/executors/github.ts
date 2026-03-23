@@ -1,4 +1,4 @@
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 
@@ -19,15 +19,82 @@ export class GithubExecutor extends BaseExecutor {
     return this.config.baseUrl;
   }
 
+  injectResponseFormat(messages: any[], responseFormat: any) {
+    if (!responseFormat) return messages;
+
+    let formatInstruction = "";
+    if (responseFormat.type === "json_object") {
+      formatInstruction =
+        "Respond only with valid JSON. Do not include any text before or after the JSON object.";
+    } else if (responseFormat.type === "json_schema" && responseFormat.json_schema) {
+      formatInstruction = `Respond only with valid JSON matching this schema:\n${JSON.stringify(
+        responseFormat.json_schema.schema,
+        null,
+        2
+      )}\nDo not include any text before or after the JSON.`;
+    }
+
+    if (!formatInstruction) return messages;
+
+    const systemIdx = messages.findIndex((m: any) => m.role === "system");
+    if (systemIdx >= 0) {
+      return messages.map((m: any, i: number) =>
+        i === systemIdx ? { ...m, content: `${m.content}\n\n${formatInstruction}` } : m
+      );
+    }
+
+    return [{ role: "system", content: formatInstruction }, ...messages];
+  }
+
+  transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
+    const modifiedBody = JSON.parse(JSON.stringify(body));
+    if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
+      modifiedBody.messages = this.injectResponseFormat(
+        modifiedBody.messages,
+        modifiedBody.response_format
+      );
+      delete modifiedBody.response_format;
+    }
+    return modifiedBody;
+  }
+
+  async execute(input: ExecuteInput) {
+    const result = await super.execute(input);
+    if (!result || !result.response?.body) return result;
+
+    const isStreaming = input.stream === true;
+    if (isStreaming) {
+      const decoder = new TextDecoder();
+      const transformStream = new TransformStream({
+        transform(chunk, controller) {
+          const text = decoder.decode(chunk, { stream: true });
+          if (text.includes("data: [DONE]")) {
+            return;
+          }
+          controller.enqueue(chunk);
+        },
+      });
+
+      const newResponse = new Response(result.response.body.pipeThrough(transformStream), {
+        status: result.response.status,
+        statusText: result.response.statusText,
+        headers: result.response.headers, // Headers class carries over correctly
+      });
+      result.response = newResponse;
+    }
+
+    return result;
+  }
+
   buildHeaders(credentials, stream = true) {
     const token = credentials.copilotToken || credentials.accessToken;
     return {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.107.1",
-      "editor-plugin-version": "copilot-chat/0.26.7",
-      "user-agent": "GitHubCopilotChat/0.26.7",
+      "editor-version": "vscode/1.110.0",
+      "editor-plugin-version": "copilot-chat/0.38.0",
+      "user-agent": "GitHubCopilotChat/0.38.0",
       "openai-intent": "conversation-panel",
       "x-github-api-version": "2025-04-01",
       "x-request-id":
@@ -44,7 +111,7 @@ export class GithubExecutor extends BaseExecutor {
         headers: {
           Authorization: `token ${githubAccessToken}`,
           "User-Agent": "GithubCopilot/1.0",
-          "Editor-Version": "vscode/1.100.0",
+          "Editor-Version": "vscode/1.110.0",
           "Editor-Plugin-Version": "copilot/1.300.0",
           Accept: "application/json",
         },

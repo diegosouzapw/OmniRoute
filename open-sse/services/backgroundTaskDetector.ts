@@ -47,16 +47,16 @@ const DEFAULT_DETECTION_PATTERNS = [
 
 const DEFAULT_DEGRADATION_MAP: Record<string, string> = {
   // Premium → Cheap alternatives
-  "claude-opus-4-6": "gemini-2.5-flash",
-  "claude-opus-4-6-thinking": "gemini-2.5-flash",
-  "claude-opus-4-5-20251101": "gemini-2.5-flash",
-  "claude-sonnet-4-5-20250929": "gemini-2.5-flash",
-  "claude-sonnet-4-20250514": "gemini-2.5-flash",
-  "claude-sonnet-4": "gemini-2.5-flash",
-  "gemini-3.1-pro": "gemini-3.1-flash",
-  "gemini-3.1-pro-high": "gemini-3.1-flash",
+  "claude-opus-4-6": "gemini-3-flash",
+  "claude-opus-4-6-thinking": "gemini-3-flash",
+  "claude-opus-4-5-20251101": "gemini-3-flash",
+  "claude-sonnet-4-5-20250929": "gemini-3-flash",
+  "claude-sonnet-4-20250514": "gemini-3-flash",
+  "claude-sonnet-4": "gemini-3-flash",
+  "gemini-3.1-pro": "gemini-3-flash",
+  "gemini-3.1-pro-high": "gemini-3-flash",
   "gemini-3-pro-preview": "gemini-3-flash-preview",
-  "gemini-2.5-pro": "gemini-2.5-flash",
+  "gemini-2.5-pro": "gemini-3-flash",
   "gpt-4o": "gpt-4o-mini",
   "gpt-5": "gpt-5-mini",
   "gpt-5.1": "gpt-5-mini",
@@ -114,10 +114,91 @@ interface BackgroundMessage {
 interface BackgroundTaskBody {
   messages?: BackgroundMessage[];
   input?: BackgroundMessage[];
+  max_tokens?: unknown;
+  max_completion_tokens?: unknown;
+  max_output_tokens?: unknown;
 }
 
 function toMessageArray(value: unknown): BackgroundMessage[] {
   return Array.isArray(value) ? (value as BackgroundMessage[]) : [];
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function headerValue(headers: Record<string, string> | null, key: string): string {
+  if (!headers) return "";
+  const value = headers[key] ?? headers[key.toLowerCase()] ?? headers[key.toUpperCase()];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * Get reason label when request is a background/utility task.
+ *
+ * @param {object} body - Request body
+ * @param {object} [headers] - Request headers (optional)
+ * @returns {string | null} Reason label or null when not detected
+ */
+export function getBackgroundTaskReason(
+  body: BackgroundTaskBody | unknown,
+  headers: Record<string, string> | null = null
+): string | null {
+  if (!body || typeof body !== "object") return null;
+  const typedBody = body as BackgroundTaskBody;
+
+  // 1. Check explicit header
+  if (headers) {
+    const taskType = headerValue(headers, "x-task-type");
+    const priority = headerValue(headers, "x-request-priority");
+    const initiator = headerValue(headers, "x-initiator");
+    const explicitValue = [taskType, priority, initiator].find(Boolean);
+    if (explicitValue && explicitValue.toLowerCase() === "background") {
+      return "header_background";
+    }
+  }
+
+  // 2. Very low max tokens usually indicates utility/background tasks
+  const maxTokens = toFiniteNumber(
+    typedBody.max_tokens ?? typedBody.max_completion_tokens ?? typedBody.max_output_tokens
+  );
+  if (maxTokens !== null && maxTokens > 0 && maxTokens < 50) {
+    return "low_max_tokens";
+  }
+
+  // 3. Check system prompt for background task patterns
+  const messages = toMessageArray(typedBody.messages ?? typedBody.input ?? []);
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+
+  // Find system message
+  const systemMsg = messages.find(
+    (message: BackgroundMessage) => message.role === "system" || message.role === "developer"
+  );
+  if (!systemMsg) return null;
+
+  const systemContent =
+    typeof systemMsg.content === "string" ? systemMsg.content.toLowerCase() : "";
+
+  if (!systemContent) return null;
+
+  // Check against detection patterns
+  const matched = _config.detectionPatterns.some((pattern) =>
+    systemContent.includes(pattern.toLowerCase())
+  );
+
+  if (!matched) return null;
+
+  // 4. Additional heuristic: background tasks typically have very few messages
+  // (system + 1-2 user messages)
+  const userMessages = messages.filter((message: BackgroundMessage) => message.role === "user");
+  if (userMessages.length > 3) return null; // Too many turns for a background task
+
+  return "system_prompt_pattern";
 }
 
 /**
@@ -131,44 +212,7 @@ export function isBackgroundTask(
   body: BackgroundTaskBody | unknown,
   headers: Record<string, string> | null = null
 ): boolean {
-  if (!body || typeof body !== "object") return false;
-  const typedBody = body as BackgroundTaskBody;
-
-  // 1. Check explicit header
-  if (headers) {
-    const priority =
-      headers["x-request-priority"] || headers["X-Request-Priority"] || headers["x-initiator"];
-    if (priority === "background" || priority === "Background") return true;
-  }
-
-  // 2. Check system prompt for background task patterns
-  const messages = toMessageArray(typedBody.messages ?? typedBody.input ?? []);
-  if (!Array.isArray(messages) || messages.length === 0) return false;
-
-  // Find system message
-  const systemMsg = messages.find(
-    (message: BackgroundMessage) => message.role === "system" || message.role === "developer"
-  );
-  if (!systemMsg) return false;
-
-  const systemContent =
-    typeof systemMsg.content === "string" ? systemMsg.content.toLowerCase() : "";
-
-  if (!systemContent) return false;
-
-  // Check against detection patterns
-  const matched = _config.detectionPatterns.some((pattern) =>
-    systemContent.includes(pattern.toLowerCase())
-  );
-
-  if (!matched) return false;
-
-  // 3. Additional heuristic: background tasks typically have very few messages
-  // (system + 1-2 user messages)
-  const userMessages = messages.filter((message: BackgroundMessage) => message.role === "user");
-  if (userMessages.length > 3) return false; // Too many turns for a background task
-
-  return true;
+  return getBackgroundTaskReason(body, headers) !== null;
 }
 
 /**

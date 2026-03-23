@@ -342,11 +342,45 @@ export function checkFallbackError(
   errorText,
   backoffLevel = 0,
   model = null,
-  provider = null
+  provider = null,
+  headers = null
 ) {
+  const errorStr = (errorText || "").toString();
+
+  function parseResetFromHeaders(headers, errorStr = "") {
+    if (!headers) return null;
+
+    // Retry-After header
+    const retryAfter =
+      typeof headers.get === "function"
+        ? headers.get("retry-after")
+        : headers["retry-after"] || headers["Retry-After"];
+
+    if (retryAfter) {
+      const seconds = parseInt(retryAfter, 10);
+      if (!isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
+        return Date.now() + seconds * 1000;
+      }
+      const date = new Date(retryAfter);
+      if (!isNaN(date.getTime())) return date.getTime();
+    }
+
+    // X-RateLimit-Reset
+    const rlReset =
+      typeof headers.get === "function"
+        ? headers.get("x-ratelimit-reset")
+        : headers["x-ratelimit-reset"] || headers["X-RateLimit-Reset"];
+
+    if (rlReset) {
+      const ts = parseInt(rlReset, 10);
+      if (!isNaN(ts)) {
+        return ts > 10000000000 ? ts : ts * 1000;
+      }
+    }
+    return null;
+  }
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
-    const errorStr = typeof errorText === "string" ? errorText : JSON.stringify(errorText);
     const lowerError = errorStr.toLowerCase();
 
     // T06 (sub2api #1037): Permanent account deactivation — do NOT retry, mark as permanent failure
@@ -393,6 +427,18 @@ export function checkFallbackError(
       lowerError.includes("capacity") ||
       lowerError.includes("overloaded")
     ) {
+      const resetTime = parseResetFromHeaders(headers);
+      if (resetTime) {
+        const waitMs = resetTime - Date.now();
+        if (waitMs > 60_000) {
+          return {
+            shouldFallback: true,
+            cooldownMs: waitMs,
+            newBackoffLevel: 0,
+            reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+          };
+        }
+      }
       const newLevel = Math.min(backoffLevel + 1, BACKOFF_CONFIG.maxLevel);
       const reason = classifyErrorText(errorStr);
       return {
@@ -430,6 +476,19 @@ export function checkFallbackError(
 
   // 429 - Rate limit with exponential backoff
   if (status === HTTP_STATUS.RATE_LIMITED) {
+    const resetTime = parseResetFromHeaders(headers);
+    if (resetTime) {
+      const waitMs = resetTime - Date.now();
+      if (waitMs > 60_000) {
+        return {
+          shouldFallback: true,
+          cooldownMs: waitMs,
+          newBackoffLevel: 0,
+          reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+        };
+      }
+    }
+
     const newLevel = Math.min(backoffLevel + 1, BACKOFF_CONFIG.maxLevel);
     return {
       shouldFallback: true,
@@ -449,6 +508,19 @@ export function checkFallbackError(
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ];
   if (transientStatuses.includes(status)) {
+    const resetTime = parseResetFromHeaders(headers, errorStr);
+    if (resetTime) {
+      const waitMs = resetTime - Date.now();
+      if (waitMs > 60_000) {
+        return {
+          shouldFallback: true,
+          cooldownMs: waitMs,
+          newBackoffLevel: 0,
+          reason: RateLimitReason.SERVER_ERROR,
+        };
+      }
+    }
+
     const profile = provider ? getProviderProfile(provider) : null;
     const baseCooldown = profile?.transientCooldown ?? COOLDOWN_MS.transientInitial;
     const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;

@@ -3017,6 +3017,7 @@ CooldownTimer.propTypes = {
 const ERROR_TYPE_LABELS = {
   runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
   upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
+  account_deactivated: { labelKey: "Account Deactivated", variant: "error" },
   auth_missing: { labelKey: "errorTypeMissingCredential", variant: "warning" },
   token_refresh_failed: { labelKey: "errorTypeRefreshFailed", variant: "warning" },
   token_expired: { labelKey: "errorTypeTokenExpired", variant: "warning" },
@@ -3025,10 +3026,14 @@ const ERROR_TYPE_LABELS = {
   network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
   unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
   upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
+  banned: { labelKey: "403 Banned", variant: "error" },
+  credits_exhausted: { labelKey: "No Credits", variant: "warning" },
 };
 
 function inferErrorType(connection, isCooldown) {
   if (isCooldown) return "upstream_rate_limited";
+  if (connection.testStatus === "banned") return "banned";
+  if (connection.testStatus === "credits_exhausted") return "credits_exhausted";
   if (connection.lastErrorType) return connection.lastErrorType;
 
   const code = Number(connection.errorCode);
@@ -3108,6 +3113,16 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
     };
   }
 
+  if (errorType === "account_deactivated") {
+    return {
+      statusVariant: "error",
+      statusLabel: t("statusDeactivated", "Deactivated"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-red-600 font-bold",
+    };
+  }
+
   if (
     errorType === "upstream_auth_error" ||
     errorType === "auth_missing" ||
@@ -3150,6 +3165,26 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
       errorType,
       errorBadge,
       errorTextClass: "text-text-muted",
+    };
+  }
+
+  if (errorType === "banned") {
+    return {
+      statusVariant: "error",
+      statusLabel: t("statusBanned", "Banned (403)"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-red-600 font-bold",
+    };
+  }
+
+  if (errorType === "credits_exhausted") {
+    return {
+      statusVariant: "warning",
+      statusLabel: t("statusCreditsExhausted", "Out of Credits"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-amber-500",
     };
   }
 
@@ -3520,12 +3555,16 @@ function AddApiKeyModal({
   const t = useTranslations("providers");
   const isBailian = provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+  const isVertex = provider === "vertex";
+  const defaultRegion = "us-central1";
 
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
     priority: 1,
     baseUrl: isBailian ? defaultBailianUrl : "",
+    region: isVertex ? defaultRegion : "",
+    validationModelId: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -3539,7 +3578,11 @@ function AddApiKeyModal({
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, apiKey: formData.apiKey }),
+        body: JSON.stringify({
+          provider,
+          apiKey: formData.apiKey,
+          validationModelId: formData.validationModelId || undefined,
+        }),
       });
       const data = await res.json();
       setValidationResult(data.valid ? "success" : "failed");
@@ -3573,7 +3616,11 @@ function AddApiKeyModal({
         const res = await fetch("/api/providers/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ provider, apiKey: formData.apiKey }),
+          body: JSON.stringify({
+            provider,
+            apiKey: formData.apiKey,
+            validationModelId: formData.validationModelId || undefined,
+          }),
         });
         const data = await res.json();
         isValid = !!data.valid;
@@ -3601,6 +3648,10 @@ function AddApiKeyModal({
       if (isBailian) {
         payload.providerSpecificData = {
           baseUrl: validatedBailianBaseUrl,
+        };
+      } else if (isVertex) {
+        payload.providerSpecificData = {
+          region: formData.region,
         };
       }
 
@@ -3635,6 +3686,7 @@ function AddApiKeyModal({
             value={formData.apiKey}
             onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
             className="flex-1"
+            placeholder={isVertex ? "Cole o Service Account JSON aqui" : undefined}
           />
           <div className="pt-6">
             <Button
@@ -3668,6 +3720,13 @@ function AddApiKeyModal({
           </p>
         )}
         <Input
+          label="Model ID (opcional)"
+          placeholder="ex: grok-3 ou meta-llama/Llama-3.1-8B-Instruct"
+          value={formData.validationModelId}
+          onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+          hint="Usado como fallback se a listagem de models não estiver disponível"
+        />
+        <Input
           label={t("priorityLabel")}
           type="number"
           value={formData.priority}
@@ -3682,6 +3741,15 @@ function AddApiKeyModal({
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={defaultBailianUrl}
             hint="Optional: Custom base URL for bailian-coding-plan provider"
+          />
+        )}
+        {isVertex && (
+          <Input
+            label="Região (Region)"
+            value={formData.region}
+            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+            placeholder={defaultRegion}
+            hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
         )}
         <div className="flex gap-2">
@@ -3732,6 +3800,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     apiKey: "",
     healthCheckInterval: 60,
     baseUrl: "",
+    region: "",
+    validationModelId: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -3744,17 +3814,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+  const isVertex = connection?.provider === "vertex";
+  const defaultRegion = "us-central1";
 
   useEffect(() => {
     if (connection) {
       const rawBaseUrl = connection.providerSpecificData?.baseUrl;
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
+      const rawRegion = connection.providerSpecificData?.region;
+      const existingRegion = typeof rawRegion === "string" ? rawRegion : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
+        region: existingRegion || (isVertex ? defaultRegion : ""),
+        validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -3771,7 +3847,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/providers/${connection.id}/test`, { method: "POST" });
+      const res = await fetch(`/api/providers/${connection.id}/test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          validationModelId: formData.validationModelId || undefined,
+        }),
+      });
       const data = await res.json();
       setTestResult({
         valid: !!data.valid,
@@ -3797,7 +3879,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: connection.provider, apiKey: formData.apiKey }),
+        body: JSON.stringify({
+          provider: connection.provider,
+          apiKey: formData.apiKey,
+          validationModelId: formData.validationModelId || undefined,
+        }),
       });
       const data = await res.json();
       setValidationResult(data.valid ? "success" : "failed");
@@ -3838,7 +3924,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             const res = await fetch("/api/providers/validate", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ provider: connection.provider, apiKey: formData.apiKey }),
+              body: JSON.stringify({
+                provider: connection.provider,
+                apiKey: formData.apiKey,
+                validationModelId: formData.validationModelId || undefined,
+              }),
             });
             const data = await res.json();
             isValid = !!data.valid;
@@ -3865,9 +3955,14 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           ...(connection.providerSpecificData || {}),
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
         };
+        if (formData.validationModelId) {
+          updates.providerSpecificData.validationModelId = formData.validationModelId;
+        }
         // Update baseUrl for bailian-coding-plan
         if (isBailian) {
           updates.providerSpecificData.baseUrl = validatedBailianBaseUrl;
+        } else if (isVertex) {
+          updates.providerSpecificData.region = formData.region;
         }
       }
       const error = (await onSave(updates)) as void | unknown;
@@ -3935,7 +4030,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder={t("enterNewApiKey")}
+                placeholder={isVertex ? "Cole o Service Account JSON aqui" : t("enterNewApiKey")}
                 hint={t("leaveBlankKeepCurrentApiKey")}
                 className="flex-1"
               />
@@ -3959,6 +4054,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 {saveError}
               </div>
             )}
+            <Input
+              label="Model ID (opcional)"
+              placeholder="ex: grok-3 ou meta-llama/Llama-3.1-8B-Instruct"
+              value={formData.validationModelId}
+              onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+              hint="Usado como fallback se a listagem de models não estiver disponível"
+            />
           </>
         )}
 
@@ -3969,6 +4071,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={defaultBailianUrl}
             hint="Custom base URL for bailian-coding-plan provider"
+          />
+        )}
+
+        {isVertex && (
+          <Input
+            label="Região (Region)"
+            value={formData.region}
+            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+            placeholder={defaultRegion}
+            hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
         )}
 

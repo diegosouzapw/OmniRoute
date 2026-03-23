@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const {
   isBackgroundTask,
+  getBackgroundTaskReason,
   getDegradedModel,
   setBackgroundDegradationConfig,
   getBackgroundDegradationConfig,
@@ -68,6 +69,26 @@ test("isBackgroundTask: detects X-Request-Priority header", () => {
   assert.equal(isBackgroundTask(body, headers), true);
 });
 
+test("isBackgroundTask: detects X-Task-Type header", () => {
+  const body = {
+    model: "claude-sonnet-4",
+    messages: [{ role: "user", content: "hello" }],
+  };
+  const headers = { "x-task-type": "background" };
+  assert.equal(isBackgroundTask(body, headers), true);
+  assert.equal(getBackgroundTaskReason(body, headers), "header_background");
+});
+
+test("isBackgroundTask: detects low max_tokens requests", () => {
+  const body = {
+    model: "claude-sonnet-4",
+    max_tokens: 32,
+    messages: [{ role: "user", content: "hello" }],
+  };
+  assert.equal(isBackgroundTask(body), true);
+  assert.equal(getBackgroundTaskReason(body), "low_max_tokens");
+});
+
 test("isBackgroundTask: returns false for null/undefined body", () => {
   assert.equal(isBackgroundTask(null), false);
   assert.equal(isBackgroundTask(undefined), false);
@@ -81,8 +102,8 @@ test("isBackgroundTask: returns false for empty messages", () => {
 
 test("getDegradedModel: returns cheaper model from map", () => {
   resetStats();
-  assert.equal(getDegradedModel("claude-opus-4-6"), "gemini-2.5-flash");
-  assert.equal(getDegradedModel("gemini-2.5-pro"), "gemini-2.5-flash");
+  assert.equal(getDegradedModel("claude-opus-4-6"), "gemini-3-flash");
+  assert.equal(getDegradedModel("gemini-2.5-pro"), "gemini-3-flash");
   assert.equal(getDegradedModel("gpt-4o"), "gpt-4o-mini");
 });
 
