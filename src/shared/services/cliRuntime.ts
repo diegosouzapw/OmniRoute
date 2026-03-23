@@ -343,32 +343,47 @@ const getKnownToolPaths = (toolId: string): string[] => {
     ],
     codex: [
       path.join(home, ".local", "bin", "codex"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "codex.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "codex.cmd")] : []),
     ],
     droid: [
       path.join(home, ".local", "bin", "droid"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "droid.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "droid.cmd")] : []),
     ],
     openclaw: [
       path.join(home, ".local", "bin", "openclaw"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "openclaw.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "openclaw.cmd")] : []),
     ],
     cursor: [
       path.join(home, ".local", "bin", "agent"),
       path.join(home, ".local", "bin", "cursor"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "agent.cmd")] : []),
+      ...(nvmNodePath ? [path.join(nvmNodePath, "cursor.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "agent.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "cursor.cmd")] : []),
     ],
     cline: [
       path.join(home, ".local", "bin", "cline"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "cline.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "cline.cmd")] : []),
     ],
     kilo: [
       path.join(home, ".local", "bin", "kilocode"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "kilocode.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "kilocode.cmd")] : []),
     ],
     opencode: [
       path.join(home, ".local", "bin", "opencode"),
+      // npm global (only if nvm-windows is detected)
+      ...(nvmNodePath ? [path.join(nvmNodePath, "opencode.cmd")] : []),
       ...(appData ? [path.join(appData, "npm", "opencode.cmd")] : []),
     ],
     // Add other tools as needed with their specific known paths
