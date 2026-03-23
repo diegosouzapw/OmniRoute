@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { resolveDataDir } from "../../src/lib/dataPaths";
 
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = ["clientId", "clientSecret", "tokenUrl", "authUrl", "refreshUrl"];
@@ -30,8 +31,7 @@ let cachedProviders = null;
  * Priority: DATA_DIR env → ./data (project root)
  */
 function resolveCredentialsPath() {
-  const dataDir = process.env.DATA_DIR || join(process.cwd(), "data");
-  return join(dataDir, "provider-credentials.json");
+  return join(resolveDataDir(), "provider-credentials.json");
 }
 
 /**
@@ -93,7 +93,11 @@ export function loadProviderCredentials(providers) {
       `[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
     );
   } catch (err) {
-    console.log(`[CREDENTIALS] Error reading credentials file: ${err.message}. Using defaults.`);
+    const reason =
+      err instanceof SyntaxError
+        ? "Invalid JSON format"
+        : (err as NodeJS.ErrnoException).code || "read error";
+    console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
   }
 
   cachedProviders = providers;

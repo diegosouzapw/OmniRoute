@@ -7,6 +7,7 @@
 
 import fs from "fs";
 import path from "path";
+import { resolveDataDir } from "../../../src/lib/dataPaths";
 
 export interface AdaptationState {
   comboId: string;
@@ -23,7 +24,7 @@ export interface AdaptationState {
   lastUpdated: string;
 }
 
-const PERSISTENCE_DIR = path.join(process.cwd(), "data");
+const PERSISTENCE_DIR = resolveDataDir();
 const STATE_FILE = path.join(PERSISTENCE_DIR, "auto_combo_state.json");
 
 let stateCache = new Map<string, AdaptationState>();

@@ -16,10 +16,8 @@ async function ensureNodeModules() {
   try {
     fs = await import("fs");
     path = await import("path");
-    LOGS_DIR = path.join(
-      typeof process !== "undefined" && process.cwd ? process.cwd() : ".",
-      "logs"
-    );
+    const { resolveDataDir } = await import("../../src/lib/dataPaths");
+    LOGS_DIR = path.join(resolveDataDir(), "logs");
   } catch {
     // Running in non-Node environment (Worker, Browser, etc.)
   }
