@@ -478,7 +478,7 @@
     "failedRestoreBackup": "Obnovení zálohy se nezdařilo",
     "applied": "Aplikováno!",
     "failed": "Selhalo",
-    "resetDone": "Hotovo!",
+    "resetDone": "Resetováno!",
     "omnirouteConfiguredOpenAiCompatible": "OmniRoute je nakonfigurován jako poskytovatel kompatibilní s OpenAI",
     "provider": "Poskytovatel",
     "model": "Model",
