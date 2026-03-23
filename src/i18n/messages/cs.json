@@ -423,7 +423,7 @@
     "active": "Aktivní",
     "inactive": "Neaktivní",
     "startMitm": "Spustit MITM proxy",
-    "stopMitm": "Zastavit MITM proxy",
+    "stopMitm": "Stop MITM proxy",
     "mitmStarted": "MITM úspěšně zahájen!",
     "mitmStopped": "MITM úspěšně zastaven!",
     "failedStart": "Nepodařilo se spustit MITM",
