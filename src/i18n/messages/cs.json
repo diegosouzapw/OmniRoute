@@ -1093,7 +1093,7 @@
     "latencyP95": "p95",
     "latencyP99": "p99",
     "millisecondsShort": "{hodnota}ms",
-    "notAvailable": "Není k dispozici",
+    "notAvailable": "-",
     "totalRequests": "Celkový počet žádostí",
     "noDataYet": "Zatím žádná data",
     "promptCache": "Mezipaměť výzev",
