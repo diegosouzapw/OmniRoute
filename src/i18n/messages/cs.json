@@ -87,7 +87,7 @@
     "shutdownConfirm": "Vypnout OmniRoute?",
     "restartConfirm": "Restartovat OmniRoute?",
     "version": "v{verze}",
-    "debug": "Ladění",
+    "debug": "Debug",
     "system": "Systém",
     "help": "Pomoc",
     "serverDisconnected": "Server odpojen",
