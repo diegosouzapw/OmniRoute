@@ -482,17 +482,31 @@ export default function OAuthModal({
   const handleManualSubmit = async () => {
     try {
       setError(null);
-      const url = new URL(callbackUrl);
-      const code = url.searchParams.get("code");
-      const state = url.searchParams.get("state");
-      const errorParam = url.searchParams.get("error");
+      const input = callbackUrl.trim();
+      let code = null;
+      let state = authData?.state || null;
+      let errorParam = null;
+      let errorDescription = null;
+
+      try {
+        const url = new URL(input);
+        code = url.searchParams.get("code");
+        state = url.searchParams.get("state") || url.hash.replace(/^#/, "") || state;
+        errorParam = url.searchParams.get("error");
+        errorDescription = url.searchParams.get("error_description");
+      } catch {
+        // Claude Code remote auth may provide a raw "Authentication Code" like code#state.
+        const [rawCode, rawState] = input.split("#", 2);
+        code = rawCode || null;
+        state = rawState || state;
+      }
 
       if (errorParam) {
-        throw new Error(url.searchParams.get("error_description") || errorParam);
+        throw new Error(errorDescription || errorParam);
       }
 
       if (!code) {
-        throw new Error("No authorization code found in URL");
+        throw new Error("No authorization code found. Paste the callback URL or the Authentication Code.");
       }
 
       await exchangeTokens(code, state);
@@ -626,14 +640,17 @@ export default function OAuthModal({
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Step 2: Paste the callback URL here</p>
+                <p className="text-sm font-medium mb-2">
+                  Step 2: Paste the callback URL or auth code here
+                </p>
                 <p className="text-xs text-text-muted mb-2">
-                  After authorization, copy the full URL from your browser.
+                  After authorization, paste the full callback URL. For Claude Code, you can also
+                  paste the Authentication Code directly, for example <code>code#state</code>.
                 </p>
                 <Input
                   value={callbackUrl}
                   onChange={(e) => setCallbackUrl(e.target.value)}
-                  placeholder={placeholderUrl}
+                  placeholder={provider === "claude" ? "code#state or /callback?code=..." : placeholderUrl}
                   className="font-mono text-xs"
                 />
               </div>

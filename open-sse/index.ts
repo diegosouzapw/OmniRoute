@@ -36,6 +36,7 @@ export {
 // Services
 export {
   detectFormat,
+  detectFormatFromEndpoint,
   getProviderConfig,
   buildProviderUrl,
   buildProviderHeaders,

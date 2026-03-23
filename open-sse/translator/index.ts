@@ -144,7 +144,7 @@ export function translateRequest(
   }
 
   // Final step: prepare request for Claude format endpoints
-  if (targetFormat === FORMATS.CLAUDE && sourceFormat !== FORMATS.CLAUDE) {
+  if (targetFormat === FORMATS.CLAUDE) {
     result = prepareClaudeRequest(result, provider);
   }
 

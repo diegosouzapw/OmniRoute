@@ -7,7 +7,7 @@ import {
 } from "../services/auth";
 import { getModelInfo, getCombo } from "../services/model";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
-import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
+import { detectFormatFromEndpoint, getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -283,7 +283,7 @@ async function handleSingleModelChat(
   runtimeOptions: { emergencyFallbackTried?: boolean } = {}
 ) {
   // 1. Resolve model → provider/model
-  const resolved = await resolveModelOrError(modelStr, body);
+  const resolved = await resolveModelOrError(modelStr, body, clientRawRequest?.endpoint);
   if (resolved.error) return resolved.error;
 
   const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;
@@ -460,7 +460,7 @@ async function handleSingleModelChat(
 /**
  * Resolve model string to provider/model info, or return an error response.
  */
-async function resolveModelOrError(modelStr: string, body: any) {
+async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
   if (!modelInfo.provider) {
     if ((modelInfo as any).errorType === "ambiguous_model") {
@@ -479,7 +479,7 @@ async function resolveModelOrError(modelStr: string, body: any) {
   }
 
   const { provider, model, extendedContext } = modelInfo;
-  const sourceFormat = detectFormat(body);
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
 
   // If the custom model specifies apiFormat="responses", override targetFormat

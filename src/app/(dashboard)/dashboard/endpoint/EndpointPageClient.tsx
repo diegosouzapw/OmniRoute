@@ -8,10 +8,11 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { useTranslations } from "next-intl";
 
-const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
+const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
 
 export default function APIPageClient({ machineId }) {
+  const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,8 @@ export default function APIPageClient({ machineId }) {
   const [syncStep, setSyncStep] = useState(""); // "syncing" | "verifying" | "disabling" | "done" | ""
   const [modalSuccess, setModalSuccess] = useState(false); // show success state in modal before closing
   const [selectedProvider, setSelectedProvider] = useState(null); // for provider models popup
-  const [cloudBaseUrl, setCloudBaseUrl] = useState(CLOUD_URL); // dynamic cloud URL from API response
+  const [cloudBaseUrl, setCloudBaseUrl] = useState(BUILD_TIME_CLOUD_URL); // dynamic cloud URL from API response
+  const [cloudConfigured, setCloudConfigured] = useState(Boolean(BUILD_TIME_CLOUD_URL));
   const [viewTab, setViewTab] = useState("api");
   const [mcpStatus, setMcpStatus] = useState<any>(null);
   const [a2aStatus, setA2aStatus] = useState<any>(null);
@@ -136,6 +138,15 @@ export default function APIPageClient({ machineId }) {
       if (res.ok) {
         const data = await res.json();
         setCloudEnabled(data.cloudEnabled || false);
+        if (typeof data.cloudConfigured === "boolean") {
+          setCloudConfigured(data.cloudConfigured);
+        }
+        if (data.cloudUrl) {
+          setCloudBaseUrl(data.cloudUrl);
+        }
+        if (data.machineId) {
+          setResolvedMachineId(data.machineId);
+        }
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
@@ -144,6 +155,13 @@ export default function APIPageClient({ machineId }) {
 
   const handleCloudToggle = (checked) => {
     if (checked) {
+      if (!cloudConfigured) {
+        setCloudStatus({
+          type: "warning",
+          message: "Cloud sync is not configured on this instance.",
+        });
+        return;
+      }
       setShowCloudModal(true);
     } else {
       setShowDisableModal(true);
@@ -258,7 +276,12 @@ export default function APIPageClient({ machineId }) {
   };
 
   const [baseUrl, setBaseUrl] = useState("/v1");
-  const cloudEndpointNew = cloudBaseUrl ? `${cloudBaseUrl}/v1` : null;
+  const normalizedCloudBaseUrl = cloudBaseUrl
+    ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
+      ? `${cloudBaseUrl}/${resolvedMachineId}`
+      : cloudBaseUrl
+    : null;
+  const cloudEndpointNew = normalizedCloudBaseUrl ? `${normalizedCloudBaseUrl}/v1` : null;
 
   // Hydration fix: Only access window on client side
   useEffect(() => {
@@ -290,12 +313,21 @@ export default function APIPageClient({ machineId }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold">{t("title")}</h2>
-            <p className="text-sm text-text-muted">
-              {cloudEnabled ? t("usingCloudProxy") : t("usingLocalServer")}
-            </p>
-            {machineId && (
-              <p className="text-xs text-text-muted mt-1">
-                {t("machineId", { id: machineId.slice(0, 8) })}
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant={cloudEnabled ? "primary" : "secondary"}
+                icon={cloudEnabled ? "cloud_done" : "dns"}
+                onClick={() => handleCloudToggle(!cloudEnabled)}
+                disabled={cloudSyncing || (!cloudEnabled && !cloudConfigured)}
+                className={cloudEnabled ? "" : "border-border/70! text-text-muted! hover:text-text!"}
+              >
+                {cloudEnabled ? t("usingCloudProxy") : t("usingLocalServer")}
+              </Button>
+            </div>
+            {resolvedMachineId && (
+              <p className="text-xs text-text-muted mt-2">
+                {t("machineId", { id: resolvedMachineId.slice(0, 8) })}
               </p>
             )}
           </div>
@@ -311,7 +343,7 @@ export default function APIPageClient({ machineId }) {
               >
                 {t("disableCloud")}
               </Button>
-            ) : (
+            ) : cloudConfigured ? (
               <Button
                 variant="primary"
                 icon="cloud_upload"
@@ -321,6 +353,10 @@ export default function APIPageClient({ machineId }) {
               >
                 {t("enableCloud")}
               </Button>
+            ) : (
+              <span className="text-xs px-2 py-1 rounded-full bg-surface text-text-muted border border-border/70">
+                Cloud not configured
+              </span>
             )}
           </div>
         </div>
@@ -354,16 +390,17 @@ export default function APIPageClient({ machineId }) {
         )}
 
         {/* Endpoint URL */}
-        <div className="flex gap-2 mb-3">
+        <div className="flex flex-col sm:flex-row gap-2 mb-3">
           <Input
             value={currentEndpoint}
             readOnly
-            className={`flex-1 font-mono text-sm ${cloudEnabled ? "animate-border-glow" : ""}`}
+            className={`flex-1 min-w-0 font-mono text-sm ${cloudEnabled ? "animate-border-glow" : ""}`}
           />
           <Button
             variant="secondary"
             icon={copied === "endpoint_url" ? "check" : "content_copy"}
             onClick={() => copy(currentEndpoint, "endpoint_url")}
+            className="shrink-0 self-start sm:self-auto"
           >
             {copied === "endpoint_url" ? tc("copied") : tc("copy")}
           </Button>
@@ -1245,3 +1282,4 @@ EndpointSection.propTypes = {
   copied: PropTypes.string,
   baseUrl: PropTypes.string.isRequired,
 };
+

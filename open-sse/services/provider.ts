@@ -35,6 +35,27 @@ function buildAnthropicCompatibleUrl(baseUrl) {
   return `${normalized}/messages`;
 }
 
+// Detect request format from endpoint first when the route is known.
+// This avoids ambiguous bodies like OpenAI /chat/completions requests that also
+// contain max_tokens or Claude model names.
+export function detectFormatFromEndpoint(body, endpointPath = "") {
+  const path = String(endpointPath || "");
+
+  if (/(?:^|\/)responses(?:\/.*)?$/i.test(path)) {
+    return "openai-responses";
+  }
+
+  if (/(?:^|\/)messages(?:\/.*)?$/i.test(path)) {
+    return "claude";
+  }
+
+  if (/(?:^|\/)(?:chat\/completions|completions)(?:\/.*)?$/i.test(path)) {
+    return "openai";
+  }
+
+  return detectFormat(body);
+}
+
 // Detect request format from body structure
 export function detectFormat(body) {
   // OpenAI Responses API:

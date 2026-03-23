@@ -54,6 +54,21 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
     { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
   ],
+  antigravity: () => [
+    { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
+    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+    { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+    { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
+  ],
+  claude: () => [
+    { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+    { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },
+    { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (2025-10-01)" },
+  ],
   perplexity: () => [
     { id: "sonar", name: "Sonar (Fast Search)" },
     { id: "sonar-pro", name: "Sonar Pro (Advanced Search)" },
@@ -372,6 +387,14 @@ export async function GET(request, { params }) {
       });
     }
 
+    if (provider === "claude") {
+      return NextResponse.json({
+        provider,
+        connectionId,
+        models: STATIC_MODEL_PROVIDERS.claude(),
+      });
+    }
+
     if (isAnthropicCompatibleProvider(provider)) {
       let baseUrl = getProviderBaseUrl(connection.providerSpecificData);
       if (!baseUrl) {
@@ -387,13 +410,14 @@ export async function GET(request, { params }) {
       }
 
       const url = `${baseUrl}/models`;
+      const token = accessToken || apiKey;
       const response = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
           "anthropic-version": "2023-06-01",
-          Authorization: `Bearer ${apiKey}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 

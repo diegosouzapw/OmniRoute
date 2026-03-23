@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 import { getModelInfoCore } from "../../open-sse/services/model.ts";
-import { detectFormat } from "../../open-sse/services/provider.ts";
+import { detectFormat, detectFormatFromEndpoint } from "../../open-sse/services/provider.ts";
 import { shouldUseNativeCodexPassthrough } from "../../open-sse/handlers/chatCore.ts";
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
@@ -74,6 +74,45 @@ test("CodexExecutor forces stream=true for upstream compatibility", () => {
     false
   );
   assert.equal(transformed.stream, true);
+});
+
+test("Claude native messages can be round-tripped through OpenAI into Claude OAuth format", () => {
+  const normalizeOptions = { normalizeToolCallId: false, preserveDeveloperRole: undefined };
+  const openaiBody = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI,
+    "claude-sonnet-4-6",
+    {
+      model: "claude-sonnet-4-6",
+      max_tokens: 32,
+      messages: [{ role: "user", content: "reply with OK only" }],
+    },
+    false,
+    null,
+    "claude",
+    null,
+    normalizeOptions
+  );
+  const translated = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.CLAUDE,
+    "claude-sonnet-4-6",
+    openaiBody,
+    false,
+    null,
+    "claude",
+    null,
+    normalizeOptions
+  );
+
+  assert.deepEqual(translated.messages, [
+    {
+      role: "user",
+      content: [{ type: "text", text: "reply with OK only" }],
+    },
+  ]);
+  assert.ok(Array.isArray(translated.system));
+  assert.equal(translated.system[0]?.text?.includes("You are Claude Code"), true);
 });
 
 test("CodexExecutor maps fast service tier to priority", () => {
@@ -315,6 +354,32 @@ test("detectFormat identifies OpenAI Responses by max_output_tokens without inpu
     stream: false,
   });
   assert.equal(format, FORMATS.OPENAI_RESPONSES);
+});
+
+test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
+  const format = detectFormatFromEndpoint(
+    {
+      model: "cc/claude-opus-4-6",
+      messages: [{ role: "user", content: "hi" }],
+      max_tokens: 16,
+      stream: false,
+    },
+    "/v1/chat/completions"
+  );
+  assert.equal(format, FORMATS.OPENAI);
+});
+
+test("detectFormatFromEndpoint forces Claude for /v1/messages", () => {
+  const format = detectFormatFromEndpoint(
+    {
+      model: "claude-opus-4-6",
+      messages: [{ role: "user", content: "hi" }],
+      max_tokens: 16,
+      stream: false,
+    },
+    "/v1/messages"
+  );
+  assert.equal(format, FORMATS.CLAUDE);
 });
 
 test("translateRequest normalizes openai-responses input string into list payload", () => {

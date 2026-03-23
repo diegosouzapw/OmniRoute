@@ -7,6 +7,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { setCliCompatProviders } from "../../../../open-sse/config/cliFingerprints";
+import { getConsistentMachineId } from "@/shared/utils/machineId";
 
 export async function GET() {
   try {
@@ -20,6 +21,8 @@ export async function GET() {
 
     const enableRequestLogs = process.env.ENABLE_REQUEST_LOGS === "true";
     const runtimePorts = getRuntimePorts();
+    const cloudUrl = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || null;
+    const machineId = await getConsistentMachineId();
 
     return NextResponse.json({
       ...safeSettings,
@@ -28,6 +31,9 @@ export async function GET() {
       runtimePorts,
       apiPort: runtimePorts.apiPort,
       dashboardPort: runtimePorts.dashboardPort,
+      cloudConfigured: Boolean(cloudUrl),
+      cloudUrl,
+      machineId,
     });
   } catch (error) {
     console.log("Error getting settings:", error);

@@ -1,5 +1,5 @@
 import { getCorsOrigin } from "../utils/cors.ts";
-import { detectFormat, getTargetFormat } from "../services/provider.ts";
+import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import {
@@ -139,8 +139,8 @@ export async function handleChatCore({
     credentials.connectionId = connectionId;
   }
 
-  const sourceFormat = detectFormat(body);
   const endpointPath = String(clientRawRequest?.endpoint || "");
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
   const isResponsesEndpoint = /(?:^|\/)responses(?:\/.*)?$/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
@@ -219,11 +219,42 @@ export async function handleChatCore({
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
     } else if (isClaudePassthrough) {
-      // Claude-to-Claude passthrough: forward body completely untouched.
-      // No translation, no field stripping, no thinking normalization.
-      // We are just a gateway -- do not interfere with the request in the slightest.
-      translatedBody = { ...body };
-      log?.debug?.("FORMAT", "claude->claude passthrough -- forwarding untouched");
+      // Claude OAuth expects the same Claude Code prompt + structural normalization
+      // as the OpenAI-compatible chat path. Round-trip through OpenAI to reuse the
+      // working Claude translator instead of forwarding raw Messages payloads.
+      const normalizeToolCallId = getModelNormalizeToolCallId(
+        provider || "",
+        model || "",
+        sourceFormat
+      );
+      const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+        provider || "",
+        model || "",
+        sourceFormat
+      );
+      translatedBody = translateRequest(
+        FORMATS.CLAUDE,
+        FORMATS.OPENAI,
+        model,
+        { ...body },
+        stream,
+        credentials,
+        provider,
+        reqLogger,
+        { normalizeToolCallId, preserveDeveloperRole }
+      );
+      translatedBody = translateRequest(
+        FORMATS.OPENAI,
+        FORMATS.CLAUDE,
+        model,
+        translatedBody,
+        stream,
+        credentials,
+        provider,
+        reqLogger,
+        { normalizeToolCallId, preserveDeveloperRole }
+      );
+      log?.debug?.("FORMAT", "claude->openai->claude normalized passthrough");
     } else {
       translatedBody = { ...body };
 

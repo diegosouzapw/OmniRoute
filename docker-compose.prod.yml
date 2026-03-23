@@ -16,7 +16,7 @@ services:
     container_name: omniroute-prod
     build:
       context: .
-      target: runner-base
+      target: runner-cli
     image: omniroute:prod
     restart: unless-stopped
     env_file: .env
