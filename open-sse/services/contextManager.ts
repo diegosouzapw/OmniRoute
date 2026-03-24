@@ -65,14 +65,16 @@ export function getTokenLimit(provider, model = null) {
     const lower = model.toLowerCase();
     if (lower.includes("claude")) return DEFAULT_LIMITS.claude;
     if (lower.includes("gemini")) return DEFAULT_LIMITS.gemini;
+    // Codex models (e.g., gpt-5.3-codex) have 400k context
+    if (lower.includes("codex")) return DEFAULT_LIMITS.codex;
+    // Regular GPT/O models have 128k context
     if (
       lower.includes("gpt") ||
       lower.includes("o1") ||
       lower.includes("o3") ||
-      lower.includes("o4") ||
-      lower.includes("codex")
+      lower.includes("o4")
     )
-      return DEFAULT_LIMITS.codex;
+      return DEFAULT_LIMITS.openai;
   }
 
   // 4. Fallback to DEFAULT_LIMITS or default

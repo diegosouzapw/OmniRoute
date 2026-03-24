@@ -107,7 +107,7 @@ export const createComboSchema = z.object({
   system_message: z.string().max(50000).optional(),
   tool_filter_regex: z.string().max(1000).optional(),
   context_cache_protection: z.boolean().optional(),
-  context_length: z.number().int().min(1000).max(2000000).optional(),
+  context_length: z.number().int().min(1000).max(1000000).optional(),
 });
 
 // ──── Auto-Combo Schemas ────
