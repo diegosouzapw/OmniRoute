@@ -522,10 +522,33 @@ export async function handleComboChat({
           },
         });
 
-        const transformedStream = res.body.pipeThrough(transform);
+        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
+        // visible content so they don't leak to the user. The tag is still
+        // present in the full response for round-trip context pinning, but
+        // we clean it from each SSE chunk's content field before delivery.
+        const sanitize = new TransformStream({
+          transform(chunk, controller) {
+            const text = decoder.decode(chunk, { stream: true });
+            // Only run replacement if the chunk actually contains the tag
+            if (text.includes("<omniModel>")) {
+              const cleaned = text.replace(
+                /(?:\\\\n|\\n)?<omniModel>[^<]+<\/omniModel>(?:\\\\n|\\n)?/g,
+                ""
+              );
+              controller.enqueue(encoder.encode(cleaned));
+            } else {
+              controller.enqueue(chunk);
+            }
+          },
+        });
+
+        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        // Add model info as response header for clients that support it
+        const headers = new Headers(res.headers);
+        headers.set("X-OmniRoute-Model", modelStr);
         return new Response(transformedStream, {
           status: res.status,
-          headers: res.headers,
+          headers,
         });
       }
     : handleSingleModel;
