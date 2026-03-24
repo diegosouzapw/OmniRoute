@@ -222,6 +222,11 @@ export function normalizePlanTier(plan) {
 
   const upper = raw.toUpperCase();
 
+  // Provider names that are not real plan tiers — treat as unknown
+  if (upper === "CLAUDE CODE" || upper === "KIMI CODING" || upper === "KIRO") {
+    return { key: "unknown", label: raw, variant: "default", rank: 0, raw };
+  }
+
   if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {
     return { key: "plus", label: "Pro+", variant: "secondary", rank: 4, raw };
   }

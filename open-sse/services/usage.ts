@@ -86,7 +86,8 @@ function toDisplayLabel(value: string): string {
     .filter(Boolean)
     .map((part) => {
       if (/^pro\+$/i.test(part)) return "Pro+";
-      if (/^[a-z]{2,}$/.test(part)) return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+      if (/^[a-z]{2,}$/.test(part))
+        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
       return part;
     })
     .join(" ")
@@ -200,7 +201,9 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
     if (dataRecord.quota_snapshots) {
       // Paid plan format
       const snapshots = toRecord(dataRecord.quota_snapshots);
-      const resetAt = parseResetTime(getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate"));
+      const resetAt = parseResetTime(
+        getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate")
+      );
       const premiumQuota = formatGitHubQuotaSnapshot(snapshots.premium_interactions, resetAt);
       const chatQuota = formatGitHubQuotaSnapshot(snapshots.chat, resetAt);
       const completionsQuota = formatGitHubQuotaSnapshot(snapshots.completions, resetAt);
@@ -225,7 +228,11 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
       // Free/limited plan format
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
       const usedQuotas = toRecord(dataRecord.limited_user_quotas);
-      const resetDate = getFieldValue(dataRecord, "limited_user_reset_date", "limitedUserResetDate");
+      const resetDate = getFieldValue(
+        dataRecord,
+        "limited_user_reset_date",
+        "limitedUserResetDate"
+      );
       const resetAt = parseResetTime(resetDate);
       const quotas: Record<string, UsageQuota> = {};
 
@@ -327,11 +334,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     toNumber(getFieldValue(monthlyQuotas, "premium_interactions", "premiumInteractions"), 0);
   const chatTotal = toNumber(getFieldValue(monthlyQuotas, "chat", "chat"), 0);
 
-  if (
-    combined.includes("PRO+") ||
-    combined.includes("PRO_PLUS") ||
-    combined.includes("PROPLUS")
-  ) {
+  if (combined.includes("PRO+") || combined.includes("PRO_PLUS") || combined.includes("PROPLUS")) {
     return "Copilot Pro+";
   }
   if (combined.includes("ENTERPRISE")) return "Copilot Enterprise";
@@ -655,8 +658,18 @@ async function getClaudeUsage(accessToken) {
         }
       }
 
+      // Try to extract plan tier from the OAuth response
+      const planRaw =
+        typeof data.tier === "string"
+          ? data.tier
+          : typeof data.plan === "string"
+            ? data.plan
+            : typeof data.subscription_type === "string"
+              ? data.subscription_type
+              : null;
+
       return {
-        plan: "Claude Code",
+        plan: planRaw || "Claude Code",
         quotas,
         extraUsage: data.extra_usage ?? null,
       };

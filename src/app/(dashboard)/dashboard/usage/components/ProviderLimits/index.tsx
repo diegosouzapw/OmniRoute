@@ -412,24 +412,25 @@ export default function ProviderLimits() {
 
         <div className="flex items-center gap-2">
           {/* Group by toggle */}
-          <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
+          <div className="flex rounded-lg border border-border overflow-hidden">
             <button
               onClick={() => handleSetGroupBy("none")}
               className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
               style={{
-                background: groupBy === "none" ? "rgba(255,255,255,0.1)" : "transparent",
-                color: groupBy === "none" ? "var(--text-main)" : "var(--text-muted)",
+                background: groupBy === "none" ? "var(--color-bg-subtle)" : "transparent",
+                color: groupBy === "none" ? "var(--color-text-main)" : "var(--color-text-muted)",
               }}
             >
               {t("viewFlat")}
             </button>
             <button
               onClick={() => handleSetGroupBy("environment")}
-              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none border-l border-white/[0.08]"
+              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
               style={{
-                background: groupBy === "environment" ? "rgba(255,255,255,0.1)" : "transparent",
-                color: groupBy === "environment" ? "var(--text-main)" : "var(--text-muted)",
-                borderLeft: "1px solid rgba(255,255,255,0.08)",
+                background: groupBy === "environment" ? "var(--color-bg-subtle)" : "transparent",
+                color:
+                  groupBy === "environment" ? "var(--color-text-main)" : "var(--color-text-muted)",
+                borderLeft: "1px solid var(--color-border)",
               }}
             >
               {t("viewByEnvironment")}
@@ -442,7 +443,7 @@ export default function ProviderLimits() {
               setAutoRefresh(next);
               localStorage.setItem(LS_AUTO_REFRESH, String(next));
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-transparent cursor-pointer text-text-main text-[13px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-transparent cursor-pointer text-text-main text-[13px]"
           >
             <span
               className="material-symbols-outlined text-[18px]"
@@ -459,7 +460,7 @@ export default function ProviderLimits() {
           <button
             onClick={refreshAll}
             disabled={refreshingAll}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white/[0.06] border border-white/10 text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <span
               className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -483,10 +484,10 @@ export default function ProviderLimits() {
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
               style={{
                 border: active
-                  ? "1px solid var(--primary, #E54D5E)"
-                  : "1px solid rgba(255,255,255,0.12)",
-                background: active ? "rgba(249,120,21,0.14)" : "transparent",
-                color: active ? "var(--primary, #E54D5E)" : "var(--text-muted)",
+                  ? "1px solid var(--color-primary, #E54D5E)"
+                  : "1px solid var(--color-border)",
+                background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
               }}
             >
               <span>{t(tier.labelKey)}</span>
@@ -497,10 +498,10 @@ export default function ProviderLimits() {
       </div>
 
       {/* Account rows */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-black/15">
+      <div className="rounded-xl border border-border overflow-hidden bg-bg-subtle">
         {/* Table header */}
         <div
-          className="items-center px-4 py-2.5 border-b border-white/[0.06] text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+          className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
           style={{ display: "grid", gridTemplateColumns: "280px 1fr 100px 48px" }}
         >
           <div>{t("account")}</div>
@@ -523,11 +524,11 @@ export default function ProviderLimits() {
             return (
               <div
                 key={conn.id}
-                className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-white/[0.02]"
+                className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "280px 1fr 100px 48px",
-                  borderBottom: !isLast ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
                 }}
               >
                 {/* Account Info */}
@@ -614,7 +615,7 @@ export default function ProviderLimits() {
                           ) : null}
 
                           {/* Progress bar */}
-                          <div className="flex-1 h-1.5 rounded-sm bg-white/[0.06] min-w-[60px] overflow-hidden">
+                          <div className="flex-1 h-1.5 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] min-w-[60px] overflow-hidden">
                             <div
                               className="h-full rounded-sm transition-[width] duration-300 ease-out"
                               style={{
@@ -672,13 +673,10 @@ export default function ProviderLimits() {
           if (groupedConnections) {
             const entries = [...groupedConnections.entries()];
             return entries.map(([groupName, conns]) => (
-              <div
-                key={groupName}
-                className="border border-white/[0.08] rounded-lg overflow-hidden mb-2"
-              >
+              <div key={groupName} className="border border-border rounded-lg overflow-hidden mb-2">
                 <button
                   onClick={() => toggleGroup(groupName)}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px] text-text-muted">
                     {expandedGroups.has(groupName) ? "expand_less" : "expand_more"}
@@ -689,7 +687,7 @@ export default function ProviderLimits() {
                   <span className="text-[12px] font-semibold text-text-main uppercase tracking-wider flex-1">
                     {groupName}
                   </span>
-                  <span className="text-[11px] text-text-muted bg-white/[0.06] px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] text-text-muted bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 rounded-full">
                     {conns.length}
                   </span>
                 </button>
