@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import os from "os";
 import path from "path";
 import { spawn } from "child_process";
@@ -259,6 +260,41 @@ const validateEnvPath = (value: string | undefined, allowedParents: string[]): s
 };
 
 /**
+ * Detect nvm installation path from process.execPath.
+ * Works for both nvm-windows (Windows) and nvm (Linux/macOS).
+ * Returns the bin directory containing node if nvm is detected, null otherwise.
+ *
+ * This approach works regardless of shell environment variables because
+ * it inspects the actual path to the running Node.js executable.
+ */
+const getNvmBinPath = (): string | null => {
+  const execPath = process.execPath;
+  const home = os.homedir();
+
+  // Windows nvm-windows pattern: C:\nvm4w\nodejs\ or similar
+  if (isWindows()) {
+    if (execPath.toLowerCase().includes("nvm")) {
+      return path.dirname(execPath);
+    }
+    return null;
+  }
+
+  // Linux/macOS nvm pattern: ~/.nvm/versions/node/vX.Y.Z/bin/node
+  const nvmPattern = /[\/\\]\.nvm[\/\\]versions[\/\\]node[\/\\]([^\/\\]+)[\/\\]bin[\/\\]node$/;
+  const nvmMatch = execPath.match(nvmPattern);
+
+  if (nvmMatch) {
+    const version = nvmMatch[1];
+    const nvmBinPath = path.join(home, ".nvm", "versions", "node", version, "bin");
+    if (fsSync.existsSync(nvmBinPath)) {
+      return nvmBinPath;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Pre-compute expected parent directories at module startup for performance.
  * These are the allowed directories for CLI binary installation locations.
  */
@@ -281,7 +317,8 @@ const getExpectedParentPaths = (): string[] => {
     "C:\\Program Files (x86)",
   ]);
 
-  return [
+  // Base paths (all platforms)
+  const paths = [
     home,
     userProfile,
     validatedAppData,
@@ -289,6 +326,44 @@ const getExpectedParentPaths = (): string[] => {
     validatedProgramFiles,
     validatedProgramFilesX86,
   ].filter(Boolean);
+
+  // Add NVM paths (Windows: C:\nvm4w\nodejs, Linux/macOS: ~/.nvm)
+  // These are common installation locations that should be trusted
+  const nvmBinPath = getNvmBinPath();
+  if (nvmBinPath) {
+    // Add the NVM bin directory itself
+    paths.push(nvmBinPath);
+    // Also add the parent NVM directory for symlink resolution
+    if (isWindows()) {
+      // Windows: C:\nvm4w
+      const nvmParent = path.dirname(nvmBinPath);
+      if (nvmParent && !paths.includes(nvmParent)) {
+        paths.push(nvmParent);
+      }
+    } else {
+      // Linux/macOS: ~/.nvm
+      const nvmParent = path.join(home, ".nvm");
+      if (fsSync.existsSync(nvmParent) && !paths.includes(nvmParent)) {
+        paths.push(nvmParent);
+      }
+    }
+  }
+
+  // Add Homebrew paths (macOS/Linux)
+  if (!isWindows()) {
+    const homebrewPaths = [
+      "/usr/local", // Homebrew Intel
+      "/opt/homebrew", // Homebrew ARM
+      "/home/linuxbrew", // Linuxbrew
+    ];
+    for (const brewPath of homebrewPaths) {
+      if (fsSync.existsSync(brewPath) && !paths.includes(brewPath)) {
+        paths.push(brewPath);
+      }
+    }
+  }
+
+  return paths;
 };
 
 // Cache expected parent paths at module startup (avoid recalculation on every checkKnownPath call)
@@ -310,99 +385,162 @@ const getExtraPaths = () =>
     });
 
 /**
- * Get known installation paths for a specific CLI tool on Windows.
- * Returns ONLY verified, tool-specific paths - NOT generic user bin directories.
+ * Get known installation paths for a specific CLI tool.
+ *
+ * On Windows: Returns ONLY verified, tool-specific paths - NOT generic user bin directories.
  * This is more secure than searching PATH as it checks known locations only.
+ *
+ * On Linux/macOS: Returns tool executables in detected version manager bin directories
+ * (NVM, Volta, npm global). Falls back to [] if no version manager detected,
+ * relying on PATH search fallback in locateCommandCandidate().
  */
 const getKnownToolPaths = (toolId: string): string[] => {
-  if (!isWindows()) return [];
+  if (isWindows()) {
+    const home = os.homedir();
+    const userProfile = process.env.USERPROFILE || home;
 
-  const home = os.homedir();
-  const userProfile = process.env.USERPROFILE || home;
+    // Validate environment paths against allowed parent directories
+    const appData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
+    const localAppData = validateEnvPath(process.env.LOCALAPPDATA, [
+      path.join(home, "AppData", "Local"),
+      path.join(userProfile, "AppData", "Local"),
+      userProfile,
+    ]);
 
-  // Validate environment paths against allowed parent directories
-  const appData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
-  const localAppData = validateEnvPath(process.env.LOCALAPPDATA, [
-    path.join(home, "AppData", "Local"),
-    path.join(userProfile, "AppData", "Local"),
-    userProfile,
-  ]);
+    // Cache nvm node path to avoid duplicate detection calls
+    const nvmNodePath = getNvmBinPath();
 
-  // Cache nvm node path to avoid duplicate detection calls
-  const nvmNodePath = getNvmNodePath();
+    // Tool-specific known installation paths (verified locations only)
+    const knownPaths: Record<string, string[]> = {
+      claude: [
+        // Official Claude Code standalone installer locations
+        path.join(home, ".local", "bin", "claude.exe"),
+        ...(localAppData ? [path.join(localAppData, "Programs", "Claude", "claude.exe")] : []),
+        ...(localAppData ? [path.join(localAppData, "claude-code", "claude.exe")] : []),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "claude-code.cmd")] : []),
+      ],
+      codex: [
+        path.join(home, ".local", "bin", "codex"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "codex.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "codex.cmd")] : []),
+      ],
+      droid: [
+        path.join(home, ".local", "bin", "droid"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "droid.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "droid.cmd")] : []),
+      ],
+      openclaw: [
+        path.join(home, ".local", "bin", "openclaw"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "openclaw.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "openclaw.cmd")] : []),
+      ],
+      cursor: [
+        path.join(home, ".local", "bin", "agent"),
+        path.join(home, ".local", "bin", "cursor"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "agent.cmd")] : []),
+        ...(nvmNodePath ? [path.join(nvmNodePath, "cursor.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "agent.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "cursor.cmd")] : []),
+      ],
+      cline: [
+        path.join(home, ".local", "bin", "cline"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "cline.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "cline.cmd")] : []),
+      ],
+      kilo: [
+        path.join(home, ".local", "bin", "kilocode"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "kilocode.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "kilocode.cmd")] : []),
+      ],
+      opencode: [
+        path.join(home, ".local", "bin", "opencode"),
+        // npm global (only if nvm-windows is detected)
+        ...(nvmNodePath ? [path.join(nvmNodePath, "opencode.cmd")] : []),
+        ...(appData ? [path.join(appData, "npm", "opencode.cmd")] : []),
+      ],
+      // Add other tools as needed with their specific known paths
+    };
 
-  // Tool-specific known installation paths (verified locations only)
-  const knownPaths: Record<string, string[]> = {
-    claude: [
-      // Official Claude Code standalone installer locations
-      path.join(home, ".local", "bin", "claude.exe"),
-      ...(localAppData ? [path.join(localAppData, "Programs", "Claude", "claude.exe")] : []),
-      ...(localAppData ? [path.join(localAppData, "claude-code", "claude.exe")] : []),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "claude-code.cmd")] : []),
-    ],
-    codex: [
-      path.join(home, ".local", "bin", "codex"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "codex.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "codex.cmd")] : []),
-    ],
-    droid: [
-      path.join(home, ".local", "bin", "droid"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "droid.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "droid.cmd")] : []),
-    ],
-    openclaw: [
-      path.join(home, ".local", "bin", "openclaw"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "openclaw.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "openclaw.cmd")] : []),
-    ],
-    cursor: [
-      path.join(home, ".local", "bin", "agent"),
-      path.join(home, ".local", "bin", "cursor"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "agent.cmd")] : []),
-      ...(nvmNodePath ? [path.join(nvmNodePath, "cursor.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "agent.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "cursor.cmd")] : []),
-    ],
-    cline: [
-      path.join(home, ".local", "bin", "cline"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "cline.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "cline.cmd")] : []),
-    ],
-    kilo: [
-      path.join(home, ".local", "bin", "kilocode"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "kilocode.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "kilocode.cmd")] : []),
-    ],
-    opencode: [
-      path.join(home, ".local", "bin", "opencode"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "opencode.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "opencode.cmd")] : []),
-    ],
-    // Add other tools as needed with their specific known paths
-  };
+    return knownPaths[toolId] || [];
+  }
 
-  return knownPaths[toolId] || [];
+  // Linux/macOS: return tool executables in standard user bin directories
+  // This catches tools installed in ~/.local/bin, ~/bin, ~/.nvm/versions/node/current/bin, ~/.volta/bin
+  const userBinPaths = getUserBinPaths();
+  if (userBinPaths.length === 0) {
+    return []; // No user bin directories found, rely on PATH fallback
+  }
+
+  // Build tool-specific paths from detected bin directories
+  const tool = CLI_TOOLS[toolId];
+  if (!tool) return [];
+
+  const commands = new Set<string>();
+  if (Array.isArray(tool.defaultCommands)) {
+    tool.defaultCommands.forEach((c) => c && commands.add(c));
+  } else if (tool.defaultCommand) {
+    commands.add(tool.defaultCommand);
+  }
+
+  if (commands.size === 0) return [];
+
+  // Build full paths for each command in each detected bin directory
+  const result: string[] = [];
+  for (const binDir of userBinPaths) {
+    for (const cmd of commands) {
+      const fullPath = path.join(binDir, cmd);
+      if (!result.includes(fullPath)) {
+        result.push(fullPath);
+      }
+    }
+  }
+
+  return result;
 };
 
 /**
- * Detect nvm-windows installation path dynamically from current Node.js executable.
- * Returns the directory containing node.exe if nvm is detected, null otherwise.
+ * Get standard user bin directories for Linux/macOS.
+ * These are common locations where globally installed CLI tools reside.
+ * Checks existence to avoid returning non-existent paths.
  */
-const getNvmNodePath = (): string | null => {
-  // Simple heuristic: if process.execPath includes "nvm", use its directory
-  if (process.execPath.toLowerCase().includes("nvm")) {
-    return path.dirname(process.execPath);
+const getUserBinPaths = (): string[] => {
+  if (isWindows()) return [];
+
+  const home = os.homedir();
+  const paths: string[] = [];
+
+  // Standard user bin directories (most common installation locations)
+  const userBinDirs = [
+    path.join(home, ".local", "bin"), // ~/.local/bin - standard on Linux/macOS
+    path.join(home, "bin"), // ~/bin - traditional location
+  ];
+
+  for (const binDir of userBinDirs) {
+    if (fsSync.existsSync(binDir)) {
+      paths.push(binDir);
+    }
   }
 
-  return null;
+  // NVM: Detect from process.execPath (reuses Windows-style detection logic)
+  const nvmBin = getNvmBinPath();
+  if (nvmBin) {
+    paths.push(nvmBin);
+  }
+
+  // Volta: single bin directory for all tools
+  const voltaBin = path.join(home, ".volta", "bin");
+  if (fsSync.existsSync(voltaBin)) {
+    paths.push(voltaBin);
+  }
+
+  return paths;
 };
 
 const getLookupEnv = () => {
@@ -521,9 +659,12 @@ const checkKnownPath = async (commandPath: string) => {
       return { installed: false, commandPath: null, reason: "not_file" };
     }
 
-    // CLI binaries should be > 1KB and < 100MB
-    // This catches suspicious files while allowing for wrapper scripts
-    if (stat.size < 1024 || stat.size > 100 * 1024 * 1024) {
+    // CLI binaries should be > 100 bytes and < 500MB
+    // - Minimum 100 bytes: allows for small wrapper scripts (.cmd, .sh) while rejecting empty/broken files
+    //   Examples: npm wrapper scripts (~300 bytes), shell scripts (~200 bytes)
+    // - Maximum 500MB: allows for large Electron-based tools
+    //   Examples: Claude Code (~250MB), Cursor (~300MB)
+    if (stat.size < 100 || stat.size > 500 * 1024 * 1024) {
       return { installed: false, commandPath: null, reason: "suspicious_size" };
     }
   } catch (error) {
@@ -556,7 +697,8 @@ const locateCommandCandidate = async (
 
   // SECURITY: First check known installation paths for this specific tool
   // This avoids searching PATH and reduces attack surface
-  if (toolId && isWindows()) {
+  // NOW WORKS ON ALL PLATFORMS (removed isWindows() restriction)
+  if (toolId) {
     const knownPaths = getKnownToolPaths(toolId);
     for (const knownPath of knownPaths) {
       const result = await checkKnownPath(knownPath);
@@ -572,6 +714,7 @@ const locateCommandCandidate = async (
   }
 
   // Fallback: search PATH (user can set CLI_EXTRA_PATHS if needed)
+  // This is the ORIGINAL behavior - preserved for backward compatibility
   for (const command of commands) {
     const located = await locateCommand(command, env);
     if (located.installed || located.reason !== "not_found") {
