@@ -94,6 +94,23 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   if (sanitizeResult.modified && sanitizeResult.sanitizedBody) {
     body = sanitizeResult.sanitizedBody;
   }
+
+  // Strip tools with empty or whitespace-only names — some clients (e.g. Cursor)
+  // occasionally send malformed tool definitions that upstream providers reject.
+  // Handles both Responses API format (top-level name) and Chat Completions format (function.name).
+  if (Array.isArray(body.tools)) {
+    const validTools = body.tools.filter(
+      (t: any) => t?.function?.name?.trim?.() || t?.name?.trim?.()
+    );
+    if (validTools.length !== body.tools.length) {
+      log.warn(
+        "SANITIZER",
+        `Stripped ${body.tools.length - validTools.length} tool(s) with empty name`
+      );
+      body = { ...body, tools: validTools };
+    }
+  }
+
   telemetry.endPhase();
 
   // T01 — Accept header negotiation

@@ -396,6 +396,13 @@ export function openaiToOpenAIResponsesRequest(
     result.tools = root.tools.map((toolValue) => {
       const tool = toRecord(toolValue);
       if (tool.type === "function") {
+        // Already in Responses API format (top-level name, no function wrapper) —
+        // happens when Cursor sends a Responses API body to /v1/chat/completions,
+        // causing sourceFormat to be detected as "openai" from the path, then this
+        // translator is called even though the tools are already correctly shaped.
+        if (typeof tool.name === "string" && !tool.function) {
+          return toolValue;
+        }
         const fn = toRecord(tool.function);
         return {
           type: "function",
