@@ -251,6 +251,18 @@ export function openaiToOpenAIResponsesRequest(
   void credentials;
 
   const root = toRecord(body);
+
+  // If the body already contains an `input` field it is already in Responses API
+  // format (e.g. Cursor sends a Responses API body to /v1/chat/completions, which
+  // causes detectFormatFromEndpoint to return "openai" from the path, then this
+  // translator is invoked even though no translation is needed).
+  // Processing root.messages on such a body produces input:[] and destroys the
+  // conversation; tools mapping produces name:"" for every function tool.
+  // Return as-is — the body is already correctly shaped for the target provider.
+  if (root.input !== undefined) {
+    return body;
+  }
+
   const result: JsonRecord = {
     model,
     input: [],
