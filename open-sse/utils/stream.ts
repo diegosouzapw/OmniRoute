@@ -478,8 +478,8 @@ export function createSSEStream(options: StreamOptions = {}) {
               // Content for call log is accumulated only from parsed (above) to avoid double-counting;
               // do not add again from item here.
 
-              // Filter empty chunks
-              if (!hasValuableContent(item, sourceFormat)) {
+              // Filter empty chunks - use targetFormat since translated chunks are in provider's format
+              if (!hasValuableContent(item, targetFormat)) {
                 continue; // Skip this empty chunk
               }
 
