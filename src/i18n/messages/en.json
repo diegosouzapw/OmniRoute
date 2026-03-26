@@ -58,7 +58,91 @@
     "free": "Free",
     "skipToContent": "Skip to content",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Accept",
+    "accountId": "Account ID",
+    "alias": "Alias",
+    "apiKeyId": "API Key ID",
+    "apiKeyName": "API Key Name",
+    "apiKeySecret": "API Key Secret",
+    "authorization": "Authorization",
+    "content-type": "Content Type",
+    "content-length": "Content Length",
+    "cookie": "Cookie",
+    "file": "File",
+    "host": "Host",
+    "id": "ID",
+    "import": "Import",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Open",
+    "origin": "Origin",
+    "promptTokens": "Prompt Tokens",
+    "completionTokens": "Completion Tokens",
+    "totalTokens": "Total Tokens",
+    "rawModel": "Raw Model",
+    "scope": "Scope",
+    "skill": "Skill",
+    "sortBy": "Sort By",
+    "sortOrder": "Sort Order",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textarea",
+    "tool": "Tool",
+    "toolId": "Tool ID",
+    "web": "Web",
+    "whereUsed": "Where Used",
+    "whitelist": "Whitelist",
+    "blacklist": "Blacklist",
+    "resolve": "Resolve",
+    "force": "Force",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Range",
+    "component": "Component",
+    "redirect_uri": "Redirect URI",
+    "idempotency-key": "Idempotency Key",
+    "error_description": "Error Description",
+    "code": "Code",
+    "compatible": "Compatible",
+    "chat-completions": "Chat Completions",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Crypto",
+    "hours": "Hours",
+    "selfsigned": "Self-signed",
+    "proxy_id": "Proxy ID",
+    "proxyId": "Proxy ID",
+    "connectionId": "Connection ID",
+    "resolveConnectionId": "Resolve Connection ID",
+    "resolve_connection_id": "Resolve Connection ID",
+    "scope_id": "Scope ID",
+    "scopeId": "Scope ID",
+    "jwtSecret": "JWT Secret",
+    "keytar": "Keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "Builder ID",
+    "musicDesc": "Music Description",
+    "musicGeneration": "Music Generation",
+    "idc": "IDC",
+    "cloud-status-changed": "Cloud status changed",
+    "where_used": "Where Used",
+    "windowMs": "Window (ms)",
+    "toolDescriptions": {
+      "claude": "Claude Code - AI coding assistant",
+      "cline": "Cline - AI coding assistant",
+      "codex": "OpenAI Codex - AI coding assistant",
+      "droid": "Droid - Android development assistant",
+      "kilo": "Kilo - Lightweight AI assistant",
+      "openclaw": "OpenClaw - Open source AI assistant"
+    },
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Tool Allowlist",
+    "TOOL_DENYLIST": "Tool Denylist",
+    "Failed to save pricing": "Failed to save pricing",
+    "Failed to reset pricing": "Failed to reset pricing"
   },
   "sidebar": {
     "home": "Home",
@@ -2390,7 +2474,13 @@
     "restartServerWithNewPassword": "Restart the server - it will use the new password",
     "backToLogin": "Back to Login",
     "forgotPassword": "Forgot password?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Waiting for authorization...": "Waiting for authorization...",
+    "Waiting for Google authorization...": "Waiting for Google authorization...",
+    "Waiting for OpenAI authorization...": "Waiting for OpenAI authorization...",
+    "Waiting for Antigravity authorization...": "Waiting for Antigravity authorization...",
+    "Waiting for iFlow authorization...": "Waiting for iFlow authorization...",
+    "Exchanging code for tokens...": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2714,5 +2804,48 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "templateNames": {
+    "simple-chat": "Simple Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System Prompt",
+    "thinking": "Thinking",
+    "tool-calling": "Tool Calling",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template with system message",
+    "streaming": "Template for streaming responses",
+    "system-prompt": "Template with custom system prompt",
+    "thinking": "Template with reasoning/thinking budget",
+    "tool-calling": "Template for tool/function calling",
+    "multi-turn": "Template for multi-turn conversations"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "You are a helpful AI assistant.",
+      "userGreeting": "Hello! How can I help you today?"
+    },
+    "streaming": {
+      "prompt": "Write a story about"
+    },
+    "systemPrompt": {
+      "question": "What is the meaning of life?",
+      "systemInstruction": "Provide a thoughtful, philosophical answer."
+    },
+    "thinking": {
+      "question": "Explain quantum computing"
+    },
+    "toolCalling": {
+      "cityNameDescription": "The name of the city to get weather for",
+      "toolDescription": "Get current weather for a location",
+      "userWeather": "What's the weather in Tokyo?"
+    },
+    "multiTurn": {
+      "system": "You are a helpful assistant.",
+      "assistantExample": "I'd be happy to help you with that.",
+      "userInitial": "I need help with",
+      "userFollowUp": "Can you elaborate on that?"
+    }
   }
 }
