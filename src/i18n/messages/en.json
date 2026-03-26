@@ -179,7 +179,11 @@
     "requestsShort": "{count} reqs",
     "providerModelsTitle": "{provider} - Models",
     "copiedModel": "Copied: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Update Now",
+    "updating": "Updating...",
+    "updateAvailableDesc": "A new version is available. Click to update.",
+    "updateStarted": "Update started..."
   },
   "analytics": {
     "title": "Analytics",

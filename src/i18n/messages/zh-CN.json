@@ -179,7 +179,11 @@
     "requestsShort": "{count} 次请求",
     "providerModelsTitle": "{provider} - 模型",
     "copiedModel": "已复制：{model}",
-    "aliasLabel": "别名"
+    "aliasLabel": "别名",
+    "updateNow": "立即更新",
+    "updating": "更新中...",
+    "updateAvailableDesc": "有新版本可用。点击更新。",
+    "updateStarted": "更新已开始..."
   },
   "analytics": {
     "title": "分析",
@@ -586,6 +590,9 @@
             "title": "添加模型配置",
             "desc": "将以下配置添加到您的模型数组中："
           }
+        },
+        "notes": {
+          "0": "Continue 使用 JSON 配置文件。"
         }
       },
       "opencode": {
@@ -604,6 +611,10 @@
           "4": {
             "title": "选择模型"
           }
+        },
+        "notes": {
+          "0": "OpenCode 需要配置 API 密钥。",
+          "1": "将基础 URL 设置为您的 OmniRoute 端点。"
         }
       },
       "kiro": {
@@ -622,6 +633,9 @@
           "4": {
             "title": "选择模型"
           }
+        },
+        "notes": {
+          "0": "Kiro 需要 Amazon 账户。"
         }
       }
     },
@@ -1379,13 +1393,13 @@
     "importingModels": "正在导入...",
     "importFromModels": "从 /models 导入",
     "autoSync": "自动同步",
-    "autoSyncTooltip": "每24小时自动刷新模型列表（可通过 MODEL_SYNC_INTERVAL_HOURS 配置）",
-    "autoSyncEnabled": "已启用自动同步 — 模型列表将定期刷新",
-    "autoSyncDisabled": "已禁用自动同步",
+    "autoSyncTooltip": "每 24 小时自动刷新模型列表（可通过 MODEL_SYNC_INTERVAL_HOURS 配置）",
+    "autoSyncEnabled": "自动同步已启用 — 模型将定期刷新",
+    "autoSyncDisabled": "自动同步已禁用",
     "autoSyncToggleFailed": "切换自动同步失败",
     "clearAllModels": "清除所有模型",
-    "clearAllModelsConfirm": "确定要删除此提供商的所有模型吗？此操作不可撤销。",
-    "clearAllModelsSuccess": "已清除所有模型",
+    "clearAllModelsConfirm": "您确定要删除此提供商的所有模型吗？",
+    "clearAllModelsSuccess": "所有模型已清除",
     "clearAllModelsFailed": "清除模型失败",
     "addConnectionToImport": "添加连接以启用导入。",
     "noModelsConfigured": "尚未配置模型",
@@ -2583,7 +2597,9 @@
     "troubleshootingCodexFamily": "对于 GitHub Codex 系列模型，请保持模型名为 `gh/codex-model`；路由器会自动选择 `/responses`。",
     "troubleshootingTestConnection": "在从 IDE 或外部客户端进行测试之前，请使用仪表板 > 提供商 > 测试连接。",
     "troubleshootingCircuitBreaker": "如果提供商显示断路器已打开，请等待冷却或查看运行状况页面以了解详细信息。",
-    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。"
+    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。",
+    "endpointSpeechNote": "语音生成（ElevenLabs、OpenAI TTS）。",
+    "endpointEmbeddingsNote": "文本嵌入生成（OpenAI、Cohere、Voyage）。"
   },
   "legal": {
     "privacyPolicy": "隐私政策",

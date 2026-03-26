@@ -179,7 +179,11 @@
     "requestsShort": "{count} 요청",
     "providerModelsTitle": "{provider} - 모델",
     "copiedModel": "복사됨: {model}",
-    "aliasLabel": "별칭"
+    "aliasLabel": "별칭",
+    "updateNow": "지금 업데이트",
+    "updating": "업데이트 중...",
+    "updateAvailableDesc": "새 버전을 사용할 수 있습니다. 클릭하여 업데이트하세요.",
+    "updateStarted": "업데이트 시작됨..."
   },
   "analytics": {
     "title": "분석",
@@ -535,6 +539,9 @@
             "title": "모델 구성 추가",
             "desc": "모델 배열에 다음 구성을 추가합니다."
           }
+        },
+        "notes": {
+          "0": "Continue는 JSON 설정 파일을 사용합니다."
         }
       },
       "opencode": {
@@ -553,6 +560,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode는 API 키 구성이 필요합니다.",
+          "1": "기본 URL을 OmniRoute 엔드포인트로 설정하세요."
         }
       },
       "kiro": {
@@ -571,6 +582,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro는 Amazon 계정이 필요합니다."
         }
       }
     },
@@ -1477,7 +1491,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "자동 동기화",
+    "autoSyncTooltip": "24시간마다 모델 목록 자동 업데이트 (MODEL_SYNC_INTERVAL_HOURS로 구성 가능)",
+    "autoSyncEnabled": "자동 동기화 활성화 — 모델이 주기적으로 업데이트됩니다",
+    "autoSyncDisabled": "자동 동기화 비활성화",
+    "autoSyncToggleFailed": "자동 동기화 전환 실패",
+    "clearAllModels": "모든 모델 삭제",
+    "clearAllModelsConfirm": "이 공급자의 모든 모델을 제거하시겠습니까?",
+    "clearAllModelsSuccess": "모든 모델 삭제됨",
+    "clearAllModelsFailed": "모델 삭제 실패"
   },
   "settings": {
     "title": "설정",
@@ -2511,7 +2534,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "음성 합성 (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "텍스트 임베딩 생성 (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "개인 정보 보호 정책",

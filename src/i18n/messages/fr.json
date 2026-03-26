@@ -179,7 +179,11 @@
     "requestsShort": "{count} reqs",
     "providerModelsTitle": "{provider} - Modèles",
     "copiedModel": "Copié : {model}",
-    "aliasLabel": "pseudonyme"
+    "aliasLabel": "pseudonyme",
+    "updateNow": "Mettre à jour",
+    "updating": "Mise à jour...",
+    "updateAvailableDesc": "Une nouvelle version est disponible. Cliquez pour mettre à jour.",
+    "updateStarted": "Mise à jour démarrée..."
   },
   "analytics": {
     "title": "Analyse",
@@ -535,6 +539,9 @@
             "title": "Ajouter une configuration de modèle",
             "desc": "Ajoutez la configuration suivante à votre tableau models :"
           }
+        },
+        "notes": {
+          "0": "Continue utilise un fichier de configuration JSON."
         }
       },
       "opencode": {
@@ -553,6 +560,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode nécessite la configuration de la clé API.",
+          "1": "Définissez l'URL de base sur votre endpoint OmniRoute."
         }
       },
       "kiro": {
@@ -571,6 +582,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro nécessite un compte Amazon."
         }
       }
     },
@@ -1477,7 +1491,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Synchronisation automatique",
+    "autoSyncTooltip": "Actualise automatiquement la liste des modèles toutes les 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Synchronisation automatique activée — les modèles seront actualisés périodiquement",
+    "autoSyncDisabled": "Synchronisation automatique désactivée",
+    "autoSyncToggleFailed": "Échec de l'activation de la synchronisation automatique",
+    "clearAllModels": "Effacer tous les modèles",
+    "clearAllModelsConfirm": "Êtes-vous sûr de vouloir supprimer tous les modèles pour ce fournisseur?",
+    "clearAllModelsSuccess": "Tous les modèles effacés",
+    "clearAllModelsFailed": "Échec de l'effacement des modèles"
   },
   "settings": {
     "title": "Paramètres",
@@ -2511,7 +2534,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Génération texte-vers-discours (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Génération d'embeddings texte (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Politique de confidentialité",

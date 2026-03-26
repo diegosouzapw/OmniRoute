@@ -179,7 +179,11 @@
     "requestsShort": "{count} 件",
     "providerModelsTitle": "{provider} - モデル",
     "copiedModel": "コピーしました: {model}",
-    "aliasLabel": "別名"
+    "aliasLabel": "別名",
+    "updateNow": "今すぐ更新",
+    "updating": "更新中...",
+    "updateAvailableDesc": "新しいバージョンが利用可能です。クリックして更新。",
+    "updateStarted": "更新を開始しました..."
   },
   "analytics": {
     "title": "分析",
@@ -535,6 +539,9 @@
             "title": "モデル構成の追加",
             "desc": "次の構成をモデル配列に追加します。"
           }
+        },
+        "notes": {
+          "0": "ContinueはJSON設定ファイルを使用します。"
         }
       },
       "opencode": {
@@ -553,6 +560,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCodeはAPIキー設定が必要です。",
+          "1": "ベースURLをOmniRouteエンドポイントに設定してください。"
         }
       },
       "kiro": {
@@ -571,6 +582,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "KiroはAmazonアカウントが必要です。"
         }
       }
     },
@@ -1477,7 +1491,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "自動同期",
+    "autoSyncTooltip": "24時間ごとにモデルリストを自動更新（MODEL_SYNC_INTERVAL_HOURSで設定可能）",
+    "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
+    "autoSyncDisabled": "自動同期無効",
+    "autoSyncToggleFailed": "自動同期の切り替えに失敗",
+    "clearAllModels": "すべてのモデルを削除",
+    "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？",
+    "clearAllModelsSuccess": "すべてのモデルを削除しました",
+    "clearAllModelsFailed": "モデルの削除に失敗"
   },
   "settings": {
     "title": "設定",
@@ -2511,7 +2534,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "テキスト読み上げ（ElevenLabs、OpenAI TTS）。",
+    "endpointEmbeddingsNote": "テキスト埋め込み生成（OpenAI、Cohere、Voyage）。"
   },
   "legal": {
     "privacyPolicy": "プライバシーポリシー",

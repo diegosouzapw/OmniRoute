@@ -179,7 +179,11 @@
     "requestsShort": "{count} požadavků",
     "providerModelsTitle": "{provider} - Modely",
     "copiedModel": "Zkopírován: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Aktualizovat",
+    "updating": "Aktualizuji...",
+    "updateAvailableDesc": "K dispozici je nová verze. Kliknutím aktualizujte.",
+    "updateStarted": "Aktualizace začala..."
   },
   "analytics": {
     "title": "Analytika",
