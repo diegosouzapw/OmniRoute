@@ -129,14 +129,6 @@
     "cloud-status-changed": "Cloud-Status geändert",
     "where_used": "Wo verwendet",
     "windowMs": "Fenster (ms)",
-    "toolDescriptions": {
-      "claude": "Claude Code",
-      "cline": "Cline",
-      "codex": "OpenAI Codex",
-      "droid": "Droid",
-      "kilo": "Kilo",
-      "openclaw": "OpenClaw"
-    },
     "social-github": "GitHub",
     "social-google": "Google",
     "TOOL_ALLOWLIST": "Werkzeug-Whitelist",
@@ -2414,12 +2406,12 @@
     "backToLogin": "Zurück zum Anmelden",
     "forgotPassword": "Passwort vergessen?",
     "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
-    "Waiting for authorization...": "Warte auf Autorisierung...",
-    "Waiting for Google authorization...": "Warte auf Google...",
-    "Waiting for OpenAI authorization...": "Warte auf OpenAI...",
-    "Waiting for Antigravity authorization...": "Warte auf Antigravity...",
-    "Waiting for iFlow authorization...": "Warte auf iFlow...",
-    "Exchanging code for tokens...": "Tausche Code..."
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",

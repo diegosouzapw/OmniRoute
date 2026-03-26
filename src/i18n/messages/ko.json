@@ -2397,7 +2397,13 @@
     "restartServerWithNewPassword": "서버를 다시 시작하세요. 새 비밀번호가 사용됩니다.",
     "backToLogin": "로그인으로 돌아가기",
     "forgotPassword": "비밀번호를 잊으셨나요?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "옴니루트",

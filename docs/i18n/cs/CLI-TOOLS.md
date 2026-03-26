@@ -255,7 +255,7 @@ kiro-cli status
 
 ### Cursor (Desktop aplikace)
 
-> **Poznámka:** Cursor směruje požadavky přes své cloud. Pro integraci s OmniRoute,
+> **Poznámka:** Cursor směruje požadavky přes svůj cloud. Pro integraci s OmniRoute,
 > povolte **Cloud Endpoint** v nastavení OmniRoute a použijte vaši veřejnou doménu.
 
 Via GUI: **Settings → Models → OpenAI API Key**

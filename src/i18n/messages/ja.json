@@ -2397,7 +2397,13 @@
     "restartServerWithNewPassword": "サーバーを再起動すると新しいパスワードが適用されます",
     "backToLogin": "ログインに戻る",
     "forgotPassword": "パスワードをお忘れですか?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "オムニルート",

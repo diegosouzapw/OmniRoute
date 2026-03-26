@@ -129,14 +129,6 @@
     "cloud-status-changed": "Změna stavu cloudu",
     "where_used": "Kde použito",
     "windowMs": "Okno (ms)",
-    "toolDescriptions": {
-      "claude": "Claude Code",
-      "cline": "Cline",
-      "codex": "OpenAI Codex",
-      "droid": "Droid",
-      "kilo": "Kilo",
-      "openclaw": "OpenClaw"
-    },
     "social-github": "GitHub",
     "social-google": "Google",
     "TOOL_ALLOWLIST": "Povolené nástroje",
@@ -2477,12 +2469,12 @@
     "backToLogin": "Zpět na přihlášení",
     "forgotPassword": "Zapomněli jste heslo?",
     "defaultPasswordHint": "Výchozí heslo: 123456 (pokud nebylo nastaveno INITIAL_PASSWORD)",
-    "Waiting for authorization...": "Čekám na autorizaci...",
-    "Waiting for Google authorization...": "Čekám na Google...",
-    "Waiting for OpenAI authorization...": "Čekám na OpenAI...",
-    "Waiting for Antigravity authorization...": "Čekám na Antigravity...",
-    "Waiting for iFlow authorization...": "Čekám na iFlow...",
-    "Exchanging code for tokens...": "Vyměňuji kód..."
+    "waitingForAuthorization": "Čekám na autorizaci...",
+    "waitingForGoogleAuthorization": "Čekám na Google autorizaci...",
+    "waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
+    "waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
+    "waitingForIFlowAuthorization": "Čekám na iFlow autorizaci...",
+    "exchangingCodeForTokens": "Vyměňuji kód za tokeny..."
   },
   "landing": {
     "brandName": "OmniRoute",

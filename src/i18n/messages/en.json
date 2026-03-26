@@ -129,14 +129,6 @@
     "cloud-status-changed": "Cloud status changed",
     "where_used": "Where Used",
     "windowMs": "Window (ms)",
-    "toolDescriptions": {
-      "claude": "Claude Code - AI coding assistant",
-      "cline": "Cline - AI coding assistant",
-      "codex": "OpenAI Codex - AI coding assistant",
-      "droid": "Droid - Android development assistant",
-      "kilo": "Kilo - Lightweight AI assistant",
-      "openclaw": "OpenClaw - Open source AI assistant"
-    },
     "social-github": "GitHub",
     "social-google": "Google",
     "TOOL_ALLOWLIST": "Tool Allowlist",
@@ -2472,14 +2464,14 @@
     "backToLogin": "Back to Login",
     "forgotPassword": "Forgot password?",
     "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
-    "Waiting for authorization...": "Waiting for authorization...",
-    "Waiting for Google authorization...": "Waiting for Google authorization...",
-    "Waiting for OpenAI authorization...": "Waiting for OpenAI authorization...",
-    "Waiting for Antigravity authorization...": "Waiting for Antigravity authorization...",
-    "Waiting for iFlow authorization...": "Waiting for iFlow authorization...",
-    "Exchanging code for tokens...": "Exchanging code for tokens...",
     "Authorization": "Authorization",
-    "Content-Disposition": "Content-Disposition"
+    "Content-Disposition": "Content-Disposition",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",

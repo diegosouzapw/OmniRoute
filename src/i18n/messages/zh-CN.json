@@ -2460,7 +2460,13 @@
     "restartServerWithNewPassword": "重新启动服务器 - 它将使用新密码",
     "backToLogin": "返回登录",
     "forgotPassword": "忘记密码？",
-    "defaultPasswordHint": "默认密码：123456（除非已设置 INITIAL_PASSWORD）"
+    "defaultPasswordHint": "默认密码：123456（除非已设置 INITIAL_PASSWORD）",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "全方位路由",

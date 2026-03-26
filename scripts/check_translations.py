@@ -27,8 +27,8 @@ def get_namespaces_in_code(src_dir='src'):
                 content = open(os.path.join(root, f), 'r', encoding='utf-8').read()
                 matches = re.findall(r'useTranslations\(["\']+([^"\']+)["\']+\)', content)
                 used_ns.update(matches)
-            except Exception:
-                pass
+            except (IOError, UnicodeDecodeError) as e:
+                print(f"Warning: could not process file {os.path.join(root, f)}: {e}", file=sys.stderr)
     return used_ns
 
 
@@ -80,8 +80,8 @@ def check_translations(src_dir='src', en_json_path='src/i18n/messages/en.json', 
                 content = open(os.path.join(root, f), 'r', encoding='utf-8').read()
                 matches = re.findall(r't\([\'"]+([^\'")]+)[\'"]+\)', content)
                 used_keys.update(matches)
-            except Exception:
-                pass
+            except (IOError, UnicodeDecodeError) as e:
+                print(f"Warning: could not process file {os.path.join(root, f)}: {e}", file=sys.stderr)
     
     # Filter out non-translation keys
     filtered = {k for k in used_keys if len(k) > 1 
