@@ -142,7 +142,9 @@
     "TOOL_ALLOWLIST": "Tool Allowlist",
     "TOOL_DENYLIST": "Tool Denylist",
     "Failed to save pricing": "Failed to save pricing",
-    "Failed to reset pricing": "Failed to reset pricing"
+    "Failed to reset pricing": "Failed to reset pricing",
+    "apikey": "API Key",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Home",

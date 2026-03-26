@@ -130,19 +130,21 @@
     "where_used": "Wo verwendet",
     "windowMs": "Fenster (ms)",
     "toolDescriptions": {
-      "claude": "Claude Code - KI-Assistent",
-      "cline": "Cline - KI-Assistent",
-      "codex": "OpenAI Codex - KI-Assistent",
-      "droid": "Droid - Android-Assistent",
-      "kilo": "Kilo - Leichtgewichtiger KI-Assistent",
-      "openclaw": "OpenClaw - Open Source KI-Assistent"
+      "claude": "Claude Code",
+      "cline": "Cline",
+      "codex": "OpenAI Codex",
+      "droid": "Droid",
+      "kilo": "Kilo",
+      "openclaw": "OpenClaw"
     },
     "social-github": "GitHub",
     "social-google": "Google",
     "TOOL_ALLOWLIST": "Werkzeug-Whitelist",
     "TOOL_DENYLIST": "Werkzeug-Blacklist",
     "Failed to save pricing": "Preise speichern fehlgeschlagen",
-    "Failed to reset pricing": "Preise zurücksetzen fehlgeschlagen"
+    "Failed to reset pricing": "Preise zurücksetzen fehlgeschlagen",
+    "apikey": "API-Schlüssel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Zuhause",
@@ -2413,11 +2415,11 @@
     "forgotPassword": "Passwort vergessen?",
     "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
     "Waiting for authorization...": "Warte auf Autorisierung...",
-    "Waiting for Google authorization...": "Warte auf Google-Autorisierung...",
-    "Waiting for OpenAI authorization...": "Warte auf OpenAI-Autorisierung...",
-    "Waiting for Antigravity authorization...": "Warte auf Antigravity-Autorisierung...",
-    "Waiting for iFlow authorization...": "Warte auf iFlow-Autorisierung...",
-    "Exchanging code for tokens...": "Tausche Code gegen Token..."
+    "Waiting for Google authorization...": "Warte auf Google...",
+    "Waiting for OpenAI authorization...": "Warte auf OpenAI...",
+    "Waiting for Antigravity authorization...": "Warte auf Antigravity...",
+    "Waiting for iFlow authorization...": "Warte auf iFlow...",
+    "Exchanging code for tokens...": "Tausche Code..."
   },
   "landing": {
     "brandName": "OmniRoute",
