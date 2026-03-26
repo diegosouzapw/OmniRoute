@@ -639,17 +639,12 @@
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
     },
     "toolDescriptions": {
-      "antigravity": "Google Antigravity IDE with MITM",
-      "claude": "Anthropic Claude Code CLI",
-      "codex": "OpenAI Codex CLI",
-      "droid": "Factory Droid AI Assistant",
-      "openclaw": "Open Claw AI Assistant",
-      "cline": "Cline AI Coding Assistant CLI",
-      "kilo": "Kilo Code AI Assistant CLI",
-      "cursor": "Cursor AI Code Editor",
-      "continue": "Continue AI Assistant",
-      "opencode": "OpenCode AI coding agent (Terminal)",
-      "kiro": "Amazon Kiro — AI-powered IDE"
+      "claude": "Claude Code - AI coding assistant",
+      "cline": "Cline - AI coding assistant",
+      "codex": "OpenAI Codex - AI coding assistant",
+      "droid": "Droid - Android development assistant",
+      "kilo": "Kilo - Lightweight AI assistant",
+      "openclaw": "OpenClaw - Open source AI assistant"
     },
     "guides": {
       "cursor": {
@@ -2482,7 +2477,9 @@
     "Waiting for OpenAI authorization...": "Waiting for OpenAI authorization...",
     "Waiting for Antigravity authorization...": "Waiting for Antigravity authorization...",
     "Waiting for iFlow authorization...": "Waiting for iFlow authorization...",
-    "Exchanging code for tokens...": "Exchanging code for tokens..."
+    "Exchanging code for tokens...": "Exchanging code for tokens...",
+    "Authorization": "Authorization",
+    "Content-Disposition": "Content-Disposition"
   },
   "landing": {
     "brandName": "OmniRoute",
