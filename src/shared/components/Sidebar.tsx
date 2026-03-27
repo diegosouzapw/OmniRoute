@@ -11,6 +11,7 @@ import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
+import PatchBadge from "./PatchBadge";
 // Nav items use i18n keys resolved inside the component
 const navItemDefs = [
   { href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
@@ -22,6 +23,12 @@ const navItemDefs = [
   { href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
 ];
+
+const patchNavItem = {
+  href: "/dashboard/settings?tab=patches",
+  i18nKey: "patches",
+  icon: "extension",
+};
 
 const cliItemDefs = [
   { href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
@@ -230,6 +237,7 @@ export default function Sidebar({
                   {APP_CONFIG.name}
                 </h1>
                 <span className="text-xs text-text-muted">v{APP_CONFIG.version}</span>
+                <PatchBadge />
               </div>
             )}
           </Link>
@@ -288,6 +296,17 @@ export default function Sidebar({
             )}
             {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
             {helpItems.map(renderNavLink)}
+          </div>
+
+          {/* Patches section */}
+          <div className="pt-4 mt-2">
+            {!collapsed && (
+              <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
+                Patches
+              </p>
+            )}
+            {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
+            {renderNavLink({ ...patchNavItem, label: "Patches" })}
           </div>
         </nav>
 

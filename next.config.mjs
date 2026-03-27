@@ -9,6 +9,8 @@ const nextConfig = {
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      "wreq-js": "./src/open-sse/utils/wreq-js.stub.ts",
+      "wreq-js": "./src/open-sse/utils/wreq-js.stub.ts",
     },
   },
   output: "standalone",
@@ -73,6 +75,7 @@ const nextConfig = {
         "better-sqlite3",
         "keytar",
         "zod",
+        "wreq-js",
         "pino",
         "pino-pretty",
         "child_process",

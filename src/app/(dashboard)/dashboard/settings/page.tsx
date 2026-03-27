@@ -19,6 +19,9 @@ import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
 
 import CacheStatsCard from "./components/CacheStatsCard";
 import ResilienceTab from "./components/ResilienceTab";
+import PatchesTab from "./components/PatchesTab";
+import OmniRouteUpdater from "./components/OmniRouteUpdater";
+import CLIProxyAPIManager from "./components/CLIProxyAPIManager";
 
 const tabs = [
   { id: "general", labelKey: "general", icon: "settings" },
@@ -26,6 +29,8 @@ const tabs = [
   { id: "security", labelKey: "security", icon: "shield" },
   { id: "routing", labelKey: "routing", icon: "route" },
   { id: "resilience", labelKey: "resilience", icon: "electrical_services" },
+  { id: "patches", labelKey: "patches", icon: "extension" },
+  { id: "updates", labelKey: "updates", icon: "system_update" },
   { id: "advanced", labelKey: "advanced", icon: "tune" },
 ];
 
@@ -37,9 +42,8 @@ export default function SettingsPage() {
   const activeTab = userSelectedTab || tabs.find((t) => t.id === tabParam)?.id || "general";
 
   return (
-    <div className="max-w-6xl mx-auto min-w-0">
+    <div className="max-w-2xl mx-auto min-w-0">
       <div className="flex flex-col gap-6">
-        {/* Tab navigation */}
         <div className="w-full overflow-x-auto pb-1">
           <div
             role="tablist"
@@ -69,7 +73,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Tab contents */}
         <div
           role="tabpanel"
           aria-label={t(tabs.find((t2) => t2.id === activeTab)?.labelKey || "general")}
@@ -105,13 +108,22 @@ export default function SettingsPage() {
 
           {activeTab === "resilience" && <ResilienceTab />}
 
+          {activeTab === "patches" && <PatchesTab />}
+
+          {activeTab === "updates" && (
+            <div className="flex flex-col gap-6">
+              <OmniRouteUpdater />
+              <CLIProxyAPIManager />
+            </div>
+          )}
+
           {activeTab === "advanced" && <ProxyTab />}
         </div>
 
-        {/* App Info */}
         <div className="text-center text-sm text-text-muted py-4">
           <p>
-            {APP_CONFIG.name} v{APP_CONFIG.version}
+            {APP_CONFIG.name} v{APP_CONFIG.version}{" "}
+            <span className="text-purple-500 font-medium">[PATCHED]</span>
           </p>
           <p className="mt-1">{t("localMode")}</p>
         </div>
