@@ -48,6 +48,8 @@ Content-Type: application/json
 | `X-OmniRoute-Idempotent` | Odpověď | `true` , pokud je odstraněna duplikace            |
 | `X-OmniRoute-Progress`   | Odpověď | `enabled` pokud je zapnuto sledování průběhu      |
 
+> Poznámka Nginx: pokud spoléháte na hlavičky s podtržítkem (například `x_session_id`), povolte `underscores_in_headers on;`.
+
 ---
 
 ## Vložení

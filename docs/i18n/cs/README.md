@@ -1590,7 +1590,6 @@ opencode
 ### 🔐 OAuth na vzdáleném serveru
 
 <a name="oauth-on-a-remote-server"></a>
-<a name="oauth-em-servidor-remoto"></a>
 
 > **⚠️ Důležité pro uživatele, kteří provozují OmniRoute na VPS, Dockeru nebo jakémkoli vzdáleném serveru**
 

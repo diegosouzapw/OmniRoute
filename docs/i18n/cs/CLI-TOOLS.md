@@ -1,60 +1,79 @@
 # Průvodce nastavením nástrojů CLI — OmniRoute
 
-Tato příručka vysvětluje, jak nainstalovat a nakonfigurovat všechny podporované nástroje CLI pro kódování umělé inteligence tak, aby **OmniRoute** fungoval jako jednotný backend, což vám umožní centralizovanou správu klíčů, sledování nákladů, přepínání modelů a protokolování požadavků napříč všemi nástroji.
+Tato příručka vysvětluje, jak nainstalovat a nakonfigurovat všechny podporované nástroje CLI pro kódování umělé inteligence
+tak, aby **OmniRoute** fungoval jako jednotný backend, což vám umožní centralizovanou správu klíčů,
+sledování nákladů, přepínání modelů a protokolování požadavků napříč všemi nástroji.
 
 ---
 
 ## Jak to funguje
 
 ```
-Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
-           │
-           ▼  (all point to OmniRoute)
-    http://YOUR_SERVER:20128/v1
-           │
-           ▼  (OmniRoute routes to the right provider)
-    Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
+Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
+            │
+            ▼  (všechny ukazují na OmniRoute)
+    http://VASE_SERVER:20128/v1
+            │
+            ▼  (OmniRoute směruje ke správnému poskytovateli)
+     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
 **Výhody:**
 
-- Jeden klíč API pro správu všech nástrojů
-- Sledování nákladů napříč všemi rozhraními příkazového řádku v dashboardu
+- Jeden API klíč pro správu všech nástrojů
+- Sledování nákladů napříč všemi CLI v dashboardu
 - Přepínání modelů bez nutnosti překonfigurování každého nástroje
 - Funguje lokálně i na vzdálených serverech (VPS)
 
 ---
 
-## Podporované nástroje
+## Podporované nástroje (Zdroj pravdy v dashboardu)
 
-| Nástroj          | Příkaz              | Typ             | Instalace      |
-| ---------------- | ------------------- | --------------- | -------------- |
-| **Claude Code**  | `claude`            | CLI             | npm            |
-| **OpenAI Codex** | `codex`             | CLI             | npm            |
-| **Gemini CLI**   | `gemini`            | CLI             | npm            |
-| **OpenCode**     | `opencode`          | CLI             | npm            |
-| **Cline**        | `cline`             | CLI + VS Code   | npm            |
-| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code   | npm            |
-| **Continue**     | průvodce            | VS Code ext     | VS kód         |
-| **Kiro CLI**     | `kiro-cli`          | CLI             | curl instalace |
-| **Kurzor**       | `cursor`            | Aplikace pro PC | Download       |
-| **Droid**        | webový              | Built-in agent  | OmniRoute      |
-| **OpenClaw**     | webový              | Built-in agent  | OmniRoute      |
+Karty dashboardu v `/dashboard/cli-tools` jsou generovány z `src/shared/constants/cliTools.ts`.
+Aktuální seznam (v3.0.0-rc.16):
+
+| Nástroj            | ID            | Příkaz       | Režim nastavení | Metoda instalace |
+| ------------------ | ------------- | ------------ | --------------- | ---------------- |
+| **Claude Code**    | `claude`      | `claude`     | env             | npm              |
+| **OpenAI Codex**   | `codex`       | `codex`      | custom          | npm              |
+| **Factory Droid**  | `droid`       | `droid`      | custom          | bundled/CLI      |
+| **OpenClaw**       | `openclaw`    | `openclaw`   | custom          | bundled/CLI      |
+| **Cursor**         | `cursor`      | aplikace     | guide           | desktop app      |
+| **Cline**          | `cline`       | `cline`      | custom          | npm              |
+| **Kilo Code**      | `kilo`        | `kilocode`   | custom          | npm              |
+| **Continue**       | `continue`    | rozšíření    | guide           | VS Code          |
+| **Antigravity**    | `antigravity` | interní      | mitm            | OmniRoute        |
+| **GitHub Copilot** | `copilot`     | rozšíření    | custom          | VS Code          |
+| **OpenCode**       | `opencode`    | `opencode`   | guide           | npm              |
+| **Kiro AI**        | `kiro`        | aplikace/CLI | mitm            | desktop/CLI      |
+
+### Synchronizace otisků CLI (Agenti + Nastavení)
+
+`/dashboard/agents` a `Nastavení > CLI Otisk` používají `src/shared/constants/cliCompatProviders.ts`.
+To udržuje ID poskytovatelů v souladu s kartami CLI a staršími ID.
+
+| CLI ID                                                                                               | ID poskytovatele otisku |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | stejné ID               |
+
+Starší ID jsou stále přijímána pro kompatibilitu: `copilot`, `kimi-coding`, `qwen`.
 
 ---
 
-## Krok 1 – Získejte klíč OmniRoute API
+## Krok 1 — Získejte OmniRoute API klíč
 
-1. Otevřete dashboard OmniRoute → **Správce API** ( `/dashboard/api-manager` )
-2. Klikněte na **Vytvořit klíč API**
-3. Pojmenujte to (např. `cli-tools` ) a vyberte všechna oprávnění.
-4. Zkopírujte klíč – budete ho potřebovat pro každé níže uvedené rozhraní příkazového řádku.
+1. Otevřete OmniRoute dashboard → **Správce API** (`/dashboard/api-manager`)
+2. Klikněte na **Vytvořit API klíč**
+3. Dejte mu název (např. `cli-tools`) a vyberte všechna oprávnění
+4. Zkopírujte klíč — budete ho potřebovat pro každý CLI níže
 
 > Váš klíč vypadá takto: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
 
 ---
 
-## Krok 2 – Instalace nástrojů CLI
+## Krok 2 — Nainstalujte nástroje CLI
 
 Všechny nástroje založené na npm vyžadují Node.js 18+:
 
@@ -65,9 +84,6 @@ npm install -g @anthropic-ai/claude-code
 # OpenAI Codex
 npm install -g @openai/codex
 
-# Gemini CLI (Google)
-npm install -g @google/gemini-cli
-
 # OpenCode
 npm install -g opencode-ai
 
@@ -75,47 +91,47 @@ npm install -g opencode-ai
 npm install -g cline
 
 # KiloCode
-npm install -g kilecode
+npm install -g kilocode
 
-# Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
+# Kiro CLI (Amazon — vyžaduje curl + unzip)
+apt-get install -y unzip   # na Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"   # přidat do ~/.bashrc
 ```
 
-**Ověřit:**
+**Ověření:**
 
 ```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
-gemini --version     # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
-kilocode --version   # x.x.x (or: kilo --version)
+kilocode --version   # x.x.x (nebo: kilo --version)
 kiro-cli --version   # 1.x.x
 ```
 
 ---
 
-## Krok 3 – Nastavení globálních proměnných prostředí
+## Krok 3 — Nastavte globální proměnné prostředí
 
-Přidejte do `~/.bashrc` (nebo `~/.zshrc` ) a poté spusťte `source ~/.bashrc` :
+Přidejte do `~/.bashrc` (nebo `~/.zshrc`), pak spusťte `source ~/.bashrc`:
 
 ```bash
-# OmniRoute Universal Endpoint
+# OmniRoute Univerzální koncový bod
 export OPENAI_BASE_URL="http://localhost:20128/v1"
-export OPENAI_API_KEY="sk-your-omniroute-key"
+export OPENAI_API_KEY="sk-vase-omniroute-klic"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
+export ANTHROPIC_API_KEY="sk-vase-omniroute-klic"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
-export GEMINI_API_KEY="sk-your-omniroute-key"
+export GEMINI_API_KEY="sk-vase-omniroute-klic"
 ```
 
-> Pro **vzdálený server** nahraďte `localhost:20128` IP adresou nebo doménou serveru, např. `http://192.168.0.15:20128` .
+> Pro **vzdálený server** nahraďte `localhost:20128` IP adresou nebo doménou serveru,
+> např. `http://192.168.0.15:20128`.
 
 ---
 
-## Krok 4 – Konfigurace jednotlivých nástrojů
+## Krok 4 — Nakonfigurujte každý nástroj
 
 ### Claude Code
 
@@ -123,11 +139,11 @@ export GEMINI_API_KEY="sk-your-omniroute-key"
 # Via CLI:
 claude config set --global api-base-url http://localhost:20128/v1
 
-# Or create ~/.claude/settings.json:
+# Nebo vytvořte ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "apiKey": "sk-vase-omniroute-klic"
 }
 EOF
 ```
@@ -141,27 +157,12 @@ EOF
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
-apiKey: sk-your-omniroute-key
+apiKey: sk-vase-omniroute-klic
 apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
 **Test:** `codex "what is 2+2?"`
-
----
-
-### Gemini CLI
-
-```bash
-mkdir -p ~/.gemini && cat > ~/.gemini/settings.json << EOF
-{
-  "apiKey": "sk-your-omniroute-key",
-  "baseUrl": "http://localhost:20128/v1"
-}
-EOF
-```
-
-**Test:** `gemini "hello"`
 
 ---
 
@@ -171,7 +172,7 @@ EOF
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
 base_url = "http://localhost:20128/v1"
-api_key = "sk-your-omniroute-key"
+api_key = "sk-vase-omniroute-klic"
 EOF
 ```
 
@@ -179,7 +180,7 @@ EOF
 
 ---
 
-### Cline (CLI nebo VS kód)
+### Cline (CLI nebo VS Code)
 
 **Režim CLI:**
 
@@ -188,41 +189,42 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
   "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+  "openAiApiKey": "sk-vase-omniroute-klic"
 }
 EOF
 ```
 
-**Režim VS Code:** Nastavení rozšíření Cline → Poskytovatel API: `OpenAI Compatible` → Základní URL: `http://localhost:20128/v1`
+**Režim VS Code:**
+Nastavení rozšíření Cline → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Nebo použijte dashboard OmniRoute → **CLI Tools → Cline → Apply Config** .
+Nebo použijte OmniRoute dashboard → **CLI Nástroje → Cline → Použít konfiguraci**.
 
 ---
 
-### KiloCode (CLI nebo VS kód)
+### KiloCode (CLI nebo VS Code)
 
 **Režim CLI:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
+kilocode --api-base http://localhost:20128/v1 --api-key sk-vase-omniroute-klic
 ```
 
-**Nastavení VS kódu:**
+**Nastavení VS Code:**
 
 ```json
 {
   "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.apiKey": "sk-vase-omniroute-klic"
 }
 ```
 
-Nebo použijte dashboard OmniRoute → **CLI Tools → KiloCode → Apply Config** .
+Nebo použijte OmniRoute dashboard → **CLI Nástroje → KiloCode → Použít konfiguraci**.
 
 ---
 
-### Continue (rozšíření kódu VS)
+### Continue (Rozšíření VS Code)
 
-Upravit `~/.continue/config.yaml` :
+Upravte `~/.continue/config.yaml`:
 
 ```yaml
 models:
@@ -230,7 +232,7 @@ models:
     provider: openai
     model: auto
     apiBase: http://localhost:20128/v1
-    apiKey: sk-your-omniroute-key
+    apiKey: sk-vase-omniroute-klic
     default: true
 ```
 
@@ -241,94 +243,95 @@ Po úpravě restartujte VS Code.
 ### Kiro CLI (Amazon)
 
 ```bash
-# Login to your AWS/Kiro account:
+# Přihlaste se ke svému AWS/Kiro účtu:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# CLI používá vlastní autentifikaci — OmniRoute není potřeba jako backend pro samotný Kiro CLI.
+# Používejte kiro-cli společně s OmniRoute pro ostatní nástroje.
 kiro-cli status
 ```
 
 ---
 
-### Kurzor (aplikace pro stolní počítače)
+### Cursor (Desktop aplikace)
 
-> **Poznámka:** Cursor směruje požadavky přes svůj cloud. Pro integraci OmniRoute povolte **cloudový koncový bod** v nastavení OmniRoute a použijte URL adresu vaší veřejné domény.
+> **Poznámka:** Cursor směruje požadavky přes svůj cloud. Pro integraci s OmniRoute,
+> povolte **Cloud Endpoint** v nastavení OmniRoute a použijte vaši veřejnou doménu.
 
-Přes GUI: **Nastavení → Modely → Klíč OpenAI API**
+Via GUI: **Settings → Models → OpenAI API Key**
 
-- Základní URL: `https://your-domain.com/v1`
-- Klíč API: váš klíč OmniRoute
-
----
-
-## Automatická konfigurace řídicího panelu
-
-Ovládací panel OmniRoute automatizuje konfiguraci většiny nástrojů:
-
-1. Přejděte na `http://localhost:20128/dashboard/cli-tools`
-2. Rozbalit libovolnou kartu nástroje
-3. Vyberte klíč API z rozbalovací nabídky
-4. Klikněte **na Použít konfiguraci** (pokud je nástroj detekován jako nainstalovaný)
-5. Nebo zkopírujte vygenerovaný konfigurační úryvek ručně
+- Base URL: `https://vase-domena.com/v1`
+- API Key: váš OmniRoute klíč
 
 ---
 
-## Vestavění agenti: Droid a OpenClaw
+## Automatická konfigurace v dashboardu
 
-**Droid** a **OpenClaw** jsou agenti umělé inteligence zabudovaní přímo do OmniRoute – není nutná žádná instalace. Běží jako interní trasy a automaticky používají modelové směrování OmniRoute.
+OmniRoute dashboard automatizuje konfiguraci většiny nástrojů:
+
+1. Jděte na `http://localhost:20128/dashboard/cli-tools`
+2. Rozbalte libovolnou kartu nástroje
+3. Vyberte svůj API klíč z rozbalovacího seznamu
+4. Klikněte na **Použít konfiguraci** (pokud je nástroj detekován jako nainstalovaný)
+5. Nebo ručně zkopírujte vygenerovaný konfigurační snippet
+
+---
+
+## Vestavěný agenti: Droid & OpenClaw
+
+**Droid** a **OpenClaw** jsou AI agenti vestavění přímo do OmniRoute — není potřeba žádná instalace.
+Běží jako interní trasy a automaticky používají směrování modelů OmniRoute.
 
 - Přístup: `http://localhost:20128/dashboard/agents`
-- Konfigurace: stejné kombinace a poskytovatelé jako u všech ostatních nástrojů
-- Není vyžadována instalace klíče API ani příkazového řádku
+- Konfigurace: stejné kombinace a poskytovatelé jako všechny ostatní nástroje
+- Není potřeba API klíč ani instalace CLI
 
 ---
 
-## Dostupné koncové body API
+## Dostupné API koncové body
 
 | Koncový bod                | Popis                                   | Použití pro                           |
 | -------------------------- | --------------------------------------- | ------------------------------------- |
 | `/v1/chat/completions`     | Standardní chat (všichni poskytovatelé) | Všechny moderní nástroje              |
-| `/v1/responses`            | API pro odpovědi (formát OpenAI)        | Kodex, agentické pracovní postupy     |
-| `/v1/completions`          | Doplňování starších textů               | Starší nástroje používající `prompt:` |
-| `/v1/embeddings`           | Vkládání textu                          | RAG, vyhledávání                      |
-| `/v1/images/generations`   | Generování obrázků                      | DALL-E, Flux atd.                     |
-| `/v1/audio/speech`         | Převod textu na řeč                     | ElevenLabs, OpenAI TTS                |
-| `/v1/audio/transcriptions` | Převod řeči na text                     | Deepgram, AssemblyAI                  |
+| `/v1/responses`            | Responses API (formát OpenAI)           | Codex, agentní workflowy              |
+| `/v1/completions`          | Legacy textové dokončení                | Starší nástroje používající `prompt:` |
+| `/v1/embeddings`           | Textové vložení                         | RAG, vyhledávání                      |
+| `/v1/images/generations`   | Generování obrázků                      | DALL-E, Flux, atd.                    |
+| `/v1/audio/speech`         | Text-to-speech                          | ElevenLabs, OpenAI TTS                |
+| `/v1/audio/transcriptions` | Speech-to-text                          | Deepgram, AssemblyAI                  |
 
 ---
 
-## Odstraňování problémů
+## Řešení problémů
 
-| Chyba                              | Příčina                            | Opravit                                                  |
-| ---------------------------------- | ---------------------------------- | -------------------------------------------------------- |
-| `Connection refused`               | OmniRoute neběží                   | `pm2 start omniroute`                                    |
-| `401 Unauthorized`                 | Chybný klíč API                    | Zkontrolovat `/dashboard/api-manager`                    |
-| `No combo configured`              | Žádná aktivní routingová kombinace | Nastavení v `/dashboard/combos`                          |
-| `invalid model`                    | Model není v katalogu              | Použijte `auto` nebo zkontrolujte `/dashboard/providers` |
-| CLI zobrazuje „není nainstalováno“ | Binární soubor není v cestě PATH   | Zkontrolujte, `which <command>`                          |
-| `kiro-cli: not found`              | Není v PATH                        | `export PATH="$HOME/.local/bin:$PATH"`                   |
+| Chyba                         | Příčina                 | Oprava                                                   |
+| ----------------------------- | ----------------------- | -------------------------------------------------------- |
+| `Connection refused`          | OmniRoute neběží        | `pm2 start omniroute`                                    |
+| `401 Unauthorized`            | Špatný API klíč         | Zkontrolujte v `/dashboard/api-manager`                  |
+| `No combo configured`         | Žádná aktivní kombinace | Nastavte v `/dashboard/combos`                           |
+| `invalid model`               | Model není v katalogu   | Použijte `auto` nebo zkontrolujte `/dashboard/providers` |
+| CLI zobrazuje "not installed" | Binárka není v PATH     | Zkontrolujte `which <příkaz>`                            |
+| `kiro-cli: not found`         | Není v PATH             | `export PATH="$HOME/.local/bin:$PATH"`                   |
 
 ---
 
-## Skript pro rychlé nastavení (jeden příkaz)
+## Rychlý skript pro nastavení (jeden příkaz)
 
 ```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
+# Nainstalujte všechny CLI a nakonfigurujte pro OmniRoute (nahraďte svým klíčem a URL serveru)
 OMNIROUTE_URL="http://localhost:20128/v1"
-OMNIROUTE_KEY="sk-your-omniroute-key"
+OMNIROUTE_KEY="sk-vase-omniroute-klic"
 
-npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli opencode-ai cline kilecode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
 
-# Write configs
-mkdir -p ~/.claude ~/.codex ~/.gemini ~/.config/opencode ~/.continue
+# Zápis konfigurací
+mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
 cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
 cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-cat > ~/.gemini/settings.json   <<< "{\"apiKey\":\"$OMNIROUTE_KEY\",\"baseUrl\":\"$OMNIROUTE_URL\"}"
 cat >> ~/.bashrc << EOF
 export OPENAI_BASE_URL="$OMNIROUTE_URL"
 export OPENAI_API_KEY="$OMNIROUTE_KEY"
@@ -337,5 +340,5 @@ export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
 EOF
 
 source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
+echo "✅ Všechny CLI nainstalovány a nakonfigurovány pro OmniRoute"
 ```

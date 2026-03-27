@@ -1,21 +1,23 @@
-# OmniRoute — Guia de Deploy em VM com Cloudflare
+# Průvodce nasazením OmniRoute na VM s Cloudflare
 
-Kompletní instalace a konfigurace OmniRoute u VM (VPS) s gerenciou přes Cloudflare.
+🌐 **Jazyky:** 🇺🇸 [English](VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](i18n/es/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](i18n/fr/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](i18n/it/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](i18n/ru/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](i18n/de/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](i18n/in/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](i18n/th/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](i18n/uk-UA/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](i18n/ar/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](i18n/ja/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](i18n/vi/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](i18n/bg/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](i18n/da/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](i18n/fi/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](i18n/he/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](i18n/hu/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](i18n/ko/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](i18n/nl/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](i18n/no/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](i18n/pt/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](i18n/ro/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](i18n/pl/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](i18n/sk/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](i18n/sv/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](i18n/phi/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](i18n/cs/VM_DEPLOYMENT_GUIDE.md)
+
+Kompletní průvodce instalací a konfigurací OmniRoute na virtuálním stroji (VPS) se správou domény prostřednictvím Cloudflare.
 
 ---
 
 ## Předpoklady
 
-Položka | Mínimo | Doporučeno
---- | --- | ---
-**Procesor** | 1 virtuální procesor | 2 vCPU
-**BERAN** | 1 GB | 2 GB
-**Disko** | 10GB SSD | 25GB SSD
-**TAK** | Ubuntu 22.04 LTS | Ubuntu 24.04 LTS
-**Domínio** | Registrován v Cloudflare | —
-**Přístavní dělník** | Docker Engine 24+ | Docker 27+
+| Položka      | Minimální                   | Doporučeno       |
+| ------------ | --------------------------- | ---------------- |
+| **Procesor** | 1 virtuální procesor        | 2 vCPU           |
+| **RAM**      | 1 GB                        | 2 GB             |
+| **Disk**     | 10GB SSD                    | 25GB SSD         |
+| **CPU**      | Ubuntu 22.04 LTS            | Ubuntu 24.04 LTS |
+| **Doména**   | Zaregistrována v Cloudflare | —                |
+| **Docker**   | Docker Engine 24+           | Docker 27+       |
 
-**Testados poskytovatelů** : Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Testovaní poskytovatelé**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
@@ -23,12 +25,12 @@ Položka | Mínimo | Doporučeno
 
 ### 1.1 Vytvořit ihned
 
-Žádný preferovaný poskytovatel seu VPS:
+Žádný preferovaný poskytovatel VPS:
 
 - Vyberte si Ubuntu 24.04 LTS
-- Výběr nebo plano minimo (1 vCPU / 1 GB RAM)
-- Definujte sílu pro root nebo konfiguraci klíče SSH
-- Anote o **IP público** (např.: `203.0.113.10` )
+- Vyberte minimální plán (1 vCPU / 1 GB RAM)
+- Nastavte silné heslo pro root nebo konfiguraci SSH klíče
+- Poznamenejte si **veřejnou IP** (např.: `203.0.113.10`)
 
 ### 1.2 Připojení přes SSH
 
@@ -45,10 +47,10 @@ apt update && apt upgrade -y
 ### 1.4 Instalace Dockeru
 
 ```bash
-# Instalar dependências
+# Nainstalovat závislosti
 apt install -y ca-certificates curl gnupg
 
-# Adicionar repositório oficial do Docker
+# Přidat oficiální Docker repository
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
@@ -74,29 +76,29 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Dica** : Maximální zabezpečení, omezení jako porty 80 a 443 přístupů pro IP Cloudflare. Veja a seção [Segurança Avançada](#seguran%C3%A7a-avan%C3%A7ada) .
+> **Tip**: Pro maximální zabezpečení omezte porty 80 a 443 pouze na IP Cloudflare. Viz sekce [Pokročilé zabezpečení](#pokrocilé-zabezpečení).
 
 ---
 
 ## 2. Instalace OmniRoute
 
-### 2.1 Criar diretório de configuração
+### 2.1 Vytvořit konfigurační adresář
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Criar arquivo de variáveis ​​de ambiente
+### 2.2 Vytvořit soubor s proměnnými prostředí
 
 ```bash
 cat > /opt/omniroute/.env << 'EOF'
-# === Segurança ===
-JWT_SECRET=ALTERE-PARA-CHAVE-SECRETA-UNICA-64-CHARS
-INITIAL_PASSWORD=SuaSenhaSegura123!
-API_KEY_SECRET=ALTERE-PARA-OUTRA-CHAVE-SECRETA
-STORAGE_ENCRYPTION_KEY=ALTERE-PARA-TERCEIRA-CHAVE-SECRETA
+# === Bezpečnost ===
+JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
+INITIAL_PASSWORD=YourSecurePassword123!
+API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
+STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
-MACHINE_ID_SALT=ALTERE-PARA-SALT-UNICO
+MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 
 # === App ===
 PORT=20128
@@ -108,9 +110,9 @@ ENABLE_REQUEST_LOGS=true
 AUTH_COOKIE_SECURE=false
 REQUIRE_API_KEY=false
 
-# === Domain (altere para seu domínio) ===
-BASE_URL=https://llms.seudominio.com
-NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# === Doména (změňte na vaši doménu) ===
+BASE_URL=https://llms.vasedomena.com
+NEXT_PUBLIC_BASE_URL=https://llms.vasedomena.com
 
 # === Cloud Sync (opcional) ===
 # CLOUD_URL=https://cloud.omniroute.online
@@ -118,7 +120,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **DŮLEŽITÉ** : Gere chaves secretas únicas! Použijte `openssl rand -hex 32` para cada chave.
+> ⚠️ **DŮLEŽITÉ**: Vygenerujte jedinečné tajné klíče! Použijte `openssl rand -hex 32` pro každý klíč.
 
 ### 2.3 Spuštění kontejneru
 
@@ -147,19 +149,19 @@ Vývojový příklad: `[DB] SQLite database ready` a `listening on port 20128` .
 
 ## 3. Konfigurace nginx (reverzní proxy)
 
-### 3.1 Gerar Certificado SSL (Cloudflare Origin)
+### 3.1 Vygenerovat SSL certifikát (Cloudflare Origin)
 
 Cloudflare nic neřeší:
 
 1. Používá **SSL/TLS → Origin Server**
-2. **Certifikát Clique Create**
-3. Deixe os padrões (15 ano, *.seudominio.com)
+2. Klikněte na **Vytvořit certifikát**
+3. Ponechte výchozí nastavení (15 let, \*.vasedomena.com)
 4. Zkopírujte nebo zkopírujte **certifikát původu** a **soukromý klíč**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Colar o certificado
+# Vložit certifikát
 nano /etc/nginx/ssl/origin.crt
 
 # Colar a chave privada
@@ -188,7 +190,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.seudominio.com;  # Altere para seu domínio
+    server_name llms.vasedomena.com;  # Změňte na vaši doménu
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -220,7 +222,7 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name llms.seudominio.com;
+    server_name llms.vasedomena.com;
     return 301 https://$server_name$request_uri;
 }
 NGINX
@@ -245,11 +247,11 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Další DNS registr
 
-No painel da Cloudflare → DNS:
+V dashboardu Cloudflare → DNS:
 
-Typ | Jméno | Obsah | Proxy
---- | --- | --- | ---
-A | `llms` | `203.0.113.10` (IP adresa virtuálního počítače) | ✅ Proxy
+| Typ | Jméno  | Obsah                                           | Proxy    |
+| --- | ------ | ----------------------------------------------- | -------- |
+| A   | `llms` | `203.0.113.10` (IP adresa virtuálního počítače) | ✅ Proxy |
 
 ### 4.2 Konfigurace SSL
 
@@ -257,7 +259,7 @@ Em **SSL/TLS → Přehled** :
 
 - Režim: **Plný (Přísný)**
 
-Em **SSL/TLS → Edge certifikáty** :
+V **SSL/TLS → Edge Certificates**:
 
 - Vždy používat HTTPS: ✅ Zapnuto
 - Minimální verze TLS: TLS 1.2
@@ -266,7 +268,7 @@ Em **SSL/TLS → Edge certifikáty** :
 ### 4.3 Testar
 
 ```bash
-curl -sI https://llms.seudominio.com/health
+curl -sI https://llms.vasedomena.com/health
 # Deve retornar HTTP/2 200
 ```
 
@@ -289,14 +291,14 @@ docker run -d --name omniroute --restart unless-stopped \
 ### Verzovní protokoly
 
 ```bash
-docker logs -f omniroute          # Stream em tempo real
+docker logs -f omniroute          # Živý stream
 docker logs omniroute --tail 50   # Últimas 50 linhas
 ```
 
 ### Ruční zálohování banky
 
 ```bash
-# Copiar dados do volume para o host
+# Kopírovat data z volume do hostitele
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
 # Ou comprimir todo o volume
@@ -321,7 +323,7 @@ docker start omniroute
 
 ```bash
 cat > /etc/nginx/cloudflare-ips.conf << 'CF'
-# Cloudflare IPv4 ranges — atualizar periodicamente
+# Cloudflare IPv4 ranges — aktualizovat pravidelně
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -342,7 +344,7 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Přidat `nginx.conf` dentro do bloco `http {}` :
+Přidat do `nginx.conf` do bloku `http {}`:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
@@ -362,7 +364,7 @@ fail2ban-client status sshd
 ### Bloquear accesso direto na port do Docker
 
 ```bash
-# Impedir acesso externo direto à porta 20128
+# Zamezit přímému externímu přístupu k portu 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
@@ -389,11 +391,11 @@ Dokumenty jsou kompletní pro [omnirouteCloud/README.md](../omnirouteCloud/READM
 
 ---
 
-## Resumo de Portas
+## Přehled portů
 
-Porta | Služba | Přístup
---- | --- | ---
-22 | SSH | Veřejné (s fail2ban)
-80 | nginx HTTP | Přesměrování → HTTPS
-443 | nginx HTTPS | Prostřednictvím proxy serveru Cloudflare
-20128 | OmniRoute | Někdy na localhostu (přes nginx)
+| Port  | Služba      | Přístup                                  |
+| ----- | ----------- | ---------------------------------------- |
+| 22    | SSH         | Veřejné (s fail2ban)                     |
+| 80    | nginx HTTP  | Přesměrování → HTTPS                     |
+| 443   | nginx HTTPS | Prostřednictvím proxy serveru Cloudflare |
+| 20128 | OmniRoute   | Někdy na localhostu (přes nginx)         |

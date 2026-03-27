@@ -58,7 +58,85 @@
     "free": "Kostenlos",
     "skipToContent": "Zum Inhalt springen",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Akzeptieren",
+    "accountId": "Konto-ID",
+    "alias": "Alias",
+    "apiKeyId": "API-Schlüssel-ID",
+    "apiKeyName": "API-Schlüsselname",
+    "apiKeySecret": "API-Schlüsselgeheimnis",
+    "authorization": "Autorisierung",
+    "content-type": "Inhaltstyp",
+    "content-length": "Inhaltslänge",
+    "cookie": "Cookie",
+    "file": "Datei",
+    "host": "Host",
+    "id": "ID",
+    "import": "Importieren",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Öffnen",
+    "origin": "Herkunft",
+    "promptTokens": "Prompt-Token",
+    "completionTokens": "Completion-Token",
+    "totalTokens": "Gesamte Token",
+    "rawModel": "Raw-Modell",
+    "scope": "Umfang",
+    "skill": "Fertigkeit",
+    "sortBy": "Sortieren nach",
+    "sortOrder": "Sortierreihenfolge",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textfeld",
+    "tool": "Werkzeug",
+    "toolId": "Werkzeug-ID",
+    "web": "Web",
+    "whereUsed": "Wo verwendet",
+    "whitelist": "Whitelist",
+    "blacklist": "Blacklist",
+    "resolve": "Auflösen",
+    "force": "Erzwingen",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Bereich",
+    "component": "Komponente",
+    "redirect_uri": "Umleitungs-URI",
+    "idempotency-key": "Idempotenz-Schlüssel",
+    "error_description": "Fehlerbeschreibung",
+    "code": "Code",
+    "compatible": "Kompatibel",
+    "chat-completions": "Chat-Completions",
+    "oauth": "OAuth",
+    "auth_token": "Auth-Token",
+    "crypto": "Krypto",
+    "hours": "Stunden",
+    "selfsigned": "Selbstsigniert",
+    "proxy_id": "Proxy-ID",
+    "proxyId": "Proxy-ID",
+    "connectionId": "Verbindungs-ID",
+    "resolveConnectionId": "Verbindungs-ID auflösen",
+    "resolve_connection_id": "Verbindungs-ID auflösen",
+    "scope_id": "Umfang-ID",
+    "scopeId": "Umfang-ID",
+    "jwtSecret": "JWT-Geheimnis",
+    "keytar": "Keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "Builder-ID",
+    "musicDesc": "Musikbeschreibung",
+    "musicGeneration": "Musikgenerierung",
+    "idc": "IDC",
+    "cloud-status-changed": "Cloud-Status geändert",
+    "where_used": "Wo verwendet",
+    "windowMs": "Fenster (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Werkzeug-Whitelist",
+    "TOOL_DENYLIST": "Werkzeug-Blacklist",
+    "Failed to save pricing": "Preise speichern fehlgeschlagen",
+    "Failed to reset pricing": "Preise zurücksetzen fehlgeschlagen",
+    "apikey": "API-Schlüssel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Zuhause",
@@ -179,7 +257,11 @@
     "requestsShort": "{count} Anfr.",
     "providerModelsTitle": "{provider} – Modelle",
     "copiedModel": "Kopiert: {model}",
-    "aliasLabel": "Alias"
+    "aliasLabel": "Alias",
+    "updateNow": "Jetzt aktualisieren",
+    "updating": "Aktualisiere...",
+    "updateAvailableDesc": "Eine neue Version ist verfügbar. Klicken Sie zum Aktualisieren.",
+    "updateStarted": "Aktualisierung gestartet..."
   },
   "analytics": {
     "title": "Analytik",
@@ -535,6 +617,9 @@
             "title": "Modellkonfiguration hinzufügen",
             "desc": "Fügen Sie Ihrem Modellarray die folgende Konfiguration hinzu:"
           }
+        },
+        "notes": {
+          "0": "Continue verwendet eine JSON-Konfigurationsdatei."
         }
       },
       "opencode": {
@@ -553,6 +638,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode erfordert API-Schlüssel-Konfiguration.",
+          "1": "Base URL auf Ihren OmniRoute-Endpunkt setzen."
         }
       },
       "kiro": {
@@ -571,6 +660,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro erfordert ein Amazon-Konto."
         }
       }
     },
@@ -1477,7 +1569,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Auto-Sync",
+    "autoSyncTooltip": "Modellliste automatisch alle 24 Stunden aktualisieren (konfigurierbar über MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Auto-Sync aktiviert — Modelle werden regelmäßig aktualisiert",
+    "autoSyncDisabled": "Auto-Sync deaktiviert",
+    "autoSyncToggleFailed": "Auto-Sync umschalten fehlgeschlagen",
+    "clearAllModels": "Alle Modelle löschen",
+    "clearAllModelsConfirm": "Möchten Sie wirklich alle Modelle für diesen Anbieter löschen?",
+    "clearAllModelsSuccess": "Alle Modelle gelöscht",
+    "clearAllModelsFailed": "Modelle löschen fehlgeschlagen"
   },
   "settings": {
     "title": "Einstellungen",
@@ -2304,7 +2405,13 @@
     "restartServerWithNewPassword": "Starten Sie den Server neu – er verwendet das neue Passwort",
     "backToLogin": "Zurück zum Anmelden",
     "forgotPassword": "Passwort vergessen?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Warte auf Autorisierung...",
+    "waitingForGoogleAuthorization": "Warte auf Google-Autorisierung...",
+    "waitingForOpenAIAuthorization": "Warte auf OpenAI-Autorisierung...",
+    "waitingForAntigravityAuthorization": "Warte auf Antigravity-Autorisierung...",
+    "waitingForIFlowAuthorization": "Warte auf iFlow-Autorisierung...",
+    "exchangingCodeForTokens": "Tausche Code gegen Token aus..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2618,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Sprachsynthese (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Text-Embedding-Generierung (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Datenschutzrichtlinie",
@@ -2689,5 +2798,21 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Einfacher Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System-Prompt",
+    "thinking": "Denken",
+    "tool-calling": "Werkzeugaufruf",
+    "multi-turn": "Mehrere Runden"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Einfache Chat-Vorlage mit Systemnachricht",
+    "streaming": "Vorlage für Streaming-Antworten",
+    "system-prompt": "Vorlage mit benutzerdefiniertem System-Prompt",
+    "thinking": "Vorlage mit Denk-/Argumentationsbudget",
+    "tool-calling": "Vorlage für Werkzeug-/Funktionsaufrufe",
+    "multi-turn": "Vorlage für mehrstufige Konversationen"
   }
 }

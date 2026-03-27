@@ -58,7 +58,77 @@
     "free": "Grátis",
     "skipToContent": "Pular para o conteúdo",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "accept",
+    "accountId": "accountId",
+    "alias": "alias",
+    "apiKeyId": "apiKeyId",
+    "apiKeyName": "apiKeyName",
+    "apiKeySecret": "apiKeySecret",
+    "authorization": "authorization",
+    "content-type": "content-type",
+    "content-length": "content-length",
+    "cookie": "cookie",
+    "file": "file",
+    "host": "host",
+    "id": "id",
+    "import": "import",
+    "limit": "limit",
+    "offset": "offset",
+    "open": "open",
+    "origin": "origin",
+    "promptTokens": "promptTokens",
+    "completionTokens": "completionTokens",
+    "totalTokens": "totalTokens",
+    "rawModel": "rawModel",
+    "scope": "scope",
+    "skill": "skill",
+    "sortBy": "sortBy",
+    "sortOrder": "sortOrder",
+    "tab": "tab",
+    "text": "text",
+    "textarea": "textarea",
+    "tool": "tool",
+    "toolId": "toolId",
+    "web": "web",
+    "whereUsed": "whereUsed",
+    "whitelist": "whitelist",
+    "blacklist": "blacklist",
+    "resolve": "resolve",
+    "force": "force",
+    "base64url": "base64url",
+    "hex": "hex",
+    "range": "range",
+    "component": "component",
+    "redirect_uri": "redirect_uri",
+    "idempotency-key": "idempotency-key",
+    "error_description": "error_description",
+    "code": "code",
+    "compatible": "compatible",
+    "chat-completions": "chat-completions",
+    "oauth": "oauth",
+    "auth_token": "auth_token",
+    "crypto": "crypto",
+    "hours": "hours",
+    "selfsigned": "selfsigned",
+    "proxy_id": "proxy_id",
+    "proxyId": "proxyId",
+    "connectionId": "connectionId",
+    "resolveConnectionId": "resolveConnectionId",
+    "resolve_connection_id": "resolve_connection_id",
+    "scope_id": "scope_id",
+    "scopeId": "scopeId",
+    "jwtSecret": "jwtSecret",
+    "keytar": "keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "builder-id",
+    "musicDesc": "musicDesc",
+    "musicGeneration": "musicGeneration",
+    "idc": "idc",
+    "cloud-status-changed": "cloud-status-changed",
+    "where_used": "where_used",
+    "windowMs": "windowMs"
   },
   "sidebar": {
     "home": "Página inicial",
@@ -179,7 +249,11 @@
     "requestsShort": "{count} requisitos",
     "providerModelsTitle": "{provider} - Modelos",
     "copiedModel": "Copiado: {model}",
-    "aliasLabel": "apelido"
+    "aliasLabel": "apelido",
+    "updateNow": "Atualizar agora",
+    "updating": "Atualizando...",
+    "updateAvailableDesc": "Uma nova versão está disponível. Clique para atualizar.",
+    "updateStarted": "Atualização iniciada..."
   },
   "analytics": {
     "title": "Análise",
@@ -535,6 +609,9 @@
             "title": "Adicionar configuração de modelo",
             "desc": "Adicione a seguinte configuração ao seu array de modelos:"
           }
+        },
+        "notes": {
+          "0": "Continue usa um arquivo de configuração JSON."
         }
       },
       "opencode": {
@@ -553,6 +630,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode requer configuração de chave de API.",
+          "1": "Defina a URL base para seu endpoint OmniRoute."
         }
       },
       "kiro": {
@@ -571,6 +652,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro requer conta Amazon."
         }
       }
     },
@@ -1489,7 +1573,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Sincronização automática",
+    "autoSyncTooltip": "Atualiza automaticamente a lista de modelos a cada 24 horas (configurável via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Sincronização automática ativada — modelos serão atualizados periodicamente",
+    "autoSyncDisabled": "Sincronização automática desativada",
+    "autoSyncToggleFailed": "Falha ao alternar sincronização automática",
+    "clearAllModels": "Limpar todos os modelos",
+    "clearAllModelsConfirm": "Tem certeza que deseja remover todos os modelos deste provedor?",
+    "clearAllModelsSuccess": "Todos os modelos limpos",
+    "clearAllModelsFailed": "Falha ao limpar modelos"
   },
   "settings": {
     "title": "Configurações",
@@ -2316,7 +2409,13 @@
     "restartServerWithNewPassword": "Reinicie o servidor - ele usará a nova senha",
     "backToLogin": "Voltar ao login",
     "forgotPassword": "Esqueceu a senha?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2523,7 +2622,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Geração de texto para fala (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Geração de embeddings de texto (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Política de Privacidade",
@@ -2689,5 +2790,21 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Simple Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System Prompt",
+    "thinking": "Thinking",
+    "tool-calling": "Tool Calling",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template",
+    "streaming": "Streaming template",
+    "system-prompt": "System prompt template",
+    "thinking": "Thinking template",
+    "tool-calling": "Tool calling template",
+    "multi-turn": "Multi-turn template"
   }
 }

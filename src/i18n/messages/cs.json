@@ -58,7 +58,85 @@
     "free": "Uvolnit",
     "skipToContent": "Přejít na obsah",
     "maintenanceServerIssues": "Server má problémy. Některé funkce nemusí být dostupné.",
-    "maintenanceServerUnreachable": "Server je nedostupný. Připojuji znovu..."
+    "maintenanceServerUnreachable": "Server je nedostupný. Připojuji znovu...",
+    "accept": "Přijmout",
+    "accountId": "ID účtu",
+    "alias": "Alias",
+    "apiKeyId": "ID API klíče",
+    "apiKeyName": "Název API klíče",
+    "apiKeySecret": "Tajný klíč API",
+    "authorization": "Autorizace",
+    "content-type": "Typ obsahu",
+    "content-length": "Délka obsahu",
+    "cookie": "Cookie",
+    "file": "Soubor",
+    "host": "Hostitel",
+    "id": "ID",
+    "import": "Importovat",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Otevřít",
+    "origin": "Původ",
+    "promptTokens": "Prompt tokeny",
+    "completionTokens": "Completion tokeny",
+    "totalTokens": "Celkem tokenů",
+    "rawModel": "Raw model",
+    "scope": "Rozsah",
+    "skill": "Dovednost",
+    "sortBy": "Řadit podle",
+    "sortOrder": "Pořadí",
+    "tab": "Záložka",
+    "text": "Text",
+    "textarea": "Textové pole",
+    "tool": "Nástroj",
+    "toolId": "ID nástroje",
+    "web": "Web",
+    "whereUsed": "Kde použito",
+    "whitelist": "Povolený seznam",
+    "blacklist": "Blokovaný seznam",
+    "resolve": "Vyřešit",
+    "force": "Vynutit",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Rozsah",
+    "component": "Komponenta",
+    "redirect_uri": "Přesměrovací URI",
+    "idempotency-key": "Klíč idempotence",
+    "error_description": "Popis chyby",
+    "code": "Kód",
+    "compatible": "Kompatibilní",
+    "chat-completions": "Chat completions",
+    "oauth": "OAuth",
+    "auth_token": "Auth token",
+    "crypto": "Kryptografie",
+    "hours": "Hodiny",
+    "selfsigned": "Self-signed",
+    "proxy_id": "ID proxy",
+    "proxyId": "ID proxy",
+    "connectionId": "ID připojení",
+    "resolveConnectionId": "Vyřešit ID připojení",
+    "resolve_connection_id": "Vyřešit ID připojení",
+    "scope_id": "ID rozsahu",
+    "scopeId": "ID rozsahu",
+    "jwtSecret": "JWT tajemství",
+    "keytar": "Keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "Builder ID",
+    "musicDesc": "Popis hudby",
+    "musicGeneration": "Generování hudby",
+    "idc": "IDC",
+    "cloud-status-changed": "Změna stavu cloudu",
+    "where_used": "Kde použito",
+    "windowMs": "Okno (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Povolené nástroje",
+    "TOOL_DENYLIST": "Blokované nástroje",
+    "Failed to save pricing": "Nepodařilo se uložit ceny",
+    "Failed to reset pricing": "Nepodařilo se resetovat ceny",
+    "apikey": "API klíč",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Domov",
@@ -179,7 +257,11 @@
     "requestsShort": "{count} požadavků",
     "providerModelsTitle": "{provider} - Modely",
     "copiedModel": "Zkopírován: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Aktualizovat",
+    "updating": "Aktualizuji...",
+    "updateAvailableDesc": "K dispozici je nová verze. Kliknutím aktualizujte.",
+    "updateStarted": "Aktualizace začala..."
   },
   "analytics": {
     "title": "Analytika",
@@ -607,6 +689,9 @@
             "title": "Přidat nastavení modelu",
             "desc": "Přidejte do pole modely následující nastavení:"
           }
+        },
+        "notes": {
+          "0": "Continue používá konfigurační soubor JSON."
         }
       },
       "opencode": {
@@ -625,6 +710,10 @@
           "4": {
             "title": "Vybrat model"
           }
+        },
+        "notes": {
+          "0": "OpenCode vyžaduje konfiguraci API klíče.",
+          "1": "Nastavte základní URL na váš OmniRoute endpoint."
         }
       },
       "kiro": {
@@ -643,6 +732,9 @@
           "4": {
             "title": "Vyberte model"
           }
+        },
+        "notes": {
+          "0": "Kiro vyžaduje Amazon účet."
         }
       }
     }
@@ -1540,7 +1632,16 @@
     "chatPathHint": "Vlastní chat cesta pro poskytovatele s nestandardí API (např. /v4/chat/completions)",
     "modelsPathLabel": "Cesta koncového bodu modelu",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Cesta k vlastním modelům pro validaci (např. /v4/models)"
+    "modelsPathHint": "Cesta k vlastním modelům pro validaci (např. /v4/models)",
+    "autoSync": "Automatická synchronizace",
+    "autoSyncTooltip": "Automaticky obnovuje seznam modelů každých 24 hodin (lze konfigurovat přes MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatická synchronizace povolena – modely se budou pravidelně obnovovat",
+    "autoSyncDisabled": "Automatická synchronizace zakázána",
+    "autoSyncToggleFailed": "Nepodařilo se přepnout automatickou synchronizaci",
+    "clearAllModels": "Vymazat všechny modely",
+    "clearAllModelsConfirm": "Opravdu chcete odstranit všechny modely pro tohoto poskytovatele?",
+    "clearAllModelsSuccess": "Všechny modely vymazány",
+    "clearAllModelsFailed": "Nepodařilo se vymazat modely"
   },
   "settings": {
     "title": "Nastavení",
@@ -2367,7 +2468,13 @@
     "restartServerWithNewPassword": "Restartujte server - použije se nové heslo.",
     "backToLogin": "Zpět na přihlášení",
     "forgotPassword": "Zapomněli jste heslo?",
-    "defaultPasswordHint": "Výchozí heslo: 123456 (pokud nebylo nastaveno INITIAL_PASSWORD)"
+    "defaultPasswordHint": "Výchozí heslo: 123456 (pokud nebylo nastaveno INITIAL_PASSWORD)",
+    "waitingForAuthorization": "Čekám na autorizaci...",
+    "waitingForGoogleAuthorization": "Čekám na Google autorizaci...",
+    "waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
+    "waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
+    "waitingForIFlowAuthorization": "Čekám na iFlow autorizaci...",
+    "exchangingCodeForTokens": "Vyměňuji kód za tokeny..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2691,5 +2798,21 @@
     "modePackCostSaver": "Úspora nákladů",
     "modePackQualityFirst": "Kvalita na prvním místě",
     "modePackOfflineFriendly": "Offline přátelské"
+  },
+  "templateNames": {
+    "simple-chat": "Jednoduchý chat",
+    "streaming": "Streamování",
+    "system-prompt": "Systémový prompt",
+    "thinking": "Přemýšlení",
+    "tool-calling": "Volání nástrojů",
+    "multi-turn": "Multitah"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Základní šablona chatu se systémovou zprávou",
+    "streaming": "Šablona pro streamování odpovědí",
+    "system-prompt": "Šablona s vlastním systémovým promptem",
+    "thinking": "Šablona s rozpočtem na přemýšlení/odůvodňování",
+    "tool-calling": "Šablona pro volání nástrojů/funkcí",
+    "multi-turn": "Šablona pro konverzace s Multitahy"
   }
 }
