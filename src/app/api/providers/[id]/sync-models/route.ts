@@ -3,6 +3,10 @@ import { getProviderConnectionById } from "@/models";
 import { replaceCustomModels } from "@/lib/db/models";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  buildModelSyncInternalHeaders,
+  isModelSyncInternalRequest,
+} from "@/shared/services/modelSyncScheduler";
 
 /**
  * POST /api/providers/[id]/sync-models
@@ -19,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
 
   try {
-    if (!(await isAuthenticated(request))) {
+    if (!(await isAuthenticated(request)) && !isModelSyncInternalRequest(request)) {
       return NextResponse.json(
         { error: { message: "Authentication required", type: "invalid_api_key" } },
         { status: 401 }
@@ -41,7 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       method: "GET",
       headers: {
         cookie: request.headers.get("cookie") || "",
-        "x-internal": "model-sync",
+        ...buildModelSyncInternalHeaders(),
       },
     });
 

@@ -8,13 +8,53 @@
  * Pattern mirrors cloudSyncScheduler.ts for consistency.
  */
 
+import { randomUUID } from "node:crypto";
 import { getSettings, updateSettings } from "@/lib/localDb";
+import { getRuntimePorts } from "@/lib/runtime/ports";
 
 const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MODEL_SYNC_SETTING_KEY = "model_sync_last_run";
+const MODEL_SYNC_INTERNAL_AUTH_HEADER = "x-model-sync-internal-auth";
+
+const { dashboardPort } = getRuntimePorts();
+
+const INTERNAL_BASE_URL =
+  process.env.BASE_URL ||
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  `http://localhost:${dashboardPort}`;
+
+const globalState = globalThis as typeof globalThis & {
+  __omnirouteModelSyncInternalAuthToken?: string;
+};
 
 let schedulerTimer: NodeJS.Timeout | null = null;
 let isRunning = false;
+let internalAuthToken: string | null = null;
+
+function getInternalAuthToken(): string {
+  if (!internalAuthToken) {
+    internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken || randomUUID();
+    globalState.__omnirouteModelSyncInternalAuthToken = internalAuthToken;
+  }
+  return internalAuthToken;
+}
+
+export function getModelSyncInternalAuthHeaderName(): string {
+  return MODEL_SYNC_INTERNAL_AUTH_HEADER;
+}
+
+export function buildModelSyncInternalHeaders(): Record<string, string> {
+  return { [MODEL_SYNC_INTERNAL_AUTH_HEADER]: getInternalAuthToken() };
+}
+
+export function isModelSyncInternalRequest(request: Request): boolean {
+  if (!internalAuthToken && globalState.__omnirouteModelSyncInternalAuthToken) {
+    internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken;
+  }
+  const headerToken = request.headers.get(MODEL_SYNC_INTERNAL_AUTH_HEADER);
+  return Boolean(headerToken && internalAuthToken && headerToken === internalAuthToken);
+}
 
 /**
  * Fetch all provider connections that have autoSync enabled.
@@ -50,7 +90,10 @@ async function syncConnectionModels(
   try {
     const res = await fetch(`${baseUrl}/api/providers/${connectionId}/sync-models`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-internal": "model-sync-scheduler" },
+      headers: {
+        "Content-Type": "application/json",
+        ...buildModelSyncInternalHeaders(),
+      },
     });
     if (!res.ok) {
       console.warn(
@@ -121,7 +164,7 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
  * @param intervalMs — sync interval in milliseconds (default: 24h)
  */
 export function startModelSyncScheduler(
-  apiBaseUrl = "http://localhost:20128",
+  apiBaseUrl = INTERNAL_BASE_URL,
   intervalMs = DEFAULT_INTERVAL_MS
 ): void {
   if (schedulerTimer) {

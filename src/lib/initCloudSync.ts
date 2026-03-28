@@ -1,16 +1,18 @@
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
+import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
 import "@/lib/tokenHealthCheck"; // Proactive token health-check scheduler
 
-// Initialize cloud sync when this module is imported
+// Initialize background sync services when this module is imported
 let initialized = false;
 
 export async function ensureCloudSyncInitialized() {
   if (!initialized) {
     try {
       await initializeCloudSync();
+      startModelSyncScheduler();
       initialized = true;
     } catch (error) {
-      console.error("[ServerInit] Error initializing cloud sync:", error);
+      console.error("[ServerInit] Error initializing background sync services:", error);
     }
   }
   return initialized;
