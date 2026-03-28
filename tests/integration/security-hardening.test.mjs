@@ -161,7 +161,17 @@ test("callLogs.ts wires no-log and PII sanitization before persistence", () => {
   );
   assert.ok(content.includes('from "../piiSanitizer"'), "callLogs.ts should import piiSanitizer");
   assert.ok(content.includes("isNoLog("), "callLogs.ts should check no-log policy");
-  assert.ok(content.includes("sanitizePayloadPII"), "callLogs.ts should sanitize PII recursively");
+
+  const payloadHelperContent = readIfExists("src/lib/logPayloads.ts");
+  assert.ok(payloadHelperContent, "src/lib/logPayloads.ts should exist");
+  assert.ok(
+    content.includes("protectPayloadForLog") && content.includes('from "../logPayloads"'),
+    "callLogs.ts should route payload protection through shared log helpers"
+  );
+  assert.ok(
+    payloadHelperContent.includes("export function sanitizePayloadPII"),
+    "logPayloads.ts should keep recursive PII sanitization logic"
+  );
 });
 
 test("API key update route and DB layer wire persisted no-log controls", () => {
