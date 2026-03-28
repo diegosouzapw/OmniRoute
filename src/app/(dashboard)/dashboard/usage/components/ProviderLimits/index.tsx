@@ -4,12 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import {
-  parseQuotaData,
-  calculateUsedPercentage,
-  normalizePlanTier,
-  resolvePlanValue,
-} from "./utils";
+import { parseQuotaData, calculatePercentage, normalizePlanTier, resolvePlanValue } from "./utils";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -68,10 +63,14 @@ function getShortModelName(name) {
   return map[name] || name;
 }
 
-// Get bar color based on used percentage
-function getBarColor(usedPercentage) {
-  if (usedPercentage < 50) return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
-  if (usedPercentage < 80) return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+// Get bar color based on remaining percentage
+function getBarColor(remainingPercentage) {
+  if (remainingPercentage > 50) {
+    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  }
+  if (remainingPercentage > 20) {
+    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+  }
   return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
 }
 
@@ -620,8 +619,8 @@ export default function ProviderLimits() {
                     <div className="text-xs text-text-muted italic">{quota.message}</div>
                   ) : quota?.quotas?.length > 0 ? (
                     quota.quotas.map((q, i) => {
-                      const usedPercentage = calculateUsedPercentage(q.used, q.total);
-                      const colors = getBarColor(usedPercentage);
+                      const remainingPercentage = calculatePercentage(q.used, q.total);
+                      const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
                       const shortName = getShortModelName(q.name);
                       const staleAfterReset = q.staleAfterReset === true;
@@ -657,7 +656,7 @@ export default function ProviderLimits() {
                             <div
                               className="h-full rounded-sm transition-[width] duration-300 ease-out"
                               style={{
-                                width: `${Math.min(usedPercentage, 100)}%`,
+                                width: `${Math.min(remainingPercentage, 100)}%`,
                                 background: colors.bar,
                               }}
                             />
@@ -668,7 +667,7 @@ export default function ProviderLimits() {
                             className="text-[11px] font-semibold min-w-[32px] text-right"
                             style={{ color: colors.text }}
                           >
-                            {usedPercentage}%
+                            {remainingPercentage}%
                           </span>
                         </div>
                       );

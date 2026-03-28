@@ -100,20 +100,6 @@ export function calculatePercentage(used, total) {
   return Math.round(((total - used) / total) * 100);
 }
 
-/**
- * Calculate used percentage
- * @param {number} used - Used amount
- * @param {number} total - Total amount
- * @returns {number} Used percentage (0-100)
- */
-export function calculateUsedPercentage(used, total) {
-  if (!total || total === 0) return 0;
-  if (!used || used < 0) return 0;
-  if (used >= total) return 100;
-
-  return Math.round((used / total) * 100);
-}
-
 function isPastResetWindow(resetAt) {
   if (!resetAt) return false;
   const resetTime =

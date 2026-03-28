@@ -32,10 +32,10 @@ test("Codex workspacePlanType is used when live plan is missing or unknown", () 
   assert.equal(tier.variant, "success");
 });
 
-test("used percentage helpers reflect consumed quota and stale resets collapse to zero", () => {
-  assert.equal(providerLimitUtils.calculateUsedPercentage(0, 100), 0);
-  assert.equal(providerLimitUtils.calculateUsedPercentage(17, 100), 17);
-  assert.equal(providerLimitUtils.calculateUsedPercentage(60, 100), 60);
+test("remaining percentage helpers reflect remaining quota and stale resets refill to 100", () => {
+  assert.equal(providerLimitUtils.calculatePercentage(0, 100), 100);
+  assert.equal(providerLimitUtils.calculatePercentage(17, 100), 83);
+  assert.equal(providerLimitUtils.calculatePercentage(60, 100), 40);
 
   const past = new Date(Date.now() - 60_000).toISOString();
   const parsed = providerLimitUtils.parseQuotaData("codex", {
@@ -45,7 +45,7 @@ test("used percentage helpers reflect consumed quota and stale resets collapse t
   });
 
   assert.equal(parsed.length, 1);
-  assert.equal(providerLimitUtils.calculateUsedPercentage(parsed[0].used, parsed[0].total), 0);
+  assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
 });
 
 test("Badge secondary variant renders bordered pill styles", () => {
