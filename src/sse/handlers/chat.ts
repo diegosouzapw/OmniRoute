@@ -45,6 +45,7 @@ import { generateRequestId } from "../../shared/utils/requestId";
 import { recordCost } from "../../domain/costRules";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { cloneLogPayload } from "@/lib/logPayloads";
 import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
@@ -82,6 +83,13 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
+  const rawClientBody = cloneLogPayload(body);
+
+  // Build clientRawRequest for logging (if not provided)
+  if (!clientRawRequest) {
+    clientRawRequest = buildClientRawRequest(request, rawClientBody);
+  }
+
   // FASE-01: Input sanitization — prompt injection detection & PII redaction
   telemetry.startPhase("validate");
   const sanitizeResult = sanitizeRequest(body, log as any);
@@ -112,16 +120,6 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       "STREAM",
       "Accept: text/event-stream header → overriding stream=true (body had no stream field)"
     );
-  }
-
-  // Build clientRawRequest for logging (if not provided)
-  if (!clientRawRequest) {
-    const url = new URL(request.url);
-    clientRawRequest = {
-      endpoint: url.pathname,
-      body,
-      headers: Object.fromEntries(request.headers.entries()),
-    };
   }
 
   // Log request endpoint and model
@@ -304,6 +302,15 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   );
   recordTelemetry(telemetry);
   return withSessionHeader(response, sessionId);
+}
+
+export function buildClientRawRequest(request: Request, body: unknown) {
+  const url = new URL(request.url);
+  return {
+    endpoint: url.pathname,
+    body: cloneLogPayload(body),
+    headers: Object.fromEntries(request.headers.entries()),
+  };
 }
 
 /**

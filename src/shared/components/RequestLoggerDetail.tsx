@@ -80,8 +80,42 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     }
   };
 
-  const requestJson = detail?.requestBody ? JSON.stringify(detail.requestBody, null, 2) : null;
-  const responseJson = detail?.responseBody ? JSON.stringify(detail.responseBody, null, 2) : null;
+  const toPrettyJson = (payload) => {
+    if (payload === null || payload === undefined) return null;
+    try {
+      return JSON.stringify(payload, null, 2);
+    } catch {
+      return String(payload);
+    }
+  };
+
+  const pipelinePayloads = detail?.pipelinePayloads || null;
+  const payloadSections = pipelinePayloads
+    ? [
+        {
+          key: "client-request",
+          title: "Client Request",
+          json: toPrettyJson(pipelinePayloads.clientRequest),
+        },
+        {
+          key: "provider-request",
+          title: "Provider Request",
+          json: toPrettyJson(pipelinePayloads.providerRequest),
+        },
+        {
+          key: "provider-response",
+          title: "Provider Response",
+          json: toPrettyJson(pipelinePayloads.providerResponse),
+        },
+        {
+          key: "client-response",
+          title: "Client Response",
+          json: toPrettyJson(pipelinePayloads.clientResponse),
+        },
+      ].filter((section) => section.json)
+    : [];
+  const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
+  const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
 
   return (
     <div
@@ -240,33 +274,41 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
           ) : (
             <>
-              {/* Response Payload (返回) — show first */}
-              {responseJson && (
+              {payloadSections.length > 0 &&
+                payloadSections.map((section) => (
+                  <PayloadSection
+                    key={section.key}
+                    title={section.title}
+                    json={section.json}
+                    onCopy={() => onCopy(section.json)}
+                  />
+                ))}
+
+              {payloadSections.length === 0 && responseJson && (
                 <PayloadSection
-                  title="Response Payload (返回)"
+                  title="Response Payload (Legacy)"
                   json={responseJson}
                   onCopy={() => onCopy(responseJson)}
                 />
               )}
 
-              {/* Request Payload (请求) */}
-              {requestJson && (
+              {payloadSections.length === 0 && requestJson && (
                 <PayloadSection
-                  title="Request Payload (请求)"
+                  title="Request Payload (Legacy)"
                   json={requestJson}
                   onCopy={() => onCopy(requestJson)}
                 />
               )}
 
-              {!requestJson && !responseJson && !loading && (
+              {payloadSections.length === 0 && !requestJson && !responseJson && !loading && (
                 <div className="p-6 text-center text-text-muted">
                   <span className="material-symbols-outlined text-[32px] mb-2 block opacity-40">
                     info
                   </span>
                   <p className="text-sm">No payload data available for this log entry.</p>
                   <p className="text-xs mt-1">
-                    Request/response bodies are only captured for non-streaming calls or when
-                    streaming completes normally.
+                    Enable detailed logging first if you want the four-stage client/provider payload
+                    view for new requests.
                   </p>
                 </div>
               )}

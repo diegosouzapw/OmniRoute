@@ -10,9 +10,11 @@
 import path from "path";
 import fs from "fs";
 import { getDbInstance } from "../db/core";
+import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk, CALL_LOGS_DIR } from "./migrations";
 import { isNoLog } from "../compliance";
 import { sanitizePII } from "../piiSanitizer";
+import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -33,15 +35,6 @@ function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-function parseJsonString(value: unknown): unknown | null {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-}
-
 function hasTruncatedFlag(value: unknown): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return (value as Record<string, unknown>)._truncated === true;
@@ -55,79 +48,6 @@ const CALL_LOG_PAYLOAD_MODE = (() => {
 })();
 const shouldLogPayloadInDb = CALL_LOG_PAYLOAD_MODE !== "none";
 const shouldLogPayloadOnDisk = CALL_LOG_PAYLOAD_MODE === "full";
-
-/** Fields that should always be redacted from logged payloads */
-const SENSITIVE_KEYS = new Set([
-  "api_key",
-  "apiKey",
-  "api-key",
-  "authorization",
-  "Authorization",
-  "x-api-key",
-  "X-Api-Key",
-  "access_token",
-  "accessToken",
-  "refresh_token",
-  "refreshToken",
-  "password",
-  "secret",
-  "token",
-]);
-
-/**
- * Redact sensitive fields from a payload before persistence.
- */
-function redactPayload(obj: any): any {
-  if (!obj || typeof obj !== "object") return obj;
-  if (Array.isArray(obj)) return obj.map(redactPayload);
-
-  const redacted: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (SENSITIVE_KEYS.has(key)) {
-      redacted[key] = "[REDACTED]";
-    } else if (typeof value === "string" && value.startsWith("Bearer ")) {
-      redacted[key] = "Bearer [REDACTED]";
-    } else if (typeof value === "object" && value !== null) {
-      redacted[key] = redactPayload(value);
-    } else {
-      redacted[key] = value;
-    }
-  }
-  return redacted;
-}
-
-/**
- * Recursively sanitize PII from string fields in a payload.
- * Uses lib/piiSanitizer config flags to determine if redaction is enabled.
- */
-function sanitizePayloadPII(obj: any): any {
-  if (typeof obj === "string") {
-    return sanitizePII(obj).text;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizePayloadPII);
-  }
-  if (!obj || typeof obj !== "object") {
-    return obj;
-  }
-
-  const sanitized: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    sanitized[key] = sanitizePayloadPII(value);
-  }
-  return sanitized;
-}
-
-/**
- * Apply payload protection chain before persistence.
- * 1) Optional PII sanitization
- * 2) Mandatory key/token redaction
- */
-function protectPayloadForLog(payload: any): any {
-  if (!payload || !shouldLogPayloadInDb) return null;
-  const piiSanitized = sanitizePayloadPII(payload);
-  return redactPayload(piiSanitized);
-}
 
 let logIdCounter = 0;
 function generateLogId() {
@@ -145,8 +65,10 @@ export async function saveCallLog(entry: any) {
     const apiKeyId = entry.apiKeyId || null;
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
-    const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
-    const protectedResponseBody = noLogEnabled ? null : protectPayloadForLog(entry.responseBody);
+    const protectedRequestBody =
+      noLogEnabled || !shouldLogPayloadInDb ? null : protectPayloadForLog(entry.requestBody);
+    const protectedResponseBody =
+      noLogEnabled || !shouldLogPayloadInDb ? null : protectPayloadForLog(entry.responseBody);
 
     // Resolve account name
     let account = entry.connectionId ? entry.connectionId.slice(0, 8) : "-";
@@ -174,7 +96,7 @@ export async function saveCallLog(entry: any) {
     };
 
     const logEntry = {
-      id: generateLogId(),
+      id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: new Date().toISOString(),
       method: entry.method || "POST",
       path: entry.path || "/v1/chat/completions",
@@ -420,8 +342,8 @@ export async function getCallLogById(id: string) {
     apiKeyId: toStringOrNull(entryRow.api_key_id),
     apiKeyName: toStringOrNull(entryRow.api_key_name),
     comboName: toStringOrNull(entryRow.combo_name),
-    requestBody: parseJsonString(entryRow.request_body),
-    responseBody: parseJsonString(entryRow.response_body),
+    requestBody: parseStoredPayload(entryRow.request_body),
+    responseBody: parseStoredPayload(entryRow.response_body),
     error: toStringOrNull(entryRow.error),
   };
 
@@ -442,7 +364,20 @@ export async function getCallLogById(id: string) {
     }
   }
 
-  return entry;
+  const detailed = getRequestDetailLogByCallLogId(id);
+  if (!detailed) {
+    return entry;
+  }
+
+  return {
+    ...entry,
+    pipelinePayloads: {
+      clientRequest: detailed.client_request ?? null,
+      providerRequest: detailed.translated_request ?? null,
+      providerResponse: detailed.provider_response ?? null,
+      clientResponse: detailed.client_response ?? null,
+    },
+  };
 }
 
 /**

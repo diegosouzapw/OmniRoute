@@ -1,5 +1,5 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
-import { handleChat } from "@/sse/handlers/chat";
+import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { v1betaGeminiGenerateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -87,7 +87,7 @@ export async function POST(request, { params }) {
       body: JSON.stringify(convertedBody),
     });
 
-    return await handleChat(newRequest);
+    return await handleChat(newRequest, buildClientRawRequest(request, rawBody));
   } catch (error) {
     console.log("Error handling Gemini request:", error);
     return Response.json({ error: { message: error.message, code: 500 } }, { status: 500 });

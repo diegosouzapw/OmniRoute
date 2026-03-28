@@ -14,10 +14,16 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
+import {
+  buildErrorBody,
+  createErrorResult,
+  parseUpstreamError,
+  formatProviderError,
+} from "../utils/error.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
+import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
@@ -67,6 +73,8 @@ import {
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
 import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { normalizePayloadForLog } from "@/lib/logPayloads";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -190,7 +198,8 @@ export async function handleChatCore({
 
       credentials.providerSpecificData = nextProviderData;
     } catch (err) {
-      log?.debug?.("CODEX", `Failed to persist codex quota state: ${err?.message || err}`);
+      const errMessage = err instanceof Error ? err.message : String(err);
+      log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
     }
   };
 
@@ -285,6 +294,73 @@ export async function handleChatCore({
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
+  const noLogEnabled = apiKeyInfo?.noLog === true;
+  const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  const persistAttemptLogs = ({
+    status,
+    tokens,
+    responseBody,
+    error,
+    providerRequest,
+    providerResponse,
+    clientResponse,
+  }: {
+    status: number;
+    tokens?: unknown;
+    responseBody?: unknown;
+    error?: string | null;
+    providerRequest?: unknown;
+    providerResponse?: unknown;
+    clientResponse?: unknown;
+  }) => {
+    const callLogId = generateRequestId();
+
+    saveCallLog({
+      id: callLogId,
+      method: "POST",
+      path: clientRawRequest?.endpoint || "/v1/chat/completions",
+      status,
+      model,
+      requestedModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      tokens: tokens || {},
+      requestBody: body,
+      responseBody,
+      error: error || null,
+      sourceFormat,
+      targetFormat,
+      comboName,
+      apiKeyId: apiKeyInfo?.id || null,
+      apiKeyName: apiKeyInfo?.name || null,
+      noLog: noLogEnabled,
+    }).catch(() => {});
+
+    if (!detailedLoggingEnabled) {
+      return;
+    }
+
+    try {
+      saveRequestDetailLog({
+        call_log_id: callLogId,
+        client_request: clientRawRequest?.body ?? body,
+        translated_request: providerRequest ?? null,
+        provider_response: providerResponse ?? null,
+        client_response: clientResponse ?? null,
+        provider,
+        model,
+        source_format: sourceFormat,
+        target_format: targetFormat,
+        duration_ms: Date.now() - startTime,
+        api_key_id: apiKeyInfo?.id || null,
+        no_log: noLogEnabled,
+      });
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      log?.debug?.("DETAIL_LOG", `Failed to save detailed log: ${errMessage}`);
+    }
+  };
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
   // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
@@ -689,38 +765,33 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
+    const failureStatus = error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY;
+    const failureMessage =
+      error.name === "AbortError"
+        ? "Request aborted"
+        : formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
     appendRequestLog({
       model,
       provider,
       connectionId,
-      status: `FAILED ${error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY}`,
+      status: `FAILED ${failureStatus}`,
     }).catch(() => {});
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY,
-      model,
-      requestedModel,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      requestBody: body,
-      error: error.message,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+    persistAttemptLogs({
+      status: failureStatus,
+      error: failureMessage,
+      providerRequest: finalBody || translatedBody,
+      clientResponse: buildErrorBody(failureStatus, failureMessage),
+    });
     if (error.name === "AbortError") {
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
-    persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, error?.name || "upstream_error");
-    const errMsg = formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
-    console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
-    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, errMsg);
+    persistFailureUsage(
+      HTTP_STATUS.BAD_GATEWAY,
+      error instanceof Error && error.name ? error.name : "upstream_error"
+    );
+    console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
+    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, failureMessage);
   }
 
   // Handle 401/403 - try token refresh using executor
@@ -766,8 +837,11 @@ export async function handleChatCore({
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;
           providerUrl = retryResult.url;
+          providerHeaders = retryResult.headers;
+          finalBody = retryResult.transformedBody;
+          reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
         }
-      } catch (retryError) {
+      } catch {
         log?.warn?.("TOKEN", `${provider.toUpperCase()} | retry after refresh failed`);
       }
     } else {
@@ -780,10 +854,12 @@ export async function handleChatCore({
   // Check provider response - return error info for fallback handling
   if (!providerResponse.ok) {
     trackPendingRequest(model, provider, connectionId, false);
-    const { statusCode, message, retryAfterMs } = await parseUpstreamError(
-      providerResponse,
-      provider
-    );
+    const {
+      statusCode,
+      message,
+      retryAfterMs,
+      responseBody: upstreamErrorBody,
+    } = await parseUpstreamError(providerResponse, provider);
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
     const errorType = classifyProviderError(statusCode, message);
@@ -835,24 +911,6 @@ export async function handleChatCore({
     appendRequestLog({ model, provider, connectionId, status: `FAILED ${statusCode}` }).catch(
       () => {}
     );
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: statusCode,
-      model,
-      requestedModel,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      requestBody: body,
-      error: message,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
     const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
     console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
 
@@ -864,6 +922,12 @@ export async function handleChatCore({
 
     // Log error with full request body for debugging
     reqLogger.logError(new Error(message), finalBody || translatedBody);
+    reqLogger.logProviderResponse(
+      providerResponse.status,
+      providerResponse.statusText,
+      providerResponse.headers,
+      upstreamErrorBody
+    );
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
@@ -887,24 +951,53 @@ export async function handleChatCore({
             providerUrl = fallbackResult.url;
             providerHeaders = fallbackResult.headers;
             finalBody = fallbackResult.transformedBody;
+            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             // Continue processing with the fallback response — skip error return
             log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
             // Jump to streaming/non-streaming handling below
             // We fall through by NOT returning here
           } else {
             // Fallback also failed — return original error
+            persistAttemptLogs({
+              status: statusCode,
+              error: errMsg,
+              providerRequest: finalBody || translatedBody,
+              providerResponse: upstreamErrorBody,
+              clientResponse: buildErrorBody(statusCode, errMsg),
+            });
             persistFailureUsage(statusCode, "model_unavailable");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
           }
         } catch {
+          persistAttemptLogs({
+            status: statusCode,
+            error: errMsg,
+            providerRequest: finalBody || translatedBody,
+            providerResponse: upstreamErrorBody,
+            clientResponse: buildErrorBody(statusCode, errMsg),
+          });
           persistFailureUsage(statusCode, "model_unavailable");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
         }
       } else {
+        persistAttemptLogs({
+          status: statusCode,
+          error: errMsg,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: upstreamErrorBody,
+          clientResponse: buildErrorBody(statusCode, errMsg),
+        });
         persistFailureUsage(statusCode, "model_unavailable");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
       }
     } else {
+      persistAttemptLogs({
+        status: statusCode,
+        error: errMsg,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: upstreamErrorBody,
+        clientResponse: buildErrorBody(statusCode, errMsg),
+      });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
       return createErrorResult(statusCode, errMsg, retryAfterMs);
     }
@@ -949,6 +1042,10 @@ export async function handleChatCore({
           });
           if (fbResult.response.ok) {
             providerResponse = fbResult.response;
+            providerUrl = fbResult.url;
+            providerHeaders = fbResult.headers;
+            finalBody = fbResult.transformedBody;
+            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             log?.info?.(
               "EMERGENCY_FALLBACK",
               `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${provider}/${model}`
@@ -961,7 +1058,8 @@ export async function handleChatCore({
             );
           }
         } catch (fbErr) {
-          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${fbErr?.message}`);
+          const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
+          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
         }
       }
     }
@@ -974,6 +1072,7 @@ export async function handleChatCore({
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     const rawBody = await providerResponse.text();
+    const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
       contentType.includes("text/event-stream") || /(^|\n)\s*(event|data):/m.test(rawBody);
 
@@ -991,11 +1090,16 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        const invalidSseMessage = "Invalid SSE response for non-streaming request";
+        persistAttemptLogs({
+          status: HTTP_STATUS.BAD_GATEWAY,
+          error: invalidSseMessage,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: normalizedProviderPayload,
+          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
+        });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
-        return createErrorResult(
-          HTTP_STATUS.BAD_GATEWAY,
-          "Invalid SSE response for non-streaming request"
-        );
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
       responseBody = parsedFromSSE;
@@ -1009,10 +1113,31 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        const invalidJsonMessage = "Invalid JSON response from provider";
+        persistAttemptLogs({
+          status: HTTP_STATUS.BAD_GATEWAY,
+          error: invalidJsonMessage,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: normalizedProviderPayload,
+          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+        });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
-        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, "Invalid JSON response from provider");
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }
+
+    reqLogger.logProviderResponse(
+      providerResponse.status,
+      providerResponse.statusText,
+      providerResponse.headers,
+      looksLikeSSE
+        ? {
+            _streamed: true,
+            _format: "sse-json",
+            summary: responseBody,
+          }
+        : responseBody
+    );
 
     // Notify success - caller can clear error status if needed
     if (onRequestSuccess) {
@@ -1025,26 +1150,6 @@ export async function handleChatCore({
       () => {}
     );
 
-    // Save structured call log with full payloads
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: 200,
-      model,
-      requestedModel,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      tokens: usage,
-      requestBody: body,
-      responseBody,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
     if (usage && typeof usage === "object") {
       const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${usage?.prompt_tokens || 0} | out=${usage?.completion_tokens || 0}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
@@ -1132,6 +1237,21 @@ export async function handleChatCore({
 
     // ── Phase 9.2: Save for idempotency ──
     saveIdempotency(idempotencyKey, translatedResponse, 200);
+    reqLogger.logConvertedResponse(translatedResponse);
+    persistAttemptLogs({
+      status: 200,
+      tokens: usage,
+      responseBody,
+      providerRequest: finalBody || translatedBody,
+      providerResponse: looksLikeSSE
+        ? {
+            _streamed: true,
+            _format: "sse-json",
+            summary: responseBody,
+          }
+        : responseBody,
+      clientResponse: translatedResponse,
+    });
 
     return {
       success: true,
@@ -1167,26 +1287,17 @@ export async function handleChatCore({
     status: streamStatus,
     usage: streamUsage,
     responseBody: streamResponseBody,
+    providerPayload,
+    clientPayload,
   }) => {
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
+    persistAttemptLogs({
       status: streamStatus || 200,
-      model,
-      requestedModel,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
       tokens: streamUsage || {},
-      requestBody: body,
       responseBody: streamResponseBody ?? undefined,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+      providerRequest: finalBody || translatedBody,
+      providerResponse: providerPayload,
+      clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+    });
   };
 
   // For Codex provider, translate response from openai-responses to openai (Chat Completions) format

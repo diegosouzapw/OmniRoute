@@ -8,20 +8,28 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { getSettings } from "./settings";
+import { isNoLog } from "../compliance";
+import {
+  protectPayloadForLog,
+  serializePayloadForStorage,
+  parseStoredPayload,
+} from "../logPayloads";
 
 export interface RequestDetailLog {
   id?: string;
   call_log_id?: string | null;
   timestamp?: string;
-  client_request?: string | null;
-  translated_request?: string | null;
-  provider_response?: string | null;
-  client_response?: string | null;
+  client_request?: unknown | null;
+  translated_request?: unknown | null;
+  provider_response?: unknown | null;
+  client_response?: unknown | null;
   provider?: string | null;
   model?: string | null;
   source_format?: string | null;
   target_format?: string | null;
   duration_ms?: number;
+  api_key_id?: string | null;
+  no_log?: boolean;
 }
 
 /** Returns true if detailed logging is enabled in settings */
@@ -37,15 +45,13 @@ export async function isDetailedLoggingEnabled(): Promise<boolean> {
 
 /** Save a detailed log entry — caller must verify isDetailedLoggingEnabled() first */
 export function saveRequestDetailLog(entry: RequestDetailLog): void {
+  const noLogEnabled =
+    Boolean(entry.no_log) || (entry.api_key_id ? isNoLog(entry.api_key_id) : false);
+  if (noLogEnabled) return;
+
   const db = getDbInstance();
   const id = entry.id ?? uuidv4();
   const timestamp = entry.timestamp ?? new Date().toISOString();
-
-  // Trim large bodies to avoid excessive disk usage (max 64KB each)
-  const trim = (s: string | null | undefined, max = 65536): string | null => {
-    if (!s) return null;
-    return s.length > max ? s.slice(0, max) + "…[truncated]" : s;
-  };
 
   db.prepare(
     `
@@ -58,10 +64,10 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
     id,
     entry.call_log_id ?? null,
     timestamp,
-    trim(entry.client_request),
-    trim(entry.translated_request),
-    trim(entry.provider_response),
-    trim(entry.client_response),
+    serializePayloadForStorage(protectPayloadForLog(entry.client_request)),
+    serializePayloadForStorage(protectPayloadForLog(entry.translated_request)),
+    serializePayloadForStorage(protectPayloadForLog(entry.provider_response)),
+    serializePayloadForStorage(protectPayloadForLog(entry.client_response)),
     entry.provider ?? null,
     entry.model ?? null,
     entry.source_format ?? null,
@@ -73,7 +79,7 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
 /** Fetch detailed logs (latest first) */
 export function getRequestDetailLogs(limit = 50, offset = 0): RequestDetailLog[] {
   const db = getDbInstance();
-  return db
+  const rows = db
     .prepare(
       `
       SELECT * FROM request_detail_logs
@@ -81,14 +87,34 @@ export function getRequestDetailLogs(limit = 50, offset = 0): RequestDetailLog[]
       LIMIT ? OFFSET ?
     `
     )
-    .all(limit, offset) as RequestDetailLog[];
+    .all(limit, offset) as Array<Record<string, unknown>>;
+
+  return rows.map(mapDetailedLogRow);
 }
 
 /** Get a single detailed log by ID */
 export function getRequestDetailLogById(id: string): RequestDetailLog | null {
   const db = getDbInstance();
-  return (db.prepare("SELECT * FROM request_detail_logs WHERE id = ?").get(id) ??
-    null) as RequestDetailLog | null;
+  const row = db.prepare("SELECT * FROM request_detail_logs WHERE id = ?").get(id) as
+    | Record<string, unknown>
+    | undefined;
+  return row ? mapDetailedLogRow(row) : null;
+}
+
+/** Get the most recent detailed log for a call log ID */
+export function getRequestDetailLogByCallLogId(callLogId: string): RequestDetailLog | null {
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT * FROM request_detail_logs
+      WHERE call_log_id = ?
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `
+    )
+    .get(callLogId) as Record<string, unknown> | undefined;
+  return row ? mapDetailedLogRow(row) : null;
 }
 
 /** Get total count of detailed logs */
@@ -98,4 +124,21 @@ export function getRequestDetailLogCount(): number {
     cnt: number;
   };
   return row?.cnt ?? 0;
+}
+
+function mapDetailedLogRow(row: Record<string, unknown>): RequestDetailLog {
+  return {
+    id: typeof row.id === "string" ? row.id : undefined,
+    call_log_id: typeof row.call_log_id === "string" ? row.call_log_id : null,
+    timestamp: typeof row.timestamp === "string" ? row.timestamp : undefined,
+    client_request: parseStoredPayload(row.client_request),
+    translated_request: parseStoredPayload(row.translated_request),
+    provider_response: parseStoredPayload(row.provider_response),
+    client_response: parseStoredPayload(row.client_response),
+    provider: typeof row.provider === "string" ? row.provider : null,
+    model: typeof row.model === "string" ? row.model : null,
+    source_format: typeof row.source_format === "string" ? row.source_format : null,
+    target_format: typeof row.target_format === "string" ? row.target_format : null,
+    duration_ms: typeof row.duration_ms === "number" ? row.duration_ms : 0,
+  };
 }

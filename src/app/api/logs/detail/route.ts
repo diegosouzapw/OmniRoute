@@ -1,10 +1,9 @@
 /**
- * GET  /api/logs/detail         — List detailed request logs
- * GET  /api/logs/detail/:id     — Get specific detailed log
- * POST /api/logs/detail/toggle  — Enable/disable detailed logging
+ * GET  /api/logs/detail  — List detailed request logs + current enabled flag
+ * POST /api/logs/detail — Enable/disable detailed logging
  */
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   getRequestDetailLogs,
   getRequestDetailLogCount,
@@ -15,9 +14,8 @@ import { updateSettings } from "@/lib/db/settings";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!isAuthenticated(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   const url = new URL(req.url);
   const limit = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
@@ -31,9 +29,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthenticated(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   const body = await req.json();
   const enabled = body.enabled === true || body.enabled === "1";

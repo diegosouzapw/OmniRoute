@@ -1,5 +1,6 @@
 import { getCorsOrigin } from "./cors.ts";
 import { ERROR_TYPES, DEFAULT_ERROR_MESSAGES } from "../config/constants.ts";
+import { normalizePayloadForLog } from "@/lib/logPayloads";
 
 /**
  * Build OpenAI-compatible error response body
@@ -91,14 +92,16 @@ export function parseAntigravityRetryTime(message) {
  * Parse upstream provider error response
  * @param {Response} response - Fetch response from provider
  * @param {string} provider - Provider name (for Antigravity-specific parsing)
- * @returns {Promise<{statusCode: number, message: string, retryAfterMs: number|null}>}
+ * @returns {Promise<{statusCode: number, message: string, retryAfterMs: number|null, responseBody: unknown}>}
  */
 export async function parseUpstreamError(response, provider = null) {
   let message = "";
   let retryAfterMs = null;
+  let responseBody = null;
 
   try {
     const text = await response.text();
+    responseBody = normalizePayloadForLog(text);
 
     // Try parse as JSON
     try {
@@ -109,6 +112,7 @@ export async function parseUpstreamError(response, provider = null) {
     }
   } catch {
     message = `Upstream error: ${response.status}`;
+    responseBody = { _rawText: message };
   }
 
   const messageStr = typeof message === "string" ? message : JSON.stringify(message);
@@ -122,6 +126,7 @@ export async function parseUpstreamError(response, provider = null) {
     statusCode: response.status,
     message: messageStr,
     retryAfterMs,
+    responseBody,
   };
 }
 

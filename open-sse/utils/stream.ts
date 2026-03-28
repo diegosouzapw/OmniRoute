@@ -11,6 +11,7 @@ import {
   COLORS,
 } from "./usageTracking.ts";
 import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
+import { createStructuredSSECollector } from "./streamPayloadCollector.ts";
 import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
   sanitizeStreamingChunk,
@@ -32,6 +33,8 @@ type StreamCompletePayload = {
   usage: unknown;
   /** Minimal response body for call log (streaming: usage + note; non-streaming not used) */
   responseBody?: unknown;
+  providerPayload?: unknown;
+  clientPayload?: unknown;
 };
 
 type StreamOptions = {
@@ -142,6 +145,12 @@ export function createSSEStream(options: StreamOptions = {}) {
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
+  const providerPayloadCollector = createStructuredSSECollector({
+    stage: "provider_response",
+  });
+  const clientPayloadCollector = createStructuredSSECollector({
+    stage: "client_response",
+  });
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
@@ -196,6 +205,17 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (mode === STREAM_MODE.PASSTHROUGH) {
             let output;
             let injectedUsage = false;
+            let clientPayload: unknown = null;
+
+            if (trimmed.startsWith("data:")) {
+              const providerPayload = parseSSELine(trimmed);
+              if (providerPayload) {
+                providerPayloadCollector.push(providerPayload);
+                if ((providerPayload as { done?: unknown }).done === true) {
+                  clientPayloadCollector.push(providerPayload);
+                }
+              }
+            }
 
             if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
               try {
@@ -358,6 +378,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     injectedUsage = true;
                   }
                 }
+
+                clientPayload = parsed;
               } catch {}
             }
 
@@ -367,6 +389,10 @@ export function createSSEStream(options: StreamOptions = {}) {
               } else {
                 output = line + "\n";
               }
+            }
+
+            if (clientPayload) {
+              clientPayloadCollector.push(clientPayload);
             }
 
             reqLogger?.appendConvertedChunk?.(output);
@@ -379,10 +405,12 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
+          providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
             if (!doneSent) {
               doneSent = true;
+              clientPayloadCollector.push({ done: true });
               const output = "data: [DONE]\n\n";
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
@@ -502,6 +530,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               }
 
               const output = formatSSE(item, sourceFormat);
+              clientPayloadCollector.push(item);
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
             }
@@ -528,6 +557,11 @@ export function createSSEStream(options: StreamOptions = {}) {
               let output = buffer;
               if (buffer.startsWith("data:") && !buffer.startsWith("data: ")) {
                 output = "data: " + buffer.slice(5);
+              }
+              const bufferedPayload = parseSSELine(buffer.trim());
+              if (bufferedPayload) {
+                providerPayloadCollector.push(bufferedPayload);
+                clientPayloadCollector.push(bufferedPayload);
               }
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
@@ -579,7 +613,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   },
                   _streamed: true,
                 };
-                onComplete({ status: 200, usage, responseBody });
+                onComplete({
+                  status: 200,
+                  usage,
+                  responseBody,
+                  providerPayload: providerPayloadCollector.build(),
+                  clientPayload: clientPayloadCollector.build(responseBody),
+                });
               } catch {}
             }
             return;
@@ -589,6 +629,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (buffer.trim()) {
             const parsed = parseSSELine(buffer.trim());
             if (parsed && !parsed.done) {
+              providerPayloadCollector.push(parsed);
               // Extract usage from remaining buffer — if the usage-bearing event
               // (e.g. response.completed) is the last SSE line, it ends up here
               // in the flush handler where extractUsage was not called.
@@ -625,6 +666,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               if (translated?.length > 0) {
                 for (const item of translated) {
                   const output = formatSSE(item, sourceFormat);
+                  clientPayloadCollector.push(item);
                   reqLogger?.appendConvertedChunk?.(output);
                   controller.enqueue(encoder.encode(output));
                 }
@@ -644,6 +686,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (flushed?.length > 0) {
             for (const item of flushed) {
               const output = formatSSE(item, sourceFormat);
+              clientPayloadCollector.push(item);
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
             }
@@ -662,6 +705,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Send [DONE] (only if not already sent during transform)
           if (!doneSent) {
             doneSent = true;
+            clientPayloadCollector.push({ done: true });
             const doneOutput = "data: [DONE]\n\n";
             reqLogger?.appendConvertedChunk?.(doneOutput);
             controller.enqueue(encoder.encode(doneOutput));
@@ -725,7 +769,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                 },
                 _streamed: true,
               };
-              onComplete({ status: 200, usage: state?.usage, responseBody });
+              onComplete({
+                status: 200,
+                usage: state?.usage,
+                responseBody,
+                providerPayload: providerPayloadCollector.build(),
+                clientPayload: clientPayloadCollector.build(responseBody),
+              });
             } catch {}
           }
         } catch (error) {

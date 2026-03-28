@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
 
 export async function GET(request: Request) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
 
     const filter: Record<string, any> = {};

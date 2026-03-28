@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogById } from "@/lib/usageDb";
 
 export async function GET(request, { params }) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const log = await getCallLogById(id);
 

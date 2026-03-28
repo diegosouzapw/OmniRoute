@@ -1,5 +1,5 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
-import { handleChat } from "@/sse/handlers/chat";
+import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -91,5 +91,5 @@ export async function POST(request, { params }) {
     body: JSON.stringify(body),
   });
 
-  return await handleChat(newRequest);
+  return await handleChat(newRequest, buildClientRawRequest(request, rawBody));
 }
