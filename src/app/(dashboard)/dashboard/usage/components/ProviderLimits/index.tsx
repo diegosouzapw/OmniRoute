@@ -24,7 +24,7 @@ const PROVIDER_CONFIG = {
   kiro: { label: "Kiro AI", color: "#FF6B35" },
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
-  glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
+  glm: { label: "GLM Coding", color: "#4A90D9" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
 };
 

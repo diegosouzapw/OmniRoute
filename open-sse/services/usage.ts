@@ -100,13 +100,67 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
+// GLM (Z.AI) quota API config
+const GLM_QUOTA_URLS: Record<string, string> = {
+  international: "https://api.z.ai/api/monitor/usage/quota/limit",
+  china: "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
+};
+
+async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, any>) {
+  const region = providerSpecificData?.apiRegion || "international";
+  const quotaUrl = GLM_QUOTA_URLS[region] || GLM_QUOTA_URLS.international;
+
+  const res = await fetch(quotaUrl, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("Invalid API key");
+    throw new Error(`GLM quota API error (${res.status})`);
+  }
+
+  const json = await res.json();
+  const data = toRecord(json.data);
+  const limits: any[] = Array.isArray(data.limits) ? data.limits : [];
+  const quotas: Record<string, UsageQuota> = {};
+
+  for (const limit of limits) {
+    const src = toRecord(limit);
+    if (src.type !== "TOKENS_LIMIT") continue;
+
+    const usedPercent = toNumber(src.percentage, 0);
+    const resetMs = toNumber(src.nextResetTime, 0);
+    const remaining = Math.max(0, 100 - usedPercent);
+
+    quotas["session"] = {
+      used: usedPercent,
+      total: 100,
+      remaining,
+      remainingPercentage: remaining,
+      resetAt: resetMs > 0 ? new Date(resetMs).toISOString() : null,
+      unlimited: false,
+    };
+  }
+
+  return {
+    plan:
+      typeof data.level === "string"
+        ? data.level.charAt(0).toUpperCase() + data.level.slice(1).toLowerCase()
+        : "Unknown",
+    quotas,
+  };
+}
+
 /**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
 export async function getUsageForProvider(connection) {
-  const { provider, accessToken, providerSpecificData } = connection;
+  const { provider, accessToken, apiKey, providerSpecificData } = connection;
 
   switch (provider) {
     case "github":
@@ -127,6 +181,8 @@ export async function getUsageForProvider(connection) {
       return await getQwenUsage(accessToken, providerSpecificData);
     case "iflow":
       return await getIflowUsage(accessToken);
+    case "glm":
+      return await getGlmUsage(apiKey, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

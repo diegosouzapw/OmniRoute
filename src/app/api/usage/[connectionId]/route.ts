@@ -126,8 +126,8 @@ export async function GET(
       return Response.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Only OAuth connections have usage APIs
-    if (connection.authType !== "oauth") {
+    // Only OAuth connections have usage APIs (except GLM which uses API key)
+    if (connection.authType !== "oauth" && connection.provider !== "glm") {
       return Response.json({ message: "Usage not available for API key connections" });
     }
 
