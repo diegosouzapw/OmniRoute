@@ -126,9 +126,21 @@ export async function GET(
       return Response.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Only OAuth connections have usage APIs (except GLM which uses API key)
-    if (connection.authType !== "oauth" && connection.provider !== "glm") {
+    // Only OAuth connections and specific API key providers have usage APIs
+    const apikeyUsageProviders = ["glm"];
+    if (connection.authType !== "oauth" && !apikeyUsageProviders.includes(connection.provider)) {
       return Response.json({ message: "Usage not available for API key connections" });
+    }
+
+    // API key providers skip OAuth refresh — call usage fetcher directly
+    if (connection.authType !== "oauth") {
+      try {
+        const usageData = await getUsageForProvider(connection);
+        return Response.json(usageData);
+      } catch (error) {
+        console.error("[Usage API] Error fetching usage:", error);
+        return Response.json({ error: (error as any).message }, { status: 500 });
+      }
     }
 
     // Resolve proxy for this connection FIRST (key → combo → provider → global → direct)

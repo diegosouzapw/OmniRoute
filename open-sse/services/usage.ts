@@ -106,7 +106,7 @@ const GLM_QUOTA_URLS: Record<string, string> = {
   china: "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
 };
 
-async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, any>) {
+async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
   const region = providerSpecificData?.apiRegion || "international";
   const quotaUrl = GLM_QUOTA_URLS[region] || GLM_QUOTA_URLS.international;
 
@@ -124,7 +124,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 
   const json = await res.json();
   const data = toRecord(json.data);
-  const limits: any[] = Array.isArray(data.limits) ? data.limits : [];
+  const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
   for (const limit of limits) {
@@ -145,13 +145,12 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
     };
   }
 
-  return {
-    plan:
-      typeof data.level === "string"
-        ? data.level.charAt(0).toUpperCase() + data.level.slice(1).toLowerCase()
-        : "Unknown",
-    quotas,
-  };
+  const levelRaw = typeof data.level === "string" ? data.level : "";
+  const plan = levelRaw
+    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
+    : "Unknown";
+
+  return { plan, quotas };
 }
 
 /**
