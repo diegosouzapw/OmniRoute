@@ -4,6 +4,15 @@
 
 ---
 
+## [3.1.10] — 2026-03-28
+
+### 🐛 Bug Fixes
+
+- **Fix #706** — Fixed icon fallback rendering caused by Tailwind V4 `font-sans` override by applying `!important` to `.material-symbols-outlined`.
+- **Fix #703** — Fixed GitHub Copilot broken streams by enabling `responses` to `openai` format translation for any custom models leveraging `apiFormat: "responses"`.
+- **Fix #702** — Replaced flat-rate usage tracking with accurate DB pricing calculations for both streaming and non-streaming responses.
+- **Fix #716** — Cleaned up Claude tool-call translation state, correctly parsing streaming arguments and preventing OpenAI `tool_calls` chunks from repeating the `id` field.
+
 ## [3.1.9] — 2026-03-28
 
 ### ✨ New Features
@@ -31,12 +40,12 @@
 
 ### 📁 New Files
 
-| File | Purpose |
-|------|---------|
-| `open-sse/translator/helpers/schemaCoercion.ts` | Schema coercion and tool description sanitization utilities |
-| `tests/unit/schema-coercion.test.mjs` | Unit tests for schema coercion |
-| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests |
-| `COVERAGE_PLAN.md` | Test coverage planning document |
+| File                                                     | Purpose                                                     |
+| -------------------------------------------------------- | ----------------------------------------------------------- |
+| `open-sse/translator/helpers/schemaCoercion.ts`          | Schema coercion and tool description sanitization utilities |
+| `tests/unit/schema-coercion.test.mjs`                    | Unit tests for schema coercion                              |
+| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
+| `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
 
 ## [3.1.8] - 2026-03-27
 

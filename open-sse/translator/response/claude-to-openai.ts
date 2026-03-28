@@ -90,7 +90,6 @@ export function claudeToOpenAIResponse(chunk, state) {
               tool_calls: [
                 {
                   index: toolCall.index,
-                  id: toolCall.id,
                   function: { arguments: delta.partial_json },
                 },
               ],

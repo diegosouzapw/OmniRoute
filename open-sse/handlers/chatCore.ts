@@ -27,6 +27,8 @@ import {
   saveCallLog,
 } from "@/lib/usageDb";
 import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAccounting";
+import { recordCost } from "@/domain/costRules";
+import { calculateCost } from "@/lib/usage/costCalculator";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
@@ -1315,6 +1317,11 @@ export async function handleChatCore({
       });
     }
 
+    if (apiKeyInfo?.id && usage) {
+      const estimatedCost = await calculateCost(provider, model, usage);
+      if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+    }
+
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(targetFormat, sourceFormat)
@@ -1447,22 +1454,29 @@ export async function handleChatCore({
       apiKeyName: apiKeyInfo?.name || null,
       noLog: apiKeyInfo?.noLog === true,
     }).catch(() => {});
+
+    if (apiKeyInfo?.id && streamUsage) {
+      calculateCost(provider, model, streamUsage)
+        .then((estimatedCost) => {
+          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+        })
+        .catch(() => {});
+    }
   };
 
-  // For Codex provider, translate response from openai-responses to openai (Chat Completions) format
+  // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
-  const needsCodexTranslation =
-    provider === "codex" &&
+  const needsResponsesTranslation =
     targetFormat === FORMATS.OPENAI_RESPONSES &&
     sourceFormat === FORMATS.OPENAI &&
     !isResponsesEndpoint &&
     !isDroidCLI;
 
-  if (needsCodexTranslation) {
-    // Codex returns openai-responses, translate to openai (Chat Completions) that clients expect
-    log?.debug?.("STREAM", `Codex translation mode: openai-responses → openai`);
+  if (needsResponsesTranslation) {
+    // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect
+    log?.debug?.("STREAM", `Responses translation mode: openai-responses → openai`);
     transformStream = createSSETransformStreamWithLogger(
       "openai-responses",
       "openai",

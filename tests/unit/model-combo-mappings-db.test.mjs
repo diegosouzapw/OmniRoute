@@ -79,6 +79,8 @@ test("updateModelComboMapping merges fields and returns the refreshed mapping", 
     priority: 1,
   });
 
+  await new Promise((r) => setTimeout(r, 10));
+
   const updated = await mappingsDb.updateModelComboMapping(created.id, {
     pattern: "claude-*",
     comboId: comboB.id,
