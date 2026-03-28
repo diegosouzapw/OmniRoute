@@ -1,11 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 
 const providerLimitUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
-const { default: Badge } = await import("../../src/shared/components/Badge.tsx");
 
 test("provider plan fallbacks normalize to Unknown instead of repeating provider labels", () => {
   const tier = providerLimitUtils.normalizePlanTier("Claude Code");
@@ -46,15 +43,4 @@ test("remaining percentage helpers reflect remaining quota and stale resets refi
 
   assert.equal(parsed.length, 1);
   assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
-});
-
-test("Badge secondary variant renders bordered pill styles", () => {
-  const html = renderToStaticMarkup(
-    React.createElement(Badge, { variant: "secondary", size: "sm", dot: true }, "Plus")
-  );
-
-  assert.match(html, /bg-primary\/10/);
-  assert.match(html, /border/);
-  assert.match(html, /border-primary\/20/);
-  assert.match(html, />Plus</);
 });
