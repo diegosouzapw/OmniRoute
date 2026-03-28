@@ -1,0 +1,60 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+const providerLimitUtils =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
+const { default: Badge } = await import("../../src/shared/components/Badge.tsx");
+
+test("provider plan fallbacks normalize to Unknown instead of repeating provider labels", () => {
+  const tier = providerLimitUtils.normalizePlanTier("Claude Code");
+
+  assert.equal(tier.key, "unknown");
+  assert.equal(tier.label, "Unknown");
+});
+
+test("paid individual tiers use non-gray badge variants", () => {
+  assert.equal(providerLimitUtils.normalizePlanTier("Plus").variant, "success");
+  assert.equal(providerLimitUtils.normalizePlanTier("Pro").variant, "success");
+  assert.equal(providerLimitUtils.normalizePlanTier("Student").variant, "success");
+  assert.equal(providerLimitUtils.normalizePlanTier("Free").variant, "default");
+});
+
+test("Codex workspacePlanType is used when live plan is missing or unknown", () => {
+  const resolvedPlan = providerLimitUtils.resolvePlanValue("unknown", {
+    workspacePlanType: "plus",
+  });
+
+  assert.equal(resolvedPlan, "plus");
+  const tier = providerLimitUtils.normalizePlanTier(resolvedPlan);
+  assert.equal(tier.key, "plus");
+  assert.equal(tier.variant, "success");
+});
+
+test("used percentage helpers reflect consumed quota and stale resets collapse to zero", () => {
+  assert.equal(providerLimitUtils.calculateUsedPercentage(0, 100), 0);
+  assert.equal(providerLimitUtils.calculateUsedPercentage(17, 100), 17);
+  assert.equal(providerLimitUtils.calculateUsedPercentage(60, 100), 60);
+
+  const past = new Date(Date.now() - 60_000).toISOString();
+  const parsed = providerLimitUtils.parseQuotaData("codex", {
+    quotas: {
+      session: { used: 83, total: 100, resetAt: past },
+    },
+  });
+
+  assert.equal(parsed.length, 1);
+  assert.equal(providerLimitUtils.calculateUsedPercentage(parsed[0].used, parsed[0].total), 0);
+});
+
+test("Badge secondary variant renders bordered pill styles", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(Badge, { variant: "secondary", size: "sm", dot: true }, "Plus")
+  );
+
+  assert.match(html, /bg-primary\/10/);
+  assert.match(html, /border/);
+  assert.match(html, /border-primary\/20/);
+  assert.match(html, />Plus</);
+});
