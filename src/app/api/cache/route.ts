@@ -1,5 +1,12 @@
-import { NextResponse } from "next/server";
-import { getCacheStats, clearCache, cleanExpiredEntries } from "@/lib/semanticCache";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getCacheStats,
+  clearCache,
+  cleanExpiredEntries,
+  invalidateByModel,
+  invalidateBySignature,
+  invalidateStale,
+} from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 
 /**
@@ -20,13 +27,44 @@ export async function GET() {
 }
 
 /**
- * DELETE /api/cache — Clear all caches
+ * DELETE /api/cache — Clear all caches or targeted invalidation
+ *
+ * Query params:
+ *   ?model=<name>      — invalidate entries for a specific model
+ *   ?signature=<hex>   — invalidate a single entry by signature
+ *   ?staleMs=<number>  — invalidate entries older than N milliseconds
+ *   (no params)        — clear everything
  */
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const model = searchParams.get("model");
+    const signature = searchParams.get("signature");
+    const staleMsParam = searchParams.get("staleMs");
+
+    if (model) {
+      const removed = invalidateByModel(model);
+      return NextResponse.json({ ok: true, invalidated: removed, scope: "model", model });
+    }
+
+    if (signature) {
+      const removed = invalidateBySignature(signature);
+      return NextResponse.json({ ok: true, invalidated: removed ? 1 : 0, scope: "signature" });
+    }
+
+    if (staleMsParam) {
+      const maxAgeMs = parseInt(staleMsParam, 10);
+      if (isNaN(maxAgeMs) || maxAgeMs <= 0) {
+        return NextResponse.json({ error: "Invalid staleMs value" }, { status: 400 });
+      }
+      const removed = invalidateStale(maxAgeMs);
+      return NextResponse.json({ ok: true, invalidated: removed, scope: "stale", maxAgeMs });
+    }
+
+    // Full clear
     clearCache();
-    const cleaned = cleanExpiredEntries();
-    return NextResponse.json({ ok: true, expiredRemoved: cleaned });
+    const expiredRemoved = cleanExpiredEntries();
+    return NextResponse.json({ ok: true, expiredRemoved, scope: "all" });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
