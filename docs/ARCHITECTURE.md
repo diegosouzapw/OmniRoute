@@ -355,7 +355,7 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics.
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
 
 ## OAuth Onboarding and Token Refresh Lifecycle
 
