@@ -439,7 +439,7 @@ export const APIKEY_PROVIDERS = {
   zai: {
     id: "zai",
     alias: "zai",
-    name: "Z.AI (GLM-5)",
+    name: "Z.AI",
     icon: "psychology",
     color: "#2563EB",
     textIcon: "ZA",
@@ -661,6 +661,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "codex",
   "claude",
   "kimi-coding",
+  "glm",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

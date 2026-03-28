@@ -4,6 +4,73 @@
 
 ---
 
+## [3.1.10] — 2026-03-28
+
+### 🐛 Bug Fixes
+
+- **Fix #706** — Fixed icon fallback rendering caused by Tailwind V4 `font-sans` override by applying `!important` to `.material-symbols-outlined`.
+- **Fix #703** — Fixed GitHub Copilot broken streams by enabling `responses` to `openai` format translation for any custom models leveraging `apiFormat: "responses"`.
+- **Fix #702** — Replaced flat-rate usage tracking with accurate DB pricing calculations for both streaming and non-streaming responses.
+- **Fix #716** — Cleaned up Claude tool-call translation state, correctly parsing streaming arguments and preventing OpenAI `tool_calls` chunks from repeating the `id` field.
+
+## [3.1.9] — 2026-03-28
+
+### ✨ New Features
+
+- **Schema Coercion** — Auto-coerce string-encoded numeric JSON Schema constraints (e.g. `"minimum": "1"`) to proper types, preventing 400 errors from Cursor, Cline, and other clients sending malformed tool schemas.
+- **Tool Description Sanitization** — Ensure tool descriptions are always strings; converts `null`, `undefined`, or numeric descriptions to empty strings before sending to providers.
+- **Clear All Models Button** — Added i18n translations for the "Clear All Models" provider action across all 30 languages.
+- **Codex Auth Export** — Added Codex `auth.json` export and apply-local buttons for seamless CLI integration.
+- **Windsurf BYOK Notes** — Added official limitation warnings to the Windsurf CLI tool card documenting BYOK constraints.
+
+### 🐛 Bug Fixes
+
+- **Fix #709** — `system-info.mjs` no longer crashes when the output directory doesn't exist (added `mkdirSync` with recursive flag).
+- **Fix #710** — A2A `TaskManager` singleton now uses `globalThis` to prevent state leakage across Next.js API route recompilations in dev mode. E2E test suite updated to handle 401 gracefully.
+- **Fix #711** — Added provider-specific `max_tokens` cap enforcement for upstream requests.
+- **Fix #605 / #592** — Strip `proxy_` prefix from tool names in non-streaming Claude responses; fixed LongCat validation URL.
+- **Call Logs Max Cap** — Upgraded `getMaxCallLogs()` with caching layer, env var support (`CALL_LOGS_MAX`), and DB settings integration.
+
+### 🧪 Tests
+
+- Test suite expanded from 964 → 1027 tests (63 new tests)
+- Added `schema-coercion.test.mjs` — 9 tests for numeric field coercion and tool description sanitization
+- Added `t40-opencode-cli-tools-integration.test.mjs` — OpenCode/Windsurf CLI integration tests
+- Enhanced feature-tests branch with comprehensive coverage tooling
+
+### 📁 New Files
+
+| File                                                     | Purpose                                                     |
+| -------------------------------------------------------- | ----------------------------------------------------------- |
+| `open-sse/translator/helpers/schemaCoercion.ts`          | Schema coercion and tool description sanitization utilities |
+| `tests/unit/schema-coercion.test.mjs`                    | Unit tests for schema coercion                              |
+| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
+| `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
+
+## [3.1.8] - 2026-03-27
+
+### 🐛 Bug Fixes & Features
+
+- **Platform Core:** Implemented global state handling for Hidden Models & Combos preventing them from cluttering the catalog or leaking into connected MCP agents (#681).
+- **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
+- **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Streaming Stability:** Fixed `hasValuableContent` returning `undefined` for empty chunks in SSE streams (#676).
+- **Tool Calling:** Fixed an issue in `sseParser.ts` where non-streaming Claude responses with multiple tool calls dropped the `id` of subsequent tool calls due to incorrect index-based deduplication (#671).
+
+---
+
+## [3.1.6] — 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Claude Native Tool Name Restoration** — Tool names like `TodoWrite` are no longer prefixed with `proxy_` in Claude passthrough responses (both streaming and non-streaming). Includes unit test coverage (PR #663 by @coobabm)
+- **Clear All Models Alias Cleanup** — "Clear All Models" button now also removes associated model aliases, preventing ghost models in the UI (PR #664 by @rdself)
+
+---
+
 ## [3.1.5] — 2026-03-27
 
 ### 🐛 Bug Fixes

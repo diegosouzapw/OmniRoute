@@ -439,7 +439,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
 
     if (args.provider && !args.capability) {
       // Use direct provider fetch to get real-time API status
-      path = `/api/providers/${encodeURIComponent(args.provider)}/models`;
+      path = `/api/providers/${encodeURIComponent(args.provider)}/models?excludeHidden=true`;
       isProviderSpecific = true;
     } else {
       const params = new URLSearchParams();

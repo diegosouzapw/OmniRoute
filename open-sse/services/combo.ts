@@ -20,6 +20,15 @@ import { supportsToolCalling } from "./modelCapabilities.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
+const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
+  /\bprohibited_content\b/i,
+  /request blocked by .*api/i,
+  /provided message roles? is not valid/i,
+  /unsupported .*message role/i,
+  /no such tool available/i,
+  /unsupported content part type/i,
+  /tool(?:_call|_use)? .* not (?:available|found)/i,
+];
 
 const MAX_COMBO_DEPTH = 3;
 
@@ -256,6 +265,12 @@ function extractPromptForIntent(body) {
 
   if (typeof body.prompt === "string") return body.prompt;
   return "";
+}
+
+export function shouldFallbackComboBadRequest(status, errorText) {
+  if (status !== 400 || !errorText) return false;
+  const message = String(errorText);
+  return COMBO_BAD_REQUEST_FALLBACK_PATTERNS.some((pattern) => pattern.test(message));
 }
 
 function mapIntentToTaskType(intent) {
@@ -567,6 +582,15 @@ export async function handleComboChat({
       }
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
+
+  // Route to pinned model if context caching specifies one (Fix #679)
+  if (pinnedModel) {
+    log.info(
+      "COMBO",
+      `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+    );
+    return handleSingleModelWrapped(body, pinnedModel);
+  }
 
   // Route to round-robin handler if strategy matches
   if (strategy === "round-robin") {
@@ -881,15 +905,23 @@ export async function handleComboChat({
         provider,
         result.headers
       );
+      const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
       // Record failure in circuit breaker for transient errors
       if (TRANSIENT_FOR_BREAKER.includes(result.status)) {
         breaker._onFailure();
       }
 
-      if (!shouldFallback) {
+      if (!shouldFallback && !comboBadRequestFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
         return result;
+      }
+
+      if (comboBadRequestFallback) {
+        log.info(
+          "COMBO",
+          `Treating provider-scoped 400 from ${modelStr} as model-local failure; trying next combo target`
+        );
       }
 
       // Check if this is a transient error worth retrying on same model
@@ -1137,6 +1169,7 @@ async function handleRoundRobinCombo({
           provider,
           result.headers
         );
+        const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
         // Transient errors → mark in semaphore AND record circuit breaker failure
         if (TRANSIENT_FOR_BREAKER.includes(result.status) && cooldownMs > 0) {
@@ -1148,9 +1181,16 @@ async function handleRoundRobinCombo({
           );
         }
 
-        if (!shouldFallback) {
+        if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           return result;
+        }
+
+        if (comboBadRequestFallback) {
+          log.info(
+            "COMBO-RR",
+            `Treating provider-scoped 400 from ${modelStr} as model-local failure; trying next model`
+          );
         }
 
         // Transient error → retry same model

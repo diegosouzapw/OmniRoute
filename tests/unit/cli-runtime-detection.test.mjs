@@ -37,6 +37,7 @@ describe("CLI_TOOL_IDS", () => {
       "droid",
       "openclaw",
       "cursor",
+      "windsurf",
       "cline",
       "kilo",
       "continue",
@@ -156,6 +157,15 @@ describe("continue tool — no binary required", () => {
   it("should report installed=true without checking binary", async () => {
     const result = await getCliRuntimeStatus("continue");
     assert.equal(result.installed, true);
+    assert.equal(result.reason, "not_required");
+  });
+});
+
+describe("windsurf tool — guide-only integration", () => {
+  it("should report installed=true without requiring a local binary", async () => {
+    const result = await getCliRuntimeStatus("windsurf");
+    assert.equal(result.installed, true);
+    assert.equal(result.runnable, true);
     assert.equal(result.reason, "not_required");
   });
 });

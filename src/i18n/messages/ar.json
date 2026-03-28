@@ -58,7 +58,85 @@
     "free": "مجاني",
     "skipToContent": "انتقل إلى المحتوى",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "قبول",
+    "accountId": "معرف الحساب",
+    "alias": "الاسم المستعار",
+    "apiKeyId": "معرف مفتاح واجهة برمجة التطبيقات",
+    "apiKeyName": "اسم مفتاح واجهة برمجة التطبيقات",
+    "apiKeySecret": "سر مفتاح API",
+    "authorization": "إذن",
+    "content-type": "نوع المحتوى",
+    "content-length": "طول المحتوى",
+    "cookie": "ملف تعريف الارتباط",
+    "file": "ملف",
+    "host": "المضيف",
+    "id": "معرف",
+    "import": "استيراد",
+    "limit": "الحد",
+    "offset": "إزاحة",
+    "open": "مفتوح",
+    "origin": "الأصل",
+    "promptTokens": "الرموز الفورية",
+    "completionTokens": "رموز الإنجاز",
+    "totalTokens": "مجموع الرموز",
+    "rawModel": "النموذج الخام",
+    "scope": "النطاق",
+    "skill": "مهارة",
+    "sortBy": "فرز حسب",
+    "sortOrder": "ترتيب الفرز",
+    "tab": "علامة التبويب",
+    "text": "نص",
+    "textarea": "منطقة النص",
+    "tool": "أداة",
+    "toolId": "معرف الأداة",
+    "web": "ويب",
+    "whereUsed": "حيث تستخدم",
+    "whitelist": "القائمة البيضاء",
+    "blacklist": "القائمة السوداء",
+    "resolve": "حل",
+    "force": "القوة",
+    "base64url": "عنوان URL Base64",
+    "hex": "عرافة",
+    "range": "النطاق",
+    "component": "مكون",
+    "redirect_uri": "إعادة توجيه URI",
+    "idempotency-key": "مفتاح العجز",
+    "error_description": "وصف الخطأ",
+    "code": "الكود",
+    "compatible": "متوافق",
+    "chat-completions": "استكمالات الدردشة",
+    "oauth": "OAuth",
+    "auth_token": "رمز المصادقة",
+    "crypto": "تشفير",
+    "hours": "ساعات",
+    "selfsigned": "موقعة ذاتيا",
+    "proxy_id": "معرف الوكيل",
+    "proxyId": "معرف الوكيل",
+    "connectionId": "معرف الاتصال",
+    "resolveConnectionId": "حل معرف الاتصال",
+    "resolve_connection_id": "حل معرف الاتصال",
+    "scope_id": "معرف النطاق",
+    "scopeId": "معرف النطاق",
+    "jwtSecret": "JWT سر",
+    "keytar": "كيتار",
+    "better-sqlite3": "أفضل-sqlite3",
+    "undici": "undici",
+    "builder-id": "معرف البناء",
+    "musicDesc": "وصف الموسيقى",
+    "musicGeneration": "جيل الموسيقى",
+    "idc": "آي دي سي",
+    "cloud-status-changed": "تغيرت حالة السحابة",
+    "where_used": "حيث تستخدم",
+    "windowMs": "النافذة (مللي ثانية)",
+    "social-github": "جيثب",
+    "social-google": "جوجل",
+    "TOOL_ALLOWLIST": "القائمة المسموح بها للأداة",
+    "TOOL_DENYLIST": "قائمة رفض الأداة",
+    "Failed to save pricing": "فشل حفظ الأسعار",
+    "Failed to reset pricing": "فشل في إعادة تعيين التسعير",
+    "apikey": "مفتاح واجهة برمجة التطبيقات",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "الصفحة الرئيسية",
@@ -107,7 +185,9 @@
     "agents": "وكلاء",
     "cliToolsShort": "أدوات",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "المواضيع",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} طلب",
     "providerModelsTitle": "{provider} - النماذج",
     "copiedModel": "تم النسخ: {model}",
-    "aliasLabel": "الاسم المستعار"
+    "aliasLabel": "الاسم المستعار",
+    "updateNow": "التحديث الآن",
+    "updating": "جارٍ التحديث...",
+    "updateAvailableDesc": "نسخة جديدة متاحة. انقر للتحديث.",
+    "updateStarted": "بدأ التحديث..."
   },
   "analytics": {
     "title": "التحليلات",
@@ -535,6 +619,9 @@
             "title": "إضافة تكوين النموذج",
             "desc": "أضف التكوين التالي إلى مجموعة النماذج الخاصة بك:"
           }
+        },
+        "notes": {
+          "0": "متابعة يستخدم ملف التكوين JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "يتطلب OpenCode تكوين مفتاح API.",
+          "1": "قم بتعيين عنوان URL الأساسي إلى نقطة نهاية OmniRoute الخاصة بك."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "يتطلب كيرو حساب أمازون."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "استكمالات الدردشة",
     "importingModels": "جارٍ الاستيراد...",
     "importFromModels": "الاستيراد من / النماذج",
+    "clearAllModels": "مسح جميع النماذج",
+    "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة جميع النماذج لهذا المزود؟ لا يمكن التراجع عن هذا.",
+    "clearAllModelsSuccess": "تم مسح جميع النماذج",
+    "clearAllModelsFailed": "فشل في مسح النماذج",
     "addConnectionToImport": "أضف اتصالاً لتمكين الاستيراد.",
     "noModelsConfigured": "لم يتم تكوين أي نماذج",
     "connectionCount": "{count} الاتصال (الاتصالات)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "المزامنة التلقائية",
+    "autoSyncTooltip": "تحديث قائمة النماذج تلقائيًا كل 24 ساعة (قابلة للتكوين عبر MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
+    "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
+    "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
+    "clearAllModels": "مسح كافة النماذج",
+    "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة كافة النماذج لهذا الموفر؟ لا يمكن التراجع عن هذا.",
+    "clearAllModelsSuccess": "تم مسح جميع النماذج",
+    "clearAllModelsFailed": "فشل في مسح النماذج"
   },
   "settings": {
     "title": "الإعدادات",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "أعد تشغيل الخادم وسيتم استخدام كلمة المرور الجديدة",
     "backToLogin": "العودة إلى تسجيل الدخول",
     "forgotPassword": "هل نسيت كلمة المرور؟",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "إذن",
+    "Content-Disposition": "التصرف في المحتوى",
+    "waitingForAuthorization": "في انتظار الترخيص...",
+    "waitingForGoogleAuthorization": "في انتظار إذن Google...",
+    "waitingForOpenAIAuthorization": "في انتظار ترخيص OpenAI...",
+    "waitingForAntigravityAuthorization": "في انتظار تصريح مكافحة الجاذبية...",
+    "waitingForIFlowAuthorization": "في انتظار ترخيص iFlow...",
+    "exchangingCodeForTokens": "استبدال الكود بالرموز..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "توليد تحويل النص إلى كلام (ElevenLabs، OpenAI TTS).",
+    "endpointEmbeddingsNote": "إنشاء تضمين النص (OpenAI، Cohere، Voyage)."
   },
   "legal": {
     "privacyPolicy": "سياسة الخصوصية",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "دردشة بسيطة",
+    "streaming": "الجري",
+    "system-prompt": "موجه النظام",
+    "thinking": "التفكير",
+    "tool-calling": "استدعاء الأداة",
+    "multi-turn": "متعدد المنعطفات"
+  },
+  "templateDescriptions": {
+    "simple-chat": "قالب الدردشة الأساسي مع رسالة النظام",
+    "streaming": "نموذج لتدفق الردود",
+    "system-prompt": "قالب مع موجه النظام المخصص",
+    "thinking": "قالب مع ميزانية التفكير/الاستدلال",
+    "tool-calling": "نموذج لاستدعاء الأداة/الوظيفة",
+    "multi-turn": "قالب للمحادثات متعددة المنعطفات"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "أنت مساعد AI مفيد.",
+      "userGreeting": "مرحبا! كيف يمكنني مساعدتك اليوم؟"
+    },
+    "streaming": {
+      "prompt": "اكتب قصة عنه"
+    },
+    "systemPrompt": {
+      "question": "ما هو معنى الحياة؟",
+      "systemInstruction": "تقديم إجابة مدروسة وفلسفية."
+    },
+    "thinking": {
+      "question": "شرح الحوسبة الكمومية"
+    },
+    "toolCalling": {
+      "cityNameDescription": "اسم المدينة لمعرفة الطقس لها",
+      "toolDescription": "الحصول على الطقس الحالي لموقع ما",
+      "userWeather": "ما هو الطقس في طوكيو ؟"
+    },
+    "multiTurn": {
+      "system": "أنت مساعد مفيد.",
+      "assistantExample": "سأكون سعيدًا بمساعدتك في ذلك.",
+      "userInitial": "انا بحاجة الى مساعدة مع",
+      "userFollowUp": "هل يمكنك توضيح ذلك؟"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

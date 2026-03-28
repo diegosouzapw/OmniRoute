@@ -86,6 +86,24 @@ export function fixToolUseOrdering(messages) {
   return merged;
 }
 
+function ensureMessageContentArray(msg) {
+  if (Array.isArray(msg?.content)) return msg.content;
+  if (typeof msg?.content === "string" && msg.content.trim()) {
+    msg.content = [{ type: "text", text: msg.content }];
+    return msg.content;
+  }
+  return [];
+}
+
+function markMessageCacheControl(msg, ttl) {
+  const content = ensureMessageContentArray(msg);
+  if (content.length === 0) return false;
+  const lastIndex = content.length - 1;
+  content[lastIndex].cache_control =
+    ttl !== undefined ? { type: "ephemeral", ttl } : { type: "ephemeral" };
+  return true;
+}
+
 // Prepare request for Claude format endpoints
 // - Cleanup cache_control
 // - Filter empty messages
@@ -156,15 +174,27 @@ export function prepareClaudeRequest(body, provider = null) {
     const lastMessageIsUser = lastMessage?.role === "user";
     const thinkingEnabled = body.thinking?.type === "enabled" && lastMessageIsUser;
 
+    // Claude Code-style prompt caching:
+    // - cache the second-to-last user turn for conversation reuse
+    // - cache the last assistant turn so the next user turn can reuse it
+    const userMessageIndexes = filtered.reduce((indexes, msg, index) => {
+      if (msg?.role === "user") indexes.push(index);
+      return indexes;
+    }, []);
+    const secondToLastUserIndex =
+      userMessageIndexes.length >= 2 ? userMessageIndexes[userMessageIndexes.length - 2] : -1;
+    if (secondToLastUserIndex >= 0) {
+      markMessageCacheControl(filtered[secondToLastUserIndex]);
+    }
+
     // Pass 2 (reverse): add cache_control to last assistant + handle thinking for Anthropic
     let lastAssistantProcessed = false;
     for (let i = filtered.length - 1; i >= 0; i--) {
       const msg = filtered[i];
 
-      if (msg.role === "assistant" && Array.isArray(msg.content)) {
+      if (msg.role === "assistant" && Array.isArray(ensureMessageContentArray(msg))) {
         // Add cache_control to last block of first (from end) assistant with content
-        if (!lastAssistantProcessed && msg.content.length > 0) {
-          msg.content[msg.content.length - 1].cache_control = { type: "ephemeral" };
+        if (!lastAssistantProcessed && markMessageCacheControl(msg)) {
           lastAssistantProcessed = true;
         }
 

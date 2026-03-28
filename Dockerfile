@@ -1,13 +1,17 @@
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libsecret-1-0 \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
 COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
-RUN mkdir -p /app/data && npm run build
+RUN mkdir -p /app/data && npm run build -- --webpack
 
 FROM node:22-bookworm-slim AS runner-base
 WORKDIR /app
@@ -25,6 +29,9 @@ ENV NODE_OPTIONS="--max-old-space-size=256"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libsecret-1-0 \
+  && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/data
 
 COPY --from=builder /app/public ./public

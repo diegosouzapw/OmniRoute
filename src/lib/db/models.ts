@@ -110,6 +110,7 @@ export type ModelCompatOverride = {
   preserveOpenAIDeveloperRole?: boolean;
   compatByProtocol?: CompatByProtocolMap;
   upstreamHeaders?: Record<string, string>;
+  isHidden?: boolean;
 };
 
 function readCompatList(providerId: string): ModelCompatOverride[] {
@@ -154,6 +155,7 @@ export type ModelCompatPatch = {
   compatByProtocol?: CompatByProtocolMap;
   /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
   upstreamHeaders?: Record<string, string> | null;
+  isHidden?: boolean | null;
 };
 
 function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined): boolean {
@@ -201,9 +203,18 @@ export function mergeModelCompatOverride(
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
   const hasTopUpstream = next.upstreamHeaders && Object.keys(next.upstreamHeaders).length > 0;
+  if ("isHidden" in patch) {
+    if (patch.isHidden === null) {
+      delete next.isHidden;
+    } else {
+      next.isHidden = Boolean(patch.isHidden);
+    }
+  }
+  const hasHiddenFlag = Object.prototype.hasOwnProperty.call(next, "isHidden");
   if (
     next.normalizeToolCallId ||
     hasPreserveFlag ||
+    hasHiddenFlag ||
     compatByProtocolHasEntries(next.compatByProtocol) ||
     hasTopUpstream
   ) {
@@ -507,6 +518,7 @@ export async function updateCustomModel(
     ...(updates.normalizeToolCallId !== undefined
       ? { normalizeToolCallId: Boolean(updates.normalizeToolCallId) }
       : {}),
+    ...(updates.isHidden !== undefined ? { isHidden: Boolean(updates.isHidden) } : {}),
   };
   if (Object.prototype.hasOwnProperty.call(updates, "preserveOpenAIDeveloperRole")) {
     if (updates.preserveOpenAIDeveloperRole === null) {
@@ -636,6 +648,18 @@ export function getModelPreserveOpenAIDeveloperRole(
     return Boolean(co.preserveOpenAIDeveloperRole);
   }
   return undefined;
+}
+
+/**
+ * Check if the model is flagged as hidden from the public catalog.
+ */
+export function getModelIsHidden(providerId: string, modelId: string): boolean {
+  const m = getCustomModelRow(providerId, modelId);
+  if (m && Object.prototype.hasOwnProperty.call(m, "isHidden")) {
+    return Boolean(m.isHidden);
+  }
+  const co = readCompatList(providerId).find((e) => e.id === modelId);
+  return Boolean(co?.isHidden);
 }
 
 function readUpstreamFromJsonRecord(

@@ -29,7 +29,10 @@ export function extractUsageFromResponse(responseBody, provider) {
     return {
       prompt_tokens: responsesUsage.input_tokens || 0,
       completion_tokens: responsesUsage.output_tokens || 0,
-      cached_tokens: responsesUsage.cache_read_input_tokens,
+      cache_read_input_tokens: responsesUsage.cache_read_input_tokens,
+      cached_tokens:
+        responsesUsage.input_tokens_details?.cached_tokens ??
+        responsesUsage.cache_read_input_tokens,
       cache_creation_input_tokens: responsesUsage.cache_creation_input_tokens,
       reasoning_tokens:
         responsesUsage.reasoning_tokens || responsesUsage.output_tokens_details?.reasoning_tokens,

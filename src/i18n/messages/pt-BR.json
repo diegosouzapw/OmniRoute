@@ -58,7 +58,85 @@
     "free": "Gratuito",
     "skipToContent": "Pular para conteúdo",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Aceitar",
+    "accountId": "ID da conta",
+    "alias": "Alias",
+    "apiKeyId": "ID da chave de API",
+    "apiKeyName": "Nome da chave de API",
+    "apiKeySecret": "Segredo da chave API",
+    "authorization": "Autorização",
+    "content-type": "Tipo de conteúdo",
+    "content-length": "Comprimento do conteúdo",
+    "cookie": "Biscoito",
+    "file": "Arquivo",
+    "host": "Anfitrião",
+    "id": "ID",
+    "import": "Importar",
+    "limit": "Limite",
+    "offset": "Deslocamento",
+    "open": "Abrir",
+    "origin": "Origem",
+    "promptTokens": "Tokens de prompt",
+    "completionTokens": "Tokens de conclusão",
+    "totalTokens": "Total de fichas",
+    "rawModel": "Modelo Bruto",
+    "scope": "Escopo",
+    "skill": "Habilidade",
+    "sortBy": "Classificar por",
+    "sortOrder": "Ordem de classificação",
+    "tab": "Guia",
+    "text": "Texto",
+    "textarea": "Área de texto",
+    "tool": "Ferramenta",
+    "toolId": "ID da ferramenta",
+    "web": "Rede",
+    "whereUsed": "Onde usado",
+    "whitelist": "Lista de permissões",
+    "blacklist": "Lista negra",
+    "resolve": "Resolver",
+    "force": "Força",
+    "base64url": "URL Base64",
+    "hex": "Feitiço",
+    "range": "Alcance",
+    "component": "Componente",
+    "redirect_uri": "Redirecionar URI",
+    "idempotency-key": "Chave de Idempotência",
+    "error_description": "Descrição do erro",
+    "code": "Código",
+    "compatible": "Compatível",
+    "chat-completions": "Conclusões de bate-papo",
+    "oauth": "OAuth",
+    "auth_token": "Token de autenticação",
+    "crypto": "Criptografia",
+    "hours": "Horas",
+    "selfsigned": "Autoassinado",
+    "proxy_id": "ID do proxy",
+    "proxyId": "ID do proxy",
+    "connectionId": "ID de conexão",
+    "resolveConnectionId": "Resolver ID de conexão",
+    "resolve_connection_id": "Resolver ID de conexão",
+    "scope_id": "ID do escopo",
+    "scopeId": "ID do escopo",
+    "jwtSecret": "Segredo JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "melhor-sqlite3",
+    "undici": "unici",
+    "builder-id": "ID do construtor",
+    "musicDesc": "Descrição da música",
+    "musicGeneration": "Geração Musical",
+    "idc": "CDI",
+    "cloud-status-changed": "Status da nuvem alterado",
+    "where_used": "Onde usado",
+    "windowMs": "Janela (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Lista de permissões de ferramentas",
+    "TOOL_DENYLIST": "Lista de bloqueios de ferramentas",
+    "Failed to save pricing": "Falha ao salvar o preço",
+    "Failed to reset pricing": "Falha ao redefinir o preço",
+    "apikey": "Chave de API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Início",
@@ -107,7 +185,9 @@
     "playground": "Playground",
     "agents": "Agentes",
     "cliToolsShort": "Ferramentas",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} reqs",
     "providerModelsTitle": "{provider} - Modelos",
     "copiedModel": "Copiado: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Atualizar agora",
+    "updating": "Atualizando...",
+    "updateAvailableDesc": "Uma nova versão está disponível. Clique para atualizar.",
+    "updateStarted": "Atualização iniciada..."
   },
   "analytics": {
     "title": "Análises",
@@ -535,6 +619,9 @@
             "title": "Adicionar Config de Modelo",
             "desc": "Adicione a configuração abaixo ao array de modelos:"
           }
+        },
+        "notes": {
+          "0": "Continuar usa o arquivo de configuração JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode requer configuração de chave API.",
+          "1": "Configure a URL base para seu endpoint do OmniRoute."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro requer uma conta Amazon."
         }
       }
     },
@@ -1326,6 +1420,10 @@
     "chatCompletions": "Chat Completions",
     "importingModels": "Importando...",
     "importFromModels": "Importar de /models",
+    "clearAllModels": "Limpar Todos os Modelos",
+    "clearAllModelsConfirm": "Tem certeza de que deseja remover todos os modelos deste provedor? Esta ação não pode ser desfeita.",
+    "clearAllModelsSuccess": "Todos os modelos foram limpos",
+    "clearAllModelsFailed": "Falha ao limpar os modelos",
     "addConnectionToImport": "Adicione uma conexão para habilitar importação.",
     "noModelsConfigured": "Nenhum modelo configurado",
     "connectionCount": "{count} conexão(ões)",
@@ -1483,13 +1581,28 @@
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
     "tokenRefreshFailed": "Token refresh failed",
+    "applyCodexAuthLocal": "Aplicar auth",
+    "exportCodexAuthFile": "Exportar auth",
+    "codexAuthAppliedLocal": "auth.json do Codex aplicado localmente",
+    "codexAuthApplyFailed": "Falha ao aplicar o auth.json do Codex localmente",
+    "codexAuthExported": "auth.json do Codex exportado",
+    "codexAuthExportFailed": "Falha ao exportar o auth.json do Codex",
     "compatBadgeUpstreamHeaders": "Headers",
     "compatUpstreamAddRow": "Add header",
     "compatUpstreamHeaderName": "Header name",
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Sincronização automática",
+    "autoSyncTooltip": "Atualize automaticamente a lista de modelos a cada 24h (configurável via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Sincronização automática habilitada – os modelos serão atualizados periodicamente",
+    "autoSyncDisabled": "Sincronização automática desativada",
+    "autoSyncToggleFailed": "Falha ao alternar a sincronização automática",
+    "clearAllModels": "Limpar todos os modelos",
+    "clearAllModelsConfirm": "Tem certeza de que deseja remover todos os modelos deste provedor? Isto não pode ser desfeito.",
+    "clearAllModelsSuccess": "Todos os modelos foram apagados",
+    "clearAllModelsFailed": "Falha ao limpar modelos"
   },
   "settings": {
     "title": "Configurações",
@@ -2316,7 +2429,15 @@
     "restartServerWithNewPassword": "Reinicie o servidor - ele usará a nova senha",
     "backToLogin": "Voltar para o Login",
     "forgotPassword": "Esqueceu a senha?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorização",
+    "Content-Disposition": "Disposição de conteúdo",
+    "waitingForAuthorization": "Aguardando autorização...",
+    "waitingForGoogleAuthorization": "Aguardando autorização do Google...",
+    "waitingForOpenAIAuthorization": "Aguardando autorização do OpenAI...",
+    "waitingForAntigravityAuthorization": "Aguardando autorização antigravidade...",
+    "waitingForIFlowAuthorization": "Aguardando autorização do iFlow...",
+    "exchangingCodeForTokens": "Trocando código por tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2523,7 +2644,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Geração de texto para fala (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Geração de incorporação de texto (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Política de Privacidade",
@@ -2701,5 +2824,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Bate-papo simples",
+    "streaming": "Transmissão",
+    "system-prompt": "Alerta do sistema",
+    "thinking": "Pensando",
+    "tool-calling": "Chamada de ferramenta",
+    "multi-turn": "Multivoltas"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Modelo básico de chat com mensagem do sistema",
+    "streaming": "Modelo para streaming de respostas",
+    "system-prompt": "Modelo com prompt de sistema personalizado",
+    "thinking": "Modelo com orçamento de raciocínio/pensamento",
+    "tool-calling": "Modelo para chamada de ferramenta/função",
+    "multi-turn": "Modelo para conversas múltiplas"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Você é um assistente de IA útil.",
+      "userGreeting": "Olá! Como posso ajudá-lo hoje?"
+    },
+    "streaming": {
+      "prompt": "Escreva uma história sobre"
+    },
+    "systemPrompt": {
+      "question": "Qual é o sentido da vida?",
+      "systemInstruction": "Forneça uma resposta ponderada e filosófica."
+    },
+    "thinking": {
+      "question": "Explique a computação quântica"
+    },
+    "toolCalling": {
+      "cityNameDescription": "O nome da cidade para obter o clima",
+      "toolDescription": "Obtenha o clima atual para um local",
+      "userWeather": "Qual é o clima em Tóquio?"
+    },
+    "multiTurn": {
+      "system": "Você é um assistente útil.",
+      "assistantExample": "Ficarei feliz em ajudá-lo com isso.",
+      "userInitial": "preciso de ajuda com",
+      "userFollowUp": "Você pode explicar isso?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

@@ -58,7 +58,85 @@
     "free": "ฟรี",
     "skipToContent": "ข้ามไปที่เนื้อหา",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "ยอมรับ",
+    "accountId": "รหัสบัญชี",
+    "alias": "นามแฝง",
+    "apiKeyId": "รหัสคีย์ API",
+    "apiKeyName": "ชื่อคีย์ API",
+    "apiKeySecret": "ความลับของคีย์ API",
+    "authorization": "การอนุญาต",
+    "content-type": "ประเภทเนื้อหา",
+    "content-length": "ความยาวของเนื้อหา",
+    "cookie": "คุกกี้",
+    "file": "ไฟล์",
+    "host": "โฮสต์",
+    "id": "บัตรประจำตัวประชาชน",
+    "import": "นำเข้า",
+    "limit": "ขีดจำกัด",
+    "offset": "ออฟเซ็ต",
+    "open": "เปิด",
+    "origin": "ต้นกำเนิด",
+    "promptTokens": "โทเค็นพร้อมท์",
+    "completionTokens": "โทเค็นการสำเร็จ",
+    "totalTokens": "โทเค็นทั้งหมด",
+    "rawModel": "โมเดลดิบ",
+    "scope": "ขอบเขต",
+    "skill": "ทักษะ",
+    "sortBy": "เรียงตาม",
+    "sortOrder": "เรียงลำดับ",
+    "tab": "แท็บ",
+    "text": "ข้อความ",
+    "textarea": "พื้นที่ข้อความ",
+    "tool": "เครื่องมือ",
+    "toolId": "รหัสเครื่องมือ",
+    "web": "เว็บ",
+    "whereUsed": "ใช้ที่ไหน",
+    "whitelist": "ไวท์ลิสต์",
+    "blacklist": "บัญชีดำ",
+    "resolve": "แก้ไข",
+    "force": "บังคับ",
+    "base64url": "URL Base64",
+    "hex": "ฐานสิบหก",
+    "range": "พิสัย",
+    "component": "ส่วนประกอบ",
+    "redirect_uri": "เปลี่ยนเส้นทาง URI",
+    "idempotency-key": "คีย์ Idempotency",
+    "error_description": "คำอธิบายข้อผิดพลาด",
+    "code": "รหัส",
+    "compatible": "เข้ากันได้",
+    "chat-completions": "เสร็จสิ้นการแชท",
+    "oauth": "OAuth",
+    "auth_token": "โทเค็นการรับรองความถูกต้อง",
+    "crypto": "การเข้ารหัสลับ",
+    "hours": "ชั่วโมง",
+    "selfsigned": "ลงนามด้วยตนเอง",
+    "proxy_id": "รหัสพร็อกซี",
+    "proxyId": "รหัสพร็อกซี",
+    "connectionId": "รหัสการเชื่อมต่อ",
+    "resolveConnectionId": "แก้ไขรหัสการเชื่อมต่อ",
+    "resolve_connection_id": "แก้ไขรหัสการเชื่อมต่อ",
+    "scope_id": "รหัสขอบเขต",
+    "scopeId": "รหัสขอบเขต",
+    "jwtSecret": "ความลับเจดับเบิ้ลยูที",
+    "keytar": "คีย์ตาร์",
+    "better-sqlite3": "ดีกว่า-sqlite3",
+    "undici": "อูนดิ",
+    "builder-id": "รหัสผู้สร้าง",
+    "musicDesc": "คำอธิบายเพลง",
+    "musicGeneration": "ดนตรีเจเนอเรชั่น",
+    "idc": "ไอดีซี",
+    "cloud-status-changed": "สถานะคลาวด์เปลี่ยนไป",
+    "where_used": "ใช้ที่ไหน",
+    "windowMs": "หน้าต่าง (มิลลิวินาที)",
+    "social-github": "GitHub",
+    "social-google": "กูเกิล",
+    "TOOL_ALLOWLIST": "รายการที่อนุญาตของเครื่องมือ",
+    "TOOL_DENYLIST": "รายการเครื่องมือที่ปฏิเสธ",
+    "Failed to save pricing": "บันทึกราคาไม่สำเร็จ",
+    "Failed to reset pricing": "ไม่สามารถรีเซ็ตราคาได้",
+    "apikey": "คีย์ API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "บ้าน",
@@ -107,7 +185,9 @@
     "agents": "เอเจนต์",
     "cliToolsShort": "เครื่องมือ",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "ธีมส์",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} ความต้องการ",
     "providerModelsTitle": "{provider} - โมเดล",
     "copiedModel": "คัดลอก: {model}",
-    "aliasLabel": "นามแฝง"
+    "aliasLabel": "นามแฝง",
+    "updateNow": "อัปเดตทันที",
+    "updating": "กำลังอัปเดต...",
+    "updateAvailableDesc": "มีเวอร์ชันใหม่ให้ใช้งานแล้ว คลิกเพื่ออัปเดต",
+    "updateStarted": "เริ่มการอัพเดต..."
   },
   "analytics": {
     "title": "การวิเคราะห์",
@@ -535,6 +619,9 @@
             "title": "เพิ่มการกำหนดค่าโมเดล",
             "desc": "เพิ่มการกำหนดค่าต่อไปนี้ให้กับอาร์เรย์โมเดลของคุณ:"
           }
+        },
+        "notes": {
+          "0": "ใช้ไฟล์กำหนดค่า JSON ต่อไป"
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode ต้องมีการกำหนดค่าคีย์ API",
+          "1": "ตั้งค่า URL พื้นฐานเป็นจุดสิ้นสุด OmniRoute ของคุณ"
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro ต้องการบัญชี Amazon"
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "เสร็จสิ้นการแชท",
     "importingModels": "กำลังนำเข้า...",
     "importFromModels": "นำเข้าจาก /models",
+    "clearAllModels": "ล้างโมเดลทั้งหมด",
+    "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดของผู้ให้บริการนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+    "clearAllModelsSuccess": "ล้างโมเดลทั้งหมดแล้ว",
+    "clearAllModelsFailed": "ไม่สามารถล้างโมเดลได้",
     "addConnectionToImport": "เพิ่มการเชื่อมต่อเพื่อเปิดใช้งานการนำเข้า",
     "noModelsConfigured": "ไม่มีโมเดลที่กำหนดค่าไว้",
     "connectionCount": "{count} การเชื่อมต่อ",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "ซิงค์อัตโนมัติ",
+    "autoSyncTooltip": "รีเฟรชรายการโมเดลโดยอัตโนมัติทุกๆ 24 ชั่วโมง (กำหนดค่าได้ผ่าน MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "เปิดใช้งานการซิงค์อัตโนมัติ — โมเดลจะรีเฟรชเป็นระยะ",
+    "autoSyncDisabled": "ปิดใช้งานการซิงค์อัตโนมัติแล้ว",
+    "autoSyncToggleFailed": "ไม่สามารถสลับการซิงค์อัตโนมัติ",
+    "clearAllModels": "ล้างทุกรุ่น",
+    "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดสำหรับผู้ให้บริการรายนี้ สิ่งนี้ไม่สามารถยกเลิกได้",
+    "clearAllModelsSuccess": "เคลียร์ทุกรุ่น",
+    "clearAllModelsFailed": "ไม่สามารถล้างโมเดลได้"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "รีสตาร์ทเซิร์ฟเวอร์ - จะใช้รหัสผ่านใหม่",
     "backToLogin": "กลับไปที่เข้าสู่ระบบ",
     "forgotPassword": "ลืมรหัสผ่าน?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "การอนุญาต",
+    "Content-Disposition": "การจัดการเนื้อหา",
+    "waitingForAuthorization": "กำลังรอการอนุญาต...",
+    "waitingForGoogleAuthorization": "กำลังรอการอนุญาตจาก Google...",
+    "waitingForOpenAIAuthorization": "กำลังรอการอนุญาต OpenAI...",
+    "waitingForAntigravityAuthorization": "กำลังรอการอนุญาตต้านแรงโน้มถ่วง...",
+    "waitingForIFlowAuthorization": "กำลังรอการอนุญาตจาก iFlow...",
+    "exchangingCodeForTokens": "การเปลี่ยนรหัสเป็นโทเค็น..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "การสร้างข้อความเป็นคำพูด (ElevenLabs, OpenAI TTS)",
+    "endpointEmbeddingsNote": "การสร้างการฝังข้อความ (OpenAI, Cohere, Voyage)"
   },
   "legal": {
     "privacyPolicy": "นโยบายความเป็นส่วนตัว",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "แชทง่ายๆ",
+    "streaming": "สตรีมมิ่ง",
+    "system-prompt": "พร้อมท์ระบบ",
+    "thinking": "กำลังคิด",
+    "tool-calling": "การเรียกเครื่องมือ",
+    "multi-turn": "หลายเลี้ยว"
+  },
+  "templateDescriptions": {
+    "simple-chat": "เทมเพลตการแชทพื้นฐานพร้อมข้อความระบบ",
+    "streaming": "เทมเพลตสำหรับการตอบกลับแบบสตรีม",
+    "system-prompt": "เทมเพลตพร้อมแจ้งระบบแบบกำหนดเอง",
+    "thinking": "เทมเพลตพร้อมงบประมาณการใช้เหตุผล/การคิด",
+    "tool-calling": "เทมเพลตสำหรับการเรียกใช้เครื่องมือ/ฟังก์ชัน",
+    "multi-turn": "เทมเพลตสำหรับการสนทนาหลายรอบ"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "คุณเป็นผู้ช่วย AI ที่เป็นประโยชน์",
+      "userGreeting": "สวัสดี! วันนี้ฉันจะช่วยคุณได้อย่างไร?"
+    },
+    "streaming": {
+      "prompt": "เขียนเรื่องราวเกี่ยวกับ"
+    },
+    "systemPrompt": {
+      "question": "ความหมายของชีวิตคืออะไร?",
+      "systemInstruction": "ให้คำตอบที่รอบคอบและมีปรัชญา"
+    },
+    "thinking": {
+      "question": "อธิบายการคำนวณควอนตัม"
+    },
+    "toolCalling": {
+      "cityNameDescription": "ชื่อเมืองที่จะเรียกสภาพอากาศ",
+      "toolDescription": "รับสภาพอากาศปัจจุบันสำหรับสถานที่",
+      "userWeather": "สภาพอากาศในโตเกียวเป็นอย่างไร?"
+    },
+    "multiTurn": {
+      "system": "คุณเป็นผู้ช่วยที่เป็นประโยชน์",
+      "assistantExample": "เรายินดีที่จะช่วยเหลือคุณในเรื่องนั้น",
+      "userInitial": "ฉันต้องการความช่วยเหลือเกี่ยวกับ",
+      "userFollowUp": "คุณช่วยอธิบายรายละเอียดเกี่ยวกับเรื่องนั้นได้ไหม?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

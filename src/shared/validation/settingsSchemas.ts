@@ -18,6 +18,7 @@ export const updateSettingsSchema = z.object({
   instanceName: z.string().max(100).optional(),
   corsOrigins: z.string().max(500).optional(),
   logRetentionDays: z.number().int().min(1).max(365).optional(),
+  maxCallLogs: z.number().int().min(1).max(1_000_000).optional(),
   cloudUrl: z.string().max(500).optional(),
   baseUrl: z.string().max(500).optional(),
   setupComplete: z.boolean().optional(),

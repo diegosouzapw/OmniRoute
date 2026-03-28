@@ -58,7 +58,85 @@
     "free": "חינם",
     "skipToContent": "דלג לתוכן",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "קבל",
+    "accountId": "מזהה חשבון",
+    "alias": "כינוי",
+    "apiKeyId": "מזהה מפתח API",
+    "apiKeyName": "שם מפתח API",
+    "apiKeySecret": "סוד מפתח API",
+    "authorization": "הרשאה",
+    "content-type": "סוג תוכן",
+    "content-length": "אורך תוכן",
+    "cookie": "קוקי",
+    "file": "קובץ",
+    "host": "מארח",
+    "id": "תעודה מזהה",
+    "import": "ייבוא",
+    "limit": "הגבלה",
+    "offset": "קיזוז",
+    "open": "פתוח",
+    "origin": "מוצא",
+    "promptTokens": "אסימוני הנחיה",
+    "completionTokens": "אסימוני השלמה",
+    "totalTokens": "סך הכל אסימונים",
+    "rawModel": "דגם גלם",
+    "scope": "היקף",
+    "skill": "מיומנות",
+    "sortBy": "מיין לפי",
+    "sortOrder": "סדר מיון",
+    "tab": "כרטיסייה",
+    "text": "טקסט",
+    "textarea": "Textarea",
+    "tool": "כלי",
+    "toolId": "מזהה כלי",
+    "web": "אינטרנט",
+    "whereUsed": "היכן בשימוש",
+    "whitelist": "רשימת הלבנים",
+    "blacklist": "רשימה שחורה",
+    "resolve": "פתרון",
+    "force": "כוח",
+    "base64url": "כתובת אתר של Base64",
+    "hex": "משושה",
+    "range": "טווח",
+    "component": "רכיב",
+    "redirect_uri": "כתובת URL להפניה מחדש",
+    "idempotency-key": "מפתח אידמפוטנציה",
+    "error_description": "תיאור שגיאה",
+    "code": "קוד",
+    "compatible": "תואם",
+    "chat-completions": "השלמת צ'אט",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "קריפטו",
+    "hours": "שעות",
+    "selfsigned": "חתום בעצמו",
+    "proxy_id": "מזהה פרוקסי",
+    "proxyId": "מזהה פרוקסי",
+    "connectionId": "מזהה חיבור",
+    "resolveConnectionId": "פתרון מזהה חיבור",
+    "resolve_connection_id": "פתרון מזהה חיבור",
+    "scope_id": "מזהה היקף",
+    "scopeId": "מזהה היקף",
+    "jwtSecret": "סוד JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "מזהה בונה",
+    "musicDesc": "תיאור מוזיקה",
+    "musicGeneration": "דור המוזיקה",
+    "idc": "הבינתחומי",
+    "cloud-status-changed": "סטטוס הענן השתנה",
+    "where_used": "היכן בשימוש",
+    "windowMs": "חלון (ms)",
+    "social-github": "GitHub",
+    "social-google": "גוגל",
+    "TOOL_ALLOWLIST": "רשימת ההיתרים של הכלים",
+    "TOOL_DENYLIST": "רשימת הכלים",
+    "Failed to save pricing": "חיסכון במחיר נכשל",
+    "Failed to reset pricing": "איפוס התמחור נכשל",
+    "apikey": "מפתח API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "בית",
@@ -107,7 +185,9 @@
     "agents": "סוכנים",
     "cliToolsShort": "כלים",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} בקשות",
     "providerModelsTitle": "{provider} - דגמים",
     "copiedModel": "הועתק: {model}",
-    "aliasLabel": "כינוי"
+    "aliasLabel": "כינוי",
+    "updateNow": "עדכן עכשיו",
+    "updating": "מעדכן...",
+    "updateAvailableDesc": "גרסה חדשה זמינה. לחץ לעדכון.",
+    "updateStarted": "העדכון התחיל..."
   },
   "analytics": {
     "title": "אנליטיקס",
@@ -535,6 +619,9 @@
             "title": "הוסף דגם Config",
             "desc": "הוסף את התצורה הבאה למערך הדגמים שלך:"
           }
+        },
+        "notes": {
+          "0": "המשך משתמש בקובץ התצורה של JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode דורש תצורת מפתח API.",
+          "1": "הגדר את כתובת האתר הבסיסית לנקודת הקצה של OmniRoute שלך."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro דורש חשבון אמזון."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "השלמת צ'אט",
     "importingModels": "מייבא...",
     "importFromModels": "ייבוא מ /models",
+    "clearAllModels": "מחק את כל המודלים",
+    "clearAllModelsConfirm": "האם אתה בטוח שברצונך להסיר את כל המודלים עבור ספק זה? לא ניתן לבטל פעולה זו.",
+    "clearAllModelsSuccess": "כל המודלים נמחקו",
+    "clearAllModelsFailed": "מחיקת המודלים נכשלה",
     "addConnectionToImport": "הוסף חיבור כדי לאפשר ייבוא.",
     "noModelsConfigured": "לא הוגדרו דגמים",
     "connectionCount": "{count} חיבור(ים)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "סנכרון אוטומטי",
+    "autoSyncTooltip": "רענן אוטומטית את רשימת הדגמים כל 24 שעות (ניתן להגדרה באמצעות MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "סנכרון אוטומטי מופעל - הדגמים יתרעננו מעת לעת",
+    "autoSyncDisabled": "הסנכרון האוטומטי מושבת",
+    "autoSyncToggleFailed": "החלפת הסנכרון האוטומטי נכשלה",
+    "clearAllModels": "נקה את כל הדגמים",
+    "clearAllModelsConfirm": "האם אתה בטוח שברצונך להסיר את כל הדגמים עבור ספק זה? לא ניתן לבטל זאת.",
+    "clearAllModelsSuccess": "כל הדגמים נוקו",
+    "clearAllModelsFailed": "ניקוי הדגמים נכשל"
   },
   "settings": {
     "title": "הגדרות",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "הפעל מחדש את השרת - הוא ישתמש בסיסמה החדשה",
     "backToLogin": "חזרה לכניסה",
     "forgotPassword": "שכחת סיסמה?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "הרשאה",
+    "Content-Disposition": "תוכן-נטייה",
+    "waitingForAuthorization": "ממתין לאישור...",
+    "waitingForGoogleAuthorization": "ממתין לאישור Google...",
+    "waitingForOpenAIAuthorization": "ממתין להרשאת OpenAI...",
+    "waitingForAntigravityAuthorization": "ממתין לאישור נגד כבידה...",
+    "waitingForIFlowAuthorization": "ממתין להרשאת iFlow...",
+    "exchangingCodeForTokens": "מחליף קוד לאסימונים..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "יצירת טקסט לדיבור (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "יצירת הטבעת טקסט (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "מדיניות פרטיות",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "צ'אט פשוט",
+    "streaming": "סטרימינג",
+    "system-prompt": "הנחית מערכת",
+    "thinking": "חושבים",
+    "tool-calling": "כלי שיחות",
+    "multi-turn": "רב סיבובים"
+  },
+  "templateDescriptions": {
+    "simple-chat": "תבנית צ'אט בסיסית עם הודעת מערכת",
+    "streaming": "תבנית להזרמת תגובות",
+    "system-prompt": "תבנית עם הודעת מערכת מותאמת אישית",
+    "thinking": "תבנית עם היגיון/תקציב חשיבה",
+    "tool-calling": "תבנית לקריאת כלי/פונקציה",
+    "multi-turn": "תבנית לשיחות מרובי פניות"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "אתה עוזר AI מועיל.",
+      "userGreeting": "שלום! איך אני יכול לעזור לך היום?"
+    },
+    "streaming": {
+      "prompt": "כתבו סיפור על"
+    },
+    "systemPrompt": {
+      "question": "מהי משמעות החיים?",
+      "systemInstruction": "ספק תשובה מהורהרת, פילוסופית."
+    },
+    "thinking": {
+      "question": "הסבר מחשוב קוונטי"
+    },
+    "toolCalling": {
+      "cityNameDescription": "שם העיר שאפשר לקבל עליה מזג אוויר",
+      "toolDescription": "קבל מזג אוויר עדכני עבור מיקום",
+      "userWeather": "מה מזג האוויר בטוקיו?"
+    },
+    "multiTurn": {
+      "system": "אתה עוזר מועיל.",
+      "assistantExample": "אני אשמח לעזור לך עם זה.",
+      "userInitial": "אני צריך עזרה עם",
+      "userFollowUp": "אתה יכול לפרט על זה?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

@@ -274,8 +274,9 @@ Domain State DB (SQLite):
 
 ## 5) Cloud Sync
 
-- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`
+- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
 - Periodic task: `src/shared/services/cloudSyncScheduler.ts`
+- Periodic task: `src/shared/services/modelSyncScheduler.ts`
 - Control route: `src/app/api/sync/cloud/route.ts`
 
 ## Request Lifecycle (`/v1/chat/completions`)
@@ -355,7 +356,7 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics.
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
 
 ## OAuth Onboarding and Token Refresh Lifecycle
 

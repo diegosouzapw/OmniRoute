@@ -403,6 +403,10 @@ interface ConnectionRowProps {
   proxyHost?: string;
   onRefreshToken?: () => void;
   isRefreshing?: boolean;
+  onApplyCodexAuthLocal?: () => void;
+  isApplyingCodexAuthLocal?: boolean;
+  onExportCodexAuthFile?: () => void;
+  isExportingCodexAuthFile?: boolean;
 }
 
 interface AddApiKeyModalProps {
@@ -821,6 +825,8 @@ export default function ProviderDetailPage() {
     modelCompatOverrides: Array<CompatModelRow & { id: string }>;
   }>({ customModels: [], modelCompatOverrides: [] });
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
+  const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
+  const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
 
   const providerInfo = providerNode
     ? {
@@ -1248,6 +1254,39 @@ export default function ProviderDetailPage() {
 
   // T12: Manual token refresh
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
+
+  const parseApiErrorMessage = async (res: Response, fallback: string) => {
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const data = await res.json().catch(() => ({}));
+      if (typeof data?.error === "string" && data.error.trim()) {
+        return data.error;
+      }
+      if (data?.error?.message) {
+        return data.error.message;
+      }
+    }
+
+    const text = await res.text().catch(() => "");
+    return text.trim() || fallback;
+  };
+
+  const getAttachmentFilename = (res: Response, fallback: string) => {
+    const disposition = res.headers.get("content-disposition") || "";
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      return decodeURIComponent(utf8Match[1]);
+    }
+
+    const plainMatch = disposition.match(/filename="([^"]+)"/i);
+    if (plainMatch?.[1]) {
+      return plainMatch[1];
+    }
+
+    return fallback;
+  };
+
   const handleRefreshToken = async (connectionId: string) => {
     if (refreshingId) return;
     setRefreshingId(connectionId);
@@ -1265,6 +1304,82 @@ export default function ProviderDetailPage() {
       notify.error(t("tokenRefreshFailed"));
     } finally {
       setRefreshingId(null);
+    }
+  };
+
+  const handleApplyCodexAuthLocal = async (connectionId: string) => {
+    if (applyingCodexAuthId) return;
+    setApplyingCodexAuthId(connectionId);
+
+    const defaultSuccess =
+      typeof t.has === "function" && t.has("codexAuthAppliedLocal")
+        ? t("codexAuthAppliedLocal")
+        : "Codex auth.json applied locally";
+    const defaultError =
+      typeof t.has === "function" && t.has("codexAuthApplyFailed")
+        ? t("codexAuthApplyFailed")
+        : "Failed to apply Codex auth.json locally";
+
+    try {
+      const res = await fetch(`/api/providers/${connectionId}/codex-auth/apply-local`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        notify.error(await parseApiErrorMessage(res, defaultError));
+        return;
+      }
+
+      notify.success(defaultSuccess);
+    } catch (error) {
+      console.error("Error applying Codex auth locally:", error);
+      notify.error(defaultError);
+    } finally {
+      setApplyingCodexAuthId(null);
+    }
+  };
+
+  const handleExportCodexAuthFile = async (connectionId: string) => {
+    if (exportingCodexAuthId) return;
+    setExportingCodexAuthId(connectionId);
+
+    const defaultSuccess =
+      typeof t.has === "function" && t.has("codexAuthExported")
+        ? t("codexAuthExported")
+        : "Codex auth.json exported";
+    const defaultError =
+      typeof t.has === "function" && t.has("codexAuthExportFailed")
+        ? t("codexAuthExportFailed")
+        : "Failed to export Codex auth.json";
+
+    try {
+      const res = await fetch(`/api/providers/${connectionId}/codex-auth/export`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        notify.error(await parseApiErrorMessage(res, defaultError));
+        return;
+      }
+
+      const blob = await res.blob();
+      const filename = getAttachmentFilename(res, "codex-auth.json");
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+
+      notify.success(defaultSuccess);
+    } catch (error) {
+      console.error("Error exporting Codex auth file:", error);
+      notify.error(defaultError);
+    } finally {
+      setExportingCodexAuthId(null);
     }
   };
 
@@ -1553,7 +1668,19 @@ export default function ProviderDetailPage() {
         { method: "DELETE" }
       );
       if (res.ok) {
+        // Also delete all aliases that belong to this provider
+        const aliasEntries = Object.entries(modelAliases).filter(([, model]) =>
+          (model as string).startsWith(`${providerStorageAlias}/`)
+        );
+        await Promise.all(
+          aliasEntries.map(([alias]) =>
+            fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
+              method: "DELETE",
+            }).catch(() => {})
+          )
+        );
         await fetchProviderModelMeta();
+        await fetchAliases();
         notify.success(t("clearAllModelsSuccess"));
       } else {
         notify.error(t("clearAllModelsFailed"));
@@ -2091,6 +2218,18 @@ export default function ProviderDetailPage() {
                       onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
                       onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
                       isRefreshing={refreshingId === conn.id}
+                      onApplyCodexAuthLocal={
+                        providerId === "codex"
+                          ? () => handleApplyCodexAuthLocal(conn.id)
+                          : undefined
+                      }
+                      isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                      onExportCodexAuthFile={
+                        providerId === "codex"
+                          ? () => handleExportCodexAuthFile(conn.id)
+                          : undefined
+                      }
+                      isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
                       onProxy={() =>
                         setProxyTarget({
                           level: "key",
@@ -2182,6 +2321,18 @@ export default function ProviderDetailPage() {
                             onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
                             onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
                             isRefreshing={refreshingId === conn.id}
+                            onApplyCodexAuthLocal={
+                              providerId === "codex"
+                                ? () => handleApplyCodexAuthLocal(conn.id)
+                                : undefined
+                            }
+                            isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                            onExportCodexAuthFile={
+                              providerId === "codex"
+                                ? () => handleExportCodexAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
                             onProxy={() =>
                               setProxyTarget({
                                 level: "key",
@@ -3764,11 +3915,23 @@ function ConnectionRow({
   proxyHost,
   onRefreshToken,
   isRefreshing,
+  onApplyCodexAuthLocal,
+  isApplyingCodexAuthLocal,
+  onExportCodexAuthFile,
+  isExportingCodexAuthFile,
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const displayName = isOAuth
     ? connection.name || connection.email || connection.displayName || t("oauthAccount")
     : connection.name;
+  const applyCodexAuthLabel =
+    typeof t.has === "function" && t.has("applyCodexAuthLocal")
+      ? t("applyCodexAuthLocal")
+      : "Apply auth";
+  const exportCodexAuthLabel =
+    typeof t.has === "function" && t.has("exportCodexAuthFile")
+      ? t("exportCodexAuthFile")
+      : "Export auth";
 
   // Use useState + useEffect for impure Date.now() to avoid calling during render
   const [isCooldown, setIsCooldown] = useState(false);
@@ -4002,6 +4165,34 @@ function ConnectionRow({
             Token
           </Button>
         )}
+        {isCodex && onApplyCodexAuthLocal && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="download_done"
+            loading={isApplyingCodexAuthLocal}
+            disabled={isApplyingCodexAuthLocal}
+            onClick={onApplyCodexAuthLocal}
+            className="!h-7 !px-2 text-xs text-emerald-500 hover:text-emerald-400"
+            title={applyCodexAuthLabel}
+          >
+            {applyCodexAuthLabel}
+          </Button>
+        )}
+        {isCodex && onExportCodexAuthFile && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="download"
+            loading={isExportingCodexAuthFile}
+            disabled={isExportingCodexAuthFile}
+            onClick={onExportCodexAuthFile}
+            className="!h-7 !px-2 text-xs text-sky-500 hover:text-sky-400"
+            title={exportCodexAuthLabel}
+          >
+            {exportCodexAuthLabel}
+          </Button>
+        )}
         <Toggle
           size="sm"
           checked={connection.isActive ?? true}
@@ -4078,6 +4269,10 @@ ConnectionRow.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onReauth: PropTypes.func,
+  onApplyCodexAuthLocal: PropTypes.func,
+  isApplyingCodexAuthLocal: PropTypes.bool,
+  onExportCodexAuthFile: PropTypes.func,
+  isExportingCodexAuthFile: PropTypes.bool,
 };
 
 function AddApiKeyModal({
@@ -4094,6 +4289,7 @@ function AddApiKeyModal({
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
   const isVertex = provider === "vertex";
   const defaultRegion = "us-central1";
+  const isGlm = provider === "glm";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -4101,6 +4297,7 @@ function AddApiKeyModal({
     priority: 1,
     baseUrl: isBailian ? defaultBailianUrl : "",
     region: isVertex ? defaultRegion : "",
+    apiRegion: "international",
     validationModelId: "",
   });
   const [validating, setValidating] = useState(false);
@@ -4189,6 +4386,10 @@ function AddApiKeyModal({
       } else if (isVertex) {
         payload.providerSpecificData = {
           region: formData.region,
+        };
+      } else if (isGlm) {
+        payload.providerSpecificData = {
+          apiRegion: formData.apiRegion,
         };
       }
 
@@ -4289,6 +4490,22 @@ function AddApiKeyModal({
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
         )}
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <Button
             onClick={handleSubmit}
@@ -4338,6 +4555,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     healthCheckInterval: 60,
     baseUrl: "",
     region: "",
+    apiRegion: "international",
     validationModelId: "",
     tag: "",
   });
@@ -4353,6 +4571,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
   const isVertex = connection?.provider === "vertex";
+  const isGlm = connection?.provider === "glm";
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -4368,6 +4587,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
         region: existingRegion || (isVertex ? defaultRegion : ""),
+        apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
       });
@@ -4503,6 +4723,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.baseUrl = validatedBailianBaseUrl;
         } else if (isVertex) {
           updates.providerSpecificData.region = formData.region;
+        } else if (isGlm) {
+          updates.providerSpecificData.apiRegion = formData.apiRegion;
         }
       } else {
         // Also persist tag for OAuth accounts
@@ -4635,6 +4857,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             placeholder={defaultRegion}
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
+        )}
+
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
         )}
 
         {/* T07: Extra API Keys for round-robin rotation */}

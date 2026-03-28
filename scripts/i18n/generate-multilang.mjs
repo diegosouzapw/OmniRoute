@@ -110,6 +110,15 @@ const LOCALE_SPECS = [
     docsName: "ไทย",
   },
   {
+    code: "tr",
+    googleTl: "tr",
+    label: "TR",
+    flag: "🇹🇷",
+    languageName: "Türkçe",
+    readmeName: "Türkçe",
+    docsName: "Türkçe",
+  },
+  {
     code: "uk-UA",
     googleTl: "uk",
     label: "UK-UA",
@@ -608,6 +617,9 @@ function collectStringLeaves(node, pathSoFar = [], output = []) {
 function setByPath(target, pathTokens, value) {
   let current = target;
   for (let i = 0; i < pathTokens.length - 1; i += 1) {
+    if (current[pathTokens[i]] === undefined) {
+      current[pathTokens[i]] = typeof pathTokens[i + 1] === "number" ? [] : {};
+    }
     current = current[pathTokens[i]];
   }
   current[pathTokens[pathTokens.length - 1]] = value;
@@ -728,25 +740,43 @@ async function generateMessageTranslations() {
   const sourceJson = JSON.parse(sourceRaw);
 
   const leaves = collectStringLeaves(sourceJson);
-  const sourceValues = leaves.map((entry) => entry.value);
 
   for (const spec of LOCALE_SPECS) {
-    if (spec.code === "en" || spec.code === "pt-BR") {
+    if (spec.code === "en") {
       continue;
     }
 
     const targetPath = path.join(MESSAGES_DIR, `${spec.code}.json`);
+    let targetJson = {};
     if (await fileExists(targetPath)) {
-      console.log(`[messages] Skipping ${spec.code} (already exists).`);
+      const targetRaw = await fs.readFile(targetPath, "utf8");
+      try {
+        targetJson = JSON.parse(targetRaw);
+      } catch (e) {
+        console.warn(`[messages] Failed to parse ${spec.code}.json`);
+      }
+    }
+
+    const missingLeaves = leaves.filter((leaf) => {
+      let current = targetJson;
+      for (const token of leaf.path) {
+        if (current === undefined || current === null) return true;
+        current = current[token];
+      }
+      return current === undefined || current === null || current === "";
+    });
+
+    if (missingLeaves.length === 0) {
+      console.log(`[messages] ${spec.code} is up-to-date.`);
       continue;
     }
 
-    console.log(`[messages] Translating ${spec.code}...`);
+    console.log(`[messages] Translating ${missingLeaves.length} missing keys for ${spec.code}...`);
+    const sourceValues = missingLeaves.map((entry) => entry.value);
     const translatedValues = await translateStrings(sourceValues, spec.googleTl);
 
-    const targetJson = structuredClone(sourceJson);
     translatedValues.forEach((value, index) => {
-      setByPath(targetJson, leaves[index].path, value);
+      setByPath(targetJson, missingLeaves[index].path, value);
     });
 
     await fs.writeFile(targetPath, `${JSON.stringify(targetJson, null, 2)}\n`, "utf8");

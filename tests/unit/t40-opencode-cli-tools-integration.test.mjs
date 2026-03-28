@@ -65,3 +65,17 @@ test("T40: OpenCode config generator includes endpoint and selected API key", ()
   assert.equal(mergedConfig.providers.omniroute.baseURL, "http://localhost:20128/v1");
   assert.equal(mergedConfig.providers.omniroute.apiKey, "sk_test_opencode");
 });
+
+test("T40: Windsurf card documents current official limitations honestly", () => {
+  const windsurf = CLI_TOOLS.windsurf;
+  assert.ok(windsurf, "Windsurf tool card must exist");
+  assert.equal(windsurf.configType, "guide");
+
+  const notesText = (windsurf.notes || [])
+    .map((note) => note?.text || "")
+    .join(" ")
+    .toLowerCase();
+
+  assert.match(notesText, /byok/);
+  assert.match(notesText, /custom openai-compatible provider/);
+});

@@ -51,6 +51,7 @@ export async function createCombo(data: JsonRecord) {
     models: data.models || [],
     strategy: data.strategy || "priority",
     config: data.config || {},
+    isHidden: Boolean(data.isHidden),
     createdAt: now,
     updatedAt: now,
   };

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import { parseQuotaData, calculatePercentage, normalizePlanTier } from "./utils";
+import { parseQuotaData, calculatePercentage, normalizePlanTier, resolvePlanValue } from "./utils";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -16,6 +16,8 @@ const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 
 const REFRESH_INTERVAL_MS = 120000;
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
+const QUOTA_BAR_GREEN_THRESHOLD = 50;
+const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -24,7 +26,7 @@ const PROVIDER_CONFIG = {
   kiro: { label: "Kiro AI", color: "#FF6B35" },
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
-  glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
+  glm: { label: "GLM Coding", color: "#4A90D9" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
 };
 
@@ -64,9 +66,13 @@ function getShortModelName(name) {
 }
 
 // Get bar color based on remaining percentage
-function getBarColor(remaining) {
-  if (remaining > 70) return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
-  if (remaining >= 30) return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+function getBarColor(remainingPercentage) {
+  if (remainingPercentage > QUOTA_BAR_GREEN_THRESHOLD) {
+    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  }
+  if (remainingPercentage > QUOTA_BAR_YELLOW_THRESHOLD) {
+    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+  }
   return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
 }
 
@@ -297,13 +303,21 @@ export default function ProviderLimits() {
     );
   }, [filteredConnections]);
 
-  const tierByConnection = useMemo(() => {
+  const resolvedPlanByConnection = useMemo(() => {
     const out = {};
     for (const conn of sortedConnections) {
-      out[conn.id] = normalizePlanTier(quotaData[conn.id]?.plan);
+      out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
     }
     return out;
   }, [sortedConnections, quotaData]);
+
+  const tierByConnection = useMemo(() => {
+    const out = {};
+    for (const conn of sortedConnections) {
+      out[conn.id] = normalizePlanTier(resolvedPlanByConnection[conn.id]);
+    }
+    return out;
+  }, [sortedConnections, resolvedPlanByConnection]);
 
   const tierCounts = useMemo(() => {
     const counts = {
@@ -313,6 +327,7 @@ export default function ProviderLimits() {
       business: 0,
       ultra: 0,
       pro: 0,
+      plus: 0,
       free: 0,
       unknown: 0,
     };
@@ -533,6 +548,7 @@ export default function ProviderLimits() {
               color: "#666",
             };
             const tierMeta = tierByConnection[conn.id] || normalizePlanTier(null);
+            const resolvedPlan = resolvedPlanByConnection[conn.id];
 
             return (
               <div
@@ -558,21 +574,29 @@ export default function ProviderLimits() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">
-                      {conn.name || config.label}
+                      {conn.name || conn.displayName || conn.email || config.label}
                     </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5 mt-1 min-h-5">
                       <span
                         title={
-                          quota?.plan
-                            ? t("rawPlanWithValue", { plan: quota.plan })
+                          resolvedPlan
+                            ? t("rawPlanWithValue", { plan: resolvedPlan })
                             : t("noPlanFromProvider")
                         }
+                        className="inline-flex items-center shrink-0"
                       >
-                        <Badge variant={tierMeta.variant} size="sm" dot>
+                        <Badge
+                          variant={tierMeta.variant}
+                          size="sm"
+                          dot
+                          className="h-5 leading-none"
+                        >
                           {tierMeta.label}
                         </Badge>
                       </span>
-                      <span className="text-[11px] text-text-muted">{config.label}</span>
+                      <span className="text-[11px] leading-none text-text-muted">
+                        {config.label}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -597,17 +621,19 @@ export default function ProviderLimits() {
                     <div className="text-xs text-text-muted italic">{quota.message}</div>
                   ) : quota?.quotas?.length > 0 ? (
                     quota.quotas.map((q, i) => {
-                      const remaining =
-                        q.remainingPercentage !== undefined
-                          ? Math.round(q.remainingPercentage)
-                          : calculatePercentage(q.used, q.total);
-                      const colors = getBarColor(remaining);
+                      const remainingPercentage = calculatePercentage(q.used, q.total);
+                      const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
                       const shortName = getShortModelName(q.name);
                       const staleAfterReset = q.staleAfterReset === true;
 
                       return (
-                        <div key={i} className="flex items-center gap-1.5 min-w-[200px] shrink-0">
+                        <div
+                          key={i}
+                          className={`flex items-center gap-1.5 min-w-[200px] shrink-0 ${
+                            i > 0 ? "border-l border-border/80 pl-3 ml-1" : ""
+                          }`}
+                        >
                           {/* Model label */}
                           <span
                             className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap min-w-[60px] text-center"
@@ -632,7 +658,7 @@ export default function ProviderLimits() {
                             <div
                               className="h-full rounded-sm transition-[width] duration-300 ease-out"
                               style={{
-                                width: `${Math.min(remaining, 100)}%`,
+                                width: `${Math.min(remainingPercentage, 100)}%`,
                                 background: colors.bar,
                               }}
                             />
@@ -643,7 +669,7 @@ export default function ProviderLimits() {
                             className="text-[11px] font-semibold min-w-[32px] text-right"
                             style={{ color: colors.text }}
                           >
-                            {remaining}%
+                            {remainingPercentage}%
                           </span>
                         </div>
                       );

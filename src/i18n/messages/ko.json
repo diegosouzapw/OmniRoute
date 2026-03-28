@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "구글",
+    "TOOL_ALLOWLIST": "도구 허용 목록",
+    "TOOL_DENYLIST": "도구 거부 목록",
+    "Failed to save pricing": "가격을 저장하지 못했습니다.",
+    "Failed to reset pricing": "가격을 재설정하지 못했습니다.",
+    "apikey": "API 키",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "홈",
@@ -177,7 +185,9 @@
     "agents": "에이전트",
     "cliToolsShort": "도구",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -1398,6 +1408,10 @@
     "chatCompletions": "채팅 완료",
     "importingModels": "가져오는 중...",
     "importFromModels": "/models에서 가져오기",
+    "clearAllModels": "모든 모델 지우기",
+    "clearAllModelsConfirm": "이 제공자의 모든 모델을 제거하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "clearAllModelsSuccess": "모든 모델이 지워졌습니다",
+    "clearAllModelsFailed": "모델 지우기 실패",
     "addConnectionToImport": "가져오기를 활성화하려면 연결을 추가하세요.",
     "noModelsConfigured": "구성된 모델이 없습니다.",
     "connectionCount": "{count} 연결",
@@ -2403,7 +2417,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "승인",
+    "Content-Disposition": "컨텐츠 처리"
   },
   "landing": {
     "brandName": "옴니루트",
@@ -2806,5 +2822,64 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "당신은 유용한 AI 비서입니다.",
+      "userGreeting": "안녕하세요! 오늘은 무엇을 도와드릴까요?"
+    },
+    "streaming": {
+      "prompt": "에 관한 이야기를 써 보세요."
+    },
+    "systemPrompt": {
+      "question": "삶의 의미는 무엇입니까?",
+      "systemInstruction": "사려 깊고 철학적인 답변을 제공하세요."
+    },
+    "thinking": {
+      "question": "양자 컴퓨팅 설명"
+    },
+    "toolCalling": {
+      "cityNameDescription": "날씨를 확인할 도시의 이름",
+      "toolDescription": "특정 위치의 현재 날씨 확인",
+      "userWeather": "도쿄 날씨는 어떻습니까?"
+    },
+    "multiTurn": {
+      "system": "당신은 도움이 되는 조수입니다.",
+      "assistantExample": "기꺼이 도와드리겠습니다.",
+      "userInitial": "도움이 필요해요",
+      "userFollowUp": "그것에 대해 자세히 설명해주실 수 있나요?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

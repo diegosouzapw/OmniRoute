@@ -58,7 +58,85 @@
     "free": "Gratuit",
     "skipToContent": "Treci la conținut",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Acceptați",
+    "accountId": "ID contului",
+    "alias": "Alias",
+    "apiKeyId": "ID-ul cheii API",
+    "apiKeyName": "Nume cheie API",
+    "apiKeySecret": "Secretul cheii API",
+    "authorization": "Autorizare",
+    "content-type": "Tip de conținut",
+    "content-length": "Lungimea conținutului",
+    "cookie": "Cookie",
+    "file": "Fișier",
+    "host": "Gazdă",
+    "id": "ID",
+    "import": "Import",
+    "limit": "Limită",
+    "offset": "Offset",
+    "open": "Deschide",
+    "origin": "Originea",
+    "promptTokens": "Jetoane prompte",
+    "completionTokens": "Jetoane de finalizare",
+    "totalTokens": "Total de jetoane",
+    "rawModel": "Model brut",
+    "scope": "Domeniul de aplicare",
+    "skill": "Îndemânare",
+    "sortBy": "Sortare după",
+    "sortOrder": "Ordine de sortare",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textarea",
+    "tool": "Instrument",
+    "toolId": "ID instrument",
+    "web": "Web",
+    "whereUsed": "Unde este folosit",
+    "whitelist": "Lista albă",
+    "blacklist": "Lista neagră",
+    "resolve": "Rezolvați",
+    "force": "Forța",
+    "base64url": "URL Base64",
+    "hex": "Hex",
+    "range": "Gama",
+    "component": "Componentă",
+    "redirect_uri": "URI de redirecționare",
+    "idempotency-key": "Cheia Idempotnței",
+    "error_description": "Descrierea erorii",
+    "code": "Cod",
+    "compatible": "Compatibil",
+    "chat-completions": "Finalizări de chat",
+    "oauth": "OAuth",
+    "auth_token": "Jeton de autentificare",
+    "crypto": "Cripto",
+    "hours": "Ore",
+    "selfsigned": "Autosemnat",
+    "proxy_id": "ID proxy",
+    "proxyId": "ID proxy",
+    "connectionId": "ID conexiune",
+    "resolveConnectionId": "Rezolvați ID-ul conexiunii",
+    "resolve_connection_id": "Rezolvați ID-ul conexiunii",
+    "scope_id": "ID domeniului",
+    "scopeId": "ID domeniului",
+    "jwtSecret": "Secretul JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "mai bine-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID constructor",
+    "musicDesc": "Descrierea muzicii",
+    "musicGeneration": "Generația muzicală",
+    "idc": "IDC",
+    "cloud-status-changed": "Starea cloudului s-a schimbat",
+    "where_used": "Unde este folosit",
+    "windowMs": "Fereastra (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Lista de instrumente permise",
+    "TOOL_DENYLIST": "Lista de refulare a instrumentelor",
+    "Failed to save pricing": "Nu s-a salvat prețul",
+    "Failed to reset pricing": "Nu s-a resetat prețul",
+    "apikey": "Cheia API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Acasă",
@@ -107,7 +185,9 @@
     "agents": "Agenți",
     "cliToolsShort": "Instrumente",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} solicită",
     "providerModelsTitle": "{provider} - Modele",
     "copiedModel": "Copiat: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Actualizați acum",
+    "updating": "Se actualizează...",
+    "updateAvailableDesc": "Este disponibilă o nouă versiune. Faceți clic pentru a actualiza.",
+    "updateStarted": "Actualizarea a început..."
   },
   "analytics": {
     "title": "Analytics",
@@ -535,6 +619,9 @@
             "title": "Adăugați configurația modelului",
             "desc": "Adăugați următoarea configurație la matricea dvs. de modele:"
           }
+        },
+        "notes": {
+          "0": "Continuați folosește fișierul de configurare JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode necesită configurarea cheii API.",
+          "1": "Setați adresa URL de bază la punctul final OmniRoute."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro necesită un cont Amazon."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Finalizări de chat",
     "importingModels": "Se importă...",
     "importFromModels": "Import din /modele",
+    "clearAllModels": "Șterge toate modelele",
+    "clearAllModelsConfirm": "Ești sigur că vrei să elimini toate modelele pentru acest furnizor? Această acțiune nu poate fi anulată.",
+    "clearAllModelsSuccess": "Toate modelele au fost șterse",
+    "clearAllModelsFailed": "Ștergerea modelelor a eșuat",
     "addConnectionToImport": "Adăugați o conexiune pentru a activa importul.",
     "noModelsConfigured": "Nu au fost configurate modele",
     "connectionCount": "{count} conexiuni",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Sincronizare automată",
+    "autoSyncTooltip": "Actualizează automat lista de modele la fiecare 24 de ore (configurabil prin MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
+    "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
+    "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",
+    "clearAllModels": "Ștergeți toate modelele",
+    "clearAllModelsConfirm": "Sigur doriți să eliminați toate modelele pentru acest furnizor? Acest lucru nu poate fi anulat.",
+    "clearAllModelsSuccess": "Toate modelele au fost eliminate",
+    "clearAllModelsFailed": "Nu s-au șters modelele"
   },
   "settings": {
     "title": "Setări",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Reporniți serverul - va folosi noua parolă",
     "backToLogin": "Înapoi la Logare",
     "forgotPassword": "Ai uitat parola?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorizare",
+    "Content-Disposition": "Conținut-Dispoziție",
+    "waitingForAuthorization": "Se așteaptă autorizația...",
+    "waitingForGoogleAuthorization": "Se așteaptă autorizarea Google...",
+    "waitingForOpenAIAuthorization": "Se așteaptă autorizarea OpenAI...",
+    "waitingForAntigravityAuthorization": "Se așteaptă autorizația antigravitație...",
+    "waitingForIFlowAuthorization": "Se așteaptă autorizarea iFlow...",
+    "exchangingCodeForTokens": "Se schimbă codul pentru jetoane..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Generarea text-to-speech (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generarea de încorporare a textului (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Politica de confidențialitate",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Chat simplu",
+    "streaming": "Streaming",
+    "system-prompt": "Prompt de sistem",
+    "thinking": "Gândirea",
+    "tool-calling": "Apelarea instrumentului",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Șablon de chat de bază cu mesaj de sistem",
+    "streaming": "Șablon pentru răspunsuri în flux",
+    "system-prompt": "Șablon cu prompt de sistem personalizat",
+    "thinking": "Șablon cu buget de raționament/gândire",
+    "tool-calling": "Șablon pentru apelarea instrumentului/funcției",
+    "multi-turn": "Șablon pentru conversații în mai multe rânduri"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Sunteți un asistent AI util.",
+      "userGreeting": "Bună ziua! Cum te pot ajuta azi?"
+    },
+    "streaming": {
+      "prompt": "Scrie o poveste despre"
+    },
+    "systemPrompt": {
+      "question": "Care este sensul vieții?",
+      "systemInstruction": "Oferă un răspuns gânditor, filozofic."
+    },
+    "thinking": {
+      "question": "Explicați calculul cuantic"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Numele orașului pentru care să aflați vremea",
+      "toolDescription": "Obțineți vremea actuală pentru o locație",
+      "userWeather": "Care este vremea în Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Ești un asistent util.",
+      "assistantExample": "Aș fi bucuros să te ajut cu asta.",
+      "userInitial": "Am nevoie de ajutor cu",
+      "userFollowUp": "Puteți detalia asta?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

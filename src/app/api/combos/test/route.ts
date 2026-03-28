@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  buildComboTestRequestBody,
+  probeComboModelReachability,
+  shouldProbeComboTestReachability,
+} from "@/lib/combos/testHealth";
 import { getComboByName } from "@/lib/localDb";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -49,13 +54,9 @@ export async function POST(request) {
       const startTime = Date.now();
       try {
         // Send a minimal chat request to the internal SSE handler
-        // Use OpenAI-compatible format — universally accepted by all providers via the translator
-        const testBody = {
-          model: modelStr,
-          messages: [{ role: "user", content: "Hi" }],
-          max_tokens: 5,
-          stream: false,
-        };
+        // Use a tiny but realistic request body so gateway-routed models do not
+        // get flagged as dead just because the probe payload is too synthetic.
+        const testBody = buildComboTestRequestBody(modelStr);
 
         const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
         const controller = new AbortController();
@@ -88,6 +89,29 @@ export async function POST(request) {
           } catch {
             errorMsg = res.statusText;
           }
+
+          let reachability = null;
+          if (shouldProbeComboTestReachability(res.status)) {
+            try {
+              reachability = await probeComboModelReachability(modelStr);
+            } catch {
+              reachability = null;
+            }
+          }
+
+          if (reachability?.reachable) {
+            results.push({
+              model: modelStr,
+              status: "reachable",
+              statusCode: res.status,
+              error: errorMsg,
+              latencyMs,
+              provider: reachability.provider,
+              probeMethod: reachability.method,
+            });
+            continue;
+          }
+
           results.push({
             model: modelStr,
             status: "error",

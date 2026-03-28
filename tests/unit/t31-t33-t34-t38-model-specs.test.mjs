@@ -47,7 +47,11 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(typeof MODEL_SPECS["gemini-3.1-pro-high"], "object");
   assert.equal(getModelSpec("gemini-3-pro-high").maxOutputTokens, 131072);
   assert.equal(getModelSpec("gemini-3-flash-preview").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("gemini-3.1-pro-preview").maxOutputTokens, 131072);
+  assert.equal(getModelSpec("gemini-3.1-pro-preview-customtools").maxOutputTokens, 131072);
   assert.equal(resolveModelAlias("gemini-3-pro-low"), "gemini-3.1-pro-low");
+  assert.equal(resolveModelAlias("gemini-3.1-pro-preview"), "gemini-3.1-pro-high");
+  assert.equal(resolveModelAlias("gemini-3.1-pro-preview-customtools"), "gemini-3.1-pro-high");
   assert.equal(getDefaultThinkingBudget("gemini-3.1-pro-high"), 24576);
   assert.equal(capThinkingBudget("gemini-3.1-pro-low", 50000), 16000);
 });

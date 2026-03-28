@@ -58,7 +58,85 @@
     "free": "Percuma",
     "skipToContent": "Langkau ke kandungan",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Terima",
+    "accountId": "ID Akaun",
+    "alias": "Alias",
+    "apiKeyId": "ID Kunci API",
+    "apiKeyName": "Nama Kunci API",
+    "apiKeySecret": "Rahsia Kunci API",
+    "authorization": "Keizinan",
+    "content-type": "Jenis Kandungan",
+    "content-length": "Panjang Kandungan",
+    "cookie": "Kuki",
+    "file": "Fail",
+    "host": "hos",
+    "id": "ID",
+    "import": "Import",
+    "limit": "had",
+    "offset": "Offset",
+    "open": "Buka",
+    "origin": "asal usul",
+    "promptTokens": "Token Gesaan",
+    "completionTokens": "Token Penyiapan",
+    "totalTokens": "Jumlah Token",
+    "rawModel": "Model Mentah",
+    "scope": "Skop",
+    "skill": "Kemahiran",
+    "sortBy": "Isih Mengikut",
+    "sortOrder": "Susun Susunan",
+    "tab": "Tab",
+    "text": "Teks",
+    "textarea": "Textarea",
+    "tool": "alat",
+    "toolId": "ID alat",
+    "web": "Web",
+    "whereUsed": "Di mana Digunakan",
+    "whitelist": "Senarai putih",
+    "blacklist": "Senarai hitam",
+    "resolve": "Selesaikan",
+    "force": "Paksa",
+    "base64url": "URL Base64",
+    "hex": "Hex",
+    "range": "Julat",
+    "component": "Komponen",
+    "redirect_uri": "Ubah hala URI",
+    "idempotency-key": "Kunci Idepotency",
+    "error_description": "Penerangan Ralat",
+    "code": "Kod",
+    "compatible": "serasi",
+    "chat-completions": "Selesai Sembang",
+    "oauth": "OAuth",
+    "auth_token": "Token Pengesahan",
+    "crypto": "Kripto",
+    "hours": "jam",
+    "selfsigned": "Ditandatangani sendiri",
+    "proxy_id": "ID proksi",
+    "proxyId": "ID proksi",
+    "connectionId": "ID Sambungan",
+    "resolveConnectionId": "Selesaikan ID Sambungan",
+    "resolve_connection_id": "Selesaikan ID Sambungan",
+    "scope_id": "ID Skop",
+    "scopeId": "ID Skop",
+    "jwtSecret": "Rahsia JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "lebih baik-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID Pembina",
+    "musicDesc": "Penerangan Muzik",
+    "musicGeneration": "Penjanaan Muzik",
+    "idc": "IDC",
+    "cloud-status-changed": "Status awan berubah",
+    "where_used": "Di mana Digunakan",
+    "windowMs": "Tetingkap (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Senarai Benarkan Alat",
+    "TOOL_DENYLIST": "Senarai Penafian Alat",
+    "Failed to save pricing": "Gagal menyimpan harga",
+    "Failed to reset pricing": "Gagal menetapkan semula harga",
+    "apikey": "Kunci API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Rumah",
@@ -107,7 +185,9 @@
     "agents": "Ejen",
     "cliToolsShort": "Alat",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} permintaan",
     "providerModelsTitle": "{provider} - Model",
     "copiedModel": "Disalin: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Kemas kini Sekarang",
+    "updating": "Mengemas kini...",
+    "updateAvailableDesc": "Versi baharu tersedia. Klik untuk mengemas kini.",
+    "updateStarted": "Kemas kini bermula..."
   },
   "analytics": {
     "title": "Analitis",
@@ -535,6 +619,9 @@
             "title": "Tambah Konfigurasi Model",
             "desc": "Tambahkan konfigurasi berikut pada tatasusunan model anda:"
           }
+        },
+        "notes": {
+          "0": "Teruskan menggunakan fail konfigurasi JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode memerlukan konfigurasi kunci API.",
+          "1": "Tetapkan URL asas kepada titik akhir OmniRoute anda."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro memerlukan akaun Amazon."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Selesai Sembang",
     "importingModels": "Mengimport...",
     "importFromModels": "Import daripada /models",
+    "clearAllModels": "Padam Semua Model",
+    "clearAllModelsConfirm": "Adakah anda pasti mahu membuang semua model untuk pembekal ini? Tindakan ini tidak boleh dibuat asal.",
+    "clearAllModelsSuccess": "Semua model dipadamkan",
+    "clearAllModelsFailed": "Gagal memadamkan model",
     "addConnectionToImport": "Tambahkan sambungan untuk mendayakan pengimportan.",
     "noModelsConfigured": "Tiada model yang dikonfigurasikan",
     "connectionCount": "{count} sambungan",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Auto-Segerak",
+    "autoSyncTooltip": "Muat semula senarai model secara automatik setiap 24j (boleh dikonfigurasikan melalui MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Autosegerak didayakan — model akan dimuat semula secara berkala",
+    "autoSyncDisabled": "Autosegerak dilumpuhkan",
+    "autoSyncToggleFailed": "Gagal untuk menogol autosegerak",
+    "clearAllModels": "Kosongkan Semua Model",
+    "clearAllModelsConfirm": "Adakah anda pasti mahu mengalih keluar semua model untuk pembekal ini? Ini tidak boleh dibuat asal.",
+    "clearAllModelsSuccess": "Semua model dibersihkan",
+    "clearAllModelsFailed": "Gagal mengosongkan model"
   },
   "settings": {
     "title": "tetapan",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Mulakan semula pelayan - ia akan menggunakan kata laluan baharu",
     "backToLogin": "Kembali ke Log Masuk",
     "forgotPassword": "Lupa kata laluan?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Keizinan",
+    "Content-Disposition": "Kandungan-Pelupusan",
+    "waitingForAuthorization": "Menunggu kebenaran...",
+    "waitingForGoogleAuthorization": "Menunggu kebenaran Google...",
+    "waitingForOpenAIAuthorization": "Menunggu kebenaran OpenAI...",
+    "waitingForAntigravityAuthorization": "Menunggu kebenaran Antigraviti...",
+    "waitingForIFlowAuthorization": "Menunggu kebenaran iFlow...",
+    "exchangingCodeForTokens": "Bertukar kod untuk token..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Penjanaan teks ke pertuturan (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Penjanaan pembenaman teks (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Dasar Privasi",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Sembang Mudah",
+    "streaming": "Penstriman",
+    "system-prompt": "Gesaan Sistem",
+    "thinking": "Berfikir",
+    "tool-calling": "Alat Panggilan",
+    "multi-turn": "Pelbagai pusingan"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Templat sembang asas dengan mesej sistem",
+    "streaming": "Templat untuk respons penstriman",
+    "system-prompt": "Templat dengan gesaan sistem tersuai",
+    "thinking": "Templat dengan bajet penaakulan/pemikiran",
+    "tool-calling": "Templat untuk panggilan alat/fungsi",
+    "multi-turn": "Templat untuk perbualan berbilang pusingan"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Anda seorang pembantu AI yang membantu.",
+      "userGreeting": "hello! Bagaimana saya boleh membantu anda hari ini?"
+    },
+    "streaming": {
+      "prompt": "Tulis cerita tentang"
+    },
+    "systemPrompt": {
+      "question": "Apakah erti kehidupan?",
+      "systemInstruction": "Berikan jawapan yang bernas dan berfalsafah."
+    },
+    "thinking": {
+      "question": "Terangkan pengkomputeran kuantum"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Nama bandar untuk mendapatkan cuaca",
+      "toolDescription": "Dapatkan cuaca semasa untuk lokasi",
+      "userWeather": "Bagaimanakah cuaca di Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Anda seorang pembantu yang membantu.",
+      "assistantExample": "Saya berbesar hati untuk membantu anda dengan itu.",
+      "userInitial": "Saya perlukan bantuan",
+      "userFollowUp": "Bolehkah anda menghuraikan perkara itu?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

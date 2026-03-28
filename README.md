@@ -876,6 +876,35 @@ docker compose --profile base up -d
 docker compose --profile cli up -d
 ```
 
+**Using Docker Compose with Caddy (HTTPS Auto-TLS):**
+
+OmniRoute can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
+
+```yaml
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    volumes:
+      - omniroute-data:/app/data
+    environment:
+      - PORT=20128
+      - NEXT_PUBLIC_BASE_URL=https://your-domain.com
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+
+volumes:
+  omniroute-data:
+```
+
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |

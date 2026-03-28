@@ -15,7 +15,7 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import os from "os";
@@ -162,6 +162,7 @@ const outFile = outArg
 
 const outPath = join(ROOT, outFile);
 
+mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, report);
 console.log(report);
 console.log(`\n✅ Report saved to: ${outPath}`);

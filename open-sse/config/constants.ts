@@ -66,6 +66,15 @@ export const DEFAULT_MAX_TOKENS = 64000;
 // Minimum max tokens for tool calling (to prevent truncated arguments)
 export const DEFAULT_MIN_TOKENS = 32000;
 
+export const PROVIDER_MAX_TOKENS: Record<string, number> = {
+  groq: 16384, // Groq strict per-model enforcement
+  openai: 16384, // GPT-4/4o standard
+  anthropic: 65536, // Claude models
+  gemini: 65536, // Gemini Studio
+};
+
+export const DEFAULT_PROVIDER_MAX_TOKENS = 32000;
+
 // HTTP status codes
 export const HTTP_STATUS = {
   BAD_REQUEST: 400,

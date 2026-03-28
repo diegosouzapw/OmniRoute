@@ -58,7 +58,85 @@
     "free": "Ilmainen",
     "skipToContent": "Siirry sisältöön",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Hyväksy",
+    "accountId": "Tilin tunnus",
+    "alias": "Alias",
+    "apiKeyId": "API-avaimen tunnus",
+    "apiKeyName": "API-avaimen nimi",
+    "apiKeySecret": "API-avaimen salaisuus",
+    "authorization": "Valtuutus",
+    "content-type": "Sisältötyyppi",
+    "content-length": "Sisällön pituus",
+    "cookie": "Eväste",
+    "file": "Tiedosto",
+    "host": "Isäntä",
+    "id": "ID",
+    "import": "Tuo",
+    "limit": "Raja",
+    "offset": "Offset",
+    "open": "Avaa",
+    "origin": "Alkuperä",
+    "promptTokens": "Kehotusmerkit",
+    "completionTokens": "Päättymismerkit",
+    "totalTokens": "Tokeneja yhteensä",
+    "rawModel": "Raaka malli",
+    "scope": "Laajuus",
+    "skill": "Taito",
+    "sortBy": "Lajitteluperuste",
+    "sortOrder": "Lajittelujärjestys",
+    "tab": "Tab",
+    "text": "Teksti",
+    "textarea": "Textarea",
+    "tool": "Työkalu",
+    "toolId": "Työkalun tunnus",
+    "web": "Web",
+    "whereUsed": "Missä käytetty",
+    "whitelist": "Valkoinen lista",
+    "blacklist": "Musta lista",
+    "resolve": "Ratkaise",
+    "force": "Voimaa",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Alue",
+    "component": "Komponentti",
+    "redirect_uri": "Uudelleenohjaus URI",
+    "idempotency-key": "Idempotenssiavain",
+    "error_description": "Virheen kuvaus",
+    "code": "Koodi",
+    "compatible": "Yhteensopiva",
+    "chat-completions": "Chatin loppuun saattaminen",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Krypto",
+    "hours": "Tuntia",
+    "selfsigned": "Itse allekirjoitettu",
+    "proxy_id": "Välityspalvelimen tunnus",
+    "proxyId": "Välityspalvelimen tunnus",
+    "connectionId": "Yhteystunnus",
+    "resolveConnectionId": "Ratkaise yhteystunnus",
+    "resolve_connection_id": "Ratkaise yhteystunnus",
+    "scope_id": "Laajuustunnus",
+    "scopeId": "Laajuustunnus",
+    "jwtSecret": "JWT Secret",
+    "keytar": "Keytar",
+    "better-sqlite3": "parempi-sqlite3",
+    "undici": "undici",
+    "builder-id": "Rakentajan tunnus",
+    "musicDesc": "Musiikki Kuvaus",
+    "musicGeneration": "Musiikin sukupolvi",
+    "idc": "IDC",
+    "cloud-status-changed": "Pilven tila muuttunut",
+    "where_used": "Missä käytetty",
+    "windowMs": "Ikkuna (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Työkalujen sallittu luettelo",
+    "TOOL_DENYLIST": "Tool Denylist",
+    "Failed to save pricing": "Hinnoittelun tallentaminen epäonnistui",
+    "Failed to reset pricing": "Hinnoittelun nollaaminen epäonnistui",
+    "apikey": "API-avain",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Kotiin",
@@ -107,7 +185,9 @@
     "agents": "Agentit",
     "cliToolsShort": "Työkalut",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Teemat",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} vaatimus",
     "providerModelsTitle": "{provider} - Mallit",
     "copiedModel": "Kopioitu: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Päivitä nyt",
+    "updating": "Päivitetään...",
+    "updateAvailableDesc": "Uusi versio on saatavilla. Päivitä napsauttamalla.",
+    "updateStarted": "Päivitys aloitettu..."
   },
   "analytics": {
     "title": "Analytics",
@@ -535,6 +619,9 @@
             "title": "Lisää mallin kokoonpano",
             "desc": "Lisää seuraavat kokoonpanot mallien matriisiisi:"
           }
+        },
+        "notes": {
+          "0": "Jatka käyttää JSON-määritystiedostoa."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode vaatii API-avaimen määrityksen.",
+          "1": "Aseta perus-URL-osoite OmniRoute-päätepisteellesi."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro vaatii Amazon-tilin."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Chatin loppuun saattaminen",
     "importingModels": "Tuodaan...",
     "importFromModels": "Tuo / mallit",
+    "clearAllModels": "Tyhjennä kaikki mallit",
+    "clearAllModelsConfirm": "Haluatko varmasti poistaa kaikki tämän palveluntarjoajan mallit? Tätä ei voi kumota.",
+    "clearAllModelsSuccess": "Kaikki mallit tyhjennetty",
+    "clearAllModelsFailed": "Mallien tyhjentäminen epäonnistui",
     "addConnectionToImport": "Lisää yhteys ottaaksesi tuonnin käyttöön.",
     "noModelsConfigured": "Ei malleja määritetty",
     "connectionCount": "{count} yhteyttä",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automaattinen synkronointi",
+    "autoSyncTooltip": "Päivitä malliluettelo automaattisesti 24 tunnin välein (konfiguroitavissa kohdassa MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automaattinen synkronointi käytössä – mallit päivittyvät säännöllisesti",
+    "autoSyncDisabled": "Automaattinen synkronointi poistettu käytöstä",
+    "autoSyncToggleFailed": "Automaattisen synkronoinnin vaihtaminen epäonnistui",
+    "clearAllModels": "Tyhjennä kaikki mallit",
+    "clearAllModelsConfirm": "Haluatko varmasti poistaa kaikki tämän palveluntarjoajan mallit? Tätä ei voi kumota.",
+    "clearAllModelsSuccess": "Kaikki mallit tyhjennetty",
+    "clearAllModelsFailed": "Mallien tyhjennys epäonnistui"
   },
   "settings": {
     "title": "Asetukset",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Käynnistä palvelin uudelleen - se käyttää uutta salasanaa",
     "backToLogin": "Takaisin kirjautumiseen",
     "forgotPassword": "Unohditko salasanan?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Valtuutus",
+    "Content-Disposition": "Sisältö-sijoittelu",
+    "waitingForAuthorization": "Odotetaan valtuutusta...",
+    "waitingForGoogleAuthorization": "Odotetaan Googlen valtuutusta...",
+    "waitingForOpenAIAuthorization": "Odotetaan OpenAI-valtuutusta...",
+    "waitingForAntigravityAuthorization": "Odotetaan antigravitaatiovaltuutusta...",
+    "waitingForIFlowAuthorization": "Odotetaan iFlow-valtuutusta...",
+    "exchangingCodeForTokens": "Vaihdetaan koodia tokeneihin..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Tekstistä puheeksi luominen (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Tekstin upottaminen (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Tietosuojakäytäntö",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Yksinkertainen chat",
+    "streaming": "Suoratoisto",
+    "system-prompt": "Järjestelmäkehote",
+    "thinking": "Ajatteleminen",
+    "tool-calling": "Työkalun kutsuminen",
+    "multi-turn": "Monikierros"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Peruskeskustelumalli järjestelmäviestillä",
+    "streaming": "Malli vastausten suoratoistoon",
+    "system-prompt": "Malli mukautetulla järjestelmäkehotteella",
+    "thinking": "Malli perustelulla/ajattelulla",
+    "tool-calling": "Malli työkalun/toiminnon kutsumiseen",
+    "multi-turn": "Malli usean käännöksen keskusteluille"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Olet avulias AI-avustaja.",
+      "userGreeting": "Hei! Kuinka voin auttaa sinua tänään?"
+    },
+    "streaming": {
+      "prompt": "Kirjoita tarina aiheesta"
+    },
+    "systemPrompt": {
+      "question": "Mikä on elämän tarkoitus?",
+      "systemInstruction": "Anna harkittu, filosofinen vastaus."
+    },
+    "thinking": {
+      "question": "Selitä kvanttilaskenta"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Kaupungin nimi, jolle sää haetaan",
+      "toolDescription": "Hanki sijainnin nykyinen sää",
+      "userWeather": "Millainen sää on Tokiossa?"
+    },
+    "multiTurn": {
+      "system": "Olet avulias avustaja.",
+      "assistantExample": "Autan sinua siinä mielelläni.",
+      "userInitial": "Tarvitsen apua",
+      "userFollowUp": "Voitko tarkentaa sitä?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

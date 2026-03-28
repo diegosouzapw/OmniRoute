@@ -291,7 +291,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "qw",
     format: "openai",
     executor: "default",
-    baseUrl: "https://portal.qwen.ai/v1/chat/completions",
+    baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
     authType: "oauth",
     authHeader: "bearer",
     headers: {
@@ -626,6 +626,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
     models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
       { id: "glm-5", name: "GLM 5" },
       { id: "glm-5-turbo", name: "GLM 5 Turbo" },
       { id: "glm-4.7-flash", name: "GLM 4.7 Flash" },
@@ -635,7 +636,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-4.5v", name: "GLM 4.5V (Vision)" },
       { id: "glm-4.5", name: "GLM 4.5" },
       { id: "glm-4.5-air", name: "GLM 4.5 Air" },
-      { id: "glm-4-32b", name: "GLM 4 32B" },
     ],
   },
 

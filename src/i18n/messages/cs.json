@@ -185,7 +185,9 @@
     "themeViolet": "Fialová",
     "themeOrange": "Oranžová",
     "themeCyan": "Azurová",
-    "cliToolsShort": "Nástroje"
+    "cliToolsShort": "Nástroje",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Motivy",
@@ -1470,6 +1472,10 @@
     "chatCompletions": "Chat Completions",
     "importingModels": "Importuji...",
     "importFromModels": "Import z /models",
+    "clearAllModels": "Vymazat všechny modely",
+    "clearAllModelsConfirm": "Opravdu chcete odebrat všechny modely pro tohoto poskytovatele? Tuto akci nelze vrátit.",
+    "clearAllModelsSuccess": "Všechny modely vymazány",
+    "clearAllModelsFailed": "Nepodařilo se vymazat modely",
     "addConnectionToImport": "Přidejte připojení pro povolení importu.",
     "noModelsConfigured": "Žádné nastavené modely",
     "connectionCount": "{count} připojení",
@@ -2474,7 +2480,9 @@
     "waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
     "waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
     "waitingForIFlowAuthorization": "Čekám na iFlow autorizaci...",
-    "exchangingCodeForTokens": "Vyměňuji kód za tokeny..."
+    "exchangingCodeForTokens": "Vyměňuji kód za tokeny...",
+    "Authorization": "Autorizace",
+    "Content-Disposition": "Obsah-Dispozice"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2814,5 +2822,64 @@
     "thinking": "Šablona s rozpočtem na přemýšlení/odůvodňování",
     "tool-calling": "Šablona pro volání nástrojů/funkcí",
     "multi-turn": "Šablona pro konverzace s Multitahy"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Jste užitečný asistent AI.",
+      "userGreeting": "Dobrý den! Jak vám dnes mohu pomoci?"
+    },
+    "streaming": {
+      "prompt": "Napište příběh o"
+    },
+    "systemPrompt": {
+      "question": "Jaký je smysl života?",
+      "systemInstruction": "Poskytněte promyšlenou, filozofickou odpověď."
+    },
+    "thinking": {
+      "question": "Vysvětlete kvantové výpočty"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Název města, pro které se má zjistit počasí",
+      "toolDescription": "Získejte aktuální počasí pro místo",
+      "userWeather": "Jaké je počasí v Tokiu?"
+    },
+    "multiTurn": {
+      "system": "Jste užitečný pomocník.",
+      "assistantExample": "Rád vám s tím pomohu.",
+      "userInitial": "Potřebuji pomoct",
+      "userFollowUp": "Můžete to upřesnit?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

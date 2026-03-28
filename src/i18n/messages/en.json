@@ -185,7 +185,9 @@
     "themeViolet": "Violet",
     "themeOrange": "Orange",
     "themeCyan": "Cyan",
-    "cliToolsShort": "Tools"
+    "cliToolsShort": "Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -1635,6 +1637,12 @@
     "compatibleProdPlaceholder": "{type} Compatible (Prod)",
     "tokenRefreshed": "Token refreshed successfully",
     "tokenRefreshFailed": "Token refresh failed",
+    "applyCodexAuthLocal": "Apply auth",
+    "exportCodexAuthFile": "Export auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExported": "Codex auth.json exported",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
     "advancedSettings": "Advanced Settings",
     "chatPathLabel": "Chat Endpoint Path",
     "chatPathPlaceholder": "/chat/completions",
@@ -2843,5 +2851,37 @@
       "userInitial": "I need help with",
       "userFollowUp": "Can you elaborate on that?"
     }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntries": "DB Entries",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHits": "Cache Hits",
+    "cacheHitsSub": "of {total} total",
+    "tokensSaved": "Tokens Saved",
+    "tokensSavedSub": "Estimated from hits",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behavior": "Cache Behavior",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "idempotency": "Idempotency Layer",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running."
   }
 }

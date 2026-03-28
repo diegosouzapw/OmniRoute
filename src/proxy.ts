@@ -5,6 +5,7 @@ import { getSettings } from "./lib/localDb";
 import { isPublicRoute, verifyAuth, isAuthRequired } from "./shared/utils/apiAuth";
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
+import { isModelSyncInternalRequest } from "./shared/services/modelSyncScheduler";
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
 
@@ -40,6 +41,14 @@ export async function proxy(request) {
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
     // Allow public routes (login, logout, health, etc.)
     if (isPublicRoute(pathname)) {
+      return response;
+    }
+
+    // Allow the model auto-sync scheduler to reach only its internal provider routes.
+    if (
+      isModelSyncInternalRequest(request) &&
+      /^\/api\/providers\/[^/]+\/(sync-models|models)$/.test(pathname)
+    ) {
       return response;
     }
 

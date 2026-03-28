@@ -20,7 +20,7 @@ import {
   parseUpstreamError,
   formatProviderError,
 } from "../utils/error.ts";
-import { HTTP_STATUS } from "../config/constants.ts";
+import { HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
@@ -32,12 +32,17 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
+import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAccounting";
+import { recordCost } from "@/domain/costRules";
+import { calculateCost } from "@/lib/usage/costCalculator";
+import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
+
 import {
   parseCodexQuotaHeaders,
   getCodexResetTime,
@@ -90,6 +95,202 @@ export function shouldUseNativeCodexPassthrough({
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
   const segments = normalizedEndpoint.split("/");
   return segments.includes("responses");
+}
+
+function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
+  if (!body || !Array.isArray(body.tools)) return null;
+
+  const toolNameMap = new Map<string, string>();
+  for (const tool of body.tools) {
+    const toolRecord = tool as Record<string, unknown>;
+    const toolData =
+      toolRecord?.type === "function" &&
+      toolRecord.function &&
+      typeof toolRecord.function === "object"
+        ? (toolRecord.function as Record<string, unknown>)
+        : toolRecord;
+    const originalName = typeof toolData?.name === "string" ? toolData.name.trim() : "";
+    if (!originalName) continue;
+    toolNameMap.set(`${CLAUDE_OAUTH_TOOL_PREFIX}${originalName}`, originalName);
+  }
+
+  return toolNameMap.size > 0 ? toolNameMap : null;
+}
+
+function restoreClaudePassthroughToolNames(
+  responseBody: Record<string, unknown>,
+  toolNameMap: Map<string, string> | null
+) {
+  if (!toolNameMap || !Array.isArray(responseBody?.content)) return responseBody;
+
+  let changed = false;
+  const content = responseBody.content.map((block: Record<string, unknown>) => {
+    if (block?.type !== "tool_use" || typeof block?.name !== "string") return block;
+    const restoredName = toolNameMap.get(block.name) ?? block.name;
+    if (restoredName === block.name) return block;
+    changed = true;
+    return {
+      ...block,
+      name: restoredName,
+    };
+  });
+
+  if (!changed) return responseBody;
+  return {
+    ...responseBody,
+    content,
+  };
+}
+
+function getHeaderValueCaseInsensitive(
+  headers: Record<string, unknown> | null | undefined,
+  targetName: string
+) {
+  if (!headers || typeof headers !== "object") return null;
+  const lowered = targetName.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === lowered && typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function buildClaudePromptCacheLogMeta(
+  targetFormat: string,
+  finalBody: Record<string, unknown> | null | undefined,
+  providerHeaders: Record<string, unknown> | null | undefined
+) {
+  if (targetFormat !== FORMATS.CLAUDE || !finalBody || typeof finalBody !== "object") return null;
+
+  const describeCacheControl = (cacheControl: Record<string, unknown> | undefined, extra = {}) => ({
+    type:
+      cacheControl && typeof cacheControl.type === "string" && cacheControl.type.trim()
+        ? cacheControl.type.trim()
+        : "ephemeral",
+    ttl:
+      cacheControl && typeof cacheControl.ttl === "string" && cacheControl.ttl.trim()
+        ? cacheControl.ttl.trim()
+        : null,
+    ...extra,
+  });
+
+  const systemBreakpoints = Array.isArray(finalBody.system)
+    ? finalBody.system.flatMap((block, index) => {
+        if (!block || typeof block !== "object") return [];
+        const cacheControl =
+          block.cache_control && typeof block.cache_control === "object"
+            ? block.cache_control
+            : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index })] : [];
+      })
+    : [];
+
+  const toolBreakpoints = Array.isArray(finalBody.tools)
+    ? finalBody.tools.flatMap((tool, index) => {
+        if (!tool || typeof tool !== "object") return [];
+        const cacheControl =
+          tool.cache_control && typeof tool.cache_control === "object" ? tool.cache_control : null;
+        const name = typeof tool.name === "string" && tool.name.trim() ? tool.name.trim() : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index, name })] : [];
+      })
+    : [];
+
+  const messageBreakpoints = Array.isArray(finalBody.messages)
+    ? finalBody.messages.flatMap((message, messageIndex) => {
+        if (!message || typeof message !== "object" || !Array.isArray(message.content)) return [];
+        const role =
+          typeof message.role === "string" && message.role.trim() ? message.role.trim() : "unknown";
+        return message.content.flatMap((block, contentIndex) => {
+          if (!block || typeof block !== "object") return [];
+          const cacheControl =
+            block.cache_control && typeof block.cache_control === "object"
+              ? block.cache_control
+              : null;
+          if (!cacheControl) return [];
+          return [
+            describeCacheControl(cacheControl, {
+              messageIndex,
+              contentIndex,
+              role,
+              blockType:
+                typeof block.type === "string" && block.type.trim() ? block.type.trim() : "unknown",
+            }),
+          ];
+        });
+      })
+    : [];
+
+  const totalBreakpoints =
+    systemBreakpoints.length + toolBreakpoints.length + messageBreakpoints.length;
+  const anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
+
+  if (totalBreakpoints === 0 && !anthropicBeta) return null;
+
+  return {
+    applied: totalBreakpoints > 0,
+    totalBreakpoints,
+    anthropicBeta,
+    systemBreakpoints,
+    toolBreakpoints,
+    messageBreakpoints,
+  };
+}
+
+function toPositiveNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefined) {
+  if (!usage || typeof usage !== "object") return null;
+  const promptTokenDetails =
+    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
+      ? (usage.prompt_tokens_details as Record<string, unknown>)
+      : undefined;
+  const hasCacheFields =
+    "cache_read_input_tokens" in usage ||
+    "cached_tokens" in usage ||
+    "cache_creation_input_tokens" in usage ||
+    (!!promptTokenDetails &&
+      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
+  const cacheReadTokens = toPositiveNumber(
+    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
+  );
+  const cacheCreationTokens = toPositiveNumber(
+    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
+  );
+  if (!hasCacheFields) return null;
+  return {
+    cacheReadTokens,
+    cacheCreationTokens,
+  };
+}
+
+function attachLogMeta(
+  payload: Record<string, unknown> | null | undefined,
+  meta: Record<string, unknown> | null | undefined
+) {
+  if (!meta || typeof meta !== "object") return payload;
+  const compactMeta = Object.fromEntries(
+    Object.entries(meta).filter(([, value]) => value !== null && value !== undefined)
+  );
+  if (Object.keys(compactMeta).length === 0) return payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { _omniroute: compactMeta, _payload: payload ?? null };
+  }
+  const existing =
+    payload._omniroute &&
+    typeof payload._omniroute === "object" &&
+    !Array.isArray(payload._omniroute)
+      ? payload._omniroute
+      : {};
+  return {
+    ...payload,
+    _omniroute: {
+      ...existing,
+      ...compactMeta,
+    },
+  };
 }
 
 /**
@@ -326,7 +527,9 @@ export async function handleChatCore({
       connectionId,
       duration: Date.now() - startTime,
       tokens: tokens || {},
-      requestBody: body,
+      requestBody: attachLogMeta(body, {
+        claudePromptCache: claudePromptCacheLogMeta,
+      }),
       responseBody,
       error: error || null,
       sourceFormat,
@@ -491,7 +694,7 @@ export async function handleChatCore({
         FORMATS.OPENAI,
         FORMATS.CLAUDE,
         model,
-        translatedBody,
+        { ...translatedBody, _disableToolPrefix: true },
         stream,
         credentials,
         provider,
@@ -642,7 +845,14 @@ export async function handleChatCore({
   }
 
   // Extract toolNameMap for response translation (Claude OAuth)
-  const toolNameMap = translatedBody._toolNameMap;
+  const translatedToolNameMap = translatedBody._toolNameMap;
+  const nativeClaudeToolNameMap = isClaudePassthrough
+    ? buildClaudePassthroughToolNameMap(body)
+    : null;
+  const toolNameMap =
+    translatedToolNameMap instanceof Map && translatedToolNameMap.size > 0
+      ? translatedToolNameMap
+      : nativeClaudeToolNameMap;
   delete translatedBody._toolNameMap;
   delete translatedBody._disableToolPrefix;
 
@@ -661,6 +871,22 @@ export async function handleChatCore({
     }
     if (stripped.length > 0) {
       log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    }
+  }
+
+  // Provider-specific max_tokens caps (#711)
+  // Some providers reject requests when max_tokens exceeds their API limit.
+  // Cap before sending to avoid upstream HTTP 400 errors.
+  const providerCap = PROVIDER_MAX_TOKENS[provider];
+  if (providerCap) {
+    for (const field of ["max_tokens", "max_completion_tokens"] as const) {
+      if (typeof translatedBody[field] === "number" && translatedBody[field] > providerCap) {
+        log?.debug?.(
+          "PARAMS",
+          `Capping ${field} from ${translatedBody[field]} to ${providerCap} for ${provider}`
+        );
+        translatedBody[field] = providerCap;
+      }
     }
   }
 
@@ -743,6 +969,7 @@ export async function handleChatCore({
   let providerUrl;
   let providerHeaders;
   let finalBody;
+  let claudePromptCacheLogMeta = null;
 
   try {
     const result = await executeProviderRequest(effectiveModel, true);
@@ -751,6 +978,11 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = result.transformedBody;
+    claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
+      targetFormat,
+      finalBody,
+      providerHeaders
+    );
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
@@ -1139,6 +1371,18 @@ export async function handleChatCore({
         : responseBody
     );
 
+    const loggedProviderResponseBody = looksLikeSSE
+      ? {
+          _streamed: true,
+          _format: "sse-json",
+          summary: responseBody,
+        }
+      : responseBody;
+
+    if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
+      responseBody = restoreClaudePassthroughToolNames(responseBody, toolNameMap);
+    }
+
     // Notify success - caller can clear error status if needed
     if (onRequestSuccess) {
       await onRequestSuccess();
@@ -1150,8 +1394,9 @@ export async function handleChatCore({
       () => {}
     );
 
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${usage?.prompt_tokens || 0} | out=${usage?.completion_tokens || 0}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${getLoggedInputTokens(usage)} | out=${getLoggedOutputTokens(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
 
       saveRequestUsage({
@@ -1170,6 +1415,11 @@ export async function handleChatCore({
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
+    }
+
+    if (apiKeyInfo?.id && usage) {
+      const estimatedCost = await calculateCost(provider, model, usage);
+      if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
     }
 
     // Translate response to client's expected format (usually OpenAI)
@@ -1241,15 +1491,18 @@ export async function handleChatCore({
     persistAttemptLogs({
       status: 200,
       tokens: usage,
-      responseBody,
+      responseBody: attachLogMeta(loggedProviderResponseBody, {
+        claudePromptCache: claudePromptCacheLogMeta
+          ? {
+              applied: claudePromptCacheLogMeta.applied,
+              totalBreakpoints: claudePromptCacheLogMeta.totalBreakpoints,
+              anthropicBeta: claudePromptCacheLogMeta.anthropicBeta,
+            }
+          : null,
+        claudePromptCacheUsage: cacheUsageLogMeta,
+      }),
       providerRequest: finalBody || translatedBody,
-      providerResponse: looksLikeSSE
-        ? {
-            _streamed: true,
-            _format: "sse-json",
-            summary: responseBody,
-          }
-        : responseBody,
+      providerResponse: loggedProviderResponseBody,
       clientResponse: translatedResponse,
     });
 
@@ -1290,30 +1543,47 @@ export async function handleChatCore({
     providerPayload,
     clientPayload,
   }) => {
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
     persistAttemptLogs({
       status: streamStatus || 200,
       tokens: streamUsage || {},
-      responseBody: streamResponseBody ?? undefined,
+      responseBody: attachLogMeta(streamResponseBody ?? undefined, {
+        claudePromptCache: claudePromptCacheLogMeta
+          ? {
+              applied: claudePromptCacheLogMeta.applied,
+              totalBreakpoints: claudePromptCacheLogMeta.totalBreakpoints,
+              anthropicBeta: claudePromptCacheLogMeta.anthropicBeta,
+            }
+          : null,
+        claudePromptCacheUsage: cacheUsageLogMeta,
+      }),
       providerRequest: finalBody || translatedBody,
       providerResponse: providerPayload,
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
     });
+
+    if (apiKeyInfo?.id && streamUsage) {
+      calculateCost(provider, model, streamUsage)
+        .then((estimatedCost) => {
+          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+        })
+        .catch(() => {});
+    }
   };
 
-  // For Codex provider, translate response from openai-responses to openai (Chat Completions) format
+  // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
-  const needsCodexTranslation =
-    provider === "codex" &&
+  const needsResponsesTranslation =
     targetFormat === FORMATS.OPENAI_RESPONSES &&
     sourceFormat === FORMATS.OPENAI &&
     !isResponsesEndpoint &&
     !isDroidCLI;
 
-  if (needsCodexTranslation) {
-    // Codex returns openai-responses, translate to openai (Chat Completions) that clients expect
-    log?.debug?.("STREAM", `Codex translation mode: openai-responses → openai`);
+  if (needsResponsesTranslation) {
+    // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect
+    log?.debug?.("STREAM", `Responses translation mode: openai-responses → openai`);
     transformStream = createSSETransformStreamWithLogger(
       "openai-responses",
       "openai",
@@ -1346,6 +1616,7 @@ export async function handleChatCore({
     transformStream = createPassthroughStreamWithLogger(
       provider,
       reqLogger,
+      toolNameMap,
       model,
       connectionId,
       body,

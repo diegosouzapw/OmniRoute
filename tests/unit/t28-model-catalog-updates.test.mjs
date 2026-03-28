@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { getModelInfoCore } from "../../open-sse/services/model.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
+import { getStaticModelsForProvider } from "../../src/app/api/providers/[id]/models/route.ts";
 
 test("T28: gemini catalog includes preview models from 9router", () => {
   const geminiIds = REGISTRY.gemini.models.map((m) => m.id);
@@ -12,6 +13,20 @@ test("T28: gemini catalog includes preview models from 9router", () => {
   assert.ok(geminiIds.includes("gemini-3-flash-preview"));
   assert.ok(geminiCliIds.includes("gemini-3.1-flash-lite-preview"));
   assert.ok(geminiCliIds.includes("gemini-3-flash-preview"));
+});
+
+test("T28: antigravity static catalog includes Gemini 3.1 preview fallbacks", () => {
+  const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
+
+  assert.ok(staticIds.includes("gemini-3.1-pro-preview"));
+  assert.ok(staticIds.includes("gemini-3.1-flash-lite-preview"));
+});
+
+test("T28: qwen registry uses DashScope-compatible base URL", () => {
+  assert.equal(
+    REGISTRY.qwen.baseUrl,
+    "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+  );
 });
 
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {

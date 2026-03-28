@@ -114,6 +114,7 @@ npm run test:fixes        # Fix verification tests
 
 # With coverage
 npm run test:coverage
+npm run coverage:report
 
 # E2E tests (requires Playwright)
 npm run test:e2e
@@ -123,7 +124,13 @@ npm run lint
 npm run check
 ```
 
-Current test status: **368+ unit tests** covering:
+Coverage notes:
+
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+
+Current test status: **968+ unit tests** covering:
 
 - Provider translators and format conversion
 - Rate limiting, circuit breaker, and resilience

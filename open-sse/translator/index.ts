@@ -2,6 +2,11 @@ import { FORMATS } from "./formats.ts";
 import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.ts";
 import { prepareClaudeRequest } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import {
+  coerceToolSchemas,
+  injectEmptyReasoningContentForToolCalls,
+  sanitizeToolDescriptions,
+} from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { normalizeThinkingConfig } from "../services/provider.ts";
@@ -171,9 +176,40 @@ export function translateRequest(
     );
   }
 
+  if (result.tools !== undefined) {
+    result.tools = coerceToolSchemas(result.tools);
+    result.tools = sanitizeToolDescriptions(result.tools);
+  }
+
+  if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
+    result.messages = injectEmptyReasoningContentForToolCalls(result.messages, provider);
+  }
+
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)
   ensureToolCallIds(result, { use9CharId });
   fixMissingToolResponses(result);
+
+  if (result.tools) {
+    result.tools = coerceToolSchemas(result.tools);
+    result.tools = sanitizeToolDescriptions(result.tools);
+  }
+
+  // Inject reasoning_content = "" for DeepSeek/Reasoning models assistant messages with tool_calls
+  // if omitted by the client, to avoid upstream 400 errors (e.g. "Messages with role 'assistant' that contain tool_calls must also include reasoning_content")
+  const isReasoner =
+    provider === "deepseek" || (typeof model === "string" && /r1|reason/i.test(model));
+  if (isReasoner && result.messages && Array.isArray(result.messages)) {
+    for (const msg of result.messages) {
+      if (
+        msg.role === "assistant" &&
+        Array.isArray(msg.tool_calls) &&
+        msg.tool_calls.length > 0 &&
+        msg.reasoning_content === undefined
+      ) {
+        msg.reasoning_content = "";
+      }
+    }
+  }
 
   return result;
 }

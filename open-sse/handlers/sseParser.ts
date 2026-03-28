@@ -36,8 +36,8 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   let usage = null;
 
   const getToolCallKey = (toolCall: Record<string, unknown>) => {
-    if (toolCall?.id) return `id:${toolCall.id}`;
     if (Number.isInteger(toolCall?.index)) return `idx:${toolCall.index}`;
+    if (toolCall?.id) return `id:${toolCall.id}`;
     unknownToolCallSeq += 1;
     return `seq:${unknownToolCallSeq}`;
   };

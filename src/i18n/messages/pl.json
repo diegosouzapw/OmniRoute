@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google'a",
+    "TOOL_ALLOWLIST": "Lista dozwolonych narzędzi",
+    "TOOL_DENYLIST": "Lista odrzuconych narzędzi",
+    "Failed to save pricing": "Nie udało się zapisać cen",
+    "Failed to reset pricing": "Nie udało się zresetować cen",
+    "apikey": "Klucz API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Dom",
@@ -177,7 +185,9 @@
     "agents": "Agenci",
     "cliToolsShort": "Narzędzia",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -1398,6 +1408,10 @@
     "chatCompletions": "Zakończenia czatu",
     "importingModels": "Importowanie...",
     "importFromModels": "Importuj z /modele",
+    "clearAllModels": "Wyczyść wszystkie modele",
+    "clearAllModelsConfirm": "Czy na pewno chcesz usunąć wszystkie modele dla tego dostawcy? Tej operacji nie można cofnąć.",
+    "clearAllModelsSuccess": "Wszystkie modele wyczyszczone",
+    "clearAllModelsFailed": "Nie udało się wyczyścić modeli",
     "addConnectionToImport": "Dodaj połączenie, aby umożliwić importowanie.",
     "noModelsConfigured": "Nie skonfigurowano żadnych modeli",
     "connectionCount": "{count} połączenia",
@@ -2403,7 +2417,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Autoryzacja",
+    "Content-Disposition": "Dyspozycja treści"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2806,5 +2822,64 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Jesteś pomocnym asystentem AI.",
+      "userGreeting": "Witam! Jak mogę Ci dzisiaj pomóc?"
+    },
+    "streaming": {
+      "prompt": "Napisz opowiadanie o"
+    },
+    "systemPrompt": {
+      "question": "Jaki jest sens życia?",
+      "systemInstruction": "Podaj przemyślaną, filozoficzną odpowiedź."
+    },
+    "thinking": {
+      "question": "Wyjaśnij obliczenia kwantowe"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Nazwa miasta, dla którego chcesz uzyskać pogodę",
+      "toolDescription": "Uzyskaj aktualną pogodę dla danej lokalizacji",
+      "userWeather": "Jaka jest pogoda w Tokio?"
+    },
+    "multiTurn": {
+      "system": "Jesteś pomocnym asystentem.",
+      "assistantExample": "Chętnie Ci w tym pomogę.",
+      "userInitial": "Potrzebuję pomocy",
+      "userFollowUp": "Możesz to rozwinąć?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

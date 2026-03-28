@@ -40,7 +40,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["gemini-3-pro-high"],
+    aliases: ["gemini-3-pro-high", "gemini-3.1-pro-preview", "gemini-3.1-pro-preview-customtools"],
   },
 
   // ── Gemini 3.1 Pro Low ──────────────────────────────────────────

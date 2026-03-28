@@ -39,32 +39,34 @@ export function parseSSELine(line) {
 // Check if chunk has valuable content (not empty)
 export function hasValuableContent(chunk, format) {
   // OpenAI format
-  if (format === FORMATS.OPENAI && chunk.choices?.[0]?.delta) {
+  if (format === FORMATS.OPENAI) {
+    if (!chunk.choices?.[0]?.delta) return false;
     const delta = chunk.choices[0].delta;
-    return (
-      (delta.content && delta.content !== "") ||
-      (delta.reasoning_content && delta.reasoning_content !== "") ||
-      (delta.tool_calls && delta.tool_calls.length > 0) ||
-      chunk.choices[0].finish_reason ||
-      delta.role
-    );
+    if (typeof delta.content === "string" && delta.content.length > 0) return true;
+    if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0)
+      return true;
+    if (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) return true;
+    if (chunk.choices[0].finish_reason) return true;
+    if (typeof delta.role === "string" && delta.role.length > 0) return true;
+    return false;
   }
 
   // Claude format
   if (format === FORMATS.CLAUDE) {
     const isContentBlockDelta = chunk.type === "content_block_delta";
-    const hasText = chunk.delta?.text && chunk.delta.text !== "";
-    const hasThinking = chunk.delta?.thinking && chunk.delta.thinking !== "";
-    const hasInputJson = chunk.delta?.partial_json && chunk.delta.partial_json !== "";
-
-    if (isContentBlockDelta && !hasText && !hasThinking && !hasInputJson) {
-      return false;
+    if (isContentBlockDelta) {
+      const hasText = typeof chunk.delta?.text === "string" && chunk.delta.text.length > 0;
+      const hasThinking =
+        typeof chunk.delta?.thinking === "string" && chunk.delta.thinking.length > 0;
+      const hasInputJson =
+        typeof chunk.delta?.partial_json === "string" && chunk.delta.partial_json.length > 0;
+      if (!hasText && !hasThinking && !hasInputJson) return false;
     }
     return true;
   }
 
-  // Gemini format: filter chunks with no actual content parts
-  if (format === FORMATS.GEMINI && chunk.candidates?.[0]) {
+  // Gemini / Antigravity format: filter chunks with no actual content parts
+  if ((format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) && chunk.candidates?.[0]) {
     const candidate = chunk.candidates[0];
     // Keep chunks with finish reason or safety ratings (they signal completion)
     if (candidate.finishReason) return true;
@@ -73,7 +75,7 @@ export function hasValuableContent(chunk, format) {
     if (!parts || parts.length === 0) return false;
     // Filter out chunks where all parts have empty text
     const hasContent = parts.some(
-      (p) => (p.text && p.text !== "") || p.functionCall || p.executableCode
+      (p) => (typeof p.text === "string" && p.text.length > 0) || p.functionCall || p.executableCode
     );
     return hasContent;
   }

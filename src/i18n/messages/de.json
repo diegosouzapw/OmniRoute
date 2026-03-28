@@ -185,7 +185,9 @@
     "agents": "Agenten",
     "cliToolsShort": "Werkzeuge",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themen",
@@ -1406,6 +1408,10 @@
     "chatCompletions": "Chat-Abschlüsse",
     "importingModels": "Importieren...",
     "importFromModels": "Import aus /models",
+    "clearAllModels": "Alle Modelle löschen",
+    "clearAllModelsConfirm": "Sind Sie sicher, dass Sie alle Modelle für diesen Anbieter entfernen möchten? Dies kann nicht rückgängig gemacht werden.",
+    "clearAllModelsSuccess": "Alle Modelle gelöscht",
+    "clearAllModelsFailed": "Modelle konnten nicht gelöscht werden",
     "addConnectionToImport": "Fügen Sie eine Verbindung hinzu, um den Import zu ermöglichen.",
     "noModelsConfigured": "Keine Modelle konfiguriert",
     "connectionCount": "{count} Verbindung(en)",
@@ -2411,7 +2417,9 @@
     "waitingForOpenAIAuthorization": "Warte auf OpenAI-Autorisierung...",
     "waitingForAntigravityAuthorization": "Warte auf Antigravity-Autorisierung...",
     "waitingForIFlowAuthorization": "Warte auf iFlow-Autorisierung...",
-    "exchangingCodeForTokens": "Tausche Code gegen Token aus..."
+    "exchangingCodeForTokens": "Tausche Code gegen Token aus...",
+    "Authorization": "Autorisierung",
+    "Content-Disposition": "Inhaltliche Disposition"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2814,5 +2822,64 @@
     "thinking": "Vorlage mit Denk-/Argumentationsbudget",
     "tool-calling": "Vorlage für Werkzeug-/Funktionsaufrufe",
     "multi-turn": "Vorlage für mehrstufige Konversationen"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Sie sind ein hilfreicher KI-Assistent.",
+      "userGreeting": "Hallo! Wie kann ich Ihnen heute helfen?"
+    },
+    "streaming": {
+      "prompt": "Schreiben Sie eine Geschichte darüber"
+    },
+    "systemPrompt": {
+      "question": "Was ist der Sinn des Lebens?",
+      "systemInstruction": "Geben Sie eine nachdenkliche, philosophische Antwort."
+    },
+    "thinking": {
+      "question": "Erklären Sie Quantencomputing"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Der Name der Stadt, für die das Wetter ermittelt werden soll",
+      "toolDescription": "Erhalten Sie das aktuelle Wetter für einen Standort",
+      "userWeather": "Wie ist das Wetter in Tokio?"
+    },
+    "multiTurn": {
+      "system": "Sie sind ein hilfreicher Assistent.",
+      "assistantExample": "Gerne helfe ich Ihnen dabei.",
+      "userInitial": "Ich brauche Hilfe dabei",
+      "userFollowUp": "Können Sie das näher erläutern?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

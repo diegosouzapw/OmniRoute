@@ -7,6 +7,7 @@ import {
   getAllCustomModels,
   getSettings,
   getProviderNodes,
+  getModelIsHidden,
 } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
@@ -223,7 +224,7 @@ export async function getUnifiedModelsResponse(
 
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
-      if (combo.isActive === false) continue;
+      if (combo.isActive === false || combo.isHidden === true) continue;
       models.push({
         id: combo.name,
         object: "model",
@@ -255,6 +256,8 @@ export async function getUnifiedModelsResponse(
 
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
+        if (getModelIsHidden(canonicalProviderId, model.id)) continue;
+
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
         // Model-level context length overrides provider default
@@ -416,6 +419,7 @@ export async function getUnifiedModelsResponse(
         for (const model of providerCustomModels) {
           const modelId = typeof model.id === "string" ? model.id : null;
           if (!modelId) continue;
+          if (model.isHidden === true) continue;
 
           // Skip if already added as built-in
           const aliasId = `${alias}/${modelId}`;

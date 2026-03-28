@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
-const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { handleComboChat, shouldFallbackComboBadRequest } =
+  await import("../../open-sse/services/combo.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 test.beforeEach(() => {
@@ -138,4 +139,44 @@ test("T24: all inactive accounts return 503 service_unavailable (not 406)", asyn
   assert.equal(result.status, 503);
   const body = await result.json();
   assert.equal(body.error?.code, "ALL_ACCOUNTS_INACTIVE");
+});
+
+test("combo falls through provider-scoped 400s and reaches the next model", async () => {
+  const log = createLog();
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "t24-provider-scoped-400",
+      strategy: "priority",
+      models: [
+        { model: "free/gemini-3.1-pro-preview", weight: 0 },
+        { model: "aio/gemini-3.1-pro-preview-thinking-high", weight: 0 },
+        { model: "openrouter/google/gemini-3.1-pro-preview", weight: 0 },
+      ],
+    },
+    handleSingleModel: createStatusSequenceHandler([
+      { status: 429, message: "No capacity available for model gemini-3.1-pro-preview" },
+      { status: 400, message: "request blocked by Gemini API: PROHIBITED_CONTENT" },
+      { status: 200 },
+    ]),
+    isModelAvailable: () => true,
+    log,
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  const badRequestLog = log.entries.find((entry) => entry.msg.includes("provider-scoped 400"));
+  assert.ok(badRequestLog);
+});
+
+test("combo bad-request fallback helper keeps generic 400s terminal", () => {
+  assert.equal(shouldFallbackComboBadRequest(400, "request blocked by Gemini API"), true);
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "One or more of the provided message roles is not valid"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "bad request"), false);
+  assert.equal(shouldFallbackComboBadRequest(422, "request blocked by Gemini API"), false);
 });

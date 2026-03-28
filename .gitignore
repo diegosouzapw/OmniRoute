@@ -112,6 +112,7 @@ app.log
 
 # Backup directories
 app.__qa_backup/
+.app-build-backup-*/
 
 # Production standalone build (created by scripts/prepublish.mjs)
 # Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)

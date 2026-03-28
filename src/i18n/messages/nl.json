@@ -58,7 +58,85 @@
     "free": "Gratis",
     "skipToContent": "Ga naar de inhoud",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Accepteer",
+    "accountId": "Account-ID",
+    "alias": "Alias",
+    "apiKeyId": "API-sleutel-ID",
+    "apiKeyName": "API-sleutelnaam",
+    "apiKeySecret": "API-sleutelgeheim",
+    "authorization": "Autorisatie",
+    "content-type": "Inhoudstype",
+    "content-length": "Inhoud lengte",
+    "cookie": "Koekje",
+    "file": "Bestand",
+    "host": "Gastheer",
+    "id": "Identiteitskaart",
+    "import": "Importeren",
+    "limit": "Limiet",
+    "offset": "Offset",
+    "open": "Openen",
+    "origin": "Oorsprong",
+    "promptTokens": "Prompt-tokens",
+    "completionTokens": "Voltooiingstokens",
+    "totalTokens": "Totaal tokens",
+    "rawModel": "Ruw model",
+    "scope": "Reikwijdte",
+    "skill": "Vaardigheid",
+    "sortBy": "Sorteer op",
+    "sortOrder": "Sorteervolgorde",
+    "tab": "Tab",
+    "text": "Tekst",
+    "textarea": "Tekstgebied",
+    "tool": "Gereedschap",
+    "toolId": "Gereedschaps-ID",
+    "web": "Web",
+    "whereUsed": "Waar gebruikt",
+    "whitelist": "Witte lijst",
+    "blacklist": "Zwarte lijst",
+    "resolve": "Oplossen",
+    "force": "Kracht",
+    "base64url": "Base64-URL",
+    "hex": "Hex",
+    "range": "Bereik",
+    "component": "Onderdeel",
+    "redirect_uri": "Omleidings-URI",
+    "idempotency-key": "Idempotentie sleutel",
+    "error_description": "Foutbeschrijving",
+    "code": "Codeer",
+    "compatible": "Compatibel",
+    "chat-completions": "Chat-voltooiingen",
+    "oauth": "OAuth",
+    "auth_token": "Authenticatietoken",
+    "crypto": "Crypto",
+    "hours": "Uur",
+    "selfsigned": "Zelf ondertekend",
+    "proxy_id": "Proxy-ID",
+    "proxyId": "Proxy-ID",
+    "connectionId": "Verbindings-ID",
+    "resolveConnectionId": "Verbindings-ID oplossen",
+    "resolve_connection_id": "Verbindings-ID oplossen",
+    "scope_id": "Bereik-ID",
+    "scopeId": "Bereik-ID",
+    "jwtSecret": "JWT-geheim",
+    "keytar": "Keytar",
+    "better-sqlite3": "beter-sqlite3",
+    "undici": "undici",
+    "builder-id": "Bouwer-ID",
+    "musicDesc": "Muziekbeschrijving",
+    "musicGeneration": "Muziek generatie",
+    "idc": "IDC",
+    "cloud-status-changed": "Cloudstatus gewijzigd",
+    "where_used": "Waar gebruikt",
+    "windowMs": "Venster (ms)",
+    "social-github": "GitHub",
+    "social-google": "Googlen",
+    "TOOL_ALLOWLIST": "Tool Toelatingslijst",
+    "TOOL_DENYLIST": "Tool-weigerlijst",
+    "Failed to save pricing": "Kan de prijzen niet opslaan",
+    "Failed to reset pricing": "Kan de prijzen niet opnieuw instellen",
+    "apikey": "API-sleutel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Thuis",
@@ -107,7 +185,9 @@
     "agents": "Agenten",
     "cliToolsShort": "Gereedschap",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} vereisten",
     "providerModelsTitle": "{provider} - Modellen",
     "copiedModel": "Gekopieerd: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Nu bijwerken",
+    "updating": "Updaten...",
+    "updateAvailableDesc": "Er is een nieuwe versie beschikbaar. Klik om bij te werken.",
+    "updateStarted": "Update gestart..."
   },
   "analytics": {
     "title": "Analyses",
@@ -535,6 +619,9 @@
             "title": "Modelconfiguratie toevoegen",
             "desc": "Voeg de volgende configuratie toe aan uw modellenarray:"
           }
+        },
+        "notes": {
+          "0": "Doorgaan gebruikt het JSON-configuratiebestand."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode vereist API-sleutelconfiguratie.",
+          "1": "Stel de basis-URL in op uw OmniRoute-eindpunt."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Voor Kiro is een Amazon-account vereist."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Chat-voltooiingen",
     "importingModels": "Importeren...",
     "importFromModels": "Importeren uit /modellen",
+    "clearAllModels": "Alle modellen wissen",
+    "clearAllModelsConfirm": "Weet je zeker dat je alle modellen voor deze provider wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "clearAllModelsSuccess": "Alle modellen gewist",
+    "clearAllModelsFailed": "Kon modellen niet wissen",
     "addConnectionToImport": "Voeg een verbinding toe om importeren mogelijk te maken.",
     "noModelsConfigured": "Geen modellen geconfigureerd",
     "connectionCount": "{count} verbinding(en)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatische synchronisatie",
+    "autoSyncTooltip": "Modellijst automatisch elke 24 uur vernieuwen (configureerbaar via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatische synchronisatie ingeschakeld: modellen worden periodiek vernieuwd",
+    "autoSyncDisabled": "Automatische synchronisatie uitgeschakeld",
+    "autoSyncToggleFailed": "Kan automatische synchronisatie niet in- of uitschakelen",
+    "clearAllModels": "Wis alle modellen",
+    "clearAllModelsConfirm": "Weet u zeker dat u alle modellen voor deze aanbieder wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "clearAllModelsSuccess": "Alle modellen gewist",
+    "clearAllModelsFailed": "Kan modellen niet wissen"
   },
   "settings": {
     "title": "Instellingen",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Start de server opnieuw op. Deze gebruikt het nieuwe wachtwoord",
     "backToLogin": "Terug naar Inloggen",
     "forgotPassword": "Wachtwoord vergeten?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorisatie",
+    "Content-Disposition": "Inhoud-dispositie",
+    "waitingForAuthorization": "Wachten op toestemming...",
+    "waitingForGoogleAuthorization": "Wachten op Google-autorisatie...",
+    "waitingForOpenAIAuthorization": "Wachten op OpenAI-autorisatie...",
+    "waitingForAntigravityAuthorization": "Wachten op toestemming voor anti-zwaartekracht...",
+    "waitingForIFlowAuthorization": "Wachten op iFlow-autorisatie...",
+    "exchangingCodeForTokens": "Code uitwisselen voor tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Tekst-naar-spraakgeneratie (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Genereren van tekstinsluiting (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Privacybeleid",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Eenvoudig chatten",
+    "streaming": "Streamen",
+    "system-prompt": "Systeemprompt",
+    "thinking": "Denken",
+    "tool-calling": "Gereedschap bellen",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basischatsjabloon met systeembericht",
+    "streaming": "Sjabloon voor het streamen van antwoorden",
+    "system-prompt": "Sjabloon met aangepaste systeemprompt",
+    "thinking": "Sjabloon met redeneer-/denkbudget",
+    "tool-calling": "Sjabloon voor het oproepen van gereedschap/functies",
+    "multi-turn": "Sjabloon voor gesprekken met meerdere beurten"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Je bent een behulpzame AI-assistent.",
+      "userGreeting": "Hallo! Hoe kan ik je vandaag helpen?"
+    },
+    "streaming": {
+      "prompt": "Schrijf een verhaal over"
+    },
+    "systemPrompt": {
+      "question": "Wat is de zin van het leven?",
+      "systemInstruction": "Geef een doordacht, filosofisch antwoord."
+    },
+    "thinking": {
+      "question": "Kwantumcomputers uitleggen"
+    },
+    "toolCalling": {
+      "cityNameDescription": "De naam van de stad waarvoor u het weer wilt ophalen",
+      "toolDescription": "Ontvang het huidige weer voor een locatie",
+      "userWeather": "Hoe is het weer in Tokio?"
+    },
+    "multiTurn": {
+      "system": "Je bent een behulpzame assistent.",
+      "assistantExample": "Ik help je daar graag mee.",
+      "userInitial": "Ik heb hulp nodig bij",
+      "userFollowUp": "Kunt u dat nader toelichten?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

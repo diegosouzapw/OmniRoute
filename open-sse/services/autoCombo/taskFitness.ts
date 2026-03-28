@@ -36,7 +36,8 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "grok-3": 0.8,
     // Kimi K2.5 — agentic with tool calling, good at code tasks
     "kimi-k2": 0.82,
-    // GLM-5 — Z.AI model with 128k output
+    // GLM-5.1 / GLM-5 — Z.AI reasoning models, 200K context / 128k output
+    "glm-5.1": 0.78,
     "glm-5": 0.78,
     // MiniMax M2.5 — reasoning support helps complex code
     "minimax-m2.5": 0.75,
@@ -78,6 +79,7 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "deepseek-r1": 0.88,
     "deepseek-chat": 0.8,
     "kimi-k2": 0.82, // Kimi K2.5 agentic — good for analysis
+    "glm-5.1": 0.82, // GLM-5.1 free reasoning, 200K context for long analysis
     "glm-5": 0.78, // GLM-5 with 128k output for long analysis
     "minimax-m2.5": 0.76,
   },
@@ -114,6 +116,7 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "grok-4": 0.74,
     "grok-3": 0.73,
     "kimi-k2": 0.76, // agentic multi-step tasks
+    "glm-5.1": 0.75,
     "glm-5": 0.7,
     "minimax-m2.5": 0.7,
   },

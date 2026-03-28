@@ -58,7 +58,85 @@
     "free": "Ingyenes",
     "skipToContent": "Ugrás a tartalomhoz",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Elfogadás",
+    "accountId": "Számlaazonosító",
+    "alias": "Alias",
+    "apiKeyId": "API kulcs azonosítója",
+    "apiKeyName": "API kulcs neve",
+    "apiKeySecret": "API kulcs titka",
+    "authorization": "Engedélyezés",
+    "content-type": "Tartalom típusa",
+    "content-length": "Tartalom hossza",
+    "cookie": "Cookie",
+    "file": "Fájl",
+    "host": "Házigazda",
+    "id": "ID",
+    "import": "Importálás",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Nyissa meg",
+    "origin": "Eredet",
+    "promptTokens": "Prompt Tokenek",
+    "completionTokens": "Befejezési tokenek",
+    "totalTokens": "Összes token",
+    "rawModel": "Nyers modell",
+    "scope": "Hatály",
+    "skill": "Ügyesség",
+    "sortBy": "Rendezés alapja",
+    "sortOrder": "Rendezési sorrend",
+    "tab": "Tab",
+    "text": "Szöveg",
+    "textarea": "Textarea",
+    "tool": "Eszköz",
+    "toolId": "Szerszámazonosító",
+    "web": "Web",
+    "whereUsed": "Hol használták",
+    "whitelist": "Fehérlista",
+    "blacklist": "Feketelista",
+    "resolve": "Oldja meg",
+    "force": "Kényszer",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Tartomány",
+    "component": "Összetevő",
+    "redirect_uri": "Átirányítási URI",
+    "idempotency-key": "Idempotencia kulcs",
+    "error_description": "Hiba leírása",
+    "code": "kód",
+    "compatible": "Kompatibilis",
+    "chat-completions": "Csevegés befejezése",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Crypto",
+    "hours": "Órák",
+    "selfsigned": "Önaláírt",
+    "proxy_id": "Proxy azonosítója",
+    "proxyId": "Proxy azonosítója",
+    "connectionId": "Csatlakozási azonosító",
+    "resolveConnectionId": "A kapcsolatazonosító feloldása",
+    "resolve_connection_id": "A kapcsolatazonosító feloldása",
+    "scope_id": "Hatókör azonosítója",
+    "scopeId": "Hatókör azonosítója",
+    "jwtSecret": "JWT Secret",
+    "keytar": "Keytar",
+    "better-sqlite3": "jobb-sqlite3",
+    "undici": "undici",
+    "builder-id": "Építőazonosító",
+    "musicDesc": "Zene Leírás",
+    "musicGeneration": "Zenegeneráció",
+    "idc": "IDC",
+    "cloud-status-changed": "A felhő állapota megváltozott",
+    "where_used": "Hol használták",
+    "windowMs": "Ablak (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Eszköz engedélyezési lista",
+    "TOOL_DENYLIST": "Tool Denylist",
+    "Failed to save pricing": "Nem sikerült menteni az árakat",
+    "Failed to reset pricing": "Nem sikerült visszaállítani az árakat",
+    "apikey": "API kulcs",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Otthon",
@@ -107,7 +185,9 @@
     "agents": "Ügynökök",
     "cliToolsShort": "Eszközök",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Témák",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} igény",
     "providerModelsTitle": "{provider} - Modellek",
     "copiedModel": "Másolva: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Frissítés most",
+    "updating": "Frissítés...",
+    "updateAvailableDesc": "Új verzió érhető el. Kattintson a frissítéshez.",
+    "updateStarted": "Frissítés elindult..."
   },
   "analytics": {
     "title": "Analytics",
@@ -535,6 +619,9 @@
             "title": "Add Model Config",
             "desc": "Adja hozzá a következő konfigurációt a modellek tömbjéhez:"
           }
+        },
+        "notes": {
+          "0": "A folytatás a JSON konfigurációs fájl használatával."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Az OpenCode API-kulcs-konfigurációt igényel.",
+          "1": "Állítsa be az alap URL-t az OmniRoute végpontra."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "A Kiro Amazon-fiókot igényel."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Csevegés befejezése",
     "importingModels": "Importálás...",
     "importFromModels": "Importálás a /models-ből",
+    "clearAllModels": "Összes modell törlése",
+    "clearAllModelsConfirm": "Biztosan el szeretné távolítani az összes modellt ehhez a szolgáltatóhoz? Ez a művelet nem vonható vissza.",
+    "clearAllModelsSuccess": "Összes modell törölve",
+    "clearAllModelsFailed": "A modellek törlése sikertelen",
     "addConnectionToImport": "Adjon hozzá egy kapcsolatot az importálás engedélyezéséhez.",
     "noModelsConfigured": "Nincsenek konfigurálva modellek",
     "connectionCount": "{count} kapcsolat",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatikus szinkronizálás",
+    "autoSyncTooltip": "A modelllista automatikus frissítése 24 óránként (konfigurálható: MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatikus szinkronizálás engedélyezve – a modellek rendszeresen frissülnek",
+    "autoSyncDisabled": "Az automatikus szinkronizálás letiltva",
+    "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "clearAllModels": "Minden modell törlése",
+    "clearAllModelsConfirm": "Biztosan eltávolítja ennek a szolgáltatónak az összes modelljét? Ezt nem lehet visszavonni.",
+    "clearAllModelsSuccess": "Minden modell törölve",
+    "clearAllModelsFailed": "Nem sikerült törölni a modelleket"
   },
   "settings": {
     "title": "Beállítások elemre",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Indítsa újra a szervert - az új jelszót fogja használni",
     "backToLogin": "Vissza a Bejelentkezéshez",
     "forgotPassword": "Elfelejtetted a jelszavad?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Engedélyezés",
+    "Content-Disposition": "Tartalom-Diszpozíció",
+    "waitingForAuthorization": "Várakozás az engedélyezésre...",
+    "waitingForGoogleAuthorization": "Várakozás a Google engedélyére...",
+    "waitingForOpenAIAuthorization": "Várakozás az OpenAI engedélyezésére...",
+    "waitingForAntigravityAuthorization": "Várakozás az Antigravitációs engedélyezésre...",
+    "waitingForIFlowAuthorization": "Várakozás az iFlow engedélyezésére...",
+    "exchangingCodeForTokens": "Kód cseréje tokenre..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Szövegfelolvasó generálás (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Szövegbeágyazás generálása (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Adatvédelmi szabályzat",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Egyszerű csevegés",
+    "streaming": "Streaming",
+    "system-prompt": "Rendszer prompt",
+    "thinking": "Gondolkodás",
+    "tool-calling": "Szerszámhívás",
+    "multi-turn": "Többfordulós"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Alapvető chat-sablon rendszerüzenettel",
+    "streaming": "Sablon a válaszok streameléséhez",
+    "system-prompt": "Sablon egyéni rendszerkéréssel",
+    "thinking": "Sablon érveléssel/gondolkodó költségvetéssel",
+    "tool-calling": "Sablon az eszköz/funkció hívásához",
+    "multi-turn": "Sablon többfordulós beszélgetésekhez"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Segítőkész AI-asszisztens vagy.",
+      "userGreeting": "Sziasztok! Hogyan segíthetek ma?"
+    },
+    "streaming": {
+      "prompt": "Írj egy történetet róla"
+    },
+    "systemPrompt": {
+      "question": "Mi az élet értelme?",
+      "systemInstruction": "Adjon megfontolt, filozófiai választ."
+    },
+    "thinking": {
+      "question": "Magyarázza el a kvantumszámítást!"
+    },
+    "toolCalling": {
+      "cityNameDescription": "A város neve, amelyhez időjárást kell kérni",
+      "toolDescription": "Az adott hely aktuális időjárásának megtekintése",
+      "userWeather": "Milyen az idő Tokióban?"
+    },
+    "multiTurn": {
+      "system": "Segítőkész asszisztens vagy.",
+      "assistantExample": "Szívesen segítek ebben.",
+      "userInitial": "Segítségre van szükségem",
+      "userFollowUp": "Kifejtenéd ezt bővebben?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

@@ -9,6 +9,12 @@
 
 import { getDbInstance } from "../db/core";
 import { shouldPersistToDisk } from "./migrations";
+import {
+  getLoggedInputTokens,
+  getLoggedOutputTokens,
+  getPromptCacheCreationTokens,
+  getPromptCacheReadTokens,
+} from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -157,10 +163,10 @@ export async function saveRequestUsage(entry: any) {
       entry.connectionId || null,
       entry.apiKeyId || null,
       entry.apiKeyName || null,
-      entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? 0,
-      entry.tokens?.output ?? entry.tokens?.completion_tokens ?? 0,
-      entry.tokens?.cacheRead ?? entry.tokens?.cached_tokens ?? 0,
-      entry.tokens?.cacheCreation ?? entry.tokens?.cache_creation_input_tokens ?? 0,
+      getLoggedInputTokens(entry.tokens),
+      getLoggedOutputTokens(entry.tokens),
+      getPromptCacheReadTokens(entry.tokens),
+      getPromptCacheCreationTokens(entry.tokens),
       entry.tokens?.reasoning ?? entry.tokens?.reasoning_tokens ?? 0,
       entry.status || null,
       entry.success === false ? 0 : 1,
@@ -422,18 +428,8 @@ export async function appendRequestLog({
       }
     } catch {}
 
-    const sent =
-      tokens?.input !== undefined
-        ? tokens.input
-        : tokens?.prompt_tokens !== undefined
-          ? tokens.prompt_tokens
-          : "-";
-    const received =
-      tokens?.output !== undefined
-        ? tokens.output
-        : tokens?.completion_tokens !== undefined
-          ? tokens.completion_tokens
-          : "-";
+    const sent = tokens ? getLoggedInputTokens(tokens) : "-";
+    const received = tokens ? getLoggedOutputTokens(tokens) : "-";
 
     const line = `${timestamp} | ${m} | ${p} | ${account} | ${sent} | ${received} | ${status}\n`;
     fs.appendFileSync(LOG_FILE, line);

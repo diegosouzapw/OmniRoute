@@ -58,7 +58,85 @@
     "free": "безкоштовно",
     "skipToContent": "Перейти до вмісту",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "прийняти",
+    "accountId": "ID облікового запису",
+    "alias": "Псевдонім",
+    "apiKeyId": "Ідентифікатор ключа API",
+    "apiKeyName": "Назва ключа API",
+    "apiKeySecret": "Секретний ключ API",
+    "authorization": "Авторизація",
+    "content-type": "Тип вмісту",
+    "content-length": "Довжина вмісту",
+    "cookie": "Печиво",
+    "file": "Файл",
+    "host": "Хост",
+    "id": "ID",
+    "import": "Імпорт",
+    "limit": "Ліміт",
+    "offset": "Зсув",
+    "open": "відкритий",
+    "origin": "Походження",
+    "promptTokens": "Жетони підказок",
+    "completionTokens": "Жетони завершення",
+    "totalTokens": "Загальна кількість токенів",
+    "rawModel": "Необроблена модель",
+    "scope": "Область застосування",
+    "skill": "Майстерність",
+    "sortBy": "Сортувати за",
+    "sortOrder": "Порядок сортування",
+    "tab": "вкладка",
+    "text": "текст",
+    "textarea": "Текстове поле",
+    "tool": "Інструмент",
+    "toolId": "ID інструменту",
+    "web": "Інтернет",
+    "whereUsed": "Де використовується",
+    "whitelist": "Білий список",
+    "blacklist": "Чорний список",
+    "resolve": "Розв'язати",
+    "force": "Сила",
+    "base64url": "URL-адреса Base64",
+    "hex": "Hex",
+    "range": "Діапазон",
+    "component": "компонент",
+    "redirect_uri": "URI перенаправлення",
+    "idempotency-key": "Ідемпотентний ключ",
+    "error_description": "Опис помилки",
+    "code": "Код",
+    "compatible": "сумісний",
+    "chat-completions": "Завершення чату",
+    "oauth": "OAuth",
+    "auth_token": "Маркер авторизації",
+    "crypto": "Крипто",
+    "hours": "години",
+    "selfsigned": "Самопідписаний",
+    "proxy_id": "ID проксі",
+    "proxyId": "ID проксі",
+    "connectionId": "ID підключення",
+    "resolveConnectionId": "Вирішити ідентифікатор підключення",
+    "resolve_connection_id": "Вирішити ідентифікатор підключення",
+    "scope_id": "Ідентифікатор області",
+    "scopeId": "Ідентифікатор області",
+    "jwtSecret": "Секрет JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "краще-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID забудовника",
+    "musicDesc": "Опис музики",
+    "musicGeneration": "Музичне покоління",
+    "idc": "IDC",
+    "cloud-status-changed": "Статус хмари змінено",
+    "where_used": "Де використовується",
+    "windowMs": "Вікно (мс)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Білий список інструментів",
+    "TOOL_DENYLIST": "Інструмент Denylist",
+    "Failed to save pricing": "Не вдалося зберегти ціни",
+    "Failed to reset pricing": "Не вдалося скинути ціни",
+    "apikey": "Ключ API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "додому",
@@ -107,7 +185,9 @@
     "agents": "Агенти",
     "cliToolsShort": "Інструменти",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} вимагається",
     "providerModelsTitle": "{provider} - Моделі",
     "copiedModel": "Скопійовано: {model}",
-    "aliasLabel": "псевдонім"
+    "aliasLabel": "псевдонім",
+    "updateNow": "Оновити зараз",
+    "updating": "Оновлення...",
+    "updateAvailableDesc": "Доступна нова версія. Натисніть, щоб оновити.",
+    "updateStarted": "Оновлення розпочато..."
   },
   "analytics": {
     "title": "Аналітика",
@@ -535,6 +619,9 @@
             "title": "Додати конфігурацію моделі",
             "desc": "Додайте таку конфігурацію до свого масиву моделей:"
           }
+        },
+        "notes": {
+          "0": "Продовжити використання файлу конфігурації JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode вимагає налаштування ключа API.",
+          "1": "Установіть базову URL-адресу для кінцевої точки OmniRoute."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro потрібен обліковий запис Amazon."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Завершення чату",
     "importingModels": "Імпорт...",
     "importFromModels": "Імпортувати з /models",
+    "clearAllModels": "Очистити всі моделі",
+    "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі для цього провайдера? Цю дію неможливо скасувати.",
+    "clearAllModelsSuccess": "Усі моделі очищено",
+    "clearAllModelsFailed": "Не вдалося очистити моделі",
     "addConnectionToImport": "Додайте підключення, щоб увімкнути імпорт.",
     "noModelsConfigured": "Немає налаштованих моделей",
     "connectionCount": "{count} підключення(-я)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Автоматична синхронізація",
+    "autoSyncTooltip": "Автоматично оновлювати список моделей кожні 24 години (налаштовується через MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Автоматична синхронізація ввімкнена — моделі періодично оновлюватимуться",
+    "autoSyncDisabled": "Автоматична синхронізація вимкнена",
+    "autoSyncToggleFailed": "Не вдалося вимкнути автоматичну синхронізацію",
+    "clearAllModels": "Очистити всі моделі",
+    "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі цього постачальника? Це неможливо скасувати.",
+    "clearAllModelsSuccess": "Всі моделі розмитнені",
+    "clearAllModelsFailed": "Не вдалося очистити моделі"
   },
   "settings": {
     "title": "Налаштування",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Перезапустіть сервер - він використовуватиме новий пароль",
     "backToLogin": "Назад до входу",
     "forgotPassword": "Забули пароль?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Авторизація",
+    "Content-Disposition": "Зміст-диспозиція",
+    "waitingForAuthorization": "Очікування авторизації...",
+    "waitingForGoogleAuthorization": "Очікування авторизації Google...",
+    "waitingForOpenAIAuthorization": "Очікування авторизації OpenAI...",
+    "waitingForAntigravityAuthorization": "Очікування авторизації Antigravity...",
+    "waitingForIFlowAuthorization": "Очікування авторизації iFlow...",
+    "exchangingCodeForTokens": "Обмін коду на токени..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Синтез мовлення (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Генерація вбудованого тексту (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Політика конфіденційності",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Простий чат",
+    "streaming": "Потокове передавання",
+    "system-prompt": "Системна підказка",
+    "thinking": "Мислення",
+    "tool-calling": "Виклик інструменту",
+    "multi-turn": "Багатооборотний"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Базовий шаблон чату з системним повідомленням",
+    "streaming": "Шаблон для потокових відповідей",
+    "system-prompt": "Шаблон із спеціальним системним запитом",
+    "thinking": "Шаблон із бюджетом міркувань/роздумів",
+    "tool-calling": "Шаблон для виклику інструменту/функції",
+    "multi-turn": "Шаблон для багаточергових розмов"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Ви корисний помічник ШІ.",
+      "userGreeting": "Привіт! Чим я можу тобі допомогти сьогодні?"
+    },
+    "streaming": {
+      "prompt": "Написати розповідь про"
+    },
+    "systemPrompt": {
+      "question": "У чому сенс життя?",
+      "systemInstruction": "Дайте вдумливу, філософську відповідь."
+    },
+    "thinking": {
+      "question": "Поясніть квантові обчислення"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Назва міста, для якого потрібно дізнатися погоду",
+      "toolDescription": "Отримайте поточну погоду для певного місця",
+      "userWeather": "Яка погода в Токіо?"
+    },
+    "multiTurn": {
+      "system": "Ви корисний помічник.",
+      "assistantExample": "Я буду радий тобі в цьому допомогти.",
+      "userInitial": "Мені потрібна допомога з",
+      "userFollowUp": "Чи можете ви розповісти про це?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

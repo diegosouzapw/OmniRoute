@@ -58,7 +58,85 @@
     "free": "Gratis",
     "skipToContent": "Gå til innhold",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Godta",
+    "accountId": "Konto-ID",
+    "alias": "Alias",
+    "apiKeyId": "API-nøkkel-ID",
+    "apiKeyName": "API-nøkkelnavn",
+    "apiKeySecret": "API-nøkkelhemmelighet",
+    "authorization": "Autorisasjon",
+    "content-type": "Innholdstype",
+    "content-length": "Innholdslengde",
+    "cookie": "Cookie",
+    "file": "Fil",
+    "host": "Vert",
+    "id": "ID",
+    "import": "Importer",
+    "limit": "Begrens",
+    "offset": "Offset",
+    "open": "Åpne",
+    "origin": "Opprinnelse",
+    "promptTokens": "Spør Tokens",
+    "completionTokens": "Fullføringssymboler",
+    "totalTokens": "Totalt tokens",
+    "rawModel": "Rå modell",
+    "scope": "Omfang",
+    "skill": "Ferdighet",
+    "sortBy": "Sorter etter",
+    "sortOrder": "Sorteringsrekkefølge",
+    "tab": "Tab",
+    "text": "Tekst",
+    "textarea": "Tekstområde",
+    "tool": "Verktøy",
+    "toolId": "Verktøy-ID",
+    "web": "Web",
+    "whereUsed": "Hvor det brukes",
+    "whitelist": "Hviteliste",
+    "blacklist": "Svarteliste",
+    "resolve": "Løs",
+    "force": "Kraft",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Rekkevidde",
+    "component": "Komponent",
+    "redirect_uri": "Omdiriger URI",
+    "idempotency-key": "Idempotensnøkkel",
+    "error_description": "Feilbeskrivelse",
+    "code": "Kode",
+    "compatible": "Kompatibel",
+    "chat-completions": "Chatfullføringer",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Krypto",
+    "hours": "Timer",
+    "selfsigned": "Selvsignert",
+    "proxy_id": "Proxy ID",
+    "proxyId": "Proxy ID",
+    "connectionId": "Tilkoblings-ID",
+    "resolveConnectionId": "Løs tilkoblings-ID",
+    "resolve_connection_id": "Løs tilkoblings-ID",
+    "scope_id": "Omfang ID",
+    "scopeId": "Omfang ID",
+    "jwtSecret": "JWT-hemmelighet",
+    "keytar": "Keytar",
+    "better-sqlite3": "bedre-sqlite3",
+    "undici": "undici",
+    "builder-id": "Byggherre-ID",
+    "musicDesc": "Musikkbeskrivelse",
+    "musicGeneration": "Musikkgenerasjon",
+    "idc": "IDC",
+    "cloud-status-changed": "Skystatus endret",
+    "where_used": "Hvor det brukes",
+    "windowMs": "Vindu (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Verktøytillatelsesliste",
+    "TOOL_DENYLIST": "Verktøyfornektelsesliste",
+    "Failed to save pricing": "Kunne ikke lagre prisen",
+    "Failed to reset pricing": "Kunne ikke tilbakestille priser",
+    "apikey": "API-nøkkel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Hjem",
@@ -107,7 +185,9 @@
     "agents": "Agenter",
     "cliToolsShort": "Verktøy",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} req",
     "providerModelsTitle": "{provider} - Modeller",
     "copiedModel": "Kopiert: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Oppdater nå",
+    "updating": "Oppdaterer...",
+    "updateAvailableDesc": "En ny versjon er tilgjengelig. Klikk for å oppdatere.",
+    "updateStarted": "Oppdatering startet..."
   },
   "analytics": {
     "title": "Analytics",
@@ -535,6 +619,9 @@
             "title": "Legg til modellkonfig",
             "desc": "Legg til følgende konfigurasjon til modellarrayet ditt:"
           }
+        },
+        "notes": {
+          "0": "Continue bruker JSON-konfigurasjonsfilen."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode krever API-nøkkelkonfigurasjon.",
+          "1": "Angi basis-URL til OmniRoute-endepunktet."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro krever Amazon-konto."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Chatfullføringer",
     "importingModels": "Importerer...",
     "importFromModels": "Importer fra /models",
+    "clearAllModels": "Slett alle modeller",
+    "clearAllModelsConfirm": "Er du sikker på at du vil fjerne alle modeller for denne leverandøren? Dette kan ikke angres.",
+    "clearAllModelsSuccess": "Alle modeller slettet",
+    "clearAllModelsFailed": "Kunne ikke slette modeller",
     "addConnectionToImport": "Legg til en tilkobling for å aktivere import.",
     "noModelsConfigured": "Ingen modeller er konfigurert",
     "connectionCount": "{count} tilkobling(er)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Auto-synkronisering",
+    "autoSyncTooltip": "Oppdater modelllisten automatisk hver 24. time (kan konfigureres via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatisk synkronisering aktivert – modellene oppdateres med jevne mellomrom",
+    "autoSyncDisabled": "Automatisk synkronisering er deaktivert",
+    "autoSyncToggleFailed": "Kunne ikke slå på automatisk synkronisering",
+    "clearAllModels": "Fjern alle modeller",
+    "clearAllModelsConfirm": "Er du sikker på at du vil fjerne alle modellene for denne leverandøren? Dette kan ikke angres.",
+    "clearAllModelsSuccess": "Alle modeller ryddet",
+    "clearAllModelsFailed": "Kunne ikke slette modeller"
   },
   "settings": {
     "title": "Innstillinger",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Start serveren på nytt - den vil bruke det nye passordet",
     "backToLogin": "Tilbake til pålogging",
     "forgotPassword": "Glemt passord?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorisasjon",
+    "Content-Disposition": "Innhold-Disposisjon",
+    "waitingForAuthorization": "Venter på autorisasjon...",
+    "waitingForGoogleAuthorization": "Venter på Google-autorisasjon...",
+    "waitingForOpenAIAuthorization": "Venter på OpenAI-godkjenning...",
+    "waitingForAntigravityAuthorization": "Venter på antigravity-autorisasjon...",
+    "waitingForIFlowAuthorization": "Venter på iFlow-autorisasjon...",
+    "exchangingCodeForTokens": "Utveksler kode for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Tekst-til-tale generering (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generering av tekstinnbygging (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Personvernerklæring",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Enkel chat",
+    "streaming": "Streaming",
+    "system-prompt": "Systemmelding",
+    "thinking": "Tenker",
+    "tool-calling": "Verktøyanrop",
+    "multi-turn": "Multisving"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Grunnleggende chatmal med systemmelding",
+    "streaming": "Mal for strømmesvar",
+    "system-prompt": "Mal med tilpasset systemforespørsel",
+    "thinking": "Mal med resonnement/tenkebudsjett",
+    "tool-calling": "Mal for verktøy/funksjonskall",
+    "multi-turn": "Mal for samtaler med flere svinger"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Du er en hjelpsom AI-assistent.",
+      "userGreeting": "Hei! Hvordan kan jeg hjelpe deg i dag?"
+    },
+    "streaming": {
+      "prompt": "Skriv en historie om"
+    },
+    "systemPrompt": {
+      "question": "Hva er meningen med livet?",
+      "systemInstruction": "Gi et gjennomtenkt, filosofisk svar."
+    },
+    "thinking": {
+      "question": "Forklar kvanteberegning"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Navnet på byen å få vær for",
+      "toolDescription": "Få gjeldende vær for et sted",
+      "userWeather": "Hvordan er været i Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Du er en hjelpsom assistent.",
+      "assistantExample": "Jeg hjelper deg gjerne med det.",
+      "userInitial": "Jeg trenger hjelp med",
+      "userFollowUp": "Kan du utdype det?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

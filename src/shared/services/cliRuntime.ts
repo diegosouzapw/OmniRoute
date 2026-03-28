@@ -59,6 +59,13 @@ const CLI_TOOLS: Record<string, any> = {
       state: ".cursor/agent-cli-state.json",
     },
   },
+  windsurf: {
+    defaultCommand: null,
+    envBinKey: "CLI_WINDSURF_BIN",
+    requiresBinary: false,
+    healthcheckTimeoutMs: 4000,
+    paths: {},
+  },
   cline: {
     defaultCommand: "cline",
     envBinKey: "CLI_CLINE_BIN",

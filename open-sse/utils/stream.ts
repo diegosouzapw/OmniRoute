@@ -75,6 +75,22 @@ function getOpenAIIntermediateChunks(value: unknown): unknown[] {
   return Array.isArray(candidate) ? candidate : [];
 }
 
+function restoreClaudePassthroughToolUseName(parsed: JsonRecord, toolNameMap: unknown): boolean {
+  if (!(toolNameMap instanceof Map)) return false;
+  if (!parsed || typeof parsed !== "object") return false;
+
+  const block =
+    parsed.content_block && typeof parsed.content_block === "object"
+      ? (parsed.content_block as JsonRecord)
+      : null;
+  if (!block || block.type !== "tool_use" || typeof block.name !== "string") return false;
+
+  const restoredName = toolNameMap.get(block.name) ?? block.name;
+  if (restoredName === block.name) return false;
+  block.name = restoredName;
+  return true;
+}
+
 // Note: TextDecoder/TextEncoder are created per-stream inside createSSEStream()
 // to avoid shared state issues with concurrent streams (TextDecoder with {stream:true}
 // maintains internal buffering state between decode() calls).
@@ -268,6 +284,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     if (eu.cache_creation_input_tokens)
                       u.cache_creation_input_tokens = eu.cache_creation_input_tokens;
                   }
+                  const restoredToolName = restoreClaudePassthroughToolUseName(parsed, toolNameMap);
                   // Track content length and accumulate from Claude format
                   if (parsed.delta?.text) {
                     totalContentLength += parsed.delta.text.length;
@@ -276,6 +293,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (parsed.delta?.thinking) {
                     totalContentLength += parsed.delta.thinking.length;
                     passthroughAccumulatedContent += parsed.delta.thinking;
+                  }
+                  if (restoredToolName) {
+                    output = `data: ${JSON.stringify(parsed)}
+`;
+                    injectedUsage = true;
                   }
                 } else {
                   // Chat Completions: full sanitization pipeline
@@ -821,6 +843,7 @@ export function createSSETransformStreamWithLogger(
 export function createPassthroughStreamWithLogger(
   provider: string | null = null,
   reqLogger: StreamLogger | null = null,
+  toolNameMap: unknown = null,
   model: string | null = null,
   connectionId: string | null = null,
   body: unknown = null,
@@ -831,6 +854,7 @@ export function createPassthroughStreamWithLogger(
     mode: STREAM_MODE.PASSTHROUGH,
     provider,
     reqLogger,
+    toolNameMap,
     model,
     connectionId,
     apiKeyInfo,

@@ -59,7 +59,7 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   qwen: {
-    // portal.qwen.ai/v1/models returns 404 — endpoint no longer exists.
+    // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
     // Use checkExpiry instead — actual connectivity is validated via real requests.
     checkExpiry: true,
     refreshable: true,

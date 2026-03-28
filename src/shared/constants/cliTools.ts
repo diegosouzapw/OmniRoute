@@ -98,6 +98,36 @@ export const CLI_TOOLS = {
       { step: 6, title: "Select Model", type: "modelSelector" },
     ],
   },
+  windsurf: {
+    id: "windsurf",
+    name: "Windsurf",
+    image: "/providers/windsurf.svg",
+    color: "#4A90E2",
+    description: "Windsurf AI-first IDE by Codeium",
+    docsUrl: "https://windsurf.com/",
+    configType: "guide",
+    notes: [
+      {
+        type: "warning",
+        text: "Official Windsurf docs currently describe BYOK for select Claude models plus enterprise URL/token settings, not a generic custom OpenAI-compatible provider.",
+      },
+    ],
+    guideSteps: [
+      {
+        step: 1,
+        title: "Open AI Settings",
+        desc: "Click the AI Settings icon in Windsurf or go to Settings",
+      },
+      {
+        step: 2,
+        title: "Add Custom Provider",
+        desc: 'Select "Add custom provider" (OpenAI-compatible)',
+      },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "API Key", type: "apiKeySelector" },
+      { step: 5, title: "Select Model", type: "modelSelector" },
+    ],
+  },
   cline: {
     id: "cline",
     name: "Cline",

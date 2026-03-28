@@ -58,7 +58,85 @@
     "free": "miễn phí",
     "skipToContent": "Chuyển đến nội dung",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Chấp nhận",
+    "accountId": "ID tài khoản",
+    "alias": "Bí danh",
+    "apiKeyId": "ID khóa API",
+    "apiKeyName": "Tên khóa API",
+    "apiKeySecret": "Bí mật khóa API",
+    "authorization": "Ủy quyền",
+    "content-type": "Loại nội dung",
+    "content-length": "Độ dài nội dung",
+    "cookie": "bánh quy",
+    "file": "tập tin",
+    "host": "Máy chủ",
+    "id": "ID",
+    "import": "Nhập khẩu",
+    "limit": "giới hạn",
+    "offset": "Bù đắp",
+    "open": "Mở",
+    "origin": "Xuất xứ",
+    "promptTokens": "Mã thông báo nhắc nhở",
+    "completionTokens": "Mã thông báo hoàn thành",
+    "totalTokens": "Tổng số token",
+    "rawModel": "Mô hình thô",
+    "scope": "Phạm vi",
+    "skill": "kỹ năng",
+    "sortBy": "Sắp xếp theo",
+    "sortOrder": "Sắp xếp thứ tự",
+    "tab": "Thẻ",
+    "text": "văn bản",
+    "textarea": "Vùng văn bản",
+    "tool": "Công cụ",
+    "toolId": "Mã công cụ",
+    "web": "Web",
+    "whereUsed": "Nơi sử dụng",
+    "whitelist": "Danh sách trắng",
+    "blacklist": "Danh sách đen",
+    "resolve": "giải quyết",
+    "force": "Lực lượng",
+    "base64url": "URL Base64",
+    "hex": "lục giác",
+    "range": "Phạm vi",
+    "component": "thành phần",
+    "redirect_uri": "URI chuyển hướng",
+    "idempotency-key": "Chìa khóa bình đẳng",
+    "error_description": "Mô tả lỗi",
+    "code": "Mã",
+    "compatible": "Tương thích",
+    "chat-completions": "Hoàn thành cuộc trò chuyện",
+    "oauth": "OAuth",
+    "auth_token": "Mã thông báo xác thực",
+    "crypto": "tiền điện tử",
+    "hours": "Giờ",
+    "selfsigned": "Tự ký",
+    "proxy_id": "ID proxy",
+    "proxyId": "ID proxy",
+    "connectionId": "ID kết nối",
+    "resolveConnectionId": "Giải quyết ID kết nối",
+    "resolve_connection_id": "Giải quyết ID kết nối",
+    "scope_id": "ID phạm vi",
+    "scopeId": "ID phạm vi",
+    "jwtSecret": "Bí mật JWT",
+    "keytar": "Bàn phím",
+    "better-sqlite3": "tốt hơn-sqlite3",
+    "undici": "undic",
+    "builder-id": "ID người xây dựng",
+    "musicDesc": "Mô tả âm nhạc",
+    "musicGeneration": "Thế hệ âm nhạc",
+    "idc": "IDC",
+    "cloud-status-changed": "Trạng thái đám mây đã thay đổi",
+    "where_used": "Nơi sử dụng",
+    "windowMs": "Cửa sổ (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Danh sách cho phép của công cụ",
+    "TOOL_DENYLIST": "Danh sách từ chối công cụ",
+    "Failed to save pricing": "Không lưu được giá",
+    "Failed to reset pricing": "Không thể đặt lại giá",
+    "apikey": "Khóa API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Trang chủ",
@@ -107,7 +185,9 @@
     "agents": "Tác nhân",
     "cliToolsShort": "Công cụ",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} yêu cầu",
     "providerModelsTitle": "{provider} - Người mẫu",
     "copiedModel": "Đã sao chép: {model}",
-    "aliasLabel": "bí danh"
+    "aliasLabel": "bí danh",
+    "updateNow": "Cập nhật ngay",
+    "updating": "Đang cập nhật...",
+    "updateAvailableDesc": "Một phiên bản mới có sẵn. Nhấn vào đây để cập nhật.",
+    "updateStarted": "Đã bắt đầu cập nhật..."
   },
   "analytics": {
     "title": "Phân tích",
@@ -535,6 +619,9 @@
             "title": "Thêm cấu hình mô hình",
             "desc": "Thêm cấu hình sau vào mảng mô hình của bạn:"
           }
+        },
+        "notes": {
+          "0": "Tiếp tục sử dụng tệp cấu hình JSON."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode yêu cầu cấu hình khóa API.",
+          "1": "Đặt URL cơ sở cho điểm cuối OmniRoute của bạn."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro yêu cầu tài khoản Amazon."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Hoàn thành cuộc trò chuyện",
     "importingModels": "Đang nhập khẩu...",
     "importFromModels": "Nhập từ /model",
+    "clearAllModels": "Xóa tất cả mô hình",
+    "clearAllModelsConfirm": "Bạn có chắc chắn muốn xóa tất cả mô hình của nhà cung cấp này? Hành động này không thể hoàn tác.",
+    "clearAllModelsSuccess": "Đã xóa tất cả mô hình",
+    "clearAllModelsFailed": "Không thể xóa mô hình",
     "addConnectionToImport": "Thêm kết nối để cho phép nhập.",
     "noModelsConfigured": "Không có mô hình nào được định cấu hình",
     "connectionCount": "{count} kết nối",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Tự động đồng bộ hóa",
+    "autoSyncTooltip": "Tự động làm mới danh sách mô hình sau mỗi 24 giờ (có thể định cấu hình qua MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Đã bật tự động đồng bộ hóa - các mô hình sẽ làm mới định kỳ",
+    "autoSyncDisabled": "Tự động đồng bộ hóa đã bị tắt",
+    "autoSyncToggleFailed": "Không chuyển đổi được tính năng tự động đồng bộ hóa",
+    "clearAllModels": "Xóa tất cả các mẫu",
+    "clearAllModelsConfirm": "Bạn có chắc chắn muốn xóa tất cả mô hình của nhà cung cấp này không? Điều này không thể hoàn tác được.",
+    "clearAllModelsSuccess": "Tất cả các mô hình đã bị xóa",
+    "clearAllModelsFailed": "Không xóa được mô hình"
   },
   "settings": {
     "title": "Cài đặt",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Khởi động lại máy chủ - nó sẽ sử dụng mật khẩu mới",
     "backToLogin": "Quay lại đăng nhập",
     "forgotPassword": "Quên mật khẩu?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Ủy quyền",
+    "Content-Disposition": "Bố trí nội dung",
+    "waitingForAuthorization": "Đang chờ cấp phép...",
+    "waitingForGoogleAuthorization": "Đang chờ Google ủy quyền...",
+    "waitingForOpenAIAuthorization": "Đang chờ ủy quyền OpenAI...",
+    "waitingForAntigravityAuthorization": "Đang chờ ủy quyền chống hấp dẫn...",
+    "waitingForIFlowAuthorization": "Đang chờ ủy quyền iFlow...",
+    "exchangingCodeForTokens": "Đổi mã lấy token..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Tạo văn bản thành giọng nói (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Tạo nhúng văn bản (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Chính sách bảo mật",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Trò chuyện đơn giản",
+    "streaming": "Truyền phát",
+    "system-prompt": "Lời nhắc hệ thống",
+    "thinking": "suy nghĩ",
+    "tool-calling": "Gọi công cụ",
+    "multi-turn": "Nhiều lượt"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Mẫu chat cơ bản kèm tin nhắn hệ thống",
+    "streaming": "Mẫu để truyền phát phản hồi",
+    "system-prompt": "Mẫu có lời nhắc hệ thống tùy chỉnh",
+    "thinking": "Mẫu có ngân sách lý luận/suy nghĩ",
+    "tool-calling": "Mẫu để gọi công cụ/chức năng",
+    "multi-turn": "Mẫu hội thoại nhiều lượt"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Bạn là một trợ lý AI hữu ích.",
+      "userGreeting": "Xin chào! Hôm nay tôi có thể giúp gì cho bạn?"
+    },
+    "streaming": {
+      "prompt": "Viết một câu chuyện về"
+    },
+    "systemPrompt": {
+      "question": "Ý nghĩa của cuộc sống là gì?",
+      "systemInstruction": "Đưa ra một câu trả lời sâu sắc và mang tính triết lý."
+    },
+    "thinking": {
+      "question": "Giải thích tính toán lượng tử"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Tên của thành phố để biết thời tiết",
+      "toolDescription": "Nhận thời tiết hiện tại cho một địa điểm",
+      "userWeather": "Thời tiết ở Tokyo thế nào?"
+    },
+    "multiTurn": {
+      "system": "Bạn là một trợ lý hữu ích.",
+      "assistantExample": "Tôi rất vui được giúp bạn việc đó.",
+      "userInitial": "Tôi cần giúp đỡ với",
+      "userFollowUp": "Bạn có thể giải thích về điều đó?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

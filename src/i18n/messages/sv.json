@@ -58,7 +58,85 @@
     "free": "Gratis",
     "skipToContent": "Hoppa till innehållet",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Acceptera",
+    "accountId": "Konto-ID",
+    "alias": "Alias",
+    "apiKeyId": "API-nyckel-ID",
+    "apiKeyName": "API-nyckelnamn",
+    "apiKeySecret": "API-nyckelhemlighet",
+    "authorization": "Auktorisation",
+    "content-type": "Innehållstyp",
+    "content-length": "Innehållslängd",
+    "cookie": "Cookie",
+    "file": "Arkiv",
+    "host": "Värd",
+    "id": "ID",
+    "import": "Importera",
+    "limit": "Begränsa",
+    "offset": "Offset",
+    "open": "Öppna",
+    "origin": "Ursprung",
+    "promptTokens": "Fråga tokens",
+    "completionTokens": "Kompletteringstokens",
+    "totalTokens": "Totala tokens",
+    "rawModel": "Rå modell",
+    "scope": "Omfattning",
+    "skill": "Skicklighet",
+    "sortBy": "Sortera efter",
+    "sortOrder": "Sorteringsordning",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textområde",
+    "tool": "Verktyg",
+    "toolId": "Verktygs-ID",
+    "web": "Webb",
+    "whereUsed": "Där den används",
+    "whitelist": "Vitlista",
+    "blacklist": "Svartlista",
+    "resolve": "Lös",
+    "force": "Force",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Räckvidd",
+    "component": "Komponent",
+    "redirect_uri": "Omdirigera URI",
+    "idempotency-key": "Idempotensnyckel",
+    "error_description": "Felbeskrivning",
+    "code": "Kod",
+    "compatible": "Kompatibel",
+    "chat-completions": "Chattavslut",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Krypto",
+    "hours": "Timmar",
+    "selfsigned": "Självsignerad",
+    "proxy_id": "Proxy-ID",
+    "proxyId": "Proxy-ID",
+    "connectionId": "Anslutnings-ID",
+    "resolveConnectionId": "Lös anslutnings-ID",
+    "resolve_connection_id": "Lös anslutnings-ID",
+    "scope_id": "Omfattning ID",
+    "scopeId": "Omfattning ID",
+    "jwtSecret": "JWT hemlighet",
+    "keytar": "Keytar",
+    "better-sqlite3": "bättre-sqlite3",
+    "undici": "undici",
+    "builder-id": "Byggar-ID",
+    "musicDesc": "Musikbeskrivning",
+    "musicGeneration": "Musikgeneration",
+    "idc": "IDC",
+    "cloud-status-changed": "Molnstatus ändrad",
+    "where_used": "Där den används",
+    "windowMs": "Fönster (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Tillståndslista för verktyg",
+    "TOOL_DENYLIST": "Verktyg Denylist",
+    "Failed to save pricing": "Det gick inte att spara pris",
+    "Failed to reset pricing": "Det gick inte att återställa prissättningen",
+    "apikey": "API-nyckel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Hem",
@@ -107,7 +185,9 @@
     "agents": "Agenter",
     "cliToolsShort": "Verktyg",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -179,7 +259,11 @@
     "requestsShort": "{count} krav",
     "providerModelsTitle": "{provider} - Modeller",
     "copiedModel": "Kopierat: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Uppdatera nu",
+    "updating": "Uppdaterar...",
+    "updateAvailableDesc": "En ny version finns tillgänglig. Klicka för att uppdatera.",
+    "updateStarted": "Uppdatering startade..."
   },
   "analytics": {
     "title": "Analytics",
@@ -535,6 +619,9 @@
             "title": "Lägg till Model Config",
             "desc": "Lägg till följande konfiguration till din modellarray:"
           }
+        },
+        "notes": {
+          "0": "Continue använder JSON-konfigurationsfilen."
         }
       },
       "opencode": {
@@ -553,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode kräver API-nyckelkonfiguration.",
+          "1": "Ställ in basadressen till din OmniRoute-slutpunkt."
         }
       },
       "kiro": {
@@ -571,6 +662,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro kräver Amazon-konto."
         }
       }
     },
@@ -1314,6 +1408,10 @@
     "chatCompletions": "Chattavslut",
     "importingModels": "Importerar...",
     "importFromModels": "Importera från /models",
+    "clearAllModels": "Rensa alla modeller",
+    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för denna leverantör? Detta kan inte ångras.",
+    "clearAllModelsSuccess": "Alla modeller rensade",
+    "clearAllModelsFailed": "Kunde inte rensa modeller",
     "addConnectionToImport": "Lägg till en anslutning för att aktivera import.",
     "noModelsConfigured": "Inga modeller har konfigurerats",
     "connectionCount": "{count} anslutning(ar)",
@@ -1477,7 +1575,16 @@
     "compatUpstreamHeaderValue": "Value",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
-    "compatUpstreamRemoveRow": "Remove row"
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatisk synkronisering",
+    "autoSyncTooltip": "Uppdatera modelllistan automatiskt var 24:e timme (konfigurerbar via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
+    "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
+    "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
+    "clearAllModels": "Rensa alla modeller",
+    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
+    "clearAllModelsSuccess": "Alla modeller rensade",
+    "clearAllModelsFailed": "Det gick inte att rensa modeller"
   },
   "settings": {
     "title": "Inställningar",
@@ -2304,7 +2411,15 @@
     "restartServerWithNewPassword": "Starta om servern - den kommer att använda det nya lösenordet",
     "backToLogin": "Tillbaka till inloggning",
     "forgotPassword": "Glömt lösenordet?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Auktorisation",
+    "Content-Disposition": "Innehåll-Disposition",
+    "waitingForAuthorization": "Väntar på auktorisation...",
+    "waitingForGoogleAuthorization": "Väntar på Google-auktorisering...",
+    "waitingForOpenAIAuthorization": "Väntar på OpenAI-auktorisering...",
+    "waitingForAntigravityAuthorization": "Väntar på antigravitationstillstånd...",
+    "waitingForIFlowAuthorization": "Väntar på iFlow-auktorisering...",
+    "exchangingCodeForTokens": "Byter ut kod för tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2511,7 +2626,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Text-till-tal-generering (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generering av textinbäddning (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Sekretesspolicy",
@@ -2689,5 +2806,80 @@
     "domainPlaceholder": "example.com",
     "requestTimedOut": "Request timed out ({seconds}s)",
     "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Enkel chatt",
+    "streaming": "Streaming",
+    "system-prompt": "Systemprompt",
+    "thinking": "Tänker",
+    "tool-calling": "Verktygsanrop",
+    "multi-turn": "Flervarv"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Grundläggande chattmall med systemmeddelande",
+    "streaming": "Mall för strömmande svar",
+    "system-prompt": "Mall med anpassad systemprompt",
+    "thinking": "Mall med resonemang/tänkebudget",
+    "tool-calling": "Mall för verktyg/funktionsanrop",
+    "multi-turn": "Mall för konversationer med flera svängar"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Du är en hjälpsam AI-assistent.",
+      "userGreeting": "Hej! Hur kan jag hjälpa dig idag?"
+    },
+    "streaming": {
+      "prompt": "Skriv en berättelse om"
+    },
+    "systemPrompt": {
+      "question": "Vad är meningen med livet?",
+      "systemInstruction": "Ge ett genomtänkt, filosofiskt svar."
+    },
+    "thinking": {
+      "question": "Förklara kvantberäkning"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Namnet på staden att få väder för",
+      "toolDescription": "Få aktuellt väder för en plats",
+      "userWeather": "Hur är vädret i Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Du är en hjälpsam assistent.",
+      "assistantExample": "Jag hjälper dig gärna med det.",
+      "userInitial": "Jag behöver hjälp med",
+      "userFollowUp": "Kan du utveckla det?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "ツールの許可リスト",
+    "TOOL_DENYLIST": "ツール拒否リスト",
+    "Failed to save pricing": "価格設定を保存できませんでした",
+    "Failed to reset pricing": "価格設定のリセットに失敗しました",
+    "apikey": "APIキー",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "ホーム",
@@ -177,7 +185,9 @@
     "agents": "エージェント",
     "cliToolsShort": "ツール",
     "autoCombo": "Auto Combo",
-    "searchTools": "Search Tools"
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -1398,6 +1408,10 @@
     "chatCompletions": "チャットの完了",
     "importingModels": "インポート中...",
     "importFromModels": "/models からインポート",
+    "clearAllModels": "すべてのモデルを削除",
+    "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？この操作は元に戻せません。",
+    "clearAllModelsSuccess": "すべてのモデルを削除しました",
+    "clearAllModelsFailed": "モデルの削除に失敗しました",
     "addConnectionToImport": "接続を追加してインポートを有効にします。",
     "noModelsConfigured": "モデルが設定されていません",
     "connectionCount": "{count} 接続",
@@ -2403,7 +2417,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "認可",
+    "Content-Disposition": "コンテンツの配置"
   },
   "landing": {
     "brandName": "オムニルート",
@@ -2806,5 +2822,64 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "あなたは役に立つ AI アシスタントです。",
+      "userGreeting": "こんにちは！今日はどのようにお手伝いできますか?"
+    },
+    "streaming": {
+      "prompt": "～についての話を書いてください"
+    },
+    "systemPrompt": {
+      "question": "人生の意味とは何でしょうか？",
+      "systemInstruction": "思慮深く哲学的な答えを提供してください。"
+    },
+    "thinking": {
+      "question": "量子コンピューティングについて説明する"
+    },
+    "toolCalling": {
+      "cityNameDescription": "天気を取得する都市の名前",
+      "toolDescription": "場所の現在の天気を取得する",
+      "userWeather": "東京の天気はどうですか？"
+    },
+    "multiTurn": {
+      "system": "あなたは役に立つアシスタントです。",
+      "assistantExample": "喜んでお手伝いさせていただきます。",
+      "userInitial": "助けが必要です",
+      "userFollowUp": "それについて詳しく教えてもらえますか？"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

@@ -3,6 +3,12 @@
  */
 
 import { saveRequestUsage, appendRequestLog } from "@/lib/usageDb";
+import {
+  getLoggedInputTokens,
+  getLoggedOutputTokens,
+  getPromptCacheCreationTokens,
+  getPromptCacheReadTokens,
+} from "@/lib/usage/tokenAccounting";
 import { FORMATS } from "../translator/formats.ts";
 
 // ANSI color codes
@@ -415,8 +421,8 @@ export function logUsage(provider, usage, model = null, connectionId = null, api
   // Support both formats:
   // - OpenAI: prompt_tokens, completion_tokens
   // - Claude: input_tokens, output_tokens
-  const inTokens = usage?.prompt_tokens || usage?.input_tokens || 0;
-  const outTokens = usage?.completion_tokens || usage?.output_tokens || 0;
+  const inTokens = getLoggedInputTokens(usage);
+  const outTokens = getLoggedOutputTokens(usage);
   const accountPrefix = connectionId ? connectionId.slice(0, 8) + "..." : "unknown";
 
   let msg = `[${getTimeString()}] 📊 ${COLORS.green}[USAGE] ${p} | in=${inTokens} | out=${outTokens} | account=${accountPrefix}${COLORS.reset}`;
@@ -427,10 +433,10 @@ export function logUsage(provider, usage, model = null, connectionId = null, api
   }
 
   // Add cache info if present (unified from different formats)
-  const cacheRead = usage.cache_read_input_tokens || usage.cached_tokens;
+  const cacheRead = getPromptCacheReadTokens(usage);
   if (cacheRead) msg += ` | cache_read=${cacheRead}`;
 
-  const cacheCreation = usage.cache_creation_input_tokens;
+  const cacheCreation = getPromptCacheCreationTokens(usage);
   if (cacheCreation) msg += ` | cache_create=${cacheCreation}`;
 
   const reasoning = usage.reasoning_tokens;
@@ -438,11 +444,9 @@ export function logUsage(provider, usage, model = null, connectionId = null, api
 
   console.log(msg);
 
-  // Save to usage DB
-  // input = total input tokens (non-cached + cache_read + cache_creation)
-  // This ensures analytics show correct totals for heavily-cached requests
+  // Save to usage DB with cache-read tracked separately from the main input counter.
   const tokens = {
-    input: inTokens + (cacheRead || 0) + (cacheCreation || 0),
+    input: inTokens,
     output: outTokens,
     cacheRead: cacheRead || 0,
     cacheCreation: cacheCreation || 0,

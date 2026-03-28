@@ -21,6 +21,7 @@ const navItemDefs = [
   { href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
   { href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
+  { href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
 ];
 
 const cliItemDefs = [

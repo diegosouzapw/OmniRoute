@@ -42,7 +42,6 @@ import {
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
-import { recordCost } from "../../domain/costRules";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
@@ -428,7 +427,6 @@ async function handleSingleModelChat(
 
     if (result.success) {
       clearModelUnavailability(provider, model);
-      recordCostIfNeeded(apiKeyInfo, result);
       if (telemetry) telemetry.startPhase("finalize");
       if (telemetry) telemetry.endPhase();
       return result.response;
@@ -675,18 +673,6 @@ async function executeChatWithBreaker({
 
     throw cbErr;
   }
-}
-
-/**
- * Record cost if API key has budget tracking enabled.
- */
-function recordCostIfNeeded(apiKeyInfo: any, result: any) {
-  if (!apiKeyInfo?.id) return;
-  try {
-    const usage = result.usage || {};
-    const estimatedCost = ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0)) * 0.000001;
-    if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
-  } catch {}
 }
 
 // ──── Extracted helpers (T-28) ────

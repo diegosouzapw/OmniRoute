@@ -17,8 +17,8 @@ test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", 
 
   assert.ok(pricing.glm["glm-4.7"], "missing glm/glm-4.7");
   assert.ok(pricing.glm["glm-5"], "missing glm/glm-5");
-  assert.equal(pricing.glm["glm-4.7"].input, 0.38);
-  assert.equal(pricing.glm["glm-4.7"].output, 1.98);
+  assert.equal(pricing.glm["glm-4.7"].input, 0.6);
+  assert.equal(pricing.glm["glm-4.7"].output, 2.2);
 
   assert.ok(pricing.kimi["kimi-k2.5"], "missing kimi/kimi-k2.5");
   assert.ok(pricing.kimi["kimi-k2.5-thinking"], "missing kimi/kimi-k2.5-thinking");

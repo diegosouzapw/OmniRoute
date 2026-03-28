@@ -114,6 +114,11 @@ export async function PATCH(request) {
       setCliCompatProviders(body.cliCompatProviders || []);
     }
 
+    if ("maxCallLogs" in body) {
+      const { invalidateCallLogsMaxCache } = await import("@/lib/usage/callLogs");
+      invalidateCallLogsMaxCache();
+    }
+
     const { password, ...safeSettings } = settings;
     return NextResponse.json(safeSettings);
   } catch (error) {

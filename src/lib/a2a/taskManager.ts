@@ -224,8 +224,11 @@ export class A2ATaskManager {
 }
 
 // Singleton
-let _manager: A2ATaskManager | null = null;
+const globalForA2A = globalThis as unknown as { _a2aTaskManager?: A2ATaskManager };
+
 export function getTaskManager(): A2ATaskManager {
-  if (!_manager) _manager = new A2ATaskManager();
-  return _manager;
+  if (!globalForA2A._a2aTaskManager) {
+    globalForA2A._a2aTaskManager = new A2ATaskManager();
+  }
+  return globalForA2A._a2aTaskManager;
 }
