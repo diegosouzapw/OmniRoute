@@ -1129,20 +1129,12 @@ function TestResultsView({ results }) {
             className={`material-symbols-outlined text-[14px] ${
               r.status === "ok"
                 ? "text-emerald-500"
-                : r.status === "reachable"
-                  ? "text-amber-500"
-                  : r.status === "skipped"
-                    ? "text-text-muted"
-                    : "text-red-500"
+                : r.status === "skipped"
+                  ? "text-text-muted"
+                  : "text-red-500"
             }`}
           >
-            {r.status === "ok"
-              ? "check_circle"
-              : r.status === "reachable"
-                ? "network_check"
-                : r.status === "skipped"
-                  ? "skip_next"
-                  : "error"}
+            {r.status === "ok" ? "check_circle" : r.status === "skipped" ? "skip_next" : "error"}
           </span>
           <code className="font-mono flex-1">{r.model}</code>
           {r.latencyMs !== undefined && <span className="text-text-muted">{r.latencyMs}ms</span>}
@@ -1150,11 +1142,9 @@ function TestResultsView({ results }) {
             className={`text-[10px] uppercase font-medium ${
               r.status === "ok"
                 ? "text-emerald-500"
-                : r.status === "reachable"
-                  ? "text-amber-500"
-                  : r.status === "skipped"
-                    ? "text-text-muted"
-                    : "text-red-500"
+                : r.status === "skipped"
+                  ? "text-text-muted"
+                  : "text-red-500"
             }`}
           >
             {r.status}

@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import {
-  buildComboTestRequestBody,
-  probeComboModelReachability,
-  shouldProbeComboTestReachability,
-} from "@/lib/combos/testHealth";
+import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { getComboByName } from "@/lib/localDb";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 /**
  * POST /api/combos/test - Quick test a combo
- * Sends a minimal request through each model in the combo to verify availability
+ * Sends a real chat completion request through each model in the combo
+ * and only reports success when the model returns usable text content.
  */
 export async function POST(request) {
   let rawBody;
@@ -53,34 +50,55 @@ export async function POST(request) {
     for (const modelStr of models) {
       const startTime = Date.now();
       try {
-        // Send a minimal chat request to the internal SSE handler
-        // Use a tiny but realistic request body so gateway-routed models do not
-        // get flagged as dead just because the probe payload is too synthetic.
+        // Send a minimal but real chat request through the same internal
+        // endpoint an external OpenAI-compatible client would use.
         const testBody = buildComboTestRequestBody(modelStr);
 
         const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout (was 15s, slow providers need more)
+        const timeout = setTimeout(() => controller.abort(), 20000);
 
-        const res = await fetch(internalUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Fix #350: bypass REQUIRE_API_KEY for internal admin combo tests
-            "X-Internal-Test": "combo-health-check",
-          },
-          body: JSON.stringify(testBody),
-          signal: controller.signal,
-        });
+        let res;
+        try {
+          res = await fetch(internalUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Internal dashboard tests still use the normal /v1 pipeline but
+              // bypass REQUIRE_API_KEY so admins can test with local session auth.
+              "X-Internal-Test": "combo-health-check",
+            },
+            body: JSON.stringify(testBody),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
 
-        clearTimeout(timeout);
         const latencyMs = Date.now() - startTime;
 
         if (res.ok) {
-          results.push({ model: modelStr, status: "ok", latencyMs });
+          let responseBody = null;
+          try {
+            responseBody = await res.json();
+          } catch {
+            responseBody = null;
+          }
+
+          const responseText = extractComboTestResponseText(responseBody);
+          if (!responseText) {
+            results.push({
+              model: modelStr,
+              status: "error",
+              statusCode: res.status,
+              error: "Provider returned HTTP 200 but no text content.",
+              latencyMs,
+            });
+            continue;
+          }
+
+          results.push({ model: modelStr, status: "ok", latencyMs, responseText });
           if (!resolvedBy) resolvedBy = modelStr;
-          // For test, we can stop after first success (like a real combo would)
-          // But let's test all models to show full health
         } else {
           let errorMsg = "";
           try {
@@ -88,28 +106,6 @@ export async function POST(request) {
             errorMsg = errBody?.error?.message || errBody?.error || res.statusText;
           } catch {
             errorMsg = res.statusText;
-          }
-
-          let reachability = null;
-          if (shouldProbeComboTestReachability(res.status)) {
-            try {
-              reachability = await probeComboModelReachability(modelStr);
-            } catch {
-              reachability = null;
-            }
-          }
-
-          if (reachability?.reachable) {
-            results.push({
-              model: modelStr,
-              status: "reachable",
-              statusCode: res.status,
-              error: errorMsg,
-              latencyMs,
-              provider: reachability.provider,
-              probeMethod: reachability.method,
-            });
-            continue;
           }
 
           results.push({
@@ -125,7 +121,7 @@ export async function POST(request) {
         results.push({
           model: modelStr,
           status: "error",
-          error: error.name === "AbortError" ? "Timeout (15s)" : error.message,
+          error: error.name === "AbortError" ? "Timeout (20s)" : error.message,
           latencyMs,
         });
       }

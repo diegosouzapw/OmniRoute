@@ -1,74 +1,70 @@
-import { validateProviderApiKey } from "@/lib/providers/validation";
-import { getProviderCredentials } from "@/sse/services/auth";
-import { getModelInfo } from "@/sse/services/model";
+type JsonRecord = Record<string, unknown>;
 
-const SOFT_REACHABILITY_STATUSES = new Set([400, 405, 406, 409, 422]);
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function extractTextFromContent(content: unknown): string {
+  if (typeof content === "string") return content.trim();
+
+  if (!Array.isArray(content)) return "";
+
+  return content
+    .map((part) => {
+      if (typeof part === "string") return part.trim();
+
+      const block = asRecord(part);
+      const blockType = typeof block.type === "string" ? block.type : "";
+      const blockText = typeof block.text === "string" ? block.text.trim() : "";
+
+      if (blockText && (blockType === "" || blockType === "text" || blockType === "output_text")) {
+        return blockText;
+      }
+
+      return "";
+    })
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+}
 
 export function buildComboTestRequestBody(modelStr: string) {
   return {
     model: modelStr,
     messages: [{ role: "user", content: "Reply with OK only." }],
-    // Some gateway-routed models reject ultra-tiny budgets during smoke tests.
+    // Keep this close to a real client request without inflating cost.
     max_tokens: 16,
     stream: false,
   };
 }
 
-export function shouldProbeComboTestReachability(statusCode: number) {
-  return SOFT_REACHABILITY_STATUSES.has(Number(statusCode));
-}
+export function extractComboTestResponseText(responseBody: unknown): string {
+  const body = asRecord(responseBody);
 
-type ProbeDeps = {
-  getModelInfo?: typeof getModelInfo;
-  getProviderCredentials?: typeof getProviderCredentials;
-  validateProviderApiKey?: typeof validateProviderApiKey;
-};
-
-export async function probeComboModelReachability(modelStr: string, deps: ProbeDeps = {}) {
-  const resolveModel = deps.getModelInfo || getModelInfo;
-  const loadCredentials = deps.getProviderCredentials || getProviderCredentials;
-  const validateKey = deps.validateProviderApiKey || validateProviderApiKey;
-
-  const modelInfo = await resolveModel(modelStr);
-  if (!modelInfo?.provider) {
-    return { reachable: false, reason: "unresolved_model" };
+  if (typeof body.output_text === "string" && body.output_text.trim()) {
+    return body.output_text.trim();
   }
 
-  const credentials = await loadCredentials(
-    modelInfo.provider,
-    null,
-    null,
-    modelInfo.model || modelStr
-  );
-  if (!credentials || credentials.allRateLimited) {
-    return { reachable: false, reason: "credentials_unavailable" };
+  if (Array.isArray(body.choices)) {
+    for (const choice of body.choices) {
+      const choiceRecord = asRecord(choice);
+      const message = asRecord(choiceRecord.message);
+      const messageText = extractTextFromContent(message.content);
+      if (messageText) return messageText;
+
+      if (typeof choiceRecord.text === "string" && choiceRecord.text.trim()) {
+        return choiceRecord.text.trim();
+      }
+    }
   }
 
-  const apiKey = credentials.apiKey || credentials.accessToken;
-  if (typeof apiKey !== "string" || apiKey.trim().length === 0) {
-    return { reachable: false, reason: "missing_auth_material" };
+  if (Array.isArray(body.output)) {
+    for (const item of body.output) {
+      const itemRecord = asRecord(item);
+      const contentText = extractTextFromContent(itemRecord.content);
+      if (contentText) return contentText;
+    }
   }
 
-  const providerSpecificData =
-    credentials.providerSpecificData && typeof credentials.providerSpecificData === "object"
-      ? { ...credentials.providerSpecificData }
-      : {};
-
-  if (!providerSpecificData.validationModelId && modelInfo.model) {
-    providerSpecificData.validationModelId = modelInfo.model;
-  }
-
-  const validation = await validateKey({
-    provider: modelInfo.provider,
-    apiKey,
-    providerSpecificData,
-  });
-
-  return {
-    reachable: Boolean(validation?.valid),
-    provider: modelInfo.provider,
-    model: modelInfo.model || null,
-    method: validation?.method || null,
-    warning: validation?.warning || null,
-  };
+  return extractTextFromContent(body.content);
 }
