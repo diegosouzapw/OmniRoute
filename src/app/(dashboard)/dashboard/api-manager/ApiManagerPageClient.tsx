@@ -111,6 +111,7 @@ export default function ApiManagerPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [allowKeyReveal, setAllowKeyReveal] = useState(false);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -150,6 +151,7 @@ export default function ApiManagerPageClient() {
       if (res.ok) {
         const data = await res.json();
         setKeys(data.keys || []);
+        setAllowKeyReveal(data.allowKeyReveal === true);
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
         fetchSessionCounts(data.keys || []);
@@ -286,6 +288,25 @@ export default function ApiManagerPageClient() {
     if (!key || !key.id) return;
     setEditingKey(key);
     setShowPermissionsModal(true);
+  };
+
+  const handleCopyExistingKey = async (keyId: string) => {
+    if (!keyId) return;
+
+    try {
+      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/reveal`);
+      if (!res.ok) {
+        console.log("Error revealing key:", await res.text());
+        return;
+      }
+
+      const data = await res.json();
+      if (typeof data?.key === "string") {
+        await copy(data.key, `existing_key_${keyId}`);
+      }
+    } catch (error) {
+      console.log("Error copying existing key:", error);
+    }
   };
 
   const handleUpdatePermissions = async (
@@ -560,12 +581,25 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
                     <code className="text-sm text-text-muted font-mono truncate">{key.key}</code>
-                    <span
-                      className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
-                      title={t("keyOnlyAvailableAtCreation")}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">lock</span>
-                    </span>
+                    {allowKeyReveal ? (
+                      <button
+                        onClick={() => handleCopyExistingKey(key.id)}
+                        className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                        title={tc("copy")}
+                        aria-label={tc("copy")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
+                        </span>
+                      </button>
+                    ) : (
+                      <span
+                        className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
+                        title={t("keyOnlyAvailableAtCreation")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">lock</span>
+                      </span>
+                    )}
                   </div>
                   <div className="col-span-2 flex items-center">
                     <div className="flex flex-col items-start gap-1">

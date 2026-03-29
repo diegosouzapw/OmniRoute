@@ -519,6 +519,7 @@ post_install() {
 | `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
 | `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
 | `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                       |
+| `ALLOW_API_KEY_REVEAL`    | `false`                              | Allow Api Manager to copy full API keys on demand       |
 | `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                           |
 | `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
 | `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                |

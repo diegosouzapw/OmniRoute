@@ -4,17 +4,17 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 
 // GET /api/keys - List API keys
 export async function GET() {
   try {
     const keys = await getApiKeys();
-    // Mask key values — users should never see full keys after creation
     const maskedKeys = keys.map((k) => ({
       ...k,
-      key: typeof k.key === "string" ? k.key.slice(0, 8) + "****" + k.key.slice(-4) : null,
+      key: maskStoredApiKey(k.key),
     }));
-    return NextResponse.json({ keys: maskedKeys });
+    return NextResponse.json({ keys: maskedKeys, allowKeyReveal: isApiKeyRevealEnabled() });
   } catch (error) {
     console.log("Error fetching keys:", error);
     return NextResponse.json({ error: "Failed to fetch keys" }, { status: 500 });
