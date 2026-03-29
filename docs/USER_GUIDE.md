@@ -507,23 +507,24 @@ post_install() {
 
 ### Environment Variables
 
-| Variable                  | Default                              | Description                                             |
-| ------------------------- | ------------------------------------ | ------------------------------------------------------- |
-| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
-| `INITIAL_PASSWORD`        | `123456`                             | First login password                                    |
-| `DATA_DIR`                | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
-| `PORT`                    | framework default                    | Service port (`20128` in examples)                      |
-| `HOSTNAME`                | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
-| `NODE_ENV`                | runtime default                      | Set `production` for deploy                             |
-| `BASE_URL`                | `http://localhost:20128`             | Server-side internal base URL                           |
-| `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
-| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
-| `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                       |
-| `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                           |
-| `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
-| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                |
-| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Max prompt cache entries                                |
-| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Max semantic cache entries                              |
+| Variable                  | Default                              | Description                                                    |
+| ------------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                  |
+| `INITIAL_PASSWORD`        | `123456`                             | First login password                                           |
+| `DATA_DIR`                | `~/.omniroute`                       | Data directory (db, usage, logs)                               |
+| `PORT`                    | framework default                    | Service port (`20128` in examples)                             |
+| `HOSTNAME`                | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                       |
+| `NODE_ENV`                | runtime default                      | Set `production` for deploy                                    |
+| `BASE_URL`                | `http://localhost:20128`             | Server-side internal base URL                                  |
+| `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                                   |
+| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                             |
+| `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                              |
+| `ALLOW_API_KEY_REVEAL`    | `false`                              | Allow full API keys to be copied from `/dashboard/api-manager` |
+| `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                                  |
+| `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)        |
+| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                       |
+| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Max prompt cache entries                                       |
+| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Max semantic cache entries                                     |
 
 For the full environment variable reference, see the [README](../README.md).
 

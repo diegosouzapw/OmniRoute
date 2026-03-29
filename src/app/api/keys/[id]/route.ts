@@ -9,6 +9,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateKeyPermissionsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isApiKeyRevealEnabled, presentStoredApiKey } from "@/lib/apiKeyExposure";
 
 // GET /api/keys/[id] - Get single API key
 export async function GET(request, { params }) {
@@ -20,11 +21,11 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
 
-    // Mask the key value
-    const keyValue = typeof key.key === "string" ? key.key : null;
+    const allowKeyReveal = isApiKeyRevealEnabled();
     return NextResponse.json({
       ...key,
-      key: keyValue ? keyValue.slice(0, 8) + "****" + keyValue.slice(-4) : null,
+      key: presentStoredApiKey(key.key),
+      allowKeyReveal,
     });
   } catch (error) {
     console.log("Error fetching key:", error);

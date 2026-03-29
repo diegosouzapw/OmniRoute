@@ -102,9 +102,9 @@ export async function POST(request: Request) {
     const { env } = validation.data;
 
     // (#523/#526) If a keyId was provided, resolve the real API key from DB.
-    // The /api/keys list endpoint returns masked key strings — sending those to
-    // disk would save an unusable half-hidden token. Resolving by ID guarantees
-    // we always write the full key value to the config file.
+    // The /api/keys list endpoint may return masked key strings depending on
+    // ALLOW_API_KEY_REVEAL, so resolving by ID guarantees we always write the
+    // full key value to the config file.
     const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
     if (keyId) {
       try {

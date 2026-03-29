@@ -111,6 +111,7 @@ export default function ApiManagerPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [allowKeyReveal, setAllowKeyReveal] = useState(false);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -150,6 +151,7 @@ export default function ApiManagerPageClient() {
       if (res.ok) {
         const data = await res.json();
         setKeys(data.keys || []);
+        setAllowKeyReveal(data.allowKeyReveal === true);
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
         fetchSessionCounts(data.keys || []);
@@ -506,7 +508,7 @@ export default function ApiManagerPageClient() {
           </div>
         </div>
 
-        <p className="text-sm text-text-muted mb-4">{t("keysSecurityNote")}</p>
+        {!allowKeyReveal && <p className="text-sm text-text-muted mb-4">{t("keysSecurityNote")}</p>}
 
         {keys.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-border rounded-lg">
@@ -560,12 +562,25 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
                     <code className="text-sm text-text-muted font-mono truncate">{key.key}</code>
-                    <span
-                      className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
-                      title={t("keyOnlyAvailableAtCreation")}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">lock</span>
-                    </span>
+                    {allowKeyReveal ? (
+                      <button
+                        onClick={() => copy(key.key, `existing_key_${key.id}`)}
+                        className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                        title={t("copyKey")}
+                        aria-label={t("copyKey")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
+                        </span>
+                      </button>
+                    ) : (
+                      <span
+                        className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
+                        title={t("keyOnlyAvailableAtCreation")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">lock</span>
+                      </span>
+                    )}
                   </div>
                   <div className="col-span-2 flex items-center">
                     <div className="flex flex-col items-start gap-1">
@@ -752,7 +767,11 @@ export default function ApiManagerPageClient() {
                 <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-1">
                   {t("keyCreatedSuccess")}
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300">{t("keyCreatedNote")}</p>
+                {!allowKeyReveal && (
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    {t("keyCreatedNote")}
+                  </p>
+                )}
               </div>
             </div>
           </div>
