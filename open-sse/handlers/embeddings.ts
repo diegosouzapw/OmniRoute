@@ -62,6 +62,7 @@ export async function handleEmbedding({
     model: body.model,
     input_count: Array.isArray(body.input) ? body.input.length : 1,
     dimensions: body.dimensions || undefined,
+    input_type: body.input_type || undefined,
   };
 
   if (!provider) {
@@ -86,9 +87,17 @@ export async function handleEmbedding({
     input: body.input,
   };
 
-  // Pass optional parameters
+  // Pass optional standard parameters
   if (body.dimensions !== undefined) upstreamBody.dimensions = body.dimensions;
   if (body.encoding_format !== undefined) upstreamBody.encoding_format = body.encoding_format;
+
+  // Forward any additional provider-specific parameters (e.g. input_type for NVIDIA NIM, user for OpenAI, truncate for Cohere)
+  const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
+  for (const [key, value] of Object.entries(body)) {
+    if (!KNOWN_FIELDS.has(key) && value !== undefined) {
+      upstreamBody[key] = value;
+    }
+  }
 
   // Build headers
   const headers = {
