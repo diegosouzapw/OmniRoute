@@ -11,7 +11,10 @@ import {
   COLORS,
 } from "./usageTracking.ts";
 import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
-import { createStructuredSSECollector } from "./streamPayloadCollector.ts";
+import {
+  createStructuredSSECollector,
+  buildStreamSummaryFromEvents,
+} from "./streamPayloadCollector.ts";
 import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
   sanitizeStreamingChunk,
@@ -655,8 +658,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                   status: 200,
                   usage,
                   responseBody,
-                  providerPayload: providerPayloadCollector.build(),
-                  clientPayload: clientPayloadCollector.build(responseBody),
+                  providerPayload: providerPayloadCollector.build(
+                    buildStreamSummaryFromEvents(
+                      providerPayloadCollector.getEvents(),
+                      sourceFormat,
+                      model
+                    ),
+                    { includeEvents: false }
+                  ),
+                  clientPayload: clientPayloadCollector.build(responseBody, {
+                    includeEvents: false,
+                  }),
                 });
               } catch {}
             }
@@ -811,8 +823,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                 status: 200,
                 usage: state?.usage,
                 responseBody,
-                providerPayload: providerPayloadCollector.build(),
-                clientPayload: clientPayloadCollector.build(responseBody),
+                providerPayload: providerPayloadCollector.build(
+                  buildStreamSummaryFromEvents(
+                    providerPayloadCollector.getEvents(),
+                    targetFormat,
+                    model
+                  ),
+                  { includeEvents: false }
+                ),
+                clientPayload: clientPayloadCollector.build(responseBody, {
+                  includeEvents: false,
+                }),
               });
             } catch {}
           }

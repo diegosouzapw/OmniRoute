@@ -14,6 +14,7 @@ import {
   serializePayloadForStorage,
   parseStoredPayload,
 } from "../logPayloads";
+import { compactStructuredStreamPayload } from "@omniroute/open-sse/utils/streamPayloadCollector.ts";
 
 export interface RequestDetailLog {
   id?: string;
@@ -52,6 +53,8 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
   const db = getDbInstance();
   const id = entry.id ?? uuidv4();
   const timestamp = entry.timestamp ?? new Date().toISOString();
+  const compactProviderResponse = compactStructuredStreamPayload(entry.provider_response);
+  const compactClientResponse = compactStructuredStreamPayload(entry.client_response);
 
   db.prepare(
     `
@@ -66,8 +69,8 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
     timestamp,
     serializePayloadForStorage(protectPayloadForLog(entry.client_request)),
     serializePayloadForStorage(protectPayloadForLog(entry.translated_request)),
-    serializePayloadForStorage(protectPayloadForLog(entry.provider_response)),
-    serializePayloadForStorage(protectPayloadForLog(entry.client_response)),
+    serializePayloadForStorage(protectPayloadForLog(compactProviderResponse)),
+    serializePayloadForStorage(protectPayloadForLog(compactClientResponse)),
     entry.provider ?? null,
     entry.model ?? null,
     entry.source_format ?? null,

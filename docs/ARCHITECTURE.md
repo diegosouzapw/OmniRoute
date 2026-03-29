@@ -765,8 +765,8 @@ Detailed request payload capture stores up to four JSON payload stages per route
 
 - raw request received from the client
 - translated request actually sent upstream
-- provider response reconstructed as JSON (including streamed event sequences when applicable)
-- final client response returned by OmniRoute
+- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
+- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
 
 ## Security-Sensitive Boundaries
 

@@ -7,8 +7,12 @@ const {
   serializePayloadForStorage,
   parseStoredPayload,
 } = await import("../../src/lib/logPayloads.ts");
-const { createStructuredSSECollector } =
-  await import("../../open-sse/utils/streamPayloadCollector.ts");
+const {
+  createStructuredSSECollector,
+  buildStreamSummaryFromEvents,
+  compactStructuredStreamPayload,
+} = await import("../../open-sse/utils/streamPayloadCollector.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 test("normalizes JSON strings before log protection and redacts sensitive keys", () => {
   const protectedPayload = protectPayloadForLog(
@@ -62,4 +66,92 @@ test("structured SSE collector preserves event order and marks truncation", () =
   assert.equal(payload.events[0].event, "response.created");
   assert.equal(payload.events[1].event, "response.output_text.delta");
   assert.deepEqual(payload.summary, { done: true });
+});
+
+test("builds compact OpenAI stream summary for detailed logs", () => {
+  const collector = createStructuredSSECollector({ stage: "provider_response" });
+
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: { role: "assistant", content: "Hello " } }],
+  });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: { content: "world" } }],
+  });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+  });
+
+  const summary = buildStreamSummaryFromEvents(
+    collector.getEvents(),
+    FORMATS.OPENAI,
+    "gpt-4.1-mini"
+  );
+  const compact = compactStructuredStreamPayload(
+    collector.build(summary, { includeEvents: false })
+  );
+
+  assert.equal(compact.object, "chat.completion");
+  assert.equal(compact.choices[0].message.content, "Hello world");
+  assert.equal(compact.choices[0].finish_reason, "stop");
+  assert.equal(compact._omniroute_stream.stage, "provider_response");
+  assert.equal(compact._omniroute_stream.eventCount, 3);
+  assert.equal("events" in compact, false);
+});
+
+test("builds compact Claude stream summary for detailed logs", () => {
+  const collector = createStructuredSSECollector({ stage: "provider_response" });
+
+  collector.push({
+    type: "message_start",
+    message: {
+      id: "msg_1",
+      model: "claude-sonnet-4",
+      role: "assistant",
+      usage: { input_tokens: 11 },
+    },
+  });
+  collector.push({
+    type: "content_block_start",
+    index: 0,
+    content_block: { type: "text", text: "" },
+  });
+  collector.push({
+    type: "content_block_delta",
+    index: 0,
+    delta: { type: "text_delta", text: "你好" },
+  });
+  collector.push({
+    type: "message_delta",
+    delta: { stop_reason: "end_turn" },
+    usage: { output_tokens: 7 },
+  });
+
+  const summary = buildStreamSummaryFromEvents(
+    collector.getEvents(),
+    FORMATS.CLAUDE,
+    "claude-sonnet-4"
+  );
+  const compact = compactStructuredStreamPayload(
+    collector.build(summary, { includeEvents: false })
+  );
+
+  assert.equal(compact.type, "message");
+  assert.equal(compact.model, "claude-sonnet-4");
+  assert.deepEqual(compact.content, [{ type: "text", text: "你好" }]);
+  assert.equal(compact.usage.input_tokens, 11);
+  assert.equal(compact.usage.output_tokens, 7);
+  assert.equal(compact._omniroute_stream.eventCount, 4);
 });
