@@ -783,10 +783,11 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 ### Settings Dashboard
 
-The settings page is organized into 5 tabs for easy navigation:
+The settings page is organized into 6 tabs for easy navigation:
 
 | Tab            | Contents                                                                                       |
 | -------------- | ---------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility     |
 | **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking      |
 | **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults   |
 | **Resilience** | Provider profiles, editable rate limits, circuit breaker status, policies & locked identifiers |

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
 function isHttpUrl(value: string): boolean {
@@ -159,6 +160,7 @@ export const updateSettingsSchema = z.object({
   requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
+  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
   fallbackStrategy: z
     .enum([

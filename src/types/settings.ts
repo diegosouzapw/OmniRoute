@@ -1,3 +1,5 @@
+import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
+
 /**
  * Application settings stored in SQLite key-value pairs.
  */
@@ -14,6 +16,8 @@ export interface Settings {
     | "strict-random";
   stickyRoundRobinLimit: number;
   jwtSecret?: string;
+  hideHealthCheckLogs?: boolean;
+  hiddenSidebarItems?: HideableSidebarItemId[];
 }
 
 export interface ComboDefaults {

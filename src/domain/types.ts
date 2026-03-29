@@ -101,6 +101,7 @@
  * @property {string} [instanceName] - Instance display name
  * @property {string} [corsOrigins] - Allowed CORS origins
  * @property {number} [logRetentionDays] - Log retention in days
+ * @property {string[]} [hiddenSidebarItems] - Sidebar entry ids hidden for visual decluttering
  */
 
 /**

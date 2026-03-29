@@ -45,6 +45,7 @@ export async function getSettings() {
     cloudEnabled: false,
     stickyRoundRobinLimit: 3,
     requireLogin: true,
+    hiddenSidebarItems: [],
   };
   for (const row of rows) {
     const record = toRecord(row);

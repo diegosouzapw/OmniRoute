@@ -6,17 +6,35 @@ import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
+import {
+  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  SIDEBAR_SECTIONS,
+  SIDEBAR_SETTINGS_UPDATED_EVENT,
+  normalizeHiddenSidebarItems,
+  type HideableSidebarItemId,
+} from "@/shared/constants/sidebarVisibility";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
   const { colorTheme, customColor, setColorTheme, setCustomColorTheme } = useThemeStore();
   const t = useTranslations("settings");
+  const tSidebar = useTranslations("sidebar");
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
-  const isValidHex = /^#([0-9a-fA-F]{6})$/.test(customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`);
+  const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
+    customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
+  );
+  const hiddenSidebarItems = normalizeHiddenSidebarItems(
+    settings[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
+  );
+  const hiddenSidebarSet = new Set(hiddenSidebarItems);
 
-  // Subscribe to store changes (e.g. from another tab) via Zustand external subscription
+  const getSettingsLabel = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+  const getSidebarLabel = (key: string, fallback: string) =>
+    typeof tSidebar.has === "function" && tSidebar.has(key) ? tSidebar(key) : fallback;
+
   useEffect(() => {
     const unsubscribe = useThemeStore.subscribe((state) => {
       if (state.customColor && state.customColor !== customThemeColor) {
@@ -25,6 +43,7 @@ export default function AppearanceTab() {
     });
     return unsubscribe;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const themeOptionLabels: Record<string, string> = {
     light: t("themeLight"),
     dark: t("themeDark"),
@@ -40,7 +59,12 @@ export default function AppearanceTab() {
         return res.json();
       })
       .then((data) => {
-        setSettings(data);
+        setSettings({
+          ...data,
+          [HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]: normalizeHiddenSidebarItems(
+            data[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
+          ),
+        });
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -54,7 +78,18 @@ export default function AppearanceTab() {
         body: JSON.stringify({ [key]: value }),
       });
       if (res.ok) {
-        setSettings((prev) => ({ ...prev, [key]: value }));
+        setSettings((prev) => ({
+          ...prev,
+          [key]:
+            key === HIDDEN_SIDEBAR_ITEMS_SETTING_KEY ? normalizeHiddenSidebarItems(value) : value,
+        }));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent(SIDEBAR_SETTINGS_UPDATED_EVENT, {
+              detail: { [key]: value },
+            })
+          );
+        }
       }
     } catch (err) {
       console.error(`Failed to update ${key}:`, err);
@@ -70,6 +105,20 @@ export default function AppearanceTab() {
     { id: "orange", color: COLOR_THEMES.orange, label: t("themeOrange") },
     { id: "cyan", color: COLOR_THEMES.cyan, label: t("themeCyan") },
   ];
+
+  const sidebarSections = SIDEBAR_SECTIONS.map((section) => ({
+    ...section,
+    title: getSidebarLabel(section.titleKey, section.titleFallback),
+    items: section.items.map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
+  }));
+
+  const toggleSidebarItem = (itemId: HideableSidebarItemId) => {
+    const nextHiddenItems = hiddenSidebarSet.has(itemId)
+      ? hiddenSidebarItems.filter((id) => id !== itemId)
+      : [...hiddenSidebarItems, itemId];
+
+    updateSetting(HIDDEN_SIDEBAR_ITEMS_SETTING_KEY, nextHiddenItems);
+  };
 
   return (
     <Card>
@@ -164,8 +213,59 @@ export default function AppearanceTab() {
               maxLength={7}
               className={`flex-1 h-10 px-3 rounded-lg bg-surface border text-sm text-text-main focus:outline-none ${isValidHex ? "border-border focus:border-primary" : "border-red-400 focus:border-red-500"}`}
             />
-            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>{t("themeCreate")}</Button>
+            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
+              {t("themeCreate")}
+            </Button>
           </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("sidebarVisibility", "Hide sidebar items")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "sidebarVisibilityDesc",
+                "Hide any sidebar navigation entry to reduce visual clutter without disabling any features"
+              )}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {sidebarSections.map((section) => (
+              <div key={section.id} className="rounded-lg border border-border bg-surface/40">
+                <div className="px-4 py-3 border-b border-border/70">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-text-muted/70">
+                    {section.title}
+                  </p>
+                </div>
+
+                <div className="divide-y divide-border/70">
+                  {section.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-4 px-4 py-3"
+                    >
+                      <p className="font-medium">{item.label}</p>
+                      <Toggle
+                        checked={hiddenSidebarSet.has(item.id)}
+                        onChange={() => toggleSidebarItem(item.id)}
+                        disabled={loading}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-3 text-xs text-text-muted">
+            {getSettingsLabel(
+              "sidebarVisibilityHint",
+              "Any sidebar section is hidden automatically when all of its entries are hidden"
+            )}
+          </p>
         </div>
 
         <div className="pt-4 border-t border-border">

@@ -11,46 +11,12 @@ import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
-// Nav items use i18n keys resolved inside the component
-const navItemDefs = [
-  { href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
-  { href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
-  { href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
-  { href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
-  { href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
-  { href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
-  { href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
-  { href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
-  { href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
-];
-
-const cliItemDefs = [
-  { href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
-  { href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
-];
-
-const debugItemDefs = [
-  { href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
-  { href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
-  { href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
-  { href: "/dashboard/search-tools", i18nKey: "searchTools", icon: "manage_search" },
-];
-
-const systemItemDefs = [
-  { href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
-  { href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
-  { href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
-];
-
-const helpItemDefs = [
-  { href: "/docs", i18nKey: "docs", icon: "menu_book" },
-  {
-    href: "https://github.com/diegosouzapw/OmniRoute/issues",
-    i18nKey: "issues",
-    icon: "bug_report",
-    external: true,
-  },
-];
+import {
+  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  SIDEBAR_SETTINGS_UPDATED_EVENT,
+  SIDEBAR_SECTIONS,
+  normalizeHiddenSidebarItems,
+} from "@/shared/constants/sidebarVisibility";
 
 export default function Sidebar({
   onClose,
@@ -70,13 +36,41 @@ export default function Sidebar({
   const [isRestarting, setIsRestarting] = useState(false);
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
 
-  // Check if debug mode is enabled
   useEffect(() => {
+    const applySettings = (data) => {
+      setShowDebug(data?.enableRequestLogs === true);
+      setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+    };
+
     fetch("/api/settings")
       .then((res) => res.json())
-      .then((data) => setShowDebug(data?.enableRequestLogs === true))
+      .then((data) => applySettings(data))
       .catch(() => {});
+
+    const handleSettingsUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+
+      if ("enableRequestLogs" in detail) {
+        setShowDebug(detail.enableRequestLogs === true);
+      }
+
+      if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
+        setHiddenSidebarItems(
+          normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+    };
+
+    window.addEventListener(SIDEBAR_SETTINGS_UPDATED_EVENT, handleSettingsUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        SIDEBAR_SETTINGS_UPDATED_EVENT,
+        handleSettingsUpdated as EventListener
+      );
+    };
   }, []);
 
   const isActive = (href, exact) => {
@@ -107,20 +101,27 @@ export default function Sidebar({
     }
     setIsRestarting(false);
     setShowRestartModal(false);
-    // Show reconnecting state, then try to reload after a delay
     setIsDisconnected(true);
     setTimeout(() => {
       globalThis.location.reload();
     }, 3000);
   };
 
-  // Resolve i18n keys → labels
-  const resolveItems = (defs) => defs.map((d) => ({ ...d, label: t(d.i18nKey) }));
-  const navItems = resolveItems(navItemDefs);
-  const cliItems = resolveItems(cliItemDefs);
-  const debugItems = resolveItems(debugItemDefs);
-  const systemItems = resolveItems(systemItemDefs);
-  const helpItems = resolveItems(helpItemDefs);
+  const getSidebarLabel = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+
+  const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const visibleSections = SIDEBAR_SECTIONS.filter(
+    (section) => section.visibility !== "debug" || showDebug
+  )
+    .map((section) => ({
+      ...section,
+      title: getSidebarLabel(section.titleKey, section.titleFallback),
+      items: section.items
+        .map((item) => ({ ...item, label: t(item.i18nKey) }))
+        .filter((item) => !hiddenSidebarSet.has(item.id)),
+    }))
+    .filter((section) => section.items.length > 0);
 
   const renderNavLink = (item) => {
     const active = !item.external && isActive(item.href, item.exact);
@@ -179,14 +180,12 @@ export default function Sidebar({
           collapsed ? "w-16" : "w-72"
         )}
       >
-        {/* Skip to content link */}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-3 focus:bg-primary focus:text-white focus:rounded-md focus:m-2"
         >
           Skip to content
         </a>
-        {/* Traffic lights + collapse toggle */}
         <div
           className={cn(
             "flex items-center gap-2 pt-5 pb-2",
@@ -216,7 +215,6 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Logo */}
         <div className={cn("py-4", collapsed ? "px-2" : "px-6")}>
           <Link
             href="/dashboard"
@@ -236,7 +234,6 @@ export default function Sidebar({
           </Link>
         </div>
 
-        {/* Navigation */}
         <nav
           aria-label="Main navigation"
           className={cn(
@@ -244,58 +241,27 @@ export default function Sidebar({
             collapsed ? "px-2" : "px-4"
           )}
         >
-          {navItems.map(renderNavLink)}
+          {visibleSections.map((section) => {
+            const showTitle = section.showTitleInSidebar !== false;
 
-          {/* CLI section */}
-          <div className="pt-4 mt-2">
-            {!collapsed && (
-              <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
-                CLI
-              </p>
-            )}
-            {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
-            {cliItems.map(renderNavLink)}
-          </div>
-
-          {/* Debug section */}
-          {showDebug && (
-            <div className="pt-4 mt-2">
-              {!collapsed && (
-                <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
-                  Debug
-                </p>
-              )}
-              {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
-              {debugItems.map(renderNavLink)}
-            </div>
-          )}
-
-          {/* System section */}
-          <div className="pt-4 mt-2">
-            {!collapsed && (
-              <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
-                System
-              </p>
-            )}
-            {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
-            {systemItems.map(renderNavLink)}
-          </div>
-
-          <div className="pt-4 mt-2">
-            {!collapsed && (
-              <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
-                Help
-              </p>
-            )}
-            {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
-            {helpItems.map(renderNavLink)}
-          </div>
+            return (
+              <div key={section.id} className={showTitle ? "pt-4 mt-2" : undefined}>
+                {!collapsed && showTitle && (
+                  <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
+                    {section.title}
+                  </p>
+                )}
+                {collapsed && showTitle && (
+                  <div className="border-t border-black/5 dark:border-white/5 mb-2" />
+                )}
+                {section.items.map(renderNavLink)}
+              </div>
+            );
+          })}
         </nav>
 
-        {/* Cloud sync status indicator */}
         <CloudSyncStatus collapsed={collapsed} />
 
-        {/* Footer — Shutdown + Restart */}
         <div
           className={cn(
             "border-t border-black/5 dark:border-white/5",
@@ -329,7 +295,6 @@ export default function Sidebar({
         </div>
       </aside>
 
-      {/* Shutdown Confirmation Modal */}
       <ConfirmModal
         isOpen={showShutdownModal}
         onClose={() => setShowShutdownModal(false)}
@@ -342,7 +307,6 @@ export default function Sidebar({
         loading={isShuttingDown}
       />
 
-      {/* Restart Confirmation Modal */}
       <ConfirmModal
         isOpen={showRestartModal}
         onClose={() => setShowRestartModal(false)}
@@ -355,7 +319,6 @@ export default function Sidebar({
         loading={isRestarting}
       />
 
-      {/* Disconnected Overlay */}
       {isDisconnected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="text-center p-8">

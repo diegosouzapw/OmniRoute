@@ -1,0 +1,144 @@
+export const HIDEABLE_SIDEBAR_ITEM_IDS = [
+  "home",
+  "endpoints",
+  "api-manager",
+  "providers",
+  "combos",
+  "costs",
+  "analytics",
+  "limits",
+  "cache",
+  "cli-tools",
+  "agents",
+  "translator",
+  "playground",
+  "media",
+  "search-tools",
+  "health",
+  "logs",
+  "settings",
+  "docs",
+  "issues",
+] as const;
+
+export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
+export type SidebarSectionId = "primary" | "cli" | "debug" | "system" | "help";
+
+export interface SidebarItemDefinition {
+  id: HideableSidebarItemId;
+  href: string;
+  i18nKey: string;
+  icon: string;
+  exact?: boolean;
+  external?: boolean;
+}
+
+export interface SidebarSectionDefinition {
+  id: SidebarSectionId;
+  titleKey: string;
+  titleFallback: string;
+  items: readonly SidebarItemDefinition[];
+  showTitleInSidebar?: boolean;
+  visibility?: "always" | "debug";
+}
+
+const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "home", href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
+  { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
+  { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
+  { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
+  { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
+  { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
+  { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
+];
+
+const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
+  { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
+];
+
+const DEBUG_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "translator", href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
+  { id: "playground", href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
+  { id: "media", href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
+  {
+    id: "search-tools",
+    href: "/dashboard/search-tools",
+    i18nKey: "searchTools",
+    icon: "manage_search",
+  },
+];
+
+const SYSTEM_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "health", href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
+  { id: "logs", href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
+  { id: "settings", href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
+];
+
+const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "docs", href: "/docs", i18nKey: "docs", icon: "menu_book", external: true },
+  {
+    id: "issues",
+    href: "https://github.com/diegosouzapw/OmniRoute/issues",
+    i18nKey: "issues",
+    icon: "bug_report",
+    external: true,
+  },
+];
+
+export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
+  {
+    id: "primary",
+    titleKey: "primarySection",
+    titleFallback: "Main",
+    items: PRIMARY_SIDEBAR_ITEMS,
+    showTitleInSidebar: false,
+  },
+  {
+    id: "cli",
+    titleKey: "cliSection",
+    titleFallback: "CLI",
+    items: CLI_SIDEBAR_ITEMS,
+  },
+  {
+    id: "debug",
+    titleKey: "debugSection",
+    titleFallback: "Debug",
+    items: DEBUG_SIDEBAR_ITEMS,
+    visibility: "debug",
+  },
+  {
+    id: "system",
+    titleKey: "systemSection",
+    titleFallback: "System",
+    items: SYSTEM_SIDEBAR_ITEMS,
+  },
+  {
+    id: "help",
+    titleKey: "helpSection",
+    titleFallback: "Help",
+    items: HELP_SIDEBAR_ITEMS,
+  },
+] as const;
+
+export const HIDDEN_SIDEBAR_ITEMS_SETTING_KEY = "hiddenSidebarItems";
+export const SIDEBAR_SETTINGS_UPDATED_EVENT = "omniroute:settings-updated";
+
+export function normalizeHiddenSidebarItems(value: unknown): HideableSidebarItemId[] {
+  if (!Array.isArray(value)) return [];
+
+  const hiddenItems = new Set<HideableSidebarItemId>();
+
+  for (const item of value) {
+    if (
+      typeof item === "string" &&
+      HIDEABLE_SIDEBAR_ITEM_IDS.includes(item as HideableSidebarItemId)
+    ) {
+      hiddenItems.add(item as HideableSidebarItemId);
+    }
+  }
+
+  return HIDEABLE_SIDEBAR_ITEM_IDS.filter((item) => hiddenItems.has(item));
+}
