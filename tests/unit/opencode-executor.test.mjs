@@ -158,7 +158,7 @@ describe("OpencodeExecutor", () => {
       );
 
       assert.deepEqual(result.headers, {
-        Authorization: "Bearer claude-key",
+        "x-api-key": "claude-key",
         "Content-Type": "application/json",
         "anthropic-version": "2023-06-01",
         Accept: "text/event-stream",

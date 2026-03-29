@@ -45,7 +45,11 @@ export class OpencodeExecutor extends BaseExecutor {
     const key = credentials?.apiKey || credentials?.accessToken;
 
     if (key) {
-      headers["Authorization"] = `Bearer ${key}`;
+      if (this._requestFormat === "claude") {
+        headers["x-api-key"] = key;
+      } else {
+        headers["Authorization"] = `Bearer ${key}`;
+      }
     }
 
     if (this._requestFormat === "claude") {
