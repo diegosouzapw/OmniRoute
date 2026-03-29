@@ -11,22 +11,27 @@ import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
+import {
+  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  SIDEBAR_SETTINGS_UPDATED_EVENT,
+  normalizeHiddenSidebarItems,
+} from "@/shared/constants/sidebarVisibility";
 // Nav items use i18n keys resolved inside the component
 const navItemDefs = [
-  { href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
-  { href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
-  { href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
-  { href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
-  { href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
-  { href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
-  { href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
-  { href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
-  { href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
+  { id: "home", href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
+  { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
+  { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
+  { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
+  { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
+  { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
+  { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
 ];
 
 const cliItemDefs = [
-  { href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
-  { href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
+  { id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
+  { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
 ];
 
 const debugItemDefs = [
@@ -70,13 +75,42 @@ export default function Sidebar({
   const [isRestarting, setIsRestarting] = useState(false);
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
 
   // Check if debug mode is enabled
   useEffect(() => {
+    const applySettings = (data) => {
+      setShowDebug(data?.enableRequestLogs === true);
+      setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+    };
+
     fetch("/api/settings")
       .then((res) => res.json())
-      .then((data) => setShowDebug(data?.enableRequestLogs === true))
+      .then((data) => applySettings(data))
       .catch(() => {});
+
+    const handleSettingsUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+
+      if ("enableRequestLogs" in detail) {
+        setShowDebug(detail.enableRequestLogs === true);
+      }
+
+      if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
+        setHiddenSidebarItems(
+          normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+    };
+
+    window.addEventListener(SIDEBAR_SETTINGS_UPDATED_EVENT, handleSettingsUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        SIDEBAR_SETTINGS_UPDATED_EVENT,
+        handleSettingsUpdated as EventListener
+      );
+    };
   }, []);
 
   const isActive = (href, exact) => {
@@ -121,6 +155,9 @@ export default function Sidebar({
   const debugItems = resolveItems(debugItemDefs);
   const systemItems = resolveItems(systemItemDefs);
   const helpItems = resolveItems(helpItemDefs);
+  const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const visibleNavItems = navItems.filter((item) => !hiddenSidebarSet.has(item.id));
+  const visibleCliItems = cliItems.filter((item) => !hiddenSidebarSet.has(item.id));
 
   const renderNavLink = (item) => {
     const active = !item.external && isActive(item.href, item.exact);
@@ -244,18 +281,20 @@ export default function Sidebar({
             collapsed ? "px-2" : "px-4"
           )}
         >
-          {navItems.map(renderNavLink)}
+          {visibleNavItems.map(renderNavLink)}
 
           {/* CLI section */}
-          <div className="pt-4 mt-2">
-            {!collapsed && (
-              <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
-                CLI
-              </p>
-            )}
-            {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
-            {cliItems.map(renderNavLink)}
-          </div>
+          {visibleCliItems.length > 0 && (
+            <div className="pt-4 mt-2">
+              {!collapsed && (
+                <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
+                  CLI
+                </p>
+              )}
+              {collapsed && <div className="border-t border-black/5 dark:border-white/5 mb-2" />}
+              {visibleCliItems.map(renderNavLink)}
+            </div>
+          )}
 
           {/* Debug section */}
           {showDebug && (

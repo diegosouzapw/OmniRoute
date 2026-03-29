@@ -6,6 +6,7 @@
  * at runtime (see: https://github.com/vercel/next.js/issues/12557).
  */
 import { z } from "zod";
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
@@ -25,6 +26,7 @@ export const updateSettingsSchema = z.object({
   requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
+  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
   fallbackStrategy: z
     .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])

@@ -101,6 +101,7 @@
  * @property {string} [instanceName] - Instance display name
  * @property {string} [corsOrigins] - Allowed CORS origins
  * @property {number} [logRetentionDays] - Log retention in days
+ * @property {Array<'costs'|'cli-tools'|'agents'>} [hiddenSidebarItems] - Sidebar entries hidden for visual decluttering
  */
 
 /**

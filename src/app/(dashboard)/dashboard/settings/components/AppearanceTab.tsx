@@ -6,15 +6,31 @@ import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
+import {
+  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  SIDEBAR_SETTINGS_UPDATED_EVENT,
+  normalizeHiddenSidebarItems,
+  type HideableSidebarItemId,
+} from "@/shared/constants/sidebarVisibility";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
   const { colorTheme, customColor, setColorTheme, setCustomColorTheme } = useThemeStore();
   const t = useTranslations("settings");
+  const tSidebar = useTranslations("sidebar");
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
-  const isValidHex = /^#([0-9a-fA-F]{6})$/.test(customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`);
+  const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
+    customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
+  );
+  const hiddenSidebarItems = normalizeHiddenSidebarItems(
+    settings[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
+  );
+  const hiddenSidebarSet = new Set(hiddenSidebarItems);
+
+  const getSettingsLabel = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
 
   // Subscribe to store changes (e.g. from another tab) via Zustand external subscription
   useEffect(() => {
@@ -40,7 +56,12 @@ export default function AppearanceTab() {
         return res.json();
       })
       .then((data) => {
-        setSettings(data);
+        setSettings({
+          ...data,
+          [HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]: normalizeHiddenSidebarItems(
+            data[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
+          ),
+        });
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -54,7 +75,18 @@ export default function AppearanceTab() {
         body: JSON.stringify({ [key]: value }),
       });
       if (res.ok) {
-        setSettings((prev) => ({ ...prev, [key]: value }));
+        setSettings((prev) => ({
+          ...prev,
+          [key]:
+            key === HIDDEN_SIDEBAR_ITEMS_SETTING_KEY ? normalizeHiddenSidebarItems(value) : value,
+        }));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent(SIDEBAR_SETTINGS_UPDATED_EVENT, {
+              detail: { [key]: value },
+            })
+          );
+        }
       }
     } catch (err) {
       console.error(`Failed to update ${key}:`, err);
@@ -70,6 +102,40 @@ export default function AppearanceTab() {
     { id: "orange", color: COLOR_THEMES.orange, label: t("themeOrange") },
     { id: "cyan", color: COLOR_THEMES.cyan, label: t("themeCyan") },
   ];
+  const sidebarItems = [
+    {
+      id: "costs" as HideableSidebarItemId,
+      label: tSidebar("costs"),
+      description: getSettingsLabel(
+        "hideSidebarCostsDesc",
+        "Hide the Costs entry from the main navigation"
+      ),
+    },
+    {
+      id: "cli-tools" as HideableSidebarItemId,
+      label: tSidebar("cliToolsShort"),
+      description: getSettingsLabel(
+        "hideSidebarToolsDesc",
+        "Hide the Tools entry in the CLI section"
+      ),
+    },
+    {
+      id: "agents" as HideableSidebarItemId,
+      label: tSidebar("agents"),
+      description: getSettingsLabel(
+        "hideSidebarAgentsDesc",
+        "Hide the Agents entry in the CLI section"
+      ),
+    },
+  ];
+
+  const toggleSidebarItem = (itemId: HideableSidebarItemId) => {
+    const nextHiddenItems = hiddenSidebarSet.has(itemId)
+      ? hiddenSidebarItems.filter((id) => id !== itemId)
+      : [...hiddenSidebarItems, itemId];
+
+    updateSetting(HIDDEN_SIDEBAR_ITEMS_SETTING_KEY, nextHiddenItems);
+  };
 
   return (
     <Card>
@@ -164,8 +230,47 @@ export default function AppearanceTab() {
               maxLength={7}
               className={`flex-1 h-10 px-3 rounded-lg bg-surface border text-sm text-text-main focus:outline-none ${isValidHex ? "border-border focus:border-primary" : "border-red-400 focus:border-red-500"}`}
             />
-            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>{t("themeCreate")}</Button>
+            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
+              {t("themeCreate")}
+            </Button>
           </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("sidebarVisibility", "Hide sidebar items")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "sidebarVisibilityDesc",
+                "Hide low-priority navigation entries to reduce visual clutter without disabling any features"
+              )}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {sidebarItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium">{item.label}</p>
+                  <p className="text-sm text-text-muted">{item.description}</p>
+                </div>
+                <Toggle
+                  checked={hiddenSidebarSet.has(item.id)}
+                  onChange={() => toggleSidebarItem(item.id)}
+                  disabled={loading}
+                />
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-3 text-xs text-text-muted">
+            {getSettingsLabel(
+              "sidebarVisibilityHint",
+              "When both Tools and Agents are hidden, the entire CLI section is hidden automatically"
+            )}
+          </p>
         </div>
 
         <div className="pt-4 border-t border-border">
