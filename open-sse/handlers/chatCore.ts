@@ -43,13 +43,8 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
-import {
-  shouldPreserveCacheControl,
-  trackCacheMetrics,
-  recordCacheHit,
-  type CacheControlMetrics,
-} from "../utils/cacheControlPolicy.ts";
-import { getCacheMetrics, updateCacheMetrics } from "@/lib/db/settings.ts";
+import { shouldPreserveCacheControl, recordCacheHit } from "../utils/cacheControlPolicy.ts";
+import { getCacheMetrics } from "@/lib/db/settings.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -699,27 +694,6 @@ export async function handleChatCore({
     comboStrategy,
     targetProvider: provider,
     settings: { alwaysPreserveClientCache: cacheControlMode },
-  });
-
-  // Track cache metrics for this request
-  let currentMetrics = await getCacheMetrics().catch(() => ({
-    totalRequests: 0,
-    requestsWithCacheControl: 0,
-    totalInputTokens: 0,
-    totalCachedTokens: 0,
-    totalCacheCreationTokens: 0,
-    tokensSaved: 0,
-    estimatedCostSaved: 0,
-    byProvider: {},
-    byStrategy: {},
-    lastUpdated: new Date().toISOString(),
-  }));
-
-  currentMetrics = trackCacheMetrics({
-    preserved: preserveCacheControl,
-    provider,
-    strategy: comboStrategy,
-    metrics: currentMetrics,
   });
 
   if (preserveCacheControl) {
@@ -1473,18 +1447,6 @@ export async function handleChatCore({
           (usage as any).prompt_tokens_details?.cache_creation_tokens
       );
 
-      if (cachedTokens > 0 || cacheCreationTokens > 0) {
-        currentMetrics = updateCacheTokenMetrics({
-          metrics: currentMetrics,
-          provider,
-          strategy: comboStrategy,
-          inputTokens,
-          cachedTokens,
-          cacheCreationTokens,
-          costSaved: 0, // Will be calculated based on pricing
-        });
-      }
-
       saveRequestUsage({
         provider: provider || "unknown",
         model: model || "unknown",
@@ -1649,17 +1611,22 @@ export async function handleChatCore({
           (streamUsage as any).prompt_tokens_details?.cache_creation_tokens
       );
 
-      if (cachedTokens > 0 || cacheCreationTokens > 0) {
-        currentMetrics = updateCacheTokenMetrics({
-          metrics: currentMetrics,
-          provider,
-          strategy: comboStrategy,
-          inputTokens,
-          cachedTokens,
-          cacheCreationTokens,
-          costSaved: 0,
-        });
-      }
+      saveRequestUsage({
+        provider: provider || "unknown",
+        model: model || "unknown",
+        tokens: streamUsage,
+        status: String(streamStatus || 200),
+        success: streamStatus === 200,
+        latencyMs: Date.now() - startTime,
+        timeToFirstTokenMs: ttft,
+        errorCode: null,
+        timestamp: new Date().toISOString(),
+        connectionId: connectionId || undefined,
+        apiKeyId: apiKeyInfo?.id || undefined,
+        apiKeyName: apiKeyInfo?.name || undefined,
+      }).catch((err) => {
+        console.error("Failed to save usage stats:", err.message);
+      });
     }
 
     persistAttemptLogs({
@@ -1671,11 +1638,6 @@ export async function handleChatCore({
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
-    });
-
-    // Persist cache metrics to database
-    updateCacheMetrics(currentMetrics).catch((err) => {
-      log?.debug?.("CACHE", `Failed to persist cache metrics: ${err?.message || "unknown"}`);
     });
 
     if (apiKeyInfo?.id && streamUsage) {
