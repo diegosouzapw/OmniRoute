@@ -500,6 +500,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     clientVersion: "1.1.3",
     models: [
       { id: "default", name: "Auto (Server Picks)" },
+      { id: "claude-4.6-opus-high-thinking", name: "Claude 4.6 Opus High Thinking" },
+      { id: "claude-4.6-opus-high", name: "Claude 4.6 Opus High" },
+      { id: "claude-4.6-sonnet-high-thinking", name: "Claude 4.6 Sonnet High Thinking" },
+      { id: "claude-4.6-sonnet-high", name: "Claude 4.6 Sonnet High" },
+      { id: "claude-4.6-haiku", name: "Claude 4.6 Haiku" },
+      { id: "claude-4.6-opus", name: "Claude 4.6 Opus" },
       { id: "claude-4.5-opus-high-thinking", name: "Claude 4.5 Opus High Thinking" },
       { id: "claude-4.5-opus-high", name: "Claude 4.5 Opus High" },
       { id: "claude-4.5-sonnet-thinking", name: "Claude 4.5 Sonnet Thinking" },

@@ -186,6 +186,9 @@ const COMBO_TEMPLATE_FALLBACK = {
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
     "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
+  paidPremiumTitle: "Paid Premium",
+  paidPremiumDesc:
+    "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
 };
 
 const COMBO_TEMPLATES = [
@@ -246,6 +249,21 @@ const COMBO_TEMPLATES = [
     suggestedName: "balanced-load",
     config: {
       maxRetries: 1,
+      retryDelayMs: 1000,
+      healthCheckEnabled: true,
+    },
+  },
+  {
+    id: "paid-premium",
+    icon: "workspace_premium",
+    titleKey: "templatePaidPremium",
+    descKey: "templatePaidPremiumDesc",
+    fallbackTitle: COMBO_TEMPLATE_FALLBACK.paidPremiumTitle,
+    fallbackDesc: COMBO_TEMPLATE_FALLBACK.paidPremiumDesc,
+    strategy: "round-robin",
+    suggestedName: "paid-premium",
+    config: {
+      maxRetries: 2,
       retryDelayMs: 1000,
       healthCheckEnabled: true,
     },
@@ -1425,18 +1443,27 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     { model: "kr/claude-sonnet-4.5", weight: 0 },
     { model: "if/kimi-k2-thinking", weight: 0 },
     { model: "if/qwen3-coder-plus", weight: 0 },
-    { model: "qw/qwen3-coder-plus", weight: 0 },
+    { model: "if/deepseek-v3.2", weight: 0 },
     { model: "nvidia/llama-3.3-70b-instruct", weight: 0 },
     { model: "groq/llama-3.3-70b-versatile", weight: 0 },
+  ];
+
+  const PAID_PREMIUM_PRESET_MODELS = [
+    { model: "cu/claude-4.6-opus-high", weight: 0 },
+    { model: "ag/claude-sonnet-4-6", weight: 0 },
+    { model: "cu/claude-4.6-sonnet-high", weight: 0 },
+    { model: "ag/gpt-5", weight: 0 },
+    { model: "ag/gemini-3.1-pro-preview", weight: 0 },
   ];
 
   const applyTemplate = (template) => {
     setStrategy(template.strategy);
     setConfig((prev) => ({ ...prev, ...template.config }));
     if (!name.trim()) setName(template.suggestedName);
-    // Pre-fill Free Stack with 7 real free provider models
     if (template.id === "free-stack") {
       setModels(FREE_STACK_PRESET_MODELS);
+    } else if (template.id === "paid-premium") {
+      setModels(PAID_PREMIUM_PRESET_MODELS);
     }
   };
 

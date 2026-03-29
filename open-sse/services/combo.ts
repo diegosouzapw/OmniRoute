@@ -45,6 +45,80 @@ const DEFAULT_MODEL_P95_MS = {
 };
 const MIN_HISTORY_SAMPLES = 10;
 
+/**
+ * Validate that a successful (HTTP 200) non-streaming response actually contains
+ * meaningful content. Returns { valid: true } or { valid: false, reason }.
+ *
+ * Only inspects non-streaming JSON responses — streaming responses are passed through
+ * because buffering the full stream would defeat the purpose of streaming.
+ *
+ * Checks:
+ * 1. Body is valid JSON
+ * 2. Has at least one choice with non-empty content or tool_calls
+ */
+async function validateResponseQuality(
+  response: Response,
+  isStreaming: boolean,
+  log: { warn?: (...args: any[]) => void }
+): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
+  if (isStreaming) return { valid: true };
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json") && !contentType.includes("text/")) {
+    return { valid: true };
+  }
+
+  let cloned: Response;
+  try {
+    cloned = response.clone();
+  } catch {
+    return { valid: true };
+  }
+
+  let text: string;
+  try {
+    text = await cloned.text();
+  } catch {
+    return { valid: true };
+  }
+
+  if (!text || text.trim().length === 0) {
+    return { valid: false, reason: "empty response body" };
+  }
+
+  let json: any;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    if (text.startsWith("data:")) return { valid: true };
+    return { valid: false, reason: "response is not valid JSON" };
+  }
+
+  const choices = json?.choices;
+  if (!Array.isArray(choices) || choices.length === 0) {
+    if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
+    if (json?.error) return { valid: false, reason: `upstream error in 200 body: ${json.error?.message || JSON.stringify(json.error).substring(0, 200)}` };
+    return { valid: true };
+  }
+
+  const firstChoice = choices[0];
+  const message = firstChoice?.message || firstChoice?.delta;
+  if (!message) {
+    return { valid: false, reason: "choice has no message object" };
+  }
+
+  const content = message.content;
+  const toolCalls = message.tool_calls;
+  const hasContent = content !== null && content !== undefined && content !== "";
+  const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
+
+  if (!hasContent && !hasToolCalls) {
+    return { valid: false, reason: "empty content and no tool_calls in response" };
+  }
+
+  return { valid: true };
+}
+
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
 const rrCounters = new Map();
@@ -872,14 +946,31 @@ export async function handleComboChat({
 
       const result = await handleSingleModelWrapped(body, modelStr);
 
-      // Success — return response
+      // Success — validate response quality before returning
       if (result.ok) {
+        const quality = await validateResponseQuality(result, !!body.stream, log);
+        if (!quality.valid) {
+          log.warn(
+            "COMBO",
+            `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
+          );
+          breaker._onFailure();
+          recordComboRequest(combo.name, modelStr, {
+            success: false,
+            latencyMs: Date.now() - startTime,
+            fallbackCount,
+            strategy,
+          });
+          if (i > 0) fallbackCount++;
+          break; // move to next model
+        }
         resolvedByModel = modelStr;
         const latencyMs = Date.now() - startTime;
         log.info(
           "COMBO",
           `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
         );
+        breaker._onSuccess();
         recordComboRequest(combo.name, modelStr, {
           success: true,
           latencyMs,
@@ -1139,13 +1230,30 @@ async function handleRoundRobinCombo({
 
         const result = await handleSingleModel(body, modelStr);
 
-        // Success
+        // Success — validate response quality before returning
         if (result.ok) {
+          const quality = await validateResponseQuality(result, !!body.stream, log);
+          if (!quality.valid) {
+            log.warn(
+              "COMBO-RR",
+              `${modelStr} returned 200 but failed quality check: ${quality.reason}`
+            );
+            breaker._onFailure();
+            recordComboRequest(combo.name, modelStr, {
+              success: false,
+              latencyMs: Date.now() - startTime,
+              fallbackCount,
+              strategy: "round-robin",
+            });
+            if (offset > 0) fallbackCount++;
+            break; // move to next model
+          }
           const latencyMs = Date.now() - startTime;
           log.info(
             "COMBO-RR",
             `${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
           );
+          breaker._onSuccess();
           recordComboRequest(combo.name, modelStr, {
             success: true,
             latencyMs,
