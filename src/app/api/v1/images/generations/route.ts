@@ -11,7 +11,7 @@ import {
   getAllImageModels,
   getImageProvider,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
@@ -156,13 +156,28 @@ export async function POST(request) {
         `No credentials for image provider: ${provider}`
       );
     }
+    if (credentials.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${provider}] All accounts rate limited`,
+        credentials.retryAfter,
+        credentials.retryAfterHuman
+      );
+    }
   } else if (isCustomModel) {
-    // Custom models need credentials from the provider connection
     credentials = await getProviderCredentials(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
         `No credentials for custom image provider: ${provider}`
+      );
+    }
+    if (credentials.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${provider}] All accounts rate limited`,
+        credentials.retryAfter,
+        credentials.retryAfterHuman
       );
     }
   }

@@ -14,7 +14,7 @@ import {
   type EmbeddingProviderNodeRow,
   type EmbeddingProvider,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
@@ -207,6 +207,14 @@ export async function POST(request) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
         `No credentials for embedding provider: ${provider}`
+      );
+    }
+    if (credentials.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${provider}] All accounts rate limited`,
+        credentials.retryAfter,
+        credentials.retryAfterHuman
       );
     }
   }

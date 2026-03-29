@@ -104,6 +104,12 @@ export async function handleEmbedding({
     } else if (providerConfig.authHeader === "x-api-key") {
       headers["x-api-key"] = token;
     }
+  } else if (providerConfig.authType !== "none") {
+    return {
+      success: false,
+      status: 401,
+      error: `No valid authentication token for provider ${provider}. Check provider credentials.`,
+    };
   }
 
   if (log) {

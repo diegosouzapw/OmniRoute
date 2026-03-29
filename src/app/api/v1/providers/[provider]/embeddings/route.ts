@@ -1,5 +1,5 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
@@ -84,6 +84,14 @@ export async function POST(request, { params }) {
   const credentials = await getProviderCredentials(providerEntry.id);
   if (!credentials) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${rawProvider}`);
+  }
+  if (credentials.allRateLimited) {
+    return unavailableResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      `[${rawProvider}] All accounts rate limited`,
+      credentials.retryAfter,
+      credentials.retryAfterHuman
+    );
   }
 
   const result = await handleEmbedding({ body, credentials, log });

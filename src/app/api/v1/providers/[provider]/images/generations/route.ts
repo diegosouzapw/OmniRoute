@@ -1,6 +1,6 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
   getProviderCredentials,
@@ -83,6 +83,14 @@ export async function POST(request, { params }) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
       `No credentials for image provider: ${rawProvider}`
+    );
+  }
+  if (credentials.allRateLimited) {
+    return unavailableResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      `[${rawProvider}] All accounts rate limited`,
+      credentials.retryAfter,
+      credentials.retryAfterHuman
     );
   }
 
