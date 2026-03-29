@@ -167,8 +167,10 @@ function openaiToGeminiBase(model, body, stream) {
             if (tc.type !== "function") continue;
 
             const args = tryParseJSON(tc.function?.arguments || "{}");
+            // Do NOT include thoughtSignature on functionCall parts — it is only valid
+            // on thinking/reasoning parts and causes HTTP 400 "invalid argument" from the
+            // Gemini API when present on a functionCall part (#725).
             parts.push({
-              thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
               functionCall: {
                 id: tc.id,
                 name: tc.function.name,
