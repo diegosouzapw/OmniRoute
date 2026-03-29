@@ -332,6 +332,26 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                   }
 
+                  // Split combined reasoning+content deltas into separate SSE events.
+                  // Standard OpenAI streaming never mixes both fields in one delta;
+                  // clients (e.g. LobeChat) may skip content when reasoning_content
+                  // is present, causing the first content token to be lost.
+                  if (delta?.reasoning_content && delta?.content) {
+                    const reasoningChunk = JSON.parse(JSON.stringify(parsed));
+                    const rDelta = reasoningChunk.choices[0].delta;
+                    delete rDelta.content;
+                    reasoningChunk.choices[0].finish_reason = null;
+                    delete reasoningChunk.usage;
+                    const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n`;
+                    passthroughAccumulatedReasoning += delta.reasoning_content;
+                    totalContentLength += delta.reasoning_content.length;
+                    clientPayloadCollector.push(reasoningChunk);
+                    reqLogger?.appendConvertedChunk?.(rOutput);
+                    controller.enqueue(encoder.encode(rOutput));
+                    controller.enqueue(encoder.encode("\n"));
+                    delete delta.reasoning_content;
+                  }
+
                   // Track whether we need to re-serialize (separate from injectedUsage
                   // to avoid blocking subsequent finish_reason / usage mutations)
                   const needsReserialization =
