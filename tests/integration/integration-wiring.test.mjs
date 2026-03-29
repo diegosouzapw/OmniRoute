@@ -59,6 +59,7 @@ describe("Pipeline Wiring — server-init.ts", () => {
 
 describe("Pipeline Wiring — sse chat handler", () => {
   const src = readProjectFile("src/sse/handlers/chat.ts");
+  const coreSrc = readProjectFile("open-sse/handlers/chatCore.ts");
 
   it("should import and use request sanitization", () => {
     assert.ok(src, "src/sse/handlers/chat.ts should exist");
@@ -81,8 +82,10 @@ describe("Pipeline Wiring — sse chat handler", () => {
     assert.match(src, /generateRequestId/);
   });
 
-  it("should import cost tracking integration", () => {
-    assert.match(src, /recordCost/);
+  it("should keep cost tracking integration in the chat pipeline", () => {
+    assert.ok(coreSrc, "open-sse/handlers/chatCore.ts should exist");
+    assert.match(coreSrc, /calculateCost/);
+    assert.match(coreSrc, /recordCost/);
   });
 });
 

@@ -23,12 +23,19 @@ function readSrc(relPath) {
   return readFileSync(full, "utf8");
 }
 
+function readOpenSse(relPath) {
+  const full = join(ROOT, "open-sse", relPath);
+  if (!existsSync(full)) return null;
+  return readFileSync(full, "utf8");
+}
+
 // ═══════════════════════════════════════════════════
 // 1. Chat Handler Pipeline Wiring
 // ═══════════════════════════════════════════════════
 
 describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   const src = readSrc("sse/handlers/chat.ts");
+  const coreSrc = readOpenSse("handlers/chatCore.ts");
 
   it("should define resolveModelOrError helper", () => {
     assert.ok(src, "chat.ts should exist");
@@ -43,8 +50,10 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
     assert.match(src, /function\s+executeChatWithBreaker/);
   });
 
-  it("should define recordCostIfNeeded helper", () => {
-    assert.match(src, /function\s+recordCostIfNeeded/);
+  it("should keep cost accounting in the core chat pipeline", () => {
+    assert.ok(coreSrc, "open-sse/handlers/chatCore.ts should exist");
+    assert.match(coreSrc, /calculateCost\(/);
+    assert.match(coreSrc, /recordCost\(/);
   });
 
   it("handleSingleModelChat should use resolveModelOrError", () => {
@@ -60,8 +69,9 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
     assert.match(src, /executeChatWithBreaker\(/);
   });
 
-  it("handleSingleModelChat should use recordCostIfNeeded", () => {
-    assert.match(src, /recordCostIfNeeded\(/);
+  it("chatCore should record cost for both non-streaming and streaming responses", () => {
+    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && usage\)/);
+    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && streamUsage\)/);
   });
 });
 
