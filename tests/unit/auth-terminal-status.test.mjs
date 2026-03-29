@@ -62,6 +62,27 @@ test("getProviderCredentials returns null when all active connections are termin
   assert.equal(selected, null);
 });
 
+test("getProviderCredentials can reuse a locally suppressed connection for combo live tests", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-live-test",
+    isActive: true,
+    testStatus: "credits_exhausted",
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+  });
+
+  const selected = await auth.getProviderCredentials("openai", null, null, null, {
+    allowSuppressedConnections: true,
+    bypassQuotaPolicy: true,
+  });
+
+  assert.ok(selected);
+  assert.equal(selected.connectionId, conn.id);
+});
+
 test("markAccountUnavailable does not overwrite terminal status", async () => {
   await resetStorage();
 

@@ -54,6 +54,11 @@ interface RecoverableConnectionState {
   lastErrorSource?: string | null;
 }
 
+interface CredentialSelectionOptions {
+  allowSuppressedConnections?: boolean;
+  bypassQuotaPolicy?: boolean;
+}
+
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
@@ -311,7 +316,8 @@ export async function getProviderCredentials(
   provider: string,
   excludeConnectionId: string | null = null,
   allowedConnections: string[] | null = null,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  options: CredentialSelectionOptions = {}
 ) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
@@ -322,6 +328,9 @@ export async function getProviderCredentials(
 
   try {
     await currentMutex;
+
+    const allowSuppressedConnections = options.allowSuppressedConnections === true;
+    const bypassQuotaPolicy = options.bypassQuotaPolicy === true;
 
     const connectionsRaw = await getProviderConnections({ provider, isActive: true });
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
@@ -394,9 +403,11 @@ export async function getProviderCredentials(
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludeConnectionId && c.id === excludeConnectionId) return false;
-      if (isAccountUnavailable(c.rateLimitedUntil)) return false;
-      if (isTerminalConnectionStatus(c)) return false;
-      if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+      if (!allowSuppressedConnections) {
+        if (isAccountUnavailable(c.rateLimitedUntil)) return false;
+        if (isTerminalConnectionStatus(c)) return false;
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+      }
       return true;
     });
 
@@ -412,13 +423,23 @@ export async function getProviderCredentials(
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
-          `  → ${c.id?.slice(0, 8)} | ${excluded ? "excluded" : ""} ${rateLimited ? `rateLimited until ${c.rateLimitedUntil}` : ""}`
+          `  → ${c.id?.slice(0, 8)} | ${excluded ? "excluded" : ""} ${rateLimited ? `rateLimited until ${c.rateLimitedUntil}` : ""}${allowSuppressedConnections && rateLimited ? " (retained for combo live test)" : ""}`
         );
       } else if (terminalStatus) {
-        log.debug("AUTH", `  → ${c.id?.slice(0, 8)} | skipped terminal status=${c.testStatus}`);
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained terminal status=${c.testStatus} for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | skipped terminal status=${c.testStatus}`
+        );
       } else if (codexScopeLimited) {
         const scopeUntil = getCodexScopeRateLimitedUntil(c.providerSpecificData, requestedModel);
-        log.debug("AUTH", `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`);
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained codex scope-limited account until ${scopeUntil} for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`
+        );
       }
     });
 
@@ -461,17 +482,21 @@ export async function getProviderCredentials(
       resetAt: string | null;
     }> = [];
 
-    policyEligibleConnections = availableConnections.filter((connection) => {
-      const evaluation = evaluateQuotaLimitPolicy(provider, connection);
-      if (!evaluation.blocked) return true;
+    if (!bypassQuotaPolicy) {
+      policyEligibleConnections = availableConnections.filter((connection) => {
+        const evaluation = evaluateQuotaLimitPolicy(provider, connection);
+        if (!evaluation.blocked) return true;
 
-      blockedByPolicy.push({
-        id: connection.id,
-        reasons: evaluation.reasons,
-        resetAt: evaluation.resetAt,
+        blockedByPolicy.push({
+          id: connection.id,
+          reasons: evaluation.reasons,
+          resetAt: evaluation.resetAt,
+        });
+        return false;
       });
-      return false;
-    });
+    } else if (availableConnections.length > 0) {
+      log.debug("AUTH", `${provider} | bypassing quota policy for combo live test`);
+    }
 
     if (blockedByPolicy.length > 0) {
       log.info(

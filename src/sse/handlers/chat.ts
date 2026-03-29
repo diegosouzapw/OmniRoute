@@ -144,8 +144,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   }
 
   // Optional strict API key mode for /v1 endpoints (require key on every request).
-  const isInternalTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
-  if (process.env.REQUIRE_API_KEY === "true" && !isInternalTest) {
+  const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
+  if (process.env.REQUIRE_API_KEY === "true" && !isComboLiveTest) {
     if (!apiKey) {
       log.warn("AUTH", "Missing API key while REQUIRE_API_KEY=true");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
@@ -155,7 +155,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       log.warn("AUTH", "Invalid API key while REQUIRE_API_KEY=true");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
     }
-  } else if (apiKey && !isInternalTest) {
+  } else if (apiKey && !isComboLiveTest) {
     // Client sent a Bearer key — it must exist in DB (otherwise reject to avoid "key ignored" confusion).
     const valid = await isValidApiKey(apiKey);
     if (!valid) {
@@ -238,9 +238,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       `Combo "${modelStr}" [${combo.strategy || "priority"}] with ${combo.models.length} models`
     );
 
-    // Pre-check function: skip models where all accounts are in cooldown
-    // Uses modelAvailability module for TTL-based cooldowns
+    // Pre-check function used by combo routing. For explicit combo live tests,
+    // avoid pre-skipping so each model gets a real execution attempt.
     const checkModelAvailable = async (modelString: string) => {
+      if (isComboLiveTest) return true;
+
       // Use getModelInfo to properly resolve custom prefixes
       const modelInfo = await getModelInfo(modelString);
       const provider = modelInfo.provider;
@@ -273,9 +275,21 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       body,
       combo,
       handleSingleModel: (b: any, m: string) =>
-        handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry, {
-          sessionId,
-        }, combo.strategy, true),
+        handleSingleModelChat(
+          b,
+          m,
+          clientRawRequest,
+          request,
+          combo.name,
+          apiKeyInfo,
+          telemetry,
+          {
+            sessionId,
+            forceLiveComboTest: isComboLiveTest,
+          },
+          combo.strategy,
+          true
+        ),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
@@ -304,7 +318,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           combo.name,
           apiKeyInfo,
           telemetry,
-          { sessionId, emergencyFallbackTried: true },
+          { sessionId, emergencyFallbackTried: true, forceLiveComboTest: isComboLiveTest },
           combo.strategy,
           true
         );
@@ -338,7 +352,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     null,
     apiKeyInfo,
     telemetry,
-    { sessionId },
+    { sessionId, forceLiveComboTest: isComboLiveTest },
     null,
     false
   );
@@ -370,7 +384,11 @@ async function handleSingleModelChat(
   comboName: string | null = null,
   apiKeyInfo: any = null,
   telemetry: any = null,
-  runtimeOptions: { emergencyFallbackTried?: boolean; sessionId?: string | null } = {},
+  runtimeOptions: {
+    emergencyFallbackTried?: boolean;
+    forceLiveComboTest?: boolean;
+    sessionId?: string | null;
+  } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
 ) {
@@ -379,9 +397,13 @@ async function handleSingleModelChat(
   if (resolved.error) return resolved.error;
 
   const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;
+  const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
 
   // 2. Pipeline gates (availability + circuit breaker)
-  const gate = checkPipelineGates(provider, model);
+  const gate = checkPipelineGates(provider, model, {
+    ignoreCircuitBreaker: forceLiveComboTest,
+    ignoreModelCooldown: forceLiveComboTest,
+  });
   if (gate) return gate;
 
   const breaker = getCircuitBreaker(provider, {
@@ -403,7 +425,13 @@ async function handleSingleModelChat(
       provider,
       excludeConnectionId,
       apiKeyInfo?.allowedConnections ?? null,
-      model
+      model,
+      forceLiveComboTest
+        ? {
+            allowSuppressedConnections: true,
+            bypassQuotaPolicy: true,
+          }
+        : undefined
     );
 
     if (!credentials || credentials.allRateLimited) {
@@ -437,6 +465,7 @@ async function handleSingleModelChat(
     // 4. Execute chat via core (with circuit breaker + optional TLS)
     if (telemetry) telemetry.startPhase("connect");
     const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
+      bypassCircuitBreaker: forceLiveComboTest,
       breaker,
       body,
       provider,
@@ -612,8 +641,15 @@ async function resolveModelOrError(modelStr: string, body: any, endpointPath: st
  * Check pipeline gates: model availability + circuit breaker state.
  * Returns an error Response if blocked, or null if OK to proceed.
  */
-function checkPipelineGates(provider: string, model: string) {
-  if (!isModelAvailable(provider, model)) {
+function checkPipelineGates(
+  provider: string,
+  model: string,
+  options: { ignoreCircuitBreaker?: boolean; ignoreModelCooldown?: boolean } = {}
+) {
+  const modelAvailable = isModelAvailable(provider, model);
+  if (!modelAvailable && options.ignoreModelCooldown) {
+    log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed for combo live test`);
+  } else if (!modelAvailable) {
     log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
     return (unavailableResponse as any)(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
@@ -628,7 +664,9 @@ function checkPipelineGates(provider: string, model: string) {
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
-  if (!breaker.canExecute()) {
+  if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
+    log.info("CIRCUIT", `Bypassing OPEN circuit breaker for combo live test: ${provider}`);
+  } else if (!breaker.canExecute()) {
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
     return (unavailableResponse as any)(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
@@ -646,6 +684,7 @@ function checkPipelineGates(provider: string, model: string) {
  * Execute chat core wrapped in circuit breaker + optional TLS tracking.
  */
 async function executeChatWithBreaker({
+  bypassCircuitBreaker,
   breaker,
   body,
   provider,
@@ -692,6 +731,16 @@ async function executeChatWithBreaker({
           },
         })
       );
+
+    if (bypassCircuitBreaker) {
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await runWithTlsTracking(chatFn);
+        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+      }
+
+      const result = await chatFn();
+      return { result, tlsFingerprintUsed: false };
+    }
 
     if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
       const tracked = await breaker.execute(async () => runWithTlsTracking(chatFn));

@@ -43,7 +43,7 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 | `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree   |
 | `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions |
 | `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset   |
-| `omniroute_test_combo`             | Live-test all models in a combo                 |
+| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
 | `omniroute_get_provider_metrics`   | Detailed metrics for one provider               |
 | `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives   |
 | `omniroute_explain_route`          | Explain a past routing decision                 |
