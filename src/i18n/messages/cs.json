@@ -717,6 +717,10 @@
           },
           "4": {
             "title": "Vybrat model"
+          },
+          "5": {
+            "title": "Use Thinking Variant",
+            "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
         },
         "notes": {

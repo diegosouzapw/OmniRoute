@@ -560,6 +560,10 @@
           },
           "4": {
             "title": "Select Model"
+          },
+          "5": {
+            "title": "Use Thinking Variant",
+            "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
         }
       },
