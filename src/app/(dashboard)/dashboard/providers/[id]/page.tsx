@@ -802,7 +802,6 @@ export default function ProviderDetailPage() {
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
   const notify = useNotificationStore();
-  const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
   const [connProxyMap, setConnProxyMap] = useState<
@@ -2408,7 +2407,6 @@ export default function ProviderDetailPage() {
           providerInfo={providerInfo}
           onSuccess={handleOAuthSuccess}
           onClose={() => {
-            userDismissed.current = true;
             setShowOAuthModal(false);
           }}
         />
@@ -2417,7 +2415,6 @@ export default function ProviderDetailPage() {
           isOpen={showOAuthModal}
           onSuccess={handleOAuthSuccess}
           onClose={() => {
-            userDismissed.current = true;
             setShowOAuthModal(false);
           }}
         />
@@ -2428,7 +2425,6 @@ export default function ProviderDetailPage() {
           providerInfo={providerInfo}
           onSuccess={handleOAuthSuccess}
           onClose={() => {
-            userDismissed.current = true;
             setShowOAuthModal(false);
           }}
         />
