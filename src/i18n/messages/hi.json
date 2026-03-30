@@ -630,6 +630,9 @@
             "title": "मॉडल कॉन्फ़िगरेशन जोड़ें",
             "desc": "अपने मॉडल सरणी में निम्नलिखित कॉन्फ़िगरेशन जोड़ें:"
           }
+        },
+        "notes": {
+          "0": "Continue uses JSON config file."
         }
       },
       "opencode": {
@@ -652,6 +655,10 @@
             "title": "Use Thinking Variant",
             "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
+        },
+        "notes": {
+          "0": "OpenCode uses TOML config.",
+          "1": "Setup your API key via environment variable."
         }
       },
       "kiro": {
@@ -670,6 +677,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro CLI uses YAML config."
         }
       },
       "windsurf": {
