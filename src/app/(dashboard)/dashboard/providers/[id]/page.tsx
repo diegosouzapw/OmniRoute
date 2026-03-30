@@ -988,12 +988,6 @@ export default function ProviderDetailPage() {
     }
   }, [loading, connections, loadConnProxies]);
 
-  // NOTE: Removed auto-open of Add Connection modal when no connections exist.
-  // The page already shows a clear "No connections yet" empty state with an
-  // "Add Connection" button. Auto-opening the modal was a poor UX pattern that
-  // surprised users navigating to a provider detail page — especially when
-  // re-visiting a provider after deleting a connection. Users should explicitly
-  // click the button when they're ready to connect.
 
   const handleSetAlias = async (modelId, alias, providerAliasOverride = providerAlias) => {
     const fullModel = `${providerAliasOverride}/${modelId}`;
