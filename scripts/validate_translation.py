@@ -245,6 +245,7 @@ def find_untranslated(source: Dict, trans: Dict) -> Set[str]:
 def find_placeholder_issues(source: Dict, trans: Dict) -> List[Tuple[str, str, str]]:
     """
     Find placeholder mismatches between source and translation.
+    Only checks top-level placeholders like {count}, {day}, NOT ICU inner content.
     Returns list of (key, source_placeholder, trans_placeholder)
     """
     source_keys = get_all_keys(source)
@@ -260,15 +261,11 @@ def find_placeholder_issues(source: Dict, trans: Dict) -> List[Tuple[str, str, s
         if not isinstance(source_val, str) or not isinstance(trans_val, str):
             continue
         
-        # Extract placeholders: {name}, {count}, {0}, etc.
+        # Only extract top-level placeholders: {name}, {count}, {day}, NOT {# X} inside ICU
         import re
-        source_placeholders = set(re.findall(r'\{[^}]+\}', source_val))
-        trans_placeholders = set(re.findall(r'\{[^}]+\}', trans_val))
-        
-        # Also check ICU plural formats
-        icu_pattern = r'\{[^,]+,\s*(plural|select|selectordinal)'
-        source_icu = set(re.findall(icu_pattern, source_val))
-        trans_icu = set(re.findall(icu_pattern, trans_val))
+        # Match {name} but NOT {# inside ICU plural
+        source_placeholders = set(re.findall(r'\{[a-zA-Z][^}]*\}', source_val))
+        trans_placeholders = set(re.findall(r'\{[a-zA-Z][^}]*\}', trans_val))
         
         # Check for missing placeholders
         missing = source_placeholders - trans_placeholders
