@@ -23,6 +23,13 @@ type CountRow = { cnt?: number };
 let _lastBackupAt = 0;
 const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes
 const MAX_DB_BACKUPS = 20;
+const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+
+function isSqliteAutoBackupDisabled() {
+  const value = process.env.OMNIROUTE_DISABLE_SQLITE_AUTO_BACKUP;
+  if (!value) return false;
+  return TRUE_ENV_VALUES.has(value.trim().toLowerCase());
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -59,6 +66,7 @@ export function backupDbFile(reason = "auto") {
   try {
     if (isBuildPhase || isCloud) return null;
     if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) return null;
+    if (reason !== "manual" && isSqliteAutoBackupDisabled()) return null;
 
     const stat = fs.statSync(SQLITE_FILE);
     if (stat.size < 4096) {
@@ -227,19 +235,21 @@ export async function restoreDbBackup(backupId: string) {
   }
 
   // Force pre-restore backup (bypass throttle) and await so the DB is not closed while backup runs
-  _lastBackupAt = 0;
-  const backupDirForPre = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
-  if (SQLITE_FILE && fs.existsSync(SQLITE_FILE)) {
-    const stat = fs.statSync(SQLITE_FILE);
-    if (stat.size >= 4096) {
-      if (!fs.existsSync(backupDirForPre)) fs.mkdirSync(backupDirForPre, { recursive: true });
-      const preBackupPath = path.join(
-        backupDirForPre,
-        `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
-      );
-      const dbForBackup = getDbInstance();
-      await dbForBackup.backup(preBackupPath);
-      _lastBackupAt = Date.now();
+  if (!isSqliteAutoBackupDisabled()) {
+    _lastBackupAt = 0;
+    const backupDirForPre = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+    if (SQLITE_FILE && fs.existsSync(SQLITE_FILE)) {
+      const stat = fs.statSync(SQLITE_FILE);
+      if (stat.size >= 4096) {
+        if (!fs.existsSync(backupDirForPre)) fs.mkdirSync(backupDirForPre, { recursive: true });
+        const preBackupPath = path.join(
+          backupDirForPre,
+          `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
+        );
+        const dbForBackup = getDbInstance();
+        await dbForBackup.backup(preBackupPath);
+        _lastBackupAt = Date.now();
+      }
     }
   }
 

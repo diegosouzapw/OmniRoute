@@ -409,7 +409,7 @@ Installing, configuring, and maintaining an AI proxy across different environmen
 - **Electron Desktop App** — Native app for Windows/macOS/Linux with system tray, auto-start, offline mode
 - **Split-Port Mode** — API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking)
 - **Cloud Sync** — Config synchronization across devices via Cloudflare Workers
-- **DB Backups** — Automatic backup, restore, export and import of all settings
+- **DB Backups** — Automatic backup, restore, export and import of all settings, with `OMNIROUTE_DISABLE_SQLITE_AUTO_BACKUP` for externally managed backups
 
 </details>
 
@@ -1276,22 +1276,22 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
 ### ☁️ Deployment & Platform
 
-| Feature                       | What It Does                                              |
-| ----------------------------- | --------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**        | Localhost, VPS, Docker, Cloud environments                |
-| 🚇 **Cloudflare Tunnel** 🆕   | One-click Quick Tunnel integration from the dashboard     |
-| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles          |
-| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                    |
-| 🔄 **Backup/Restore**         | Export/import and disaster recovery flows                 |
-| 🧙 **Onboarding Wizard**      | First-run guided setup                                    |
-| 🔧 **CLI Tools Dashboard**    | One-click setup for popular coding tools                  |
-| 🎮 **Model Playground**       | Test any provider/model/endpoint from the dashboard       |
-| 🔏 **CLI Fingerprint Toggle** | Per-provider fingerprint matching in Settings > Security  |
-| 🌐 **i18n (30 languages)**    | Full dashboard + docs language support with RTL coverage  |
-| 🧹 **Clear All Models**       | One-click model list clearing in provider details         |
-| 👁️ **Sidebar Controls** 🆕    | Hide components and integrations from Appearance Settings |
-| 📋 **Issue Templates**        | Standardized GitHub templates for bugs and features       |
-| 📂 **Custom Data Directory**  | `DATA_DIR` override for storage location                  |
+| Feature                        | What It Does                                                          |
+| ------------------------------ | --------------------------------------------------------------------- |
+| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
+| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                 |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls               |
+| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                             |
+| 🧙 **Onboarding Wizard**       | First-run guided setup                                                |
+| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
+| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
+| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
+| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
+| 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
+| 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
+| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
+| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
 
 ### Feature Deep Dive
 
