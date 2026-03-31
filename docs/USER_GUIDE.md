@@ -520,7 +520,7 @@ post_install() {
 | `API_KEY_SECRET`                       | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                         |
 | `REQUIRE_API_KEY`                      | `false`                              | Enforce Bearer API key on `/v1/*`                                                          |
 | `ALLOW_API_KEY_REVEAL`                 | `false`                              | Allow Api Manager to copy full API keys on demand                                          |
-| `OMNIROUTE_DISABLE_SQLITE_AUTO_BACKUP` | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work |
+| `DISABLE_SQLITE_AUTO_BACKUP` | `false`                                        | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work |
 | `ENABLE_REQUEST_LOGS`                  | `false`                              | Enables request/response logs                                                              |
 | `AUTH_COOKIE_SECURE`                   | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                    |
 | `CLOUDFLARED_BIN`                      | unset                                | Use an existing `cloudflared` binary instead of managed download                           |
@@ -773,7 +773,7 @@ Manage database backups in **Dashboard → Settings → System & Storage**.
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                                |
 | **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                           |
-| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `OMNIROUTE_DISABLE_SQLITE_AUTO_BACKUP=true` |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
 # API: Export database

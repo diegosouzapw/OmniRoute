@@ -26,7 +26,7 @@ const MAX_DB_BACKUPS = 20;
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 function isSqliteAutoBackupDisabled() {
-  const value = process.env.OMNIROUTE_DISABLE_SQLITE_AUTO_BACKUP;
+  const value = process.env.DISABLE_SQLITE_AUTO_BACKUP;
   if (!value) return false;
   return TRUE_ENV_VALUES.has(value.trim().toLowerCase());
 }
