@@ -1,4 +1,4 @@
--- 012_quota_snapshots.sql
+-- 013_quota_snapshots.sql
 -- Quota snapshots for subscription utilization tracking.
 -- Stores periodic snapshots of quota state for historical analysis and time-series queries.
 

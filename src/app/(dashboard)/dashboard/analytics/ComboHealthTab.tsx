@@ -295,51 +295,15 @@ export default function ComboHealthTab() {
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchComboHealth() {
-      setLoading(true);
+  const fetchData = useCallback(
+    async (controller: AbortController, isRetry = false) => {
+      if (isRetry) {
+        setRetrying(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
-      try {
-        const response = await fetch(`/api/usage/combo-health?range=${range}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch combo health data");
-        }
-
-        const result = (await response.json()) as ComboHealthResponse;
-        setData(result);
-      } catch (fetchError) {
-        if ((fetchError as Error).name === "AbortError") {
-          return;
-        }
-
-        setError(fetchError instanceof Error ? fetchError.message : "Unknown error");
-        setData(null);
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchComboHealth();
-
-    return () => controller.abort();
-  }, [range]);
-
-  const combos = data?.combos ?? [];
-
-  const handleRetry = useCallback(() => {
-    setRetrying(true);
-    setError(null);
-    const controller = new AbortController();
-
-    async function retryFetch() {
       try {
         const response = await fetch(`/api/usage/combo-health?range=${range}`, {
           signal: controller.signal,
@@ -357,18 +321,29 @@ export default function ComboHealthTab() {
           return;
         }
         setError(fetchError instanceof Error ? fetchError.message : "Unknown error");
+        if (!isRetry) setData(null);
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
-          setRetrying(false);
+          if (isRetry) setRetrying(false);
         }
       }
-    }
+    },
+    [range]
+  );
 
-    retryFetch();
-
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchData(controller, false);
     return () => controller.abort();
-  }, [range]);
+  }, [fetchData]);
+
+  const combos = data?.combos ?? [];
+
+  const handleRetry = useCallback(() => {
+    const controller = new AbortController();
+    fetchData(controller, true);
+  }, [fetchData]);
 
   return (
     <div className="flex flex-col gap-6">

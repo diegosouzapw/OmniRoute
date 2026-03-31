@@ -19,7 +19,7 @@ export default function TimeRangeSelector({ value, onChange }: TimeRangeSelector
   return (
     <div
       role="tablist"
-      aria-label="시간 범위 선택"
+      aria-label="Select time range"
       className="inline-flex items-center gap-1 rounded-lg bg-black/5 p-1 dark:bg-white/5"
     >
       {OPTIONS.map((option) => {

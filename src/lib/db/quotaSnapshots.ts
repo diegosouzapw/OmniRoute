@@ -87,7 +87,11 @@ export function getAggregatedSnapshots(opts: {
     params.push(opts.until);
   }
 
-  const bucketSeconds = opts.bucketMinutes * 60;
+  const bucketSeconds = Number(opts.bucketMinutes) * 60;
+  if (!Number.isFinite(bucketSeconds) || bucketSeconds <= 0) {
+    throw new Error("Invalid bucket size");
+  }
+
   const sql = `
     SELECT 
       datetime((strftime('%s', created_at) / ${bucketSeconds}) * ${bucketSeconds}, 'unixepoch') as bucket,
