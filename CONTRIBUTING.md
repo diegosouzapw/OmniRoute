@@ -41,6 +41,17 @@ Key variables for development:
 | `INITIAL_PASSWORD`     | `123456`                | First login password      |
 | `ENABLE_REQUEST_LOGS`  | `false`                 | Enable debug request logs |
 
+### Dashboard Settings
+
+The dashboard provides UI toggles for features that can also be configured via environment variables:
+
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
 ### Running Locally
 
 ```bash

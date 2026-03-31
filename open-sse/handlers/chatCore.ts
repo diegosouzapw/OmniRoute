@@ -47,7 +47,10 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
-import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
+import {
+  shouldPreserveCacheControl,
+  providerSupportsCaching,
+} from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 
 import {
@@ -965,9 +968,10 @@ export async function handleChatCore({
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
 
-      // Inject prompt_cache_key for OpenAI providers if not already set
+      // Inject prompt_cache_key only for providers that support it
       if (
         targetFormat === FORMATS.OPENAI &&
+        providerSupportsCaching(provider) &&
         !bodyToSend.prompt_cache_key &&
         Array.isArray(bodyToSend.messages) &&
         !["nvidia", "codex", "xai"].includes(provider)
