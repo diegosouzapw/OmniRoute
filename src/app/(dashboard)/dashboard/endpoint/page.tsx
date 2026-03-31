@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { SegmentedControl } from "@/shared/components";
 import EndpointPageClient from "./EndpointPageClient";
-import McpDashboardPage from "../mcp/page";
-import A2ADashboardPage from "../a2a/page";
+import McpDashboardPage from "./components/MCPDashboard";
+import A2ADashboardPage from "./components/A2ADashboard";
 import ApiEndpointsTab from "./ApiEndpointsTab";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";

@@ -53,7 +53,11 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
       reasoningParts.push(delta.reasoning_content);
     }
     // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
-    if (typeof delta.reasoning === "string" && delta.reasoning.length > 0 && !delta.reasoning_content) {
+    if (
+      typeof delta.reasoning === "string" &&
+      delta.reasoning.length > 0 &&
+      !delta.reasoning_content
+    ) {
       reasoningParts.push(delta.reasoning);
     }
 
@@ -98,11 +102,11 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     }
   }
 
-  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
+  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : "";
   const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
   const message: Record<string, unknown> = {
     role: "assistant",
-    content: joinedContent || null,
+    content: joinedContent,
   };
   if (joinedReasoning) {
     message.reasoning_content = joinedReasoning;

@@ -287,7 +287,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
   } = {
     conversationState: {
       chatTriggerType: "MANUAL",
-      conversationId: uuidv4(),
+      conversationId: uuidv4(), // We must override this with deterministic ID
       currentMessage: {
         userInputMessage: {
           content: finalContent,
@@ -301,6 +301,20 @@ export function buildKiroPayload(model, body, stream, credentials) {
       history: history,
     },
   };
+
+  // Determistic session caching for Kiro
+  const NAMESPACE_KIRO = "34f7193f-561d-4050-bc84-9547d953d6bf";
+  const firstContent =
+    history.length > 0 && history[0].userInputMessage?.content
+      ? history[0].userInputMessage.content
+      : finalContent;
+
+  // Use uuidv5 with the hash of the system prompt / first message to maintain AWS Builder ID context cache
+  const { v5: uuidv5 } = require("uuid");
+  payload.conversationState.conversationId = uuidv5(
+    (firstContent || "").substring(0, 4000),
+    NAMESPACE_KIRO
+  );
 
   if (profileArn) {
     payload.profileArn = profileArn;

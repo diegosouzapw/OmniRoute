@@ -68,6 +68,8 @@ export class KiroExecutor extends BaseExecutor {
       ...this.config.headers,
       "Amz-Sdk-Request": "attempt=1; max=3",
       "Amz-Sdk-Invocation-Id": uuidv4(),
+      "x-amzn-bedrock-cache-control": "enable",
+      "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
     if (credentials.accessToken) {
@@ -358,11 +360,25 @@ export class KiroExecutor extends BaseExecutor {
                   ? ((metrics as JsonRecord).outputTokens as number)
                   : 0;
 
+              const cacheReadTokens =
+                typeof (metrics as JsonRecord).cacheReadTokens === "number"
+                  ? ((metrics as JsonRecord).cacheReadTokens as number)
+                  : 0;
+
+              const cacheCreationTokens =
+                typeof (metrics as JsonRecord).cacheCreationTokens === "number"
+                  ? ((metrics as JsonRecord).cacheCreationTokens as number)
+                  : 0;
+
               if (inputTokens > 0 || outputTokens > 0) {
                 state.usage = {
                   prompt_tokens: inputTokens,
                   completion_tokens: outputTokens,
                   total_tokens: inputTokens + outputTokens,
+                  ...(cacheReadTokens > 0 && { cache_read_input_tokens: cacheReadTokens }),
+                  ...(cacheCreationTokens > 0 && {
+                    cache_creation_input_tokens: cacheCreationTokens,
+                  }),
                 };
               }
             }

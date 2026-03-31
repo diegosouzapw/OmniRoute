@@ -146,7 +146,11 @@ export function isNativeBinaryCompatible(
   const target = readNativeBinaryTarget(binaryPath);
 
   if (target) {
-    if (target.platform !== runtimePlatform || !target.architectures.includes(runtimeArch)) {
+    if (
+      (target.platform !== runtimePlatform &&
+        !(target.platform === "linux" && runtimePlatform === "android")) ||
+      !target.architectures.includes(runtimeArch)
+    ) {
       return false;
     }
   } else if (runtimePlatform !== PUBLISHED_BUILD_PLATFORM || runtimeArch !== PUBLISHED_BUILD_ARCH) {

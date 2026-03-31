@@ -402,11 +402,14 @@ export function translateNonStreamingResponse(
  * Helper to convert an OpenAI chat.completion JSON object to Claude format for non-streaming.
  */
 function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonRecord {
-  const choice = Array.isArray(openaiResponse.choices) ? openaiResponse.choices[0] : null;
-  if (!choice) return openaiResponse; // If it doesn't look like OpenAI, return as-is
+  const isChoicesArray = Array.isArray(openaiResponse.choices);
+  if (!isChoicesArray && openaiResponse.object !== "chat.completion") {
+    return openaiResponse; // If it doesn't look like OpenAI, return as-is
+  }
 
-  const choiceObj = toRecord(choice);
-  const messageObj = toRecord(choiceObj.message);
+  const choice = isChoicesArray ? openaiResponse.choices[0] : null;
+  const choiceObj = choice ? toRecord(choice) : {};
+  const messageObj = choiceObj.message ? toRecord(choiceObj.message) : {};
 
   const content: JsonRecord[] = [];
 

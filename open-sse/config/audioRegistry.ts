@@ -341,7 +341,7 @@ export function getAllAudioModels() {
   for (const [providerId, config] of Object.entries(AUDIO_TRANSCRIPTION_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
-        id: `${providerId}/${model.id}`,
+        id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
         name: model.name,
         provider: providerId,
         subtype: "transcription",
@@ -352,7 +352,7 @@ export function getAllAudioModels() {
   for (const [providerId, config] of Object.entries(AUDIO_SPEECH_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
-        id: `${providerId}/${model.id}`,
+        id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
         name: model.name,
         provider: providerId,
         subtype: "speech",

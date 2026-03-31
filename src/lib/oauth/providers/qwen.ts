@@ -60,7 +60,7 @@ export const qwen = {
     }
 
     return {
-      accessToken: tokens.access_token,
+      accessToken: tokens.id_token || tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresIn: tokens.expires_in,
       idToken: tokens.id_token,

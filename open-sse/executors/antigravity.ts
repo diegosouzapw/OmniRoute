@@ -188,7 +188,7 @@ export class AntigravityExecutor extends BaseExecutor {
   parseRetryFromErrorMessage(errorMessage) {
     if (!errorMessage || typeof errorMessage !== "string") return null;
 
-    const match = errorMessage.match(/reset after (\d+h)?(\d+m)?(\d+s)?/i);
+    const match = errorMessage.match(/reset (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
     if (!match) return null;
 
     let totalMs = 0;
@@ -242,6 +242,29 @@ export class AntigravityExecutor extends BaseExecutor {
               const errorJson = JSON.parse(errorBody);
               const errorMessage = errorJson?.error?.message || errorJson?.message || "";
               retryMs = this.parseRetryFromErrorMessage(errorMessage);
+
+              if (!retryMs) {
+                // Dynamic quota interpretation logic for Free vs Pro accounts
+                const lowerMsg = errorMessage.toLowerCase();
+
+                if (
+                  lowerMsg.includes("free tier") ||
+                  lowerMsg.includes("exhausted your capacity") ||
+                  lowerMsg.includes("daily limit") ||
+                  lowerMsg.includes("quota exceeded")
+                ) {
+                  // Hard limit hit for Free accounts (or exhausting general capacity), fallback immediately.
+                  // Setting a massive retryMs forces an instant fallback.
+                  retryMs = 24 * 60 * 60 * 1000; // 24 hours
+                } else if (
+                  lowerMsg.includes("pro") ||
+                  lowerMsg.includes("per minute") ||
+                  lowerMsg.includes("rpm")
+                ) {
+                  // RPM limit for Pro counts, backoff up to 1 minute, then fallback
+                  retryMs = 60 * 1000; // 60s
+                }
+              }
             } catch (e) {
               // Ignore parse errors, will fall back to exponential backoff
             }

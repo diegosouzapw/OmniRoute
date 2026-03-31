@@ -324,7 +324,7 @@ export async function refreshQwenToken(refreshToken, log) {
       });
 
       return {
-        accessToken: tokens.access_token,
+        accessToken: tokens.id_token || tokens.access_token,
         refreshToken: tokens.refresh_token || refreshToken,
         expiresIn: tokens.expires_in,
       };
