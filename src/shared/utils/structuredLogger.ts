@@ -14,7 +14,7 @@
 import { getCorrelationId } from "../middleware/correlationId";
 import { appendFileSync, existsSync, mkdirSync } from "fs";
 import { dirname, resolve } from "path";
-import { getAppLogFilePath, getAppLogLevel, getAppLogToFile } from "@/lib/logEnv";
+import { getAppLogConfig } from "@/lib/logEnv";
 
 const LOG_LEVELS: Record<string, number> = {
   debug: 10,
@@ -24,12 +24,13 @@ const LOG_LEVELS: Record<string, number> = {
   fatal: 50,
 };
 
-const currentLevel = LOG_LEVELS[getAppLogLevel("info").toLowerCase() || ""] || LOG_LEVELS.info;
+const appLogConfig = getAppLogConfig();
+const currentLevel = LOG_LEVELS[appLogConfig.level?.toLowerCase() || ""] || LOG_LEVELS.info;
 const isProduction = process.env.NODE_ENV === "production";
 
 // File logging configuration
-const logToFile = getAppLogToFile();
-const logFilePath = resolve(getAppLogFilePath());
+const logToFile = appLogConfig.logToFile;
+const logFilePath = resolve(appLogConfig.logFilePath);
 
 // Ensure log directory exists once at module load
 if (logToFile) {

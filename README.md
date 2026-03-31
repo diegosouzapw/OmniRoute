@@ -42,9 +42,11 @@ _Your universal API proxy — one endpoint, 67+ providers, zero downtime. Now wi
 >   - `APP_LOG_FILE_PATH`
 >   - `APP_LOG_MAX_FILE_SIZE`
 >   - `APP_LOG_RETENTION_DAYS`
+>   - `APP_LOG_MAX_FILES`
 >   - `APP_LOG_LEVEL`
 >   - `APP_LOG_FORMAT`
 >   - `CALL_LOG_RETENTION_DAYS`
+>   - `CALL_LOG_MAX_FILES`
 >
 > For release details and upgrade notes, see the [CHANGELOG](CHANGELOG.md).
 
@@ -415,7 +417,7 @@ When a call fails, the dev doesn't know if it was a rate limit, expired token, w
 - **SQLite Proxy Logs** — Persistent logs that survive server restarts
 - **Translator Playground** — 4 debugging modes: Playground (format translation), Chat Tester (round-trip), Test Bench (batch), Live Monitor (real-time)
 - **Request Telemetry** — p50/p95/p99 latency + X-Request-Id tracing
-- **File-Based Logging with Rotation** — Console interceptor captures everything to JSON log with size-based rotation
+- **File-Based Logging with Rotation** — App logs rotate by size, retention days, and archive count; call log artifacts rotate by retention days and file count
 - **System Info Report** — `npm run system-info` generates `system-info.txt` with your full environment (Node version, OmniRoute version, OS, CLI tools, Docker/PM2 status). Attach it when reporting issues for instant triage.
 
 </details>
@@ -1838,6 +1840,11 @@ opencode
 - Request artifacts are written to `DATA_DIR/call_logs/` as one JSON file per request
 - Enable pipeline capture from Dashboard → Logs → Request Logs if you need detailed per-stage payloads
 - Set `APP_LOG_TO_FILE=true` if you also want application console logs in `logs/application/app.log`
+
+**Console log file is empty**
+
+- Set `APP_LOG_TO_FILE=true` in `.env`
+- Adjust `APP_LOG_MAX_FILE_SIZE`, `APP_LOG_RETENTION_DAYS`, and `APP_LOG_MAX_FILES` as needed
 
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 

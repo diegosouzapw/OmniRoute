@@ -646,9 +646,6 @@ export async function handleChatCore({
     );
   }
 
-  // 1. Log raw request from client
-  reqLogger.logRawRequest(body);
-
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──

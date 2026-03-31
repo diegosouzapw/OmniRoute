@@ -16,12 +16,13 @@
 import pino from "pino";
 import { resolve } from "path";
 import { getLogConfig, initLogRotation } from "@/lib/logRotation";
-import { getAppLogLevel } from "@/lib/logEnv";
+import { getAppLogConfig } from "@/lib/logEnv";
 
 const isDev = process.env.NODE_ENV !== "production";
+const appLogConfig = getAppLogConfig();
 
 const baseConfig: pino.LoggerOptions = {
-  level: getAppLogLevel(isDev ? "debug" : "info"),
+  level: appLogConfig.level || (isDev ? "debug" : "info"),
   base: { service: "omniroute" },
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {

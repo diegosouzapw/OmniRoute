@@ -12,10 +12,11 @@
 
 import { appendFileSync, existsSync, mkdirSync } from "fs";
 import { dirname, resolve } from "path";
-import { getAppLogFilePath, getAppLogToFile } from "./logEnv";
+import { getAppLogConfig } from "./logEnv";
 
-const logToFile = getAppLogToFile();
-const logFilePath = resolve(getAppLogFilePath());
+const appLogConfig = getAppLogConfig();
+const logToFile = appLogConfig.logToFile;
+const logFilePath = resolve(appLogConfig.logFilePath);
 
 declare global {
   var __omnirouteConsoleInterceptorInit: boolean | undefined;

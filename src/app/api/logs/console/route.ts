@@ -12,7 +12,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
-import { getAppLogFilePath } from "@/lib/logEnv";
+import { getAppLogConfig } from "@/lib/logEnv";
 
 const LEVEL_ORDER: Record<string, number> = {
   trace: 5,
@@ -34,7 +34,7 @@ const NUMERIC_LEVEL_MAP: Record<number, string> = {
 };
 
 function getLogFilePath(): string {
-  return getAppLogFilePath();
+  return getAppLogConfig().logFilePath;
 }
 
 function parseLevel(raw: string | number): string {

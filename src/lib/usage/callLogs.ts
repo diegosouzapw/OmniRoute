@@ -21,7 +21,7 @@ import {
   parseStoredPayload,
   serializePayloadForStorage,
 } from "../logPayloads";
-import { getCallLogRetentionDays } from "../logEnv";
+import { getCallLogConfig } from "../logEnv";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -230,6 +230,7 @@ function writeCallArtifact(artifact: CallLogArtifact): string | null {
   try {
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(absPath, JSON.stringify(artifact, null, 2));
+    rotateCallLogs();
     return relPath;
   } catch (error) {
     console.error("[callLogs] Failed to write request artifact:", (error as Error).message);
@@ -377,13 +378,77 @@ export async function saveCallLog(entry: any) {
   }
 }
 
+function cleanupEmptyCallLogDirs() {
+  if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+
+  try {
+    for (const entry of fs.readdirSync(CALL_LOGS_DIR)) {
+      const entryPath = path.join(CALL_LOGS_DIR, entry);
+      const stat = fs.statSync(entryPath);
+      if (!stat.isDirectory()) continue;
+      if (fs.readdirSync(entryPath).length === 0) {
+        fs.rmSync(entryPath, { recursive: true, force: true });
+      }
+    }
+  } catch {
+    // Best effort only.
+  }
+}
+
+export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxFiles?: number) {
+  if (!baseDir || !fs.existsSync(baseDir)) return;
+
+  const limit = maxFiles ?? getCallLogConfig().maxFiles;
+  if (!Number.isInteger(limit) || limit < 1) return;
+
+  try {
+    const files = fs
+      .readdirSync(baseDir)
+      .flatMap((entry) => {
+        const entryPath = path.join(baseDir, entry);
+        try {
+          const stat = fs.statSync(entryPath);
+          if (!stat.isDirectory()) return [];
+
+          return fs
+            .readdirSync(entryPath)
+            .filter((file) => file.endsWith(".json"))
+            .map((file) => {
+              const filePath = path.join(entryPath, file);
+              const fileStat = fs.statSync(filePath);
+              return { filePath, mtimeMs: fileStat.mtimeMs };
+            });
+        } catch {
+          return [];
+        }
+      })
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+    for (const file of files.slice(limit)) {
+      try {
+        fs.rmSync(file.filePath, { force: true });
+      } catch {
+        // Best effort only.
+      }
+    }
+
+    cleanupEmptyCallLogDirs();
+  } catch (err: any) {
+    console.error("[callLogs] Failed to prune overflow files:", err.message);
+  }
+}
+
+/**
+ * Rotate old call log directories and prune excess files.
+ */
 export function rotateCallLogs() {
   if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
 
   try {
     const entries = fs.readdirSync(CALL_LOGS_DIR);
     const now = Date.now();
-    const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
+    const { retentionDays, maxFiles } = getCallLogConfig();
+    const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
     for (const entry of entries) {
       const entryPath = path.join(CALL_LOGS_DIR, entry);
@@ -392,8 +457,10 @@ export function rotateCallLogs() {
         fs.rmSync(entryPath, { recursive: true, force: true });
       }
     }
-  } catch (error) {
-    console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
+
+    cleanupOverflowCallLogFiles(CALL_LOGS_DIR, maxFiles);
+  } catch (err: any) {
+    console.error("[callLogs] Failed to rotate logs:", err.message);
   }
 }
 

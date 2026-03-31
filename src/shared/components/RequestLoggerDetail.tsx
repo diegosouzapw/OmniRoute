@@ -94,7 +94,6 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     ? [
         ["clientRawRequest", "Client Raw Request"],
         ["clientRequest", "Client Request"],
-        ["sourceRequest", "Source Request"],
         ["openaiRequest", "OpenAI Request"],
         ["providerRequest", "Provider Request"],
         ["providerResponse", "Provider Response"],

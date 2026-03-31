@@ -10,7 +10,7 @@
  */
 
 import { getDbInstance } from "../db/core";
-import { getAppLogRetentionDays, getCallLogRetentionDays } from "../logEnv";
+import { getAppLogConfig, getCallLogConfig } from "../logEnv";
 
 /** @returns {import("better-sqlite3").Database | null} */
 function getDb() {
@@ -215,8 +215,8 @@ export function isNoLog(apiKeyId: string) {
  */
 export function getRetentionDays() {
   return {
-    app: getAppLogRetentionDays(),
-    call: getCallLogRetentionDays(),
+    app: getAppLogConfig().retentionDays,
+    call: getCallLogConfig().retentionDays,
   };
 }
 
@@ -237,8 +237,8 @@ export function getRetentionDays() {
  */
 export function cleanupExpiredLogs() {
   const db = getDb();
-  const appRetentionDays = getAppLogRetentionDays();
-  const callRetentionDays = getCallLogRetentionDays();
+  const appRetentionDays = getAppLogConfig().retentionDays;
+  const callRetentionDays = getCallLogConfig().retentionDays;
 
   if (!db) {
     return {
