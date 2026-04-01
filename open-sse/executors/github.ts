@@ -1,6 +1,8 @@
-import { BaseExecutor, ExecuteInput } from "./base.ts";
+import { BaseExecutor, ExecuteInput, ProviderCredentials } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
+
+type JsonRecord = Record<string, unknown>;
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -19,7 +21,10 @@ export class GithubExecutor extends BaseExecutor {
     return this.config.baseUrl;
   }
 
-  injectResponseFormat(messages: any[], responseFormat: any) {
+  injectResponseFormat(
+    messages: JsonRecord[],
+    responseFormat: JsonRecord | undefined | null
+  ): JsonRecord[] {
     if (!responseFormat) return messages;
 
     let formatInstruction = "";
@@ -27,8 +32,9 @@ export class GithubExecutor extends BaseExecutor {
       formatInstruction =
         "Respond only with valid JSON. Do not include any text before or after the JSON object.";
     } else if (responseFormat.type === "json_schema" && responseFormat.json_schema) {
+      const jsonSchema = responseFormat.json_schema as JsonRecord;
       formatInstruction = `Respond only with valid JSON matching this schema:\n${JSON.stringify(
-        responseFormat.json_schema.schema,
+        jsonSchema.schema,
         null,
         2
       )}\nDo not include any text before or after the JSON.`;
@@ -36,9 +42,9 @@ export class GithubExecutor extends BaseExecutor {
 
     if (!formatInstruction) return messages;
 
-    const systemIdx = messages.findIndex((m: any) => m.role === "system");
+    const systemIdx = messages.findIndex((m) => m.role === "system");
     if (systemIdx >= 0) {
-      return messages.map((m: any, i: number) =>
+      return messages.map((m, i) =>
         i === systemIdx ? { ...m, content: `${m.content}\n\n${formatInstruction}` } : m
       );
     }
@@ -46,12 +52,20 @@ export class GithubExecutor extends BaseExecutor {
     return [{ role: "system", content: formatInstruction }, ...messages];
   }
 
-  transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
-    const modifiedBody = JSON.parse(JSON.stringify(body));
-    if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
+  transformRequest(
+    model: string,
+    body: unknown,
+    stream: boolean,
+    credentials: ProviderCredentials
+  ): unknown {
+    void stream;
+    void credentials;
+    const modifiedBody = JSON.parse(JSON.stringify(body)) as JsonRecord;
+    const modelLower = model.toLowerCase();
+    if (modifiedBody.response_format && modelLower.includes("claude")) {
       modifiedBody.messages = this.injectResponseFormat(
-        modifiedBody.messages,
-        modifiedBody.response_format
+        modifiedBody.messages as JsonRecord[],
+        modifiedBody.response_format as JsonRecord
       );
       delete modifiedBody.response_format;
     }
