@@ -34,6 +34,10 @@ export class DefaultExecutor extends BaseExecutor {
         return `${this.config.baseUrl}?beta=true`;
       case "gemini":
         return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
+      case "qwen": {
+        const resourceUrl = credentials?.providerSpecificData?.resourceUrl;
+        return `https://${resourceUrl || "portal.qwen.ai"}/v1/chat/completions`;
+      }
       default:
         return this.config.baseUrl;
     }

@@ -324,9 +324,12 @@ export async function refreshQwenToken(refreshToken, log) {
       });
 
       return {
-        accessToken: tokens.id_token || tokens.access_token,
+        accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token || refreshToken,
         expiresIn: tokens.expires_in,
+        providerSpecificData: tokens.resource_url
+          ? { resourceUrl: tokens.resource_url }
+          : undefined,
       };
     } else {
       const errorText = await response.text().catch(() => "");
