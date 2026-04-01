@@ -407,7 +407,8 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
     return openaiResponse; // If it doesn't look like OpenAI, return as-is
   }
 
-  const choice = isChoicesArray ? openaiResponse.choices[0] : null;
+  const choices = openaiResponse.choices as unknown[];
+  const choice = isChoicesArray ? choices[0] : null;
   const choiceObj = choice ? toRecord(choice) : {};
   const messageObj = choiceObj.message ? toRecord(choiceObj.message) : {};
 
