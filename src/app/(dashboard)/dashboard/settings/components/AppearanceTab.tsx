@@ -254,6 +254,7 @@ export default function AppearanceTab() {
                         checked={!hiddenSidebarSet.has(item.id)}
                         onChange={() => toggleSidebarItem(item.id)}
                         disabled={loading}
+                        data-testid={`sidebar-toggle-${item.id}`}
                       />
                     </div>
                   ))}

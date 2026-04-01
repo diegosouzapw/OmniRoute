@@ -11,6 +11,7 @@ interface ToggleProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   title?: string;
+  "data-testid"?: string;
 }
 
 export default function Toggle({
@@ -21,6 +22,7 @@ export default function Toggle({
   disabled = false,
   size = "md",
   className,
+  "data-testid": dataTestId,
 }: ToggleProps) {
   const sizes = {
     sm: {
@@ -60,6 +62,7 @@ export default function Toggle({
         aria-checked={checked}
         aria-label={!label ? description || "Toggle" : undefined}
         disabled={disabled}
+        data-testid={dataTestId}
         onClick={handleClick}
         className={cn(
           "relative inline-flex shrink-0 cursor-pointer rounded-full",

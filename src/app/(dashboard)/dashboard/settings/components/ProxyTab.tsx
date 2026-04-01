@@ -117,6 +117,7 @@ export default function ProxyTab() {
               checked={debugMode}
               onChange={() => updateDebugMode(!debugMode)}
               disabled={loading}
+              data-testid="debug-mode-toggle"
             />
           </div>
         </Card>

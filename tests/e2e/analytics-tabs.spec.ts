@@ -184,7 +184,7 @@ test.describe("Analytics Tabs UI", () => {
     const mainContent = page.locator('main, [class*="dashboard"], div[class*="container"]').first();
     await expect(mainContent).toBeVisible();
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
     await expect(timeRangeSelector).toBeVisible();
 
     const metricElements = page
@@ -220,7 +220,7 @@ test.describe("Analytics Tabs UI", () => {
       }
     });
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
     const sevenDayButton = timeRangeSelector
       .locator('button[role="tab"]')
       .filter({ hasText: "7d" })
@@ -289,7 +289,7 @@ test.describe("Analytics Tabs UI", () => {
     await comboHealthTab.click();
     await page.waitForTimeout(300);
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
     await expect(timeRangeSelector).toBeVisible();
 
     await utilizationTab.click();
