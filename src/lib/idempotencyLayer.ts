@@ -10,6 +10,8 @@
  * @module lib/idempotencyLayer
  */
 
+import { getSettings } from "@/lib/localDb";
+
 const DEFAULT_WINDOW_MS = 5000;
 
 /** @type {Map<string, { response: object, status: number, expiresAt: number }>} */
@@ -79,10 +81,19 @@ export function saveIdempotency(key, response, status, windowMs = DEFAULT_WINDOW
 /**
  * Get current idempotency store stats.
  */
-export function getIdempotencyStats() {
+export async function getIdempotencyStats() {
+  let windowMs = DEFAULT_WINDOW_MS;
+  try {
+    const settings = await getSettings();
+    if (typeof settings.idempotencyWindowMs === "number" && settings.idempotencyWindowMs > 0) {
+      windowMs = settings.idempotencyWindowMs;
+    }
+  } catch {
+    // Fallback to default if settings unavailable
+  }
   return {
     activeKeys: idempotencyStore.size,
-    windowMs: DEFAULT_WINDOW_MS,
+    windowMs,
   };
 }
 

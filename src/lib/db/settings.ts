@@ -47,6 +47,7 @@ export async function getSettings() {
     requireLogin: true,
     hiddenSidebarItems: [],
     alwaysPreserveClientCache: "auto",
+    idempotencyWindowMs: 5000,
   };
   for (const row of rows) {
     const record = toRecord(row);
