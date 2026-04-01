@@ -75,7 +75,7 @@ Starší ID jsou stále přijímána pro kompatibilitu: `copilot`, `kimi-coding`
 
 ## Krok 2 — Nainstalujte nástroje CLI
 
-Všechny nástroje založené na npm vyžadují Node.js 18+:
+Všechny nástroje založené na npm vyžadují Node.js 20+:
 
 ```bash
 # Claude Code (Anthropic)

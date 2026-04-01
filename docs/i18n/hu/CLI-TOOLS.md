@@ -62,7 +62,7 @@ Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
 
 ## Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 18+:
+All npm-based tools require Node.js 20+:
 
 ```bash
 # Claude Code (Anthropic)

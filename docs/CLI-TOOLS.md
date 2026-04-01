@@ -32,31 +32,31 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
 The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
 Current list (v3.0.0-rc.16):
 
-| Tool             | ID            | Command      | Setup Mode | Install Method |
-| ---------------- | ------------- | ------------ | ---------- | -------------- |
-| **Claude Code**  | `claude`      | `claude`     | env        | npm            |
-| **OpenAI Codex** | `codex`       | `codex`      | custom     | npm            |
-| **Factory Droid**| `droid`       | `droid`      | custom     | bundled/CLI    |
-| **OpenClaw**     | `openclaw`    | `openclaw`   | custom     | bundled/CLI    |
-| **Cursor**       | `cursor`      | app          | guide      | desktop app    |
-| **Cline**        | `cline`       | `cline`      | custom     | npm            |
-| **Kilo Code**    | `kilo`        | `kilocode`   | custom     | npm            |
-| **Continue**     | `continue`    | extension    | guide      | VS Code        |
-| **Antigravity**  | `antigravity` | internal     | mitm       | OmniRoute      |
-| **GitHub Copilot**| `copilot`    | extension    | custom     | VS Code        |
-| **OpenCode**     | `opencode`    | `opencode`   | guide      | npm            |
-| **Kiro AI**      | `kiro`        | app/cli      | mitm       | desktop/CLI    |
+| Tool               | ID            | Command    | Setup Mode | Install Method |
+| ------------------ | ------------- | ---------- | ---------- | -------------- |
+| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
+| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
+| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
+| **Cline**          | `cline`       | `cline`    | custom     | npm            |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
+| **Continue**       | `continue`    | extension  | guide      | VS Code        |
+| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
+| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
 
 ### CLI fingerprint sync (Agents + Settings)
 
 `/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
 This keeps provider IDs aligned with CLI cards and legacy IDs.
 
-| CLI ID | Fingerprint Provider ID |
-| ------ | ----------------------- |
-| `kilo` | `kilocode`              |
-| `copilot` | `github`             |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID |
+| CLI ID                                                                                               | Fingerprint Provider ID |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
 
 Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
@@ -75,7 +75,7 @@ Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
 ## Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 18+:
+All npm-based tools require Node.js 20+:
 
 ```bash
 # Claude Code (Anthropic)

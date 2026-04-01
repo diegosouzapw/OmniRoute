@@ -1703,7 +1703,7 @@ Chcete-li získat přístup k přihlašovacím údajům bez vlastní konfigurace
 <summary><b>Kliknutím rozbalíte podrobnosti o technologickém stacku</b></summary>
 </details>
 
-- **Runtime** : Node.js 18–22 LTS (⚠️ Node.js 24+ **není podporován** — nativní binární soubory `better-sqlite3` jsou nekompatibilní)
+- **Runtime**: Node.js 20–24 LTS
 - **Jazyk** : TypeScript 5.9 — **100% TypeScript** napříč `src/` a `open-sse/` ( `any` v základních modulech od verze 2.0)
 - **Framework** : Next.js 16 + React 19 + Tailwind CSS 4
 - **Databáze** : LowDB (JSON) + SQLite (stav domény + protokoly proxy + audit MCP + rozhodnutí o směrování)
