@@ -106,7 +106,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("displays all 5 analytics tabs", async ({ page }) => {
     await page.goto("/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
@@ -134,7 +134,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("Provider Utilization tab shows TimeRangeSelector and chart", async ({ page }) => {
     await page.goto("/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
@@ -166,7 +166,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("Combo Health tab displays health cards and metrics", async ({ page }) => {
     await page.goto("/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
@@ -184,7 +184,7 @@ test.describe("Analytics Tabs UI", () => {
     const mainContent = page.locator('main, [class*="dashboard"], div[class*="container"]').first();
     await expect(mainContent).toBeVisible();
 
-    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
+    const timeRangeSelector = page.getByLabel("Select time range");
     await expect(timeRangeSelector).toBeVisible();
 
     const metricElements = page
@@ -195,7 +195,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("time range change triggers network request", async ({ page }) => {
     await page.goto("/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
@@ -220,7 +220,7 @@ test.describe("Analytics Tabs UI", () => {
       }
     });
 
-    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
+    const timeRangeSelector = page.getByLabel("Select time range");
     const sevenDayButton = timeRangeSelector
       .locator('button[role="tab"]')
       .filter({ hasText: "7d" })
@@ -252,7 +252,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("tab switching persists state correctly", async ({ page }) => {
     await page.goto("/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
@@ -289,7 +289,7 @@ test.describe("Analytics Tabs UI", () => {
     await comboHealthTab.click();
     await page.waitForTimeout(300);
 
-    const timeRangeSelector = page.locator('[aria-label="Select time range"]');
+    const timeRangeSelector = page.getByLabel("Select time range");
     await expect(timeRangeSelector).toBeVisible();
 
     await utilizationTab.click();
