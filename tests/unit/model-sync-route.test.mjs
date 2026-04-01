@@ -29,14 +29,14 @@ test("model sync route skips success log when fetched models do not change store
   await resetStorage();
 
   const connection = await providersDb.createProviderConnection({
-    provider: "openai",
+    provider: "openrouter",
     authType: "apikey",
     name: "MAIN",
-    displayName: "channel-east",
+    displayName: "OpenRouter Main",
     apiKey: "test-key",
   });
 
-  await modelsDb.replaceCustomModels("openai", [
+  await modelsDb.replaceCustomModels("openrouter", [
     {
       id: "custom-model-1",
       name: "Custom Model 1",
@@ -73,14 +73,14 @@ test("model sync route skips success log when fetched models do not change store
   }
 });
 
-test("model sync route logs changed model syncs against the current channel label", async () => {
+test("model sync route stores the real provider while keeping the account label", async () => {
   await resetStorage();
 
   const connection = await providersDb.createProviderConnection({
-    provider: "openai",
+    provider: "openrouter",
     authType: "apikey",
     name: "MAIN",
-    displayName: "channel-west",
+    displayName: "OpenRouter Main",
     apiKey: "test-key",
   });
 
@@ -105,10 +105,12 @@ test("model sync route logs changed model syncs against the current channel labe
     const body = await response.json();
     assert.equal(body.logged, true);
     assert.deepEqual(body.modelChanges, { added: 1, removed: 0, updated: 0, total: 1 });
+    assert.equal(body.provider, "openrouter");
 
     const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
     assert.equal(logs.length, 1);
-    assert.equal(logs[0].provider, "channel-west");
+    assert.equal(logs[0].provider, "openrouter");
+    assert.equal(logs[0].account, "MAIN");
     assert.equal(logs[0].model, "model-sync");
   } finally {
     globalThis.fetch = originalFetch;

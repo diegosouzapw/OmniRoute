@@ -123,6 +123,8 @@ function getModelSyncChannelLabel(connection: unknown) {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const start = Date.now();
   const { id } = await params;
+  let logProvider = "unknown";
+  let channelLabel: string | null = null;
 
   try {
     if (!(await isAuthenticated(request)) && !isModelSyncInternalRequest(request)) {
@@ -137,7 +139,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    const providerLabel = getModelSyncChannelLabel(connection);
+    logProvider = toNonEmptyString(connection.provider) || "unknown";
+    channelLabel = getModelSyncChannelLabel(connection);
 
     // Fetch models from the existing /api/providers/[id]/models endpoint
     const origin = new URL(request.url).origin;
@@ -160,7 +163,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         path: `/api/providers/${id}/models`,
         status: modelsRes.status,
         model: "model-sync",
-        provider: providerLabel,
+        provider: logProvider,
         sourceFormat: "-",
         connectionId: id,
         duration,
@@ -177,7 +180,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const fetchedModels = modelsData.models || [];
 
     // Filter out models already in the built-in registry
-    const registryIds = new Set(getModelsByProviderId(connection.provider).map((m: any) => m.id));
+    const registryIds = new Set(getModelsByProviderId(logProvider).map((m: any) => m.id));
 
     // Replace the full model list
     const models = fetchedModels
@@ -188,14 +191,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }))
       .filter((m: any) => m.id && !registryIds.has(m.id));
 
-    const previousModels = await getCustomModels(connection.provider);
-    const replaced = await replaceCustomModels(connection.provider, models);
+    const previousModels = await getCustomModels(logProvider);
+    const replaced = await replaceCustomModels(logProvider, models);
     const modelChanges = summarizeModelChanges(previousModels, replaced);
 
     let syncedAliases = 0;
-    if (usesManagedAvailableModels(connection.provider)) {
+    if (usesManagedAvailableModels(logProvider)) {
       const aliasSync = await syncManagedAvailableModelAliases(
-        connection.provider,
+        logProvider,
         models.map((model: any) => model.id)
       );
       syncedAliases = aliasSync.assignedAliases.length;
@@ -207,7 +210,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         path: `/api/providers/${id}/models`,
         status: 200,
         model: "model-sync",
-        provider: providerLabel,
+        provider: logProvider,
         sourceFormat: "-",
         connectionId: id,
         duration: Date.now() - start,
@@ -215,8 +218,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         responseBody: {
           syncedModels: models.length,
           syncedAliases,
-          provider: connection.provider,
-          channel: providerLabel,
+          provider: logProvider,
+          channel: channelLabel,
           modelChanges,
         },
       });
@@ -224,7 +227,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json({
       ok: true,
-      provider: connection.provider,
+      provider: logProvider,
       syncedModels: replaced.length,
       syncedAliases,
       modelChanges,
@@ -238,12 +241,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       path: `/api/providers/${id}/sync-models`,
       status: 500,
       model: "model-sync",
-      provider: "unknown",
+      provider: logProvider,
       sourceFormat: "-",
       connectionId: id,
       duration: Date.now() - start,
       error: error.message || "Sync failed",
       requestType: "model-sync",
+      ...(channelLabel
+        ? {
+            responseBody: {
+              channel: channelLabel,
+            },
+          }
+        : {}),
     }).catch(() => {});
 
     return NextResponse.json({ error: error.message || "Failed to sync models" }, { status: 500 });
