@@ -7,6 +7,7 @@ import {
   updateProviderConnection,
   updateProviderNode,
 } from "@/models";
+import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import { updateProviderNodeSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -14,6 +15,20 @@ type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function sanitizeAnthropicBaseUrl(baseUrl: string) {
+  return (baseUrl || "")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/messages(?:\?[^#]*)?$/i, "");
+}
+
+function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
+  return (baseUrl || "")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
 }
 
 // PUT /api/provider-nodes/[id] - Update provider node
@@ -58,8 +73,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     // Sanitize Base URL for Anthropic Compatible
     if (node.type === "anthropic-compatible") {
-      sanitizedBaseUrl = sanitizedBaseUrl.replace(/\/$/, "");
-      sanitizedBaseUrl = sanitizedBaseUrl.replace(/\/messages(?:\?[^#]*)?$/i, "");
+      sanitizedBaseUrl = isClaudeCodeCompatibleProvider(id)
+        ? sanitizeClaudeCodeCompatibleBaseUrl(sanitizedBaseUrl)
+        : sanitizeAnthropicBaseUrl(sanitizedBaseUrl);
     }
 
     const updates: Record<string, unknown> = {

@@ -14,6 +14,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
+  joinClaudeCodeCompatibleUrl,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
 const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
@@ -159,6 +160,30 @@ test("buildClaudeCodeCompatibleRequest omits auto tool_choice while preserving t
   assert.equal(payload.tool_choice, undefined);
 });
 
+test("joinClaudeCodeCompatibleUrl preserves a single /v1 segment for CC paths", () => {
+  assert.equal(
+    joinClaudeCodeCompatibleUrl(
+      "https://proxy.example.com",
+      CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH
+    ),
+    "https://proxy.example.com/v1/messages?beta=true"
+  );
+  assert.equal(
+    joinClaudeCodeCompatibleUrl(
+      "https://proxy.example.com/v1",
+      CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH
+    ),
+    "https://proxy.example.com/v1/messages?beta=true"
+  );
+  assert.equal(
+    joinClaudeCodeCompatibleUrl(
+      "https://proxy.example.com/v1/messages?beta=true",
+      CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH
+    ),
+    "https://proxy.example.com/v1/messages?beta=true"
+  );
+});
+
 test("DefaultExecutor uses CC-compatible path and headers", () => {
   const executor = new DefaultExecutor("anthropic-compatible-cc-test");
   const credentials = {
@@ -172,7 +197,7 @@ test("DefaultExecutor uses CC-compatible path and headers", () => {
 
   assert.equal(
     executor.buildUrl("claude-sonnet-4-6", true, 0, credentials),
-    `https://proxy.example.com/v1${CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH}`
+    "https://proxy.example.com/v1/messages?beta=true"
   );
 
   const headers = executor.buildHeaders(credentials, true);
@@ -213,10 +238,7 @@ test("validateProviderApiKey uses CC skeleton request after /models fallback", a
   assert.match(result.warning, /reached upstream/i);
   assert.deepEqual(
     calls.map((call) => `${call.method} ${call.url}`),
-    [
-      "GET https://proxy.example.com/v1/models",
-      "POST https://proxy.example.com/v1/messages?beta=true",
-    ]
+    ["GET https://proxy.example.com/models", "POST https://proxy.example.com/v1/messages?beta=true"]
   );
   assert.equal(calls[1].body.model, "claude-sonnet-4-6");
   assert.equal(calls[1].body.messages[0].role, "user");
@@ -265,7 +287,7 @@ test("provider-nodes create route creates CC node with dedicated prefix when ena
   assert.equal(response.status, 201);
   const data = await response.json();
   assert.match(data.node.id, /^anthropic-compatible-cc-/);
-  assert.equal(data.node.baseUrl, "https://proxy.example.com/v1");
+  assert.equal(data.node.baseUrl, "https://proxy.example.com");
   assert.equal(data.node.chatPath, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
   assert.equal(data.node.modelsPath, CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH);
 });

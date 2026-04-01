@@ -470,7 +470,7 @@ interface EditCompatibleNodeModalProps {
 
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
-const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/messages?beta=true";
+const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
@@ -5104,7 +5104,11 @@ function EditCompatibleNodeModal({
         apiType: node.apiType || "chat",
         baseUrl:
           node.baseUrl ||
-          (isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"),
+          (isCcCompatible
+            ? "https://api.anthropic.com"
+            : isAnthropic
+              ? "https://api.anthropic.com/v1"
+              : "https://api.openai.com/v1"),
         chatPath: node.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
         modelsPath: node.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
       });

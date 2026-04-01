@@ -29,7 +29,7 @@ import { useTranslations } from "next-intl";
 
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
-const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/messages?beta=true";
+const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
@@ -1295,7 +1295,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
-    baseUrl: "https://api.anthropic.com/v1",
+    baseUrl: "https://api.anthropic.com",
     chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
     modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
   });
@@ -1335,7 +1335,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
         setFormData({
           name: "",
           prefix: "",
-          baseUrl: "https://api.anthropic.com/v1",
+          baseUrl: "https://api.anthropic.com",
           chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
           modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
         });

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
-export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/messages?beta=true";
+export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
@@ -45,12 +45,37 @@ export function stripAnthropicMessagesSuffix(baseUrl: string | null | undefined)
   return normalized.replace(/\/messages(?:\?[^#]*)?$/i, "");
 }
 
-export function joinBaseUrlAndPath(baseUrl: string, path: string): string {
-  const normalizedBase = stripAnthropicMessagesSuffix(baseUrl).replace(/\/$/, "");
+export function stripClaudeCodeCompatibleEndpointSuffix(
+  baseUrl: string | null | undefined
+): string {
+  const normalized = String(baseUrl || "")
+    .trim()
+    .replace(/\/$/, "");
+  if (!normalized) return "";
+  return normalized.replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
+}
+
+function joinNormalizedBaseUrlAndPath(baseUrl: string, path: string): string {
+  const normalizedBase = String(baseUrl || "").replace(/\/$/, "");
   const normalizedPath = String(path || "").startsWith("/")
     ? String(path)
     : `/${String(path || "")}`;
+  const versionMatch = normalizedBase.match(/(\/v\d+)$/i);
+  if (
+    versionMatch &&
+    normalizedPath.toLowerCase().startsWith(`${versionMatch[1].toLowerCase()}/`)
+  ) {
+    return `${normalizedBase}${normalizedPath.slice(versionMatch[1].length)}`;
+  }
   return `${normalizedBase}${normalizedPath}`;
+}
+
+export function joinBaseUrlAndPath(baseUrl: string, path: string): string {
+  return joinNormalizedBaseUrlAndPath(stripAnthropicMessagesSuffix(baseUrl), path);
+}
+
+export function joinClaudeCodeCompatibleUrl(baseUrl: string, path: string): string {
+  return joinNormalizedBaseUrlAndPath(stripClaudeCodeCompatibleEndpointSuffix(baseUrl), path);
 }
 
 export function buildClaudeCodeCompatibleHeaders(
@@ -340,14 +365,12 @@ function convertClaudeCodeCompatibleTool(tool: unknown) {
   const rawTool = readRecord(tool);
   if (!rawTool) return null;
 
-  const toolData =
-    rawTool.type === "function" ? readRecord(rawTool.function) || rawTool : rawTool;
+  const toolData = rawTool.type === "function" ? readRecord(rawTool.function) || rawTool : rawTool;
 
   const name = toNonEmptyString(toolData.name);
   if (!name) return null;
 
-  const rawSchema =
-    readRecord(toolData.parameters) ||
+  const rawSchema = readRecord(toolData.parameters) ||
     readRecord(toolData.input_schema) || { type: "object", properties: {}, required: [] };
   const inputSchema =
     rawSchema.type === "object" && !readRecord(rawSchema.properties)

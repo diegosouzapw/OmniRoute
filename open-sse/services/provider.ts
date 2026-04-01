@@ -3,8 +3,7 @@ import { getRegistryEntry } from "../config/providerRegistry.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
-  joinBaseUrlAndPath,
-  stripAnthropicMessagesSuffix,
+  joinClaudeCodeCompatibleUrl,
 } from "./claudeCodeCompatible.ts";
 
 const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
@@ -205,7 +204,7 @@ export function buildProviderUrl(
   if (isAnthropicCompatible(provider)) {
     const baseUrl = options?.baseUrl || ANTHROPIC_COMPATIBLE_DEFAULTS.baseUrl;
     if (isClaudeCodeCompatible(provider)) {
-      return joinBaseUrlAndPath(baseUrl, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
+      return joinClaudeCodeCompatibleUrl(baseUrl, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
     }
     return buildAnthropicCompatibleUrl(baseUrl);
   }

@@ -11,6 +11,13 @@ function sanitizeAnthropicBaseUrl(baseUrl: string) {
     .replace(/\/messages(?:\?[^#]*)?$/i, "");
 }
 
+function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
+  return (baseUrl || "")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
+}
+
 // POST /api/provider-nodes/validate - Validate API key against base URL
 export async function POST(request) {
   let rawBody;
@@ -48,7 +55,7 @@ export async function POST(request) {
         const result = await validateClaudeCodeCompatibleProvider({
           apiKey,
           providerSpecificData: {
-            baseUrl: sanitizeAnthropicBaseUrl(baseUrl),
+            baseUrl: sanitizeClaudeCodeCompatibleBaseUrl(baseUrl),
             chatPath: chatPath || undefined,
             modelsPath: modelsPath || undefined,
           },

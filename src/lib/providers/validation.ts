@@ -4,7 +4,9 @@ import {
   buildClaudeCodeCompatibleValidationPayload,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
+  joinClaudeCodeCompatibleUrl,
   joinBaseUrlAndPath,
+  stripClaudeCodeCompatibleEndpointSuffix,
   stripAnthropicMessagesSuffix,
 } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
 import {
@@ -22,6 +24,10 @@ function normalizeBaseUrl(baseUrl: string) {
 
 function normalizeAnthropicBaseUrl(baseUrl: string) {
   return stripAnthropicMessagesSuffix(baseUrl || "");
+}
+
+function normalizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
+  return stripClaudeCodeCompatibleEndpointSuffix(baseUrl || "");
 }
 
 function addModelsSuffix(baseUrl: string) {
@@ -576,7 +582,7 @@ export async function validateClaudeCodeCompatibleProvider({
   apiKey,
   providerSpecificData = {},
 }: any) {
-  const baseUrl = normalizeAnthropicBaseUrl(providerSpecificData.baseUrl);
+  const baseUrl = normalizeClaudeCodeCompatibleBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for CC Compatible provider" };
   }
@@ -586,7 +592,7 @@ export async function validateClaudeCodeCompatibleProvider({
   const defaultHeaders = buildClaudeCodeCompatibleHeaders(apiKey, false);
 
   try {
-    const modelsRes = await fetch(joinBaseUrlAndPath(baseUrl, modelsPath), {
+    const modelsRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, modelsPath), {
       method: "GET",
       headers: defaultHeaders,
     });
@@ -608,7 +614,7 @@ export async function validateClaudeCodeCompatibleProvider({
   const sessionId = JSON.parse(payload.metadata.user_id).session_id;
 
   try {
-    const messagesRes = await fetch(joinBaseUrlAndPath(baseUrl, chatPath), {
+    const messagesRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
       method: "POST",
       headers: buildClaudeCodeCompatibleHeaders(apiKey, false, sessionId),
       body: JSON.stringify(payload),
