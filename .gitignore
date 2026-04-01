@@ -133,6 +133,9 @@ vscode-extension/
 *.sqlite-wal
 *.sqlite-journal
 
+# Session files
+session-ses_*
+
 # Compiled npm-package build artifact (not source, should not be in git)
 /app
 
