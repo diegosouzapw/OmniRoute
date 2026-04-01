@@ -53,7 +53,7 @@ body:
     attributes:
       label: Node.js Version
       description: "Run `node --version`. Skip if using Docker."
-      placeholder: "e.g. 22.12.0"
+      placeholder: "e.g. 24.0.0"
     validations:
       required: false
 

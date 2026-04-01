@@ -2,9 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
-const providerLimitUtils = await import(
-  "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx"
-);
+const providerLimitUtils =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 
 test("github copilot business seats infer business plan and hide unlimited buckets", async () => {
   const originalFetch = globalThis.fetch;
@@ -13,7 +12,7 @@ test("github copilot business seats infer business plan and hide unlimited bucke
     new Response(
       JSON.stringify({
         access_type_sku: "copilot_business_seat",
-        quota_reset_date: "2026-04-01T00:00:00Z",
+        quota_reset_date: "2027-04-01T00:00:00Z",
         quota_snapshots: {
           chat: { unlimited: true },
           completions: { unlimited: true },
@@ -61,7 +60,7 @@ test("github copilot individual paid plans no longer normalize as free", async (
     new Response(
       JSON.stringify({
         copilot_plan: "individual",
-        quota_reset_date: "2026-04-01T00:00:00Z",
+        quota_reset_date: "2027-04-01T00:00:00Z",
         quota_snapshots: {
           premium_interactions: {
             entitlement: 300,

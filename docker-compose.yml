@@ -98,7 +98,7 @@ services:
       # Adjust paths below to match YOUR host system.
       - ~/.local/bin:/host-local/bin:ro
       # Node global binaries (adjust node version path)
-      # - ~/.nvm/versions/node/v22.16.0/bin:/host-node/bin:ro
+      # - ~/.nvm/versions/node/v24.0.0/bin:/host-node/bin:ro
       # ── Host config mounts (read-write) ──
       - ~/.codex:/host-home/.codex:rw
       - ~/.claude:/host-home/.claude:rw

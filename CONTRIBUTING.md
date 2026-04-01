@@ -8,7 +8,7 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ### Prerequisites
 
-- **Node.js** 20+ (recommended: 22 LTS)
+- **Node.js** 20+ (recommended: 24 LTS)
 - **npm** 10+
 - **Git**
 

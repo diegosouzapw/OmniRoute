@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### 🛠️ Maintenance
+
+- **Node.js 24 Support:** Migrated runtime target from Node.js 18–22 to Node.js 20–24 LTS. Updated Dockerfile base images to `node:24-bookworm-slim`, CI matrix to test against Node 20/22/24, and `engines` field to `>=20.0.0`. Dropped Node.js 18 (EOL April 2025).
+- **CI/CD Node Version Bump:** Pinned lint, security, coverage, E2E, integration, and security test jobs to Node.js 24. Added Node 24 to build and unit test matrices.
+
+### 🐛 Bug Fixes
+
+- **Copilot Usage Test:** Fixed hardcoded `quota_reset_date` in `copilot-usage.test.mjs` that caused `staleAfterReset` to override `remainingPercentage` once the date passed.
+
 ## [3.4.1] - 2026-03-31
 
 > [!WARNING]
