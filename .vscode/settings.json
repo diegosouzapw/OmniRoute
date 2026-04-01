@@ -16,5 +16,6 @@
     "javascript:S3776": {
       "level": "off"
     }
-  }
+  },
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }
