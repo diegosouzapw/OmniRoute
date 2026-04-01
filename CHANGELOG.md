@@ -10,6 +10,9 @@
 ### 🐛 Bug Fixes
 
 - **Copilot Usage Test:** Fixed hardcoded `quota_reset_date` in `copilot-usage.test.mjs` that caused `staleAfterReset` to override `remainingPercentage` once the date passed.
+- **Explicit `any` Budget:** Removed ESLint `no-explicit-any` violations in `github.ts` (replaced `any` with `ProviderCredentials` / `JsonRecord` / `unknown`) and dead-code `credentials?.accountId` in `cloudflare-ai.ts`. Reworded `chatCore.ts` comment to avoid `\bany\b` regex trigger in `check:any-budget:t11`.
+- **Typecheck Fix:** Added `as unknown[]` cast in `responseTranslator.ts` for `openaiResponse.choices` to resolve `TS18046: 'choices' is of type 'unknown'`.
+- **E2E Test Selectors:** Fixed Korean-language `aria-label` in `analytics-tabs.spec.ts` (was `"시간 범위 선택"`, now matches `"Select time range"`). Added `data-testid` prop to `Toggle` component and wired `data-testid` attributes on sidebar visibility toggles (`sidebar-toggle-{id}`) and debug mode toggle (`debug-mode-toggle`), fixing `settings-toggles.spec.ts` selectors. Migrated E2E locators to Playwright's native APIs (`getByTestId`, `getByLabel`, `getByRole`) and replaced `waitForLoadState("networkidle")` with `"domcontentloaded"` for reliability.
 
 ## [3.4.1] - 2026-03-31
 
