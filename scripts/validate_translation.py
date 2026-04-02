@@ -22,11 +22,11 @@ from typing import Dict, List, Set, Tuple, Any
 import argparse
 
 # Colors (ANSI)
-RED = '\033[0;31m'
-GREEN = '\033[0;32m'
-YELLOW = '\033[1;33m'
-BLUE = '\033[0;34m'
-NC = '\033[0m'
+RED = "\033[0;31m"
+GREEN = "\033[0;32m"
+YELLOW = "\033[1;33m"
+BLUE = "\033[0;34m"
+NC = "\033[0m"
 
 # Configuration - find repo root relative to this script
 _script_dir = Path(__file__).parent.resolve()
@@ -39,113 +39,37 @@ else:
 MESSAGES_DIR = SCRIPT_DIR / "src" / "i18n" / "messages"
 SOURCE_FILE = MESSAGES_DIR / "en.json"
 
+
 # Get target language from env or argument
 def get_target_lang() -> str:
     """Get target language from ENV or CLI argument."""
     # First check environment variable
-    env_lang = os.environ.get('TRANSLATION_LANG')
+    env_lang = os.environ.get("TRANSLATION_LANG")
     if env_lang:
         return env_lang
-    
+
     # Then check command line argument (will be set in main)
-    if hasattr(get_target_lang, 'cli_lang'):
+    if hasattr(get_target_lang, "cli_lang"):
         return get_target_lang.cli_lang
-    
+
     # Default to cs for backwards compatibility
     return "cs"
 
+
 # Keys that should NOT be translated (technical terms, proper names, etc.)
-UNTRANSLATABLE_KEYS = {
-    # ICU/Plural formats
-    "apiManager.modelsCount",
-    # Technical/Protocol names
-    "a2aDashboard.metadata",
-    "a2aDashboard.ok",
-    "a2aDashboard.url",
-    "cliTools.baseUrlPlaceholder",
-    "cliTools.platforms",
-    "cliTools.toolDescriptions.claude",
-    "cliTools.toolDescriptions.codex",
-    "cliTools.toolDescriptions.cursor",
-    "combos.roundRobin",
-    "common.model",
-    "docs.clientCherryStudioTitle",
-    "docs.clientClaudeTitle",
-    "docs.clientCursorTitle",
-    "docs.github",
-    "docs.protocolA2aTitle",
-    "docs.protocolMcpTitle",
-    "endpoint.chat",
-    "endpoint.chatCompletions",
-    "endpoint.cloudProxy",
-    "endpoint.mcpCardTitle",
-    "endpoint.rerank",
-    "header.a2a",
-    "header.mcp",
-    "health.cpu",
-    "health.latencyP50",
-    "health.latencyP95",
-    "health.latencyP99",
-    "health.millisecondsShort",
-    "health.notAvailable",
-    "health.ok",
-    "home.aliasLabel",
-    "home.oauthLabel",
-    "landing.brandName",
-    "landing.flowProviderAnthropic",
-    "landing.flowProviderGemini",
-    "landing.flowProviderGithubCopilot",
-    "landing.flowProviderOpenAI",
-    "landing.flowToolClaudeCode",
-    "landing.flowToolCline",
-    "landing.flowToolCursor",
-    "landing.flowToolOpenAICodex",
-    "landing.github",
-    "legal.terms",
-    "legal.privacy",
-    "logs.endpoint",
-    "logs.proxy",
-    "logs.console",
-    "logs.request",
-    "logs.audit",
-    "media.interpolation",
-    "media.upscale",
-    "media.samples",
-    "search.search",
-    "search.searchTools",
-    "search.webSearch",
-    "search.fileSearch",
-    "settings.theme",
-    "settings.language",
-    "settings.currency",
-    "settings.timezone",
-    "stats.requests",
-    "stats.tokens",
-    "stats.latency",
-    "stats.errors",
-    "themesPage.dark",
-    "themesPage.light",
-    "themesPage.system",
-    "translator.translate",
-    "translator.translateFrom",
-    "translator.translateTo",
-    "translator.detect",
-    "translator.detectedLanguage",
-    "usage.totalRequests",
-    "usage.totalTokens",
-    "usage.inputTokens",
-    "usage.outputTokens",
-    "usage.promptTokens",
-    "usage.completionTokens",
-    "usage.cacheReadTokens",
-    "usage.cacheWriteTokens",
-}
+# Loaded from external file for easier maintenance
+_UNTRANSLATABLE_KEYS_FILE = _script_dir / "i18n" / "untranslatable-keys.json"
+if _UNTRANSLATABLE_KEYS_FILE.exists():
+    with open(_UNTRANSLATABLE_KEYS_FILE, "r", encoding="utf-8") as _f:
+        UNTRANSLATABLE_KEYS = set(json.load(_f).get("keys", []))
+else:
+    UNTRANSLATABLE_KEYS = set()
 
 
 def print_header(msg: str) -> None:
-    print(f"\n{BLUE}{'='*50}{NC}")
+    print(f"\n{BLUE}{'=' * 50}{NC}")
     print(f"{BLUE}{msg}{NC}")
-    print(f"{BLUE}{'='*50}{NC}")
+    print(f"{BLUE}{'=' * 50}{NC}")
 
 
 def print_success(msg: str) -> None:
@@ -163,7 +87,7 @@ def print_error(msg: str) -> None:
 def load_json(path: Path) -> Dict:
     """Load JSON file"""
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError as e:
         print_error(f"Invalid JSON in {path}: {e}")
@@ -206,7 +130,7 @@ def find_extra_keys(source: Dict, trans: Dict) -> Set[str]:
 
 def get_value_by_path(obj: Dict, path: str) -> Any:
     """Get value from nested dict using dot notation"""
-    keys = path.replace('[', '.').replace(']', '').split('.')
+    keys = path.replace("[", ".").replace("]", "").split(".")
     current = obj
     for key in keys:
         if key.isdigit():
@@ -227,18 +151,18 @@ def find_untranslated(source: Dict, trans: Dict) -> Set[str]:
     """Keys where source value equals translation (not translated), excluding untranslatable keys"""
     source_keys = get_all_keys(source)
     untranslated = set()
-    
+
     for key in source_keys:
         # Skip keys that are in the untranslatable list
         if key in UNTRANSLATABLE_KEYS:
             continue
-            
+
         source_val = get_value_by_path(source, key)
         trans_val = get_value_by_path(trans, key)
-        
+
         if source_val is not None and source_val == trans_val:
             untranslated.add(key)
-    
+
     return untranslated
 
 
@@ -250,45 +174,48 @@ def find_placeholder_issues(source: Dict, trans: Dict) -> List[Tuple[str, str, s
     """
     source_keys = get_all_keys(source)
     issues = []
-    
+
     for key in source_keys:
         source_val = get_value_by_path(source, key)
         trans_val = get_value_by_path(trans, key)
-        
+
         if source_val is None or trans_val is None:
             continue
-            
+
         if not isinstance(source_val, str) or not isinstance(trans_val, str):
             continue
-        
+
         # Only extract top-level placeholders: {name}, {count}, {day}, NOT {# X} inside ICU
         import re
+
         # Extract variable names from placeholders (e.g., 'name' from '{name}' or 'count' from '{count, plural, ...}')
         # This avoids false positives on ICU strings where the internal text is translated.
-        placeholder_regex = r'\{\s*([a-zA-Z][a-zA-Z0-9_]*)'
+        placeholder_regex = r"\{\s*([a-zA-Z][a-zA-Z0-9_]*)"
         source_placeholders = set(re.findall(placeholder_regex, source_val))
         trans_placeholders = set(re.findall(placeholder_regex, trans_val))
-        
+
         # Check for missing placeholders
         missing = source_placeholders - trans_placeholders
         if missing:
             issues.append((key, str(source_placeholders), str(trans_placeholders)))
-    
+
     return issues
 
 
-def compare_category(source: Dict, trans: Dict, category: str) -> Tuple[bool, List[str]]:
+def compare_category(
+    source: Dict, trans: Dict, category: str
+) -> Tuple[bool, List[str]]:
     """Compare a specific category, return (complete, missing_keys)"""
     if category not in source:
         return False, [f"Category '{category}' not in source"]
-    
+
     if category not in trans:
         return False, [f"Category '{category}' missing in translation"]
-    
+
     source_keys = get_all_keys(source[category])
     trans_keys = get_all_keys(trans[category])
     missing = source_keys - trans_keys
-    
+
     return len(missing) == 0, list(missing)
 
 
@@ -304,18 +231,18 @@ def generate_report():
     print_header("OmniRoute Translation Report")
     print(f"Source: {SOURCE_FILE}")
     print(f"Translation: {translation_file}\n")
-    
+
     source = load_json(SOURCE_FILE)
     trans = load_json(translation_file)
-    
+
     # Count keys
     source_count = len(get_all_keys(source))
     trans_count = len(get_all_keys(trans))
-    
+
     print(f"{BLUE}Key Statistics:{NC}")
     print(f"  Source keys: {source_count}")
     print(f"  Translation keys: {trans_count}\n")
-    
+
     # Missing keys
     print_header("Missing Translations")
     missing = find_missing_keys(source, trans)
@@ -327,7 +254,7 @@ def generate_report():
             print(f"  ... and {len(missing) - 50} more")
     else:
         print_success("No missing translations!")
-    
+
     # Extra keys
     print_header("Extra Keys")
     extra = find_extra_keys(source, trans)
@@ -337,7 +264,7 @@ def generate_report():
             print(f"  - {key}")
     else:
         print_success("No extra keys!")
-    
+
     # Untranslated
     print_header("Untranslated Keys (same as source)")
     untranslated = find_untranslated(source, trans)
@@ -349,7 +276,7 @@ def generate_report():
             print(f"  ... and {len(untranslated) - 50} more")
     else:
         print_success("All keys appear to be translated!")
-    
+
     # Placeholder issues
     print_header("Placeholder Mismatches")
     placeholder_issues = find_placeholder_issues(source, trans)
@@ -363,7 +290,7 @@ def generate_report():
             print(f"  ... and {len(placeholder_issues) - 20} more")
     else:
         print_success("All placeholders match!")
-    
+
     # Per-category status
     print_header("Per-Category Status")
     for category in sorted(source.keys()):
@@ -372,7 +299,7 @@ def generate_report():
             print_success(f"{category} - complete")
         else:
             print_error(f"{category} - missing {len(missing)} keys")
-    
+
     # Summary
     print_header("Summary")
     if not missing and not extra and not untranslated:
@@ -391,13 +318,14 @@ def quick_check() -> int:
     translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
     trans = load_json(translation_file)
-    
+
     missing = find_missing_keys(source, trans)
     untranslated = find_untranslated(source, trans)
-    
+
     print(f"Missing: {len(missing)}")
     print(f"Untranslated: {len(untranslated)}")
-    
+    print(f"Ignored (UNTRANSLATABLE_KEYS): {len(UNTRANSLATABLE_KEYS)}")
+
     # Exit codes:
     # 0 = OK
     # 1 = generic error
@@ -417,38 +345,38 @@ def show_diff(category: str) -> int:
     translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
     trans = load_json(translation_file)
-    
+
     if category not in source:
         print_error(f"Category '{category}' not found in source")
         print("Available categories:")
         for cat in sorted(source.keys()):
             print(f"  - {cat}")
         return 1
-    
+
     print_header(f"Diff for category: {category}")
-    
+
     print(f"{BLUE}{'Key':<30} | {'Source':<25} | {'Translation':<25}{NC}")
     print("-" * 85)
-    
+
     source_keys = get_all_keys(source[category])
-    
+
     for key in sorted(source_keys):
         source_val = get_value_by_path(source[category], key)
         trans_val = get_value_by_path(trans.get(category, {}), key)
-        
+
         # Truncate long values
         source_str = str(source_val)[:25] if source_val else "(null)"
         trans_str = str(trans_val)[:25] if trans_val else "(missing)"
-        
+
         if source_val == trans_val:
             status = f"{YELLOW}(same){NC}"
         elif trans_val is None:
             status = f"{RED}(missing){NC}"
         else:
             status = f"{GREEN}(ok){NC}"
-        
+
         print(f"{key:<30} | {source_str:<25} | {trans_str:<25} {status}")
-    
+
     return 0
 
 
@@ -457,31 +385,31 @@ def export_csv(output_file: str) -> int:
     translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
     trans = load_json(translation_file)
-    
+
     print_header(f"Exporting to CSV: {output_file}")
-    
+
     source_keys = get_all_keys(source)
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
+
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write("key,source_value,translation_value,status\n")
-        
+
         for key in sorted(source_keys):
             source_val = get_value_by_path(source, key)
             trans_val = get_value_by_path(trans, key)
-            
+
             # Escape commas
-            source_str = str(source_val).replace(',', ';')
-            trans_str = str(trans_val).replace(',', ';') if trans_val else ""
-            
+            source_str = str(source_val).replace(",", ";")
+            trans_str = str(trans_val).replace(",", ";") if trans_val else ""
+
             if trans_val is None:
                 status = "MISSING"
             elif source_val == trans_val:
                 status = "UNTRANSLATED"
             else:
                 status = "OK"
-            
+
             f.write(f'"{key}","{source_str}","{trans_str}",{status}\n')
-    
+
     print_success(f"Exported to {output_file}")
     return 0
 
@@ -491,70 +419,70 @@ def export_markdown(output_file: str) -> int:
     translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
     trans = load_json(translation_file)
-    
+
     print_header(f"Exporting to Markdown: {output_file}")
-    
+
     source_keys = get_all_keys(source)
     missing = find_missing_keys(source, trans)
     untranslated = find_untranslated(source, trans)
-    
+
     # Separate translated and untranslated
     translated_keys = []
     untranslated_sorted = sorted(untranslated)
-    
+
     for key in sorted(source_keys):
         if key not in missing and key not in untranslated:
             translated_keys.append(key)
-    
+
     translated_count = len(translated_keys)
     untranslated_count = len(untranslated_sorted)
-    
+
     # Export untranslated (main output file)
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write("# Nepřeložené klíče (Untranslated Keys)\n\n")
         f.write(f"Zdroj: `{SOURCE_FILE.name}` | Překlad: `{TRANSLATION_FILE.name}`\n\n")
-        
+
         f.write(f"**Celkem: {untranslated_count} nepreložených klíčů**\n\n")
-        
+
         f.write("| # | Klíč (Key) | Originál | Nepřeloženo |\n")
         f.write("|---|------------|----------|------------|\n")
-        
+
         for i, key in enumerate(untranslated_sorted, 1):
             source_val = get_value_by_path(source, key)
             trans_val = get_value_by_path(trans, key)
-            
-            source_str = str(source_val).replace('|', '\\|')[:60]
-            trans_str = str(trans_val).replace('|', '\\|')[:60]
-            
+
+            source_str = str(source_val).replace("|", "\\|")[:60]
+            trans_str = str(trans_val).replace("|", "\\|")[:60]
+
             f.write(f"| {i} | `{key}` | {source_str} | {trans_str} |\n")
-        
+
         f.write("\n## Shrnutí (Summary)\n\n")
         f.write(f"- Celkem klíčů: {len(source_keys)}\n")
         f.write(f"- Chybějících: {len(missing)}\n")
         f.write(f"- Nepřeložených: {untranslated_count}\n")
         f.write(f"- Přeložených: {translated_count}\n")
-    
+
     # Export translated to separate file
-    translated_file = output_file.replace('.md', '_translated.md')
+    translated_file = output_file.replace(".md", "_translated.md")
     translation_filename = translation_file.name
-    with open(translated_file, 'w', encoding='utf-8') as f:
+    with open(translated_file, "w", encoding="utf-8") as f:
         f.write("# Přeložené klíče (Translated Keys)\n\n")
         f.write(f"Zdroj: `{SOURCE_FILE.name}` | Překlad: `{translation_filename}`\n\n")
-        
+
         f.write(f"**Celkem: {translated_count} přeložených klíčů**\n\n")
-        
+
         f.write("| # | Klíč (Key) | Originál | Překlad |\n")
         f.write("|---|------------|----------|---------|\n")
-        
+
         for i, key in enumerate(translated_keys, 1):
             source_val = get_value_by_path(source, key)
             trans_val = get_value_by_path(trans, key)
-            
-            source_str = str(source_val).replace('|', '\\|')[:40]
-            trans_str = str(trans_val).replace('|', '\\|')[:40]
-            
+
+            source_str = str(source_val).replace("|", "\\|")[:40]
+            trans_str = str(trans_val).replace("|", "\\|")[:40]
+
             f.write(f"| {i} | `{key}` | {source_str} | {trans_str} |\n")
-    
+
     print_success(f"Exported: {output_file} ({untranslated_count} keys)")
     print_success(f"Exported: {translated_file} ({translated_count} keys)")
     return 0
@@ -592,20 +520,20 @@ Examples:
 def main():
     # Parse global arguments first
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('-l', '--lang', dest='lang', default=None)
-    parser.add_argument('command', nargs='?')
-    parser.add_argument('arg', nargs='?')
-    
+    parser.add_argument("-l", "--lang", dest="lang", default=None)
+    parser.add_argument("command", nargs="?")
+    parser.add_argument("arg", nargs="?")
+
     # Parse known args only to allow commands to handle their own args
     args, _ = parser.parse_known_args()
-    
+
     # Set language from argument or use default
     if args.lang:
         get_target_lang.cli_lang = args.lang
-    elif not os.environ.get('TRANSLATION_LANG'):
+    elif not os.environ.get("TRANSLATION_LANG"):
         # Default to cs for backwards compatibility
         get_target_lang.cli_lang = "cs"
-    
+
     # Check if translation file exists
     translation_file = get_translation_file()
     if not translation_file.exists():
@@ -615,11 +543,11 @@ def main():
             if f.name != "en.json":
                 print(f"  - {f.stem}")
         return 1
-    
+
     # Execute command
-    if not args.command or args.command in ('help', '--help', '-h'):
+    if not args.command or args.command in ("help", "--help", "-h"):
         return generate_report()
-    
+
     if args.command == "quick":
         return quick_check()
     elif args.command == "diff":
