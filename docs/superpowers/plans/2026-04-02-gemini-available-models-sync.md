@@ -212,11 +212,11 @@ In the POST handler, after `const newConnection = await createProviderConnection
     }
 ```
 
-Also add the import for `buildModelSyncInternalHeaders` at the top of the file. This function is defined in `src/app/api/providers/[id]/sync-models/route.ts` — but it's not exported. Instead, trigger the sync via the internal endpoint directly using fetch (which is what we do above). Remove the import attempt and just use the fetch approach.
+Add this import at the top of the file:
 
-Actually, let's simplify. We don't need `buildModelSyncInternalHeaders`. We just need the cookie from the current request. The code above already does this — it forwards the user's auth cookie. Just make sure to add this import at the top of the file (it's likely already imported):
-
-Check if `fetch` is available globally (it is in Next.js edge/node runtime). No additional imports needed.
+```typescript
+import { buildModelSyncInternalHeaders } from "@/shared/services/modelSyncScheduler";
+```
 
 - [ ] **Step 2: Build to verify no type errors**
 
