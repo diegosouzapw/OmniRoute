@@ -2086,7 +2086,21 @@
     "debugToggle": "Enable Debug Mode",
     "sidebarVisibilityToggle": "Show Sidebar Items",
     "enabled": "Enabled",
-    "strategy": "Strategy"
+    "strategy": "Strategy",
+    "appName": "Application Name",
+    "appNameDesc": "Display name shown in sidebar and browser tab",
+    "customFavicon": "Browser Favicon",
+    "customFaviconDesc": "URL to your custom favicon (shown in browser tab)",
+    "customLogo": "Custom Logo URL",
+    "customLogoDesc": "URL to your custom logo image",
+    "faviconPreview": "Favicon Preview",
+    "logoPreview": "Preview",
+    "resetFavicon": "Reset Favicon",
+    "resetLogo": "Reset to Default",
+    "uploadFavicon": "Upload Favicon",
+    "uploadLogo": "Upload Logo",
+    "whitelabeling": "Branding",
+    "whitelabelingDesc": "Customize the application name and logo"
   },
   "translator": {
     "title": "מתרגם",

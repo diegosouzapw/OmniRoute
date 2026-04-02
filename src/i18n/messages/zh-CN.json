@@ -2149,7 +2149,21 @@
     "autoDisableBannedAccounts": "自动禁用被封禁账户",
     "autoDisableDescription": "若提供商连接返回特定的永久封禁信号（如 HTTP 403\"请验证您的账户\"），则将其永久标记为停用。这会将其从组合轮换中移除。",
     "autoDisableThreshold": "封禁阈值",
-    "autoDisableThresholdDesc": "触发永久停用所需的连续封禁信号次数。"
+    "autoDisableThresholdDesc": "触发永久停用所需的连续封禁信号次数。",
+    "appName": "Application Name",
+    "appNameDesc": "Display name shown in sidebar and browser tab",
+    "customFavicon": "Browser Favicon",
+    "customFaviconDesc": "URL to your custom favicon (shown in browser tab)",
+    "customLogo": "Custom Logo URL",
+    "customLogoDesc": "URL to your custom logo image",
+    "faviconPreview": "Favicon Preview",
+    "logoPreview": "Preview",
+    "resetFavicon": "Reset Favicon",
+    "resetLogo": "Reset to Default",
+    "uploadFavicon": "Upload Favicon",
+    "uploadLogo": "Upload Logo",
+    "whitelabeling": "Branding",
+    "whitelabelingDesc": "Customize the application name and logo"
   },
   "translator": {
     "title": "翻译者",
