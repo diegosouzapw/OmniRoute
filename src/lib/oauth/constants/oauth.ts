@@ -64,19 +64,6 @@ export const QWEN_CONFIG = {
   codeChallengeMethod: "S256",
 };
 
-// Qoder OAuth Configuration (Authorization Code)
-export const QODER_CONFIG = {
-  clientId: process.env.QODER_OAUTH_CLIENT_ID || "10009311001",
-  clientSecret: process.env.QODER_OAUTH_CLIENT_SECRET || "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
-  authorizeUrl: "https://qoder.cn/oauth",
-  tokenUrl: "https://qoder.cn/oauth/token",
-  userInfoUrl: "https://qoder.cn/api/oauth/getUserInfo",
-  extraParams: {
-    loginMethod: "phone",
-    type: "phone",
-  },
-};
-
 // Kimi Coding OAuth Configuration (Device Code Flow)
 export const KIMI_CODING_CONFIG = {
   clientId: process.env.KIMI_CODING_OAUTH_CLIENT_ID || "17e5f671-d194-4dfb-9706-5516cb48c098",

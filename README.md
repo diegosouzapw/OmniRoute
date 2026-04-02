@@ -1005,9 +1005,14 @@ docker run -d \
 # Base profile (no CLI tools)
 docker compose --profile base up -d
 
-# CLI profile (Claude Code, Codex, OpenClaw built-in)
+# CLI profile (Claude Code, Codex, OpenClaw, Qoder CLI built-in)
 docker compose --profile cli up -d
 ```
+
+> **Note:** The `cli` profile includes `@qoder-ai/qodercli@0.1.37` required for Qoder AI provider support. If using the `base` profile, install it manually inside the container:
+> ```bash
+> docker exec omniroute npm install -g @qoder-ai/qodercli@0.1.37
+> ```
 
 Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL.
 
@@ -1720,11 +1725,13 @@ Models:
 <details>
 <summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
 
-### Qoder (5 FREE models via OAuth)
+### Qoder (5 FREE models via subprocess)
+
+**Requirements:** `@qoder-ai/qodercli@0.1.37` (bundled in Docker `cli` profile, or install globally with `npm install -g @qoder-ai/qodercli`)
 
 ```bash
 Dashboard → Connect Qoder
-→ Qoder OAuth login
+→ Qoder OAuth login (or paste PAT for API key auth)
 → Unlimited usage
 
 Models:
@@ -1734,6 +1741,8 @@ Models:
   if/minimax-m2
   if/deepseek-r1
 ```
+
+**How it works:** OmniRoute spawns `qodercli -p "<prompt>" -f stream-json --quiet` internally and converts output to OpenAI-compatible responses. No reverse-engineering needed!
 
 ### Qwen (4 FREE models via Device Code)
 

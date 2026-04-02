@@ -154,3 +154,6 @@ typescript
 
 # Gemini Antigravity agent data
 .gemini/
+
+# Qoder CLI cache and config (contains API keys, session data)
+.qoder/

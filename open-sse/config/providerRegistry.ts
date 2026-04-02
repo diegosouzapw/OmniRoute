@@ -322,38 +322,32 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   qoder: {
     id: "qoder",
-    alias: "if",
+    alias: "qoder",
     format: "openai",
     executor: "qoder",
-    baseUrl: "https://apis.qoder.cn/v1/chat/completions",
-    authType: "oauth",
+    // inferNodes from region_config — rotates between api1/api2/api3.qoder.sh
+    baseUrl: "https://api2.qoder.sh/v1/chat/completions",
+    authType: "apikey",
     authHeader: "bearer",
+    // Qoder uses named model levels, not a /v1/models endpoint
+    passthroughModels: true,
+    defaultContextLength: 180000,
     headers: {
-      "User-Agent": "Qoder-Cli",
-    },
-    oauth: {
-      clientIdEnv: "QODER_OAUTH_CLIENT_ID",
-      clientIdDefault: "10009311001",
-      clientSecretEnv: "QODER_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
-      tokenUrl: "https://qoder.cn/oauth/token",
-      authUrl: "https://qoder.cn/oauth",
+      "User-Agent": "qodercli/0.1.37 (linux; x64)",
     },
     models: [
-      { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "qwen3-max", name: "Qwen3 Max" },
-      { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
-      { id: "kimi-k2-0905", name: "Kimi K2 0905" },
-      { id: "qwen3-max-preview", name: "Qwen3 Max Preview" },
-      { id: "kimi-k2", name: "Kimi K2" },
-      { id: "deepseek-v3.2", name: "DeepSeek-V3.2-Exp" },
-      { id: "deepseek-r1", name: "DeepSeek R1" },
-      { id: "deepseek-v3", name: "DeepSeek V3" },
-      { id: "qwen3-32b", name: "Qwen3 32B" },
-      { id: "qwen3-235b-a22b-thinking-2507", name: "Qwen3 235B A22B Thinking 2507" },
-      { id: "qwen3-235b-a22b-instruct", name: "Qwen3 235B A22B Instruct" },
-      { id: "qwen3-235b", name: "Qwen3 235B" },
+      // Model levels from ~/.qoder/.auth/models (assistant scene)
+      { id: "auto", name: "Auto (Smart Select)" },
+      { id: "ultimate", name: "Ultimate (Best Quality)" },
+      { id: "performance", name: "Performance" },
+      { id: "qmodel", name: "Qwen-Max" },
+      { id: "q35model", name: "Qwen3.5-Plus" },
+      { id: "lite", name: "Lite" },
+      { id: "efficient", name: "Efficient" },
+      // Quest scene models
+      { id: "gmodel", name: "GLM-5" },
+      { id: "kmodel", name: "Kimi-K2.5" },
+      { id: "mmodel", name: "MiniMax-M2.7" },
     ],
   },
 

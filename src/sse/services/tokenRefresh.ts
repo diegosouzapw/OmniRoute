@@ -8,7 +8,6 @@ import {
   refreshGoogleToken as _refreshGoogleToken,
   refreshQwenToken as _refreshQwenToken,
   refreshCodexToken as _refreshCodexToken,
-  refreshIflowToken as _refreshIflowToken,
   refreshGitHubToken as _refreshGitHubToken,
   refreshCopilotToken as _refreshCopilotToken,
   getAccessToken as _getAccessToken,
@@ -31,8 +30,6 @@ export const refreshGoogleToken = (refreshToken: string, clientId: string, clien
 export const refreshQwenToken = (refreshToken: string) => _refreshQwenToken(refreshToken, log);
 
 export const refreshCodexToken = (refreshToken: string) => _refreshCodexToken(refreshToken, log);
-
-export const refreshIflowToken = (refreshToken: string) => _refreshIflowToken(refreshToken, log);
 
 export const refreshGitHubToken = (refreshToken: string) => _refreshGitHubToken(refreshToken, log);
 

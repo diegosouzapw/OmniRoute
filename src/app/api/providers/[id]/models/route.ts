@@ -164,6 +164,19 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
   },
+  qoder: {
+    // Qoder doesn't expose a /v1/models endpoint — models are named levels
+    // Static list is used instead; this entry kept for auth header passthrough only
+    url: "https://api2.qoder.sh/v1/models",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": "qodercli/0.1.37 (linux; x64)",
+    },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
   openrouter: {
     url: "https://openrouter.ai/api/v1/models",
     method: "GET",
