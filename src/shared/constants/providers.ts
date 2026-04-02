@@ -610,8 +610,30 @@ export function isAnthropicCompatibleProvider(providerId) {
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
 
-// All providers (combined)
-export const AI_PROVIDERS = { ...FREE_PROVIDERS, ...OAUTH_PROVIDERS, ...APIKEY_PROVIDERS };
+export const UPSTREAM_PROXY_PROVIDERS = {
+  cliproxyapi: {
+    id: "cliproxyapi",
+    alias: "cpa",
+    name: "CLIProxyAPI",
+    icon: "proxy",
+    color: "#6366F1",
+    textIcon: "CPA",
+    website: "https://github.com/router-for-me/CLIProxyAPI",
+    defaultPort: 8317,
+    healthEndpoint: "/v1/models",
+    managementPrefix: "/v0/management",
+    configDir: "~/.cli-proxy-api",
+    binaryName: "cli-proxy-api",
+    githubRepo: "router-for-me/CLIProxyAPI",
+  },
+};
+
+export const AI_PROVIDERS = {
+  ...FREE_PROVIDERS,
+  ...OAUTH_PROVIDERS,
+  ...APIKEY_PROVIDERS,
+  ...UPSTREAM_PROXY_PROVIDERS,
+};
 
 // Auth methods
 export const AUTH_METHODS = {

@@ -6,11 +6,14 @@
 #    base  → minimal image, no CLI tools
 #    cli   → CLIs installed inside the container (portable)
 #    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #
 #  Usage:
 #    docker compose --profile base up -d
 #    docker compose --profile cli up -d
 #    docker compose --profile host up -d
+#    docker compose --profile cliproxyapi up -d
+#    docker compose --profile cli --profile cliproxyapi up -d
 #
 #  Before first run, copy .env.example → .env and edit your secrets.
 # ──────────────────────────────────────────────────────────────────────
@@ -109,6 +112,29 @@ services:
     profiles:
       - host
 
+  # ── Profile: cliproxyapi (CLIProxyAPI as sidecar) ─────────────────
+  cliproxyapi:
+    container_name: cliproxyapi
+    image: ghcr.io/router-for-me/cliproxyapi:latest
+    restart: unless-stopped
+    ports:
+      - "${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
+    volumes:
+      - cliproxyapi-data:/root/.cli-proxy-api
+    environment:
+      - PORT=${CLIPROXYAPI_PORT:-8317}
+      - HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8317/v1/models"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - cliproxyapi
+
 volumes:
   omniroute-data:
     name: omniroute-data
+  cliproxyapi-data:
+    name: cliproxyapi-data

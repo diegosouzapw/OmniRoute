@@ -75,7 +75,7 @@ export function mergeUpstreamExtraHeaders(
   }
 }
 
-function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
+export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
   const abortBoth = () => {

@@ -209,3 +209,26 @@ export {
 } from "./db/quotaSnapshots";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
+
+export {
+  // Version Manager
+  getVersionManagerStatus,
+  getVersionManagerTool,
+  upsertVersionManagerTool,
+  updateVersionManagerTool,
+  deleteVersionManagerTool,
+  updateToolHealth,
+  updateToolVersion,
+  setToolStatus,
+} from "./db/versionManager";
+
+export {
+  // Upstream Proxy Config
+  getUpstreamProxyConfigs,
+  getUpstreamProxyConfig,
+  upsertUpstreamProxyConfig,
+  updateUpstreamProxyConfig,
+  deleteUpstreamProxyConfig,
+  getProvidersByMode,
+  getFallbackChainForProvider,
+} from "./db/upstreamProxy";

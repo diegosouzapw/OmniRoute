@@ -44,6 +44,7 @@ import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
+  getUpstreamProxyConfig,
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
@@ -90,6 +91,8 @@ import {
 import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
+import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
+import { retrieveMemories } from "@/lib/memory/retrieval";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -683,6 +686,26 @@ export async function handleChatCore({
     });
   }
 
+  if (apiKeyInfo?.id && shouldInjectMemory(body as Parameters<typeof shouldInjectMemory>[0])) {
+    try {
+      const memories = await retrieveMemories(apiKeyInfo.id);
+      if (memories.length > 0) {
+        const injected = injectMemory(
+          body as Parameters<typeof injectMemory>[0],
+          memories,
+          provider
+        );
+        body = injected as typeof body;
+        log?.debug?.("MEMORY", `Injected ${memories.length} memories for key=${apiKeyInfo.id}`);
+      }
+    } catch (memErr) {
+      log?.debug?.(
+        "MEMORY",
+        `Memory injection skipped: ${memErr instanceof Error ? memErr.message : String(memErr)}`
+      );
+    }
+  }
+
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
@@ -944,8 +967,69 @@ export async function handleChatCore({
     }
   }
 
-  // Get executor for this provider
-  const executor = getExecutor(provider);
+  // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
+  // mode="native" (default): returns the native executor unchanged.
+  // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
+  // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
+  const proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
+  const CACHE_TTL = 10_000;
+
+  const getUpstreamProxyConfigCached = async (providerId: string) => {
+    const cached = proxyConfigCache.get(providerId);
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return cached;
+    const cfg = await getUpstreamProxyConfig(providerId).catch(() => null);
+    const result = cfg
+      ? { mode: cfg.mode, enabled: cfg.enabled, ts: Date.now() }
+      : { mode: "native" as const, enabled: false, ts: Date.now() };
+    proxyConfigCache.set(providerId, result);
+    return result;
+  };
+
+  const resolveExecutorWithProxy = async (prov: string) => {
+    const cfg = await getUpstreamProxyConfigCached(prov);
+    if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
+
+    if (cfg.mode === "cliproxyapi") {
+      log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
+      return getExecutor("cliproxyapi");
+    }
+
+    // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
+    const nativeExec = getExecutor(prov);
+    const proxyExec = getExecutor("cliproxyapi");
+    const isRetryableStatus = (s: number) => s >= 500 || s === 429 || s === 0;
+
+    return {
+      ...nativeExec,
+      execute: async (input: {
+        model: string;
+        body: unknown;
+        stream: boolean;
+        credentials: unknown;
+        signal?: AbortSignal | null;
+        log?: unknown;
+        upstreamExtraHeaders?: Record<string, string> | null;
+      }) => {
+        try {
+          const result = await nativeExec.execute(input);
+          if (isRetryableStatus(result.response.status)) {
+            log?.info?.(
+              "UPSTREAM_PROXY",
+              `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
+            );
+            return proxyExec.execute(input);
+          }
+          return result;
+        } catch (err) {
+          log?.info?.("UPSTREAM_PROXY", `${prov} native error, retrying via CLIProxyAPI`);
+          return proxyExec.execute(input);
+        }
+      },
+    };
+  };
+
+  // Get executor for this provider (with optional upstream proxy routing)
+  const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () =>
     nativeCodexPassthrough ? { ...credentials, requestEndpointPath: endpointPath } : credentials;
 

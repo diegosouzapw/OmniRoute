@@ -76,9 +76,17 @@ export default function SettingsPage() {
           role="tabpanel"
           aria-label={t(tabs.find((t2) => t2.id === activeTab)?.labelKey || "general")}
         >
-          {activeTab === "general" && <SystemStorageTab />}
+          {activeTab === "general" && (
+            <div className="flex flex-col gap-6">
+              <SystemStorageTab />
+            </div>
+          )}
 
-          {activeTab === "appearance" && <AppearanceTab />}
+          {activeTab === "appearance" && (
+            <div className="flex flex-col gap-6">
+              <AppearanceTab />
+            </div>
+          )}
 
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
