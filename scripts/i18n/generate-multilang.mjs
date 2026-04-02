@@ -92,9 +92,9 @@ const LOCALE_SPECS = [
     docsName: "Deutsch",
   },
   {
-    code: "in",
+    code: "hi",
     googleTl: "hi",
-    label: "IN",
+    label: "HI",
     flag: "🇮🇳",
     languageName: "Hindi (India)",
     readmeName: "हिन्दी",
