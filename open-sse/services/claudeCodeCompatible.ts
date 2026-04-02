@@ -270,6 +270,31 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
     merged.push({ role: message.role, content: [...message.content] });
   }
 
+  // CC-compatible sites we tested reject assistant-prefill shaped requests even
+  // when Anthropic would normally allow them. Keep assistant/model history, but
+  // drop trailing assistant turns so the upstream request ends on a user turn.
+  while (merged.length > 0 && merged[merged.length - 1].role === "assistant") {
+    merged.pop();
+  }
+
+  if (merged.length === 0) {
+    const fallbackText = converted
+      .flatMap((message) => message.content)
+      .map((block) => toNonEmptyString(block.text))
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+
+    if (fallbackText) {
+      return [
+        {
+          role: "user" as const,
+          content: [{ type: "text", text: fallbackText, cache_control: { type: "ephemeral" } }],
+        },
+      ];
+    }
+  }
+
   for (let i = merged.length - 1; i >= 0; i--) {
     if (merged[i].role !== "user") continue;
     const lastBlock = merged[i].content[merged[i].content.length - 1];

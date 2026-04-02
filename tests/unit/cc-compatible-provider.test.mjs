@@ -51,7 +51,7 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("buildClaudeCodeCompatibleRequest keeps order/text while mapping unsupported roles", () => {
+test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping trailing assistant prefill", () => {
   const payload = buildClaudeCodeCompatibleRequest({
     sourceBody: {
       reasoning_effort: "xhigh",
@@ -79,6 +79,7 @@ test("buildClaudeCodeCompatibleRequest keeps order/text while mapping unsupporte
         { role: "user", content: [{ type: "text", text: "u1" }, { type: "image_url" }] },
         { role: "model", content: "a1" },
         { role: "user", content: [{ type: "text", text: "u2" }, { type: "tool_result" }] },
+        { role: "model", content: "prefill" },
       ],
     },
     model: "claude-sonnet-4-6",
@@ -118,6 +119,26 @@ test("buildClaudeCodeCompatibleRequest keeps order/text while mapping unsupporte
   assert.deepEqual(payload.tool_choice, { type: "any" });
   assert.equal(payload.context_management.edits[0].type, "clear_thinking_20251015");
   assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
+});
+
+test("buildClaudeCodeCompatibleRequest falls back to a user turn when the source only has assistant/model text", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      messages: [{ role: "model", content: "draft" }],
+    },
+    normalizedBody: {
+      messages: [{ role: "model", content: "draft" }],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-only-assistant",
+  });
+
+  assert.deepEqual(payload.messages, [
+    {
+      role: "user",
+      content: [{ type: "text", text: "draft", cache_control: { type: "ephemeral" } }],
+    },
+  ]);
 });
 
 test("buildClaudeCodeCompatibleRequest honors token priority fields", () => {
