@@ -32,19 +32,25 @@ export default function CliproxyapiToolCard({ isExpanded, onToggle }) {
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/version-manager/status");
+      if (!res.ok) return;
       const data = await res.json();
       const entry = Array.isArray(data)
         ? data.find((t: ToolState) => t.tool === "cliproxyapi")
         : null;
       setToolState(entry || null);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to fetch CLIProxyAPI status:", err);
+    }
   }, []);
 
   const fetchUpdateInfo = useCallback(async () => {
     try {
       const res = await fetch("/api/version-manager/check-update?tool=cliproxyapi");
+      if (!res.ok) return;
       setUpdateInfo(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error("Failed to fetch CLIProxyAPI update info:", err);
+    }
   }, []);
 
   useEffect(() => {

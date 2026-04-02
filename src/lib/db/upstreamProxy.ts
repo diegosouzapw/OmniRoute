@@ -74,14 +74,19 @@ export function validateProxyUrl(
 }
 
 function rowToConfig(record: Record<string, unknown>): UpstreamProxyConfig {
+  let mapping: Record<string, unknown> | null = null;
+  if (record.cliproxyapi_model_mapping && typeof record.cliproxyapi_model_mapping === "string") {
+    try {
+      mapping = JSON.parse(record.cliproxyapi_model_mapping);
+    } catch {
+      mapping = null;
+    }
+  }
   return {
     id: record.id as number,
     providerId: record.provider_id as string,
     mode: record.mode as string,
-    cliproxyapiModelMapping:
-      record.cliproxyapi_model_mapping && typeof record.cliproxyapi_model_mapping === "string"
-        ? JSON.parse(record.cliproxyapi_model_mapping)
-        : null,
+    cliproxyapiModelMapping: mapping,
     nativePriority: record.native_priority as number,
     cliproxyapiPriority: record.cliproxyapi_priority as number,
     enabled: record.enabled === 1 || record.enabled === true,

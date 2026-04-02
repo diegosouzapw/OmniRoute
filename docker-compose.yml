@@ -115,7 +115,7 @@ services:
   # ── Profile: cliproxyapi (CLIProxyAPI as sidecar) ─────────────────
   cliproxyapi:
     container_name: cliproxyapi
-    image: ghcr.io/router-for-me/cliproxyapi:latest
+    image: ghcr.io/router-for-me/cliproxyapi:v6.9.7
     restart: unless-stopped
     ports:
       - "${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
