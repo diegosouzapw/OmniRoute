@@ -72,7 +72,7 @@ export default function DashboardLayout({ children }) {
         return normalizedLeft - normalizedRight;
       });
 
-    let cancelled = false;
+    const abortController = new AbortController();
 
     const warmRoutes = async () => {
       let cursor = 0;
@@ -80,7 +80,7 @@ export default function DashboardLayout({ children }) {
       const workers = Array.from({
         length: Math.min(DASHBOARD_WARMUP_CONCURRENCY, routes.length),
       }).map(async () => {
-        while (!cancelled) {
+        while (!abortController.signal.aborted) {
           const href = routes[cursor];
           cursor += 1;
 
@@ -97,8 +97,13 @@ export default function DashboardLayout({ children }) {
               credentials: "same-origin",
               cache: "no-store",
               headers: { "x-omniroute-dev-warmup": "1" },
+              signal: abortController.signal,
             });
-          } catch {}
+          } catch (error) {
+            if (abortController.signal.aborted) {
+              return;
+            }
+          }
         }
       });
 
@@ -110,7 +115,7 @@ export default function DashboardLayout({ children }) {
     }, DASHBOARD_WARMUP_DELAY_MS);
 
     return () => {
-      cancelled = true;
+      abortController.abort();
       window.clearTimeout(timeoutHandle);
     };
   }, [pathname, router]);
