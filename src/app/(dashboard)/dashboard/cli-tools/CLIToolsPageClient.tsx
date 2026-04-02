@@ -36,6 +36,10 @@ export default function CLIToolsPageClient({ machineId }) {
   const [dynamicModels, setDynamicModels] = useState([]);
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
+      if (typeof t.has === "function" && !t.has(key)) {
+        return fallback;
+      }
+
       try {
         return t(key, values);
       } catch {

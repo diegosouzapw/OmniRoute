@@ -17,11 +17,13 @@ export class CloudSyncScheduler {
   machineId: string | null;
   intervalMinutes: number;
   intervalId: ReturnType<typeof setInterval> | null;
+  startupTimeoutId: ReturnType<typeof setTimeout> | null;
 
   constructor(machineId: string | null = null, intervalMinutes = 15) {
     this.machineId = machineId;
     this.intervalMinutes = intervalMinutes;
     this.intervalId = null;
+    this.startupTimeoutId = null;
   }
 
   /**
@@ -44,9 +46,11 @@ export class CloudSyncScheduler {
     await this.initializeMachineId();
 
     // Delay first sync by 30 seconds to ensure server is ready
-    setTimeout(() => {
+    this.startupTimeoutId = setTimeout(() => {
+      this.startupTimeoutId = null;
       this.syncWithRetry().catch(() => {});
     }, 30000);
+    this.startupTimeoutId.unref?.();
 
     // Then sync periodically
     this.intervalId = setInterval(
@@ -61,6 +65,10 @@ export class CloudSyncScheduler {
    * Stop periodic sync
    */
   stop() {
+    if (this.startupTimeoutId) {
+      clearTimeout(this.startupTimeoutId);
+      this.startupTimeoutId = null;
+    }
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -122,12 +130,15 @@ export class CloudSyncScheduler {
   }
 }
 
-// Export a singleton instance if needed
-let cloudSyncScheduler: CloudSyncScheduler | null = null;
+const globalState = globalThis as typeof globalThis & {
+  __omnirouteCloudSyncScheduler?: CloudSyncScheduler | null;
+};
 
 export async function getCloudSyncScheduler(machineId: string | null = null, intervalMinutes = 15) {
-  if (!cloudSyncScheduler) {
-    cloudSyncScheduler = new CloudSyncScheduler(machineId, intervalMinutes);
+  let scheduler = globalState.__omnirouteCloudSyncScheduler ?? null;
+  if (!scheduler) {
+    scheduler = new CloudSyncScheduler(machineId, intervalMinutes);
+    globalState.__omnirouteCloudSyncScheduler = scheduler;
   }
-  return cloudSyncScheduler;
+  return scheduler;
 }

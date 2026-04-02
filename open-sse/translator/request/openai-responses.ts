@@ -294,7 +294,7 @@ export function openaiToOpenAIResponsesRequest(
     model,
     input: [],
     stream: true,
-    store: false,
+    store: root.store === true,
   };
 
   const input = result.input as JsonRecord[];
@@ -518,6 +518,9 @@ export function openaiToOpenAIResponsesRequest(
   if (root.temperature !== undefined) result.temperature = root.temperature;
   if (root.max_tokens !== undefined) result.max_tokens = root.max_tokens;
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  if (root.previous_response_id !== undefined) {
+    result.previous_response_id = root.previous_response_id;
+  }
 
   return result;
 }

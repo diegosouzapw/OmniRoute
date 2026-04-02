@@ -3,7 +3,10 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Select, Badge } from "@/shared/components";
+import Card from "@/shared/components/Card";
+import Button from "@/shared/components/Button";
+import Select from "@/shared/components/Select";
+import Badge from "@/shared/components/Badge";
 import { FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import { useProviderOptions } from "../hooks/useProviderOptions";
 import { useAvailableModels } from "../hooks/useAvailableModels";

@@ -16,7 +16,12 @@
 
 import { memo, useState, Component, type ReactNode } from "react";
 import Image from "next/image";
-import { ProviderIcon as LobehubProviderIcon } from "@lobehub/icons";
+import dynamic from "next/dynamic";
+
+const LobehubProviderIcon = dynamic(
+  () => import("@lobehub/icons").then((mod) => mod.ProviderIcon),
+  { ssr: false }
+);
 
 // Mapping from OmniRoute provider IDs → Lobehub icon IDs
 // Lobehub uses lowercase IDs matching ModelProvider enum values

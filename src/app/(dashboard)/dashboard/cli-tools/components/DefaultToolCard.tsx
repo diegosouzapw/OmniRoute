@@ -20,6 +20,10 @@ export default function DefaultToolCard({
   const t = useTranslations("cliTools");
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
+      if (typeof t.has === "function" && !t.has(key)) {
+        return fallback;
+      }
+
       try {
         return t(key, values);
       } catch {
@@ -78,8 +82,14 @@ export default function DefaultToolCard({
     fetch(`/api/cli-tools/runtime/${toolId}`)
       .then((res) => res.json())
       .then((data) => setRuntimeStatus(data))
-      .catch((error) => setRuntimeStatus({ error: error?.message || t("runtimeCheckFailed") }));
-  }, [isExpanded, runtimeStatus, toolId]);
+      .catch((error) =>
+        setRuntimeStatus({
+          error:
+            error?.message ||
+            translateOrFallback("runtimeCheckFailed", "Failed to check runtime status"),
+        })
+      );
+  }, [isExpanded, runtimeStatus, toolId, translateOrFallback]);
 
   const replaceVars = (text) => {
     const keyToUse =

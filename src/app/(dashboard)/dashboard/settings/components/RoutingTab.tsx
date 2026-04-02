@@ -18,6 +18,21 @@ const STRATEGIES = ROUTING_STRATEGIES.filter((strategy) =>
   icon: strategy.icon,
 }));
 
+const STRATEGY_DESCRIPTION_FALLBACK = {
+  "fill-first": "Use accounts in priority order",
+  "round-robin": "Cycle through all accounts",
+  p2c: "Pick 2 random, use the healthier one",
+  random: "Random account each request",
+  "least-used": "Pick least recently used account",
+  "cost-optimized": "Prefer cheapest available account",
+  "strict-random": "Cycle through each account once before reshuffling",
+};
+
+function getI18nOrFallback(t: any, key: string, fallback: string) {
+  if (typeof t?.has === "function" && t.has(key)) return t(key);
+  return fallback;
+}
+
 export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({
     fallbackStrategy: "fill-first",
@@ -123,7 +138,13 @@ export default function RoutingTab() {
                 >
                   {t(s.labelKey)}
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">{t(s.descKey)}</p>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {getI18nOrFallback(
+                    t,
+                    s.descKey,
+                    STRATEGY_DESCRIPTION_FALLBACK[s.value] || s.value
+                  )}
+                </p>
               </div>
             </button>
           ))}
@@ -148,7 +169,12 @@ export default function RoutingTab() {
         )}
 
         <p className="text-xs text-text-muted italic pt-3 border-t border-border/30 mt-3">
-          {t(strategyHintKeyByValue[settings.fallbackStrategy] || "fillFirstDesc")}
+          {getI18nOrFallback(
+            t,
+            strategyHintKeyByValue[settings.fallbackStrategy] || "fillFirstDesc",
+            STRATEGY_DESCRIPTION_FALLBACK[settings.fallbackStrategy] ||
+              "Use accounts in priority order"
+          )}
         </p>
       </Card>
 

@@ -32,7 +32,11 @@ function isEnvFlagEnabled(name: string): boolean {
 }
 
 function isHealthCheckDisabled(): boolean {
-  return isEnvFlagEnabled("OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK") || process.env.NODE_ENV === "test";
+  return (
+    isEnvFlagEnabled("OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK") ||
+    process.env.NODE_ENV === "test" ||
+    (process.env.NODE_ENV === "development" && !isEnvFlagEnabled("TOKEN_HEALTHCHECK_ENABLE_IN_DEV"))
+  );
 }
 
 // ── Logging helper ───────────────────────────────────────────────────────────
@@ -306,6 +310,15 @@ async function checkConnection(conn) {
 }
 
 // Auto-start when imported
-initTokenHealthCheck();
+if (
+  process.env.NODE_ENV === "development" &&
+  !isEnvFlagEnabled("TOKEN_HEALTHCHECK_ENABLE_IN_DEV")
+) {
+  console.log(
+    `${LOG_PREFIX} Auto-start disabled in development (set TOKEN_HEALTHCHECK_ENABLE_IN_DEV=true to enable)`
+  );
+} else {
+  initTokenHealthCheck();
+}
 
 export default initTokenHealthCheck;

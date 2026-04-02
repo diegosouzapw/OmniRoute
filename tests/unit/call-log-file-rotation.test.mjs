@@ -15,8 +15,11 @@ process.env.CALL_LOG_MAX_ENTRIES = "2";
 
 const { rotateCallLogs } = await import("../../src/lib/usage/callLogs.ts");
 const { CALL_LOGS_DIR } = await import("../../src/lib/usage/migrations.ts");
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
+  resetDbInstance();
+
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {

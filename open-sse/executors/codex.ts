@@ -322,6 +322,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.metadata; // Cursor sends this but Codex doesn't support it
     delete body.stream_options; // Cursor sends this but Codex doesn't support it
     delete body.safety_identifier; // Droid CLI sends this but Codex doesn't support it
+    delete body.previous_response_id; // Codex rejects this on /responses as of 2026-04
 
     return body;
   }

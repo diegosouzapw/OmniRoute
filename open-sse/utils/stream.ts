@@ -10,7 +10,13 @@ import {
   filterUsageForFormat,
   COLORS,
 } from "./usageTracking.ts";
-import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE, unwrapGeminiChunk } from "./streamHelpers.ts";
+import {
+  parseSSELine,
+  hasValuableContent,
+  fixInvalidId,
+  formatSSE,
+  unwrapGeminiChunk,
+} from "./streamHelpers.ts";
 import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
@@ -585,9 +591,12 @@ export function createSSEStream(options: StreamOptions = {}) {
               // Content for call log is accumulated only from parsed (above) to avoid double-counting;
               // do not add again from item here.
 
-              // #723, #727: Sanitize intermediate stream chunks if target is OpenAI format loop
+              // #723, #727: Sanitize only when the client-facing stream is OpenAI Chat format.
+              // When translating Responses -> Claude, `item` is already a Claude SSE event;
+              // sanitizing it as an OpenAI chunk strips message_start/content_block_delta/message_stop
+              // and causes Claude Code to drop the assistant message.
               let itemSanitized: Record<string, unknown> = item;
-              if (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES) {
+              if (sourceFormat === FORMATS.OPENAI) {
                 itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
 
                 // Extract reasoning tags from content if translation generated them

@@ -15,6 +15,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MODEL_SYNC_SETTING_KEY = "model_sync_last_run";
 const MODEL_SYNC_INTERNAL_AUTH_HEADER = "x-model-sync-internal-auth";
+const ENABLE_IN_DEV = process.env.MODEL_SYNC_ENABLE_IN_DEV === "true";
 
 const { dashboardPort } = getRuntimePorts();
 
@@ -26,11 +27,31 @@ const INTERNAL_BASE_URL =
 
 const globalState = globalThis as typeof globalThis & {
   __omnirouteModelSyncInternalAuthToken?: string;
+  __omnirouteModelSyncSchedulerTimer?: NodeJS.Timeout | null;
+  __omnirouteModelSyncStartupDelayTimer?: NodeJS.Timeout | null;
+  __omnirouteModelSyncRunning?: boolean;
 };
 
-let schedulerTimer: NodeJS.Timeout | null = null;
-let isRunning = false;
+let schedulerTimer: NodeJS.Timeout | null = globalState.__omnirouteModelSyncSchedulerTimer ?? null;
+let startupDelayTimer: NodeJS.Timeout | null =
+  globalState.__omnirouteModelSyncStartupDelayTimer ?? null;
+let isRunning = globalState.__omnirouteModelSyncRunning === true;
 let internalAuthToken: string | null = null;
+
+function setSchedulerTimer(timer: NodeJS.Timeout | null) {
+  schedulerTimer = timer;
+  globalState.__omnirouteModelSyncSchedulerTimer = timer;
+}
+
+function setStartupDelayTimer(timer: NodeJS.Timeout | null) {
+  startupDelayTimer = timer;
+  globalState.__omnirouteModelSyncStartupDelayTimer = timer;
+}
+
+function setIsRunning(value: boolean) {
+  isRunning = value;
+  globalState.__omnirouteModelSyncRunning = value;
+}
 
 function getInternalAuthToken(): string {
   if (!internalAuthToken) {
@@ -123,7 +144,7 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
     console.log("[ModelSync] Skipping cycle — previous run still in progress");
     return;
   }
-  isRunning = true;
+  setIsRunning(true);
   const start = Date.now();
 
   try {
@@ -154,7 +175,7 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
       // Non-critical
     }
   } finally {
-    isRunning = false;
+    setIsRunning(false);
   }
 }
 
@@ -167,7 +188,19 @@ export function startModelSyncScheduler(
   apiBaseUrl = INTERNAL_BASE_URL,
   intervalMs = DEFAULT_INTERVAL_MS
 ): void {
-  if (schedulerTimer) {
+  if (process.env.NODE_ENV !== "production" && !ENABLE_IN_DEV) {
+    console.log(
+      "[ModelSync] Auto-start disabled in development (set MODEL_SYNC_ENABLE_IN_DEV=true to override)"
+    );
+    return;
+  }
+
+  if (
+    globalState.__omnirouteModelSyncSchedulerTimer ||
+    globalState.__omnirouteModelSyncStartupDelayTimer
+  ) {
+    schedulerTimer = globalState.__omnirouteModelSyncSchedulerTimer ?? null;
+    startupDelayTimer = globalState.__omnirouteModelSyncStartupDelayTimer ?? null;
     console.log("[ModelSync] Scheduler already running — skipping start");
     return;
   }
@@ -180,21 +213,30 @@ export function startModelSyncScheduler(
   console.log(`[ModelSync] Scheduler started — interval: ${effectiveIntervalMs / 3_600_000}h`);
 
   // Run immediately on startup (staggered by 5s to avoid startup congestion)
-  const startupDelay = setTimeout(() => runSyncCycle(apiBaseUrl), 5_000);
+  const startupDelay = setTimeout(() => {
+    setStartupDelayTimer(null);
+    runSyncCycle(apiBaseUrl);
+  }, 5_000);
   startupDelay.unref?.();
+  setStartupDelayTimer(startupDelay);
 
   // Then run on the regular interval
-  schedulerTimer = setInterval(() => runSyncCycle(apiBaseUrl), effectiveIntervalMs);
-  schedulerTimer.unref?.();
+  const intervalTimer = setInterval(() => runSyncCycle(apiBaseUrl), effectiveIntervalMs);
+  intervalTimer.unref?.();
+  setSchedulerTimer(intervalTimer);
 }
 
 /**
  * Stop the model sync scheduler.
  */
 export function stopModelSyncScheduler(): void {
+  if (startupDelayTimer) {
+    clearTimeout(startupDelayTimer);
+    setStartupDelayTimer(null);
+  }
   if (schedulerTimer) {
     clearInterval(schedulerTimer);
-    schedulerTimer = null;
+    setSchedulerTimer(null);
     console.log("[ModelSync] Scheduler stopped");
   }
 }

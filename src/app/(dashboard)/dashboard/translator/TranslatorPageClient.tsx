@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { SegmentedControl } from "@/shared/components";
-import PlaygroundMode from "./components/PlaygroundMode";
-import ChatTesterMode from "./components/ChatTesterMode";
-import TestBenchMode from "./components/TestBenchMode";
-import LiveMonitorMode from "./components/LiveMonitorMode";
+import SegmentedControl from "@/shared/components/SegmentedControl";
+
+const PlaygroundMode = dynamic(() => import("./components/PlaygroundMode"));
+const ChatTesterMode = dynamic(() => import("./components/ChatTesterMode"));
+const TestBenchMode = dynamic(() => import("./components/TestBenchMode"));
+const LiveMonitorMode = dynamic(() => import("./components/LiveMonitorMode"));
 
 export default function TranslatorPageClient() {
   const t = useTranslations("translator");

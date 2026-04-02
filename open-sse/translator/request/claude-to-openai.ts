@@ -28,6 +28,15 @@ export function claudeToOpenAIRequest(model, body, stream) {
     result.temperature = body.temperature;
   }
 
+  // Preserve stateful Responses API conversation fields through the
+  // Claude -> OpenAI -> OpenAI Responses translation pipeline.
+  if (body.store !== undefined) {
+    result.store = body.store;
+  }
+  if (body.previous_response_id !== undefined) {
+    result.previous_response_id = body.previous_response_id;
+  }
+
   // System message
   if (body.system) {
     const systemContent = Array.isArray(body.system)

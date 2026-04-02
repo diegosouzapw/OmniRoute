@@ -31,6 +31,20 @@ const BACKOFF_SCHEDULE = [30_000, 60_000, 120_000, 300_000];
 const CHECK_TIMEOUT_MS = 5_000;
 const INITIAL_DELAY_MS = 15_000; // Wait for server boot before first sweep
 const LOG_PREFIX = "[LocalHealthCheck]";
+const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+
+function isEnvFlagEnabled(name: string): boolean {
+  const value = process.env[name];
+  if (!value) return false;
+  return TRUE_ENV_VALUES.has(value.trim().toLowerCase());
+}
+
+function isLocalHealthCheckDisabled(): boolean {
+  return (
+    process.env.NODE_ENV === "test" ||
+    (process.env.NODE_ENV === "development" && !isEnvFlagEnabled("LOCAL_HEALTHCHECK_ENABLE_IN_DEV"))
+  );
+}
 
 // ── State (globalThis survives HMR re-evaluation) ───────────────────────
 
@@ -212,7 +226,7 @@ export function getAllHealthStatuses(): Record<string, HealthStatus> {
 /** Start the health check scheduler (idempotent). */
 export function initLocalHealthCheck(): void {
   const state = getLHCState();
-  if (state.initialized) return;
+  if (state.initialized || isLocalHealthCheckDisabled()) return;
   state.initialized = true;
 
   console.log(
@@ -236,4 +250,14 @@ export function stopLocalHealthCheck(): void {
 }
 
 // Auto-initialize on first import (same pattern as tokenHealthCheck.ts:272)
-initLocalHealthCheck();
+if (
+  process.env.NODE_ENV === "development" &&
+  !isEnvFlagEnabled("LOCAL_HEALTHCHECK_ENABLE_IN_DEV")
+) {
+  console.log(
+    LOG_PREFIX,
+    "Auto-start disabled in development (set LOCAL_HEALTHCHECK_ENABLE_IN_DEV=true to enable)"
+  );
+} else {
+  initLocalHealthCheck();
+}

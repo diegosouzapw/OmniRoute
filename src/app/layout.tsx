@@ -1,11 +1,14 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
-import "@/lib/initCloudSync"; // Auto-initialize cloud sync
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
 import { getSettings } from "@/lib/db/settings";
+
+if (process.env.NODE_ENV !== "development") {
+  void import("@/lib/initCloudSync");
+}
 
 const inter = Inter({
   subsets: ["latin"],

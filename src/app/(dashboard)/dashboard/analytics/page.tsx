@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { UsageAnalytics, CardSkeleton, SegmentedControl } from "@/shared/components";
+import UsageAnalytics from "@/shared/components/UsageAnalytics";
+import { CardSkeleton } from "@/shared/components/Loading";
+import SegmentedControl from "@/shared/components/SegmentedControl";
 import EvalsTab from "../usage/components/EvalsTab";
 import SearchAnalyticsTab from "./SearchAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";

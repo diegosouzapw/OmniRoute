@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { SegmentedControl } from "@/shared/components";
+import SegmentedControl from "@/shared/components/SegmentedControl";
 import EndpointPageClient from "./EndpointPageClient";
 import McpDashboardPage from "./components/MCPDashboard";
 import A2ADashboardPage from "./components/A2ADashboard";

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
+import RequestLoggerV2 from "@/shared/components/RequestLoggerV2";
+import ProxyLogger from "@/shared/components/ProxyLogger";
+import SegmentedControl from "@/shared/components/SegmentedControl";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
 import AuditLogTab from "./AuditLogTab";
 import { useTranslations } from "next-intl";

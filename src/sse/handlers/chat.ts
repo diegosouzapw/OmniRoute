@@ -481,6 +481,7 @@ async function handleSingleModelChat(
       comboStrategy,
       isCombo,
       extendedContext,
+      sessionId: runtimeOptions.sessionId,
     });
     if (telemetry) telemetry.endPhase();
 
@@ -700,6 +701,7 @@ async function executeChatWithBreaker({
   comboStrategy,
   isCombo,
   extendedContext,
+  sessionId,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
 
@@ -718,6 +720,7 @@ async function executeChatWithBreaker({
           comboName,
           comboStrategy,
           isCombo,
+          sessionId,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

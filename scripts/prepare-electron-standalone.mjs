@@ -22,6 +22,7 @@ const STATIC_SRC = join(ROOT, ".next", "static");
 const STATIC_DEST = join(ELECTRON_STANDALONE_DIR, ".next", "static");
 const PUBLIC_SRC = join(ROOT, "public");
 const PUBLIC_DEST = join(ELECTRON_STANDALONE_DIR, "public");
+const NESTED_ELECTRON_DIST_DIR = join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron");
 
 function resolveStandaloneBundleDir() {
   const directServer = join(STANDALONE_DIR, "server.js");
@@ -119,6 +120,11 @@ cpSync(bundleDir, ELECTRON_STANDALONE_DIR, {
   recursive: true,
   dereference: true,
 });
+
+// Exclude previous Electron build artifacts from the standalone app bundle.
+// When dist-electron is traced into the Next standalone output, electron-builder
+// recursively packages old installers/unpacked apps inside the new app payload.
+rmSync(NESTED_ELECTRON_DIST_DIR, { recursive: true, force: true });
 
 sanitizeBuildPaths(bundleDir);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SegmentedControl } from "@/shared/components";
+import SegmentedControl from "@/shared/components/SegmentedControl";
 import BudgetTab from "../usage/components/BudgetTab";
 import PricingTab from "../settings/components/PricingTab";
 import { useTranslations } from "next-intl";

@@ -97,6 +97,13 @@ import {
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+import {
+  buildStatefulResponsesBody,
+  extractResponsesResponseId,
+  rememberPreviousResponseId,
+  supportsPreviousResponseId,
+} from "../services/responsesConversationState.ts";
+import { sanitizeClaudeContextForNonClaudeTarget } from "../services/claudeContextSanitizer.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -344,6 +351,7 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  sessionId = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
@@ -709,6 +717,10 @@ export async function handleChatCore({
 
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
+  let responsesStateMeta: {
+    previousResponseId: string | null;
+    trimmedMessages: boolean;
+  } | null = null;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   let ccSessionId: string | null = null;
@@ -914,11 +926,46 @@ export async function handleChatCore({
         model || "",
         sourceFormat
       );
+      let bodyForTranslation = translatedBody;
+      if (sourceFormat === FORMATS.CLAUDE && targetFormat !== FORMATS.CLAUDE) {
+        const sanitized = sanitizeClaudeContextForNonClaudeTarget(
+          translatedBody as Record<string, unknown>
+        );
+        bodyForTranslation = sanitized.body;
+        if (sanitized.strippedBlocks > 0) {
+          log?.debug?.(
+            "PROMPT",
+            `Stripped ${sanitized.strippedBlocks} Claude system-reminder block(s) for non-Claude target`
+          );
+        }
+      }
+      if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.OPENAI_RESPONSES) {
+        if (supportsPreviousResponseId(provider)) {
+          const statefulBody = buildStatefulResponsesBody(
+            bodyForTranslation as Record<string, unknown>,
+            sessionId
+          );
+          bodyForTranslation = statefulBody.body;
+          responsesStateMeta = {
+            previousResponseId: statefulBody.previousResponseId,
+            trimmedMessages: statefulBody.trimmedMessages,
+          };
+        } else {
+          responsesStateMeta = {
+            previousResponseId: null,
+            trimmedMessages: false,
+          };
+          log?.debug?.(
+            "RESPONSES",
+            `Stateful Responses disabled for provider=${provider || "unknown"} (previous_response_id unsupported)`
+          );
+        }
+      }
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
         model,
-        translatedBody,
+        bodyForTranslation,
         stream,
         credentials,
         provider,
@@ -962,6 +1009,22 @@ export async function handleChatCore({
     }
 
     return createErrorResult(statusCode, message);
+  }
+
+  if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.OPENAI_RESPONSES) {
+    if (!supportsPreviousResponseId(provider)) {
+      log?.debug?.(
+        "RESPONSES",
+        `Sending stateless Responses request for provider=${provider || "unknown"}`
+      );
+    } else if (responsesStateMeta?.previousResponseId) {
+      log?.debug?.(
+        "RESPONSES",
+        `Using previous_response_id=${responsesStateMeta.previousResponseId} | trimmed=${responsesStateMeta.trimmedMessages}`
+      );
+    } else {
+      log?.debug?.("RESPONSES", "Starting stateful Responses conversation with store=true");
+    }
   }
 
   // Extract toolNameMap for response translation (Claude OAuth)
@@ -1580,6 +1643,9 @@ export async function handleChatCore({
     if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
       responseBody = restoreClaudePassthroughToolNames(responseBody, toolNameMap);
     }
+    if (targetFormat === FORMATS.OPENAI_RESPONSES && sessionId) {
+      rememberPreviousResponseId(sessionId, extractResponsesResponseId(responseBody));
+    }
     reqLogger.logProviderResponse(
       providerResponse.status,
       providerResponse.statusText,
@@ -1775,6 +1841,14 @@ export async function handleChatCore({
     clientPayload,
     ttft,
   }) => {
+    if (targetFormat === FORMATS.OPENAI_RESPONSES && sessionId) {
+      rememberPreviousResponseId(
+        sessionId,
+        extractResponsesResponseId(providerPayload) ||
+          extractResponsesResponseId(streamResponseBody)
+      );
+    }
+
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
 
     // Track cache token metrics for streaming responses

@@ -275,11 +275,15 @@ function getStrategyMeta(strategy) {
 }
 
 function getStrategyLabel(t, strategy) {
-  return t(getStrategyMeta(strategy).labelKey);
+  return getI18nOrFallback(t, getStrategyMeta(strategy).labelKey, strategy);
 }
 
 function getStrategyDescription(t, strategy) {
-  return t(getStrategyMeta(strategy).descKey);
+  return getI18nOrFallback(
+    t,
+    getStrategyMeta(strategy).descKey,
+    STRATEGY_GUIDANCE_FALLBACK[strategy]?.when || strategy
+  );
 }
 
 function getStrategyBadgeClass(strategy) {
@@ -1667,8 +1671,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   key={s.value}
                   onClick={() => setStrategy(s.value)}
                   data-testid={`strategy-option-${s.value}`}
-                  title={t(s.descKey)}
-                  aria-label={`${getStrategyLabel(t, s.value)}. ${t(s.descKey)}`}
+                  title={getI18nOrFallback(
+                    t,
+                    s.descKey,
+                    STRATEGY_GUIDANCE_FALLBACK[s.value]?.when || s.value
+                  )}
+                  aria-label={`${getStrategyLabel(t, s.value)}. ${getI18nOrFallback(
+                    t,
+                    s.descKey,
+                    STRATEGY_GUIDANCE_FALLBACK[s.value]?.when || s.value
+                  )}`}
                   className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
                     strategy === s.value
                       ? "bg-white dark:bg-bg-main shadow-sm text-primary"

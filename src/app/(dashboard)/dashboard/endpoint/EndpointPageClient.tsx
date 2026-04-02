@@ -74,6 +74,10 @@ export default function APIPageClient({ machineId }) {
 
   const translateOrFallback = useCallback(
     (key: string, fallback: string, values?: TranslationValues) => {
+      if (typeof t.has === "function" && !t.has(key as never)) {
+        return fallback;
+      }
+
       try {
         const message = values ? t(key as never, values as never) : t(key as never);
         if (!message || message === key || message === `endpoint.${key}`) {

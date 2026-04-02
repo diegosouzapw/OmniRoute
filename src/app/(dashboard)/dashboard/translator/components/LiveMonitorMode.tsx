@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Badge } from "@/shared/components";
+import Card from "@/shared/components/Card";
+import Badge from "@/shared/components/Badge";
 import { FORMAT_META } from "../exampleTemplates";
 
 /**

@@ -31,12 +31,16 @@ const baseConfig: pino.LoggerOptions = {
   },
 };
 
-function getTransportCompatibleConfig(): pino.LoggerOptions {
-  const { formatters, ...rest } = baseConfig;
-  if (!formatters) return rest;
+function buildWorkerlessFileLogger(absLogPath: string, logLevel: string): pino.Logger {
+  const fileDestination = pino.destination({ dest: absLogPath, mkdir: true, sync: false });
 
-  const { level: _levelFormatter, ...safeFormatters } = formatters;
-  return Object.keys(safeFormatters).length > 0 ? { ...rest, formatters: safeFormatters } : rest;
+  return pino(
+    baseConfig,
+    pino.multistream([
+      { stream: process.stdout, level: logLevel as pino.Level },
+      { stream: fileDestination, level: logLevel as pino.Level },
+    ])
+  );
 }
 
 /**
@@ -46,7 +50,6 @@ function getTransportCompatibleConfig(): pino.LoggerOptions {
 function buildLogger(): pino.Logger {
   const logConfig = getLogConfig();
   const logLevel = (baseConfig.level as string) || "info";
-  const transportConfig = getTransportCompatibleConfig();
 
   // If file logging is enabled, set up dual transport (stdout + file)
   if (logConfig.logToFile) {
@@ -56,52 +59,9 @@ function buildLogger(): pino.Logger {
 
       // Resolve to absolute path for pino worker threads
       const absLogPath = resolve(logConfig.logFilePath);
-
-      if (isDev) {
-        // Dev: pino-pretty → stdout, JSON → file
-        return pino({
-          ...transportConfig,
-          transport: {
-            targets: [
-              {
-                target: "pino-pretty",
-                options: {
-                  colorize: true,
-                  translateTime: "HH:MM:ss.l",
-                  ignore: "pid,hostname,service",
-                  messageFormat: "[{module}] {msg}",
-                  destination: 1,
-                },
-                level: logLevel,
-              },
-              {
-                target: "pino/file",
-                options: { destination: absLogPath, mkdir: true },
-                level: logLevel,
-              },
-            ],
-          },
-        });
-      }
-
-      // Production: JSON → stdout + JSON → file
-      return pino({
-        ...transportConfig,
-        transport: {
-          targets: [
-            {
-              target: "pino/file",
-              options: { destination: 1 }, // stdout
-              level: logLevel,
-            },
-            {
-              target: "pino/file",
-              options: { destination: absLogPath, mkdir: true },
-              level: logLevel,
-            },
-          ],
-        },
-      });
+      // Avoid pino transport worker threads in Next/Electron server runtimes.
+      // Worker exits surface later as uncaught ThreadStream.write exceptions.
+      return buildWorkerlessFileLogger(absLogPath, logLevel);
     } catch (err) {
       // Log the actual error for diagnostics (issue #165)
       console.warn(

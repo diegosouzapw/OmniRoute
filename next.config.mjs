@@ -1,9 +1,24 @@
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+const allowedDevOrigins = [
+  "localhost",
+  "127.0.0.1",
+  "172.30.1.50",
+  "10.*",
+  "192.168.*",
+  ...Array.from({ length: 16 }, (_, index) => `172.${16 + index}.*`),
+];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: ["@lobehub/icons", "@lobehub/ui"],
+  },
+  onDemandEntries: {
+    pagesBufferLength: 40,
+    maxInactiveAge: 60 * 60 * 1000,
+  },
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
     resolveAlias: {
@@ -34,7 +49,7 @@ const nextConfig = {
     "util",
   ],
   transpilePackages: ["@omniroute/open-sse"],
-  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
+  allowedDevOrigins,
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,

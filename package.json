@@ -47,6 +47,8 @@
   "homepage": "https://omniroute.online",
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",
+    "dev:turbo": "cross-env OMNIROUTE_USE_TURBOPACK=1 node scripts/run-next.mjs dev",
+    "serve:compiled": "npm run build && npm run start",
     "build": "node scripts/build-next-isolated.mjs",
     "build:cli": "node scripts/prepublish.mjs",
     "start": "node scripts/run-next.mjs start",
@@ -84,10 +86,13 @@
     "system-info": "node scripts/system-info.mjs"
   },
   "dependencies": {
-    "@lobehub/icons": "^5.0.1",
+    "@lobehub/icons": "^5.2.0",
+    "@lobehub/fluent-emoji": "^4.1.0",
+    "@lobehub/ui": "^5.6.3",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@monaco-editor/react": "^4.7.0",
     "@swc/helpers": "0.5.19",
+    "antd": "^6.3.5",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "bottleneck": "^2.19.5",
