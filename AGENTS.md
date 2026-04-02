@@ -3,162 +3,256 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-(OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks, Cohere, etc.)
-with **MCP Server** (16 tools for agent control) and **A2A v0.3 Protocol** (Agent-to-Agent orchestration).
+with **60+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, and many more)
+with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js, ES Modules
-- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`)
+- **Runtime**: Next.js 16 (App Router), Node.js ≥18 <24, ES Modules (`"type": "module"`)
+- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
-- **Streaming**: SSE via `open-sse` internal package
+- **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
-- **Docker**: Multi-stage Dockerfile, 3 profiles (base / cli / host)
-- **i18n**: next-intl with 30 languages (`src/i18n/messages/`)
+- **i18n**: next-intl with 30 languages
+- **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
+- **Schemas**: Zod v4 for all API / MCP input validation
+
+---
+
+## Build, Lint, and Test Commands
+
+| Command                             | Description                       |
+| ----------------------------------- | --------------------------------- |
+| `npm run dev`                       | Start Next.js dev server          |
+| `npm run build`                     | Production build (isolated)       |
+| `npm run start`                     | Run production build              |
+| `npm run build:cli`                 | Build CLI package                 |
+| `npm run lint`                      | ESLint on all source files        |
+| `npm run typecheck:core`            | TypeScript core type checking     |
+| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any) |
+| `npm run check`                     | Run lint + test                   |
+| `npm run check:cycles`              | Check for circular dependencies   |
+| `npm run electron:dev`              | Run Electron app in dev mode      |
+| `npm run electron:build`            | Build Electron app for current OS |
+
+### Running Tests
+
+```bash
+# All tests (unit + vitest + ecosystem + e2e)
+npm run test:all
+
+# Single test file (Node.js native test runner — most tests use this)
+node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/plan3-p0.test.mjs
+node --import tsx/esm --test tests/unit/fixes-p1.test.mjs
+node --import tsx/esm --test tests/unit/security-fase01.test.mjs
+
+# Integration tests
+node --import tsx/esm --test tests/integration/*.test.mjs
+
+# Vitest (MCP server, autoCombo)
+npm run test:vitest
+
+# E2E with Playwright
+npm run test:e2e
+
+# Protocol clients E2E (MCP transports, A2A)
+npm run test:protocols:e2e
+
+# Ecosystem compatibility tests
+npm run test:ecosystem
+
+# Coverage (55% min thresholds — statements, lines, functions; 60% branches)
+npm run test:coverage
+```
+
+---
+
+## Code Style Guidelines
+
+### Formatting (Prettier — enforced via lint-staged)
+
+2 spaces · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
+Always run `prettier --write` on changed files.
+
+### TypeScript
+
+- **Target**: ES2022 · **Module**: `esnext` · **Resolution**: `bundler`
+- `strict: false` — prefer explicit types, don't rely on inference
+- Path aliases: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+
+### ESLint Rules
+
+- **Security (error, everywhere)**: `no-eval`, `no-implied-eval`, `no-new-func`
+- **Relaxed in `open-sse/` and `tests/`**: `@typescript-eslint/no-explicit-any` = warn
+- React hooks rules and `@next/next/no-assign-module-variable` disabled in `open-sse/` and `tests/`
+
+### Naming
+
+| Element             | Convention                       | Example                              |
+| ------------------- | -------------------------------- | ------------------------------------ |
+| Files               | camelCase / kebab-case           | `chatCore.ts`, `tokenHealthCheck.ts` |
+| React components    | PascalCase                       | `Dashboard.tsx`, `ProviderCard.tsx`  |
+| Functions/variables | camelCase                        | `getHealth()`, `switchCombo()`       |
+| Constants           | UPPER_SNAKE                      | `MAX_RETRIES`, `DEFAULT_TIMEOUT`     |
+| Interfaces          | PascalCase (`I` prefix optional) | `ProviderConfig`                     |
+| Enums               | PascalCase (members too)         | `LogLevel.Error`                     |
+
+### Imports
+
+- **Order**: external → internal (`@/`, `@omniroute/open-sse`) → relative (`./`, `../`)
+- **No barrel imports** from `localDb.ts` — import from the specific `db/` module instead
+
+### Error Handling
+
+- try/catch with specific error types; always log with context (pino logger)
+- Never silently swallow errors in SSE streams — use abort signals for cleanup
+- Return proper HTTP status codes (4xx client, 5xx server)
+
+### Security
+
+- **NEVER** commit API keys, secrets, or credentials
+- Validate all user inputs with Zod schemas
+- Auth middleware required on all API routes
+- Never log SQLite encryption keys
+- Sanitize user content (dompurify for HTML)
+
+---
 
 ## Architecture
 
 ### Data Layer (`src/lib/db/`)
 
 All persistence uses SQLite through domain-specific modules:
-
-| Module         | Responsibility                             |
-| -------------- | ------------------------------------------ |
-| `core.ts`      | SQLite engine, migrations, WAL, encryption |
-| `providers.ts` | Provider connections & nodes               |
-| `models.ts`    | Model aliases, MITM aliases, custom models |
-| `combos.ts`    | Combo configurations                       |
-| `apiKeys.ts`   | API key management & validation            |
-| `settings.ts`  | Settings, pricing, proxy config            |
-| `backup.ts`    | Backup / restore operations                |
-
-`src/lib/localDb.ts` is a **re-export layer only** — all 27+ consumers import from it,
-but the real logic lives in `src/lib/db/`.
+`core.ts`, `providers.ts`, `models.ts`, `combos.ts`, `apiKeys.ts`, `settings.ts`,
+`backup.ts`, `proxies.ts`, `prompts.ts`, `webhooks.ts`, `detailedLogs.ts`,
+`domainState.ts`, `registeredKeys.ts`, `quotaSnapshots.ts`, `modelComboMappings.ts`,
+`cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`.
+Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
+`src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
 ### Request Pipeline (`open-sse/`)
 
-| Handler                 | Role                                        |
-| ----------------------- | ------------------------------------------- |
-| `chatCore.js`           | Main chat completions proxy (SSE / non-SSE) |
-| `responsesHandler.js`   | OpenAI Responses API compat                 |
-| `responseTranslator.js` | Format translation for Responses API        |
-| `embeddings.js`         | Embedding proxy                             |
-| `imageGeneration.js`    | Image generation proxy                      |
-| `sseParser.js`          | SSE stream parser                           |
-| `usageExtractor.js`     | Token usage extraction from responses       |
+`chatCore.ts` → executor → upstream provider. Translations in `open-sse/translator/`.
 
-Translation between provider formats: `open-sse/translator/`
+**Handlers** (`open-sse/handlers/`): `chatCore.ts`, `responsesHandler.ts`, `embeddings.ts`,
+`imageGeneration.ts`, `videoGeneration.ts`, `musicGeneration.ts`, `audioSpeech.ts`,
+`audioTranscription.ts`, `moderations.ts`, `rerank.ts`, `search.ts`.
 
-**Upstream model extra headers** (`compatByProtocol` / custom models): merged in executors after default auth; **same header name replaces** the executor value (e.g. custom `Authorization` overrides Bearer). In `open-sse/handlers/chatCore.ts`, the primary request merges headers for **both** the client model id and `resolveModelAlias(clientModel)` (resolved id wins on key conflicts). **T5 intra-family fallback** recomputes headers using only the fallback model id and `resolveModelAlias(fallback)` so sibling models do not inherit another model’s headers. Forbidden header names live in `src/shared/constants/upstreamHeaders.ts` — keep sanitize (`models.ts`), Zod (`schemas.ts`), and unit tests aligned when editing that list.
+**Upstream headers**: merged after default auth; same header name replaces executor value.
+**T5 intra-family fallback** recomputes headers using only the fallback model id.
+Forbidden header names: `src/shared/constants/upstreamHeaders.ts` — keep sanitize,
+Zod schemas, and unit tests aligned when editing.
+
+### Provider Categories
+
+- **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
+- **OAuth** (8): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline
+- **API Key** (48+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
+  Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
+  HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
+  Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
+  Z.AI, GLM, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld,
+  NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper, Brave, Exa,
+  Tavily, OpenCode Zen/Go, Bailian Coding Plan, and more.
+- **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
+
+Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.
+
+### Executors (`open-sse/executors/`)
+
+Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `codex.ts`,
+`antigravity.ts`, `github.ts`, `gemini-cli.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
+`cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
+
+### Translator (`open-sse/translator/`)
+
+Translates between API formats (OpenAI-format ↔ Anthropic, Gemini, etc.).
+Includes request/response translators with helpers for image handling.
+
+### Transformer (`open-sse/transformer/`)
+
+`responsesTransformer.ts` — transforms Responses API format to/from Chat Completions format.
+
+### Services (`open-sse/services/`)
+
+36+ service modules including: `combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
+`rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
+`autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
+`contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
+`emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
+`signatureCache.ts`, `volumeDetector.ts`, and more.
+
+### Domain Layer (`src/domain/`)
+
+Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
+`degradation.ts`, `fallbackPolicy.ts`, `lockoutPolicy.ts`, `modelAvailability.ts`,
+`providerExpiration.ts`, `quotaCache.ts`, `responses.ts`, `configAudit.ts`.
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-16 tools for AI agent control via **3 transport modes**:
+25 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
-- **stdio** — Local IDE integration (Claude Desktop, Cursor, VS Code)
-- **SSE** — Remote Server-Sent Events at `/api/mcp/sse`
-- **Streamable HTTP** — Modern bidirectional HTTP at `/api/mcp/stream`
+**Core tools** (18): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
+set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
+best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
 
-HTTP transports run in-process via `httpTransport.ts` singleton using `WebStandardStreamableHTTPServerTransport`.
+**Memory tools** (3): memory_search, memory_add, memory_clear.
 
-| Category  | Tools                                                                                                                                                                |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Essential | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`                               |
-| Advanced  | `simulate_route`, `set_budget_guard`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot` |
-
-- Scoped authorization (9 scopes), audit logging, Zod schemas
-- IDE configs for Claude Desktop, Cursor, VS Code Copilot
+**Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
 
 ### A2A Server (`src/lib/a2a/`)
 
-Agent-to-Agent v0.3 protocol:
+JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup(
+Agent Card at `/.well-known/agent.json`.
+Skills: `quotaManagement.ts`, `smartRouting.ts`.
 
-- JSON-RPC 2.0: `message/send`, `message/stream`, `tasks/get`, `tasks/cancel`
-- Agent Card at `/.well-known/agent.json`
-- Skills: `smart-routing`, `quota-management`
-- SSE streaming with 15s heartbeat
-- Task Manager with state machine and TTL-based cleanup
+### ACP Module (`src/lib/acp/`)
 
-### Auto-Combo Engine (`open-sse/services/autoCombo/`)
+Agent Communication Protocol registry and manager.
 
-Self-healing routing optimization:
+### Memory System (`src/lib/memory/`)
 
-- 6-factor scoring, 4 mode packs, bandit exploration
-- Progressive cooldown, probe-based re-admission
+Extraction, injection, retrieval, summarization, and store modules for persistent
+conversational memory across sessions.
 
-### Dashboard (`src/app/(dashboard)/`)
+### Skills System (`src/lib/skills/`)
 
-| Page                     | Description                                                     |
-| ------------------------ | --------------------------------------------------------------- |
-| `/dashboard`             | Home with quick start, provider overview                        |
-| `/dashboard/endpoint`    | **Endpoints** (tabbed): Endpoint Proxy, MCP, A2A, API Endpoints |
-| `/dashboard/providers`   | Provider management and connections                             |
-| `/dashboard/combos`      | Combo configurations with routing strategies                    |
-| `/dashboard/logs`        | Request, Proxy, Audit, Console logs (tabbed)                    |
-| `/dashboard/analytics`   | Usage analytics and evaluations                                 |
-| `/dashboard/costs`       | Cost tracking and breakdown                                     |
-| `/dashboard/health`      | Uptime, circuit breakers, latency                               |
-| `/dashboard/cli-tools`   | CLI tool integrations (Claude, Codex, Antigravity, etc.)        |
-| `/dashboard/media`       | Image, Video, Music generation playground                       |
-| `/dashboard/settings`    | System settings with multiple tabs                              |
-| `/dashboard/api-manager` | API key management with model permissions                       |
+Extensible skill framework: registry, executor, sandbox, built-in skills,
+custom skill support, interception, and injection.
 
-### OAuth & Tokens (`src/lib/oauth/`)
+### Compliance (`src/lib/compliance/`)
 
-18 modules handling OAuth flows, token refresh, and provider credentials.
-Default credentials are hardcoded in `src/lib/oauth/constants/oauth.ts`,
-overridable via env vars or `data/provider-credentials.json`.
+Policy index for compliance enforcement.
 
-### Supporting Systems
+### MITM Proxy (`src/mitm/`)
 
-| System                     | Location                                          |
-| -------------------------- | ------------------------------------------------- |
-| Usage tracking & analytics | `src/lib/usageDb.ts`, `src/lib/usageAnalytics.ts` |
-| Token health checks        | `src/lib/tokenHealthCheck.ts`                     |
-| Cloud sync                 | `src/lib/cloudSync.ts`                            |
-| Proxy logging              | `src/lib/proxyLogger.ts`                          |
-| Data paths resolution      | `src/lib/dataPaths.ts`                            |
+MITM proxy capability with certificate management, DNS handling, and target routing.
+
+### Middleware (`src/middleware/`)
+
+Request middleware including `promptInjectionGuard.ts`.
 
 ### Adding a New Provider
 
 1. Register in `src/shared/constants/providers.ts`
-2. Add executor in `open-sse/executors/`
-3. Add translator rules in `open-sse/translator/` (if non-OpenAI format)
+2. Add executor in `open-sse/executors/` (if custom logic needed)
+3. Add translator in `open-sse/translator/` (if non-OpenAI format)
 4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` (if OAuth-based)
+5. Add models in `open-sse/config/providerRegistry.ts`
+
+---
 
 ## Review Focus
 
-### Security
-
-- No hardcoded API keys or secrets in commits
-- Auth middleware on all API routes
-- Input validation on user-facing endpoints (Zod schemas)
-- SQLite encryption key must not be logged
-
-### Architecture
-
-- DB operations go through `src/lib/db/` modules, never raw SQL in routes
-- Provider requests flow through `open-sse/handlers/`
-- Translations use `open-sse/translator/` modules
-- `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module
-- MCP and A2A pages are embedded as tabs inside `/dashboard/endpoint`, not standalone routes
-
-### Code Quality
-
-- Consistent error handling with try/catch
-- Proper HTTP status codes
-- No memory leaks in SSE streams (abort signals, cleanup)
-- Rate limit headers must be parsed correctly
-- All API inputs validated with Zod schemas
-
-### Docker
-
-- Dockerfile has two targets: `runner-base` and `runner-cli`
-- `docker-compose.yml` — development (3 profiles)
-- `docker-compose.prod.yml` — isolated production instance (port 20130)
-- Data persists in named volumes (`omniroute-data` / `omniroute-prod-data`)
-
-### Review Mode
-
-- Provide analysis and suggestions only
-- Focus on bugs, security, performance, and best practices
+- **DB ops** go through `src/lib/db/` modules, never raw SQL in routes
+- **Provider requests** flow through `open-sse/handlers/`
+- **MCP/A2A pages** are tabs inside `/dashboard/endpoint`, not standalone routes
+- **No memory leaks** in SSE streams (abort signals, cleanup)
+- **Rate limit headers** must be parsed correctly
+- All API inputs validated with **Zod schemas**
+- **Provider constants** validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
+- **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills

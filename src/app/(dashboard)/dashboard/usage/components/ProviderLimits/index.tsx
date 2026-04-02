@@ -17,10 +17,8 @@ import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
-const LS_AUTO_REFRESH = "omniroute:limits:autoRefresh";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 
-const REFRESH_INTERVAL_MS = 120000;
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
@@ -84,13 +82,8 @@ export default function ProviderLimits() {
   const [quotaData, setQuotaData] = useState({});
   const [loading, setLoading] = useState({});
   const [errors, setErrors] = useState({});
-  const [autoRefresh, setAutoRefresh] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(LS_AUTO_REFRESH) === "true";
-  });
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Record<string, string>>({});
   const [refreshingAll, setRefreshingAll] = useState(false);
-  const [countdown, setCountdown] = useState(120);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
   const [groupBy, setGroupBy] = useState<"none" | "environment">(() => {
@@ -109,8 +102,6 @@ export default function ProviderLimits() {
     }
   });
 
-  const intervalRef = useRef(null);
-  const countdownRef = useRef(null);
   const lastFetchTimeRef = useRef({});
   const staleProbeRef = useRef({});
 
@@ -125,6 +116,41 @@ export default function ProviderLimits() {
     } catch {
       setConnections([]);
       return [];
+    }
+  }, []);
+
+  const applyCachedQuotaState = useCallback((connectionList, caches) => {
+    const nextQuotaData = {};
+    const nextLastRefreshedAt = {};
+
+    for (const conn of connectionList) {
+      const cached = caches?.[conn.id];
+      if (!cached) continue;
+
+      nextQuotaData[conn.id] = {
+        quotas: parseQuotaData(conn.provider, cached),
+        plan: cached.plan || null,
+        message: cached.message || null,
+        raw: cached,
+      };
+
+      if (cached.fetchedAt) {
+        nextLastRefreshedAt[conn.id] = cached.fetchedAt;
+      }
+    }
+
+    setQuotaData(nextQuotaData);
+    setLastRefreshedAt(nextLastRefreshedAt);
+  }, []);
+
+  const fetchCachedProviderLimits = useCallback(async () => {
+    try {
+      const response = await fetch("/api/usage/provider-limits");
+      if (!response.ok) throw new Error("Failed");
+      const data = await response.json();
+      return data.caches || {};
+    } catch {
+      return {};
     }
   }, []);
 
@@ -207,72 +233,39 @@ export default function ProviderLimits() {
   const refreshAll = useCallback(async () => {
     if (refreshingAll) return;
     setRefreshingAll(true);
-    setCountdown(120);
     try {
-      const conns = await fetchConnections();
-
-      // Show table layout immediately once connections are loaded (Issue #784)
-      setInitialLoading(false);
-
-      const usageConnections = conns.filter(
-        (conn) =>
-          USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
-          (conn.authType === "oauth" || conn.authType === "apikey")
-      );
-      // Fix: Fetch quotas in chunks of 5 to avoid spamming the backend/provider APIs and hanging the UI.
-      const chunkSize = 5;
-      for (let i = 0; i < usageConnections.length; i += chunkSize) {
-        const chunk = usageConnections.slice(i, i + chunkSize);
-        await Promise.all(chunk.map((conn) => fetchQuota(conn.id, conn.provider, { force: true })));
+      const response = await fetch("/api/usage/provider-limits", { method: "POST" });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.error || response.statusText;
+        throw new Error(errorMsg);
       }
+
+      const data = await response.json();
+      const connectionList = await fetchConnections();
+      applyCachedQuotaState(connectionList, data.caches || {});
+      setErrors(data.errors || {});
     } catch (error) {
       console.error("Error refreshing all:", error);
     } finally {
       setRefreshingAll(false);
-      setInitialLoading(false); // Fallback to ensure skeleton is cleared
     }
-  }, [refreshingAll, fetchConnections, fetchQuota]);
+  }, [refreshingAll, applyCachedQuotaState, fetchConnections]);
 
   useEffect(() => {
     const init = async () => {
       setInitialLoading(true);
-      // No longer await refreshAll here so we don't block the UI
-      refreshAll();
+      const [connectionList, caches] = await Promise.all([
+        fetchConnections(),
+        fetchCachedProviderLimits(),
+      ]);
+      applyCachedQuotaState(connectionList, caches);
+      setInitialLoading(false);
     };
-    init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!autoRefresh) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
-      return;
-    }
-    intervalRef.current = setInterval(refreshAll, REFRESH_INTERVAL_MS);
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => (prev <= 1 ? 120 : prev - 1));
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, [autoRefresh, refreshAll]);
-
-  useEffect(() => {
-    const handler = () => {
-      if (document.hidden) {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        if (countdownRef.current) clearInterval(countdownRef.current);
-      } else if (autoRefresh) {
-        intervalRef.current = setInterval(refreshAll, REFRESH_INTERVAL_MS);
-        countdownRef.current = setInterval(() => {
-          setCountdown((prev) => (prev <= 1 ? 120 : prev - 1));
-        }, 1000);
-      }
-    };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
-  }, [autoRefresh, refreshAll]);
+    init().catch(() => {
+      setInitialLoading(false);
+    });
+  }, [applyCachedQuotaState, fetchCachedProviderLimits, fetchConnections]);
 
   const filteredConnections = useMemo(
     () =>
@@ -463,26 +456,6 @@ export default function ProviderLimits() {
           </div>
 
           <button
-            onClick={() => {
-              const next = !autoRefresh;
-              setAutoRefresh(next);
-              localStorage.setItem(LS_AUTO_REFRESH, String(next));
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-transparent cursor-pointer text-text-main text-[13px]"
-          >
-            <span
-              className="material-symbols-outlined text-[18px]"
-              style={{
-                color: autoRefresh ? "#22c55e" : "var(--text-muted)",
-              }}
-            >
-              {autoRefresh ? "toggle_on" : "toggle_off"}
-            </span>
-            {t("autoRefresh")}
-            {autoRefresh && <span className="text-xs text-text-muted">({countdown}s)</span>}
-          </button>
-
-          <button
             onClick={refreshAll}
             disabled={refreshingAll}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -619,7 +592,9 @@ export default function ProviderLimits() {
                     <div className="text-xs text-text-muted italic">{quota.message}</div>
                   ) : quota?.quotas?.length > 0 ? (
                     quota.quotas.map((q, i) => {
-                      const remainingPercentage = calculatePercentage(q.used, q.total);
+                      const remainingPercentage = q.unlimited
+                        ? 100
+                        : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
                       const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
                       const shortName = formatQuotaLabel(q.name);

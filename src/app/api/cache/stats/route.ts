@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getPromptCache } from "@/lib/cacheLayer";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const cache = getPromptCache();
     const stats = (cache as any).getStats();
@@ -11,7 +16,11 @@ export async function GET() {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const cache = getPromptCache();
     (cache as any).clear();

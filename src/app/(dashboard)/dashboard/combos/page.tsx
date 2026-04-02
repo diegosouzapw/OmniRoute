@@ -1450,10 +1450,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const PAID_PREMIUM_PRESET_MODELS = [
     { model: "cu/claude-4.6-opus-high", weight: 0 },
-    { model: "ag/claude-sonnet-4-6", weight: 0 },
+    { model: "antigravity/claude-sonnet-4-6", weight: 0 },
     { model: "cu/claude-4.6-sonnet-high", weight: 0 },
-    { model: "ag/gpt-5", weight: 0 },
-    { model: "ag/gemini-3.1-pro-preview", weight: 0 },
+    { model: "antigravity/gemini-3.1-pro-high", weight: 0 },
+    { model: "antigravity/gemini-3-pro-high", weight: 0 },
   ];
 
   const applyTemplate = (template) => {

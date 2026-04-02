@@ -1,5 +1,11 @@
 import { PROVIDERS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import {
+  buildClaudeCodeCompatibleHeaders,
+  CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+  joinBaseUrlAndPath,
+  stripAnthropicMessagesSuffix,
+} from "./claudeCodeCompatible.ts";
 
 const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 const OPENAI_COMPATIBLE_DEFAULTS = {
@@ -7,6 +13,7 @@ const OPENAI_COMPATIBLE_DEFAULTS = {
 };
 
 const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
+const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 const ANTHROPIC_COMPATIBLE_DEFAULTS = {
   baseUrl: "https://api.anthropic.com/v1",
 };
@@ -17,6 +24,10 @@ function isOpenAICompatible(provider) {
 
 function isAnthropicCompatible(provider) {
   return typeof provider === "string" && provider.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
+}
+
+export function isClaudeCodeCompatible(provider) {
+  return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
 
 function getOpenAICompatibleType(provider) {
@@ -49,7 +60,10 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
     return "claude";
   }
 
-  if (/\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) || /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)) {
+  if (
+    /\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) ||
+    /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)
+  ) {
     return "openai";
   }
 
@@ -190,6 +204,9 @@ export function buildProviderUrl(
   }
   if (isAnthropicCompatible(provider)) {
     const baseUrl = options?.baseUrl || ANTHROPIC_COMPATIBLE_DEFAULTS.baseUrl;
+    if (isClaudeCodeCompatible(provider)) {
+      return joinBaseUrlAndPath(baseUrl, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
+    }
     return buildAnthropicCompatibleUrl(baseUrl);
   }
 
@@ -220,6 +237,7 @@ export function buildProviderUrl(
 
 // Build provider headers
 export function buildProviderHeaders(provider, credentials, stream = true, body = null) {
+  void body;
   const config = getProviderConfig(provider);
   const entry = getRegistryEntry(provider);
   const headers = {
@@ -229,6 +247,14 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
 
   // Add auth header
   // Specific override for Anthropic Compatible
+  if (isClaudeCodeCompatible(provider)) {
+    const token = credentials.apiKey || credentials.accessToken || "";
+    return buildClaudeCodeCompatibleHeaders(
+      token,
+      stream,
+      credentials?.providerSpecificData?.ccSessionId
+    );
+  }
   if (isAnthropicCompatible(provider)) {
     if (credentials.apiKey) {
       headers["x-api-key"] = credentials.apiKey;

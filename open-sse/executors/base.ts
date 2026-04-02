@@ -261,7 +261,7 @@ export class BaseExecutor {
         }
       }
 
-      const transformedBody = this.transformRequest(model, body, stream, credentials);
+      const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
       try {
         // Apply timeout to all requests. Non-streaming requests need this to prevent

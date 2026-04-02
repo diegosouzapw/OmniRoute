@@ -7,6 +7,7 @@ import {
 } from "@/models";
 import { APIKEY_PROVIDERS } from "@/shared/constants/config";
 import {
+  isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
@@ -97,7 +98,14 @@ export async function POST(request: Request) {
     } else if (isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);
       if (!node) {
-        return NextResponse.json({ error: "Anthropic Compatible node not found" }, { status: 404 });
+        return NextResponse.json(
+          {
+            error: isClaudeCodeCompatibleProvider(provider)
+              ? "CC Compatible node not found"
+              : "Anthropic Compatible node not found",
+          },
+          { status: 404 }
+        );
       }
 
       const existingConnections = await getProviderConnections({ provider });

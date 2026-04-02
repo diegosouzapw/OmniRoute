@@ -12,7 +12,7 @@ import { z } from "zod";
 
 export const ProviderSchema = z.object({
   id: z.string().min(1),
-  alias: z.string().min(1),
+  alias: z.string().min(1).optional(),
   name: z.string().min(1),
   icon: z.string().min(1),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color (#RRGGBB)"),

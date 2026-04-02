@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 
+function getTimeRangeSelector(page: import("@playwright/test").Page) {
+  return page.getByRole("tablist", { name: /select time range/i }).first();
+}
+
 test.describe("Analytics Tabs UI", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("**/api/usage/analytics", async (route) => {
@@ -184,7 +188,7 @@ test.describe("Analytics Tabs UI", () => {
     const mainContent = page.locator('main, [class*="dashboard"], div[class*="container"]').first();
     await expect(mainContent).toBeVisible();
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = getTimeRangeSelector(page);
     await expect(timeRangeSelector).toBeVisible();
 
     const metricElements = page
@@ -220,7 +224,7 @@ test.describe("Analytics Tabs UI", () => {
       }
     });
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = getTimeRangeSelector(page);
     const sevenDayButton = timeRangeSelector
       .locator('button[role="tab"]')
       .filter({ hasText: "7d" })
@@ -289,7 +293,7 @@ test.describe("Analytics Tabs UI", () => {
     await comboHealthTab.click();
     await page.waitForTimeout(300);
 
-    const timeRangeSelector = page.locator('[aria-label="시간 범위 선택"]');
+    const timeRangeSelector = getTimeRangeSelector(page);
     await expect(timeRangeSelector).toBeVisible();
 
     await utilizationTab.click();

@@ -33,3 +33,27 @@ test("classifyProviderError: 429 without billing signal => RATE_LIMITED", () => 
   const result = classifyProviderError(429, { error: { message: "too many requests" } });
   assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
 });
+
+test("classifyProviderError: 403 with 'has not been used in project' => PROJECT_ROUTE_ERROR (transient)", () => {
+  const result = classifyProviderError(403, {
+    error: {
+      message: "Cloud Code Private API has not been used in project 12345 before or it is disabled.",
+    },
+  });
+  assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);
+});
+
+test("classifyProviderError: 403 plain => FORBIDDEN (terminal)", () => {
+  const result = classifyProviderError(403, {
+    error: { message: "The caller does not have permission" },
+  });
+  assert.equal(result, PROVIDER_ERROR_TYPES.FORBIDDEN);
+});
+
+test("classifyProviderError: 403 with project string as plain string body => PROJECT_ROUTE_ERROR", () => {
+  const body = JSON.stringify({
+    error: { message: "API has not been used in project abc-xyz before" },
+  });
+  const result = classifyProviderError(403, body);
+  assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);
+});

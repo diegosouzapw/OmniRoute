@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderNodeById } from "@/models";
 import {
+  isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
@@ -37,7 +38,11 @@ export async function POST(request) {
     if (isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);
       if (!node) {
-        const typeName = isOpenAICompatibleProvider(provider) ? "OpenAI" : "Anthropic";
+        const typeName = isOpenAICompatibleProvider(provider)
+          ? "OpenAI"
+          : isClaudeCodeCompatibleProvider(provider)
+            ? "CC"
+            : "Anthropic";
         return NextResponse.json(
           { error: `${typeName} Compatible node not found` },
           { status: 404 }
@@ -47,6 +52,8 @@ export async function POST(request) {
         ...providerSpecificData,
         baseUrl: node.baseUrl,
         apiType: node.apiType,
+        chatPath: node.chatPath,
+        modelsPath: node.modelsPath,
       };
     }
 

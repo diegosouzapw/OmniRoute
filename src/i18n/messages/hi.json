@@ -58,7 +58,85 @@
     "free": "निःशुल्क",
     "skipToContent": "सामग्री पर जाएं",
     "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
-    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "Failed to reset pricing": "Failed to reset pricing",
+    "hex": "Hex",
+    "tool": "Tool",
+    "musicGeneration": "Music Generation",
+    "Failed to save pricing": "Failed to save pricing",
+    "error_description": "Error Description",
+    "windowMs": "Window (ms)",
+    "content-type": "Content Type",
+    "http": "HTTP",
+    "text": "Text",
+    "sortOrder": "Sort Order",
+    "musicDesc": "Music Description",
+    "oauth": "OAuth",
+    "file": "File",
+    "textarea": "Textarea",
+    "host": "Host",
+    "chat-completions": "Chat Completions",
+    "better-sqlite3": "better-sqlite3",
+    "connectionId": "Connection ID",
+    "open": "Open",
+    "skill": "Skill",
+    "content-length": "Content Length",
+    "scope_id": "Scope ID",
+    "accept": "Accept",
+    "apiKeyName": "API Key Name",
+    "resolveConnectionId": "Resolve Connection ID",
+    "scope": "Scope",
+    "selfsigned": "Self-signed",
+    "builder-id": "Builder ID",
+    "toolId": "Tool ID",
+    "apiKeyId": "API Key ID",
+    "promptTokens": "Prompt Tokens",
+    "cloud-status-changed": "Cloud status changed",
+    "sortBy": "Sort By",
+    "code": "Code",
+    "redirect_uri": "Redirect URI",
+    "alias": "Alias",
+    "id": "ID",
+    "social-github": "GitHub",
+    "jwtSecret": "JWT Secret",
+    "TOOL_DENYLIST": "Tool Denylist",
+    "scopeId": "Scope ID",
+    "totalTokens": "Total Tokens",
+    "proxy_id": "Proxy ID",
+    "idempotency-key": "Idempotency Key",
+    "TOOL_ALLOWLIST": "Tool Allowlist",
+    "apiKeySecret": "API Key Secret",
+    "social-google": "Google",
+    "tab": "Tab",
+    "keytar": "Keytar",
+    "where_used": "Where Used",
+    "resolve_connection_id": "Resolve Connection ID",
+    "offset": "Offset",
+    "crypto": "Crypto",
+    "compatible": "Compatible",
+    "base64url": "Base64 URL",
+    "undici": "undici",
+    "import": "Import",
+    "blacklist": "Blacklist",
+    "apikey": "API Key",
+    "resolve": "Resolve",
+    "whitelist": "Whitelist",
+    "whereUsed": "Where Used",
+    "accountId": "Account ID",
+    "component": "Component",
+    "authorization": "Authorization",
+    "force": "Force",
+    "idc": "IDC",
+    "rawModel": "Raw Model",
+    "origin": "Origin",
+    "web": "Web",
+    "cookie": "Cookie",
+    "completionTokens": "Completion Tokens",
+    "range": "Range",
+    "proxyId": "Proxy ID",
+    "auth_token": "Auth Token",
+    "limit": "Limit",
+    "hours": "Hours"
   },
   "sidebar": {
     "home": "घर",
@@ -109,7 +187,12 @@
     "autoCombo": "Auto Combo",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Themes",
@@ -181,7 +264,11 @@
     "requestsShort": "{count} अनुरोध",
     "providerModelsTitle": "{provider} - मॉडल",
     "copiedModel": "कॉपी किया गया: {model}",
-    "aliasLabel": "उपनाम"
+    "aliasLabel": "उपनाम",
+    "updateStarted": "Update started...",
+    "updateNow": "Update Now",
+    "updateAvailableDesc": "A new version is available. Click to update.",
+    "updating": "Updating..."
   },
   "analytics": {
     "title": "विश्लेषिकी",
@@ -543,6 +630,9 @@
             "title": "मॉडल कॉन्फ़िगरेशन जोड़ें",
             "desc": "अपने मॉडल सरणी में निम्नलिखित कॉन्फ़िगरेशन जोड़ें:"
           }
+        },
+        "notes": {
+          "0": "Continue uses JSON config file."
         }
       },
       "opencode": {
@@ -560,7 +650,15 @@
           },
           "4": {
             "title": "Select Model"
+          },
+          "5": {
+            "title": "Use Thinking Variant",
+            "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
+        },
+        "notes": {
+          "0": "OpenCode uses TOML config.",
+          "1": "Setup your API key via environment variable."
         }
       },
       "kiro": {
@@ -578,6 +676,33 @@
           },
           "4": {
             "title": "Select Model"
+          }
+        },
+        "notes": {
+          "0": "Kiro CLI uses YAML config."
+        }
+      },
+      "windsurf": {
+        "steps": {
+          "1": {
+            "title": "Open AI Settings",
+            "desc": "Click the AI Settings icon in Windsurf or go to Settings"
+          },
+          "2": {
+            "title": "Add Custom Provider",
+            "desc": "Select \"Add custom provider\" (OpenAI-compatible)"
+          },
+          "3": {
+            "title": "Base URL",
+            "desc": "http://127.0.0.1:20128/v1"
+          },
+          "4": {
+            "title": "API Key",
+            "desc": "Select your OmniRoute API key"
+          },
+          "5": {
+            "title": "Select Model",
+            "desc": "Choose a model from the dropdown"
           }
         }
       }
@@ -708,6 +833,11 @@
         "when": "Cost reduction is your top priority.",
         "avoid": "Pricing data is missing or outdated.",
         "example": "Background or batch jobs where lower cost is preferred."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -801,6 +931,13 @@
         "tip1": "Ensure pricing coverage for all selected models.",
         "tip2": "Keep a quality fallback for hard prompts.",
         "tip3": "Use for batch/background jobs where cost is the main KPI."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -924,7 +1061,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1489,7 +1644,22 @@
     "compatUpstreamRemoveRow": "Remove row",
     "allModelsAlreadyImported": "सभी मॉडल पहले से ही आयातित हैं",
     "noNewModelsToImport": "आयात करने के लिए कोई नए मॉडल नहीं — सभी मॉडल पहले से ही रजिस्ट्री या कस्टम मॉडल सूची में हैं",
-    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं"
+    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth",
+    "autoSync": "Auto-Sync",
+    "clearAllModels": "Clear All Models",
+    "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
+    "clearAllModelsConfirm": "Are you sure you want to remove all models for this provider? This cannot be undone.",
+    "clearAllModelsSuccess": "All models cleared",
+    "clearAllModelsFailed": "Failed to clear models",
+    "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "autoSyncDisabled": "Auto-sync disabled"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -1898,7 +2068,25 @@
     "routingAdvancedGuideHint2": "यदि प्रदाता गुणवत्ता/लागत में भिन्न हैं, तो पृष्ठभूमि कार्य के लिए कॉस्ट ऑप्ट और संतुलित पहनावे के लिए कम से कम उपयोग से शुरुआत करें।",
     "comboDefaultsGuideTitle": "कॉम्बो डिफॉल्ट्स को कैसे ट्यून करें",
     "comboDefaultsGuideHint1": "कम-विलंबता प्रवाह में पुनः प्रयास कम रखें; केवल लंबी पीढ़ी के कार्यों के लिए टाइमआउट बढ़ाएँ।",
-    "comboDefaultsGuideHint2": "जब एक प्रदाता को वैश्विक डिफ़ॉल्ट की तुलना में अलग टाइमआउट/पुनः प्रयास व्यवहार की आवश्यकता होती है तो प्रदाता ओवरराइड का उपयोग करें।"
+    "comboDefaultsGuideHint2": "जब एक प्रदाता को वैश्विक डिफ़ॉल्ट की तुलना में अलग टाइमआउट/पुनः प्रयास व्यवहार की आवश्यकता होती है तो प्रदाता ओवरराइड का उपयोग करें।",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "semanticCache": "Semantic Cache",
+    "autoDisableDescription": "Permanently mark provider connections as deactivated if they return specific terminal ban signals (e.g. HTTP 403 'verify your account'). This removes them from the combo rotation.",
+    "preserveClientCache": "Preserve Client Cache",
+    "cacheSettings": "Cache Settings",
+    "autoDisableThreshold": "Ban Threshold",
+    "autoDisableBannedAccounts": "Auto-Disable Banned Accounts",
+    "ttlMinutes": "TTL (minutes)",
+    "maxEntries": "Max Entries",
+    "loading": "Loading...",
+    "save": "Save",
+    "autoDisableThresholdDesc": "Consecutive ban signals required before permanent deactivation.",
+    "debugToggle": "Enable Debug Mode",
+    "sidebarVisibilityToggle": "Show Sidebar Items",
+    "enabled": "Enabled",
+    "strategy": "Strategy"
   },
   "translator": {
     "title": "अनुवादक",
@@ -2316,7 +2504,16 @@
     "restartServerWithNewPassword": "सर्वर को पुनरारंभ करें - यह नए पासवर्ड का उपयोग करेगा",
     "backToLogin": "लॉगइन पर वापस जाएँ",
     "forgotPassword": "पासवर्ड भूल गए?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Content-Disposition": "Content-Disposition",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "Authorization": "Authorization",
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "waitingForQoderAuthorization": "Waiting for Qoder authorization..."
   },
   "landing": {
     "brandName": "ओम्निरूट",
@@ -2523,7 +2720,9 @@
     "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
     "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
     "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
-    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Text-to-speech generation (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Text embedding generation (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "गोपनीयता नीति",
@@ -2732,6 +2931,86 @@
     "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
     "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
     "activeDedupKeys": "Active Dedup Keys",
-    "dedupWindow": "Dedup Window"
+    "dedupWindow": "Dedup Window",
+    "inputTokens": "Input Tokens",
+    "requestsShort": "reqs",
+    "inputShort": "In",
+    "resetting": "Resetting...",
+    "cachedTokensCol": "Cached",
+    "search": "Search",
+    "cacheReuseRatioDesc": "Cached tokens / Total input tokens",
+    "resetMetrics": "Reset Metrics",
+    "loading": "Loading...",
+    "cachedRequests": "Cached Requests",
+    "model": "Model",
+    "cached": "Cached",
+    "actions": "Actions",
+    "trend24h": "Cache Trend (24h)",
+    "cachedShort": "Cached",
+    "cacheCreation": "Creation",
+    "byProvider": "Breakdown by Provider",
+    "created": "Created",
+    "cacheCreationTokens": "Cache Creation Tokens",
+    "withCacheControl": "With Cache Control",
+    "searchEntries": "Search entries...",
+    "cacheReuseRatio": "Cache Reuse Ratio",
+    "estCostSaved": "Est. Cost Saved",
+    "cachedTokens": "Cached Tokens",
+    "requests": "Requests",
+    "signature": "Signature",
+    "cacheCreationWrite": "Cache Creation (Write)",
+    "expires": "Expires",
+    "writeShort": "Write",
+    "cacheHitRate": "Cache Hit Rate",
+    "cacheMetrics": "Prompt Cache Metrics",
+    "overview": "Overview",
+    "promptCache": "Prompt Cache (Provider-Side)",
+    "provider": "Provider",
+    "cachedTokensRead": "Cached Tokens (Read)",
+    "entries": "Entries",
+    "noEntries": "No cache entries found"
+  },
+  "templatePayloads": {
+    "toolCalling": {
+      "toolDescription": "Get current weather for a location",
+      "userWeather": "What's the weather in Tokyo?",
+      "cityNameDescription": "The name of the city to get weather for"
+    },
+    "multiTurn": {
+      "assistantExample": "I'd be happy to help you with that.",
+      "userFollowUp": "Can you elaborate on that?",
+      "userInitial": "I need help with",
+      "system": "You are a helpful assistant."
+    },
+    "systemPrompt": {
+      "question": "What is the meaning of life?",
+      "systemInstruction": "Provide a thoughtful, philosophical answer."
+    },
+    "simpleChat": {
+      "userGreeting": "Hello! How can I help you today?",
+      "system": "You are a helpful AI assistant."
+    },
+    "thinking": {
+      "question": "Explain quantum computing"
+    },
+    "streaming": {
+      "prompt": "Write a story about"
+    }
+  },
+  "templateNames": {
+    "tool-calling": "Tool Calling",
+    "thinking": "Thinking",
+    "simple-chat": "Simple Chat",
+    "system-prompt": "System Prompt",
+    "streaming": "Streaming",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template with system message",
+    "multi-turn": "Template for multi-turn conversations",
+    "thinking": "Template with reasoning/thinking budget",
+    "tool-calling": "Template for tool/function calling",
+    "system-prompt": "Template with custom system prompt",
+    "streaming": "Template for streaming responses"
   }
 }

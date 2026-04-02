@@ -22,7 +22,7 @@ export const OAUTH_PROVIDERS = {
   claude: { id: "claude", alias: "cc", name: "Claude Code", icon: "smart_toy", color: "#D97757" },
   antigravity: {
     id: "antigravity",
-    alias: "ag",
+    alias: undefined,
     name: "Antigravity",
     icon: "rocket_launch",
     color: "#F59E0B",
@@ -601,6 +601,7 @@ export const APIKEY_PROVIDERS = {
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 export const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
+export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 
 export function isOpenAICompatibleProvider(providerId) {
   return typeof providerId === "string" && providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
@@ -628,6 +629,11 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
+export function isClaudeCodeCompatibleProvider(providerId) {
+  return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
+}
+
+// All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
   ...OAUTH_PROVIDERS,
@@ -665,13 +671,13 @@ export function getProviderAlias(providerId) {
 
 // Alias to ID mapping (for quick lookup)
 export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.alias] = p.id;
+  if (p.alias) acc[p.alias] = p.id;
   return acc;
 }, {});
 
 // ID to Alias mapping
 export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.id] = p.alias;
+  acc[p.id] = p.alias || p.id;
   return acc;
 }, {});
 

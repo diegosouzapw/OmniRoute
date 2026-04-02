@@ -8,6 +8,7 @@ const API_ROOT = path.join(ROOT, "src", "app", "api");
 const FILE_NAME = "route.ts";
 const REQUEST_JSON_REGEX = /request\.json\s*\(/;
 const VALIDATE_BODY_REGEX = /\bvalidateBody\s*\(/;
+const SAFE_PARSE_REGEX = /\.safeParse\s*\(/;
 
 /**
  * Walk directory recursively and collect route files.
@@ -43,13 +44,14 @@ const missingValidation = [];
 for (const fullPath of routeFiles) {
   const source = fs.readFileSync(fullPath, "utf8");
   if (!REQUEST_JSON_REGEX.test(source)) continue;
-  if (!VALIDATE_BODY_REGEX.test(source)) {
+  // Accept either validateBody() or .safeParse() as validation
+  if (!VALIDATE_BODY_REGEX.test(source) && !SAFE_PARSE_REGEX.test(source)) {
     missingValidation.push(path.relative(ROOT, fullPath));
   }
 }
 
 if (missingValidation.length > 0) {
-  console.error("[t06:route-validation] FAIL - routes with request.json() without validateBody():");
+  console.error("[t06:route-validation] FAIL - routes with request.json() without validateBody() or .safeParse():");
   for (const file of missingValidation) {
     console.error(`  - ${file}`);
   }

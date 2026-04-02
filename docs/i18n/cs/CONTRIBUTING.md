@@ -1,18 +1,22 @@
-# Přispívání k OmniRoute
+# Contributing to OmniRoute (Čeština)
 
-Děkujeme za váš zájem o přispění! Tato příručka obsahuje vše, co potřebujete k zahájení.
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇮🇳 [in](../in/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md)
 
 ---
 
-## Nastavení vývoje
+Thank you for your interest in contributing! This guide covers everything you need to get started.
 
-### Předpoklady
+---
 
-- **Node.js** 20+ (doporučeno: 22 LTS)
+## Development Setup
+
+### Prerequisites
+
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
 - **npm** 10+
 - **Git**
 
-### Klonovat a instalovat
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -20,7 +24,7 @@ cd OmniRoute
 npm install
 ```
 
-### Proměnné prostředí
+### Environment Variables
 
 ```bash
 # Create your .env from the template
@@ -31,17 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Klíčové proměnné pro vývoj:
+Key variables for development:
 
-Proměnná | Výchozí nastavení pro vývoj | Popis
---- | --- | ---
-`PORT` | `3000` | Port serveru
-`NEXT_PUBLIC_BASE_URL` | `http://localhost:3000` | Základní URL pro frontend
-`JWT_SECRET` | (vygenerovat výše) | Tajemství podpisu JWT
-`INITIAL_PASSWORD` | `123456` | První přihlašovací heslo
-`ENABLE_REQUEST_LOGS` | `false` | Povolit protokoly požadavků na ladění
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-### Spuštěno lokálně
+### Dashboard Settings
+
+The dashboard provides UI toggles for features that can also be configured via environment variables:
+
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -55,16 +70,16 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Výchozí adresy URL:
+Default URLs:
 
-- **Dashboard** : `http://localhost:3000/dashboard`
-- **API** : `http://localhost:3000/v1`
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
 
 ---
 
-## Pracovní postup Gitu
+## Git Workflow
 
-> ⚠️ **NIKDY se necommitujte přímo do `main` .** Vždy používejte větve feature.
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
 ```bash
 git checkout -b feat/your-feature-name
@@ -74,20 +89,20 @@ git push -u origin feat/your-feature-name
 # Open a Pull Request on GitHub
 ```
 
-### Pojmenování poboček
+### Branch Naming
 
-Předpona | Účel
---- | ---
-`feat/` | Nové funkce
-`fix/` | Opravy chyb
-`refactor/` | Restrukturalizace kódu
-`docs/` | Změny dokumentace
-`test/` | Doplnění/opravy testů
-`chore/` | Nástroje, CI, závislosti
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-### Zprávy o potvrzení
+### Commit Messages
 
-Postupujte podle [konvenčních commitů](https://www.conventionalcommits.org/) :
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 feat: add circuit breaker for provider calls
@@ -97,177 +112,188 @@ test: add observability unit tests
 refactor(db): consolidate rate limit tables
 ```
 
-Rozsahy: `db` , `sse` , `oauth` , `dashboard` , `api` , `cli` , `docker` , `ci` .
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
 
 ---
 
-## Spouštění testů
+## Running Tests
 
 ```bash
-# All unit tests
-npm test
-npm run test:unit
+# All tests (unit + vitest + ecosystem + e2e)
+npm run test:all
 
-# Specific test suites
-npm run test:security     # Security tests
-npm run test:fixes        # Fix verification tests
+# Single test file (Node.js native test runner — most tests use this)
+node --import tsx/esm --test tests/unit/your-file.test.mjs
 
-# With coverage
-npm run test:coverage
+# Vitest (MCP server, autoCombo, cache)
+npm run test:vitest
 
 # E2E tests (requires Playwright)
 npm run test:e2e
+
+# Protocol clients E2E (MCP transports, A2A)
+npm run test:protocols:e2e
+
+# Ecosystem compatibility tests
+npm run test:ecosystem
+
+# Coverage (55% min statements/lines/functions; 60% branches)
+npm run test:coverage
+npm run coverage:report
 
 # Lint + format check
 npm run lint
 npm run check
 ```
 
-Aktuální stav testování: **368+ jednotkových testů** zahrnujících:
+Coverage notes:
 
-- Poskytovatelé překladů a konverze formátů
-- Omezení rychlosti, jistič a odolnost
-- Sémantická mezipaměť, idempotence, sledování průběhu
-- Databázové operace a schéma
-- Toky a ověřování OAuth
-- Ověření koncového bodu API
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Styl kódu
+## Code Style
 
-- **ESLint** — Spustí `npm run lint` před commitem
-- **Hezčí** – Automaticky naformátováno pomocí `lint-staged` při commitu
-- **TypeScript** — Veškerý kód `src/` používá `.ts` / `.tsx` ; dokument s TSDoc ( `@param` , `@returns` , `@throws` )
-- **No `eval()`** — ESLint vynucuje `no-eval` , `no-implied-eval` , `no-new-func`
-- **Ověření Zod** — Použití schémat Zod pro ověřování vstupu API
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
 ---
 
-## Struktura projektu
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
-├── app/                    # Next.js App Router
-│   ├── (dashboard)/        # Dashboard pages (.tsx)
-│   ├── api/                # API routes (.ts)
+├── app/                    # Next.js 16 App Router
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
 │   └── login/              # Auth pages (.tsx)
-├── domain/                 # Domain types and response helpers (.ts)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
 ├── lib/                    # Core business logic (.ts)
-│   ├── db/                 # SQLite database layer
-│   ├── oauth/              # OAuth services per provider
-│   ├── cacheLayer.ts       # LRU cache
-│   ├── semanticCache.ts    # Semantic response cache
-│   ├── idempotencyLayer.ts # Request deduplication
-│   └── localDb.ts          # Settings facade (LowDB for config, SQLite for domain data)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite database layer (21 modules + 16 migrations)
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
 │   ├── components/         # React components (.tsx)
-│   ├── middleware/          # Correlation IDs, etc.
-│   ├── utils/              # Circuit breaker, sanitizer, etc.
-│   └── validation/         # Zod schemas
-└── sse/                    # SSE chat handlers (.ts)
+│   ├── constants/          # Provider definitions (60+), MCP scopes, routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse workspace (JavaScript)
-├── handlers/               # chatCore.js — main request handler
-├── services/               # Rate limit, fallback
-├── translators/            # Format converters (OpenAI ↔ Claude ↔ Gemini)
-└── utils/                  # Progress tracker, stream helpers
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 14 provider-specific request executors
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
+├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
+
+electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js test runner (.test.mjs)
-└── e2e/                    # Playwright tests
+├── unit/                   # Node.js test runner (122 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/                       # Documentation
-├── USER_GUIDE.md           # Provider setup, CLI integration
-├── API_REFERENCE.md        # All endpoints
-├── TROUBLESHOOTING.md      # Common issues
 ├── ARCHITECTURE.md         # System architecture
+├── API_REFERENCE.md        # All endpoints
+├── USER_GUIDE.md           # Provider setup, CLI integration
+├── TROUBLESHOOTING.md      # Common issues
+├── MCP-SERVER.md           # MCP server (25 tools)
+├── A2A-SERVER.md           # A2A agent protocol
+├── AUTO-COMBO.md           # Auto-combo engine
+├── CLI-TOOLS.md            # CLI tools integration
+├── COVERAGE_PLAN.md        # Test coverage improvement plan
+├── openapi.yaml            # OpenAPI specification
 └── adr/                    # Architecture Decision Records
 ```
 
 ---
 
-## Přidání nového poskytovatele
+## Adding a New Provider
 
-### Krok 1: Služba OAuth (pokud používáte OAuth)
+### Step 1: Register Provider Constants
 
-Vytvořte `src/lib/oauth/services/your-provider.ts` rozšiřující `OAuthService` :
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-```typescript
-import { OAuthService } from "../OAuthService";
+### Step 2: Add Executor (if custom logic needed)
 
-export class YourProviderService extends OAuthService {
-  constructor() {
-    super({
-      name: "your-provider",
-      authUrl: "https://provider.com/oauth/authorize",
-      tokenUrl: "https://provider.com/oauth/token",
-      clientId: "...",
-      scopes: ["..."],
-    });
-  }
-}
-```
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### Krok 2: Registrace poskytovatele
+### Step 3: Add Translator (if non-OpenAI format)
 
-Přidat do `src/lib/oauth/providers.ts` :
+Create request/response translators in `open-sse/translator/`.
 
-```typescript
-import { YourProviderService } from "./services/your-provider";
-// Add to the providers map
-```
+### Step 4: Add OAuth Config (if OAuth-based)
 
-### Krok 3: Přidání konstant
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Přidejte konstanty poskytovatele do `src/lib/providerConstants.ts` :
+### Step 5: Register Models
 
-- Předpona poskytovatele (např. `yp/` )
-- Výchozí modely
-- Informace o cenách
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### Krok 4: Přidání překladače (pokud se nejedná o formát OpenAI)
+### Step 6: Add Tests
 
-Pokud poskytovatel používá vlastní formát API, vytvořte překladač v `open-sse/translators/` .
+Write unit tests in `tests/unit/` covering at minimum:
 
-### Krok 5: Přidání časového limitu
-
-Přidejte konfiguraci časového limitu požadavku do `src/shared/utils/requestTimeout.ts` .
-
-### Krok 6: Přidání testů
-
-Pište jednotkové testy v `tests/unit/` které pokrývají minimálně:
-
-- Registrace poskytovatele
-- Překlad žádostí/odpovědí
-- Ošetření chyb
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Kontrolní seznam žádostí o natažení
+## Pull Request Checklist
 
-- [ ] Testy prošly ( `npm test` )
-- [ ] Průchody pro linting ( `npm run lint` )
-- [ ] Sestavení proběhlo úspěšně ( `npm run build` )
-- [ ] Pro nové veřejné funkce a rozhraní přidány typy TypeScript
-- [ ] Žádné pevně zakódované tajné kódy ani záložní hodnoty
-- [ ] Aktualizován CHANGELOG (pokud se změna týká uživatele)
-- [ ] Aktualizovaná dokumentace (pokud je to relevantní)
-
----
-
-## Uvolnění
-
-Když je vytvořena nová verze GitHubu (např. `v0.4.0` ), balíček je **automaticky publikován do npm** prostřednictvím akcí GitHubu:
-
-```bash
-gh release create v0.4.0 --title "v0.4.0" --generate-notes
-```
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
 
 ---
 
-## Získání pomoci
+## Releasing
 
-- **Architektura** : Viz [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **Problémy** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR** : Viz `docs/adr/`
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

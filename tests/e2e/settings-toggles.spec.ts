@@ -4,48 +4,55 @@ test.describe("Settings Toggles", () => {
   test("Debug mode toggle should work", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");
-    await page.click("text=Advanced");
+    await page.getByRole("tab", { name: /advanced/i }).click();
 
-    const debugToggle = page.locator('[aria-label*="debug" i], [data-testid*="debug" i]').first();
+    const debugToggle = page.getByRole("switch").first();
 
     await expect(debugToggle).toBeVisible({ timeout: 5000 });
 
-    const initialState = await debugToggle.isChecked();
+    const initialState = await debugToggle.getAttribute("aria-checked");
     await debugToggle.click();
-    await expect(debugToggle).not.toBeChecked({ timeout: 5000 });
+    await expect(debugToggle).toHaveAttribute(
+      "aria-checked",
+      initialState === "true" ? "false" : "true",
+      { timeout: 5000 }
+    );
   });
 
   test("Sidebar visibility toggle should work", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");
-    await page.click("text=General");
+    await page.getByRole("tab", { name: /appearance/i }).click();
 
-    const sidebarToggle = page
-      .locator('[aria-label*="sidebar" i], [data-testid*="sidebar" i]')
-      .first();
+    const sidebarToggle = page.getByRole("switch").first();
 
     await expect(sidebarToggle).toBeVisible({ timeout: 5000 });
 
-    const initialState = await sidebarToggle.isChecked();
+    const initialState = await sidebarToggle.getAttribute("aria-checked");
     await sidebarToggle.click();
-    await expect(sidebarToggle).not.toBeChecked({ timeout: 5000 });
+    await expect(sidebarToggle).toHaveAttribute(
+      "aria-checked",
+      initialState === "true" ? "false" : "true",
+      { timeout: 5000 }
+    );
   });
 
   test("Debug mode should persist after page reload", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");
-    await page.click("text=Advanced");
+    await page.getByRole("tab", { name: /advanced/i }).click();
 
-    const debugToggle = page.locator('[aria-label*="debug" i], [data-testid*="debug" i]').first();
+    const debugToggle = page.getByRole("switch").first();
 
     await expect(debugToggle).toBeVisible({ timeout: 5000 });
 
-    const wasChecked = await debugToggle.isChecked();
+    const initialState = await debugToggle.getAttribute("aria-checked");
     await debugToggle.click();
-    await expect(debugToggle).not.toBeChecked({ timeout: 5000 });
+    const nextState = initialState === "true" ? "false" : "true";
+    await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 5000 });
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await page.click("text=Advanced");
-    await expect(debugToggle).not.toBeChecked({ timeout: 5000 });
+    await page.getByRole("tab", { name: /advanced/i }).click();
+    await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 5000 });
   });
 });

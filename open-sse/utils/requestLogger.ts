@@ -9,7 +9,6 @@ type HeaderInput =
 
 export type RequestPipelinePayloads = {
   clientRawRequest?: JsonRecord;
-  sourceRequest?: JsonRecord;
   openaiRequest?: JsonRecord;
   providerRequest?: JsonRecord;
   providerResponse?: JsonRecord;
@@ -25,7 +24,6 @@ export type RequestPipelinePayloads = {
 type RequestLogger = {
   sessionPath: null;
   logClientRawRequest: (endpoint: unknown, body: unknown, headers?: HeaderInput) => void;
-  logRawRequest: (body: unknown, headers?: HeaderInput) => void;
   logOpenAIRequest: (body: unknown) => void;
   logTargetRequest: (url: unknown, headers: HeaderInput, body: unknown) => void;
   logProviderResponse: (
@@ -115,7 +113,6 @@ function createNoOpLogger(): RequestLogger {
   return {
     sessionPath: null,
     logClientRawRequest() {},
-    logRawRequest() {},
     logOpenAIRequest() {},
     logTargetRequest() {},
     logProviderResponse() {},
@@ -147,14 +144,6 @@ export async function createRequestLogger(
       payloads.clientRawRequest = {
         timestamp: new Date().toISOString(),
         endpoint,
-        headers: maskSensitiveHeaders(headers),
-        body,
-      };
-    },
-
-    logRawRequest(body, headers = {}) {
-      payloads.sourceRequest = {
-        timestamp: new Date().toISOString(),
         headers: maskSensitiveHeaders(headers),
         body,
       };

@@ -367,7 +367,7 @@ export class CursorExecutor extends BaseExecutor {
     const url = this.buildUrl();
     const headers = this.buildHeaders(credentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-    const transformedBody = this.transformRequest(model, body, stream, credentials);
+    const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
     try {
       const response: CursorHttpResponse = http2

@@ -9,6 +9,7 @@
  *
  * Header order and body field order were captured via mitmproxy traffic analysis.
  */
+import { isClaudeCodeCompatible } from "../services/provider.ts";
 
 export interface CliFingerprint {
   /** Ordered list of header names (case-sensitive). Unlisted headers are appended. */
@@ -74,6 +75,43 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "metadata",
     ],
     userAgent: "claude-code",
+  },
+  "claude-code-compatible": {
+    headerOrder: [
+      "Host",
+      "Content-Type",
+      "x-api-key",
+      "anthropic-version",
+      "anthropic-beta",
+      "anthropic-dangerous-direct-browser-access",
+      "x-app",
+      "User-Agent",
+      "X-Claude-Code-Session-Id",
+      "X-Stainless-Retry-Count",
+      "X-Stainless-Timeout",
+      "X-Stainless-Lang",
+      "X-Stainless-Package-Version",
+      "X-Stainless-OS",
+      "X-Stainless-Arch",
+      "X-Stainless-Runtime",
+      "X-Stainless-Runtime-Version",
+      "Accept",
+      "accept-language",
+      "sec-fetch-mode",
+      "accept-encoding",
+    ],
+    bodyFieldOrder: [
+      "model",
+      "messages",
+      "system",
+      "tools",
+      "metadata",
+      "max_tokens",
+      "thinking",
+      "context_management",
+      "output_config",
+      "stream",
+    ],
   },
   github: {
     headerOrder: [
@@ -243,7 +281,10 @@ export function applyFingerprint(
   headers: Record<string, string>,
   body: unknown
 ): { headers: Record<string, string>; bodyString: string } {
-  const fingerprint = CLI_FINGERPRINTS[provider?.toLowerCase()];
+  const fingerprintKey = isClaudeCodeCompatible(provider)
+    ? "claude-code-compatible"
+    : provider?.toLowerCase();
+  const fingerprint = CLI_FINGERPRINTS[fingerprintKey];
 
   if (!fingerprint) {
     return { headers, bodyString: JSON.stringify(body) };
@@ -300,6 +341,8 @@ export function getCliCompatProviders(): string[] {
  * Reads from: 1) Runtime cache (Settings UI), 2) Environment variables.
  */
 export function isCliCompatEnabled(provider: string): boolean {
+  if (isClaudeCodeCompatible(provider)) return true;
+
   const key = provider?.toLowerCase().replace(/[^a-z0-9]/g, "_");
 
   // 1. Check runtime cache (set via Settings UI)

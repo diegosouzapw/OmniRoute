@@ -394,7 +394,7 @@ export default function DocsPage() {
                   {t("clientClaudeBullet1Prefix")}{" "}
                   <code className="px-1 rounded bg-bg-subtle">cc/</code>{" "}
                   {t("clientClaudeBullet1Middle")}{" "}
-                  <code className="px-1 rounded bg-bg-subtle">ag/</code>{" "}
+                  <code className="px-1 rounded bg-bg-subtle">antigravity/</code>{" "}
                   {t("clientClaudeBullet1Suffix")}
                 </li>
                 <li>{t("oauthAutoRefresh")}</li>

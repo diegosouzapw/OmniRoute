@@ -59,9 +59,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     // Sanitize Base URL for Anthropic Compatible
     if (node.type === "anthropic-compatible") {
       sanitizedBaseUrl = sanitizedBaseUrl.replace(/\/$/, "");
-      if (sanitizedBaseUrl.endsWith("/messages")) {
-        sanitizedBaseUrl = sanitizedBaseUrl.slice(0, -9); // remove /messages
-      }
+      sanitizedBaseUrl = sanitizedBaseUrl.replace(/\/messages(?:\?[^#]*)?$/i, "");
     }
 
     const updates: Record<string, unknown> = {

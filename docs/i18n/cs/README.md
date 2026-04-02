@@ -1,145 +1,239 @@
-# 🚀 OmniRoute — Bezplatná brána umělé inteligence
+# 🚀 OmniRoute — The Free AI Gateway (Čeština)
 
-### Nikdy nepřestávejte s kódováním. Chytré směrování k **BEZPLATNÝM a levným modelům AI** s automatickým přepínáním mezi záložními systémy.
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇩🇪 [de](../de/README.md) · 🇮🇹 [it](../it/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇮🇳 [in](../in/README.md) · 🇹🇭 [th](../th/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇮🇩 [id](../id/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇳🇴 [no](../no/README.md) · 🇩🇰 [da](../da/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇮🇱 [he](../he/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇨🇿 [cs](../cs/README.md)
 
-_Váš univerzální API proxy – jeden endpoint, více než 44 poskytovatelů, nulové výpadky. Nyní s orchestrací agentů **MCP a A2A** ._
+---
 
-**Dokončení chatu • Vkládání • Generování obrázků • Video • Hudba • Audio • Změna pořadí • **Vyhledávání na webu** • MCP server • A2A protokol • 100% TypeScript**
+### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
+
+_Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+
+**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
 ---
 
 <div align="center">
+
+[![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
+[![npm downloads](https://img.shields.io/npm/dm/omniroute?color=cb3837&logo=npm&label=npm%20downloads)](https://www.npmjs.com/package/omniroute)
+[![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?logo=docker&color=2496ED&label=docker%20pulls)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
+[![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+
+[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+
 </div>
-<p data-md-type="paragraph"><a href="https://www.npmjs.com/package/omniroute" data-md-type="link"></a><img src="https://img.shields.io/npm/v/omniroute?color=cb3837&amp;logo=npm" alt="verze npm" data-md-type="image"><a href="https://hub.docker.com/r/diegosouzapw/omniroute" data-md-type="link"></a><img src="https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&amp;logo=docker&amp;color=2496ED" alt="Docker Hub" data-md-type="image"><a href="https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE" data-md-type="link"></a><img src="https://img.shields.io/github/license/diegosouzapw/OmniRoute" alt="Licence" data-md-type="image"><a href="https://omniroute.online" data-md-type="link"></a><img src="https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&amp;logoColor=white" alt="Webové stránky" data-md-type="image"><a href="https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t" data-md-type="link"></a><img src="https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&amp;logoColor=white" alt="WhatsApp" data-md-type="image"></p>
-<p data-md-type="paragraph"><a href="https://omniroute.online" data-md-type="link">🌐 Webové stránky</a> • <a href="#-quick-start" data-md-type="link">🚀 Rychlý start</a> • <a href="#-key-features" data-md-type="link">💡 Funkce</a> • <a href="#-documentation" data-md-type="link">📖 Dokumentace</a> • <a href="#-pricing-at-a-glance" data-md-type="link">💰 Ceník</a> • <a href="https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t" data-md-type="link">💬 WhatsApp</a></p>
-<div data-md-type="block_html"></div>
 
-🌐 **Dostupné v:** 🇺🇸 [Angličtina](README.md) | 🇧🇷 [Português (Brazílie)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳[中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵[日本語](docs/i18n/ja/README.md)| 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dánsko](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [maďarština](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonésie](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nizozemsko](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugalsko)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipínec](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
+🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
 
 ---
 
-### 🆕 What's New in v3.0.0
+## Breaking Change: Unified Logging Upgrade
 
-| Area                            | Change                                                                            |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| 🔒 **CodeQL Security**          | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
-| ✅ **Route Validation**         | All 176 API routes validated with Zod schemas + `validateBody()`                  |
-| 🐛 **omniModel Tag Leak**       | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
-| 🔑 **Registered Keys API**      | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 👁️ **Scoped API Key Reveal** 🆕 | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                            |
-| 🎨 **Provider Icons**           | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
-| 🔄 **Model Auto-Sync**          | 24h scheduler refreshes model lists for 16 providers                              |
-| 🌐 **OpenCode Zen/Go**          | Two new providers: free tier + subscription tier                                  |
-| 🔧 **926 Tests**                | Full test suite passes with 0 failures                                            |
-
-### 🆕 What's New in v3.0.0
-
-| Area                       | Change                                                                            |
-| -------------------------- | --------------------------------------------------------------------------------- |
-| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
-| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
-| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
-| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
-| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
-| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
-| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
+> [!WARNING]
+> **This release changes both the on-disk request log layout and the logging environment variables.**
+>
+> If you are upgrading an existing instance:
+>
+> - Request logs now live in `DATA_DIR/call_logs/YYYY-MM-DD/` as **one JSON artifact per request**.
+> - The old `DATA_DIR/logs/` session folders and `DATA_DIR/log.txt` summary file are removed.
+> - On the first startup after upgrading, OmniRoute creates a safety backup at `DATA_DIR/log_archives/*.zip` before removing the deprecated request log layout.
+> - Legacy logging env vars such as `LOG_TO_FILE`, `LOG_FILE_PATH`, `LOG_MAX_FILE_SIZE`, `LOG_RETENTION_DAYS`, `LOG_LEVEL`, `LOG_FORMAT`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` are no longer supported.
+> - Use the new env model instead:
+>   - `APP_LOG_TO_FILE`
+>   - `APP_LOG_FILE_PATH`
+>   - `APP_LOG_MAX_FILE_SIZE`
+>   - `APP_LOG_RETENTION_DAYS`
+>   - `APP_LOG_MAX_FILES`
+>   - `APP_LOG_LEVEL`
+>   - `APP_LOG_FORMAT`
+>   - `CALL_LOG_RETENTION_DAYS`
+>   - `CALL_LOG_MAX_ENTRIES`
+>
+> For release details and upgrade notes, see the [CHANGELOG](CHANGELOG.md).
 
 ---
 
-## 🖼️ Hlavní ovládací panel
+## 🆕 What's New
 
-<div align="center">   <img src="./docs/screenshots/MainOmniRoute.png" alt="Řídicí panel OmniRoute" width="800"> </div>
+> **Upgrading from v2.9.5?** — See the [full CHANGELOG](CHANGELOG.md#300--2026-03-22-release-candidate--not-yet-merged-to-main) for all changes.
+
+| Area                         | Change                                                                                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**       | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection remediation                                                                               |
+| ✅ **Route Validation**      | All 176 API routes now validated with Zod schemas + `validateBody()` — CI `check:route-validation:t06` passes                                                             |
+| 🐛 **omniModel Tag Leak**    | Internal `<omniModel>` tags no longer leak to clients in SSE streaming responses (#585)                                                                                   |
+| 🔑 **Registered Keys API**   | Auto-provision API keys via `POST /api/v1/registered-keys` with per-provider/account quota enforcement, idempotency, SHA-256 storage, and optional GitHub issue reporting |
+| 🎨 **Provider Icons**        | 130+ provider logos via `@lobehub/icons` (SVG) with PNG → generic fallback chain                                                                                          |
+| 🔄 **Model Auto-Sync**       | 24h scheduler and manual UI toggle to sync model lists for built-in and custom OpenAI-compatible providers                                                                |
+| 🌐 **OpenCode Zen/Go**       | Two new providers from @kang-heewon via PR #530: free tier + subscription tier via `OpencodeExecutor`                                                                     |
+| 🐛 **Gemini CLI OAuth**      | Actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker (was cryptic Google error)                                                                        |
+| 🐛 **OpenCode config**       | `saveOpenCodeConfig()` now correctly writes TOML to `XDG_CONFIG_HOME`                                                                                                     |
+| 🐛 **Pinned model override** | `body.model` correctly set to `pinnedModel` on context-cache protection                                                                                                   |
+| 🐛 **Codex/Claude loop**     | `tool_result` blocks now converted to text to stop infinite loops                                                                                                         |
+| 🐛 **Login redirect**        | Login no longer freezes after skipping password setup                                                                                                                     |
+| 🐛 **Windows paths**         | MSYS2/Git-Bash paths (`/c/...`) normalized to `C:\...` automatically                                                                                                      |
 
 ---
 
-## 📸 Náhled řídicího panelu
+## 🖼️ Main Dashboard
+
+<div align="center">
+  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
+</div>
+
+---
+
+## 📸 Dashboard Preview
 
 <details>
-<summary><b>Kliknutím zobrazíte snímky obrazovky z řídicího panelu</b></summary>
-</details>
+<summary><b>Click to see dashboard screenshots</b></summary>
 
-| Strana                  | Snímek obrazovky                                    |
-| ----------------------- | --------------------------------------------------- |
-| **Poskytovatelé**       | ![Poskytovatelé](docs/screenshots/01-providers.png) |
-| **Kombinace**           | ![Kombinace](docs/screenshots/02-combos.png)        |
-| **Analytika**           | ![Analytika](docs/screenshots/03-analytics.png)     |
-| **Zdraví**              | ![Zdraví](docs/screenshots/04-health.png)           |
-| **Překladatel**         | ![Překladatel](docs/screenshots/05-translator.png)  |
-| **Nastavení**           | ![Nastavení](docs/screenshots/06-settings.png)      |
-| **Nástroje CLI**        | ![Nástroje CLI](docs/screenshots/07-cli-tools.png)  |
-| **Protokoly používání** | ![Používání](docs/screenshots/08-usage.png)         |
-| **Koncové body**        | ![Koncové body](docs/screenshots/09-endpoint.png)   |
+| Page           | Screenshot                                        |
+| -------------- | ------------------------------------------------- |
+| **Providers**  | ![Providers](docs/screenshots/01-providers.png)   |
+| **Combos**     | ![Combos](docs/screenshots/02-combos.png)         |
+| **Analytics**  | ![Analytics](docs/screenshots/03-analytics.png)   |
+| **Health**     | ![Health](docs/screenshots/04-health.png)         |
+| **Translator** | ![Translator](docs/screenshots/05-translator.png) |
+| **Settings**   | ![Settings](docs/screenshots/06-settings.png)     |
+| **CLI Tools**  | ![CLI Tools](docs/screenshots/07-cli-tools.png)   |
+| **Usage Logs** | ![Usage](docs/screenshots/08-usage.png)           |
+| **Endpoints**  | ![Endpoints](docs/screenshots/09-endpoint.png)    |
+
+</details>
 
 ---
 
-### 🤖 Bezplatný poskytovatel umělé inteligence pro vaše oblíbené programátory
+### 🤖 Free AI Provider for your favorite coding agents
 
-_Připojte libovolný nástroj IDE nebo CLI s umělou inteligencí přes OmniRoute — bezplatnou API bránu pro neomezené kódování._
+_Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway for unlimited coding._
 
   <table>
     <tr>
-      <td align="center" width="110">         <a href="https://github.com/openclaw/openclaw"><img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"><br><b>OpenClaw</b></a><br> <sub>⭐ 205 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/HKUDS/nanobot"><img src="./public/providers/nanobot.png" alt="NanoBot" width="48"><br><b>NanoBot</b></a><br> <sub>⭐ 20,9 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/sipeed/picoclaw"><img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"><br><b>PicoClaw</b></a><br> <sub>⭐ 14,6 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/zeroclaw-labs/zeroclaw"><img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"><br><b>ZeroClaw</b></a><br> <sub>⭐ 9,9 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/nearai/ironclaw"><img src="./public/providers/ironclaw.png" alt="Železný dráp" width="48"><br><b>Železný dráp</b></a><br> <sub>⭐ 2,1 tisíce</sub>       </td>
+      <td align="center" width="110">
+        <a href="https://github.com/openclaw/openclaw">
+          <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
+          <b>OpenClaw</b>
+        </a><br/>
+        <sub>⭐ 205K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/HKUDS/nanobot">
+          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+          <b>NanoBot</b>
+        </a><br/>
+        <sub>⭐ 20.9K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/sipeed/picoclaw">
+          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+          <b>PicoClaw</b>
+        </a><br/>
+        <sub>⭐ 14.6K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/zeroclaw-labs/zeroclaw">
+          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+          <b>ZeroClaw</b>
+        </a><br/>
+        <sub>⭐ 9.9K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/nearai/ironclaw">
+          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+          <b>IronClaw</b>
+        </a><br/>
+        <sub>⭐ 2.1K</sub>
+      </td>
     </tr>
     <tr>
-      <td align="center" width="110">         <a href="https://github.com/anomalyco/opencode"><img src="./public/providers/opencode.svg" alt="OpenCode" width="48"><br><b>OpenCode</b></a><br> <sub>⭐ 106 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/openai/codex"><img src="./public/providers/codex.png" alt="Codex CLI" width="48"><br><b>Codex CLI</b></a><br> <sub>⭐ 60,8 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.png" alt="Claude Code" width="48"><br><b>Claude Code</b></a><br> <sub>⭐ 67,3 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/google-gemini/gemini-cli"><img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"><br> <b>Gemini CLI</b></a><br> <sub>⭐ 94,7 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.png" alt="Kilo kód" width="48"><br><b>Kilo kód</b></a><br> <sub>⭐ 15,5 tisíc</sub>       </td>
+      <td align="center" width="110">
+        <a href="https://github.com/anomalyco/opencode">
+          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+          <b>OpenCode</b>
+        </a><br/>
+        <sub>⭐ 106K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/openai/codex">
+          <img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
+          <b>Codex CLI</b>
+        </a><br/>
+        <sub>⭐ 60.8K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/anthropics/claude-code">
+          <img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
+          <b>Claude Code</b>
+        </a><br/>
+        <sub>⭐ 67.3K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/google-gemini/gemini-cli">
+          <img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
+          <b>Gemini CLI</b>
+        </a><br/>
+        <sub>⭐ 94.7K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/Kilo-Org/kilocode">
+          <img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
+          <b>Kilo Code</b>
+        </a><br/>
+        <sub>⭐ 15.5K</sub>
+      </td>
     </tr>
   </table>
 
-<sub>📡 Všichni agenti se připojují přes <code>http://localhost:20128/v1</code> nebo <code>http://cloud.omniroute.online/v1</code> — jedna konfigurace, neomezené modely a kvóty</sub>
+<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
 
 ---
 
-## 🤔 Proč OmniRoute?
+## 🤔 Why OmniRoute?
 
-**Přestaňte plýtvat penězi a narážet na limity:**
+**Stop wasting money and hitting limits:**
 
-- <img src="https://img.shields.io/badge/%E2%9C%97-e74c3c?style=flat-square" height="16"> Kvóta předplatného vyprší každý měsíc
-- <img src="https://img.shields.io/badge/%E2%9C%97-e74c3c?style=flat-square" height="16"> Limity rychlosti vám zabrání v kódování
-- <img src="https://img.shields.io/badge/%E2%9C%97-e74c3c?style=flat-square" height="16"> Drahá API (20–50 USD/měsíc na poskytovatele)
-- <img src="https://img.shields.io/badge/%E2%9C%97-e74c3c?style=flat-square" height="16"> Ruční přepínání mezi poskytovateli
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Subscription quota expires unused every month
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Rate limits stop you mid-coding
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Expensive APIs ($20-50/month per provider)
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Manual switching between providers
 
-**OmniRoute to řeší:**
+**OmniRoute solves this:**
 
-- ✅ **Maximalizujte předplatné** – Sledujte kvótu, využijte každou částku před resetováním
-- ✅ **Automatické záložní** – Předplatné → API klíč → Levné → Zdarma, žádné výpadky
-- ✅ **Více účtů** – Round-robin mezi účty u jednotlivých poskytovatelů
-- ✅ **Univerzální** - Funguje s Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw a jakýmkoli nástrojem CLI
+- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
+- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
+- ✅ **Multi-account** - Round-robin between accounts per provider
+- ✅ **Universal** - Works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
 
 ---
 
-## 📧 Podpora
+## 📧 Support
 
-> 💬 **Přidejte se k naší komunitě!** [Skupina WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Získejte pomoc, sdílejte tipy a buďte v obraze.
+> 💬 **Join our community!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Get help, share tips, and stay updated.
 
-- **Webová stránka** : [omniroute.online](https://omniroute.online)
-- **GitHub** : [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Problémy** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **WhatsApp** : [Komunitní skupina](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-- **Přispívání** : Viz [CONTRIBUTING.md](CONTRIBUTING.md) , otevřete žádost o příspěvek nebo si vyberte `good first issue`
-- **Původní projekt** : [9router od decolua](https://github.com/decolua/9router)
+- **Website**: [omniroute.online](https://omniroute.online)
+- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
+- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 
-### 🐛 Hlásíte chybu?
+### 🐛 Reporting a Bug?
 
-Při otevírání problému spusťte příkaz system-info a přiložte vygenerovaný soubor:
+When opening an issue, please run the system-info command and attach the generated file:
 
 ```bash
 npm run system-info
 ```
 
-Tím se vygeneruje soubor `system-info.txt` s verzí Node.js, verzí OmniRoute, podrobnostmi o operačním systému, nainstalovanými nástroji CLI (qoder, gemini, claude, codex, antigravity, droid atd.), stavem Dockeru/PM2 a systémovými balíčky – vše, co potřebujeme k rychlé reprodukci vašeho problému. Soubor přiložte přímo k vašemu problému na GitHubu.
+This generates a `system-info.txt` with your Node.js version, OmniRoute version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
 
 ---
 
-## 🔄 Jak to funguje
+## 🔄 How It Works
 
 ```
 ┌─────────────┐
@@ -168,423 +262,453 @@ Result: Never stop coding, minimal cost
 
 ---
 
-## 🎯 Co řeší OmniRoute — 30 skutečných problémů a případů použití
+## 🎯 What OmniRoute Solves — 30 Real Pain Points & Use Cases
 
-> **Každý vývojář používající nástroje umělé inteligence se s těmito problémy setkává denně.** OmniRoute byl vytvořen tak, aby je všechny vyřešil – od překročení nákladů po regionální bloky, od nefunkčních toků OAuth až po operace s protokoly a sledovatelnost v podniku.
-
-<details>
-<summary><b>💸 1. „Platím si drahé předplatné, ale stále mě ruší limity“</b></summary>
-</details>
-
-Vývojáři platí za Claude Pro, Codex Pro nebo GitHub Copilot 20–200 dolarů měsíčně. I při platbě má kvóta strop – 5 hodin používání, týdenní limity nebo limity rychlosti za minutu. Uprostřed kódovací relace poskytovatel přestane reagovat a vývojář ztrácí plynulost a produktivitu.
-
-**Jak to OmniRoute řeší:**
-
-- **Inteligentní čtyřúrovňová záložní služba** – Pokud dojde kvóta předplatného, ​​automaticky se přesměruje na API klíč → Levné → Zdarma bez manuálního zásahu
-- **Sledování kvót v reálném čase** – Zobrazuje spotřebu tokenů v reálném čase s odpočítáváním resetování (5 hodin, denně, týdně)
-- **Podpora více účtů** – Více účtů u jednoho poskytovatele s automatickým přepínáním – když jeden dojde, přepne se na další
-- **Vlastní kombinace** — Přizpůsobitelné záložní řetězce se 6 strategiemi vyvažování (fill-first, round robin, P2C, náhodné, nejméně používané, nákladově optimalizované)
-- **Codex Business Quotas** — Sledování kvót pracovního prostoru firmy/týmu přímo v dashboardu
+> **Every developer using AI tools faces these problems daily.** OmniRoute was built to solve them all — from cost overruns to regional blocks, from broken OAuth flows to protocol operations and enterprise observability.
 
 <details>
-<summary><b>🔌 2. „Potřebuji použít více poskytovatelů, ale každý má jiné API“</b></summary>
+<summary><b>💸 1. "I pay for an expensive subscription but still get interrupted by limits"</b></summary>
+
+Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Even paying, quota has a ceiling — 5h of usage, weekly limits, or per-minute rate limits. Mid-coding session, the provider stops responding and the developer loses flow and productivity.
+
+**How OmniRoute solves it:**
+
+- **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
+- **Real-Time Quota Tracking** — Shows token consumption in real-time with reset countdown (5h, daily, weekly)
+- **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
+- **Custom Combos** — Customizable fallback chains with 9 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random)
+- **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
+
 </details>
-
-OpenAI používá jeden formát, Claude (Anthropic) jiný a Gemini ještě třetí. Pokud chce vývojář testovat modely od různých poskytovatelů nebo mezi nimi přecházet, musí překonfigurovat SDK, změnit koncové body a vypořádat se s nekompatibilními formáty. Vlastní poskytovatelé (FriendLI, NIM) mají nestandardní koncové body modelů.
-
-**Jak to OmniRoute řeší:**
-
-- **Sjednocený koncový bod** — Jeden `http://localhost:20128/v1` slouží jako proxy pro všech 67+ poskytovatelů.
-- **Překlad formátu** — Automatický a transparentní: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
-- **Sanitizace odpovědí** — Odstraňuje nestandardní pole ( `x_groq` , `usage_breakdown` , `service_tier` ), která porušují OpenAI SDK v1.83+
-- **Normalizace rolí** — Převádí `developer` → `system` pro poskytovatele bez OpenAI; `system` → `user` pro GLM/ERNIE
-- **Extrakce tagů Think** — Extrahuje bloky `<think>` z modelů, jako je DeepSeek R1, do standardizovaného `reasoning_content`
-- **Strukturovaný výstup pro Gemini** — `json_schema` → automatická konverze `responseMimeType` / `responseSchema`
-- **Výchozí hodnota `stream` je `false`** – Odpovídá specifikaci OpenAI, čímž se zabrání neočekávanému SSE v Python/Rust/Go SDK.
 
 <details>
-<summary><b>🌐 3. „Můj poskytovatel AI blokuje můj region/zemi“</b></summary>
+<summary><b>🔌 2. "I need to use multiple providers but each has a different API"</b></summary>
+
+OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If a dev wants to test models from different providers or fallback between them, they need to reconfigure SDKs, change endpoints, deal with incompatible formats. Custom providers (FriendLI, NIM) have non-standard model endpoints.
+
+**How OmniRoute solves it:**
+
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 60+ providers
+- **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
+- **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
+- **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
+- **Think Tag Extraction** — Extracts `<think>` blocks from models like DeepSeek R1 into standardized `reasoning_content`
+- **Structured Output for Gemini** — `json_schema` → `responseMimeType`/`responseSchema` automatic conversion
+- **`stream` defaults to `false`** — Aligns with OpenAI spec, avoiding unexpected SSE in Python/Rust/Go SDKs
+
 </details>
-
-Poskytovatelé jako OpenAI/Codex blokují přístup z určitých geografických oblastí. Uživatelé se během připojení OAuth a API dostávají k chybám jako `unsupported_country_region_territory` . To je obzvláště frustrující pro vývojáře z rozvojových zemí.
-
-**Jak to OmniRoute řeší:**
-
-- **3úrovňová konfigurace proxy** – Konfigurovatelná proxy na 3 úrovních: globální (veškerý provoz), pro jednotlivé poskytovatele (pouze jeden poskytovatel) a pro jednotlivé připojení/klíč
-- **Barevně kódované odznaky proxy** – Vizuální indikátory: 🟢 globální proxy, 🟡 proxy poskytovatele, 🔵 proxy připojení, vždy zobrazující IP adresu
-- **Výměna tokenů OAuth prostřednictvím proxy** – tok OAuth také prochází přes proxy, čímž se řeší `unsupported_country_region_territory`
-- **Testy připojení přes proxy** – Testy připojení používají nakonfigurovaný proxy (již žádné přímé obcházení)
-- **Podpora SOCKS5** — Plná podpora proxy SOCKS5 pro odchozí směrování
-- **TLS Fingerprint Spoofing** — Otisk prstu TLS podobný prohlížeči pomocí `wreq-js` pro obcházení detekce botů
-- **🔏 Porovnávání otisků prstů v CLI** — Změní pořadí záhlaví a polí v těle serveru tak, aby odpovídala nativním binárním podpisům v CLI, čímž drasticky snižuje riziko nahlašování účtu. IP adresa proxy je zachována — získáte současně stealth **i** maskování IP adresy.
 
 <details>
-<summary><b>🆓 4. „Chci používat umělou inteligenci pro kódování, ale nemám peníze“</b></summary>
+<summary><b>🌐 3. "My AI provider blocks my region/country"</b></summary>
+
+Providers like OpenAI/Codex block access from certain geographic regions. Users get errors like `unsupported_country_region_territory` during OAuth and API connections. This is especially frustrating for developers from developing countries.
+
+**How OmniRoute solves it:**
+
+- **3-Level Proxy Config** — Configurable proxy at 3 levels: global (all traffic), per-provider (one provider only), and per-connection/key
+- **Color-Coded Proxy Badges** — Visual indicators: 🟢 global proxy, 🟡 provider proxy, 🔵 connection proxy, always showing the IP
+- **OAuth Token Exchange Through Proxy** — OAuth flow also goes through the proxy, solving `unsupported_country_region_territory`
+- **Connection Tests via Proxy** — Connection tests use the configured proxy (no more direct bypass)
+- **SOCKS5 Support** — Full SOCKS5 proxy support for outbound routing
+- **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint via `wreq-js` to bypass bot detection
+- **🔏 CLI Fingerprint Matching** — Reorders headers and body fields to match native CLI binary signatures, drastically reducing account flagging risk. The proxy IP is preserved — you get both stealth **and** IP masking simultaneously
+
 </details>
-
-Ne každý si může dovolit zaplatit 20–200 dolarů měsíčně za předplatné AI. Studenti, vývojáři z rozvíjejících se zemí, amatéři a freelanceři potřebují přístup ke kvalitním modelům za nulovou cenu.
-
-**Jak to OmniRoute řeší:**
-
-- **Vestavění poskytovatelé bezplatné úrovně** — Nativní podpora pro 100% bezplatné poskytovatele: Qoder (5 neomezených modelů přes OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 neomezené modely: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID zdarma), Gemini CLI (180 tisíc tokenů/měsíc zdarma)
-- **Ollama Cloud** — Cloudově hostované modely Ollama na `api.ollama.com` s bezplatnou úrovní „Light usage“; použijte prefix `ollamacloud/<model>`
-- **Kombinace pouze zdarma** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/měsíc s nulovými prostoji
-- **NVIDIA NIM Free Access** — ~40 RPM developerský přístup k více než 70 modelům na build.nvidia.com (přechod z kreditů na čisté limity rychlosti)
-- **Strategie optimalizace nákladů** – Strategie směrování, která automaticky vybere nejlevnějšího dostupného poskytovatele
 
 <details>
-<summary><b>🔒 5. „Potřebuji chránit svou bránu umělé inteligence před neoprávněným přístupem“</b></summary>
+<summary><b>🆓 4. "I want to use AI for coding but I have no money"</b></summary>
+
+Not everyone can pay $20–200/month for AI subscriptions. Students, devs from emerging countries, hobbyists, and freelancers need access to quality models at zero cost.
+
+**How OmniRoute solves it:**
+
+- **Free Tier Providers Built-in** — Native support for 100% free providers: Qoder (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
+- **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
+- **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
+- **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
+
 </details>
-
-Při zpřístupnění brány umělé inteligence síti (LAN, VPS, Docker) může kdokoli s adresou spotřebovat tokeny/kvótu vývojáře. Bez ochrany jsou API zranitelná vůči zneužití, prompt injection a dalšímu zneužití.
-
-**Jak to OmniRoute řeší:**
-
-- **Správa klíčů API** – generování, rotace a vymezování rozsahu pro každého poskytovatele s vyhrazenou stránkou `/dashboard/api-manager`
-- **Oprávnění na úrovni modelu** – Omezení klíčů API na konkrétní modely ( `openai/*` , zástupné znaky) pomocí přepínače Povolit vše/Omezit
-- **Ochrana koncových bodů API** – Vyžaduje klíč pro `/v1/models` a blokuje konkrétní poskytovatele ze seznamu
-- **Auth Guard + CSRF Protection** — Všechny trasy dashboardu chráněné middlewarem `withAuth` + tokeny CSRF
-- **Omezovač rychlosti** — Omezování rychlosti na IP s konfigurovatelnými okny
-- **Filtrování IP adres** — Seznam povolených/blokovaných adres pro řízení přístupu
-- **Ochrana proti vkládání výzev** – Sanitizace proti škodlivým vzorcům výzev
-- **Šifrování AES-256-GCM** – přihlašovací údaje jsou v klidovém stavu šifrovány
 
 <details>
-<summary><b>🛑 6. „Můj poskytovatel selhal a já ztratil/a programovací tok“</b></summary>
+<summary><b>🔒 5. "I need to protect my AI gateway from unauthorized access"</b></summary>
+
+When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the address can consume the developer's tokens/quota. Without protection, APIs are vulnerable to misuse, prompt injection, and abuse.
+
+**How OmniRoute solves it:**
+
+- **API Key Management** — Generation, rotation, and scoping per provider with a dedicated `/dashboard/api-manager` page
+- **Model-Level Permissions** — Restrict API keys to specific models (`openai/*`, wildcard patterns), with Allow All/Restrict toggle
+- **API Endpoint Protection** — Require a key for `/v1/models` and block specific providers from the listing
+- **Auth Guard + CSRF Protection** — All dashboard routes protected with `withAuth` middleware + CSRF tokens
+- **Rate Limiter** — Per-IP rate limiting with configurable windows
+- **IP Filtering** — Allowlist/blocklist for access control
+- **Prompt Injection Guard** — Sanitization against malicious prompt patterns
+- **AES-256-GCM Encryption** — Credentials encrypted at rest
+
 </details>
-
-Poskytovatelé umělé inteligence se mohou stát nestabilními, vracet chyby 5xx nebo dosáhnout dočasných limitů rychlosti. Pokud je vývojář závislý na jediném poskytovateli, je jeho práce přerušena. Bez jističů může opakované pokusy vést k pádu aplikace.
-
-**Jak to OmniRoute řeší:**
-
-- **Jistič pro každý model** – Automatické otevírání/zavírání s konfigurovatelnými prahovými hodnotami a dobou ochlazování (Zavřeno/Otevřeno/Poloviční otevření), rozsah definovaný pro každý model, aby se zabránilo kaskádování bloků
-- **Exponenciální odklad** — Progresivní zpoždění opakování
-- **Anti-Thundering Herd** — ochrana Mutex + semafor proti souběžným bouřím s opakovanými pokusy
-- **Kombinované záložní řetězce** – Pokud primární poskytovatel selže, automaticky se propadne řetězcem bez zásahu.
-- **Kombinovaný jistič** – Automaticky deaktivuje selhávajícího poskytovatele v rámci kombinovaného řetězce
-- **Dashboard stavu** — Monitorování provozuschopnosti, stavy jističů, uzamčení, statistiky mezipaměti, latence p50/p95/p99
 
 <details>
-<summary><b>🔧 7. „Konfigurace každého nástroje umělé inteligence je zdlouhavá a opakující se“</b></summary>
+<summary><b>🛑 6. "My provider went down and I lost my coding flow"</b></summary>
+
+AI providers can become unstable, return 5xx errors, or hit temporary rate limits. If a dev depends on a single provider, they're interrupted. Without circuit breakers, repeated retries can crash the application.
+
+**How OmniRoute solves it:**
+
+- **Circuit Breaker per-model** — Auto-open/close with configurable thresholds and cooldown (Closed/Open/Half-Open), scoped per-model to avoid cascading blocks
+- **Exponential Backoff** — Progressive retry delays
+- **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
+- **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
+- **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain
+- **Health Dashboard** — Uptime monitoring, circuit breaker states, lockouts, cache stats, p50/p95/p99 latency
+
 </details>
-
-Vývojáři používají Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code... Každý nástroj potřebuje jinou konfiguraci (API endpoint, klíč, model). Překonfigurování při změně poskytovatele nebo modelu je ztráta času.
-
-**Jak to OmniRoute řeší:**
-
-- **Panel nástrojů CLI** — Vyhrazená stránka s nastavením jedním kliknutím pro Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity a Cline
-- **Generátor konfigurace GitHub Copilot** – Generuje `chatLanguageModels.json` pro VS Code s hromadným výběrem modelu
-- **Průvodce zaváděním** – 4krokové nastavení pro začínající uživatele
-- **Jeden koncový bod, všechny modely** – jednou nakonfigurujte `http://localhost:20128/v1` a získejte přístup k více než 44 poskytovatelům
 
 <details>
-<summary><b>🔑 8. „Správa OAuth tokenů od více poskytovatelů je peklo“</b></summary>
+<summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
+
+Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code... Each tool needs a different config (API endpoint, key, model). Reconfiguring when switching providers or models is a waste of time.
+
+**How OmniRoute solves it:**
+
+- **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
+- **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
+- **Onboarding Wizard** — Guided 4-step setup for first-time users
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 60+ providers
+
 </details>
-
-Claude Code, Codex, Gemini CLI, Copilot – všechny používají OAuth 2.0 s tokeny s vypršením platnosti. Vývojáři se musí neustále znovu autentizovat, řešit chyby `client_secret is missing` , `redirect_uri_mismatch` a chyby na vzdálených serverech. Obzvláště problematický je OAuth v LAN/VPS.
-
-**Jak to OmniRoute řeší:**
-
-- **Automatická aktualizace tokenů** – Tokeny OAuth se obnovují na pozadí před vypršením platnosti.
-- **Vestavěný OAuth 2.0 (PKCE)** – Automatický tok pro Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
-- **Multi-Account OAuth** — Více účtů na poskytovatele prostřednictvím extrakce tokenů JWT/ID
-- **OAuth LAN/Remote Fix** — Detekce privátní IP adresy pro `redirect_uri` + manuální režim URL pro vzdálené servery
-- **OAuth Behind Nginx** — Používá `window.location.origin` pro kompatibilitu s reverzní proxy
-- **Průvodce vzdáleným OAuth** – Podrobný návod k přihlašovacím údajům Google Cloud na VPS/Dockeru
 
 <details>
-<summary><b>📊 9. „Nevím, kolik utrácím ani kde“</b></summary>
+<summary><b>🔑 8. "Managing OAuth tokens from multiple providers is hell"</b></summary>
+
+Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
+
+**How OmniRoute solves it:**
+
+- **Auto Token Refresh** — OAuth tokens refresh in background before expiration
+- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
+- **Multi-Account OAuth** — Multiple accounts per provider via JWT/ID token extraction
+- **OAuth LAN/Remote Fix** — Private IP detection for `redirect_uri` + manual URL mode for remote servers
+- **OAuth Behind Nginx** — Uses `window.location.origin` for reverse proxy compatibility
+- **Remote OAuth Guide** — Step-by-step guide for Google Cloud credentials on VPS/Docker
+
 </details>
-
-Vývojáři používají více placených poskytovatelů, ale nemají jednotný přehled o výdajích. Každý poskytovatel má svůj vlastní fakturační panel, ale neexistuje žádný konsolidovaný přehled. Mohou se hromadit neočekávané náklady.
-
-**Jak to OmniRoute řeší:**
-
-- **Dashboard pro analýzu nákladů** – Sledování nákladů na token a správa rozpočtu pro každého poskytovatele
-- **Rozpočtové limity na úroveň** – Strop výdajů na úroveň, který spouští automatický záložní režim
-- **Konfigurace cen podle modelu** – Konfigurovatelné ceny podle modelu
-- **Statistiky použití pro každý klíč API** — Počet požadavků a časové razítko posledního použití pro každý klíč
-- **Analytický panel** – Statistické karty, graf využití modelu, tabulka poskytovatelů s mírou úspěšnosti a latencí
 
 <details>
-<summary><b>🐛 10. „Nedokážu diagnostikovat chyby a problémy ve volání umělé inteligence.“</b></summary>
+<summary><b>📊 9. "I don't know how much I'm spending or where"</b></summary>
+
+Developers use multiple paid providers but have no unified view of spending. Each provider has its own billing dashboard, but there's no consolidated view. Unexpected costs can pile up.
+
+**How OmniRoute solves it:**
+
+- **Cost Analytics Dashboard** — Per-token cost tracking and budget management per provider
+- **Budget Limits per Tier** — Spending ceiling per tier that triggers automatic fallback
+- **Per-Model Pricing Configuration** — Configurable prices per model
+- **Usage Statistics Per API Key** — Request count and last-used timestamp per key
+- **Analytics Dashboard** — Stat cards, model usage chart, provider table with success rates and latency
+
 </details>
-
-Když volání selže, vývojář neví, zda se jednalo o limit rychlosti, vypršelý token, špatný formát nebo chybu poskytovatele. Fragmentované protokoly napříč různými terminály. Bez sledovatelnosti je ladění metodou pokus-omyl.
-
-**Jak to OmniRoute řeší:**
-
-- **Panel jednotných protokolů** – 4 karty: Protokoly požadavků, Protokoly proxy, Protokoly auditu, Konzole
-- **Prohlížeč protokolů konzole** — Prohlížeč protokolů v reálném čase ve stylu terminálu s barevně kódovanými úrovněmi, automatickým posouváním, vyhledáváním a filtrováním
-- **Protokoly proxy SQLite** – trvalé protokoly, které přežijí restart serveru
-- **Překladačské hřiště** — 4 režimy ladění: Hřiště (překlad formátu), Tester chatu (okružní), Testovací stůl (dávkový), Živý monitor (v reálném čase)
-- **Telemetrie požadavků** — latence p50/p95/p99 + trasování X-Request-Id
-- **Souborové protokolování s rotací** – Konzolový interceptor zachycuje vše do protokolu JSON s rotací na základě velikosti
-- **Zpráva o systémových informacích** — příkaz `npm run system-info` vygeneruje `system-info.txt` s kompletním popisem vašeho prostředí (verze uzlu, verze OmniRoute, operační systém, nástroje CLI, stav Dockeru/PM2). Přiložte jej při hlášení problémů pro okamžité třídění.
 
 <details>
-<summary><b>🏗️ 11. „Nasazení a údržba brány je složitá“</b></summary>
+<summary><b>🐛 10. "I can't diagnose errors and problems in AI calls"</b></summary>
+
+When a call fails, the dev doesn't know if it was a rate limit, expired token, wrong format, or provider error. Fragmented logs across different terminals. Without observability, debugging is trial-and-error.
+
+**How OmniRoute solves it:**
+
+- **Unified Logs Dashboard** — 4 tabs: Request Logs, Proxy Logs, Audit Logs, Console
+- **Console Log Viewer** — Real-time terminal-style viewer with color-coded levels, auto-scroll, search, filter
+- **SQLite Proxy Logs** — Persistent logs that survive server restarts
+- **Translator Playground** — 4 debugging modes: Playground (format translation), Chat Tester (round-trip), Test Bench (batch), Live Monitor (real-time)
+- **Request Telemetry** — p50/p95/p99 latency + X-Request-Id tracing
+- **File-Based Logging with Rotation** — App logs rotate by size, retention days, and archive count; call log artifacts rotate by retention days and file count
+- **System Info Report** — `npm run system-info` generates `system-info.txt` with your full environment (Node version, OmniRoute version, OS, CLI tools, Docker/PM2 status). Attach it when reporting issues for instant triage.
+
 </details>
-
-Instalace, konfigurace a údržba AI proxy v různých prostředích (lokální, VPS, Docker, cloud) je pracná. Problémy, jako jsou pevně zakódované cesty, `EACCES` u adresářů, konflikty portů a multiplatformní sestavení, přispívají k obtížím.
-
-**Jak to OmniRoute řeší:**
-
-- **npm globální instalace** — `npm install -g omniroute && omniroute` — hotovo
-- **Docker Multi-Platform** — AMD64 + nativní ARM64 (Apple Silicon, AWS Graviton, Raspberry Pi)
-- **Profily Docker Compose** — `base` (bez nástrojů CLI) a `cli` (s Claude Code, Codex, OpenClaw)
-- **Desktopová aplikace Electron** — Nativní aplikace pro Windows/macOS/Linux se systémovou lištou, automatickým spuštěním a offline režimem
-- **Režim rozdělených portů** – API a řídicí panel na samostatných portech pro pokročilé scénáře (reverzní proxy, síťování kontejnerů)
-- **Cloud Sync** – Konfigurace synchronizace mezi zařízeními pomocí Cloudflare Workers
-- **Zálohy databází** — Automatické zálohování, obnovení, export a import všech nastavení
 
 <details>
-<summary><b>🌍 12. „Rozhraní je pouze v angličtině a můj tým nemluví anglicky“</b></summary>
+<summary><b>🏗️ 11. "Deploying and maintaining the gateway is complex"</b></summary>
+
+Installing, configuring, and maintaining an AI proxy across different environments (local, VPS, Docker, cloud) is labor-intensive. Problems like hardcoded paths, `EACCES` on directories, port conflicts, and cross-platform builds add friction.
+
+**How OmniRoute solves it:**
+
+- **npm global install** — `npm install -g omniroute && omniroute` — done
+- **Docker Multi-Platform** — AMD64 + ARM64 native (Apple Silicon, AWS Graviton, Raspberry Pi)
+- **Docker Compose Profiles** — `base` (no CLI tools) and `cli` (with Claude Code, Codex, OpenClaw)
+- **Electron Desktop App** — Native app for Windows/macOS/Linux with system tray, auto-start, offline mode
+- **Split-Port Mode** — API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking)
+- **Cloud Sync** — Config synchronization across devices via Cloudflare Workers
+- **DB Backups** — Automatic backup, restore, export and import of all settings, with `DISABLE_SQLITE_AUTO_BACKUP` for externally managed backups
+
 </details>
-
-Týmy v neanglicky mluvících zemích, zejména v Latinské Americe, Asii a Evropě, se potýkají s rozhraními pouze v angličtině. Jazykové bariéry snižují míru přijetí a zvyšují chyby v konfiguraci.
-
-**Jak to OmniRoute řeší:**
-
-- **Dashboard i18n — 30 jazyků** — Všech 500+ kláves je přeloženo včetně arabštiny, bulharštiny, dánštiny, němčiny, španělštiny, finštiny, francouzštiny, hebrejštiny, hindštiny, maďarštiny, indonéštiny, italštiny, japonštiny, korejštiny, malajštiny, holandštiny, norštiny, polštiny, portugalštiny (PT/BR), rumunštiny, ruštiny, slovenštiny, švédštiny, thajštiny, ukrajinštiny, vietnamštiny, čínštiny, filipínštiny a angličtiny
-- **Podpora RTL** – Podpora psaní zprava doleva pro arabštinu a hebrejštinu
-- **Vícejazyčné soubory README** — 30 kompletních překladů dokumentace
-- **Výběr jazyka** — Ikona glóbu v záhlaví pro přepínání v reálném čase
 
 <details>
-<summary><b>🔄 13. „Potřebuji víc než jen chat – potřebuji vložené soubory, obrázky, zvuk.“</b></summary>
+<summary><b>🌍 12. "The interface is English-only and my team doesn't speak English"</b></summary>
+
+Teams in non-English-speaking countries, especially in Latin America, Asia, and Europe, struggle with English-only interfaces. Language barriers reduce adoption and increase configuration errors.
+
+**How OmniRoute solves it:**
+
+- **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
+- **RTL Support** — Right-to-left support for Arabic and Hebrew
+- **Multi-Language READMEs** — 30 complete documentation translations
+- **Language Selector** — Globe icon in header for real-time switching
+
 </details>
-
-Umělá inteligence není jen dokončování chatu. Vývojáři potřebují generovat obrázky, přepisovat zvuk, vytvářet embeddedy pro RAG, měnit pořadí dokumentů a moderovat obsah. Každé API má jiný koncový bod a formát.
-
-**Jak to OmniRoute řeší:**
-
-- **Vkládání** — `/v1/embeddings` s 6 poskytovateli a 9+ modely
-- **Generování obrázků** — `/v1/images/generations` s 10 poskytovateli a více než 20 modely (OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, Antigravity, SD WebUI, ComfyUI)
-- **Převod textu na video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) a SD WebUI
-- **Převod textu na hudbu** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
-- **Přepis zvuku** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Převod textu na řeč** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, **Inworld** , **Cartesia** , **PlayHT** a další stávající poskytovatelé
-- **Moderování** — `/v1/moderations` — Kontroly bezpečnosti obsahu
-- **Změna pořadí** — `/v1/rerank` — Změna pořadí relevance dokumentu
-- **Responses API** — Plná podpora `/v1/responses` pro Codex
 
 <details>
-<summary><b>🧪 14. „Nemám způsob, jak testovat a porovnávat kvalitu napříč modely.“</b></summary>
+<summary><b>🔄 13. "I need more than chat — I need embeddings, images, audio"</b></summary>
+
+AI isn't just chat completion. Devs need to generate images, transcribe audio, create embeddings for RAG, rerank documents, and moderate content. Each API has a different endpoint and format.
+
+**How OmniRoute solves it:**
+
+- **Embeddings** — `/v1/embeddings` with 6 providers and 9+ models
+- **Image Generation** — `/v1/images/generations` with 10 providers and 20+ models (OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, Antigravity, SD WebUI, ComfyUI)
+- **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) and SD WebUI
+- **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
+- **Audio Transcription** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
+- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, **Inworld**, **Cartesia**, **PlayHT**, + existing providers
+- **Moderations** — `/v1/moderations` — Content safety checks
+- **Reranking** — `/v1/rerank` — Document relevance reranking
+- **Responses API** — Full `/v1/responses` support for Codex
+
 </details>
-
-Vývojáři chtějí vědět, který model je pro jejich případ použití nejlepší – kód, překlad, uvažování – ale ruční porovnávání je pomalé. Neexistují žádné integrované nástroje pro vyhodnocování.
-
-**Jak to OmniRoute řeší:**
-
-- **Hodnocení LLM** — Testování Golden setu s 10 předinstalovanými případy zahrnujícími pozdravy, matematiku, geografii, generování kódu, dodržování JSON, překlad, markdown, odmítnutí bezpečnostních požadavků
-- **4 strategie shody** — `exact` , `contains` , `regex` , `custom` (JS funkce)
-- **Testovací lavice pro překladatelské hřiště** — Dávkové testování s více vstupy a očekávanými výstupy, porovnání napříč poskytovateli
-- **Tester chatu** — Kompletní okružní cesta s vizuálním vykreslováním odpovědí
-- **Živý monitor** — Stream všech požadavků procházejících proxy serverem v reálném čase
 
 <details>
-<summary><b>📈 15. „Potřebuji škálovat bez ztráty výkonu“</b></summary>
+<summary><b>🧪 14. "I have no way to test and compare quality across models"</b></summary>
+
+Developers want to know which model is best for their use case — code, translation, reasoning — but comparing manually is slow. No integrated eval tools exist.
+
+**How OmniRoute solves it:**
+
+- **LLM Evaluations** — Golden set testing with 10 pre-loaded cases covering greetings, math, geography, code generation, JSON compliance, translation, markdown, safety refusal
+- **4 Match Strategies** — `exact`, `contains`, `regex`, `custom` (JS function)
+- **Translator Playground Test Bench** — Batch testing with multiple inputs and expected outputs, cross-provider comparison
+- **Chat Tester** — Full round-trip with visual response rendering
+- **Live Monitor** — Real-time stream of all requests flowing through the proxy
+
 </details>
-
-S rostoucím objemem požadavků generují stejné otázky bez ukládání do mezipaměti duplicitní náklady. Bez idempotence duplicitní požadavky plýtvají zpracováním. Je nutné dodržovat limity rychlosti na poskytovatele.
-
-**Jak to OmniRoute řeší:**
-
-- **Sémantická mezipaměť** — Dvouvrstvá mezipaměť (signatura + sémantika) snižuje náklady a latenci
-- **Idempotence požadavku** — 5s deduplikační okno pro identické požadavky
-- **Detekce limitu rychlosti** – sledování otáček za minutu (RPM), minimální mezera a maximální souběžné sledování pro každého poskytovatele
-- **Upravitelné limity rychlosti** — Konfigurovatelné výchozí hodnoty v Nastavení → Odolnost s perzistencí
-- **Mezipaměť pro ověření klíčů API** — třívrstvá mezipaměť pro výkon produkčního prostředí
-- **Dashboard s telemetrií** – latence p50/p95/p99, statistiky mezipaměti, dostupnost
 
 <details>
-<summary><b>🤖 16. „Chci mít chování modelů globálně pod kontrolou“</b></summary>
+<summary><b>📈 15. "I need to scale without losing performance"</b></summary>
+
+As request volume grows, without caching the same questions generate duplicate costs. Without idempotency, duplicate requests waste processing. Per-provider rate limits must be respected.
+
+**How OmniRoute solves it:**
+
+- **Semantic Cache** — Two-tier cache (signature + semantic) reduces cost and latency
+- **Request Idempotency** — 5s deduplication window for identical requests
+- **Rate Limit Detection** — Per-provider RPM, min gap, and max concurrent tracking
+- **Editable Rate Limits** — Configurable defaults in Settings → Resilience with persistence
+- **API Key Validation Cache** — 3-tier cache for production performance
+- **Health Dashboard with Telemetry** — p50/p95/p99 latency, cache stats, uptime
+
 </details>
-
-Vývojáři, kteří chtějí všechny odpovědi v určitém jazyce, se specifickým tónem nebo chtějí omezit tokeny pro uvažování. Konfigurace této funkce v každém nástroji/požadavku je nepraktická.
-
-**Jak to OmniRoute řeší:**
-
-- **Vložení systémového prompt** – Globální prompt aplikovaný na všechny požadavky
-- **Validace rozpočtu Thinking** — Řízení alokace tokenů na požadavek (průchozí, automatické, vlastní, adaptivní)
-- **6 strategií směrování** – Globální strategie, které určují, jak jsou požadavky distribuovány
-- **Směrovač se zástupnými znaky** — vzory `provider/*` dynamicky směrují k libovolnému poskytovateli
-- **Přepínání povolení/zakázání kombinací** – Přepínání kombinací přímo z řídicího panelu
-- **Přepínání poskytovatele** – Povolení/zakázání všech připojení pro poskytovatele jedním kliknutím
-- **Blokovaní poskytovatelé** – Vyloučení konkrétních poskytovatelů ze seznamu `/v1/models`
 
 <details>
-<summary><b>🧰 17. „Potřebuji nástroje MCP jako prvotřídní produktové funkce.“</b></summary>
+<summary><b>🤖 16. "I want to control model behavior globally"</b></summary>
+
+Developers who want all responses in a specific language, with a specific tone, or want to limit reasoning tokens. Configuring this in every tool/request is impractical.
+
+**How OmniRoute solves it:**
+
+- **System Prompt Injection** — Global prompt applied to all requests
+- **Thinking Budget Validation** — Reasoning token allocation control per request (passthrough, auto, custom, adaptive)
+- **9 Routing Strategies** — Global strategies that determine how requests are distributed
+- **Wildcard Router** — `provider/*` patterns route dynamically to any provider
+- **Combo Enable/Disable Toggle** — Toggle combos directly from the dashboard
+- **Provider Toggle** — Enable/disable all connections for a provider with one click
+- **Blocked Providers** — Exclude specific providers from `/v1/models` listing
+
 </details>
-
-Mnoho bran umělé inteligence odhaluje MCP pouze jako skrytý implementační detail. Týmy potřebují viditelnou a spravovatelnou operační vrstvu.
-
-**Jak to OmniRoute řeší:**
-
-- MCP se zobrazuje v navigaci na řídicím panelu a na kartě protokolu koncového bodu.
-- Vyhrazená stránka pro správu MCP s procesy, nástroji, rozsahy a auditem
-- Vestavěný rychlý start pro `omniroute --mcp` a onboarding klienta
 
 <details>
-<summary><b>🧠 18. „Potřebuji orchestraci A2A se synchronizací a cestami úloh streamu.“</b></summary>
+<summary><b>🧰 17. "I need MCP tools as first-class product capabilities"</b></summary>
+
+Many AI gateways expose MCP only as a hidden implementation detail. Teams need a visible, manageable operation layer.
+
+**How OmniRoute solves it:**
+
+- MCP appears in the dashboard navigation and endpoint protocol tab
+- Dedicated MCP management page with process, tools, scopes, and audit
+- Built-in quick-start for `omniroute --mcp` and client onboarding
+
 </details>
-
-Pracovní postupy agentů vyžadují jak přímé odpovědi, tak dlouhodobé streamované provádění s kontrolou životního cyklu.
-
-**Jak to OmniRoute řeší:**
-
-- Koncový bod A2A JSON-RPC ( `POST /a2a` ) s `message/send` `message/stream`
-- Streamování SSE s šířením stavu terminálu
-- Rozhraní API životního cyklu úloh pro `tasks/get` a `tasks/cancel`
 
 <details>
-<summary><b>🛰️ 19. „Potřebuji skutečný stav procesu MCP, ne odhadovaný stav.“</b></summary>
+<summary><b>🧠 18. "I need A2A orchestration with sync + stream task paths"</b></summary>
+
+Agent workflows need both direct replies and long-running streamed execution with lifecycle control.
+
+**How OmniRoute solves it:**
+
+- A2A JSON-RPC endpoint (`POST /a2a`) with `message/send` and `message/stream`
+- SSE streaming with terminal state propagation
+- Task lifecycle APIs for `tasks/get` and `tasks/cancel`
+
 </details>
-
-Provozní týmy potřebují vědět, zda je MCP skutečně aktivní, nejen zda je API dosažitelné.
-
-**Jak to OmniRoute řeší:**
-
-- Soubor běhového heartbeatu s PID, časovými razítky, transportem, počtem nástrojů a režimem rozsahu
-- API stavu MCP kombinující prezenční signál a nedávnou aktivitu
-- Karty stavu uživatelského rozhraní pro zobrazení aktuálnosti procesů/provozuschopnosti/prezenčního signálu
 
 <details>
-<summary><b>📋 20. „Potřebuji auditovatelné provedení nástroje MCP“</b></summary>
+<summary><b>🛰️ 19. "I need real MCP process health, not guessed status"</b></summary>
+
+Operational teams need to know if MCP is actually alive, not just whether an API is reachable.
+
+**How OmniRoute solves it:**
+
+- Runtime heartbeat file with PID, timestamps, transport, tool count, and scope mode
+- MCP status API combining heartbeat + recent activity
+- UI status cards for process/uptime/heartbeat freshness
+
 </details>
-
-Když nástroje mění konfiguraci nebo spouštějí operační akce, týmy potřebují forenzní sledovatelnost.
-
-**Jak to OmniRoute řeší:**
-
-- Protokolování auditu pro volání nástrojů MCP s podporou SQLite
-- Filtruje podle nástroje, úspěchu/neúspěchu, klíče API a stránkování
-- Tabulka auditu dashboardu + koncové body statistik pro automatizaci
 
 <details>
-<summary><b>🔐 21. „Potřebuji omezená oprávnění MCP pro každou integraci.“</b></summary>
+<summary><b>📋 20. "I need auditable MCP tool execution"</b></summary>
+
+When tools mutate config or trigger ops actions, teams need forensic traceability.
+
+**How OmniRoute solves it:**
+
+- SQLite-backed audit logging for MCP tool calls
+- Filters by tool, success/failure, API key, and pagination
+- Dashboard audit table + stats endpoints for automation
+
 </details>
-
-Různí klienti by měli mít přístup ke kategoriím nástrojů s nejnižšími oprávněními.
-
-**Jak to OmniRoute řeší:**
-
-- 9 detailních MCP sond pro kontrolovaný přístup k nástrojům
-- Vynucení rozsahu a viditelnost v uživatelském rozhraní správy MCP
-- Bezpečná výchozí poloha pro provozní nástroje
 
 <details>
-<summary><b>⚙️ 22. „Potřebuji provozní kontroly bez nutnosti přesouvání“</b></summary>
+<summary><b>🔐 21. "I need scoped MCP permissions per integration"</b></summary>
+
+Different clients should have least-privilege access to tool categories.
+
+**How OmniRoute solves it:**
+
+- 10 granular MCP scopes for controlled tool access
+- Scope enforcement and visibility in MCP management UI
+- Safe default posture for operational tooling
+
 </details>
-
-Týmy potřebují rychlé změny v běhovém prostředí během incidentů nebo nákladových událostí.
-
-**Jak to OmniRoute řeší:**
-
-- Přepněte aktivaci komba přímo z řídicího panelu MCP
-- Používejte profily odolnosti z předdefinovaných balíčků zásad
-- Resetujte stav jističe ze stejného ovládacího panelu
 
 <details>
-<summary><b>🔄 23. „Potřebuji živý přehled o životním cyklu úkolů A2A a jejich zrušení.“</b></summary>
+<summary><b>⚙️ 22. "I need operational controls without redeploying"</b></summary>
+
+Teams need quick runtime changes during incidents or cost events.
+
+**How OmniRoute solves it:**
+
+- Switch combo activation directly from MCP dashboard
+- Apply resilience profiles from pre-defined policy packs
+- Reset circuit breaker state from the same operations panel
+
 </details>
-
-Bez přehledu o životním cyklu je obtížné třídit incidenty úkolů.
-
-**Jak to OmniRoute řeší:**
-
-- Výpis/filtrování úkolů podle státu/dovednosti s stránkováním
-- Podrobný přehled metadat úloh, událostí a artefaktů
-- Koncový bod zrušení úlohy a akce uživatelského rozhraní s potvrzením
 
 <details>
-<summary><b>🌊 24. „Potřebuji metriky aktivního streamu pro A2A zátěž“</b></summary>
+<summary><b>🔄 23. "I need live A2A task lifecycle visibility and cancellation"</b></summary>
+
+Without lifecycle visibility, task incidents become hard to triage.
+
+**How OmniRoute solves it:**
+
+- Task listing/filtering by state/skill with pagination
+- Drill-down on task metadata, events, and artifacts
+- Task cancellation endpoint and UI action with confirmation
+
 </details>
-
-Streamovací pracovní postupy vyžadují provozní přehled o souběžnosti a živých připojeních.
-
-**Jak to OmniRoute řeší:**
-
-- Čítače aktivních streamů integrované do stavu A2A
-- Časové razítko posledního úkolu a počty pro jednotlivé stavy
-- Karty A2A dashboardu pro monitorování provozu v reálném čase
 
 <details>
-<summary><b>🪪 25. „Potřebuji standardní vyhledávání agentů pro klienty“</b></summary>
+<summary><b>🌊 24. "I need active stream metrics for A2A load"</b></summary>
+
+Streaming workflows require operational insight into concurrency and live connections.
+
+**How OmniRoute solves it:**
+
+- Active stream counters integrated into A2A status
+- Last task timestamp and per-state counts
+- A2A dashboard cards for real-time ops monitoring
+
 </details>
-
-Externí klienti a orchestratoři potřebují pro onboarding strojově čitelná metadata.
-
-**Jak to OmniRoute řeší:**
-
-- Karta agenta je k dispozici v souboru `/.well-known/agent.json`
-- Schopnosti a dovednosti zobrazené v uživatelském rozhraní pro správu
-- API pro stav A2A zahrnuje metadata pro zjišťování pro automatizaci
 
 <details>
-<summary><b>🧭 26. „Potřebuji v uživatelském rozhraní produktu zjistitelnost protokolu.“</b></summary>
+<summary><b>🪪 25. "I need standard agent discovery for clients"</b></summary>
+
+External clients and orchestrators need machine-readable metadata for onboarding.
+
+**How OmniRoute solves it:**
+
+- Agent Card exposed at `/.well-known/agent.json`
+- Capabilities and skills shown in management UI
+- A2A status API includes discovery metadata for automation
+
 </details>
-
-Pokud uživatelé nemohou objevit protokolové povrchy, kvalita přijetí a podpory klesá.
-
-**Jak to OmniRoute řeší:**
-
-- Stránka Konsolidované **koncové body** s kartami pro koncové body Proxy, MCP, A2A a API
-- Přepínání stavu inline služby (Online/Offline) pro MCP a A2A
-- Odkazy z přehledu na vyhrazené karty pro správu
 
 <details>
-<summary><b>🧪 27. „Potřebuji komplexní ověření protokolu se skutečnými klienty.“</b></summary>
+<summary><b>🧭 26. "I need protocol discoverability in the product UX"</b></summary>
+
+If users cannot discover protocol surfaces, adoption and support quality drop.
+
+**How OmniRoute solves it:**
+
+- Consolidated **Endpoints** page with tabs for Proxy, MCP, A2A, and API Endpoints
+- Inline service status toggles (Online/Offline) for MCP and A2A
+- Links from overview to dedicated management tabs
+
 </details>
-
-Simulované testy nestačí k ověření kompatibility protokolu před vydáním.
-
-**Jak to OmniRoute řeší:**
-
-- Sada E2E, která spouští aplikaci a používá skutečný transport klienta MCP SDK.
-- Klientské testy A2A pro toky zjišťování, odesílání, streamování, načítání a zrušení
-- Křížová kontrola tvrzení oproti API pro audit MCP a úkoly A2A
 
 <details>
-<summary><b>📡 28. „Potřebuji jednotnou pozorovatelnost napříč všemi rozhraními“</b></summary>
+<summary><b>🧪 27. "I need end-to-end protocol validation with real clients"</b></summary>
+
+Mock tests are not enough to validate protocol compatibility before release.
+
+**How OmniRoute solves it:**
+
+- E2E suite that boots app and uses real MCP SDK client transport
+- A2A client tests for discovery, send, stream, get, and cancel flows
+- Cross-check assertions against MCP audit and A2A tasks APIs
+
 </details>
-
-Rozdělení pozorovatelnosti podle protokolu vytváří slepá místa a delší MTTR.
-
-**Jak to OmniRoute řeší:**
-
-- Sjednocené dashboardy/logy/analytiky v jednom produktu
-- Stav + audit + telemetrie požadavků napříč vrstvami OpenAI, MCP a A2A
-- Provozní API pro stav a automatizaci
 
 <details>
-<summary><b>💼 29. „Potřebuji jeden runtime pro proxy + nástroje + orchestraci agentů“</b></summary>
+<summary><b>📡 28. "I need unified observability across all interfaces"</b></summary>
+
+Splitting observability by protocol creates blind spots and longer MTTR.
+
+**How OmniRoute solves it:**
+
+- Unified dashboards/logs/analytics in one product
+- Health + audit + request telemetry across OpenAI, MCP, and A2A layers
+- Operational APIs for status and automation
+
 </details>
-
-Spouštění mnoha samostatných služeb zvyšuje provozní náklady a počet poruch.
-
-**Jak to OmniRoute řeší:**
-
-- Proxy, MCP server a A2A server kompatibilní s OpenAI v jednom balíčku
-- Sdílené ověřování, odolnost, úložiště dat a pozorovatelnost
-- Konzistentní model politik napříč všemi interakčními plochami
 
 <details>
-<summary><b>🚀 30. „Potřebuji agentské pracovní postupy bez slepení kódu.“</b></summary>
+<summary><b>💼 29. "I need one runtime for proxy + tools + agent orchestration"</b></summary>
+
+Running many separate services increases operational cost and failure modes.
+
+**How OmniRoute solves it:**
+
+- OpenAI-compatible proxy, MCP server, and A2A server in one stack
+- Shared auth, resilience, data store, and observability
+- Consistent policy model across all interaction surfaces
+
 </details>
 
-Týmy ztrácejí rychlost při spojování více ad-hoc služeb a skriptů.
+<details>
+<summary><b>🚀 30. "I need to ship agentic workflows without glue-code sprawl"</b></summary>
 
-**Jak to OmniRoute řeší:**
+Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
-- Sjednocená strategie koncových bodů pro klienty a agenty
-- Vestavěná uživatelská rozhraní pro správu protokolů a cesty pro ověřování kouře
-- Základy připravené pro produkční prostředí (zabezpečení, protokolování, odolnost, zálohování)
+**How OmniRoute solves it:**
 
-### Příklady herních plánů (integrované případy užití)
+- Unified endpoint strategy for clients and agents
+- Built-in protocol management UIs and smoke validation paths
+- Production-ready foundations (security, logging, resilience, backup)
 
-**Příručka A: Maximalizace placeného předplatného + levné zálohování**
+</details>
+
+### Example Playbooks (Integrated Use Cases)
+
+**Playbook A: Maximize paid subscription + cheap backup**
 
 ```txt
 Combo: "maximize-claude"
@@ -596,7 +720,7 @@ Monthly cost: $20 + small backup spend
 Outcome: higher quality, near-zero interruption
 ```
 
-**Příručka B: Kódovací stack s nulovými náklady**
+**Playbook B: Zero-cost coding stack**
 
 ```txt
 Combo: "free-forever"
@@ -608,7 +732,7 @@ Monthly cost: $0
 Outcome: stable free coding workflow
 ```
 
-**Příručka C: Nonstop záložní řetězec**
+**Playbook C: 24/7 always-on fallback chain**
 
 ```txt
 Combo: "always-on"
@@ -621,7 +745,7 @@ Combo: "always-on"
 Outcome: deep fallback depth for deadline-critical workloads
 ```
 
-**Příručka D: Operace agentů s MCP + A2A**
+**Playbook D: Agent ops with MCP + A2A**
 
 ```txt
 1) Start MCP transport (`omniroute --mcp`) for tool-driven operations
@@ -632,32 +756,32 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 ---
 
-## 🆓 Začněte zdarma — Nulové náklady na konfiguraci
+## 🆓 Start Free — Zero Configuration Cost
 
-> Nastavte si kódování s umělou inteligencí během několika minut za **0 $/měsíc** . Propojte tyto bezplatné účty a využijte vestavěnou kombinaci **Free Stack** .
+> Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
 
-| Krok | Akce                                                           | Poskytovatelé odemčeni                                            |
-| ---- | -------------------------------------------------------------- | ----------------------------------------------------------------- |
-| 1    | Připojení **Kiro** (AWS Builder ID OAuth)                      | Claude Sonnet 4.5, Haiku 4.5 – **neomezeně**                      |
-| 2    | Připojení k **Qoder** (Google OAuth)                           | kimi-k2-myšlení, qwen3-coder-plus, deepseek-r1... — **neomezeně** |
-| 3    | Připojení **Qwen** (kód zařízení)                              | qwen3-coder-plus, qwen3-coder-flash... — **neomezeně**            |
-| 4    | Připojení **rozhraní příkazového řádku Gemini** (Google OAuth) | gemini-3-flash, gemini-2.5-pro — **180 000 GBP/měsíc zdarma**     |
-| 5    | `/dashboard/combos` → Šablona **Free Stack (0 $)**             | Automatické zařazení všech bezplatných poskytovatelů do routingu  |
+| Step | Action                                             | Providers Unlocked                                                 |
+| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
+| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
+| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
+| 4    | Connect **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/mo free**                  |
+| 5    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
 
-**V libovolném IDE/CLI naveďte:** `http://localhost:20128/v1` · Klíč API: `any-string` · Hotovo.
+**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
 
-> **Volitelné doplňkové krytí (také zdarma):** Groq API klíč (30 RPM zdarma), NVIDIA NIM (40 RPM zdarma, 70+ modelů), Cerebras (1 milion tok/den).
+> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
 
-## ⚡ Rychlý start
+## Rychlý start
 
-### 1) Nainstalujte a spusťte
+### 1) Install and run
 
 ```bash
 npm install -g omniroute
 omniroute
 ```
 
-> **Uživatelé pnpm:** Po instalaci spusťte `pnpm approve-builds -g` , abyste povolili nativní skripty pro sestavení vyžadované programy `better-sqlite3` a `@swc/core` :
+> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by `better-sqlite3` and `@swc/core`:
 >
 > ```bash
 > pnpm install -g omniroute
@@ -665,17 +789,17 @@ omniroute
 > omniroute
 > ```
 
-Dashboard se otevírá na `http://localhost:20128` a základní URL API je `http://localhost:20128/v1` .
+Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
-| Příkaz                  | Popis                                                               |
-| ----------------------- | ------------------------------------------------------------------- |
-| `omniroute`             | Spuštění serveru ( `PORT=20128` , API a dashboard na stejném portu) |
-| `omniroute --port 3000` | Nastavte kanonický/API port na 3000                                 |
-| `omniroute --mcp`       | Spuštění MCP serveru (transport stdio)                              |
-| `omniroute --no-open`   | Neotevírat prohlížeč automaticky                                    |
-| `omniroute --help`      | Zobrazit nápovědu                                                   |
+| Command                 | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
+| `omniroute --port 3000` | Set canonical/API port to 3000                              |
+| `omniroute --mcp`       | Start MCP server (stdio transport)                          |
+| `omniroute --no-open`   | Don't auto-open browser                                     |
+| `omniroute --help`      | Show help                                                   |
 
-Volitelný režim s rozděleným portem:
+Optional split-port mode:
 
 ```bash
 PORT=20128 DASHBOARD_PORT=20129 omniroute
@@ -683,13 +807,13 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # Dashboard: http://localhost:20129
 ```
 
-### 2) Připojte poskytovatele a vytvořte si klíč API
+### 2) Connect providers and create your API key
 
-1. Otevřete Dashboard → `Providers` a připojte alespoň jednoho poskytovatele (klíč OAuth nebo API).
-2. Otevřete Dashboard → `Endpoints` a vytvořte API klíč.
-3. (Volitelné) Otevřete Dashboard → `Combos` a nastavte záložní řetězec.
+1. Open Dashboard → `Providers` and connect at least one provider (OAuth or API key).
+2. Open Dashboard → `Endpoints` and create an API key.
+3. (Optional) Open Dashboard → `Combos` and set your fallback chain.
 
-### 3) Nasměrujte svůj kódovací nástroj na OmniRoute
+### 3) Point your coding tool to OmniRoute
 
 ```txt
 Base URL: http://localhost:20128/v1
@@ -697,22 +821,22 @@ API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
 
-Funguje s Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode a SDK kompatibilními s OpenAI.
+Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
 
-### 4) Povolení a ověření protokolů (v2.0)
+### 4) Enable and validate protocols (v2.0)
 
-**MCP (pro operace řízené nástroji):**
+**MCP (for tool-driven operations):**
 
 ```bash
 omniroute --mcp
 ```
 
-Pak připojte svého MCP klienta přes `stdio` a otestujte nástroje jako:
+Then connect your MCP client over `stdio` and test tools like:
 
 - `omniroute_get_health`
 - `omniroute_list_combos`
 
-**A2A (pro pracovní postupy mezi agenty):**
+**A2A (for agent-to-agent workflows):**
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
@@ -724,15 +848,15 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"quickstart","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Give me a short quota summary."}]}}'
 ```
 
-### 5) Ověřte vše od začátku do konce (doporučeno)
+### 5) Validate everything end-to-end (recommended)
 
 ```bash
 npm run test:protocols:e2e
 ```
 
-Tato sada ověřuje skutečné toky klientů MCP a A2A v porovnání se spuštěnou aplikací.
+This suite validates real MCP and A2A client flows against a running app.
 
-### Alternativa: spustit ze zdroje
+### Alternative: run from source
 
 ```bash
 cp .env.example .env
@@ -740,13 +864,120 @@ npm install
 PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
+<details>
+<summary><b>Void Linux (`xbps-src` template)</b></summary>
+
+For Void Linux users, you can build a native package using `xbps-src`. Save this block as `srcpkgs/omniroute/template`:
+
+```bash
+# Template file for 'omniroute'
+pkgname=omniroute
+version=3.4.1
+revision=1
+hostmakedepends="nodejs python3 make"
+depends="openssl"
+short_desc="Universal AI gateway with smart routing for multiple LLM providers"
+maintainer="zenobit <zenobit@disroot.org>"
+license="MIT"
+homepage="https://github.com/diegosouzapw/OmniRoute"
+distfiles="https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz"
+checksum=009400afee90a9f32599d8fe734145cfd84098140b7287990183dde45ae2245b
+system_accounts="_omniroute"
+omniroute_homedir="/var/lib/omniroute"
+export NODE_ENV=production
+export npm_config_engine_strict=false
+export npm_config_loglevel=error
+export npm_config_fund=false
+export npm_config_audit=false
+
+do_build() {
+	# Determine target CPU arch for node-gyp
+	local _gyp_arch
+	case "$XBPS_TARGET_MACHINE" in
+		aarch64*) _gyp_arch=arm64 ;;
+		armv7*|armv6*) _gyp_arch=arm ;;
+		i686*) _gyp_arch=ia32 ;;
+		*) _gyp_arch=x64 ;;
+	esac
+
+	# 1) Install all deps – skip scripts (no network in do_build, native modules
+	#    compiled separately below; better-sqlite3 is serverExternalPackage so
+	#    Next.js does not execute it during next build)
+	NODE_ENV=development npm ci --ignore-scripts
+
+	# 2) Build the Next.js standalone bundle
+	npm run build
+
+	# 3) Copy static assets into standalone
+	cp -r .next/static .next/standalone/.next/static
+	[ -d public ] && cp -r public .next/standalone/public || true
+
+	# 4) Compile better-sqlite3 native binding for the target architecture.
+	#    Use node-gyp directly so CC/CXX from xbps-src cross-toolchain are used
+	#    without npm altering them.
+	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
+	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
+
+	# 5) Place the compiled binding into the standalone bundle
+	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
+	mkdir -p "$_bs3_release"
+	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
+
+	# 6) Remove arch-specific sharp bundles – upstream sets images.unoptimized=true
+	#    so sharp is not used at runtime; x64 .so files would break aarch64 strip
+	rm -rf .next/standalone/node_modules/@img
+
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
+	#    pino-abstract-transport – required by pino's worker thread
+	#    split2 – dep of pino-abstract-transport
+	#    process-warning – dep of pino itself
+	for _mod in pino-abstract-transport split2 process-warning; do
+		cp -r "node_modules/$_mod" .next/standalone/node_modules/
+	done
+}
+
+do_check() {
+	npm run test:unit
+}
+
+do_install() {
+	vmkdir usr/lib/omniroute/.next
+
+	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
+
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
+	for _d in \
+		.next/standalone/.next/server/app/dashboard \
+		.next/standalone/.next/server/app/dashboard/settings \
+		.next/standalone/.next/server/app/dashboard/providers; do
+		touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
+	done
+
+	cat > "${WRKDIR}/omniroute" <<'EOF'
+#!/bin/sh
+export PORT="${PORT:-20128}"
+export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
+export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+mkdir -p "${DATA_DIR}"
+exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
+EOF
+	vbin "${WRKDIR}/omniroute"
+}
+
+post_install() {
+	vlicense LICENSE
+}
+```
+
+</details>
+
 ---
 
 ## 🐳 Docker
 
-OmniRoute je k dispozici jako veřejný obraz Dockeru na [Docker Hubu](https://hub.docker.com/r/diegosouzapw/omniroute) .
+OmniRoute is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
 
-**Rychlý běh:**
+**Quick run:**
 
 ```bash
 docker run -d \
@@ -757,7 +988,7 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-**Se souborem prostředí:**
+**With environment file:**
 
 ```bash
 # Copy and edit .env first
@@ -772,7 +1003,7 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-**Používání Docker Compose:**
+**Using Docker Compose:**
 
 ```bash
 # Base profile (no CLI tools)
@@ -782,24 +1013,62 @@ docker compose --profile base up -d
 docker compose --profile cli up -d
 ```
 
-| Obraz                    | Štítek   | Velikost | Popis                     |
-| ------------------------ | -------- | -------- | ------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250 MB  | Nejnovější stabilní verze |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250 MB  | Aktuální verze            |
+Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL.
+
+Notes:
+
+- Quick Tunnel URLs are temporary and change after every restart.
+- Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
+- Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
+- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
+
+**Using Docker Compose with Caddy (HTTPS Auto-TLS):**
+
+OmniRoute can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
+
+```yaml
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    volumes:
+      - omniroute-data:/app/data
+    environment:
+      - PORT=20128
+      - NEXT_PUBLIC_BASE_URL=https://your-domain.com
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+
+volumes:
+  omniroute-data:
+```
+
+| Image                    | Tag      | Size   | Description           |
+| ------------------------ | -------- | ------ | --------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
+| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Current version       |
 
 ---
 
-## 🖥️ Desktopová aplikace – offline a vždy zapnutá
+## 🖥️ Desktop App — Offline & Always-On
 
-> 🆕 **NOVINKA!** OmniRoute je nyní k dispozici jako **nativní desktopová aplikace** pro Windows, macOS a Linux.
+> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
 
-Spusťte OmniRoute jako samostatnou desktopovou aplikaci – pro lokální modely není potřeba žádný terminál, prohlížeč ani internet. Aplikace založená na platformě Electron obsahuje:
+Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
 
-- 🖥️ **Nativní okno** — Vyhrazené okno aplikace s integrací do systémové lišty
-- 🔄 **Automatické spuštění** — Spuštění OmniRoute po přihlášení do systému
-- 🔔 **Nativní oznámení** – Získejte upozornění na vyčerpání kvóty nebo problémy s poskytovateli
-- ⚡ **Instalace jedním kliknutím** — NSIS (Windows), DMG (macOS), AppImage (Linux)
-- 🌐 **Offline režim** — Funguje plně offline s přiloženým serverem
+- 🖥️ **Native Window** — Dedicated app window with system tray integration
+- 🔄 **Auto-Start** — Launch OmniRoute on system login
+- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
+- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **Offline Mode** — Works fully offline with bundled server
 
 ### Rychlý start
 
@@ -814,47 +1083,51 @@ npm run electron:build:mac     # macOS (.dmg) — x64 & arm64
 npm run electron:build:linux   # Linux (.AppImage)
 ```
 
-### Systémový zásobník
+### System Tray
 
-Po minimalizaci se OmniRoute nachází v systémové liště a nabízí rychlé akce:
+When minimized, OmniRoute lives in your system tray with quick actions:
 
-- Otevřít řídicí panel
-- Změnit port serveru
-- Ukončit aplikaci
+- Open dashboard
+- Change server port
+- Quit application
 
-📖 Úplná dokumentace: [`electron/README.md`](electron/README.md)
+📖 Full documentation: [`electron/README.md`](electron/README.md)
 
 ---
 
-## 💰 Přehled cen
+## 💰 Pricing at a Glance
 
-| Úroveň                      | Poskytovatel                     | Náklady                              | Obnovení kvóty                             | Nejlepší pro                                              |
-| --------------------------- | -------------------------------- | ------------------------------------ | ------------------------------------------ | --------------------------------------------------------- |
-| **💳 PŘEDPLATNÉ**           | Claude Code (profesionál)        | 20 dolarů měsíčně                    | 5 hodin + týdně                            | Již přihlášen/a k odběru                                  |
-| Kodex (Plus/Pro)            | 20–200 USD/měsíc                 | 5 hodin + týdně                      | Uživatelé OpenAI                           |
-| Gemini CLI                  | **UVOLNIT**                      | 180 tisíc měsíčně + 1 tisíc denně    | Každý!                                     |
-| GitHub Copilot              | 10–19 USD/měsíc                  | Měsíční                              | Uživatelé GitHubu                          |
-| **🔑 KLÍČ API**             | NVIDIA NIM                       | **ZDARMA** (vývoj navždy)            | ~40 ot./min                                | 70+ otevřených modelů                                     |
-| Mozky                       | **ZDARMA** (1 milion tok/den)    | 60 000 otáček za minutu / 30 ot./min | Nejrychlejší na světě                      |
-| Groq                        | **ZDARMA** (30 ot./min.)         | 14,4 tisíc otáček za minutu          | Ultrarychlá lama/gema                      |
-| DeepSeek V3.2               | 0,27/1,10 USD za 1 milion        | Žádný                                | Nejlepší zdůvodnění ceny a kvality         |
-| xAI Grok-4 Rychlý           | **0,20/0,50 USD za 1 milion** 🆕 | Žádný                                | Nejrychlejší + volání nástroje, ultranízké |
-| xAI Grok-4 (standardní)     | 0,20/1,50 USD za 1 milion 🆕     | Žádný                                | Vlajková loď Reasoning od xAI              |
-| Mistral                     | Zkušební verze zdarma + placené  | Omezená sazba                        | Evropská umělá inteligence                 |
-| OpenRouter                  | Platba za použití                | Žádný                                | Více než 100 modelů agregováno.            |
-| **💰 LEVNÉ**                | GLM-5 (přes Z.AI) 🆕             | 0,5 USD/1 milion                     | Denně v 10:00                              | Výstup 128 tisíc obrazových bodů, nejnovější vlajková loď |
-| GLM-4.7                     | 0,6 USD/1 milion                 | Denně v 10:00                        | Záloha rozpočtu                            |
-| MiniMax M2.5 🆕             | Vstup 0,3 USD/1 milion           | 5hodinové válcování                  | Úvaha + agentní úkoly                      |
-| MiniMax M2.1                | 0,2 USD/1 milion                 | 5hodinové válcování                  | Nejlevnější varianta                       |
-| Kimi K2.5 (Moonshot API) 🆕 | Platba za použití                | Žádný                                | Přímý přístup k Moonshot API               |
-| Kimi K2                     | 9 dolarů měsíčně bez závazků     | 10 milionů tokenů/měsíc              | Předvídatelné náklady                      |
-| **🆓 ZDARMA**               | Qoder                            | **0 dolarů**                         | Neomezený                                  | 5 modelů neomezeně                                        |
-| Qwen                        | **0 dolarů**                     | Neomezený                            | 4 modely neomezeně                         |
-| Kiro                        | **0 dolarů**                     | Neomezený                            | Claude Sonnet/Haiku (tvorce AWS)           |
+| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
+| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
+|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
+|                     | Gemini CLI                  | **FREE**                  | 180K/mo + 1K/day | Everyone!                         |
+|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
+| **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
+|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
+|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
+|                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
+|                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
+|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
+|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
+| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
+|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
+|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
+|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
+|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
-> 🆕 **Přidány nové modely (březen 2026):** řada Grok-4 Fast za 0,20 USD/0,50 USD/M (benchmarkováno na 1143 ms – o 30 % rychlejší než Gemini 2.5 Flash), GLM-5 přes Z.AI s výstupem 128K, uvažování MiniMax M2.5, aktualizované ceny DeepSeek V3.2, Kimi K2.5 přes Moonshot Direct API.
+> 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
-**💡 Kombinovaný balík za 0 $ — Kompletní bezplatná instalace:**
+**💡 $0 Combo Stack — The Complete Free Setup:**
 
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
@@ -871,99 +1144,146 @@ NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
 Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
-**Nulové náklady. Nikdy nepřestávejte s kódováním.** Nakonfigurujte si to jako jednu kombinaci OmniRoute a všechny záložní režimy se provede automaticky – žádné ruční přepínání.
+**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
 
 ---
 
 ---
 
-## 🆓 Bezplatné modely – Co skutečně získáte
+## 🆓 Free Models — What You Actually Get
 
-> Všechny níže uvedené modely jsou **100% zdarma a nevyžadují žádnou kreditní kartu** . OmniRoute mezi nimi automaticky propojí trasy, když dojde jedna kvóta – zkombinujte je všechny a získejte tak nerozlučnou kombinaci za 0 dolarů.
+> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
 
-### 🔵 CLAUDE MODELS (přes Kiro — AWS Builder ID)
+### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
 
-| Model               | Předpona | Omezit        | Limit rychlosti           |
-| ------------------- | -------- | ------------- | ------------------------- |
-| `claude-sonnet-4.5` | `kr/`    | **Neomezený** | Žádný hlášený denní limit |
-| `claude-haiku-4.5`  | `kr/`    | **Neomezený** | Žádný hlášený denní limit |
-| `claude-opus-4.6`   | `kr/`    | **Neomezený** | Nejnovější opus od Kira   |
+| Model               | Prefix | Limit         | Rate Limit            |
+| ------------------- | ------ | ------------- | --------------------- |
+| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
+| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
+| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
 
-### 🟢 MODELY QODER (Bezplatné OAuth — bez nutnosti platit kreditní kartou)
+### 🟢 QODER MODELS (Free OAuth — No Credit Card)
 
-| Model              | Předpona | Omezit        | Limit rychlosti     |
-| ------------------ | -------- | ------------- | ------------------- |
-| `kimi-k2-thinking` | `if/`    | **Neomezený** | Žádný hlášený strop |
-| `qwen3-coder-plus` | `if/`    | **Neomezený** | Žádný hlášený strop |
-| `deepseek-r1`      | `if/`    | **Neomezený** | Žádný hlášený strop |
-| `minimax-m2.1`     | `if/`    | **Neomezený** | Žádný hlášený strop |
-| `kimi-k2`          | `if/`    | **Neomezený** | Žádný hlášený strop |
+| Model              | Prefix | Limit         | Rate Limit      |
+| ------------------ | ------ | ------------- | --------------- |
+| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
+| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
+| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
+| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
+| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
 
-### 🟡 MODELY QWEN (Ověření kódu zařízení)
+### 🟡 QWEN MODELS (Device Code Auth)
 
-| Model               | Předpona | Omezit        | Limit rychlosti        |
-| ------------------- | -------- | ------------- | ---------------------- |
-| `qwen3-coder-plus`  | `qw/`    | **Neomezený** | Žádný hlášený strop    |
-| `qwen3-coder-flash` | `qw/`    | **Neomezený** | Žádný hlášený strop    |
-| `qwen3-coder-next`  | `qw/`    | **Neomezený** | Žádný hlášený strop    |
-| `vision-model`      | `qw/`    | **Neomezený** | Multimodální (obrázky) |
+| Model               | Prefix | Limit         | Rate Limit          |
+| ------------------- | ------ | ------------- | ------------------- |
+| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
+| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
+| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
+| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
-### 🟣 Rozhraní GEMINI CLI (Google OAuth)
+### 🟣 GEMINI CLI (Google OAuth)
 
-| Model                    | Předpona | Omezit                                | Limit rychlosti |
-| ------------------------ | -------- | ------------------------------------- | --------------- |
-| `gemini-3-flash-preview` | `gc/`    | **180 tisíc tok/měsíc** + 1 tisíc/den | Měsíční reset   |
-| `gemini-2.5-pro`         | `gc/`    | 180 tisíc měsíčně (sdílený bazén)     | Vysoká kvalita  |
+| Model                    | Prefix | Limit                       | Rate Limit    |
+| ------------------------ | ------ | --------------------------- | ------------- |
+| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
+| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
 
-### ⚫ NVIDIA NIM (Bezplatný klíč API — build.nvidia.com)
+### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
-| Úroveň           | Denní limit        | Limit rychlosti | Poznámky                                                               |
-| ---------------- | ------------------ | --------------- | ---------------------------------------------------------------------- |
-| Zdarma (vývojář) | Žádný limit tokenů | **~40 ot./min** | Více než 70 modelů; přechod na čisté limity sazeb v polovině roku 2025 |
+| Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
+| ---------- | ------------ | ----------- | ------------------------------------------------------ |
+| Free (Dev) | No token cap | **~40 RPM** | 70+ models; transitioning to pure rate limits mid-2025 |
 
-Oblíbené bezplatné modely: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct` , `deepseek/deepseek-r1`
+Popular free models: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct`, `deepseek/deepseek-r1`
 
-### ⚪ CEREBRAS (Bezplatný klíč API — inference.cerebras.ai)
+### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
 
-| Úroveň  | Denní limit             | Limit rychlosti                      | Poznámky                                               |
-| ------- | ----------------------- | ------------------------------------ | ------------------------------------------------------ |
-| Uvolnit | **1 milion tokenů/den** | 60 000 otáček za minutu / 30 ot./min | Nejrychlejší inference LLM na světě; denně se resetuje |
+| Tier | Daily Limit       | Rate Limit       | Notes                                       |
+| ---- | ----------------- | ---------------- | ------------------------------------------- |
+| Free | **1M tokens/day** | 60K TPM / 30 RPM | World's fastest LLM inference; resets daily |
 
-Dostupné zdarma: `llama-3.3-70b` , `llama-3.1-8b` , `deepseek-r1-distill-llama-70b`
+Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
 
-### 🔴 GROQ (Bezplatný API klíč — console.groq.com)
+### 🔴 GROQ (Free API Key — console.groq.com)
 
-| Úroveň  | Denní limit                     | Limit rychlosti     | Poznámky                                    |
-| ------- | ------------------------------- | ------------------- | ------------------------------------------- |
-| Uvolnit | **14,4 tisíc otáček za minutu** | 30 ot./min na model | Žádná kreditní karta; limit 429, neúčtováno |
+| Tier | Daily Limit   | Rate Limit       | Notes                                     |
+| ---- | ------------- | ---------------- | ----------------------------------------- |
+| Free | **14.4K RPD** | 30 RPM per model | No credit card; 429 on limit, not charged |
 
-K dispozici zdarma: `llama-3.3-70b-versatile` , `gemma2-9b-it` , `mixtral-8x7b` , `whisper-large-v3`
+Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
 
-> **💡 Ultimátní bezplatný zásobník:**
+### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
+
+| Model                         | Prefix | Daily Free Quota  | Notes                   |
+| ----------------------------- | ------ | ----------------- | ----------------------- |
+| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Largest free quota ever |
+| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
+| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
+| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
+| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+
+> 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
+
+### 🟢 POLLINATIONS AI (No API Key Required) 🆕
+
+| Model      | Prefix | Rate Limit | Provider Behind    |
+| ---------- | ------ | ---------- | ------------------ |
+| `openai`   | `pol/` | 1 req/15s  | GPT-5              |
+| `claude`   | `pol/` | 1 req/15s  | Anthropic Claude   |
+| `gemini`   | `pol/` | 1 req/15s  | Google Gemini      |
+| `deepseek` | `pol/` | 1 req/15s  | DeepSeek V3        |
+| `llama`    | `pol/` | 1 req/15s  | Meta Llama 4 Scout |
+| `mistral`  | `pol/` | 1 req/15s  | Mistral AI         |
+
+> ✨ **Zero friction:** No signup, no API key. Add the Pollinations provider with an empty key field and it works immediately.
+
+### 🟠 CLOUDFLARE WORKERS AI (Free API Key — cloudflare.com) 🆕
+
+| Tier | Daily Neurons | Equivalent Usage                        | Notes                   |
+| ---- | ------------- | --------------------------------------- | ----------------------- |
+| Free | **10,000**    | ~150 LLM resp / 500s audio / 15K embeds | Global edge, 50+ models |
+
+Popular free models: `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, `@cf/openai/whisper-large-v3-turbo` (free audio!), `@cf/qwen/qwen2.5-coder-15b-instruct`
+
+> Requires API Token + Account ID from [dash.cloudflare.com](https://dash.cloudflare.com). Store Account ID in provider settings.
+
+### 🟣 SCALEWAY AI (1M Free Tokens — scaleway.com) 🆕
+
+| Tier | Free Quota    | Location     | Notes                               |
+| ---- | ------------- | ------------ | ----------------------------------- |
+| Free | **1M tokens** | 🇫🇷 Paris, EU | No credit card needed within limits |
+
+Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-instruct`, `mistral-small-3.2-24b-instruct-2506`, `deepseek-v3-0324`
+
+> EU/GDPR compliant. Get API key at [console.scaleway.com](https://console.scaleway.com).
+
+> **💡 The Ultimate Free Stack (11 Providers, $0 Forever):**
 >
 > ```
-> Kiro (Claude, unlimited)
->  → Qoder (5 models, unlimited)
->  → Qwen (4 models, unlimited)
->  → Gemini CLI (180K/mo)
->  → Cerebras (1M tok/day)
->  → Groq (14.4K req/day)
->  → NVIDIA NIM (40 RPM, 70+ models)
+> Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+> Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
+> Qwen (qw/)             → qwen3-coder models UNLIMITED
+> Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free
+> Cloudflare AI (cf/)    → 50+ models — 10K Neurons/day
+> Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
+> Groq (groq/)           → Llama/Gemma — 14.4K req/day ultra-fast
+> NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+> Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 > ```
->
-> Nakonfigurujte si to jako kombinaci OmniRoute a už nikdy nebudete platit za umělou inteligenci.
 
-## 🎙️ Kombinovaná transkripce zdarma
+## 🎙️ Free Transcription Combo
 
-> Přepisujte libovolné audio/video za **0 $** – Deepgram leady za 200 $ zdarma, AssemblyAI za 50 $ jako záložní nástroj, Groq Whisper jako neomezená nouzová záloha.
+> Transcribe any audio/video for **$0** — Deepgram leads with $200 free, AssemblyAI $50 fallback, Groq Whisper as unlimited emergency backup.
 
-| Poskytovatel      | Bezplatné kredity                  | Nejlepší model                                        | Limit rychlosti                    |
-| ----------------- | ---------------------------------- | ----------------------------------------------------- | ---------------------------------- |
-| 🟢 **Deepgram**   | **200 dolarů zdarma** (registrace) | `nova-3` — nejvyšší přesnost, více než 30 jazyků      | Žádný limit RPM pro kredity zdarma |
-| 🔵 **AssemblyAI** | **50 dolarů zdarma** (registrace)  | `universal-3-pro` — kapitoly, sentiment, osobní údaje | Žádný limit RPM pro kredity zdarma |
-| 🔴 **Groq**       | **Navždy zdarma**                  | `whisper-large-v3` — OpenAI Šepot                     | 30 ot./min (omezená rychlost)      |
+| Provider          | Free Credits           | Best Model                                   | Rate Limit                   |
+| ----------------- | ---------------------- | -------------------------------------------- | ---------------------------- |
+| 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | No RPM limit on free credits |
+| 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits |
+| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)        |
 
-**Navrhovaná kombinace v `/dashboard/combos` :**
+**Suggested combo in `/dashboard/combos`:**
 
 ```
 Name: free-transcription
@@ -974,109 +1294,145 @@ Nodes:
   [3] groq/whisper-large-v3    → free forever, emergency fallback
 ```
 
-Pak v `/dashboard/media` → záložka **Přepis** : nahrajte libovolný zvukový nebo video soubor → vyberte kombinovaný koncový bod → získejte přepis v podporovaných formátech.
+Then in `/dashboard/media` → **Transcription** tab: upload any audio or video file → select your combo endpoint → get transcription in supported formats.
 
-## 💡 Klíčové vlastnosti
+## 💡 Key Features
 
-OmniRoute v2.0 je navržen jako operační platforma, nikoli pouze jako proxy pro relé.
+OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
-### 🤖 Operace s agenty a protokoly (v2.0)
+### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
-| Funkce                                        | Co to dělá                                                                                                                |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **MCP Server (16 nástrojů)**               | Nástroje IDE/agent prostřednictvím 3 transportů: stdio, SSE ( `/api/mcp/sse` ), Streamovatelný HTTP ( `/api/mcp/stream` ) |
-| 🤝 **A2A server (JSON-RPC + SSE)**            | Spouštění úloh mezi agenty se synchronizací a streamováním                                                                |
-| 🧭 **Konsolidovaná stránka koncových bodů**   | Stránka pro správu s kartami Endpoint Proxy, MCP, A2A a API Endpoints                                                     |
-| 🎚️ **Přepínače pro povolení/zakázání služby** | Přepínače ZAP/VYP pro MCP a A2A s trvalým nastavením (výchozí: VYP)                                                       |
-| 🛰️ **Srdeční tep za běhu MCP**                | Skutečný stav procesu (pid, doba provozuschopnosti, stáří heartbeatu, transport, režim rozsahu)                           |
-| 📋 **Auditní záznam MCP**                     | Filtrovatelné protokoly auditu s hodnocením úspěchu/neúspěchu a klíčovým přiřazením                                       |
-| 🔐 **Vynucování rozsahu MCP**                 | 9 podrobných oprávnění pro řízený přístup k nástrojům                                                                     |
-| 📡 **Správa životního cyklu úkolů A2A**       | Seznam/filtrování úloh, kontrola událostí/artefaktů, zrušení spuštěných úloh                                              |
-| 📋 **Objevení karty agenta**                  | `/.well-known/agent.json` pro automatické vyhledávání klientů                                                             |
-| 🧪 **Testovací postroj Protocol E2E**         | Skutečné MCP SDK + toky klientů A2A v `test:protocols:e2e`                                                                |
-| ⚙️ **Provozní kontroly**                      | Kombinace přepínačů, použití profilů odolnosti, resetování jističů z jednoho ovládacího panelu                            |
+| Feature                              | What It Does                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| ⚡ **Grok-4 Fast Family**            | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)         |
+| 🧠 **GLM-5 via Z.AI**                | 128K output context, $0.5/1M — newest flagship from the GLM family                          |
+| 🔮 **MiniMax M2.5**                  | Reasoning + agentic tasks at $0.30/1M — significant upgrade from M2.1                       |
+| 🎯 **toolCalling Flag per Model**    | Per-model `toolCalling: true/false` in registry — AutoCombo skips non-tool-capable models   |
+| 🌍 **Multilingual Intent Detection** | PT/ZH/ES/AR keywords in AutoCombo scoring — better model selection for non-English content  |
+| 📊 **Benchmark-Driven Fallbacks**    | Real p95 latency from live requests feeds combo scoring — AutoCombo learns from actual data |
+| 🔁 **Request Deduplication**         | Content-hash based dedup window — multi-agent safe, prevents duplicate charges              |
+| 🔌 **Pluggable RouterStrategy**      | Extensible `RouterStrategy` interface — add custom routing logic as plugins                 |
 
-### 🧠 Směrování a inteligence
+### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
 
-| Funkce                                          | Co to dělá                                                                    |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| 🎯 **Inteligentní čtyřúrovňový záložní systém** | Automatická trasa: Předplatné → API klíč → Levné → Zdarma                     |
-| 📊 **Sledování kvót v reálném čase**            | Počet tokenů v reálném čase + odpočet resetování pro každého poskytovatele    |
-| 🔄 **Překlad formátu**                          | OpenAI ↔ Claude ↔ Gemini ↔ Odpovědi s konverzemi bezpečnými pro schéma        |
-| 👥 **Podpora více účtů**                        | Více účtů na poskytovatele s inteligentním výběrem                            |
-| 🔄 **Automatická aktualizace tokenů**           | Tokeny OAuth se automaticky obnovují při opakovaném pokusu.                   |
-| 🎨 **Vlastní kombinace**                        | 6 vyvažovacích strategií + řízení záložního řetězce                           |
-| 🌐 **Směrovač se zástupnými znaky**             | dynamické směrování `provider/*`                                              |
-| 🧠 **Přemýšlení o rozpočtových kontrolách**     | Limity pro průchozí, automatické, vlastní a adaptivní uvažování               |
-| 🔀 **Aliasy modelů**                            | Vestavěné + vlastní aliasování modelů a bezpečnost migrace                    |
-| ⚡ **Degradace pozadí**                         | Směrujte úlohy na pozadí s nízkou prioritou na levnější modely                |
-| 🧪 **Chytré směrování s ohledem na úkoly**      | Automatický výběr modelu podle typu obsahu (kódování/vize/analýza/sumarizace) |
-| 💬 **Vstřikování do systému**                   | Globální kontroly chování uplatňované konzistentně                            |
-| 📄 **Kompatibilita API pro odpovědi**           | Plná podpora `/v1/responses` pro Codex a pokročilé agentické pracovní postupy |
+| Feature                                    | What It Does                                                                                                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
+| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw + 9 more), process spawner, `/api/acp/agents` endpoint                                                                                                                  |
+| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
+| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
-### 🎵 Multimodální API
+### 🤖 Agent & Protocol Operations (v2.0)
 
-| Funkce                        | Co to dělá                                                                                                                                              |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🖼️ **Generování obrázků**     | `/v1/images/generations` s cloudovým a lokálním backendem                                                                                               |
-| 📐 **Vložení**                | `/v1/embeddings` pro vyhledávání a RAG pipelines                                                                                                        |
-| 🎤 **Přepis zvuku**           | `/v1/audio/transcriptions` (Whisper a další poskytovatelé)                                                                                              |
-| 🔊 **Převod textu na řeč**    | `/v1/audio/speech` (více enginů/poskytovatelů)                                                                                                          |
-| 🎬 **Generování videa**       | `/v1/videos/generations` (pracovní postupy ComfyUI + SD WebUI)                                                                                          |
-| 🎵 **Hudební generace**       | `/v1/music/generations` (pracovní postupy ComfyUI)                                                                                                      |
-| 🛡️ **Moderování**             | Bezpečnostní kontroly `/v1/moderations`                                                                                                                 |
-| 🔀 **Změna pořadí**           | `/v1/rerank` pro hodnocení relevance                                                                                                                    |
-| 🔍 **Vyhledávání na webu** 🆕 | `/v1/search` — 5 poskytovatelů (Serper, Brave, Perplexity, Exa, Tavily), více než 6 500 zdarma/měsíc, automatické přepnutí na záložní systém, mezipaměť |
+| Feature                               | What It Does                                                                                                                           |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔧 **MCP Server (25 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
+| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                            |
+| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                           |
+| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                               |
+| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
+| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                         |
+| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                               |
+| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
+| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
+| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
+| ⚙️ **Operational Controls**           | Switch combo, apply resilience profiles, reset breakers from one control surface                                                       |
 
-### 🛡️ Odolnost, bezpečnost a správa věcí veřejných
+### 🧠 Routing & Intelligence
 
-| Funkce                                      | Co to dělá                                                                                                        |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 🔌 **Jističe**                              | Vypnutí/obnovení pro každý model s ovládáním prahových hodnot                                                     |
-| 🎯 **Modely s ohledem na koncové body**     | Vlastní modely deklarují podporované koncové body + formát API                                                    |
-| 🛡️ **Stádo proti hromům**                   | Ochrana mutexu a semaforu při událostech opakování/rychlosti                                                      |
-| 🧠 **Sémantická + podpisová mezipaměť**     | Snížení nákladů/latence díky dvěma vrstvám mezipaměti                                                             |
-| ⚡ **Žádost o idempotenci**                 | Okno ochrany proti duplikacím                                                                                     |
-| 🔒 **Falšování otisků prstů pomocí TLS**    | Otisk TLS podobný prohlížeči – **snižuje detekci botů a nahlašování účtů**                                        |
-| 🔏 **Porovnávání otisků prstů v CLI**       | Shoduje se s nativními podpisy požadavků CLI – **snižuje riziko zablokování a zároveň zachovává IP adresu proxy** |
-| 🌐 **Filtrování IP adres**                  | Ovládání seznamu povolených/blokovaných položek pro odhalená nasazení                                             |
-| 📊 **Upravitelné limity rychlosti**         | Konfigurovatelné globální/na úrovni poskytovatele limity s perzistencí                                            |
-| 🔑 **Správa klíčů API a stanovení rozsahu** | Bezpečné vydávání/rotace klíčů a kontroly modelu/poskytovatele                                                    |
-| 🛡️ **Chráněné `/models`**                   | Volitelné ověřování a skrytí poskytovatele pro katalog modelů                                                     |
+| Feature                            | What It Does                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| 🎯 **Smart 4-Tier Fallback**       | Auto-route: Subscription → API Key → Cheap → Free                        |
+| 📊 **Real-Time Quota Tracking**    | Live token count + reset countdown per provider                          |
+| 🔄 **Format Translation**          | OpenAI ↔ Claude ↔ Gemini ↔ Responses with schema-safe conversions        |
+| 👥 **Multi-Account Support**       | Multiple accounts per provider with intelligent selection                |
+| 🔄 **Auto Token Refresh**          | OAuth tokens refresh automatically with retry                            |
+| 🎨 **Custom Combos**               | 9 balancing strategies + fallback chain control                          |
+| 🌐 **Wildcard Router**             | `provider/*` dynamic routing                                             |
+| 🧠 **Thinking Budget Controls**    | Passthrough, auto, custom, and adaptive reasoning limits                 |
+| 🔀 **Model Aliases**               | Built-in + custom model aliasing and migration safety                    |
+| ⚡ **Background Degradation**      | Route low-priority background tasks to cheaper models                    |
+| 🧪 **Task-Aware Smart Routing**    | Auto-select model by content type (coding/vision/analysis/summarization) |
+| 🔄 **A2A Agent Workflows**         | Deterministic FSM orchestrator for stateful multi-step agent executions  |
+| 🔀 **Adaptive Routing**            | Dynamic strategy override based on token volume and prompt complexity    |
+| 🎲 **Provider Diversity**          | Shannon entropy scoring balancing auto-combo traffic distribution        |
+| 💬 **System Prompt Injection**     | Global behavior controls applied consistently                            |
+| 📄 **Responses API Compatibility** | Full `/v1/responses` support for Codex and advanced agentic workflows    |
 
-### 📊 Pozorovatelnost a analytika
+### 🎵 Multi-Modal APIs
 
-| Funkce                              | Co to dělá                                                             |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| 📝 **Žádost + protokolování proxy** | Úplné protokolování požadavků/odpovědí a proxy                         |
-| 📉 **Streamed Detailed Logs** 🆕    | Reconstructs SSE payload streams cleanly into the UI                   |
-| 📋 **Sjednocený panel protokolů**   | Zobrazení požadavků, proxy, auditu a konzole na jedné stránce          |
-| 🔍 **Vyžádat si telemetrii**        | Latence p50/p95/p99 a trasování požadavků                              |
-| 🏥 **Panel zdraví**                 | Doba provozuschopnosti, stavy jističů, uzamčení, statistiky mezipaměti |
-| 💰 **Sledování nákladů**            | Kontrola rozpočtu a přehled o cenách pro jednotlivé modely             |
-| 📈 **Analytické vizualizace**       | Přehledy využití modelů/poskytovatelů a zobrazení trendů               |
-| 🧪 **Rámec hodnocení**              | Testování zlaté sady s konfigurovatelnými strategiemi shody            |
+| Feature                    | What It Does                                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                                                                                     |
+| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                                                                              |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) with correct error messages          |
+| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                                                                                    |
+| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                                                                                |
+| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
+| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                                                                                         |
+| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
 
-### ☁️ Nasazení a platforma
+### 🛡️ Resilience, Security & Governance
 
-| Funkce                                          | Co to dělá                                                                |
-| ----------------------------------------------- | ------------------------------------------------------------------------- |
-| 🌐 **Nasazení kdekoli**                         | Localhost, VPS, Docker, cloudová prostředí                                |
-| 💾 **Synchronizace s cloudem**                  | Synchronizace konfigurace přes cloud worker                               |
-| 🔄 **Zálohování/Obnovení**                      | Toky exportu/importu a obnovy po havárii                                  |
-| 🧙 **Průvodce nástupem**                        | Průvodce prvním spuštěním                                                 |
-| 🔧 **Panel nástrojů CLI**                       | Nastavení oblíbených kódovacích nástrojů jedním kliknutím                 |
-| 🎮 **Modelové hřiště**                          | Otestujte libovolného poskytovatele/model/koncový bod z řídicího panelu   |
-| 🔏 **Přepínač otisků prstů v příkazovém řádku** | Porovnávání otisků prstů podle poskytovatele v Nastavení &gt; Zabezpečení |
-| 🌐 **i18n (30 jazyků)**                         | Plná jazyková podpora dashboardu a dokumentace s psaním zprava doleva     |
-| 🧹 **Clear All Models**                         | One-click model list clearing in provider details                         |
-| 👁️ **Sidebar Controls** 🆕                      | Hide components and integrations from Appearance Settings                 |
-| 📋 **Issue Templates**                          | Standardized GitHub templates for bugs and features                       |
-| 📂 **Adresář vlastních dat**                    | Přepsání `DATA_DIR` pro umístění úložiště                                 |
+| Feature                             | What It Does                                                                           |
+| ----------------------------------- | -------------------------------------------------------------------------------------- |
+| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                         |
+| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                 |
+| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                     |
+| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                           |
+| ⚡ **Request Idempotency**          | Duplicate protection window                                                            |
+| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**          |
+| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP** |
+| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                    |
+| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                             |
+| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                    |
+| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks          |
+| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures  |
+| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically   |
+| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                               |
+| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                 |
+| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                             |
 
-### Hluboký pohled na funkce
+### 📊 Observability & Analytics
 
-#### Chytrá záložní funkce s praktickou kontrolou nákladů
+| Feature                          | What It Does                                          |
+| -------------------------------- | ----------------------------------------------------- |
+| 📝 **Request + Proxy Logging**   | Full request/response and proxy logging               |
+| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI  |
+| 📋 **Unified Logs Dashboard**    | Request, proxy, audit, and console views in one page  |
+| 🔍 **Request Telemetry**         | p50/p95/p99 latency and request tracing               |
+| 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |
+| 💰 **Cost Tracking**             | Budget controls and per-model pricing visibility      |
+| 📈 **Analytics Visualizations**  | Model/provider usage insights and trend views         |
+| 🧪 **Evaluation Framework**      | Golden set testing with configurable match strategies |
+| 📡 **Live Diagnostics** 🆕       | Semantic cache bypass for accurate combo live testing |
+
+### ☁️ Deployment & Platform
+
+| Feature                        | What It Does                                                          |
+| ------------------------------ | --------------------------------------------------------------------- |
+| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
+| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                 |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls               |
+| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                             |
+| 🧙 **Onboarding Wizard**       | First-run guided setup                                                |
+| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
+| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
+| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
+| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
+| 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
+| 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
+| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
+| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
+
+### Feature Deep Dive
+
+#### Smart fallback with practical cost control
 
 ```txt
 Combo: "my-coding-stack"
@@ -1086,91 +1442,91 @@ Combo: "my-coding-stack"
   4. if/kimi-k2-thinking
 ```
 
-Když selže kvóta, rychlost nebo stav, OmniRoute automaticky přejde k dalšímu kandidátovi bez nutnosti ručního přepínání.
+When quota, rate, or health fails, OmniRoute automatically moves to the next candidate without manual switching.
 
-#### Správa protokolů, která je viditelná a ovladatelná
+#### Protocol management that is visible and operable
 
-- MCP + A2A jsou viditelné v uživatelském rozhraní a dokumentaci (nejsou skryté)
-- API pro stav protokolu zpřístupňují živá provozní data ( `/api/mcp/*` , `/api/a2a/*` )
-- Dashboardy zahrnují akce pro operace 2. dne (přepínání kombinací, resetování jističů, zrušení úkolů)
+- MCP + A2A are discoverable in UI and docs (not hidden)
+- Protocol status APIs expose live operational data (`/api/mcp/*`, `/api/a2a/*`)
+- Dashboards include actions for day-2 ops (combo toggles, breaker resets, task cancellation)
 
-#### Pracovní postup překladatele + validace
+#### Translator + validation workflow
 
-Oblast překladatele zahrnuje:
+The Translator area includes:
 
-- **Hřiště** : kontroly transformace požadavků
-- **Tester chatu** : kompletní okružní cesta požadavku/odpovědi
-- **Testovací stolice** : více případů v jednom běhu
-- **Živý monitor** : zobrazení provozu v reálném čase
+- **Playground**: request transformation checks
+- **Chat Tester**: full request/response round-trip
+- **Test Bench**: multiple cases in one run
+- **Live Monitor**: real-time traffic view
 
-Plus validace protokolu se skutečnými klienty pomocí `npm run test:protocols:e2e` .
+Plus protocol validation with real clients via `npm run test:protocols:e2e`.
 
-> 📖 **[Soubor README pro MCP Server](open-sse/mcp-server/README.md)** — Referenční informace o nástrojích, konfigurace IDE a příklady klientů
+> 📖 **[MCP Server README](open-sse/mcp-server/README.md)** — Tool reference, IDE configs, and client examples
 >
-> 📖 **[Soubor README pro A2A Server](src/lib/a2a/README.md)** — Dovednosti, metody JSON-RPC, streamování a životní cyklus úloh
+> 📖 **[A2A Server README](src/lib/a2a/README.md)** — Skills, JSON-RPC methods, streaming, and task lifecycle
 
-## 🧪 Hodnocení (Evals)
+## 🧪 Evaluations (Evals)
 
-OmniRoute obsahuje vestavěný hodnotící rámec pro testování kvality odpovědí LLM v porovnání se zlatou sadou. Přístup k němu je možný přes **Analýzy → Hodnocení** v dashboardu.
+OmniRoute includes a built-in evaluation framework to test LLM response quality against a golden set. Access it via **Analytics → Evals** in the dashboard.
 
-### Vestavěná zlatá sada
+### Built-in Golden Set
 
-Předinstalovaná sada „OmniRoute Golden Set“ obsahuje testovací případy pro:
+The pre-loaded "OmniRoute Golden Set" contains test cases for:
 
-- Zdravím, matematika, zeměpis, generování kódu
-- Shoda s formátem JSON, překlad, generování markdownů
-- Bezpečnostní odmítnutí (škodlivý obsah), počítání, booleovská logika
+- Greetings, math, geography, code generation
+- JSON format compliance, translation, markdown generation
+- Safety refusal (harmful content), counting, boolean logic
 
-### Strategie hodnocení
+### Evaluation Strategies
 
-| Strategie  | Popis                                                                    | Příklad                          |
-| ---------- | ------------------------------------------------------------------------ | -------------------------------- |
-| `exact`    | Výstup se musí přesně shodovat                                           | `"4"`                            |
-| `contains` | Výstup musí obsahovat podřetězec (bez rozlišení velkých a malých písmen) | `"Paris"`                        |
-| `regex`    | Výstup musí odpovídat vzoru regulárních výrazů                           | `"1.*2.*3"`                      |
-| `custom`   | Vlastní JS funkce vrací true/false                                       | `(output) => output.length > 10` |
+| Strategy   | Description                                      | Example                          |
+| ---------- | ------------------------------------------------ | -------------------------------- |
+| `exact`    | Output must match exactly                        | `"4"`                            |
+| `contains` | Output must contain substring (case-insensitive) | `"Paris"`                        |
+| `regex`    | Output must match regex pattern                  | `"1.*2.*3"`                      |
+| `custom`   | Custom JS function returns true/false            | `(output) => output.length > 10` |
 
 ---
 
-## 📖 Průvodce nastavením
+## 📖 Setup Guide
 
-### Nastavení protokolu (MCP + A2A)
+### Protocol Setup (MCP + A2A)
 
 <details>
-<summary><b>🧩 Nastavení MCP (Model Context Protocol)</b></summary>
-</details>
+<summary><b>🧩 MCP Setup (Model Context Protocol)</b></summary>
 
-Spuštění MCP transportu v režimu stdio:
+Start MCP transport in stdio mode:
 
 ```bash
 omniroute --mcp
 ```
 
-Doporučený postup ověření:
+Recommended validation flow:
 
-1. Připojte svého MCP klienta přes stdio.
-2. Spusťte `omniroute_get_health` .
-3. Spusťte `omniroute_list_combos` .
-4. Otevřete `/dashboard/mcp` pro ověření prezenčního signálu, aktivity a auditu.
+1. Connect your MCP client over stdio.
+2. Run `omniroute_get_health`.
+3. Run `omniroute_list_combos`.
+4. Open `/dashboard/mcp` to confirm heartbeat, activity, and audit.
 
-Užitečná API pro automatizaci:
+Useful APIs for automation:
 
 - `GET /api/mcp/status`
 - `GET /api/mcp/tools`
 - `GET /api/mcp/audit`
 - `GET /api/mcp/audit/stats`
 
-<details>
-<summary><b>🤝 Nastavení A2A (Agent2Agent)</b></summary>
 </details>
 
-Objevte agenta:
+<details>
+<summary><b>🤝 A2A Setup (Agent2Agent)</b></summary>
+
+Discover the agent:
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Odeslat úkol:
+Send a task:
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -1178,36 +1534,38 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
 ```
 
-Správa životního cyklu:
+Manage lifecycle:
 
 - `GET /api/a2a/status`
 - `GET /api/a2a/tasks`
 - `GET /api/a2a/tasks/:id`
 - `POST /api/a2a/tasks/:id/cancel`
 
-Provozní uživatelské rozhraní:
+Operational UI:
 
-- `/dashboard/a2a` pro pozorovatelnost úloh/stavů/streamů a akce kouření
+- `/dashboard/a2a` for task/state/stream observability and smoke actions
 
-<details>
-<summary><b>🧪 Komplexní validace protokolu</b></summary>
 </details>
 
-Ověřte oba protokoly se skutečnými klienty:
+<details>
+<summary><b>🧪 End-to-end protocol validation</b></summary>
+
+Validate both protocols with real clients:
 
 ```bash
 npm run test:protocols:e2e
 ```
 
-Tím se ověřuje:
+This verifies:
 
-- Připojení/seznam/volání klienta MCP SDK
-- A2A objevování/odesílání/streamování/získávání/zrušení
-- Křížová kontrola dat v auditu MCP a API pro správu úloh A2A
+- MCP SDK client connect/list/call
+- A2A discovery/send/stream/get/cancel
+- Cross-check data in MCP audit and A2A task management APIs
+
+</details>
 
 <details>
-<summary><b>💳 Poskytovatelé předplatného</b></summary>
-</details>
+<summary><b>💳 Subscription Providers</b></summary>
 
 ### Claude Code (Pro/Max)
 
@@ -1222,7 +1580,7 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Tip pro profesionály:** Pro složité úkoly používejte Opus, pro rychlost Sonnet. OmniRoute sleduje kvótu pro každý model!
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
 
 ### OpenAI Codex (Plus/Pro)
 
@@ -1236,24 +1594,24 @@ Models:
   cx/gpt-5.1-codex-max
 ```
 
-#### Správa limitů účtu Codex (5h + týdně)
+#### Codex Account Limit Management (5h + Weekly)
 
-Každý účet Codex má nyní přepínače zásad v `Dashboard -> Providers` :
+Each Codex account now has policy toggles in `Dashboard -> Providers`:
 
-- `5h` (ZAP/VYP): vynutit politiku 5hodinového prahu okna.
-- `Weekly` (ZAP/VYP): vynutit zásadu týdenního prahu okna.
-- Prahové chování: když povolené okno dosáhne využití &gt;=90 %, je daný účet přeskočen.
-- Chování rotace: OmniRoute automaticky přesměruje na další způsobilý účet Codex.
-- Chování při resetování: Po `resetAt` určité doby se účet automaticky opět stane způsobilým.
+- `5h` (ON/OFF): enforce the 5-hour window threshold policy.
+- `Weekly` (ON/OFF): enforce the weekly window threshold policy.
+- Threshold behavior: when an enabled window reaches >=90% usage, that account is skipped.
+- Rotation behavior: OmniRoute routes to the next eligible Codex account automatically.
+- Reset behavior: when the provider `resetAt` time passes, the account becomes eligible again automatically.
 
-Scénáře:
+Scenarios:
 
-- `5h ON` + `Weekly ON` : účet je přeskočen, když kterékoli z oken dosáhne prahové hodnoty.
-- `5h OFF` + `Weekly ON` : účet může být zablokován pouze týdenním používáním.
-- `5h ON` + `Weekly OFF` : účet může být zablokován pouze při 5hodinovém používání.
-- `resetAt` passed: účet se automaticky znovu zapne (bez ručního opětovného povolení).
+- `5h ON` + `Weekly ON`: account is skipped when either window reaches threshold.
+- `5h OFF` + `Weekly ON`: only weekly usage can block the account.
+- `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
+- `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
 
-### Gemini CLI (ZDARMA 180 000/měsíc!)
+### Gemini CLI (FREE 180K/month!)
 
 ```bash
 Dashboard → Providers → Connect Gemini CLI
@@ -1265,7 +1623,7 @@ Models:
   gc/gemini-2.5-pro
 ```
 
-**Nejlepší hodnota:** Obrovská bezplatná úroveň! Použijte ji před placenými úrovněmi.
+**Best Value:** Huge free tier! Use this before paid tiers.
 
 ### GitHub Copilot
 
@@ -1280,88 +1638,93 @@ Models:
   gh/gemini-3-pro
 ```
 
-<details>
-<summary><b>🔑 Poskytovatelé klíčů API</b></summary>
 </details>
 
-### NVIDIA NIM (BEZPLATNÝ přístup pro vývojáře — více než 70 modelů)
-
-1. Registrace: [build.nvidia.com](https://build.nvidia.com)
-2. Získejte zdarma klíč API (včetně 1000 inferenčních kreditů)
-3. Ovládací panel → Přidat poskytovatele → NVIDIA NIM:
-   - Klíč API: `nvapi-your-key`
-
-**Modely:** `nvidia/llama-3.3-70b-instruct` , `nvidia/mistral-7b-instruct` a více než 50 dalších
-
-**Tip pro profesionály:** API kompatibilní s OpenAI – funguje bez problémů s překladem formátů OmniRoute!
-
-### Hluboké vyhledávání
-
-1. Registrace: [platform.deepseek.com](https://platform.deepseek.com)
-2. Získat klíč API
-3. Ovládací panel → Přidat poskytovatele → DeepSeek
-
-**Modely:** `deepseek/deepseek-chat` , `deepseek/deepseek-coder`
-
-### Groq (k dispozici je bezplatná úroveň!)
-
-1. Registrace: [console.groq.com](https://console.groq.com)
-2. Získejte klíč API (včetně bezplatné úrovně)
-3. Ovládací panel → Přidat poskytovatele → Groq
-
-**Modely:** `groq/llama-3.3-70b` , `groq/mixtral-8x7b`
-
-**Tip pro profesionály:** Ultrarychlá inference – nejlepší pro kódování v reálném čase!
-
-### OpenRouter (100+ modelů)
-
-1. Registrace: [openrouter.ai](https://openrouter.ai)
-2. Získat klíč API
-3. Ovládací panel → Přidat poskytovatele → OpenRouter
-
-**Modely:** Získejte přístup k více než 100 modelům od všech hlavních poskytovatelů prostřednictvím jediného klíče API.
-
 <details>
-<summary><b>💰 Levní poskytovatelé (záložní)</b></summary>
+<summary><b>🔑 API Key Providers</b></summary>
+
+### NVIDIA NIM (FREE developer access — 70+ models)
+
+1. Sign up: [build.nvidia.com](https://build.nvidia.com)
+2. Get free API key (1000 inference credits included)
+3. Dashboard → Add Provider → NVIDIA NIM:
+   - API Key: `nvapi-your-key`
+
+**Models:** `nvidia/llama-3.3-70b-instruct`, `nvidia/mistral-7b-instruct`, and 50+ more
+
+**Pro Tip:** OpenAI-compatible API — works seamlessly with OmniRoute's format translation!
+
+### DeepSeek
+
+1. Sign up: [platform.deepseek.com](https://platform.deepseek.com)
+2. Get API key
+3. Dashboard → Add Provider → DeepSeek
+
+**Models:** `deepseek/deepseek-chat`, `deepseek/deepseek-coder`
+
+### Groq (Free Tier Available!)
+
+1. Sign up: [console.groq.com](https://console.groq.com)
+2. Get API key (free tier included)
+3. Dashboard → Add Provider → Groq
+
+**Models:** `groq/llama-3.3-70b`, `groq/mixtral-8x7b`
+
+**Pro Tip:** Ultra-fast inference — best for real-time coding!
+
+### OpenRouter (100+ Models)
+
+1. Sign up: [openrouter.ai](https://openrouter.ai)
+2. Get API key
+3. Dashboard → Add Provider → OpenRouter
+
+**Models:** Access 100+ models from all major providers through a single API key.
+
+**Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
+
 </details>
 
-### GLM-4.7 (Denní reset, 0,6 USD/1 milion)
-
-1. Registrace: [Zhipu AI](https://open.bigmodel.cn/)
-2. Získejte klíč API z kódovacího plánu
-3. Nástěnka → Přidat klíč API:
-   - Poskytovatel: `glm`
-   - Klíč API: `your-key`
-
-**Použití:** `glm/glm-4.7`
-
-**Tip pro profesionály:** Programovací plán nabízí 3× kvótu za cenu 1/7! Obnovuje se denně v 10:00.
-
-### MiniMax M2.1 (5h reset, 0,20 $/1 milion)
-
-1. Registrace: [MiniMax](https://www.minimax.io/)
-2. Získat klíč API
-3. Nástěnka → Přidat klíč API
-
-**Použití:** `minimax/MiniMax-M2.1`
-
-**Tip pro profesionály:** Nejlevnější varianta pro dlouhý kontext (1 milion tokenů)!
-
-### Kimi K2 (paušální poplatek 9 dolarů měsíčně)
-
-1. Odebírat: [Moonshot AI](https://platform.moonshot.ai/)
-2. Získat klíč API
-3. Nástěnka → Přidat klíč API
-
-**Použití:** `kimi/kimi-latest`
-
-**Tip pro profesionály:** Fixních 9 $/měsíc za 10 milionů tokenů = efektivní náklady 0,90 $/1 milion!
-
 <details>
-<summary><b>🆓 BEZPLATNÍ poskytovatelé (nouzové zálohování)</b></summary>
+<summary><b>💰 Cheap Providers (Backup)</b></summary>
+
+### GLM-4.7 (Daily reset, $0.6/1M)
+
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
+2. Get API key from Coding Plan
+3. Dashboard → Add API Key:
+   - Provider: `glm`
+   - API Key: `your-key`
+
+**Use:** `glm/glm-4.7`
+
+**Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
+
+### MiniMax M2.1 (5h reset, $0.20/1M)
+
+1. Sign up: [MiniMax](https://www.minimax.io/)
+2. Get API key
+3. Dashboard → Add API Key
+
+**Use:** `minimax/MiniMax-M2.1`
+
+**Pro Tip:** Cheapest option for long context (1M tokens)!
+
+### Kimi K2 ($9/month flat)
+
+1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
+2. Get API key
+3. Dashboard → Add API Key
+
+**Use:** `kimi/kimi-latest`
+
+**Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+
 </details>
 
-### Qoder (5 BEZPLATNÝCH modelů přes OAuth)
+<details>
+<summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
+
+### Qoder (5 FREE models via OAuth)
 
 ```bash
 Dashboard → Connect Qoder
@@ -1376,7 +1739,7 @@ Models:
   if/deepseek-r1
 ```
 
-### Qwen (4 modely ZDARMA s kódem zařízení)
+### Qwen (4 FREE models via Device Code)
 
 ```bash
 Dashboard → Connect Qwen
@@ -1388,7 +1751,7 @@ Models:
   qw/qwen3-coder-flash
 ```
 
-### Kiro (Claude ZDARMA)
+### Kiro (Claude FREE)
 
 ```bash
 Dashboard → Connect Kiro
@@ -1400,11 +1763,12 @@ Models:
   kr/claude-haiku-4.5
 ```
 
-<details>
-<summary><b>🎨 Vytvořte kombinace</b></summary>
 </details>
 
-### Příklad 1: Maximalizace předplatného → Levné zálohování
+<details>
+<summary><b>🎨 Create Combos</b></summary>
+
+### Example 1: Maximize Subscription → Cheap Backup
 
 ```
 Dashboard → Combos → Create New
@@ -1418,7 +1782,7 @@ Models:
 Use in CLI: premium-coding
 ```
 
-### Příklad 2: Pouze zdarma (nulové náklady)
+### Example 2: Free-Only (Zero Cost)
 
 ```
 Name: free-combo
@@ -1430,11 +1794,12 @@ Models:
 Cost: $0 forever!
 ```
 
-<details>
-<summary><b>🔧 Integrace s rozhraním příkazového řádku</b></summary>
 </details>
 
-### IDE kurzoru
+<details>
+<summary><b>🔧 CLI Integration</b></summary>
+
+### Cursor IDE
 
 ```
 Settings → Models → Advanced:
@@ -1445,7 +1810,7 @@ Settings → Models → Advanced:
 
 ### Claude Code
 
-Pro konfiguraci jedním kliknutím použijte stránku **Nástroje CLI** na řídicím panelu nebo ručně upravte soubor `~/.claude/settings.json` .
+Use the **CLI Tools** page in the dashboard for one-click configuration, or edit `~/.claude/settings.json` manually.
 
 ### Codex CLI
 
@@ -1458,13 +1823,13 @@ codex "your prompt"
 
 ### OpenClaw
 
-**Možnost 1 – Dashboard (doporučeno):**
+**Option 1 — Dashboard (recommended):**
 
 ```
 Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 ```
 
-**Možnost 2 – Manuální úprava:** Úprava `~/.openclaw/openclaw.json` :
+**Option 2 — Manual:** Edit `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -1480,9 +1845,9 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 }
 ```
 
-> **Poznámka:** OpenClaw funguje pouze s lokálním OmniRoute. Místo `localhost` použijte `127.0.0.1` , abyste se vyhnuli problémům s rozlišením IPv6.
+> **Note:** OpenClaw only works with local OmniRoute. Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues.
 
-### Cline / Pokračovat / RooCode
+### Cline / Continue / RooCode
 
 ```
 Settings → API Configuration:
@@ -1494,7 +1859,7 @@ Settings → API Configuration:
 
 ### OpenCode
 
-**Krok 1:** Přidání OmniRoute jako vlastního poskytovatele:
+**Step 1:** Add OmniRoute as a custom provider:
 
 ```bash
 opencode
@@ -1502,7 +1867,7 @@ opencode
 # Select "Other" → Enter ID: "omniroute" → Enter your OmniRoute API key
 ```
 
-**Krok 2:** Vytvořte/upravte `opencode.json` v kořenovém adresáři projektu:
+**Step 2:** Create/edit `opencode.json` in your project root:
 
 ```json
 {
@@ -1524,121 +1889,126 @@ opencode
 }
 ```
 
-**Krok 3:** Vyberte model v OpenCode:
+**Step 3:** Select the model in OpenCode:
 
 ```bash
 /models
 # Select any OmniRoute model from the list
 ```
 
-> **Tip:** Do sekce `models` přidejte jakýkoli model dostupný ve vašem koncovém bodu OmniRoute `/v1/models` . Použijte formát `provider/model-id` z vašeho dashboardu OmniRoute.
+> **Tip:** Add any model available in your OmniRoute `/v1/models` endpoint to the `models` section. Use the format `provider/model-id` from your OmniRoute dashboard.
+
+</details>
 
 ---
 
-## 🐛 Řešení problémů
+## Řešení problémů
 
 <details>
-<summary><b>Kliknutím rozbalíte průvodce řešením problémů</b></summary>
-</details>
+<summary><b>Click to expand troubleshooting guide</b></summary>
 
-**"Jazykový model neposkytoval zprávy"**
+**"Language model did not provide messages"**
 
-- Kvóta poskytovatele vyčerpána → Zkontrolujte sledování kvót na řídicím panelu
-- Řešení: Použijte záložní kombinovanou variantu nebo přejděte na levnější úroveň
+- Provider quota exhausted → Check dashboard quota tracker
+- Solution: Use combo fallback or switch to cheaper tier
 
-**Omezení rychlosti**
+**Rate limiting**
 
-- Kvóta předplatného vyčerpána → Přechod na GLM/MiniMax
-- Přidat kombo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Subscription quota out → Fallback to GLM/MiniMax
+- Add combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
 
-**Platnost tokenu OAuth vypršela**
+**OAuth token expired**
 
-- Automaticky aktualizováno službou OmniRoute
-- Pokud problémy přetrvávají: Ovládací panel → Poskytovatel → Znovu připojit
+- Auto-refreshed by OmniRoute
+- If issues persist: Dashboard → Provider → Reconnect
 
-**Vysoké náklady**
+**High costs**
 
-- Zkontrolujte statistiky využití v sekci Nástěnka → Náklady
-- Přepnout primární model na GLM/MiniMax
-- Pro nekritické úlohy použijte bezplatnou úroveň (Gemini CLI, Qoder).
+- Check usage stats in Dashboard → Costs
+- Switch primary model to GLM/MiniMax
+- Use free tier (Gemini CLI, Qoder) for non-critical tasks
 
-**Porty řídicího panelu/API jsou nesprávné**
+**Dashboard/API ports are wrong**
 
-- `PORT` je kanonický základní port (a standardně port API)
-- `API_PORT` přepisuje pouze posluchač API kompatibilní s OpenAI.
-- `DASHBOARD_PORT` přepisuje pouze posluchač dashboard/Next.js
-- Nastavte `NEXT_PUBLIC_BASE_URL` na vaši veřejnou URL adresu řídicího panelu (pro zpětná volání OAuth)
+- `PORT` is the canonical base port (and API port by default)
+- `API_PORT` overrides only OpenAI-compatible API listener
+- `DASHBOARD_PORT` overrides only dashboard/Next.js listener
+- Set `NEXT_PUBLIC_BASE_URL` to your dashboard/public URL (for OAuth callbacks)
 
-**Chyby synchronizace s cloudem**
+**Cloud sync errors**
 
-- Ověřte, zda `BASE_URL` odkazuje na vaši spuštěnou instanci.
-- Ověřte, zda `CLOUD_URL` odkazuje na váš očekávaný cloudový koncový bod.
-- Udržujte hodnoty `NEXT_PUBLIC_*` v souladu s hodnotami na straně serveru.
+- Verify `BASE_URL` points to your running instance
+- Verify `CLOUD_URL` points to your expected cloud endpoint
+- Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**První přihlášení nefunguje**
+**First login not working**
 
-- Zkontrolujte `INITIAL_PASSWORD` v souboru `.env`
-- Pokud není nastaveno, záložní heslo je `123456`
+- Check `INITIAL_PASSWORD` in `.env`
+- If unset, fallback password is `123456`
 
-**Žádné protokoly požadavků**
+**No request logs**
 
-- Nastavte `ENABLE_REQUEST_LOGS=true` v `.env`
+- Request artifacts are written to `DATA_DIR/call_logs/` as one JSON file per request
+- Enable pipeline capture from Dashboard → Logs → Request Logs if you need detailed per-stage payloads
+- Set `APP_LOG_TO_FILE=true` if you also want application console logs in `logs/application/app.log`
+- Adjust `APP_LOG_MAX_FILE_SIZE`, `APP_LOG_RETENTION_DAYS`, `APP_LOG_MAX_FILES`, and `CALL_LOG_MAX_ENTRIES` as needed
 
-**Test připojení ukazuje „Neplatné“ pro poskytovatele kompatibilní s OpenAI**
+**Connection test shows "Invalid" for OpenAI-compatible providers**
 
-- Mnoho poskytovatelů nezpřístupňuje koncový bod `/models`
-- OmniRoute v1.0.6+ zahrnuje záložní ověření pomocí dokončení chatu
-- Zajistěte, aby základní URL adresa obsahovala příponu `/v1`
+- Many providers don't expose a `/models` endpoint
+- OmniRoute v1.0.6+ includes fallback validation via chat completions
+- Ensure base URL includes `/v1` suffix
 
-### 🔐 OAuth na vzdáleném serveru
+### 🔐 OAuth on a Remote Server
 
 <a name="oauth-on-a-remote-server"></a>
+<a name="oauth-em-servidor-remoto"></a>
 
-> **⚠️ Důležité pro uživatele, kteří provozují OmniRoute na VPS, Dockeru nebo jakémkoli vzdáleném serveru**
+> **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
 
-#### Proč selhává OAuth v rozhraní CLI Antigravity / Gemini na vzdálených serverech?
+#### Why does Antigravity / Gemini CLI OAuth fail on remote servers?
 
-Poskytovatelé rozhraní CLI **Antigravity** a **Gemini** používají **Google OAuth 2.0** . Google vyžaduje, aby se `redirect_uri` v toku OAuth přesně shodoval s jedním z předregistrovaných URI v konzoli Google Cloud Console aplikace.
+The **Antigravity** and **Gemini CLI** providers use **Google OAuth 2.0**. Google requires the `redirect_uri` in the OAuth flow to exactly match one of the pre-registered URIs in the app's Google Cloud Console.
 
-Přihlašovací údaje OAuth, které jsou součástí OmniRoute, jsou registrovány **pouze pro `localhost`** . Když přistupujete k OmniRoute na vzdáleném serveru (např. `https://omniroute.myserver.com` ), Google odmítne ověření pomocí:
+The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
 
 ```
 Error 400: redirect_uri_mismatch
 ```
 
-#### Řešení: Nakonfigurujte si vlastní přihlašovací údaje OAuth
+#### Solution: Configure your own OAuth credentials
 
-V Google Cloud Console je potřeba vytvořit **ID klienta OAuth 2.0** s URI vašeho serveru.
+You need to create an **OAuth 2.0 Client ID** in Google Cloud Console with your server's URI.
 
-#### Krok za krokem
+#### Step-by-step
 
-**1. Otevřete konzoli Google Cloud**
+**1. Open Google Cloud Console**
 
-Přejděte na: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+Go to: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
 
-**2. Vytvořte nové ID klienta OAuth 2.0**
+**2. Create a new OAuth 2.0 Client ID**
 
-- Klikněte na **„+ Vytvořit přihlašovací údaje“** → **„ID klienta OAuth“**
-- Typ aplikace: **„Webová aplikace“**
-- Název: cokoli chcete (např. `OmniRoute Remote` )
+- Click **"+ Create Credentials"** → **"OAuth client ID"**
+- Application type: **"Web application"**
+- Name: anything you like (e.g. `OmniRoute Remote`)
 
-**3. Přidejte autorizované URI pro přesměrování**
+**3. Add Authorized Redirect URIs**
 
-Do pole **„Autorizované identifikátory URI pro přesměrování“** přidejte:
+In the **"Authorized redirect URIs"** field, add:
 
 ```
 https://your-server.com/callback
 ```
 
-> Nahraďte `your-server.com` doménou nebo IP adresou vašeho serveru (v případě potřeby uveďte i port, např. `http://45.33.32.156:20128/callback` ).
+> Replace `your-server.com` with your server's domain or IP (include the port if needed, e.g. `http://45.33.32.156:20128/callback`).
 
-**4. Uložte a zkopírujte přihlašovací údaje**
+**4. Save and copy the credentials**
 
-Po vytvoření Google zobrazí **ID klienta** a **tajný kód klienta** .
+After creating, Google will show the **Client ID** and **Client Secret**.
 
-**5. Nastavení proměnných prostředí**
+**5. Set environment variables**
 
-Ve vašem souboru `.env` (nebo proměnných prostředí Docker):
+In your `.env` (or Docker environment variables):
 
 ```bash
 # For Antigravity:
@@ -1651,7 +2021,7 @@ GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 ```
 
-**6. Restartujte OmniRoute**
+**6. Restart OmniRoute**
 
 ```bash
 # npm:
@@ -1661,125 +2031,206 @@ npm run dev
 docker restart omniroute
 ```
 
-**7. Zkuste se znovu připojit**
+**7. Try connecting again**
 
-Řídicí panel → Poskytovatelé → Antigravity (nebo Gemini CLI) → OAuth
+Dashboard → Providers → Antigravity (or Gemini CLI) → OAuth
 
-Google nyní bude správně přesměrovávat na `https://your-server.com/callback` .
-
----
-
-#### Dočasné řešení (bez vlastních přihlašovacích údajů)
-
-Pokud si teď nechcete nastavovat vlastní přihlašovací údaje, můžete stále použít **ruční postup pro URL** :
-
-1. OmniRoute otevírá autorizační URL od Googlu
-2. Po autorizaci se Google pokusí přesměrovat na `localhost` (což selže na vzdáleném serveru).
-3. **Zkopírujte celou URL adresu** z adresního řádku prohlížeče (i když se stránka nenačte)
-4. Vložte tuto URL adresu do pole zobrazeného v modálním okně připojení OmniRoute.
-5. Klikněte na **„Připojit“**
-
-> To funguje, protože autorizační kód v URL adrese je platný bez ohledu na to, zda se načetla přesměrovací stránka.
+Google will now redirect correctly to `https://your-server.com/callback`.
 
 ---
 
-#### Dočasné řešení (bez vlastních přihlašovacích údajů)
+#### Temporary workaround (without custom credentials)
 
-Chcete-li získat přístup k přihlašovacím údajům bez vlastní konfigurace, můžete použít následující postup:
+If you don't want to set up your own credentials right now, you can still use the **manual URL flow**:
 
-1. OmniRoute otevře URL autorizace Google
-2. Po autorizaci se Google pokusí přesměrovat na `localhost` (což selže na vzdáleném serveru)
-3. **Zkopírujte celou URL adresu** z adresního řádku prohlížeče
-4. Vložte tuto URL adresu do pole zobrazeného v modálním okně připojení OmniRoute
-5. Klikněte na **„Připojit"**
+1. OmniRoute opens the Google authorization URL
+2. After authorizing, Google tries to redirect to `localhost` (which fails on the remote server)
+3. **Copy the full URL** from your browser's address bar (even if the page doesn't load)
+4. Paste that URL into the field shown in the OmniRoute connection modal
+5. Click **"Connect"**
 
-> Toto řešení funguje, protože autorizační kód v URL adrese je platný bez ohledu na načtení přesměrovací stránky.
+> This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
 
 ---
-
-## 🛠️ Technologický stack
 
 <details>
-<summary><b>Kliknutím rozbalíte podrobnosti o technologickém stacku</b></summary>
+<summary><b>🇧🇷 Versão em Português</b></summary>
+
+#### Por que o OAuth do Antigravity / Gemini CLI falha em servidores remotos?
+
+Os provedores **Antigravity** e **Gemini CLI** usam **Google OAuth 2.0** para autenticação. O Google exige que a `redirect_uri` usada no fluxo OAuth seja **exatamente** uma das URIs pré-cadastradas no Google Cloud Console do aplicativo.
+
+As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
+
+```
+Error 400: redirect_uri_mismatch
+```
+
+#### Solução: Configure suas próprias credenciais OAuth
+
+Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
+
+#### Passo a passo
+
+**1. Acesse o Google Cloud Console**
+
+Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+
+**2. Crie um novo OAuth 2.0 Client ID**
+
+- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
+- Tipo de aplicativo: **"Web application"**
+- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
+
+**3. Adicione as Authorized Redirect URIs**
+
+No campo **"Authorized redirect URIs"**, adicione:
+
+```
+https://seu-servidor.com/callback
+```
+
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+
+**4. Salve e copie as credenciais**
+
+Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
+
+**5. Configure as variáveis de ambiente**
+
+No seu `.env` (ou nas variáveis de ambiente do Docker):
+
+```bash
+# Para Antigravity:
+ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+
+# Para Gemini CLI:
+GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+```
+
+**6. Reinicie o OmniRoute**
+
+```bash
+# Se usando npm:
+npm run dev
+
+# Se usando Docker:
+docker restart omniroute
+```
+
+**7. Tente conectar novamente**
+
+Dashboard → Providers → Antigravity (ou Gemini CLI) → OAuth
+
+Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
+
+---
+
+#### Workaround temporário (sem configurar credenciais próprias)
+
+Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
+
+1. O OmniRoute abrirá a URL de autorização do Google
+2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
+3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
+4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+5. Clique em **"Connect"**
+
+> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
+
 </details>
 
-- **Runtime** : Node.js 18–22 LTS (⚠️ Node.js 24+ **není podporován** — nativní binární soubory `better-sqlite3` jsou nekompatibilní)
-- **Jazyk** : TypeScript 5.9 — **100% TypeScript** napříč `src/` a `open-sse/` ( `any` v základních modulech od verze 2.0)
-- **Framework** : Next.js 16 + React 19 + Tailwind CSS 4
-- **Databáze** : LowDB (JSON) + SQLite (stav domény + protokoly proxy + audit MCP + rozhodnutí o směrování)
-- **Schémata** : Zod (validace I/O nástrojů MCP, API smlouvy)
-- **Protokoly** : MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
-- **Streamování** : Události odeslané serverem (SSE)
-- **Autorizace** : OAuth 2.0 (PKCE) + JWT + API klíče + autorizace s rozsahem MCP
-- **Testování** : Node.js test runner + Vitest (900+ testů včetně unit, integračních, E2E)
-- **CI/CD** : Akce GitHubu (automatické publikování v npm + Docker Hub při vydání)
-- **Webová stránka** : [omniroute.online](https://omniroute.online)
-- **Balíček** : [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Docker** : [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
-- **Odolnost** : Jistič, exponenciální odstavení, ochrana proti hromům, falešné TLS, automatické kombinované samoopravování
+---
+
+</details>
+
+## 🛠️ Tech Stack
+
+<details>
+<summary><b>Click to expand tech stack details</b></summary>
+
+- **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
+- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
+- **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
+- **Database**: LowDB (JSON) + SQLite (domain state + proxy logs + MCP audit + routing decisions)
+- **Schemas**: Zod (MCP tool I/O validation, API contracts)
+- **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
+- **Streaming**: Server-Sent Events (SSE)
+- **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
+- **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
+- **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
+- **Website**: [omniroute.online](https://omniroute.online)
+- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
+- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
+- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
+
+</details>
 
 ---
 
-## 📖 Dokumentace
+## Dokumentace
 
-| Dokument                                                     | Popis                                                                   |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| [Uživatelská příručka](docs/USER_GUIDE.md)                   | Poskytovatelé, kombinace, integrace CLI, nasazení                       |
-| [Referenční informace k API](docs/API_REFERENCE.md)          | Všechny koncové body s příklady                                         |
-| [MCP server](open-sse/mcp-server/README.md)                  | 16 nástrojů MCP, konfigurace IDE, klienti Python/TS/Go                  |
-| [Server A2A](src/lib/a2a/README.md)                          | Protokol JSON-RPC 2.0, dovednosti, streamování, správa úloh             |
-| [Auto-Combo Engine](docs/auto-combo.md)                      | 6faktorové bodování, balíčky režimů, samoléčba                          |
-| [Odstraňování problémů](docs/TROUBLESHOOTING.md)             | Běžné problémy a jejich řešení                                          |
-| [Architektura](docs/ARCHITECTURE.md)                         | Architektura a interní prvky systému                                    |
-| [Přispívání](CONTRIBUTING.md)                                | Nastavení a pokyny pro vývoj                                            |
-| [Specifikace OpenAPI](docs/openapi.yaml)                     | Specifikace OpenAPI 3.0                                                 |
-| [Bezpečnostní zásady](SECURITY.md)                           | Hlášení zranitelností a bezpečnostní postupy                            |
-| [Nasazení virtuálního počítače](docs/VM_DEPLOYMENT_GUIDE.md) | Kompletní průvodce: Nastavení virtuálního počítače + nginx + Cloudflare |
-| [Galerie funkcí](docs/FEATURES.md)                           | Vizuální prohlídka řídicího panelu se snímky obrazovky                  |
-| [Kontrolní seznam vydání](docs/RELEASE_CHECKLIST.md)         | Kroky ověření před vydáním                                              |
-
----
-
-## 🗺️ Plán
-
-OmniRoute má **v plánu více než 210 funkcí** v několika fázích vývoje. Zde jsou klíčové oblasti:
-
-| Kategorie                                | Plánované funkce | Hlavní body                                                                                                              |
-| ---------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 🧠 **Směrování a inteligence**           | 25+              | Směrování s nejnižší latencí, směrování založené na tagech, kontrola kvót před výstupem, výběr účtu P2C                  |
-| 🔒 **Zabezpečení a dodržování předpisů** | 20+              | Zpevnění SSRF, maskování přihlašovacích údajů, limit rychlosti pro každý koncový bod, stanovení rozsahu klíčů pro správu |
-| 📊 **Pozorovatelnost**                   | 15+              | Integrace OpenTelemetry, sledování kvót v reálném čase, sledování nákladů podle modelu                                   |
-| 🔄 **Integrace poskytovatelů**           | 20+              | Dynamický registr modelů, doba zchlazení poskytovatelů, Codex pro více účtů, analýza kvót Copilota                       |
-| ⚡ **Výkon**                             | 15+              | Dvojitá vrstva mezipaměti, mezipaměť výzev, mezipaměť odpovědí, udržování streamování, dávkové API                       |
-| 🌐 **Ekosystém**                         | 10+              | WebSocket API, horké opětovné načítání konfigurace, distribuované úložiště konfigurace, komerční režim                   |
-
-### 🔜 Již brzy
-
-- 🔗 **Integrace OpenCode** — Nativní podpora poskytovatelů pro IDE kódování s AI v OpenCode
-- 🔗 **Integrace TRAE** — Plná podpora vývojového rámce TRAE pro umělou inteligenci
-- 📦 **Dávkové API** — Asynchronní dávkové zpracování hromadných požadavků
-- 🎯 **Směrování na základě tagů** — Směrování požadavků na základě vlastních tagů a metadat
-- 💰 **Strategie nejnižších nákladů** – Automaticky vybere nejlevnějšího dostupného poskytovatele
-
-> 📝 Úplné specifikace funkcí jsou k dispozici v [`docs/new-features/`](docs/new-features/) (217 podrobných specifikací)
+| Document                                       | Description                                         |
+| ---------------------------------------------- | --------------------------------------------------- |
+| [User Guide](docs/USER_GUIDE.md)               | Providers, combos, CLI integration, deployment      |
+| [API Reference](docs/API_REFERENCE.md)         | All endpoints with examples                         |
+| [MCP Server](open-sse/mcp-server/README.md)    | 16 MCP tools, IDE configs, Python/TS/Go clients     |
+| [A2A Server](src/lib/a2a/README.md)            | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
+| [Auto-Combo Engine](docs/auto-combo.md)        | 6-factor scoring, mode packs, self-healing          |
+| [Troubleshooting](docs/TROUBLESHOOTING.md)     | Common problems and solutions                       |
+| [Architecture](docs/ARCHITECTURE.md)           | System architecture and internals                   |
+| [Contributing](CONTRIBUTING.md)                | Development setup and guidelines                    |
+| [OpenAPI Spec](docs/openapi.yaml)              | OpenAPI 3.0 specification                           |
+| [Security Policy](SECURITY.md)                 | Vulnerability reporting and security practices      |
+| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)   | Complete guide: VM + nginx + Cloudflare setup       |
+| [Features Gallery](docs/FEATURES.md)           | Visual dashboard tour with screenshots              |
+| [Release Checklist](docs/RELEASE_CHECKLIST.md) | Pre-release validation steps                        |
 
 ---
 
-## 👥 Přispěvatelé
+## 🗺️ Roadmap
 
-[](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)![Přispěvatelé](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)
+OmniRoute has **210+ features planned** across multiple development phases. Here are the key areas:
 
-### Jak přispět
+| Category                      | Planned Features | Highlights                                                                             |
+| ----------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, P2C account selection      |
+| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping   |
+| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, cost tracking per model         |
+| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing |
+| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API         |
+| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode            |
 
-1. Vytvoření forku repozitáře
-2. Vytvořte si vlastní větev feature ( `git checkout -b feature/amazing-feature` )
-3. Potvrďte změny ( `git commit -m 'Add amazing feature'` )
-4. Odeslat do větve ( `git push origin feature/amazing-feature` )
-5. Otevřít žádost o změny (pull request)
+### 🔜 Coming Soon
 
-Podrobné pokyny naleznete na [CONTRIBUTING.md](CONTRIBUTING.md) .
+- 🔗 **OpenCode Integration** — Native provider support for the OpenCode AI coding IDE
+- 🔗 **TRAE Integration** — Full support for the TRAE AI development framework
+- 📦 **Batch API** — Asynchronous batch processing for bulk requests
+- 🎯 **Tag-Based Routing** — Route requests based on custom tags and metadata
+- 💰 **Lowest-Cost Strategy** — Automatically select the cheapest available provider
 
-### Vydání nové verze
+> 📝 Full feature specifications available in [`docs/new-features/`](docs/new-features/) (217 detailed specs)
+
+---
+
+## 👥 Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
+
+### How to Contribute
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Releasing a New Version
 
 ```bash
 # Create a release — npm publish happens automatically
@@ -1788,29 +2239,29 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ---
 
-## 📊 Hvězdná historie
+## 📊 Star History
 
-## Hvězdáři v průběhu času
+## Stargazers over time
 
-## [](https://starchart.cc/diegosouzapw/OmniRoute)![Hvězdáři v průběhu času](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)
+## [![Stargazers over time](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)](https://starchart.cc/diegosouzapw/OmniRoute)
 
-## 🙏 Poděkování
+## 🙏 Acknowledgments
 
-Zvláštní poděkování patří **[9routeru](https://github.com/decolua/9router)** od **[decolua](https://github.com/decolua)** – původnímu projektu, který inspiroval tento fork. OmniRoute staví na tomto neuvěřitelném základu s dalšími funkcemi, multimodálními API a kompletním přepsáním TypeScriptu.
+Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
 
-Zvláštní poděkování patří **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** – původní implementaci Go, která inspirovala tento JavaScriptový port.
+Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — the original Go implementation that inspired this JavaScript port.
 
 ---
 
-## 📄 Licence
+## Licence
 
-Licence MIT - podrobnosti viz [LICENCE](LICENSE) .
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
-  <sub>Vytvořeno s ❤️ pro vývojáře, kteří programují 24 hodin denně, 7 dní v týdnu</sub>
-  <br>
-  <sub><p data-md-type="paragraph"><a href="https://omniroute.online">omniroute.online</a></p></sub>
+  <sub>Built with ❤️ for developers who code 24/7</sub>
+  <br/>
+  <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

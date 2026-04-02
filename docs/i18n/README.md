@@ -33,3 +33,4 @@ Translations of documentation into 30 languages. Code blocks remain in English.
 - 🇮🇱 **עברית** (`he`): [Docs Root](./he/README.md)
 - 🇵🇭 **Filipino** (`phi`): [Docs Root](./phi/README.md)
 - 🇧🇷 **Português (Brasil)** (`pt-BR`): [Docs Root](./pt-BR/README.md)
+- 🇨🇿 **Čeština** (`cs`): [Docs Root](./cs/README.md)

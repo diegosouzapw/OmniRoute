@@ -16,6 +16,7 @@ export const MCP_SCOPE_LIST = [
   "read:usage",
   "read:models",
   "execute:completions",
+  "execute:search",
   "write:budget",
   "write:resilience",
 ] as const;
@@ -33,6 +34,7 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_switch_combo: ["write:combos"],
   omniroute_check_quota: ["read:quota"],
   omniroute_route_request: ["execute:completions"],
+  omniroute_web_search: ["execute:search"],
   omniroute_cost_report: ["read:usage"],
   omniroute_list_models_catalog: ["read:models"],
 
@@ -74,6 +76,7 @@ export const MCP_SCOPE_PRESETS = {
     "read:usage",
     "read:models",
     "execute:completions",
+    "execute:search",
   ] as const satisfies readonly McpScope[],
 } as const;
 

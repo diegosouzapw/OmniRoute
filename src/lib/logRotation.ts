@@ -4,6 +4,7 @@
  * Handles:
  *   - Rotating log files when they exceed max size
  *   - Cleaning up old log files past retention period
+ *   - Capping the number of rotated log files kept on disk
  *   - Creating the log directory on startup
  *
  * Configuration via env vars:
@@ -11,12 +12,14 @@
  *   - APP_LOG_FILE_PATH: path to log file (default: logs/application/app.log)
  *   - APP_LOG_MAX_FILE_SIZE: max file size before rotation (default: 50MB)
  *   - APP_LOG_RETENTION_DAYS: days to keep old logs (default: 7)
+ *   - APP_LOG_MAX_FILES: max number of rotated log files to keep (default: 20)
  */
 
 import { existsSync, mkdirSync, statSync, renameSync, readdirSync, unlinkSync } from "fs";
 import { dirname, join, basename, extname } from "path";
 import {
   getAppLogFilePath,
+  getAppLogMaxFiles,
   getAppLogMaxFileSize,
   getAppLogRetentionDays,
   getAppLogToFile,
@@ -27,8 +30,9 @@ export function getLogConfig() {
   const logFilePath = getAppLogFilePath() || join(process.cwd(), "logs/application/app.log");
   const maxFileSize = getAppLogMaxFileSize();
   const retentionDays = getAppLogRetentionDays();
+  const maxFiles = getAppLogMaxFiles();
 
-  return { logToFile, logFilePath, maxFileSize, retentionDays };
+  return { logToFile, logFilePath, maxFileSize, retentionDays, maxFiles };
 }
 
 /**
@@ -101,6 +105,44 @@ export function cleanupOldLogs(logFilePath: string, retentionDays: number): void
 }
 
 /**
+ * Keep only the newest rotated files up to the configured count limit.
+ */
+export function cleanupOverflowLogs(logFilePath: string, maxFiles: number): void {
+  try {
+    const dir = dirname(logFilePath);
+    if (!existsSync(dir) || maxFiles < 1) return;
+
+    const ext = extname(logFilePath);
+    const base = basename(logFilePath, ext);
+    const rotatedFiles = readdirSync(dir)
+      .filter(
+        (file) =>
+          file !== basename(logFilePath) && file.startsWith(base + ".") && file.endsWith(ext)
+      )
+      .map((file) => {
+        const filePath = join(dir, file);
+        try {
+          return { filePath, mtimeMs: statSync(filePath).mtimeMs };
+        } catch {
+          return null;
+        }
+      })
+      .filter((entry): entry is { filePath: string; mtimeMs: number } => !!entry)
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+    for (const entry of rotatedFiles.slice(maxFiles)) {
+      try {
+        unlinkSync(entry.filePath);
+      } catch {
+        // Best effort only.
+      }
+    }
+  } catch {
+    // Cleanup is best-effort
+  }
+}
+
+/**
  * Initialize log rotation — call once at application startup.
  * Creates directories, rotates if needed, and cleans up old files.
  */
@@ -111,4 +153,5 @@ export function initLogRotation(): void {
   ensureLogDir(config.logFilePath);
   rotateIfNeeded(config.logFilePath, config.maxFileSize);
   cleanupOldLogs(config.logFilePath, config.retentionDays);
+  cleanupOverflowLogs(config.logFilePath, config.maxFiles);
 }

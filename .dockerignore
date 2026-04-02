@@ -30,3 +30,40 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Test suites
+tests
+test-results
+playwright-report
+blob-report
+
+# Documentation (not needed in container)
+docs
+*.md
+!README.md
+
+# Electron (separate build)
+electron
+
+# VS Code extension (separate project)
+vscode-extension
+
+# Build artifacts
+*.tgz
+*.AppImage
+*.deb
+*.rpm
+
+# Package manager lock (bun)
+bun.lock
+
+# Agent config
+.agents
+.gemini
+
+# Misc
+llm.txt
+images
+clipr
+omnirouteCloud
+omnirouteSite

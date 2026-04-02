@@ -10,7 +10,11 @@ export {
   getModelsByProviderId,
 } from "@omniroute/open-sse/config/providerModels.ts";
 
-import { AI_PROVIDERS, isOpenAICompatibleProvider } from "./providers";
+import {
+  AI_PROVIDERS,
+  isAnthropicCompatibleProvider,
+  isOpenAICompatibleProvider,
+} from "./providers";
 import { PROVIDER_MODELS as MODELS } from "@omniroute/open-sse/config/providerModels.ts";
 
 // Providers that accept any model (passthrough)
@@ -23,6 +27,7 @@ const PASSTHROUGH_PROVIDERS = new Set(
 // Wrap isValidModel with passthrough providers
 export function isValidModel(aliasOrId, modelId) {
   if (isOpenAICompatibleProvider(aliasOrId)) return true;
+  if (isAnthropicCompatibleProvider(aliasOrId)) return true;
   if (PASSTHROUGH_PROVIDERS.has(aliasOrId)) return true;
   const models = MODELS[aliasOrId];
   if (!models) return false;

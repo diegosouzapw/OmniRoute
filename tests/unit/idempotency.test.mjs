@@ -65,17 +65,17 @@ describe("Idempotency Layer", () => {
       assert.equal(checkIdempotency("key-2"), null);
     });
 
-    it("does nothing for null key", () => {
+    it("does nothing for null key", async () => {
       saveIdempotency(null, { data: 1 }, 200);
-      assert.equal(getIdempotencyStats().activeKeys, 0);
+      assert.equal((await getIdempotencyStats()).activeKeys, 0);
     });
   });
 
   describe("getIdempotencyStats", () => {
-    it("reports active keys", () => {
+    it("reports active keys", async () => {
       saveIdempotency("a", {}, 200);
       saveIdempotency("b", {}, 200);
-      const stats = getIdempotencyStats();
+      const stats = await getIdempotencyStats();
       assert.equal(stats.activeKeys, 2);
       assert.equal(stats.windowMs, 5000);
     });

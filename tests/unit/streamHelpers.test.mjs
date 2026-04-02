@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { hasValuableContent } from "../../open-sse/utils/streamHelpers.ts";
+import { hasValuableContent, unwrapGeminiChunk } from "../../open-sse/utils/streamHelpers.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
 describe("hasValuableContent", () => {
@@ -68,5 +68,44 @@ describe("hasValuableContent", () => {
       const chunk = { candidates: [{ finishReason: "STOP" }] };
       assert.strictEqual(hasValuableContent(chunk, FORMATS.GEMINI), true);
     });
+  });
+});
+
+describe("unwrapGeminiChunk", () => {
+  it("returns chunk directly when candidates is at top level (standard Gemini)", () => {
+    const chunk = { candidates: [{ content: { parts: [{ text: "Hi" }] } }], usageMetadata: {} };
+    const result = unwrapGeminiChunk(chunk);
+    assert.strictEqual(result, chunk);
+  });
+
+  it("unwraps Cloud Code envelope { response: { candidates: [...] } }", () => {
+    const inner = { candidates: [{ content: { parts: [{ text: "Hello" }] } }] };
+    const chunk = { response: inner, modelVersion: "gemini-2.5-flash" };
+    const result = unwrapGeminiChunk(chunk);
+    assert.strictEqual(result, inner);
+    assert.deepEqual(result.candidates[0].content.parts[0].text, "Hello");
+  });
+
+  it("returns parsed directly when no candidates and no response", () => {
+    const chunk = { someOther: "data" };
+    const result = unwrapGeminiChunk(chunk);
+    assert.strictEqual(result, chunk);
+  });
+
+  it("returns parsed when response is null (falsy) — no valid envelope to unwrap", () => {
+    const chunk = { response: null, other: "data" };
+    const result = unwrapGeminiChunk(chunk);
+    assert.strictEqual(result, chunk);
+  });
+
+  it("prefers top-level candidates over response when both exist", () => {
+    const inner = { candidates: [{ content: { parts: [{ text: "inner" }] } }] };
+    const chunk = {
+      candidates: [{ content: { parts: [{ text: "outer" }] } }],
+      response: inner,
+    };
+    const result = unwrapGeminiChunk(chunk);
+    assert.strictEqual(result, chunk);
+    assert.equal(result.candidates[0].content.parts[0].text, "outer");
   });
 });

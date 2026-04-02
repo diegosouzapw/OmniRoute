@@ -13,7 +13,7 @@ import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
-import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { getUnsupportedParams, getPassthroughProviders } from "../config/providerRegistry.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -93,6 +93,11 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { retrieveMemories } from "@/lib/memory/retrieval";
+import {
+  buildClaudeCodeCompatibleRequest,
+  isClaudeCodeCompatibleProvider,
+  resolveClaudeCodeCompatibleSessionId,
+} from "../services/claudeCodeCompatible.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -649,9 +654,6 @@ export async function handleChatCore({
     );
   }
 
-  // 1. Log raw request from client
-  reqLogger.logRawRequest(body);
-
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
@@ -709,6 +711,8 @@ export async function handleChatCore({
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
+  const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference
@@ -733,9 +737,49 @@ export async function handleChatCore({
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
+    } else if (isClaudeCodeCompatible) {
+      let normalizedForCc = { ...body };
+
+      // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
+      // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
+      if (sourceFormat !== FORMATS.OPENAI) {
+        const normalizeToolCallId = getModelNormalizeToolCallId(
+          provider || "",
+          model || "",
+          sourceFormat
+        );
+        const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+          provider || "",
+          model || "",
+          sourceFormat
+        );
+        normalizedForCc = translateRequest(
+          sourceFormat,
+          FORMATS.OPENAI,
+          model,
+          { ...body },
+          stream,
+          credentials,
+          provider,
+          reqLogger,
+          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+        );
+      }
+
+      ccSessionId = resolveClaudeCodeCompatibleSessionId(clientRawRequest?.headers);
+      translatedBody = buildClaudeCodeCompatibleRequest({
+        sourceBody: body,
+        normalizedBody: normalizedForCc,
+        model,
+        stream,
+        sessionId: ccSessionId,
+        cwd: process.cwd(),
+        now: new Date(),
+      });
+      log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
-      // as-is without any normalization. The OpenAI round-trip would strip
+      // as-is without prior normalization. The OpenAI round-trip would strip
       // cache_control markers; even prepareClaudeRequest can alter structure.
       // Claude Code sends well-formed Messages API payloads — trust it.
       translatedBody = { ...body };
@@ -1030,8 +1074,21 @@ export async function handleChatCore({
 
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
-  const getExecutionCredentials = () =>
-    nativeCodexPassthrough ? { ...credentials, requestEndpointPath: endpointPath } : credentials;
+  const getExecutionCredentials = () => {
+    const nextCredentials = nativeCodexPassthrough
+      ? { ...credentials, requestEndpointPath: endpointPath }
+      : credentials;
+
+    if (!ccSessionId) return nextCredentials;
+
+    return {
+      ...nextCredentials,
+      providerSpecificData: {
+        ...(nextCredentials?.providerSpecificData || {}),
+        ccSessionId,
+      },
+    };
+  };
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({ onDisconnect, log, provider, model });
@@ -1295,19 +1352,32 @@ export async function handleChatCore({
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
-          await updateProviderConnection(connectionId, {
-            rateLimitedUntil: rateLimitedUntil,
-            testStatus: "credits_exhausted",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-            healthCheckInterval: null,
-            lastHealthCheckAt: null,
-          });
-          console.warn(
-            `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
-          );
+          // For passthrough providers (e.g. Antigravity), each model has independent
+          // quota.  A 429 on one model must NOT lock out the entire connection — other
+          // models may still have quota available.  Use lockModel() instead.
+          const isPassthrough = provider && getPassthroughProviders().has(provider);
+          if (isPassthrough) {
+            const { lockModel } = await import("../services/accountFallback.ts");
+            const cooldown = retryAfterMs || 120_000; // 2 min default, same as COOLDOWN_MS.rateLimit
+            lockModel(provider, connectionId, model, "rate_limited", cooldown);
+            console.warn(
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+            );
+          } else {
+            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+            await updateProviderConnection(connectionId, {
+              rateLimitedUntil: rateLimitedUntil,
+              testStatus: "credits_exhausted",
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+              healthCheckInterval: null,
+              lastHealthCheckAt: null,
+            });
+            console.warn(
+              `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           await updateProviderConnection(connectionId, {
             testStatus: "credits_exhausted",
@@ -1334,6 +1404,16 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
+        } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
+          // Cloud Code 403 with stale project: not a ban, keep account active.
+          await updateProviderConnection(connectionId, {
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
+          );
         }
       } catch {
         // Best-effort state update; request flow should continue with fallback handling.

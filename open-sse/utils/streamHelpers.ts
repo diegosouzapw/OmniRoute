@@ -83,6 +83,18 @@ export function hasValuableContent(chunk, format) {
   return true; // Other formats: keep all chunks
 }
 
+/**
+ * Unwrap Cloud Code API envelope from a Gemini response chunk.
+ * The Cloud Code API wraps responses in { response: { candidates: [...] } }
+ * while standard Gemini returns { candidates: [...] } directly.
+ */
+export function unwrapGeminiChunk(parsed) {
+  if (!parsed.candidates && parsed.response) {
+    return parsed.response;
+  }
+  return parsed;
+}
+
 // Fix invalid id (generic or too short)
 export function fixInvalidId(parsed) {
   if (parsed.id && (parsed.id === "chat" || parsed.id === "completion" || parsed.id.length < 8)) {

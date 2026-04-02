@@ -17,7 +17,6 @@ export async function GET(request) {
     // Security: only allow specific filenames
     const allowedFiles = [
       "1_req_client.json",
-      "2_req_source.json",
       "3_req_openai.json",
       "4_req_target.json",
       "5_res_provider.txt",

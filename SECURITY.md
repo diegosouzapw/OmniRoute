@@ -20,9 +20,9 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 | Version | Support Status |
 | ------- | -------------- |
-| 1.0.x   | ✅ Active      |
-| 0.8.x   | ✅ Security    |
-| < 0.8.0 | ❌ Unsupported |
+| 3.4.x   | ✅ Active      |
+| 3.0.x   | ✅ Security    |
+| < 3.0.0 | ❌ Unsupported |
 
 ---
 
@@ -43,6 +43,7 @@ Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer
 | **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
 | **Token Refresh**    | Automatic OAuth token refresh before expiry                |
 | **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
+| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
 
 ### 🛡️ Encryption at Rest
 
@@ -98,9 +99,11 @@ PII_REDACTION_ENABLED=true
 | Feature                  | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
 | **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Whitelist/blacklist IP ranges in dashboard                       |
+| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
 | **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
 | **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
+| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
+| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
 
 ### 🔌 Resilience & Availability
 
@@ -113,11 +116,13 @@ PII_REDACTION_ENABLED=true
 
 ### 📋 Compliance
 
-| Feature            | Description                                         |
-| ------------------ | --------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `LOG_RETENTION_DAYS`        |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging   |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table |
+| Feature            | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
+| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
+| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
+| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
+| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
 
 ---
 
@@ -167,3 +172,4 @@ docker run -d \
 - Keep dependencies updated
 - The project uses `husky` + `lint-staged` for pre-commit checks
 - CI pipeline runs ESLint security rules on every push
+- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)

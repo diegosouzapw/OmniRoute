@@ -75,11 +75,13 @@ export async function registerNodejs(): Promise<void> {
     { initGracefulShutdown },
     { initApiBridgeServer },
     { startBackgroundRefresh },
+    { startProviderLimitsSyncScheduler },
     { getSettings },
   ] = await Promise.all([
     import("@/lib/gracefulShutdown"),
     import("@/lib/apiBridgeServer"),
     import("@/domain/quotaCache"),
+    import("@/shared/services/providerLimitsSyncScheduler"),
     import("@/lib/db/settings"),
   ]);
 
@@ -87,6 +89,8 @@ export async function registerNodejs(): Promise<void> {
   initApiBridgeServer();
   startBackgroundRefresh();
   console.log("[STARTUP] Quota cache background refresh started");
+  startProviderLimitsSyncScheduler();
+  console.log("[STARTUP] Provider limits sync scheduler started");
 
   try {
     const [{ setCustomAliases }, { setDefaultFastServiceTierEnabled }] = await Promise.all([

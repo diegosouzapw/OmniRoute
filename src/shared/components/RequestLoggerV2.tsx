@@ -95,7 +95,6 @@ export default function RequestLoggerV2() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
   const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
-  const [detailLoggingReady, setDetailLoggingReady] = useState(false);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const [providerNodes, setProviderNodes] = useState([]);
@@ -173,7 +172,6 @@ export default function RequestLoggerV2() {
       .then((data) => {
         if (!data) return;
         setDetailLoggingEnabled(data.enabled === true);
-        setDetailLoggingReady(true);
       })
       .catch(() => {});
   }, []);
@@ -258,11 +256,10 @@ export default function RequestLoggerV2() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: nextEnabled }),
       });
-      if (!res.ok) throw new Error("Failed to update detailed logging");
+      if (!res.ok) throw new Error("Failed to update pipeline logging");
       setDetailLoggingEnabled(nextEnabled);
-      setDetailLoggingReady(true);
     } catch (error) {
-      console.error("Failed to toggle detailed logging:", error);
+      console.error("Failed to toggle pipeline logging:", error);
     } finally {
       setDetailLoggingLoading(false);
     }
@@ -315,24 +312,17 @@ export default function RequestLoggerV2() {
               ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
               : "bg-bg-subtle border-border text-text-muted"
           }`}
-          title="Capture per-request pipeline payloads inside the unified call log artifact"
+          title="Capture pipeline payloads for new requests"
         >
           <span
             className={`w-2 h-2 rounded-full ${detailLoggingEnabled ? "bg-amber-500" : "bg-text-muted"}`}
           />
           {detailLoggingLoading
-            ? "Updating detailed logs..."
+            ? "Updating pipeline logs..."
             : detailLoggingEnabled
-              ? "Detailed Logs On"
-              : "Detailed Logs Off"}
+              ? "Pipeline Logs On"
+              : "Pipeline Logs Off"}
         </button>
-
-        {detailLoggingReady && (
-          <span className="text-[11px] text-text-muted">
-            New requests will {detailLoggingEnabled ? "" : "not "}capture client/provider pipeline
-            payloads.
-          </span>
-        )}
 
         {/* Search */}
         <div className="flex-1 min-w-[200px] relative">
@@ -769,8 +759,8 @@ export default function RequestLoggerV2() {
       </Card>
 
       <div className="text-[10px] text-text-muted italic">
-        Each request is also saved as a single JSON artifact in{" "}
-        <code>{`{DATA_DIR}/call_logs/`}</code>.
+        Call logs are also saved as JSON files to <code>{`{DATA_DIR}/call_logs/`}</code> and rotated
+        by <code>CALL_LOG_RETENTION_DAYS</code> and <code>CALL_LOG_MAX_ENTRIES</code>.
       </div>
 
       {/* Detail Modal */}

@@ -32,6 +32,46 @@ jobs:
       - run: npm run typecheck:core
       - run: npm run typecheck:noimplicit:core
 
+  i18n:
+    name: i18n Validation
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJson(needs.i18n-matrix.outputs.langs) }}
+    needs: i18n-matrix
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.12'
+      - name: Validate ${{ matrix.lang }}
+        run: |
+          echo "Validating language: ${{ matrix.lang }}"
+          python3 scripts/validate_translation.py quick -l '${{ matrix.lang }}'
+      - name: Report to summary
+        if: always()
+        run: |
+          echo "### ${{ matrix.lang }} Translation Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          python3 scripts/validate_translation.py quick -l '${{ matrix.lang }}' >> $GITHUB_STEP_SUMMARY 2>&1
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  i18n-matrix:
+    name: Build language matrix
+    runs-on: ubuntu-latest
+    outputs:
+      langs: ${{ steps.langs.outputs.langs }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate language list
+        id: langs
+        run: |
+          LANG_DIR="src/i18n/messages"
+          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
+          echo "langs=${LANGS}" >> $GITHUB_OUTPUT
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest

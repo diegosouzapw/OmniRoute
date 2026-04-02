@@ -507,26 +507,27 @@ post_install() {
 
 ### Environment Variables
 
-| Variable                               | Default                              | Description                                                                                |
-| -------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `JWT_SECRET`                           | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                              |
-| `INITIAL_PASSWORD`                     | `123456`                             | First login password                                                                       |
-| `DATA_DIR`                             | `~/.omniroute`                       | Data directory (db, usage, logs)                                                           |
-| `PORT`                                 | framework default                    | Service port (`20128` in examples)                                                         |
-| `HOSTNAME`                             | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                   |
-| `NODE_ENV`                             | runtime default                      | Set `production` for deploy                                                                |
-| `BASE_URL`                             | `http://localhost:20128`             | Server-side internal base URL                                                              |
-| `CLOUD_URL`                            | `https://omniroute.dev`              | Cloud sync endpoint base URL                                                               |
-| `API_KEY_SECRET`                       | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                         |
-| `REQUIRE_API_KEY`                      | `false`                              | Enforce Bearer API key on `/v1/*`                                                          |
-| `ALLOW_API_KEY_REVEAL`                 | `false`                              | Allow Api Manager to copy full API keys on demand                                          |
-| `DISABLE_SQLITE_AUTO_BACKUP` | `false`                                        | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work |
-| `ENABLE_REQUEST_LOGS`                  | `false`                              | Enables request/response logs                                                              |
-| `AUTH_COOKIE_SECURE`                   | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                    |
-| `CLOUDFLARED_BIN`                      | unset                                | Use an existing `cloudflared` binary instead of managed download                           |
-| `OMNIROUTE_MEMORY_MB`                  | `512`                                | Node.js heap limit in MB                                                                   |
-| `PROMPT_CACHE_MAX_SIZE`                | `50`                                 | Max prompt cache entries                                                                   |
-| `SEMANTIC_CACHE_MAX_SIZE`              | `100`                                | Max semantic cache entries                                                                 |
+| Variable                                | Default                              | Description                                                                                               |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
+| `INITIAL_PASSWORD`                      | `123456`                             | First login password                                                                                      |
+| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
+| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
+| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
+| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
+| `BASE_URL`                              | `http://localhost:20128`             | Server-side internal base URL                                                                             |
+| `CLOUD_URL`                             | `https://omniroute.dev`              | Cloud sync endpoint base URL                                                                              |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
+| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
+| `ENABLE_REQUEST_LOGS`                   | `false`                              | Enables request/response logs                                                                             |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
+| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
 
 For the full environment variable reference, see the [README](../README.md).
 
@@ -769,10 +770,10 @@ OmniRoute implements provider-level resilience with four components:
 
 Manage database backups in **Dashboard → Settings → System & Storage**.
 
-| Action                   | Description                                                                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                                |
-| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                           |
+| Action                   | Description                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
 | **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash

@@ -701,6 +701,10 @@
           },
           "4": {
             "title": "选择模型"
+          },
+          "5": {
+            "title": "Use Thinking Variant",
+            "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
         },
         "notes": {
@@ -727,6 +731,30 @@
         },
         "notes": {
           "0": "Kiro 需要 Amazon 账户。"
+        }
+      },
+      "windsurf": {
+        "steps": {
+          "1": {
+            "title": "Open AI Settings",
+            "desc": "Click the AI Settings icon in Windsurf or go to Settings"
+          },
+          "2": {
+            "title": "Add Custom Provider",
+            "desc": "Select \"Add custom provider\" (OpenAI-compatible)"
+          },
+          "3": {
+            "title": "Base URL",
+            "desc": "http://127.0.0.1:20128/v1"
+          },
+          "4": {
+            "title": "API Key",
+            "desc": "Select your OmniRoute API key"
+          },
+          "5": {
+            "title": "Select Model",
+            "desc": "Choose a model from the dropdown"
+          }
         }
       }
     },
@@ -856,6 +884,11 @@
         "when": "降低成本是你的首要目标。",
         "avoid": "定价数据缺失或已经过期。",
         "example": "后台任务或批处理作业，优先考虑更低成本。"
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -949,6 +982,13 @@
         "tip1": "确保所有已选模型都具备定价信息。",
         "tip2": "为高难度提示保留一个质量更高的回退模型。",
         "tip3": "适合批处理或后台任务等成本是主要指标的场景。"
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "免费栈（$0）",

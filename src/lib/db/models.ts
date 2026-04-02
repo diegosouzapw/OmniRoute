@@ -383,8 +383,17 @@ export async function replaceCustomModels(
     source?: string;
     apiFormat?: string;
     supportedEndpoints?: string[];
-  }>
+  }>,
+  { allowEmpty = false }: { allowEmpty?: boolean } = {}
 ) {
+  // Guard: skip destructive clear when the caller hasn't explicitly opted in.
+  // This prevents auto-sync from wiping manually-imported models when the
+  // upstream /models endpoint fails, times out, or returns an empty list.
+  if (models.length === 0 && !allowEmpty) {
+    const existing = await getCustomModels(providerId);
+    return Array.isArray(existing) ? existing : [];
+  }
+
   const db = getDbInstance();
   const existing = await getCustomModels(providerId);
   const existingMap = new Map<string, JsonRecord>();

@@ -26,14 +26,19 @@ scripts/
 .github/
 .husky/
 .vscode/
+.agents/
 .env*
 eslint.config.mjs
 prettier.config.mjs
 postcss.config.mjs
 next.config.mjs
 tsconfig.json
+tsconfig.typecheck-core.json
+tsconfig.typecheck-noimplicit-core.json
 playwright.config.ts
+vitest.config.ts
 next-env.d.ts
+llm.txt
 
 # Docker
 docker-compose*.yml
@@ -41,8 +46,8 @@ Dockerfile
 .dockerignore
 
 # Misc
-restart.sh
 AGENTS.md
+bun.lock
 
 # Build artifacts (pre-built goes inside app/)
 .next/
@@ -56,3 +61,9 @@ node_modules/
 electron/
 app/electron/
 app/vscode-extension/
+
+# Subprojects
+clipr/
+omnirouteCloud/
+omnirouteSite/
+vscode-extension/

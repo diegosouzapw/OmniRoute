@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const trendHours = Math.min(720, Math.max(1, Number.isNaN(rawHours) ? 24 : rawHours));
 
     const cacheStats = getCacheStats();
-    const idempotencyStats = getIdempotencyStats();
+    const idempotencyStats = await getIdempotencyStats();
     const promptCacheMetrics = await getCacheMetrics();
     const trend = await getCacheTrend(trendHours);
 

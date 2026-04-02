@@ -65,5 +65,9 @@ export function getProviderDisplayName(
   );
   if (match) return `Compatible (${match[1]})`;
 
+  if (/^anthropic-compatible-cc-[0-9a-f-]{10,}$/i.test(providerId)) {
+    return "CC Compatible";
+  }
+
   return providerId;
 }

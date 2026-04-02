@@ -1,5 +1,14 @@
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
+  buildClaudeCodeCompatibleHeaders,
+  buildClaudeCodeCompatibleValidationPayload,
+  CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+  CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
+  joinBaseUrlAndPath,
+  stripAnthropicMessagesSuffix,
+} from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
+import {
+  isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
@@ -9,6 +18,10 @@ const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
 
 function normalizeBaseUrl(baseUrl: string) {
   return (baseUrl || "").trim().replace(/\/$/, "");
+}
+
+function normalizeAnthropicBaseUrl(baseUrl: string) {
+  return stripAnthropicMessagesSuffix(baseUrl || "");
 }
 
 function addModelsSuffix(baseUrl: string) {
@@ -36,6 +49,9 @@ function resolveChatUrl(provider: string, baseUrl: string, providerSpecificData:
   if (!normalized) return "";
 
   if (isOpenAICompatibleProvider(provider)) {
+    if (providerSpecificData?.chatPath) {
+      return `${normalized}${providerSpecificData.chatPath}`;
+    }
     if (providerSpecificData?.apiType === "responses") {
       return `${normalized}/responses`;
     }
@@ -496,13 +512,9 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
 }
 
 async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
-  let baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  let baseUrl = normalizeAnthropicBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
-  }
-
-  if (baseUrl.endsWith("/messages")) {
-    baseUrl = baseUrl.slice(0, -9);
   }
 
   const headers = {
@@ -514,10 +526,13 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
 
   // Step 1: Try GET /models
   try {
-    const modelsRes = await fetch(`${baseUrl}/models`, {
-      method: "GET",
-      headers,
-    });
+    const modelsRes = await fetch(
+      joinBaseUrlAndPath(baseUrl, providerSpecificData?.modelsPath || "/models"),
+      {
+        method: "GET",
+        headers,
+      }
+    );
 
     if (modelsRes.ok) {
       return { valid: true, error: null };
@@ -533,15 +548,18 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
   // Step 2: Fallback — try a minimal messages request
   const testModelId = providerSpecificData?.validationModelId || "claude-3-5-sonnet-20241022";
   try {
-    const messagesRes = await fetch(`${baseUrl}/messages`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        model: testModelId,
-        max_tokens: 1,
-        messages: [{ role: "user", content: "test" }],
-      }),
-    });
+    const messagesRes = await fetch(
+      joinBaseUrlAndPath(baseUrl, providerSpecificData?.chatPath || "/messages"),
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          model: testModelId,
+          max_tokens: 1,
+          messages: [{ role: "user", content: "test" }],
+        }),
+      }
+    );
 
     if (messagesRes.status === 401 || messagesRes.status === 403) {
       return { valid: false, error: "Invalid API key" };
@@ -549,6 +567,80 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
 
     // Any other response (200, 400, 422, etc.) means auth passed
     return { valid: true, error: null };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Connection failed" };
+  }
+}
+
+export async function validateClaudeCodeCompatibleProvider({
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const baseUrl = normalizeAnthropicBaseUrl(providerSpecificData.baseUrl);
+  if (!baseUrl) {
+    return { valid: false, error: "No base URL configured for CC Compatible provider" };
+  }
+
+  const modelsPath = providerSpecificData?.modelsPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH;
+  const chatPath = providerSpecificData?.chatPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH;
+  const defaultHeaders = buildClaudeCodeCompatibleHeaders(apiKey, false);
+
+  try {
+    const modelsRes = await fetch(joinBaseUrlAndPath(baseUrl, modelsPath), {
+      method: "GET",
+      headers: defaultHeaders,
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null, method: "models_endpoint" };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+  } catch {
+    // Fall through to bridge request validation.
+  }
+
+  const payload = buildClaudeCodeCompatibleValidationPayload(
+    providerSpecificData?.validationModelId || "claude-sonnet-4-6"
+  );
+  const sessionId = JSON.parse(payload.metadata.user_id).session_id;
+
+  try {
+    const messagesRes = await fetch(joinBaseUrlAndPath(baseUrl, chatPath), {
+      method: "POST",
+      headers: buildClaudeCodeCompatibleHeaders(apiKey, false, sessionId),
+      body: JSON.stringify(payload),
+    });
+
+    if (messagesRes.status === 401 || messagesRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (messagesRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "cc_bridge_request",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (messagesRes.status >= 400 && messagesRes.status < 500) {
+      return {
+        valid: true,
+        error: null,
+        method: "cc_bridge_request",
+        warning: "Bridge request reached upstream, but the model or payload was rejected",
+      };
+    }
+
+    return {
+      valid: messagesRes.ok,
+      error: messagesRes.ok ? null : `Validation failed: ${messagesRes.status}`,
+      method: "cc_bridge_request",
+    };
   } catch (error: any) {
     return { valid: false, error: error.message || "Connection failed" };
   }
@@ -638,6 +730,9 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   if (isAnthropicCompatibleProvider(provider)) {
     try {
+      if (isClaudeCodeCompatibleProvider(provider)) {
+        return await validateClaudeCodeCompatibleProvider({ apiKey, providerSpecificData });
+      }
       return await validateAnthropicCompatibleProvider({ apiKey, providerSpecificData });
     } catch (error: any) {
       return { valid: false, error: error.message || "Validation failed", unsupported: false };

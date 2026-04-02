@@ -10,7 +10,7 @@ import {
   filterUsageForFormat,
   COLORS,
 } from "./usageTracking.ts";
-import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
+import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE, unwrapGeminiChunk } from "./streamHelpers.ts";
 import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
@@ -531,9 +531,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
           }
 
-          // Gemini format - may have multiple parts
-          if (parsed.candidates?.[0]?.content?.parts) {
-            for (const part of parsed.candidates[0].content.parts) {
+          // Gemini / Cloud Code format - may have multiple parts
+          // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
+          // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
+          const isGeminiFormat =
+            targetFormat === FORMATS.GEMINI ||
+            targetFormat === FORMATS.GEMINI_CLI ||
+            targetFormat === FORMATS.ANTIGRAVITY;
+          const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
+          if (geminiChunk.candidates?.[0]?.content?.parts) {
+            for (const part of geminiChunk.candidates[0].content.parts) {
               if (part.text && typeof part.text === "string") {
                 totalContentLength += part.text.length;
                 if (state?.accumulatedContent !== undefined) state.accumulatedContent += part.text;

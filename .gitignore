@@ -5,6 +5,12 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Root-level underscore-prefixed directories (private/draft — never commit)
+/_*/
+
+# Draft features documentation (internal only)
+docs/new-features/
+
 # dependencies
 node_modules/
 /.pnp
@@ -88,6 +94,7 @@ docs/*
 !docs/AUTO-COMBO.md
 !docs/MCP-SERVER.md
 !docs/CLI-TOOLS.md
+!docs/COVERAGE_PLAN.md
 
 
 # open-sse tests
@@ -138,3 +145,12 @@ vscode-extension/
 
 # IDEA
 .idea/
+
+# Local OpenCode agent config
+.config/
+
+# Empty/dangling files
+typescript
+
+# Gemini Antigravity agent data
+.gemini/

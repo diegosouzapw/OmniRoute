@@ -657,34 +657,26 @@ function getAntigravityPlanLabel(subscriptionInfo) {
 
 /**
  * Antigravity Usage - Fetch quota from Google Cloud Code API
- * Now calls loadCodeAssist ONCE (cached) and reuses for projectId + plan.
- * Uses retrieveUserQuota API (same as Gemini CLI) for accurate quota data across all tiers.
+ * Uses fetchAvailableModels API which returns ALL models (including Claude)
+ * with per-model quotaInfo (remainingFraction, resetTime).
+ * retrieveUserQuota only returns Gemini models — not suitable for Antigravity.
  */
 async function getAntigravityUsage(accessToken, providerSpecificData) {
   try {
     const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
     const projectId = subscriptionInfo?.cloudaicompanionProject || null;
 
-    if (!projectId) {
-      return {
-        plan: getAntigravityPlanLabel(subscriptionInfo),
-        message: "Antigravity project ID not available.",
-      };
-    }
-
-    // Use retrieveUserQuota API (same as Gemini CLI) - works correctly for both Free and Pro tiers
-    const response = await fetch(
-      "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ project: projectId }),
-        signal: AbortSignal.timeout(10000),
-      }
-    );
+    // Fetch model list with quota info from fetchAvailableModels
+    const response = await fetch(ANTIGRAVITY_CONFIG.quotaApiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "User-Agent": ANTIGRAVITY_CONFIG.userAgent,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(projectId ? { project: projectId } : {}),
+      signal: AbortSignal.timeout(10000),
+    });
 
     if (response.status === 403) {
       return { message: "Antigravity access forbidden. Check subscription." };
@@ -695,28 +687,59 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
     }
 
     const data = await response.json();
+    const dataObj = toRecord(data);
+    const modelEntries = toRecord(dataObj.models);
     const quotas: Record<string, UsageQuota> = {};
 
-    // Parse buckets from retrieveUserQuota response (same format as Gemini CLI)
-    if (Array.isArray(data.buckets)) {
-      for (const bucket of data.buckets) {
-        if (!bucket.modelId || bucket.remainingFraction == null) continue;
+    // Models excluded from quota display — internal/special-purpose models that
+    // the Antigravity API returns quota for but are not user-callable via
+    // generateContent.  Matches CLIProxyAPI's hardcoded exclusion list.
+    const ANTIGRAVITY_EXCLUDED_MODELS = new Set([
+      "chat_20706",
+      "chat_23310",
+      "tab_flash_lite_preview",
+      "tab_jump_flash_lite_preview",
+      "gemini-2.5-flash-thinking",
+      "gemini-2.5-pro",                        // browser subagent model — not user-callable
+      "gemini-2.5-flash",                      // internal — quota always exhausted on free tier
+      "gemini-2.5-flash-lite",                 // internal — quota always exhausted on free tier
+      "gemini-2.5-flash-preview-image-generation", // image-gen only, not usable for chat
+      "gemini-3.1-flash-image-preview",        // image-gen preview, not usable for chat
+      "gemini-3-flash-agent",                  // internal agent model — not user-callable
+      "gemini-3.1-flash-lite",                 // not usable for chat
+      "gemini-3-pro-low",                      // not usable for chat
+      "gemini-3-pro-high",                     // not usable for chat
+    ]);
 
-        const remainingFraction = toNumber(bucket.remainingFraction, 0);
-        const remainingPercentage = remainingFraction * 100;
-        const QUOTA_NORMALIZED_BASE = 1000;
-        const total = QUOTA_NORMALIZED_BASE;
-        const remaining = Math.round(total * remainingFraction);
-        const used = Math.max(0, total - remaining);
+    // Parse per-model quota info from fetchAvailableModels response.
+    for (const [modelKey, infoValue] of Object.entries(modelEntries)) {
+      const info = toRecord(infoValue);
+      const quotaInfo = toRecord(info.quotaInfo);
 
-        quotas[bucket.modelId] = {
-          used,
-          total,
-          resetAt: parseResetTime(bucket.resetTime),
-          remainingPercentage,
-          unlimited: false,
-        };
+      // Skip internal, excluded, and models without quota info
+      if (info.isInternal === true || ANTIGRAVITY_EXCLUDED_MODELS.has(modelKey) || Object.keys(quotaInfo).length === 0) {
+        continue;
       }
+
+      const rawFraction = toNumber(quotaInfo.remainingFraction, -1);
+      const resetAt = parseResetTime(quotaInfo.resetTime);
+      // Default to 100% when the API doesn't report a fraction
+      const remainingFraction = rawFraction < 0 ? 1 : rawFraction;
+      // Models with no resetTime and full remaining are unlimited (e.g. tab-completion models)
+      const isUnlimited = !resetAt && remainingFraction >= 1;
+      const remainingPercentage = remainingFraction * 100;
+      const QUOTA_NORMALIZED_BASE = 1000;
+      const total = QUOTA_NORMALIZED_BASE;
+      const remaining = Math.round(total * remainingFraction);
+      const used = isUnlimited ? 0 : Math.max(0, total - remaining);
+
+      quotas[modelKey] = {
+        used,
+        total: isUnlimited ? 0 : total,
+        resetAt,
+        remainingPercentage: isUnlimited ? 100 : remainingPercentage,
+        unlimited: isUnlimited,
+      };
     }
 
     return {

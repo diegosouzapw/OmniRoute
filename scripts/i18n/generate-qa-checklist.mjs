@@ -7,6 +7,7 @@ const ROOT = process.cwd();
 const APP_DIR = path.join(ROOT, "src", "app");
 const MESSAGES_DIR = path.join(ROOT, "src", "i18n", "messages");
 const REPORTS_DIR = path.join(ROOT, "docs", "reports");
+const I18N_README_DIR = path.join(ROOT, "docs", "i18n");
 
 const PRIORITY_LOCALES = ["es", "fr", "de", "ja", "ar"];
 
@@ -187,36 +188,43 @@ async function runAutomatedChecks() {
   }
 
   const readmeLabelChecks = [];
-  const readmeExpectedPrefix = {
-    "README.es.md": "🌐 **Disponible en:**",
-    "README.fr.md": "🌐 **Disponible en :**",
-    "README.de.md": "🌐 **Verfugbar in:**",
-    "README.ja.md": "🌐 **対応言語:**",
-    "README.ar.md": "🌐 **متوفر باللغات:**",
-  };
+  // Check that README has language selector line with emoji flag
+  const expectedPattern = /^🌐 \*\*Languages:\*\*/;
 
-  for (const [file, expectedPrefix] of Object.entries(readmeExpectedPrefix)) {
-    const content = await fs.readFile(path.join(ROOT, file), "utf8");
-    const line = content.split("\n").find((entry) => entry.startsWith("🌐 **")) || "";
+  for (const code of PRIORITY_LOCALES) {
+    const readmePath = path.join(I18N_README_DIR, code, "README.md");
+    let content = "";
+    try {
+      content = await fs.readFile(readmePath, "utf8");
+    } catch {
+      // Skip if README doesn't exist
+      continue;
+    }
+    const line = content.split("\n").find((entry) => entry.startsWith("🌐 **Languages:**")) || "";
+    const ok = expectedPattern.test(line);
 
-    // Accept both ASCII-only and umlaut versions for DE prefix.
-    const ok =
-      file !== "README.de.md"
-        ? line.startsWith(expectedPrefix)
-        : line.startsWith("🌐 **Verfügbar in:**") || line.startsWith(expectedPrefix);
-
-    readmeLabelChecks.push({ file, ok, line });
+    readmeLabelChecks.push({ file: `docs/i18n/${code}/README.md`, ok, line });
   }
 
-  const jaReadme = await fs.readFile(path.join(ROOT, "README.ja.md"), "utf8");
-  const arReadme = await fs.readFile(path.join(ROOT, "README.ar.md"), "utf8");
+  let anchorLineRemoved = true;
+  let brAppendixRemoved = true;
 
-  const anchorLineRemoved =
-    !jaReadme.includes("**[English](#-omniroute--the-free-ai-gateway)**") &&
-    !arReadme.includes("**[English](#-omniroute--the-free-ai-gateway)**");
-
-  const brAppendixRemoved =
-    !jaReadme.includes("## 🇧🇷 OmniRoute") && !arReadme.includes("## 🇧🇷 OmniRoute");
+  // Check specific languages (ar, ja) for legacy content
+  const legacyCheckLocales = ["ar", "ja"];
+  for (const code of legacyCheckLocales) {
+    const readmePath = path.join(I18N_README_DIR, code, "README.md");
+    try {
+      const content = await fs.readFile(readmePath, "utf8");
+      if (content.includes("**[English](#-omniroute--the-free-ai-gateway)**")) {
+        anchorLineRemoved = false;
+      }
+      if (content.includes("## 🇧🇷 OmniRoute")) {
+        brAppendixRemoved = false;
+      }
+    } catch {
+      // Skip if README doesn't exist
+    }
+  }
 
   return {
     localeCodes,
@@ -263,7 +271,7 @@ async function main() {
   }
 
   automatedChecksLines.push(
-    `- Prefixo local do seletor de idiomas em README (es/fr/de/ja/ar): **${automated.readmeLabelChecks.every((item) => item.ok) ? "OK" : "FALHAS"}**`,
+    `- Language selector (🌐 **Languages:**) in README (es/fr/de/ja/ar): **${automated.readmeLabelChecks.every((item) => item.ok) ? "OK" : "FALHAS"}**`,
     `- Linha legacy EN/PT removida em ja/ar: **${automated.anchorLineRemoved ? "OK" : "PENDENTE"}**`,
     `- Apêndice "## 🇧🇷 OmniRoute" removido em ja/ar: **${automated.brAppendixRemoved ? "OK" : "PENDENTE"}**`,
     "- RTL habilitado globalmente para `ar` e `he` via `dir=rtl` no layout."

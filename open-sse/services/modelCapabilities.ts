@@ -51,9 +51,6 @@ const REASONING_UNSUPPORTED_PATTERNS = [
   "antigravity/claude-sonnet-4-6",
   "antigravity/claude-sonnet-4-5",
   "antigravity/claude-sonnet-4",
-  "ag/claude-sonnet-4-6",
-  "ag/claude-sonnet-4-5",
-  "ag/claude-sonnet-4",
 ];
 
 function getRegistryReasoningFlag(providerIdOrAlias: string, modelId: string): boolean | null {

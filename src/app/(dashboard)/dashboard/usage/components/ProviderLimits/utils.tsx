@@ -204,8 +204,8 @@ export function parseQuotaData(provider, data) {
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
             normalizedQuotas.push(
-              normalizeQuotaEntry(quota.displayName || modelKey, quota, {
-                modelKey: modelKey, // Keep modelKey for sorting
+              normalizeQuotaEntry(modelKey, quota, {
+                modelKey: modelKey,
               })
             );
           });

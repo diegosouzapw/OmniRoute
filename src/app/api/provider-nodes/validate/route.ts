@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
+import { validateClaudeCodeCompatibleProvider } from "@/lib/providers/validation";
+import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
 import { providerNodeValidateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+function sanitizeAnthropicBaseUrl(baseUrl: string) {
+  return (baseUrl || "")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/messages(?:\?[^#]*)?$/i, "");
+}
 
 // POST /api/provider-nodes/validate - Validate API key against base URL
 export async function POST(request) {
@@ -24,15 +33,37 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey, type, modelsPath } = validation.data;
+    const { baseUrl, apiKey, type, compatMode, chatPath, modelsPath } = validation.data;
 
     // Anthropic Compatible Validation
     if (type === "anthropic-compatible") {
-      // Robustly construct URL: remove trailing slash, and remove trailing /messages if user added it
-      let normalizedBase = baseUrl.trim().replace(/\/$/, "");
-      if (normalizedBase.endsWith("/messages")) {
-        normalizedBase = normalizedBase.slice(0, -9); // remove /messages
+      if (compatMode === "cc") {
+        if (!isCcCompatibleProviderEnabled()) {
+          return NextResponse.json(
+            { valid: false, error: "CC Compatible provider is disabled" },
+            { status: 403 }
+          );
+        }
+
+        const result = await validateClaudeCodeCompatibleProvider({
+          apiKey,
+          providerSpecificData: {
+            baseUrl: sanitizeAnthropicBaseUrl(baseUrl),
+            chatPath: chatPath || undefined,
+            modelsPath: modelsPath || undefined,
+          },
+        });
+
+        return NextResponse.json({
+          valid: !!result.valid,
+          error: result.valid ? null : result.error || "Invalid API key",
+          warning: result.warning || null,
+          method: result.method || null,
+        });
       }
+
+      // Robustly construct URL: remove trailing slash, and remove trailing /messages if user added it
+      const normalizedBase = sanitizeAnthropicBaseUrl(baseUrl);
 
       // Use /models endpoint for validation as many compatible providers support it (like OpenAI)
       const modelsUrl = `${normalizedBase}${modelsPath || "/models"}`;

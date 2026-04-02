@@ -111,6 +111,21 @@ export function normalizeDeveloperRole(
   });
 }
 
+export function normalizeModelRole(
+  messages: NormalizedMessage[] | unknown
+): NormalizedMessage[] | unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  return messages.map((msg: NormalizedMessage) => {
+    if (!msg || typeof msg !== "object") return msg;
+    const role = typeof msg.role === "string" ? msg.role : "";
+    if (role.toLowerCase() === "model") {
+      return { ...msg, role: "assistant" };
+    }
+    return msg;
+  });
+}
+
 /**
  * Convert `system` messages to user messages for providers that don't support
  * the system role. The system content is prepended to the first user message
@@ -196,7 +211,8 @@ export function normalizeRoles(
 ): NormalizedMessage[] | unknown {
   if (!Array.isArray(messages)) return messages;
 
-  let result = normalizeDeveloperRole(messages, targetFormat, preserveDeveloperRole);
+  let result = normalizeModelRole(messages);
+  result = normalizeDeveloperRole(result, targetFormat, preserveDeveloperRole);
   result = normalizeSystemRole(result, provider, model);
 
   return result;

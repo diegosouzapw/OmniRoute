@@ -4,17 +4,18 @@ import { existsSync, readFileSync } from "fs";
 /**
  * Get raw machine ID using OS-specific methods.
  *
- * IMPORTANT: We do NOT use `if (process.platform === ...)` branching here.
- * Next.js SWC bundler evaluates `process.platform` at BUILD time, so when the
- * project is built on Linux, the win32/darwin branches get dead-code-eliminated
- * and the Linux fallback (which uses `head`) runs on Windows at runtime.
+ * We use try/catch waterfall: try each OS method and fall through
+ * to the next on failure. Platform checks are INSIDE try blocks so they
+ * run at RUNTIME (not build time), avoiding Next.js SWC dead-code elimination.
  *
- * Instead, we use a try/catch waterfall: try each OS method and fall through
- * to the next on failure. The correct method always succeeds on the target OS.
+ * On Linux: skips Windows (REG.exe) and macOS (ioreg) strategies entirely.
  */
 function getMachineIdRaw(): string {
   // Strategy 1: Windows — REG.exe query for MachineGuid
   try {
+    if (process.platform !== "win32") {
+      throw new Error("Not Windows");
+    }
     const sysRoot = process.env.SystemRoot || process.env.windir || "C:\\Windows";
     const regPath = `${sysRoot}\\System32\\REG.exe`;
     if (existsSync(regPath)) {
@@ -35,6 +36,9 @@ function getMachineIdRaw(): string {
 
   // Strategy 2: macOS — ioreg IOPlatformUUID
   try {
+    if (process.platform !== "darwin") {
+      throw new Error("Not macOS");
+    }
     const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", {
       encoding: "utf8",
       timeout: 5000,

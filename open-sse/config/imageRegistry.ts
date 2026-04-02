@@ -63,10 +63,7 @@ export const IMAGE_PROVIDERS = {
     authType: "oauth",
     authHeader: "bearer",
     format: "gemini-image", // Special format: uses Gemini generateContent API
-    models: [
-      { id: "gemini-2.5-flash-preview-image-generation", name: "Gemini 2.5 Flash Image" },
-      { id: "gemini-3.1-flash-image-preview", name: "Gemini 3.1 Flash Image Preview" },
-    ],
+    models: [],
     supportedSizes: ["1024x1024"],
   },
 

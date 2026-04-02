@@ -339,12 +339,12 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
+  // Both Antigravity and Gemini CLI need the project field for the Cloud Code API.
+  // For Gemini CLI, the stored projectId may be stale; the executor's transformRequest
+  // refreshes it via loadCodeAssist before the request is sent to the API.
   let projectId = credentials?.projectId;
 
   if (!projectId) {
-    // Graceful fallback: warn instead of hard-throw so the request reaches
-    // the provider and fails with a meaningful provider-side error (#338).
-    // Users who reconnect OAuth will get their real projectId loaded.
     console.warn(
       `[OmniRoute] ${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. ` +
         `Attempting request with empty project — reconnect OAuth to resolve.`
@@ -432,6 +432,13 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
         for (const block of msg.content) {
           if (block.type === "text") {
             parts.push({ text: block.text });
+          } else if (block.type === "image" && block.source) {
+            parts.push({
+              inlineData: {
+                mime_type: block.source.media_type,
+                data: block.source.data,
+              },
+            });
           } else if (block.type === "tool_use") {
             parts.push({
               functionCall: {

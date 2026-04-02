@@ -15,7 +15,7 @@ import {
   isModelLocked,
   lockModel,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { isLocalProvider, getPassthroughProviders } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import * as log from "../utils/logger";
@@ -784,21 +784,38 @@ export async function markAccountUnavailable(
     const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
-    // ── Local provider 404: model-only lockout, connection stays active ──
-    // Detection: URL-based only (apiKey===null heuristic was too broad — could match
-    // cloud providers with non-standard auth stored in providerSpecificData).
+    // ── 404 model-only lockout: connection stays active ──
+    // For local providers (detected by URL) and cloud providers with passthrough models
+    // (like Antigravity), a 404 means the specific model doesn't exist or isn't available
+    // for this account — it should NOT lock out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
       | string
       | undefined;
 
-    if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
+    const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
+    if ((isLocalProvider(connBaseUrl) || isPassthroughProvider) && status === 404 && provider && model) {
       const localCooldown = COOLDOWN_MS.notFoundLocal;
-      lockModel(provider, connectionId, model, "local_not_found", localCooldown);
+      lockModel(provider, connectionId, model, "not_found", localCooldown);
       log.info(
         "AUTH",
-        `Local 404 for ${model} — model-only lockout ${localCooldown / 1000}s (connection stays active)`
+        `Model-only lockout for ${model} — 404 lockout ${localCooldown / 1000}s (connection stays active)`
       );
       return { shouldFallback: true, cooldownMs: localCooldown };
+    }
+
+    // ── 429 model-only lockout for passthrough providers ──
+    // For passthrough providers like Antigravity, each model has independent quota.
+    // A 429 on one model should NOT lock out the entire connection — other models
+    // may still have quota available. Use lockModel() instead of connection-wide
+    // rateLimitedUntil, same pattern as the 404 model-only lockout above.
+    if (isPassthroughProvider && status === 429 && provider && model) {
+      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
+      lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${model} — 429 rate limit ${Math.ceil(modelCooldown / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: modelCooldown };
     }
 
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);

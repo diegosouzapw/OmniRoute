@@ -185,7 +185,14 @@
     "themeViolet": "Menekşe",
     "themeOrange": "Turuncu",
     "themeCyan": "Camgöbeği",
-    "cliToolsShort": "Araçlar"
+    "cliToolsShort": "Araçlar",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Temalar",
@@ -715,6 +722,10 @@
           },
           "4": {
             "title": "Modeli Seçin"
+          },
+          "5": {
+            "title": "Use Thinking Variant",
+            "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
         },
         "notes": {
@@ -741,6 +752,30 @@
         },
         "notes": {
           "0": "Kiro, Amazon hesabı gerektirir."
+        }
+      },
+      "windsurf": {
+        "steps": {
+          "1": {
+            "title": "Open AI Settings",
+            "desc": "Click the AI Settings icon in Windsurf or go to Settings"
+          },
+          "2": {
+            "title": "Add Custom Provider",
+            "desc": "Select \"Add custom provider\" (OpenAI-compatible)"
+          },
+          "3": {
+            "title": "Base URL",
+            "desc": "http://127.0.0.1:20128/v1"
+          },
+          "4": {
+            "title": "API Key",
+            "desc": "Select your OmniRoute API key"
+          },
+          "5": {
+            "title": "Select Model",
+            "desc": "Choose a model from the dropdown"
+          }
         }
       }
     }
@@ -849,6 +884,11 @@
         "when": "Maliyeti düşürmek birinci önceliğinizse.",
         "avoid": "Fiyatlandırma verileri eksik veya güncel değil.",
         "example": "Düşük maliyetin öncelikli olduğu arka plan veya toplu işler."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -942,6 +982,13 @@
         "tip1": "Seçilen tüm modellerde fiyatlandırma kapsamasını sağlayın.",
         "tip2": "Zor istemler için kaliteli bir yedek bulundurun.",
         "tip3": "Maliyetin ana KPI olduğu toplu/arka plan işlerinde kullanın."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Ücretsiz Yığın ($0)",
@@ -1065,7 +1112,25 @@
     "a2aQuickStartStep3": "Görevleri `tasks/get` ve `tasks/cancel` ile izleyin ve yönetin.",
     "completionsLegacy": "Tamamlamalar (Eski)",
     "completionsLegacyDesc": "Eski OpenAI metin tamamlamaları — hem bilgi istemi dizesini hem de mesaj dizisi biçimini kabul eder",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "endpoints": {
     "tabProxy": "Uç Nokta Proxy",
@@ -1651,7 +1716,13 @@
     "modelsPathHint": "Doğrulama için özel model yolu (ör. /v4/models)",
     "allModelsAlreadyImported": "Tüm modeller zaten içe aktarıldı",
     "noNewModelsToImport": "İçe aktarılacak yeni model yok — tüm modeller zaten kayıt defterinde veya özel modeller listesinde",
-    "skippingExistingModels": "{count} mevcut model atlanıyor"
+    "skippingExistingModels": "{count} mevcut model atlanıyor",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "Ayarlar",
@@ -2060,7 +2131,25 @@
     "customPricingNote": "Belirli modeller için varsayılan fiyatlandırmayı geçersiz kılabilirsiniz. Özel geçersiz kılmalar, otomatik algılanan fiyatlandırmaya göre öncelik kazanır.",
     "editPricing": "Fiyatlandırmayı Düzenle",
     "viewFullDetails": "Tüm Ayrıntıları Görüntüle",
-    "themeCoral": "Mercan"
+    "themeCoral": "Mercan",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a...",
+    "semanticCache": "Semantic Cache",
+    "autoDisableDescription": "Permanently mark provider connections as deactivated if they return specific terminal ban signals (e.g. HTTP 403 'verify your account'). This removes them from the combo rotation.",
+    "preserveClientCache": "Preserve Client Cache",
+    "cacheSettings": "Cache Settings",
+    "autoDisableThreshold": "Ban Threshold",
+    "autoDisableBannedAccounts": "Auto-Disable Banned Accounts",
+    "ttlMinutes": "TTL (minutes)",
+    "maxEntries": "Max Entries",
+    "loading": "Loading...",
+    "save": "Save",
+    "autoDisableThresholdDesc": "Consecutive ban signals required before permanent deactivation.",
+    "debugToggle": "Enable Debug Mode",
+    "sidebarVisibilityToggle": "Show Sidebar Items",
+    "enabled": "Enabled",
+    "strategy": "Strategy"
   },
   "translator": {
     "title": "Çeviri",
@@ -2853,5 +2942,74 @@
       "userInitial": "Bir konuda yardıma ihtiyacım var.",
       "userFollowUp": "Bunu detaylandırabilir misiniz?"
     }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "behavior": "Cache Behavior",
+    "behaviorBypass": "Bypass with header {header}.",
+    "tokensSavedSub": "Estimated from hits",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntries": "Memory Entries",
+    "dedupWindow": "Dedup Window",
+    "hitRate": "Hit Rate",
+    "idempotency": "Idempotency Layer",
+    "memoryEntriesSub": "In-memory LRU",
+    "tokensSaved": "Tokens Saved",
+    "cacheHits": "Cache Hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "misses": "Misses",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "cacheHitsSub": "of {total} total",
+    "total": "Total",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "performance": "Cache Performance",
+    "unavailable": "Cache unavailable",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "clearError": "Failed to clear cache.",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "hits": "Hits",
+    "dbEntries": "DB Entries",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "activeDedupKeys": "Active Dedup Keys",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "inputTokens": "Input Tokens",
+    "requestsShort": "reqs",
+    "inputShort": "In",
+    "resetting": "Resetting...",
+    "cachedTokensCol": "Cached",
+    "search": "Search",
+    "cacheReuseRatioDesc": "Cached tokens / Total input tokens",
+    "resetMetrics": "Reset Metrics",
+    "loading": "Loading...",
+    "cachedRequests": "Cached Requests",
+    "model": "Model",
+    "cached": "Cached",
+    "actions": "Actions",
+    "trend24h": "Cache Trend (24h)",
+    "cachedShort": "Cached",
+    "cacheCreation": "Creation",
+    "byProvider": "Breakdown by Provider",
+    "created": "Created",
+    "cacheCreationTokens": "Cache Creation Tokens",
+    "withCacheControl": "With Cache Control",
+    "searchEntries": "Search entries...",
+    "cacheReuseRatio": "Cache Reuse Ratio",
+    "estCostSaved": "Est. Cost Saved",
+    "cachedTokens": "Cached Tokens",
+    "requests": "Requests",
+    "signature": "Signature",
+    "cacheCreationWrite": "Cache Creation (Write)",
+    "expires": "Expires",
+    "writeShort": "Write",
+    "cacheHitRate": "Cache Hit Rate",
+    "cacheMetrics": "Prompt Cache Metrics",
+    "overview": "Overview",
+    "promptCache": "Prompt Cache (Provider-Side)",
+    "provider": "Provider",
+    "cachedTokensRead": "Cached Tokens (Read)",
+    "entries": "Entries",
+    "noEntries": "No cache entries found"
   }
 }

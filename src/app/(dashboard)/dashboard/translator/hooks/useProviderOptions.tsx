@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
   AI_PROVIDERS,
+  CLAUDE_CODE_COMPATIBLE_PREFIX,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -39,6 +40,8 @@ export function useProviderOptions(initialProvider = "openai") {
             const info = (AI_PROVIDERS as any)[pid as string];
             const node: any = nodeMap.get(pid);
             let label = info?.name || node?.name || pid;
+            if (!info && (pid as string).startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX))
+              label = node?.name || "CC Compatible";
             if (!info && (pid as string).startsWith(OPENAI_COMPATIBLE_PREFIX))
               label = node?.name || t("openaiCompatibleLabel");
             if (!info && (pid as string).startsWith(ANTHROPIC_COMPATIBLE_PREFIX))

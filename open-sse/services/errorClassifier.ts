@@ -7,6 +7,7 @@ export const PROVIDER_ERROR_TYPES = {
   FORBIDDEN: "forbidden", // 403 — account banned/revoked, disable node
   SERVER_ERROR: "server_error", // 500/502/503 — retry limited
   QUOTA_EXHAUSTED: "quota_exhausted", // 402/429/400 + billing signals
+  PROJECT_ROUTE_ERROR: "project_route_error", // 403 + stale project — transient, not a ban
 };
 
 function responseBodyToString(responseBody: unknown): string {
@@ -49,7 +50,15 @@ export function classifyProviderError(statusCode: number, responseBody: unknown)
   if (statusCode === 403 && accountDeactivated) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
-  if (statusCode === 403) return PROVIDER_ERROR_TYPES.FORBIDDEN;
+  if (statusCode === 403) {
+    // Cloud Code API returns 403 with "has not been used in project X" when the project
+    // field is wrong or stale. This is a routing/config error, not an account ban.
+    // Classify as project_route_error so the account stays active but the error is tracked.
+    if (bodyStr.includes("has not been used in project")) {
+      return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
+    }
+    return PROVIDER_ERROR_TYPES.FORBIDDEN;
+  }
   if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;
 
   return null;

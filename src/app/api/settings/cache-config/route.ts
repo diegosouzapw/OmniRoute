@@ -11,6 +11,7 @@ const cacheConfigUpdateSchema = z.object({
   promptCacheEnabled: z.boolean().optional(),
   promptCacheStrategy: z.enum(["auto", "system-only", "manual"]).optional(),
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
+  idempotencyWindowMs: z.number().positive().optional(),
 });
 
 const CACHE_CONFIG_KEYS = [
@@ -20,6 +21,7 @@ const CACHE_CONFIG_KEYS = [
   "promptCacheEnabled",
   "promptCacheStrategy",
   "alwaysPreserveClientCache",
+  "idempotencyWindowMs",
 ] as const;
 
 const DEFAULTS = {
@@ -29,6 +31,7 @@ const DEFAULTS = {
   promptCacheEnabled: true,
   promptCacheStrategy: "auto",
   alwaysPreserveClientCache: "auto",
+  idempotencyWindowMs: 5000,
 };
 
 export async function GET(request: NextRequest) {
@@ -86,6 +89,9 @@ export async function PUT(request: NextRequest) {
     }
     if (body.alwaysPreserveClientCache !== undefined) {
       updates.alwaysPreserveClientCache = body.alwaysPreserveClientCache;
+    }
+    if (body.idempotencyWindowMs !== undefined) {
+      updates.idempotencyWindowMs = body.idempotencyWindowMs;
     }
 
     await updateSettings(updates);

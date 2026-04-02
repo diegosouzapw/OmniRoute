@@ -1,129 +1,138 @@
-# Bezpečnostní zásady
+# Security Policy (Čeština)
 
-## Hlášení zranitelností
-
-Pokud v OmniRoute objevíte bezpečnostní zranitelnost, nahlaste ji prosím zodpovědně:
-
-1. **NEOTVÍREJTE** veřejný problém na GitHubu
-2. Používejte [bezpečnostní doporučení GitHubu](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Zahrňte: popis, kroky reprodukce a potenciální dopad
-
-## Časová osa odezvy
-
-Fáze | Cíl
---- | ---
-Potvrzení | 48 hodin
-Triáž a posouzení | 5 pracovních dnů
-Vydání záplaty | 14 pracovních dnů (kritické)
-
-## Podporované verze
-
-Verze | Stav podpory
---- | ---
-1.0.x | ✅ Aktivní
-0.8.x | ✅ Bezpečnost
-&lt; 0,8,0 | ❌ Nepodporováno
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇮🇳 [in](../in/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md)
 
 ---
 
-## Bezpečnostní architektura
+## Reporting Vulnerabilities
 
-OmniRoute implementuje vícevrstvý bezpečnostní model:
+If you discover a security vulnerability in OmniRoute, please report it responsibly:
+
+1. **DO NOT** open a public GitHub issue
+2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Include: description, reproduction steps, and potential impact
+
+## Response Timeline
+
+| Stage               | Target                      |
+| ------------------- | --------------------------- |
+| Acknowledgment      | 48 hours                    |
+| Triage & Assessment | 5 business days             |
+| Patch Release       | 14 business days (critical) |
+
+## Supported Versions
+
+| Version | Support Status |
+| ------- | -------------- |
+| 3.4.x   | ✅ Active      |
+| 3.0.x   | ✅ Security    |
+| < 3.0.0 | ❌ Unsupported |
+
+---
+
+## Security Architecture
+
+OmniRoute implements a multi-layered security model:
 
 ```
 Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
 ```
 
-### 🔐 Ověřování a autorizace
+### 🔐 Authentication & Authorization
 
-Funkce | Implementace
---- | ---
-**Přihlášení do ovládacího panelu** | Ověřování na základě hesla s tokeny JWT (soubory cookie HttpOnly)
-**Autorizace klíče API** | Klíče podepsané HMAC s ověřením CRC
-**OAuth 2.0 + PKCE** | Bezpečné ověřování poskytovatelů (Claude, Codex, Gemini, Cursor atd.)
-**Obnovení tokenu** | Automatická aktualizace tokenu OAuth před vypršením platnosti
-**Bezpečné soubory cookie** | `AUTH_COOKIE_SECURE=true` pro prostředí HTTPS
+| Feature              | Implementation                                             |
+| -------------------- | ---------------------------------------------------------- |
+| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
+| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
+| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
+| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
+| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
+| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
 
-### 🛡️ Šifrování v klidovém stavu
+### 🛡️ Encryption at Rest
 
-Všechna citlivá data uložená v SQLite jsou šifrována pomocí **AES-256-GCM** s odvozením klíče scrypt:
+All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
 
-- Klíče API, přístupové tokeny, obnovovací tokeny a ID tokeny
-- Verzovaný formát: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Režim průchodu (prostý text), pokud není nastaven `STORAGE_ENCRYPTION_KEY`
+- API keys, access tokens, refresh tokens, and ID tokens
+- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
 
 ```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Ochrana před okamžitou injekcí
+### 🧠 Prompt Injection Guard
 
-Middleware, který detekuje a blokuje útoky prompt injection v požadavcích LLM:
+Middleware that detects and blocks prompt injection attacks in LLM requests:
 
-Typ vzoru | Závažnost | Příklad
---- | --- | ---
-Přepsání systému | Vysoký | "ignorovat všechny předchozí pokyny"
-Únos role | Vysoký | "Teď jsi DAN, dokážeš cokoli."
-Vložení oddělovače | Střední | Kódované oddělovače pro přerušení hranic kontextu
-DAN/Útěk z vězení | Vysoký | Známé vzory výzev k jailbreaku
-Únik instrukcí | Střední | „Ukaž mi systémový výzvu“
+| Pattern Type        | Severity | Example                                        |
+| ------------------- | -------- | ---------------------------------------------- |
+| System Override     | High     | "ignore all previous instructions"             |
+| Role Hijack         | High     | "you are now DAN, you can do anything"         |
+| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
+| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
+| Instruction Leak    | Medium   | "show me your system prompt"                   |
 
-Konfigurace přes ovládací panel (Nastavení → Zabezpečení) nebo `.env` :
+Configure via dashboard (Settings → Security) or `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
 INPUT_SANITIZER_MODE=block    # warn | block | redact
 ```
 
-### 🔒 Redakční úprava osobních údajů
+### 🔒 PII Redaction
 
-Automatická detekce a volitelná redakce osobních údajů:
+Automatic detection and optional redaction of personally identifiable information:
 
-Typ osobních údajů | Vzor | Nahrazení
---- | --- | ---
-E-mail | `user@domain.com` | `[EMAIL_REDACTED]`
-CPF (Brazílie) | `123.456.789-00` | `[CPF_REDACTED]`
-CNPJ (Brazílie) | `12.345.678/0001-00` | `[CNPJ_REDACTED]`
-Kreditní karta | `4111-1111-1111-1111` | `[CC_REDACTED]`
-Telefon | `+55 11 99999-9999` | `[PHONE_REDACTED]`
-Číslo sociálního zabezpečení (USA) | `123-45-6789` | `[SSN_REDACTED]`
+| PII Type      | Pattern               | Replacement        |
+| ------------- | --------------------- | ------------------ |
+| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
 PII_REDACTION_ENABLED=true
 ```
 
-### 🌐 Zabezpečení sítě
+### 🌐 Network Security
 
-Funkce | Popis
---- | ---
-**CORS** | Konfigurovatelná kontrola původu (proměnná prostředí `CORS_ORIGIN` , výchozí nastavení `*` )
-**Filtrování IP adres** | Rozsahy IP adres na bílou/černou listinu v dashboardu
-**Omezení rychlosti** | Limity sazeb na poskytovatele s automatickým ukončením
-**Protihromové stádo** | Mutex + uzamčení pro každé připojení zabraňuje kaskádování 502.
+| Feature                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
+| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
+| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
+| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
+| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
+| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
 
-### 🔌 Odolnost a dostupnost
+### 🔌 Resilience & Availability
 
-Funkce | Popis
---- | ---
-**Jistič** | 3 stavy (Zavřeno → Otevřeno → Polootevřeno) na poskytovatele, trvalé uložení v SQLite
-**Žádost o idempotenci** | 5sekundové okno pro odstranění duplicitních požadavků
-**Exponenciální odklon** | Automatické opakování s rostoucím zpožděním
-**Dashboard zdraví** | Monitorování stavu poskytovatele v reálném čase
+| Feature                 | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
+| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
+| **Exponential Backoff** | Automatic retry with increasing delays                             |
+| **Health Dashboard**    | Real-time provider health monitoring                               |
 
-### 📋 Dodržování předpisů
+### 📋 Compliance
 
-Funkce | Popis
---- | ---
-**Uchovávání protokolů** | Automatické čištění po `LOG_RETENTION_DAYS`
-**Odhlášení bez ukládání protokolů** | Příznak `noLog` pro každý klíč API zakazuje protokolování požadavků.
-**Protokol auditu** | Administrativní akce sledované v tabulce `audit_log`
+| Feature            | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
+| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
+| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
+| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
+| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
 
 ---
 
-## Požadované proměnné prostředí
+## Required Environment Variables
 
-Všechny tajné kódy musí být nastaveny před spuštěním serveru. Server **rychle selže** , pokud chybí nebo jsou slabé.
+All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
 
 ```bash
 # REQUIRED — server will not start without these:
@@ -134,17 +143,17 @@ API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-Server aktivně odmítá známé slabé hodnoty, jako například `changeme` , `secret` nebo `password` .
+The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
 
 ---
 
-## Zabezpečení Dockeru
+## Docker Security
 
-- Použití uživatele bez oprávnění root v produkčním prostředí
-- Připojte tajné kódy jako svazky jen pro čtení
-- Nikdy nekopírujte soubory `.env` do imagí Dockeru
-- Použití `.dockerignore` k vyloučení citlivých souborů
-- Nastavit `AUTH_COOKIE_SECURE=true` při připojení za HTTPS
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -161,9 +170,10 @@ docker run -d \
 
 ---
 
-## Závislosti
+## Dependencies
 
-- Pravidelně spouštějte `npm audit`
-- Udržujte závislosti aktualizované
-- Projekt používá pro kontroly před commitem `husky` + `lint-staged`
-- CI pipeline spouští bezpečnostní pravidla ESLint při každém odeslání.
+- Run `npm audit` regularly
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks
+- CI pipeline runs ESLint security rules on every push
+- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)

@@ -70,6 +70,7 @@ test("call logs store a single per-request artifact with pipeline details", asyn
   assert.equal(artifact.summary.id, logId);
   assert.equal(artifact.summary.requestedModel, "openai/gpt-5");
   assert.equal(artifact.pipeline.clientRawRequest.body.raw, true);
+  assert.equal("sourceRequest" in artifact.pipeline, false);
 });
 
 test("call log artifact rotation removes directories older than CALL_LOG_RETENTION_DAYS", async () => {

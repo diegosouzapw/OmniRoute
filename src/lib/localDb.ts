@@ -232,3 +232,13 @@ export {
   getProvidersByMode,
   getFallbackChainForProvider,
 } from "./db/upstreamProxy";
+
+export {
+  getProviderLimitsCache,
+  getAllProviderLimitsCache,
+  setProviderLimitsCache,
+  setProviderLimitsCacheBatch,
+  deleteProviderLimitsCache,
+} from "./db/providerLimits";
+
+export type { ProviderLimitsCacheEntry } from "./db/providerLimits";

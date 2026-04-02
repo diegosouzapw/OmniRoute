@@ -14,6 +14,7 @@ import {
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
   FREE_PROVIDERS,
+  CLAUDE_CODE_COMPATIBLE_PREFIX,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -41,6 +42,17 @@ function usePageInfo(pathname: string | null): {
         breadcrumbs: [
           { label: t("providers"), href: "/dashboard/providers" },
           { label: providerInfo.name, providerId: providerInfo.id },
+        ],
+      };
+    }
+
+    if (providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX)) {
+      return {
+        title: "CC Compatible",
+        description: "",
+        breadcrumbs: [
+          { label: t("providers"), href: "/dashboard/providers" },
+          { label: "CC Compatible", providerId: "claude" },
         ],
       };
     }

@@ -258,7 +258,7 @@ export async function DELETE(request) {
     // DELETE /api/provider-models?provider=<id>&all=true — clear all models
     const all = searchParams.get("all");
     if (all === "true") {
-      await replaceCustomModels(provider, []);
+      await replaceCustomModels(provider, [], { allowEmpty: true });
       return Response.json({ cleared: true });
     }
 

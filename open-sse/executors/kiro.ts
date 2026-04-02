@@ -104,7 +104,7 @@ export class KiroExecutor extends BaseExecutor {
     const url = this.buildUrl(model, stream, 0);
     const headers = this.buildHeaders(credentials, stream);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-    const transformedBody = this.transformRequest(model, body, stream, credentials);
+    const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
     const response = await fetch(url, {
       method: "POST",

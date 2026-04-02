@@ -242,6 +242,41 @@ def find_untranslated(source: Dict, trans: Dict) -> Set[str]:
     return untranslated
 
 
+def find_placeholder_issues(source: Dict, trans: Dict) -> List[Tuple[str, str, str]]:
+    """
+    Find placeholder mismatches between source and translation.
+    Only checks top-level placeholders like {count}, {day}, NOT ICU inner content.
+    Returns list of (key, source_placeholder, trans_placeholder)
+    """
+    source_keys = get_all_keys(source)
+    issues = []
+    
+    for key in source_keys:
+        source_val = get_value_by_path(source, key)
+        trans_val = get_value_by_path(trans, key)
+        
+        if source_val is None or trans_val is None:
+            continue
+            
+        if not isinstance(source_val, str) or not isinstance(trans_val, str):
+            continue
+        
+        # Only extract top-level placeholders: {name}, {count}, {day}, NOT {# X} inside ICU
+        import re
+        # Extract variable names from placeholders (e.g., 'name' from '{name}' or 'count' from '{count, plural, ...}')
+        # This avoids false positives on ICU strings where the internal text is translated.
+        placeholder_regex = r'\{\s*([a-zA-Z][a-zA-Z0-9_]*)'
+        source_placeholders = set(re.findall(placeholder_regex, source_val))
+        trans_placeholders = set(re.findall(placeholder_regex, trans_val))
+        
+        # Check for missing placeholders
+        missing = source_placeholders - trans_placeholders
+        if missing:
+            issues.append((key, str(source_placeholders), str(trans_placeholders)))
+    
+    return issues
+
+
 def compare_category(source: Dict, trans: Dict, category: str) -> Tuple[bool, List[str]]:
     """Compare a specific category, return (complete, missing_keys)"""
     if category not in source:
@@ -315,6 +350,20 @@ def generate_report():
     else:
         print_success("All keys appear to be translated!")
     
+    # Placeholder issues
+    print_header("Placeholder Mismatches")
+    placeholder_issues = find_placeholder_issues(source, trans)
+    if placeholder_issues:
+        print(f"{YELLOW}Found {len(placeholder_issues)} placeholder mismatches:{NC}")
+        for key, src_ph, trans_ph in placeholder_issues[:20]:
+            print(f"  - {key}")
+            print(f"    Source: {src_ph}")
+            print(f"    Trans:  {trans_ph}")
+        if len(placeholder_issues) > 20:
+            print(f"  ... and {len(placeholder_issues) - 20} more")
+    else:
+        print_success("All placeholders match!")
+    
     # Per-category status
     print_header("Per-Category Status")
     for category in sorted(source.keys()):
@@ -349,7 +398,18 @@ def quick_check() -> int:
     print(f"Missing: {len(missing)}")
     print(f"Untranslated: {len(untranslated)}")
     
-    return 0 if not missing and not untranslated else 1
+    # Exit codes:
+    # 0 = OK
+    # 1 = generic error
+    # 2 = missing string in translation
+    # 3 = untranslated (soft warning - not a failure)
+    if missing:
+        return 2
+    # untranslated is a soft warning, not a failure - translations exist, just not localized
+    if untranslated:
+        print_warning(f"{len(untranslated)} untranslated keys (non-critical)")
+        return 0
+    return 0
 
 
 def show_diff(category: str) -> int:

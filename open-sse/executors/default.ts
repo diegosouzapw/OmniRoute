@@ -2,6 +2,12 @@ import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import {
+  buildClaudeCodeCompatibleHeaders,
+  CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+  joinBaseUrlAndPath,
+} from "../services/claudeCodeCompatible.ts";
+import { isClaudeCodeCompatible } from "../services/provider.ts";
 
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
@@ -9,6 +15,9 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
+    void model;
+    void stream;
+    void urlIndex;
     if (this.provider?.startsWith?.("openai-compatible-")) {
       const psd = credentials?.providerSpecificData;
       const baseUrl = psd?.baseUrl || "https://api.openai.com/v1";
@@ -21,8 +30,11 @@ export class DefaultExecutor extends BaseExecutor {
     if (this.provider?.startsWith?.("anthropic-compatible-")) {
       const psd = credentials?.providerSpecificData;
       const baseUrl = psd?.baseUrl || "https://api.anthropic.com/v1";
-      const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
+      if (isClaudeCodeCompatible(this.provider)) {
+        return joinBaseUrlAndPath(baseUrl, customPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
+      }
+      const normalized = baseUrl.replace(/\/$/, "");
       return `${normalized}${customPath || "/messages"}`;
     }
     switch (this.provider) {
@@ -70,6 +82,13 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       default:
+        if (isClaudeCodeCompatible(this.provider)) {
+          return buildClaudeCodeCompatibleHeaders(
+            effectiveKey || credentials.accessToken || "",
+            stream,
+            credentials?.providerSpecificData?.ccSessionId
+          );
+        }
         if (this.provider?.startsWith?.("anthropic-compatible-")) {
           if (effectiveKey) {
             headers["x-api-key"] = effectiveKey;

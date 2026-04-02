@@ -29,6 +29,7 @@ import {
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
+  isClaudeCodeCompatibleProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
@@ -420,6 +421,7 @@ interface AddApiKeyModalProps {
   providerName?: string;
   isCompatible?: boolean;
   isAnthropic?: boolean;
+  isCcCompatible?: boolean;
   onSave: (data: {
     name: string;
     apiKey: string;
@@ -463,7 +465,13 @@ interface EditCompatibleNodeModalProps {
   onSave: (data: unknown) => Promise<void>;
   onClose: () => void;
   isAnthropic?: boolean;
+  isCcCompatible?: boolean;
 }
+
+const CC_COMPATIBLE_LABEL = "CC Compatible";
+const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
+const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/messages?beta=true";
+const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -830,17 +838,33 @@ export default function ProviderDetailPage() {
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
+  const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
+  const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
+  const isAnthropicCompatible =
+    isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
+  const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
+  const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
 
   const providerInfo = providerNode
     ? {
         id: providerNode.id,
         name:
           providerNode.name ||
-          (providerNode.type === "anthropic-compatible"
-            ? t("anthropicCompatibleName")
-            : t("openaiCompatibleName")),
-        color: providerNode.type === "anthropic-compatible" ? "#D97757" : "#10A37F",
-        textIcon: providerNode.type === "anthropic-compatible" ? "AC" : "OC",
+          (isCcCompatible
+            ? CC_COMPATIBLE_LABEL
+            : providerNode.type === "anthropic-compatible"
+              ? t("anthropicCompatibleName")
+              : t("openaiCompatibleName")),
+        color: isCcCompatible
+          ? "#B45309"
+          : providerNode.type === "anthropic-compatible"
+            ? "#D97757"
+            : "#10A37F",
+        textIcon: isCcCompatible
+          ? "CC"
+          : providerNode.type === "anthropic-compatible"
+            ? "AC"
+            : "OC",
         apiType: providerNode.apiType,
         baseUrl: providerNode.baseUrl,
         type: providerNode.type,
@@ -851,10 +875,6 @@ export default function ProviderDetailPage() {
   const isOAuth = !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
   const models = getModelsByProviderId(providerId);
   const providerAlias = getProviderAlias(providerId);
-
-  const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
-  const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId);
-  const isCompatible = isOpenAICompatible || isAnthropicCompatible;
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
 
@@ -1836,16 +1856,20 @@ export default function ProviderDetailPage() {
       const description =
         providerId === "openrouter"
           ? t("openRouterAnyModelHint")
-          : t("compatibleModelsDescription", {
-              type: isAnthropicCompatible ? t("anthropic") : t("openai"),
-            });
+          : isCcCompatible
+            ? "CC Compatible provider models are routed through the Claude Code-compatible bridge."
+            : t("compatibleModelsDescription", {
+                type: isAnthropicCompatible ? t("anthropic") : t("openai"),
+              });
       const inputLabel = providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
       const inputPlaceholder =
         providerId === "openrouter"
           ? t("openRouterModelPlaceholder")
-          : isAnthropicCompatible
-            ? t("anthropicCompatibleModelPlaceholder")
-            : t("openaiCompatibleModelPlaceholder");
+          : isCcCompatible
+            ? "claude-sonnet-4-6"
+            : isAnthropicCompatible
+              ? t("anthropicCompatibleModelPlaceholder")
+              : t("openaiCompatibleModelPlaceholder");
 
       return (
         <div>
@@ -1866,7 +1890,7 @@ export default function ProviderDetailPage() {
             onSetAlias={handleSetAlias}
             onDeleteAlias={handleDeleteAlias}
             connections={connections}
-            isAnthropic={isAnthropicCompatible}
+            isAnthropic={isAnthropicProtocolCompatible}
             onImportWithProgress={handleCompatibleImportWithProgress}
             t={t}
             effectiveModelNormalize={effectiveModelNormalize}
@@ -1997,7 +2021,7 @@ export default function ProviderDetailPage() {
         ? "/providers/oai-r.png"
         : "/providers/oai-cc.png";
     }
-    if (isAnthropicCompatible) {
+    if (isAnthropicProtocolCompatible) {
       return "/providers/anthropic-m.png";
     }
     return `/providers/${providerInfo.id}.png`;
@@ -2062,22 +2086,26 @@ export default function ProviderDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold">
-                {isAnthropicCompatible
-                  ? t("anthropicCompatibleDetails")
-                  : t("openaiCompatibleDetails")}
+                {isCcCompatible
+                  ? CC_COMPATIBLE_DETAILS_TITLE
+                  : isAnthropicCompatible
+                    ? t("anthropicCompatibleDetails")
+                    : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
-                {isAnthropicCompatible
+                {isAnthropicProtocolCompatible
                   ? t("messagesApi")
                   : providerNode.apiType === "responses"
                     ? t("responsesApi")
                     : t("chatCompletions")}{" "}
                 · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
-                {isAnthropicCompatible
-                  ? t("messagesPath")
-                  : providerNode.apiType === "responses"
-                    ? t("responsesPath")
-                    : t("chatCompletionsPath")}
+                {isCcCompatible
+                  ? (providerNode.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH).replace(/^\//, "")
+                  : isAnthropicCompatible
+                    ? (providerNode.chatPath || "/messages").replace(/^\//, "")
+                    : providerNode.apiType === "responses"
+                      ? (providerNode.chatPath || "/responses").replace(/^\//, "")
+                      : (providerNode.chatPath || "/chat/completions").replace(/^\//, "")}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -2105,7 +2133,11 @@ export default function ProviderDetailPage() {
                   if (
                     !confirm(
                       t("deleteCompatibleNodeConfirm", {
-                        type: isAnthropicCompatible ? t("anthropic") : t("openai"),
+                        type: isCcCompatible
+                          ? CC_COMPATIBLE_LABEL
+                          : isAnthropicCompatible
+                            ? t("anthropic")
+                            : t("openai"),
                       })
                     )
                   )
@@ -2466,7 +2498,8 @@ export default function ProviderDetailPage() {
         provider={providerId}
         providerName={providerInfo.name}
         isCompatible={isCompatible}
-        isAnthropic={isAnthropicCompatible}
+        isAnthropic={isAnthropicProtocolCompatible}
+        isCcCompatible={isCcCompatible}
         onSave={handleSaveApiKey}
         onClose={() => setShowAddApiKeyModal(false)}
       />
@@ -2482,7 +2515,8 @@ export default function ProviderDetailPage() {
           node={providerNode}
           onSave={handleUpdateNode}
           onClose={() => setShowEditNodeModal(false)}
-          isAnthropic={isAnthropicCompatible}
+          isAnthropic={isAnthropicProtocolCompatible}
+          isCcCompatible={isCcCompatible}
         />
       )}
       {/* Batch Test Results Modal */}
@@ -4332,6 +4366,7 @@ function AddApiKeyModal({
   providerName,
   isCompatible,
   isAnthropic,
+  isCcCompatible,
   onSave,
   onClose,
 }: AddApiKeyModalProps) {
@@ -4499,13 +4534,15 @@ function AddApiKeyModal({
         )}
         {isCompatible && (
           <p className="text-xs text-text-muted">
-            {isAnthropic
-              ? t("validationChecksAnthropicCompatible", {
-                  provider: providerName || t("anthropicCompatibleName"),
-                })
-              : t("validationChecksOpenAiCompatible", {
-                  provider: providerName || t("openaiCompatibleName"),
-                })}
+            {isCcCompatible
+              ? "Validation uses the strict Claude Code-compatible bridge request for this provider."
+              : isAnthropic
+                ? t("validationChecksAnthropicCompatible", {
+                    provider: providerName || t("anthropicCompatibleName"),
+                  })
+                : t("validationChecksOpenAiCompatible", {
+                    provider: providerName || t("openaiCompatibleName"),
+                  })}
           </p>
         )}
         <Input
@@ -4580,6 +4617,7 @@ AddApiKeyModal.propTypes = {
   providerName: PropTypes.string,
   isCompatible: PropTypes.bool,
   isAnthropic: PropTypes.bool,
+  isCcCompatible: PropTypes.bool,
   onSave: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
@@ -4650,7 +4688,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [connection, isBailian]);
+  }, [connection, isBailian, isVertex]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -5041,6 +5079,7 @@ function EditCompatibleNodeModal({
   onSave,
   onClose,
   isAnthropic,
+  isCcCompatible,
 }: EditCompatibleNodeModalProps) {
   const t = useTranslations("providers");
   const [formData, setFormData] = useState({
@@ -5066,12 +5105,18 @@ function EditCompatibleNodeModal({
         baseUrl:
           node.baseUrl ||
           (isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"),
-        chatPath: node.chatPath || "",
-        modelsPath: node.modelsPath || "",
+        chatPath: node.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
+        modelsPath: node.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
       });
-      setShowAdvanced(!!(node.chatPath || node.modelsPath));
+      setShowAdvanced(
+        !!(
+          node.chatPath ||
+          node.modelsPath ||
+          (isCcCompatible && !node.chatPath && !node.modelsPath)
+        )
+      );
     }
-  }, [node, isAnthropic]);
+  }, [node, isAnthropic, isCcCompatible]);
 
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
@@ -5086,8 +5131,9 @@ function EditCompatibleNodeModal({
         name: formData.name,
         prefix: formData.prefix,
         baseUrl: formData.baseUrl,
-        chatPath: formData.chatPath || "",
-        modelsPath: formData.modelsPath || "",
+        chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
+        modelsPath:
+          formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -5108,7 +5154,10 @@ function EditCompatibleNodeModal({
           baseUrl: formData.baseUrl,
           apiKey: checkKey,
           type: isAnthropic ? "anthropic-compatible" : "openai-compatible",
-          modelsPath: formData.modelsPath || "",
+          compatMode: isCcCompatible ? "cc" : undefined,
+          chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
+          modelsPath:
+            formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
         }),
       });
       const data = await res.json();
@@ -5125,25 +5174,39 @@ function EditCompatibleNodeModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={t("editCompatibleTitle", { type: isAnthropic ? t("anthropic") : t("openai") })}
+      title={
+        isCcCompatible
+          ? CC_COMPATIBLE_DETAILS_TITLE
+          : t("editCompatibleTitle", { type: isAnthropic ? t("anthropic") : t("openai") })
+      }
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
         <Input
-          label={t("nameLabel")}
+          label={isCcCompatible ? "Name" : t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("compatibleProdPlaceholder", {
-            type: isAnthropic ? t("anthropic") : t("openai"),
-          })}
-          hint={t("nameHint")}
+          placeholder={
+            isCcCompatible
+              ? "CC Compatible Production"
+              : t("compatibleProdPlaceholder", {
+                  type: isAnthropic ? t("anthropic") : t("openai"),
+                })
+          }
+          hint={isCcCompatible ? "Display name for this provider" : t("nameHint")}
         />
         <Input
-          label={t("prefixLabel")}
+          label={isCcCompatible ? "Prefix" : t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder={isAnthropic ? t("anthropicPrefixPlaceholder") : t("openaiPrefixPlaceholder")}
-          hint={t("prefixHint")}
+          placeholder={
+            isCcCompatible
+              ? "cc"
+              : isAnthropic
+                ? t("anthropicPrefixPlaceholder")
+                : t("openaiPrefixPlaceholder")
+          }
+          hint={isCcCompatible ? "Used for aliases such as prefix/model-id" : t("prefixHint")}
         />
         {!isAnthropic && (
           <Select
@@ -5154,15 +5217,23 @@ function EditCompatibleNodeModal({
           />
         )}
         <Input
-          label={t("baseUrlLabel")}
+          label={isCcCompatible ? "Base URL" : t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
           placeholder={
-            isAnthropic ? t("anthropicBaseUrlPlaceholder") : t("openaiBaseUrlPlaceholder")
+            isCcCompatible
+              ? "https://example.com/v1"
+              : isAnthropic
+                ? t("anthropicBaseUrlPlaceholder")
+                : t("openaiBaseUrlPlaceholder")
           }
-          hint={t("compatibleBaseUrlHint", {
-            type: isAnthropic ? t("anthropic") : t("openai"),
-          })}
+          hint={
+            isCcCompatible
+              ? "Base URL for the CC-compatible site. Do not include /messages."
+              : t("compatibleBaseUrlHint", {
+                  type: isAnthropic ? t("anthropic") : t("openai"),
+                })
+          }
         />
         <button
           type="button"
@@ -5182,18 +5253,30 @@ function EditCompatibleNodeModal({
         {showAdvanced && (
           <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
             <Input
-              label={t("chatPathLabel")}
+              label={isCcCompatible ? "Chat Path" : t("chatPathLabel")}
               value={formData.chatPath}
               onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
-              placeholder={isAnthropic ? "/messages" : t("chatPathPlaceholder")}
-              hint={t("chatPathHint")}
+              placeholder={
+                isCcCompatible
+                  ? CC_COMPATIBLE_DEFAULT_CHAT_PATH
+                  : isAnthropic
+                    ? "/messages"
+                    : t("chatPathPlaceholder")
+              }
+              hint={
+                isCcCompatible
+                  ? "Defaults to the strict Claude Code-compatible messages path"
+                  : t("chatPathHint")
+              }
             />
             <Input
-              label={t("modelsPathLabel")}
+              label={isCcCompatible ? "Models Path" : t("modelsPathLabel")}
               value={formData.modelsPath}
               onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
-              placeholder={t("modelsPathPlaceholder")}
-              hint={t("modelsPathHint")}
+              placeholder={
+                isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : t("modelsPathPlaceholder")
+              }
+              hint={isCcCompatible ? "Defaults to /models" : t("modelsPathHint")}
             />
           </div>
         )}
@@ -5253,4 +5336,5 @@ EditCompatibleNodeModal.propTypes = {
   onSave: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   isAnthropic: PropTypes.bool,
+  isCcCompatible: PropTypes.bool,
 };
