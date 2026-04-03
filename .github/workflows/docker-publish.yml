@@ -30,7 +30,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
 
       - name: Set up QEMU (for multi-arch builds)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
