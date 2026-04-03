@@ -109,6 +109,9 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.deepEqual(payload.messages[2].content.at(-1).cache_control, { type: "ephemeral" });
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
+  assert.deepEqual(payload.system[1].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[2].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral", ttl: "1h" });
   assert.equal(payload.tools.length, 1);
   const { cache_control, ...toolWithoutCacheControl } = payload.tools[0];
   assert.deepEqual(toolWithoutCacheControl, {
@@ -230,7 +233,36 @@ test("buildClaudeCodeCompatibleRequest supplements missing Claude cache markers 
   assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[2].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.system.at(-1).cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "1h" });
+});
+
+test("buildClaudeCodeCompatibleRequest upgrades built-in system cache markers when preserved system uses 1h", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      max_tokens: 64,
+    },
+    normalizedBody: {
+      max_tokens: 64,
+      messages: [{ role: "user", content: "fallback" }],
+    },
+    claudeBody: {
+      system: [
+        { type: "text", text: "prefix", cache_control: { type: "ephemeral" } },
+        { type: "text", text: "stable", cache_control: { type: "ephemeral", ttl: "1h" } },
+      ],
+      messages: [{ role: "user", content: [{ type: "text", text: "u1" }] }],
+      tools: [],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-preserve-system-upgrade",
+    preserveCacheControl: true,
+  });
+
+  assert.deepEqual(payload.system[1].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[2].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[4].cache_control, { type: "ephemeral", ttl: "1h" });
 });
 
 test("buildClaudeCodeCompatibleRequest marks final user turn and 1h system cache in non-preserve mode", () => {
@@ -257,10 +289,9 @@ test("buildClaudeCodeCompatibleRequest marks final user turn and 1h system cache
     preserveCacheControl: false,
   });
 
-  assert.deepEqual(payload.system.at(-1).cache_control, {
-    type: "ephemeral",
-    ttl: "1h",
-  });
+  assert.deepEqual(payload.system[1].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[2].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral", ttl: "1h" });
   assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[2].content[0].cache_control, { type: "ephemeral" });

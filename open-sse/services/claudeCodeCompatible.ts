@@ -397,8 +397,14 @@ function buildClaudeCodeCompatibleSystemBlocks({
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
-      ? systemBlocks
+      ? systemBlocks.map((block) => ({ ...block }))
       : extractCustomSystemBlocks(messages);
+  const useLongSystemTtl =
+    !preserveCacheControl ||
+    customSystemBlocks.some((block) => readCacheControlTtl(block) === "1h");
+  const systemCacheControl = useLongSystemTtl
+    ? { type: "ephemeral", ttl: "1h" }
+    : { type: "ephemeral" };
 
   const dateText = formatDate(now);
   const blocks: Array<Record<string, unknown>> = [
@@ -409,17 +415,21 @@ function buildClaudeCodeCompatibleSystemBlocks({
     {
       type: "text",
       text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
-      cache_control: { type: "ephemeral" },
+      cache_control: { ...systemCacheControl },
     },
     {
       type: "text",
       text: `You are Claude Code, Anthropic's official CLI for Claude.\n\nCWD: ${cwd}\nDate: ${dateText}`,
-      cache_control: { type: "ephemeral" },
+      cache_control: { ...systemCacheControl },
     },
   ];
 
   for (const systemBlock of customSystemBlocks) {
-    blocks.push(systemBlock);
+    const preparedBlock = { ...systemBlock };
+    if (!preserveCacheControl || useLongSystemTtl) {
+      preparedBlock.cache_control = { ...systemCacheControl };
+    }
+    blocks.push(preparedBlock);
   }
 
   if (
@@ -427,8 +437,8 @@ function buildClaudeCodeCompatibleSystemBlocks({
     customSystemBlocks.length > 0 &&
     !customSystemBlocks.some((block) => hasCacheControl(block))
   ) {
-    const lastCustomSystemBlock = customSystemBlocks[customSystemBlocks.length - 1];
-    lastCustomSystemBlock.cache_control = { type: "ephemeral", ttl: "1h" };
+    const lastCustomSystemBlock = blocks[blocks.length - 1];
+    lastCustomSystemBlock.cache_control = { ...systemCacheControl };
   }
 
   return blocks;
@@ -650,7 +660,7 @@ function convertClaudeCodeCompatibleClaudeMessage(
 function extractCustomSystemBlocks(messages: MessageLike[] | undefined) {
   if (!Array.isArray(messages)) return [];
 
-  const blocks = messages
+  return messages
     .filter((message) => {
       const role = String(message?.role || "").toLowerCase();
       return role === "system" || role === "developer";
@@ -660,14 +670,7 @@ function extractCustomSystemBlocks(messages: MessageLike[] | undefined) {
     .map((text) => ({
       type: "text",
       text,
-      cache_control: { type: "ephemeral" },
     }));
-
-  if (blocks.length > 0) {
-    blocks[blocks.length - 1].cache_control = { type: "ephemeral", ttl: "1h" };
-  }
-
-  return blocks;
 }
 
 function applyClaudeCodeCompatibleMessageCacheStrategy(
@@ -760,6 +763,10 @@ function markLastContentCacheControl(
 
 function hasCacheControl(value: unknown) {
   return !!readRecord(value)?.cache_control && typeof readRecord(value)?.cache_control === "object";
+}
+
+function readCacheControlTtl(value: unknown) {
+  return toNonEmptyString(readRecord(readRecord(value)?.cache_control)?.ttl);
 }
 
 function findLastCacheableToolIndex(tools: Array<Record<string, unknown>>) {
