@@ -1,19 +1,27 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-ignore — node:child_process available at runtime in Next.js server context
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import type { ExecuteInput } from "./base.ts";
 
+/** Default timeout for qodercli requests (2 minutes) */
+const QODER_TIMEOUT_MS = 120_000;
+
 type QoderMessage = {
   role: string;
-  content: string | Array<{ type: string; text?: string }>;
+  content:
+    | string
+    | Array<{ type: string; text?: string; id?: string; name?: string; input?: string }>;
 };
 
 type QoderContentItem = {
   type: string;
   text?: string;
   reason?: string;
+  id?: string;
+  name?: string;
+  input?: string;
 };
 
 type QoderUsage = {
@@ -27,6 +35,8 @@ type QoderParsedLine = {
   message?: {
     content?: QoderContentItem[];
     usage?: QoderUsage;
+    stop_reason?: string;
+    status?: string;
   };
   done?: boolean;
 };
@@ -38,6 +48,68 @@ type ExecuteResult = {
   transformedBody: unknown;
 };
 
+type ToolCall = {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+};
+
+/**
+ * Model alias mapping: OpenAI model names → qodercli --model values.
+ * Based on battle-tested qoder-proxy implementation.
+ */
+const MODEL_ALIAS_MAP: Record<string, string> = {
+  // GPT-4 class → auto tier
+  "gpt-4": "auto",
+  "gpt-4-turbo": "auto",
+  "gpt-4o": "auto",
+  o1: "ultimate",
+  "o1-mini": "performance",
+  "o3-mini": "performance",
+  // Lightweight → lite
+  "gpt-4o-mini": "lite",
+  "gpt-3.5-turbo": "lite",
+  // Claude aliases
+  "claude-3-opus": "ultimate",
+  "claude-3-sonnet": "performance",
+  "claude-3-haiku": "lite",
+  "claude-3.5-sonnet": "auto",
+  "claude-3.5-haiku": "efficient",
+  "claude-3.7-sonnet": "auto",
+  // Gemini aliases
+  "gemini-pro": "performance",
+  "gemini-flash": "efficient",
+  // Friendly names for "new model" tier
+  qwen: "qmodel",
+  "qwen-3.5": "q35model",
+  glm: "gmodel",
+  kimi: "kmodel",
+  minimax: "mmodel",
+};
+
+/** Valid qodercli model IDs */
+const VALID_QODER_MODELS = new Set([
+  "auto",
+  "ultimate",
+  "performance",
+  "qmodel",
+  "q35model",
+  "lite",
+  "efficient",
+  "gmodel",
+  "kmodel",
+  "mmodel",
+]);
+
+function resolveModel(requestedModel: string | undefined): string {
+  if (!requestedModel) return "lite";
+  if (VALID_QODER_MODELS.has(requestedModel)) return requestedModel;
+  return MODEL_ALIAS_MAP[requestedModel] ?? requestedModel;
+}
+
 function extractTextContent(content: string | Array<{ type: string; text?: string }>): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -48,23 +120,42 @@ function extractTextContent(content: string | Array<{ type: string; text?: strin
 }
 
 /**
- * Convert OpenAI-format messages array into a plain prompt string for qodercli.
- * Multi-turn conversations are formatted with role prefixes.
+ * Extract tool calls from qodercli message content.
+ * Based on battle-tested qoder-proxy implementation.
  */
-function buildPrompt(messages: QoderMessage[]): string {
-  const parts: string[] = [];
-  for (const msg of messages) {
-    const text = extractTextContent(msg.content).trim();
-    if (!text) continue;
-    if (msg.role === "system") {
-      parts.push(`System: ${text}`);
-    } else if (msg.role === "user") {
-      parts.push(`Human: ${text}`);
-    } else if (msg.role === "assistant") {
-      parts.push(`Assistant: ${text}`);
+function extractToolCalls(content: QoderContentItem[] | undefined): ToolCall[] | null {
+  if (!Array.isArray(content)) return null;
+  const toolCalls: ToolCall[] = [];
+  for (const item of content) {
+    if (item.type === "function" && item.id && item.name && item.input) {
+      toolCalls.push({
+        id: item.id,
+        type: "function",
+        function: {
+          name: item.name,
+          arguments: item.input,
+        },
+      });
     }
   }
-  return parts.join("\n\n");
+  return toolCalls.length > 0 ? toolCalls : null;
+}
+
+/**
+ * Build prompt from messages — uses ONLY the last user message.
+ * qodercli responds better to individual prompts than conversation threads.
+ * Based on battle-tested qoder-proxy implementation.
+ */
+function buildPrompt(messages: QoderMessage[]): string {
+  // Find the last user message
+  const lastUserMessage = messages
+    .slice()
+    .reverse()
+    .find((msg) => msg.role === "user");
+  if (!lastUserMessage) return "";
+
+  const content = extractTextContent(lastUserMessage.content).trim();
+  return content ? `User: ${content}` : "";
 }
 
 function generateId(): string {
@@ -74,7 +165,35 @@ function generateId(): string {
 function mapFinishReason(reason: string | undefined): string {
   if (reason === "end_turn") return "stop";
   if (reason === "max_tokens") return "length";
+  if (reason === "tool_calls") return "tool_calls";
   return reason || "stop";
+}
+
+/**
+ * Spawn qodercli with proper cross-platform support.
+ * Windows: uses cmd.exe /c qodercli.cmd for .cmd resolution.
+ * Linux/macOS: spawns qodercli directly.
+ * Based on battle-tested qoder-proxy implementation.
+ */
+function spawnQoderCli(args: string[], env: Record<string, string | undefined>): ChildProcess {
+   
+  // @ts-ignore — process global available at runtime in Node.js
+  const isWindows = process.platform === "win32";
+
+  if (isWindows) {
+    // Windows: explicit cmd.exe /c qodercli.cmd for reliable .cmd resolution
+    return spawn("cmd.exe", ["/c", "qodercli.cmd", ...args], {
+      stdio: ["ignore", "pipe", "pipe"],
+      env,
+      windowsHide: true,
+    });
+  } else {
+    // Linux/macOS: spawn directly
+    return spawn("qodercli", args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      env,
+    });
+  }
 }
 
 /**
@@ -94,6 +213,8 @@ function mapFinishReason(reason: string | undefined): string {
  *   {"type":"system","subtype":"init",...}               — ignored
  *   {"type":"assistant","subtype":"message","message":{"content":[...]}} — content
  *   {"type":"result","subtype":"success","message":{"content":[...]}}    — final
+ *
+ * Based on battle-tested qoder-proxy implementation (Windows, Docker, Linux).
  */
 export class QoderExecutor extends BaseExecutor {
   constructor() {
@@ -114,7 +235,12 @@ export class QoderExecutor extends BaseExecutor {
     return {};
   }
 
-  transformRequest(_model: string, body: unknown, _stream: boolean, _credentials: unknown): unknown {
+  transformRequest(
+    _model: string,
+    body: unknown,
+    _stream: boolean,
+    _credentials: unknown
+  ): unknown {
     void _model;
     void _stream;
     void _credentials;
@@ -141,17 +267,35 @@ export class QoderExecutor extends BaseExecutor {
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
-      return { response: errResp, url: "subprocess://qodercli", headers: {}, transformedBody: body };
+      return {
+        response: errResp,
+        url: "subprocess://qodercli",
+        headers: {},
+        transformedBody: body,
+      };
     }
+
+    // Resolve model alias (gpt-4 → auto, etc.)
+    const resolvedModel = resolveModel(model);
 
     // Build qodercli args
     const args = ["-p", prompt, "-f", "stream-json", "--quiet"];
-    if (model && model !== "auto") {
-      args.push("--model", model);
+    if (resolvedModel && resolvedModel !== "lite") {
+      args.push("--model", resolvedModel);
+    }
+
+    // Handle max_tokens → --max-output-tokens (qodercli uses "16k" or "32k")
+    const maxTokens = bodyObj?.max_tokens as number | undefined;
+    if (maxTokens != null) {
+      if (maxTokens >= 32000) {
+        args.push("--max-output-tokens", "32k");
+      } else if (maxTokens >= 16000) {
+        args.push("--max-output-tokens", "16k");
+      }
     }
 
     // Merge PAT into child process env
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+     
     // @ts-ignore — process global available at runtime in Node.js
     const spawnEnv: Record<string, string | undefined> = { ...process.env };
     if (pat) {
@@ -162,9 +306,27 @@ export class QoderExecutor extends BaseExecutor {
     const created = Math.floor(Date.now() / 1000);
 
     if (stream) {
-      return this._streamingExecute(model, body, args, spawnEnv, completionId, created, signal, log);
+      return this._streamingExecute(
+        resolvedModel,
+        body,
+        args,
+        spawnEnv,
+        completionId,
+        created,
+        signal,
+        log
+      );
     }
-    return this._nonStreamingExecute(model, body, args, spawnEnv, completionId, created, signal, log);
+    return this._nonStreamingExecute(
+      resolvedModel,
+      body,
+      args,
+      spawnEnv,
+      completionId,
+      created,
+      signal,
+      log
+    );
   }
 
   _streamingExecute(
@@ -181,34 +343,42 @@ export class QoderExecutor extends BaseExecutor {
 
     const readable = new ReadableStream<Uint8Array>({
       start(controller) {
-        let proc: ReturnType<typeof spawn>;
-        try {
-          // On Windows, use shell:true to allow .cmd/.bat resolution via PATH
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore — process global available at runtime in Node.js
-          const isWindows = process.platform === "win32";
-          proc = spawn("qodercli", args, {
-            stdio: ["ignore", "pipe", "pipe"],
-            env: spawnEnv,
-            shell: isWindows,
-            windowsHide: true, // Don't pop up console window
-          });
-        } catch (err) {
-          controller.error(err);
-          return;
-        }
-
-        let headerSent = false;
+        let proc: ChildProcess;
+        let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
         let done = false;
+        let headerSent = false;
+        let lastFinishReason = "stop";
 
         const cleanup = () => {
           if (!done) {
             done = true;
+            if (timeoutHandle) clearTimeout(timeoutHandle);
             try {
               proc.kill();
             } catch {}
           }
         };
+
+        try {
+          proc = spawnQoderCli(args, spawnEnv);
+        } catch (err) {
+          controller.error(err);
+          return;
+        }
+
+        // Timeout protection (battle-tested from qoder-proxy)
+        timeoutHandle = setTimeout(() => {
+          log?.error?.("QODER", `qodercli timed out after ${QODER_TIMEOUT_MS}ms`);
+          cleanup();
+          const errChunk = {
+            error: {
+              message: `qodercli timed out after ${QODER_TIMEOUT_MS}ms`,
+              type: "timeout_error",
+            },
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errChunk)}\n\n`));
+          controller.close();
+        }, QODER_TIMEOUT_MS);
 
         if (signal) {
           if (signal.aborted) {
@@ -228,6 +398,30 @@ export class QoderExecutor extends BaseExecutor {
               const parsed = JSON.parse(trimmed) as QoderParsedLine;
               if (parsed.type === "assistant" && parsed.subtype === "message") {
                 const contentArr = parsed.message?.content || [];
+
+                // Check for tool calls first
+                const toolCalls = extractToolCalls(contentArr);
+                if (toolCalls) {
+                  const toolChunk = {
+                    id: completionId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { tool_calls: toolCalls },
+                        finish_reason:
+                          parsed.message?.status === "tool_calling" ? null : "tool_calls",
+                      },
+                    ],
+                  };
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(toolChunk)}\n\n`));
+                  lastFinishReason = "tool_calls";
+                  continue;
+                }
+
+                // Extract text content
                 for (const item of contentArr) {
                   if (item.type === "text" && item.text) {
                     // Send role delta once before first text
@@ -245,9 +439,7 @@ export class QoderExecutor extends BaseExecutor {
                           },
                         ],
                       };
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify(roleChunk)}\n\n`)
-                      );
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(roleChunk)}\n\n`));
                       headerSent = true;
                     }
                     const textChunk = {
@@ -255,35 +447,45 @@ export class QoderExecutor extends BaseExecutor {
                       object: "chat.completion.chunk",
                       created,
                       model,
-                      choices: [
-                        { index: 0, delta: { content: item.text }, finish_reason: null },
-                      ],
+                      choices: [{ index: 0, delta: { content: item.text }, finish_reason: null }],
                     };
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`)
-                    );
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`));
                   } else if (item.type === "finish") {
-                    const doneChunk = {
-                      id: completionId,
-                      object: "chat.completion.chunk",
-                      created,
-                      model,
-                      choices: [
-                        {
-                          index: 0,
-                          delta: {},
-                          finish_reason: mapFinishReason(item.reason),
-                        },
-                      ],
-                    };
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify(doneChunk)}\n\n`)
-                    );
+                    lastFinishReason = mapFinishReason(item.reason);
                   }
+                }
+
+                // Check for stop_reason in message
+                if (parsed.message?.stop_reason) {
+                  lastFinishReason = mapFinishReason(parsed.message.stop_reason);
                 }
               }
             } catch {
-              // skip non-JSON lines (qodercli debug/info output)
+              // Handle plain text response (happens with some qodercli versions)
+              const plainText = trimmed;
+              if (plainText && !plainText.startsWith("{")) {
+                if (!headerSent) {
+                  const roleChunk = {
+                    id: completionId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [
+                      { index: 0, delta: { role: "assistant", content: "" }, finish_reason: null },
+                    ],
+                  };
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(roleChunk)}\n\n`));
+                  headerSent = true;
+                }
+                const textChunk = {
+                  id: completionId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [{ index: 0, delta: { content: plainText }, finish_reason: null }],
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`));
+              }
             }
           }
         });
@@ -294,13 +496,26 @@ export class QoderExecutor extends BaseExecutor {
 
         proc.on("error", (err: Error) => {
           log?.error?.("QODER", `spawn error: ${err.message}`);
+          cleanup();
           controller.error(err);
         });
 
         proc.on("close", (code: number | null) => {
+          if (done) return;
           done = true;
+          if (timeoutHandle) clearTimeout(timeoutHandle);
           if (signal) signal.removeEventListener("abort", cleanup);
           log?.debug?.("QODER", `qodercli exited with code ${code}`);
+
+          // Send final done chunk with finish reason
+          const doneChunk = {
+            id: completionId,
+            object: "chat.completion.chunk",
+            created,
+            model,
+            choices: [{ index: 0, delta: {}, finish_reason: lastFinishReason }],
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(doneChunk)}\n\n`));
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
         });
@@ -313,6 +528,7 @@ export class QoderExecutor extends BaseExecutor {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
 
@@ -330,35 +546,56 @@ export class QoderExecutor extends BaseExecutor {
     log: ExecuteInput["log"]
   ): Promise<ExecuteResult> {
     return new Promise((resolve, reject) => {
-      let proc: ReturnType<typeof spawn>;
-      try {
-        // On Windows, use shell:true to allow .cmd/.bat resolution via PATH
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore — process global available at runtime in Node.js
-        const isWindows = process.platform === "win32";
-        proc = spawn("qodercli", args, {
-          stdio: ["ignore", "pipe", "pipe"],
-          env: spawnEnv,
-          shell: isWindows,
-          windowsHide: true, // Don't pop up console window
+      let proc: ChildProcess;
+      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+      let settled = false;
+      let output = "";
+      let stderrOutput = "";
+
+      const settle = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutHandle) clearTimeout(timeoutHandle);
+        fn();
+      };
+
+      const cleanup = () => {
+        settle(() => {
+          try {
+            proc.kill();
+          } catch {}
+          reject(new Error("Aborted"));
         });
+      };
+
+      try {
+        proc = spawnQoderCli(args, spawnEnv);
       } catch (err) {
         reject(err);
         return;
       }
 
-      let output = "";
-      let aborted = false;
-
-      const cleanup = () => {
-        if (!aborted) {
-          aborted = true;
-          try {
-            proc.kill();
-          } catch {}
-          reject(new Error("Aborted"));
-        }
-      };
+      // Timeout protection (battle-tested from qoder-proxy)
+      timeoutHandle = setTimeout(() => {
+        proc.kill();
+        settle(() => {
+          const errResp = new Response(
+            JSON.stringify({
+              error: {
+                message: `qodercli timed out after ${QODER_TIMEOUT_MS}ms`,
+                type: "timeout_error",
+              },
+            }),
+            { status: 504, headers: { "Content-Type": "application/json" } }
+          );
+          resolve({
+            response: errResp,
+            url: "subprocess://qodercli",
+            headers: {},
+            transformedBody: body,
+          });
+        });
+      }, QODER_TIMEOUT_MS);
 
       if (signal) {
         if (signal.aborted) {
@@ -373,74 +610,142 @@ export class QoderExecutor extends BaseExecutor {
       });
 
       proc.stderr?.on("data", (chunk: unknown) => {
-        log?.debug?.("QODER", `stderr: ${String(chunk).slice(0, 300)}`);
+        const text = String(chunk).trim();
+        stderrOutput += text + "\n";
+        log?.debug?.("QODER", `stderr: ${text.slice(0, 300)}`);
       });
 
-      proc.on("error", reject);
+      proc.on("error", (err) => {
+        settle(() => reject(err));
+      });
 
       proc.on("close", (code: number | null) => {
-        if (aborted) return;
-        if (signal) signal.removeEventListener("abort", cleanup);
-        log?.debug?.("QODER", `qodercli exited with code ${code}`);
+        settle(() => {
+          if (signal) signal.removeEventListener("abort", cleanup);
+          log?.debug?.("QODER", `qodercli exited with code ${code}`);
 
-        // Parse stream-json output — prefer result line, fall back to last assistant line
-        let fullText = "";
-        let inputTokens = 0;
-        let outputTokens = 0;
-
-        for (const line of output.split("\n")) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          try {
-            const parsed = JSON.parse(trimmed) as QoderParsedLine;
-            if (parsed.type === "result" && parsed.subtype === "success") {
-              const contentArr = parsed.message?.content || [];
-              fullText = contentArr
-                .filter((c) => c.type === "text")
-                .map((c) => c.text || "")
-                .join("");
-              break;
-            } else if (parsed.type === "assistant" && parsed.subtype === "message") {
-              const contentArr = parsed.message?.content || [];
-              fullText = contentArr
-                .filter((c) => c.type === "text")
-                .map((c) => c.text || "")
-                .join("");
-              inputTokens = parsed.message?.usage?.input_tokens || 0;
-              outputTokens = parsed.message?.usage?.output_tokens || 0;
-            }
-          } catch {
-            // skip non-JSON lines
+          // Check exit code (battle-tested from qoder-proxy)
+          if (code !== 0 && code !== null) {
+            const errResp = new Response(
+              JSON.stringify({
+                error: {
+                  message: `qodercli exited with code ${code}`,
+                  type: "api_error",
+                  details: stderrOutput.trim(),
+                },
+              }),
+              { status: 500, headers: { "Content-Type": "application/json" } }
+            );
+            resolve({
+              response: errResp,
+              url: "subprocess://qodercli",
+              headers: {},
+              transformedBody: body,
+            });
+            return;
           }
-        }
 
-        const completion = {
-          id: completionId,
-          object: "chat.completion",
-          created,
-          model,
-          choices: [
-            {
-              index: 0,
-              message: { role: "assistant", content: fullText },
-              finish_reason: "stop",
-            },
-          ],
-          usage: {
-            prompt_tokens: inputTokens,
-            completion_tokens: outputTokens,
-            total_tokens: inputTokens + outputTokens,
-          },
-        };
+          // Parse stream-json output
+          let fullText = "";
+          let inputTokens = 0;
+          let outputTokens = 0;
+          let finishReason = "stop";
+          const allToolCalls: ToolCall[] = [];
 
-        const response = new Response(JSON.stringify(completion), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+          for (const line of output.split("\n")) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            try {
+              const parsed = JSON.parse(trimmed) as QoderParsedLine;
+              if (parsed.type === "result" && parsed.subtype === "success") {
+                const contentArr = parsed.message?.content || [];
+                fullText = contentArr
+                  .filter((c) => c.type === "text")
+                  .map((c) => c.text || "")
+                  .join("");
+                break;
+              } else if (parsed.type === "assistant" && parsed.subtype === "message") {
+                const contentArr = parsed.message?.content || [];
+
+                // Extract tool calls
+                const toolCalls = extractToolCalls(contentArr);
+                if (toolCalls) {
+                  allToolCalls.push(...toolCalls);
+                  finishReason = "tool_calls";
+                }
+
+                // Extract text
+                fullText = contentArr
+                  .filter((c) => c.type === "text")
+                  .map((c) => c.text || "")
+                  .join("");
+                inputTokens = parsed.message?.usage?.input_tokens || 0;
+                outputTokens = parsed.message?.usage?.output_tokens || 0;
+
+                if (parsed.message?.stop_reason) {
+                  finishReason = mapFinishReason(parsed.message.stop_reason);
+                }
+              }
+            } catch {
+              // Handle plain text response (happens with some qodercli versions)
+              const plainText = trimmed;
+              if (plainText && !plainText.startsWith("{")) {
+                fullText += plainText;
+              }
+            }
+          }
+
+          // Build response (with or without tool calls)
+          const completion =
+            allToolCalls.length > 0
+              ? {
+                  id: completionId,
+                  object: "chat.completion",
+                  created,
+                  model,
+                  choices: [
+                    {
+                      index: 0,
+                      message: {
+                        role: "assistant",
+                        content: fullText || null,
+                        tool_calls: allToolCalls,
+                      },
+                      finish_reason: finishReason,
+                    },
+                  ],
+                  usage: {
+                    prompt_tokens: inputTokens,
+                    completion_tokens: outputTokens,
+                    total_tokens: inputTokens + outputTokens,
+                  },
+                }
+              : {
+                  id: completionId,
+                  object: "chat.completion",
+                  created,
+                  model,
+                  choices: [
+                    {
+                      index: 0,
+                      message: { role: "assistant", content: fullText },
+                      finish_reason: finishReason,
+                    },
+                  ],
+                  usage: {
+                    prompt_tokens: inputTokens,
+                    completion_tokens: outputTokens,
+                    total_tokens: inputTokens + outputTokens,
+                  },
+                };
+
+          const response = new Response(JSON.stringify(completion), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+          resolve({ response, url: "subprocess://qodercli", headers: {}, transformedBody: body });
         });
-        resolve({ response, url: "subprocess://qodercli", headers: {}, transformedBody: body });
       });
     });
   }
 }
-
-export default QoderExecutor;
