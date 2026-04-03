@@ -2,7 +2,14 @@
 
 // Free Providers
 export const FREE_PROVIDERS = {
-  qoder: { id: "qoder", alias: "qoder", name: "Qoder AI", icon: "water_drop", color: "#6366F1" },
+  qoder: {
+    id: "qoder",
+    alias: "qoder",
+    name: "Qoder AI",
+    icon: "water_drop",
+    color: "#6366F1",
+    legacyAliases: ["if"], // Backward compatibility for existing configs using if/<model>
+  },
   qwen: { id: "qwen", alias: "qw", name: "Qwen Code", icon: "psychology", color: "#10B981" },
   "gemini-cli": {
     id: "gemini-cli",

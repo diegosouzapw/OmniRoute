@@ -1,4 +1,4 @@
- 
+ // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — node:child_process available at runtime in Next.js server context
 import { spawn, type ChildProcess } from "node:child_process";
 import { BaseExecutor } from "./base.ts";
@@ -7,6 +7,9 @@ import type { ExecuteInput } from "./base.ts";
 
 /** Default timeout for qodercli requests (2 minutes) */
 const QODER_TIMEOUT_MS = 120_000;
+
+/** Max command-line argument length (~30KB safe for Windows, ~120KB Linux) */
+const MAX_ARG_LENGTH = 30_000;
 
 type QoderMessage = {
   role: string;
@@ -56,6 +59,15 @@ type ToolCall = {
     arguments: string;
   };
 };
+
+/**
+ * Create an AbortError that chatCore will recognize as client disconnect.
+ */
+function createAbortError(): Error {
+  const err = new Error("Aborted");
+  err.name = "AbortError";
+  return err;
+}
 
 /**
  * Model alias mapping: OpenAI model names → qodercli --model values.
@@ -171,29 +183,49 @@ function mapFinishReason(reason: string | undefined): string {
 
 /**
  * Spawn qodercli with proper cross-platform support.
- * Windows: uses cmd.exe /c qodercli.cmd for .cmd resolution.
+ * Windows: uses cmd.exe /c qodercli.cmd for .cmd resolution (shell: false).
  * Linux/macOS: spawns qodercli directly.
+ * 
+ * For long prompts, uses stdin piping to avoid command-line length limits.
  * Based on battle-tested qoder-proxy implementation.
  */
-function spawnQoderCli(args: string[], env: Record<string, string | undefined>): ChildProcess {
-   
+function spawnQoderCli(
+  args: string[],
+  env: Record<string, string | undefined>,
+  stdinPrompt?: string
+): ChildProcess {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore — process global available at runtime in Node.js
   const isWindows = process.platform === "win32";
 
+  // Use stdin for input if prompt is provided (avoids arg length limits)
+  const stdio: ["pipe" | "ignore", "pipe", "pipe"] = stdinPrompt
+    ? ["pipe", "pipe", "pipe"]
+    : ["ignore", "pipe", "pipe"];
+
+  let proc: ChildProcess;
   if (isWindows) {
-    // Windows: explicit cmd.exe /c qodercli.cmd for reliable .cmd resolution
-    return spawn("cmd.exe", ["/c", "qodercli.cmd", ...args], {
-      stdio: ["ignore", "pipe", "pipe"],
+    // Windows: explicit cmd.exe /c qodercli.cmd — shell: false for security
+    proc = spawn("cmd.exe", ["/c", "qodercli.cmd", ...args], {
+      stdio,
       env,
       windowsHide: true,
     });
   } else {
     // Linux/macOS: spawn directly
-    return spawn("qodercli", args, {
-      stdio: ["ignore", "pipe", "pipe"],
+    proc = spawn("qodercli", args, {
+      stdio,
       env,
     });
   }
+
+  // Write prompt to stdin if using pipe mode
+  if (stdinPrompt && proc.stdin) {
+    proc.stdin.write(stdinPrompt);
+    proc.stdin.end();
+  }
+
+  return proc;
 }
 
 /**
@@ -278,8 +310,12 @@ export class QoderExecutor extends BaseExecutor {
     // Resolve model alias (gpt-4 → auto, etc.)
     const resolvedModel = resolveModel(model);
 
-    // Build qodercli args
-    const args = ["-p", prompt, "-f", "stream-json", "--quiet"];
+    // Build qodercli args — use stdin for long prompts to avoid E2BIG
+    const useStdin = prompt.length > MAX_ARG_LENGTH;
+    const args = useStdin
+      ? ["-f", "stream-json", "--quiet"] // prompt via stdin
+      : ["-p", prompt, "-f", "stream-json", "--quiet"]; // prompt via -p arg
+
     if (resolvedModel && resolvedModel !== "lite") {
       args.push("--model", resolvedModel);
     }
@@ -295,7 +331,7 @@ export class QoderExecutor extends BaseExecutor {
     }
 
     // Merge PAT into child process env
-     
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore — process global available at runtime in Node.js
     const spawnEnv: Record<string, string | undefined> = { ...process.env };
     if (pat) {
@@ -304,6 +340,7 @@ export class QoderExecutor extends BaseExecutor {
 
     const completionId = generateId();
     const created = Math.floor(Date.now() / 1000);
+    const stdinPrompt = useStdin ? prompt : undefined;
 
     if (stream) {
       return this._streamingExecute(
@@ -314,7 +351,8 @@ export class QoderExecutor extends BaseExecutor {
         completionId,
         created,
         signal,
-        log
+        log,
+        stdinPrompt
       );
     }
     return this._nonStreamingExecute(
@@ -325,7 +363,8 @@ export class QoderExecutor extends BaseExecutor {
       completionId,
       created,
       signal,
-      log
+      log,
+      stdinPrompt
     );
   }
 
@@ -337,7 +376,8 @@ export class QoderExecutor extends BaseExecutor {
     completionId: string,
     created: number,
     signal: AbortSignal | null | undefined,
-    log: ExecuteInput["log"]
+    log: ExecuteInput["log"],
+    stdinPrompt?: string
   ): ExecuteResult {
     const encoder = new TextEncoder();
 
@@ -347,7 +387,9 @@ export class QoderExecutor extends BaseExecutor {
         let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
         let done = false;
         let headerSent = false;
+        let hasContent = false;
         let lastFinishReason = "stop";
+        let stdoutBuffer = ""; // Buffer for partial JSON lines
 
         const cleanup = () => {
           if (!done) {
@@ -360,7 +402,7 @@ export class QoderExecutor extends BaseExecutor {
         };
 
         try {
-          proc = spawnQoderCli(args, spawnEnv);
+          proc = spawnQoderCli(args, spawnEnv, stdinPrompt);
         } catch (err) {
           controller.error(err);
           return;
@@ -389,8 +431,11 @@ export class QoderExecutor extends BaseExecutor {
           signal.addEventListener("abort", cleanup, { once: true });
         }
 
+        // Buffer partial lines to handle chunks split across JSON boundaries
         proc.stdout?.on("data", (chunk: unknown) => {
-          const lines = String(chunk).split("\n");
+          const lines = (stdoutBuffer + String(chunk)).split("\n");
+          stdoutBuffer = lines.pop() || ""; // Keep incomplete line for next chunk
+
           for (const line of lines) {
             const trimmed = line.trim();
             if (!trimmed) continue;
@@ -402,6 +447,7 @@ export class QoderExecutor extends BaseExecutor {
                 // Check for tool calls first
                 const toolCalls = extractToolCalls(contentArr);
                 if (toolCalls) {
+                  hasContent = true;
                   const toolChunk = {
                     id: completionId,
                     object: "chat.completion.chunk",
@@ -424,6 +470,7 @@ export class QoderExecutor extends BaseExecutor {
                 // Extract text content
                 for (const item of contentArr) {
                   if (item.type === "text" && item.text) {
+                    hasContent = true;
                     // Send role delta once before first text
                     if (!headerSent) {
                       const roleChunk = {
@@ -464,6 +511,7 @@ export class QoderExecutor extends BaseExecutor {
               // Handle plain text response (happens with some qodercli versions)
               const plainText = trimmed;
               if (plainText && !plainText.startsWith("{")) {
+                hasContent = true;
                 if (!headerSent) {
                   const roleChunk = {
                     id: completionId,
@@ -507,6 +555,32 @@ export class QoderExecutor extends BaseExecutor {
           if (signal) signal.removeEventListener("abort", cleanup);
           log?.debug?.("QODER", `qodercli exited with code ${code}`);
 
+          // Handle non-zero exit code as error (don't send [DONE] for failures)
+          if (code !== 0 && code !== null) {
+            const errChunk = {
+              error: {
+                message: `qodercli exited with code ${code}`,
+                type: "api_error",
+              },
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errChunk)}\n\n`));
+            controller.close();
+            return;
+          }
+
+          // Handle case where no content was received
+          if (!hasContent) {
+            const errChunk = {
+              error: {
+                message: "qodercli returned no content",
+                type: "api_error",
+              },
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errChunk)}\n\n`));
+            controller.close();
+            return;
+          }
+
           // Send final done chunk with finish reason
           const doneChunk = {
             id: completionId,
@@ -543,7 +617,8 @@ export class QoderExecutor extends BaseExecutor {
     completionId: string,
     created: number,
     signal: AbortSignal | null | undefined,
-    log: ExecuteInput["log"]
+    log: ExecuteInput["log"],
+    stdinPrompt?: string
   ): Promise<ExecuteResult> {
     return new Promise((resolve, reject) => {
       let proc: ChildProcess;
@@ -564,12 +639,12 @@ export class QoderExecutor extends BaseExecutor {
           try {
             proc.kill();
           } catch {}
-          reject(new Error("Aborted"));
+          reject(createAbortError());
         });
       };
 
       try {
-        proc = spawnQoderCli(args, spawnEnv);
+        proc = spawnQoderCli(args, spawnEnv, stdinPrompt);
       } catch (err) {
         reject(err);
         return;

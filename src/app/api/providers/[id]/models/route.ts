@@ -82,6 +82,19 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
     { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (2025-10-01)" },
   ],
+  qoder: () => [
+    // Qoder uses level-based model IDs (qodercli --model <level>)
+    { id: "auto", name: "Auto (Smart Select)" },
+    { id: "ultimate", name: "Ultimate (Best Quality)" },
+    { id: "performance", name: "Performance" },
+    { id: "efficient", name: "Efficient" },
+    { id: "lite", name: "Lite (Free)" },
+    { id: "qmodel", name: "Qwen-Max" },
+    { id: "q35model", name: "Qwen3.5-Plus" },
+    { id: "gmodel", name: "GLM-5" },
+    { id: "kmodel", name: "Kimi-K2.5" },
+    { id: "mmodel", name: "MiniMax-M2.7" },
+  ],
   perplexity: () => [
     { id: "sonar", name: "Sonar (Fast Search)" },
     { id: "sonar-pro", name: "Sonar Pro (Advanced Search)" },
@@ -164,19 +177,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
   },
-  qoder: {
-    // Qoder doesn't expose a /v1/models endpoint — models are named levels
-    // Static list is used instead; this entry kept for auth header passthrough only
-    url: "https://api2.qoder.sh/v1/models",
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "User-Agent": "qodercli/0.1.37 (linux; x64)",
-    },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  // qoder uses static models (no remote /v1/models endpoint)
   openrouter: {
     url: "https://openrouter.ai/api/v1/models",
     method: "GET",
@@ -476,6 +477,15 @@ export async function GET(
         provider,
         connectionId,
         models: STATIC_MODEL_PROVIDERS.claude(),
+      });
+    }
+
+    // Qoder uses static models — qodercli doesn't expose /v1/models and requires COSY auth
+    if (provider === "qoder") {
+      return buildResponse({
+        provider,
+        connectionId,
+        models: STATIC_MODEL_PROVIDERS.qoder(),
       });
     }
 

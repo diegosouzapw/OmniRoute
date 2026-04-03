@@ -320,7 +320,7 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 - **Free Tier Providers Built-in** — Native support for 100% free providers: Qoder (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
-- **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
+- **Free-Only Combos** — Chain `gc/gemini-3-flash → qoder/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
 - **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
 - **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
 
@@ -710,7 +710,7 @@ Teams lose velocity when stitching multiple ad-hoc services and scripts.
 Combo: "maximize-claude"
   1. cc/claude-opus-4-6
   2. glm/glm-4.7
-  3. if/kimi-k2-thinking
+  3. qoder/kimi-k2-thinking
 
 Monthly cost: $20 + small backup spend
 Outcome: higher quality, near-zero interruption
@@ -721,7 +721,7 @@ Outcome: higher quality, near-zero interruption
 ```txt
 Combo: "free-forever"
   1. gc/gemini-3-flash
-  2. if/kimi-k2-thinking
+  2. qoder/kimi-k2-thinking
   3. qw/qwen3-coder-plus
 
 Monthly cost: $0
@@ -736,7 +736,7 @@ Combo: "always-on"
   2. cx/gpt-5.2-codex
   3. glm/glm-4.7
   4. minimax/MiniMax-M2.1
-  5. if/kimi-k2-thinking
+  5. qoder/kimi-k2-thinking
 
 Outcome: deep fallback depth for deadline-critical workloads
 ```
@@ -814,7 +814,7 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 ```txt
 Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
-Model:    if/kimi-k2-thinking (or any provider/model prefix)
+Model:    qoder/kimi-k2-thinking (or any provider/model prefix)
 ```
 
 Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
@@ -1133,7 +1133,7 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (qoder/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -1163,15 +1163,19 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
 | `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
 
-### 🟢 QODER MODELS (Free OAuth — No Credit Card)
+### 🟢 QODER MODELS (Free PAT Auth — No Credit Card)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| Model          | Prefix   | Limit         | Description            |
+| -------------- | -------- | ------------- | ---------------------- |
+| `auto`         | `qoder/` | **Unlimited** | Smart model selection  |
+| `ultimate`     | `qoder/` | **Unlimited** | Best quality           |
+| `performance`  | `qoder/` | **Unlimited** | High performance       |
+| `lite`         | `qoder/` | **Unlimited** | Free tier (default)    |
+| `qmodel`       | `qoder/` | **Unlimited** | Qwen-Max               |
+| `q35model`     | `qoder/` | **Unlimited** | Qwen3.5-Plus           |
+| `gmodel`       | `qoder/` | **Unlimited** | GLM-5                  |
+| `kmodel`       | `qoder/` | **Unlimited** | Kimi-K2.5              |
+| `mmodel`       | `qoder/` | **Unlimited** | MiniMax-M2.7           |
 
 ### 🟡 QWEN MODELS (Device Code Auth)
 
@@ -1262,7 +1266,7 @@ Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-in
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (qoder/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1440,7 +1444,7 @@ Combo: "my-coding-stack"
   1. cc/claude-opus-4-6
   2. nvidia/llama-3.3-70b
   3. glm/glm-4.7
-  4. if/kimi-k2-thinking
+  4. qoder/kimi-k2-thinking
 ```
 
 When quota, rate, or health fails, OmniRoute automatically moves to the next candidate without manual switching.
@@ -1731,15 +1735,14 @@ Models:
 
 ```bash
 Dashboard → Connect Qoder
-→ Qoder OAuth login (or paste PAT for API key auth)
+→ Paste your Qoder Personal Access Token (PAT)
 → Unlimited usage
 
 Models:
-  if/kimi-k2-thinking
-  if/qwen3-coder-plus
-  if/glm-4.7
-  if/minimax-m2
-  if/deepseek-r1
+  qoder/auto (smart select)
+  qoder/ultimate (best quality)
+  qoder/performance
+  qoder/lite (free tier)
 ```
 
 **How it works:** OmniRoute spawns `qodercli -p "<prompt>" -f stream-json --quiet` internally and converts output to OpenAI-compatible responses. No reverse-engineering needed!
@@ -1793,7 +1796,7 @@ Use in CLI: premium-coding
 Name: free-combo
 Models:
   1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
+  2. qoder/kimi-k2-thinking (unlimited)
   3. qw/qwen3-coder-plus (unlimited)
 
 Cost: $0 forever!
@@ -1859,7 +1862,7 @@ Settings → API Configuration:
   Provider: OpenAI Compatible
   Base URL: http://localhost:20128/v1
   API Key: [from OmniRoute dashboard]
-  Model: if/kimi-k2-thinking
+  Model: qoder/kimi-k2-thinking
 ```
 
 ### OpenCode
@@ -1887,7 +1890,7 @@ opencode
       "models": {
         "cc/claude-sonnet-4-20250514": { "name": "Claude Sonnet 4" },
         "gg/gemini-2.5-pro": { "name": "Gemini 2.5 Pro" },
-        "if/kimi-k2-thinking": { "name": "Kimi K2 (Free)" }
+        "qoder/kimi-k2-thinking": { "name": "Kimi K2 (Free)" }
       }
     }
   }
@@ -1920,7 +1923,7 @@ opencode
 **Rate limiting**
 
 - Subscription quota out → Fallback to GLM/MiniMax
-- Add combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Add combo: `cc/claude-opus-4-6 → glm/glm-4.7 → qoder/kimi-k2-thinking`
 
 **OAuth token expired**
 
@@ -2270,3 +2273,4 @@ MIT License - see [LICENSE](LICENSE) for details.
   <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
+
