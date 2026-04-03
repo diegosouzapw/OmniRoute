@@ -206,7 +206,7 @@ jobs:
 
     steps:
       - name: Download i18n results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: results
 
