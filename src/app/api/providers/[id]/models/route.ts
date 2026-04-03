@@ -83,17 +83,26 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (2025-10-01)" },
   ],
   qoder: () => [
-    // Level-based models (only lite is FREE, rest require credits)
+    // FREE model (price_factor: 0)
     { id: "lite", name: "Lite (FREE)" },
-    { id: "auto", name: "Auto (Smart Select) [💳 Credits]" },
-    { id: "ultimate", name: "Ultimate (Best Quality) [💳 Credits]" },
-    { id: "performance", name: "Performance [💳 Credits]" },
-    { id: "efficient", name: "Efficient [💳 Credits]" },
-    // Named premium models (all require credits)
-    { id: "qwen3.6-plus", name: "Qwen 3.6 Plus [💳 Credits]" },
-    { id: "glm-5", name: "GLM-5 [💳 Credits]" },
-    { id: "kimi-k2.5", name: "Kimi K2.5 [💳 Credits]" },
-    { id: "minimax-m2.7", name: "MiniMax M2.7 [💳 Credits]" },
+    // Base level models (price_factor > 0, require credits)
+    { id: "auto", name: "Auto (Smart Select) [💳]" },
+    { id: "ultimate", name: "Ultimate (Best Quality) [💳]" },
+    { id: "performance", name: "Performance [💳]" },
+    { id: "efficient", name: "Efficient [💳]" },
+    // Named premium models (price_factor > 0, require credits)
+    { id: "qmodel", name: "Qwen3.6-Plus [💳]" },
+    { id: "gmodel", name: "GLM-5 [💳]" },
+    { id: "kmodel", name: "Kimi-K2.5 [💳]" },
+    { id: "mmodel", name: "MiniMax-M2.7 [💳]" },
+    // Experts models (require credits)
+    { id: "experts-auto", name: "Experts Auto [💳]" },
+    { id: "experts-ultimate", name: "Experts Ultimate [💳]" },
+    // Other specialized models (require credits)
+    { id: "nap-auto", name: "NAP Auto [💳]" },
+    { id: "quest-auto", name: "Quest Auto [💳]" },
+    { id: "qwork-auto", name: "Qwork Standard [💳]" },
+    { id: "qwork-ultimate", name: "Qwork Premium [💳]" },
   ],
   perplexity: () => [
     { id: "sonar", name: "Sonar (Fast Search)" },

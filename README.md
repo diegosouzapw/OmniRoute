@@ -1166,17 +1166,23 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ### 🟢 QODER MODELS (PAT Auth — Only "lite" is FREE)
 
-| Model          | Prefix   | Cost           | Description                   |
-| -------------- | -------- | -------------- | ----------------------------- |
-| `lite`         | `qoder/` | **FREE**       | Free tier (no credits needed) |
-| `auto`         | `qoder/` | **💳 Credits** | Smart model selection         |
-| `ultimate`     | `qoder/` | **💳 Credits** | Best quality                  |
-| `performance`  | `qoder/` | **💳 Credits** | High performance              |
-| `efficient`    | `qoder/` | **💳 Credits** | Efficient tier                |
-| `qwen3.6-plus` | `qoder/` | **💳 Credits** | Qwen 3.6 Plus                 |
-| `glm-5`        | `qoder/` | **💳 Credits** | GLM-5                         |
-| `kimi-k2.5`    | `qoder/` | **💳 Credits** | Kimi K2.5                     |
-| `minimax-m2.7` | `qoder/` | **💳 Credits** | MiniMax M2.7                  |
+| Model              | Prefix   | Cost           | Description                      |
+| ------------------ | -------- | -------------- | -------------------------------- |
+| `lite`             | `qoder/` | **FREE**       | Free tier (no credits needed)    |
+| `auto`             | `qoder/` | **💳 Credits** | Smart model selection            |
+| `ultimate`         | `qoder/` | **💳 Credits** | Best quality (reasoning capable) |
+| `performance`      | `qoder/` | **💳 Credits** | High performance                 |
+| `efficient`        | `qoder/` | **💳 Credits** | Efficient tier                   |
+| `qmodel`           | `qoder/` | **💳 Credits** | Qwen3.6-Plus                     |
+| `gmodel`           | `qoder/` | **💳 Credits** | GLM-5                            |
+| `kmodel`           | `qoder/` | **💳 Credits** | Kimi-K2.5                        |
+| `mmodel`           | `qoder/` | **💳 Credits** | MiniMax-M2.7                     |
+| `experts-auto`     | `qoder/` | **💳 Credits** | Experts Auto (reasoning capable) |
+| `experts-ultimate` | `qoder/` | **💳 Credits** | Experts Ultimate                 |
+| `nap-auto`         | `qoder/` | **💳 Credits** | NAP Auto                         |
+| `quest-auto`       | `qoder/` | **💳 Credits** | Quest Auto (reasoning capable)   |
+| `qwork-auto`       | `qoder/` | **💳 Credits** | Qwork Standard                   |
+| `qwork-ultimate`   | `qoder/` | **💳 Credits** | Qwork Premium                    |
 
 ### 🟡 QWEN MODELS (Device Code Auth)
 
@@ -1730,7 +1736,7 @@ Models:
 <details>
 <summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
 
-### Qoder (1 FREE model + 8 premium models via subprocess)
+### Qoder (1 FREE model + 15 premium models via subprocess)
 
 **Requirements:** `@qoder-ai/qodercli@0.1.37` (bundled in Docker `cli` profile, or install globally with `npm install -g @qoder-ai/qodercli`)
 
@@ -1738,18 +1744,17 @@ Models:
 Dashboard → Connect Qoder
 → Paste your Qoder Personal Access Token (PAT)
 → FREE: qoder/lite (no credits needed)
-→ PREMIUM: auto, ultimate, performance, efficient, qwen3.6-plus, glm-5, kimi-k2.5, minimax-m2.7 (require credits)
+→ PREMIUM: auto, ultimate, performance, efficient, qmodel, gmodel, kmodel, mmodel,
+  experts-auto, experts-ultimate, nap-auto, quest-auto, qwork-auto, qwork-ultimate
+  (require credits)
 
 Models:
   qoder/lite (FREE — no credit card needed)
-  qoder/auto (credits required)
-  qoder/ultimate (credits required)
-  qoder/performance (credits required)
-  qoder/efficient (credits required)
-  qoder/qwen3.6-plus (credits required)
-  qoder/glm-5 (credits required)
-  qoder/kimi-k2.5 (credits required)
-  qoder/minimax-m2.7 (credits required)
+  qoder/auto, qoder/ultimate, qoder/performance, qoder/efficient (credits required)
+  qoder/qmodel, qoder/gmodel, qoder/kmodel, qoder/mmodel (credits required)
+  qoder/experts-auto, qoder/experts-ultimate (credits required)
+  qoder/nap-auto, qoder/quest-auto (credits required)
+  qoder/qwork-auto, qoder/qwork-ultimate (credits required)
 ```
 
 **How it works:** OmniRoute spawns `qodercli -p "<prompt>" -f stream-json --quiet` internally and converts output to OpenAI-compatible responses. No reverse-engineering needed!

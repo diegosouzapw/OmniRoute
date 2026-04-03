@@ -76,23 +76,32 @@ function createAbortError(): Error {
  */
 
 /**
- * Valid qodercli model IDs as of @qoder-ai/qodercli@0.1.37.
- * Qoder uses two types:
- * 1. Level-based: auto, ultimate, performance, efficient, lite (only lite is FREE)
- * 2. Named models: qwen3.6-plus, glm-5, kimi-k2.5, minimax-m2.7 (all require credits)
+ * Valid qodercli model IDs from ~/.qoder/.auth/models.
+ * Only "lite" is free (price_factor: 0), all others require credits.
+ * Source: actual qodercli installation models file.
  */
 const VALID_QODER_MODELS = new Set([
-  // Level-based (only lite is free, rest require credits)
+  // Base models (assistant/chat/inline)
   "auto",
   "ultimate",
   "performance",
   "efficient",
-  "lite",
-  // Named premium models (all require credits)
-  "qwen3.6-plus",
-  "glm-5",
-  "kimi-k2.5",
-  "minimax-m2.7",
+  "lite", // Only this one is FREE (price_factor: 0)
+  // Named premium models
+  "qmodel", // Qwen3.6-Plus (price_factor: 0.2)
+  "gmodel", // GLM-5 (price_factor: 0.5)
+  "kmodel", // Kimi-K2.5 (price_factor: 0.3)
+  "mmodel", // MiniMax-M2.7 (price_factor: 0.2)
+  // Experts models
+  "experts-auto",
+  "experts-ultimate",
+  // NAP models
+  "nap-auto",
+  // Quest models
+  "quest-auto",
+  // Qwork models
+  "qwork-auto",
+  "qwork-ultimate",
 ]);
 
 function resolveModel(requestedModel: string | undefined): string {
