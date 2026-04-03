@@ -1,11 +1,16 @@
 /**
  * Unit tests for MCP Essential Tools (Phase 1)
  *
- * Tests all 8 essential tool handlers via the tool handler functions.
+ * Tests all 9 essential tool handlers via the tool handler functions.
+ * The omniroute_web_search tests use InMemoryTransport + Client to exercise
+ * the actual registered handler (not mockFetch directly).
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { MCP_ESSENTIAL_TOOLS } from "../schemas/tools";
+import { createMcpServer } from "../server";
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -17,7 +22,7 @@ describe("MCP Essential Tools", () => {
   });
 
   describe("Tool schema validation", () => {
-    it("should have exactly 9 essential tools", () => {
+    it("should have exactly 9 essential tools (includes web_search)", () => {
       const schemas = MCP_ESSENTIAL_TOOLS;
       expect(schemas).toHaveLength(9);
     });
@@ -136,77 +141,157 @@ describe("MCP Essential Tools", () => {
       expect(data).toHaveProperty("requestCount");
     });
   });
+});
 
-  describe("web_search handler", () => {
-    it("should return search results when API is available", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: "search-123",
-          provider: "serper",
-          query: "typescript best practices",
-          results: [
-            {
-              title: "TypeScript Best Practices 2024",
-              url: "https://example.com/ts-best",
-              display_url: "https://example.com/ts-best",
-              snippet: "Best practices for TypeScript development...",
-              position: 1,
-            },
-            {
-              title: "Advanced TypeScript Patterns",
-              url: "https://example.com/ts-advanced",
-              snippet: "Advanced patterns and techniques...",
-              position: 2,
-            },
-          ],
-          cached: false,
-          usage: { queries_used: 1, search_cost_usd: 0.002 },
-        }),
-      });
+// ── omniroute_web_search: handler dispatch tests ──────────────────────────────
+// These tests use InMemoryTransport + Client to exercise the actual registered
+// handler (not mockFetch directly), ensuring real handler coverage.
 
-      const response = await mockFetch(
-        "http://localhost:20128/v1/search?query=typescript%20best%20practices&max_results=5"
-      );
-      const data = await response.json();
-      expect(data.results).toHaveLength(2);
-      expect(data.results[0].title).toBe("TypeScript Best Practices 2024");
-      expect(data.provider).toBe("serper");
+vi.mock("../audit.ts", () => ({
+  logToolCall: vi.fn().mockResolvedValue(undefined),
+}));
+
+describe("omniroute_web_search handler (via MCP dispatch)", () => {
+  let client: Client;
+
+  beforeEach(async () => {
+    mockFetch.mockReset();
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createMcpServer();
+    await server.connect(serverTransport);
+    client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+  });
+
+  afterEach(async () => {
+    await client.close();
+  });
+
+  it("should appear in tools/list after registration", async () => {
+    const { tools } = await client.listTools();
+    const webSearch = tools.find((t) => t.name === "omniroute_web_search");
+    expect(webSearch).toBeDefined();
+    expect(webSearch?.description).toContain("web search");
+  });
+
+  it("should return search results on success", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "search-123",
+        provider: "serper-search",
+        query: "typescript best practices",
+        results: [
+          {
+            title: "TypeScript Best Practices 2024",
+            url: "https://example.com/ts-best",
+            display_url: "https://example.com/ts-best",
+            snippet: "Best practices for TypeScript development...",
+            position: 1,
+          },
+        ],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0.002 },
+      }),
     });
 
-    it("should handle API failure gracefully", async () => {
-      mockFetch.mockRejectedValueOnce(new Error("Search service unavailable"));
-
-      await expect(mockFetch("http://localhost:20128/v1/search?query=test")).rejects.toThrow(
-        "Search service unavailable"
-      );
+    const result = await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "typescript best practices" },
     });
 
-    it("should pass correct parameters to /v1/search", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: "search-456",
-          provider: "brave",
-          query: "react hooks tutorial",
-          results: [],
-          cached: false,
-          usage: { queries_used: 1, search_cost_usd: 0.003 },
-        }),
-      });
+    expect(result.isError).toBeFalsy();
+    const content = result.content[0] as { type: string; text: string };
+    const data = JSON.parse(content.text);
+    expect(data.results).toHaveLength(1);
+    expect(data.results[0].title).toBe("TypeScript Best Practices 2024");
+    expect(data.provider).toBe("serper-search");
+  });
 
-      const query = "react hooks tutorial";
-      const response = await mockFetch(
-        `http://localhost:20128/v1/search?query=${encodeURIComponent(query)}&max_results=10&search_type=news&provider=brave`
-      );
-      const data = await response.json();
-
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/v1/search"));
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("query=react%20hooks%20tutorial")
-      );
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("max_results=10"));
-      expect(data.provider).toBe("brave");
+  it("should POST to /v1/search with correct body fields", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "s1",
+        provider: "brave-search",
+        query: "react hooks tutorial",
+        results: [],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0.003 },
+      }),
     });
+
+    await client.callTool({
+      name: "omniroute_web_search",
+      arguments: {
+        query: "react hooks tutorial",
+        max_results: 10,
+        search_type: "news",
+        provider: "brave-search",
+      },
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/v1/search"),
+      expect.objectContaining({ method: "POST" })
+    );
+    const [, options] = mockFetch.mock.calls[0];
+    const body = JSON.parse(options.body as string);
+    expect(body.query).toBe("react hooks tutorial");
+    expect(body.max_results).toBe(10);
+    expect(body.search_type).toBe("news");
+    expect(body.provider).toBe("brave-search");
+  });
+
+  it("should omit provider from POST body when not specified", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "s2",
+        provider: "serper-search",
+        query: "test query",
+        results: [],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0 },
+      }),
+    });
+
+    await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "test query" },
+    });
+
+    const [, options] = mockFetch.mock.calls[0];
+    const body = JSON.parse(options.body as string);
+    expect(body).not.toHaveProperty("provider");
+  });
+
+  it("should return isError on backend non-OK response", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: async () => "Internal server error",
+    });
+
+    const result = await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "test" },
+    });
+
+    expect(result.isError).toBe(true);
+    const content = result.content[0] as { type: string; text: string };
+    expect(content.text).toContain("Error");
+  });
+
+  it("should return isError on fetch abort/timeout", async () => {
+    mockFetch.mockRejectedValueOnce(new DOMException("signal timed out", "TimeoutError"));
+
+    const result = await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "test" },
+    });
+
+    expect(result.isError).toBe(true);
   });
 });

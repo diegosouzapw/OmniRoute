@@ -399,7 +399,7 @@ export const webSearchInput = z.object({
   query: z
     .string()
     .min(1, "Query is required")
-    .max(1000, "Query must be 1000 characters or fewer")
+    .max(500, "Query must be 500 characters or fewer")
     .describe("The search query string"),
   max_results: z
     .number()
@@ -410,9 +410,9 @@ export const webSearchInput = z.object({
     .describe("Maximum number of search results to return"),
   search_type: z.enum(["web", "news"]).default("web").describe("Type of search to perform"),
   provider: z
-    .string()
+    .enum(["serper-search", "brave-search", "perplexity-search", "exa-search", "tavily-search"])
     .optional()
-    .describe("Specific search provider to use (serper, brave, perplexity, exa, tavily)"),
+    .describe("Specific search provider to use"),
 });
 
 export const webSearchOutput = z.object({
