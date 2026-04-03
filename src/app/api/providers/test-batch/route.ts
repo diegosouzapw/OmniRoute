@@ -65,7 +65,10 @@ export async function POST(request) {
     if (mode === "provider" && providerId) {
       connectionsToTest = allConnections.filter((c) => c.provider === providerId);
     } else if (mode === "oauth") {
-      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "oauth");
+      connectionsToTest = allConnections.filter((c) => {
+        const authGroup = getAuthGroup(c.provider);
+        return authGroup === "oauth" || authGroup === "free";
+      });
     } else if (mode === "free") {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "free");
     } else if (mode === "apikey") {

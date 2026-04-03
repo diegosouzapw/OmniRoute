@@ -1490,6 +1490,7 @@
     "failedCreate": "Nu s-a putut crea furnizorul",
     "errorOccurred": "A apărut o eroare. Vă rugăm să încercați din nou.",
     "modelStatus": "Stare model",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Toate modelele sunt operaționale",
     "modelsWithIssues": "{count} model(e) cu probleme",
     "allModelsNormal": "Toate modelele răspund normal.",

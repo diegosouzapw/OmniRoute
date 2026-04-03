@@ -1490,6 +1490,7 @@
     "failedCreate": "Gagal membuat pembekal",
     "errorOccurred": "Ralat berlaku. Sila cuba lagi.",
     "modelStatus": "Status Model",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Semua model beroperasi",
     "modelsWithIssues": "{count} model dengan isu",
     "allModelsNormal": "Semua model bertindak balas secara normal.",

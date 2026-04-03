@@ -1490,6 +1490,7 @@
     "failedCreate": "공급자를 생성하지 못했습니다.",
     "errorOccurred": "오류가 발생했습니다. 다시 시도해 주세요.",
     "modelStatus": "모델현황",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "모든 모델 작동 가능",
     "modelsWithIssues": "문제가 있는 {count} 모델",
     "allModelsNormal": "모든 모델이 정상적으로 반응하고 있습니다.",

@@ -1490,6 +1490,7 @@
     "failedCreate": "Неуспешно създаване на доставчик",
     "errorOccurred": "Възникна грешка. Моля, опитайте отново.",
     "modelStatus": "Статус на модела",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Всички модели работещи",
     "modelsWithIssues": "{count} модел(а) с проблеми",
     "allModelsNormal": "Всички модели реагират нормално.",

@@ -1490,6 +1490,7 @@
     "failedCreate": "Kunne ikke oprette udbyder",
     "errorOccurred": "Der opstod en fejl. Prøv venligst igen.",
     "modelStatus": "Modelstatus",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Alle modeller i drift",
     "modelsWithIssues": "{count} model(er) med problemer",
     "allModelsNormal": "Alle modeller reagerer normalt.",

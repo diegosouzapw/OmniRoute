@@ -1490,6 +1490,7 @@
     "failedCreate": "Poskytovateľa sa nepodarilo vytvoriť",
     "errorOccurred": "Vyskytla sa chyba. Skúste to znova.",
     "modelStatus": "Stav modelu",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Všetky modely funkčné",
     "modelsWithIssues": "{count} modelov s problémami",
     "allModelsNormal": "Všetky modely reagujú normálne.",

@@ -1490,6 +1490,7 @@
     "failedCreate": "Không tạo được nhà cung cấp",
     "errorOccurred": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "modelStatus": "Tình trạng mẫu",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Tất cả các mô hình hoạt động",
     "modelsWithIssues": "{count} mô hình có vấn đề",
     "allModelsNormal": "Tất cả các model đều phản hồi bình thường.",

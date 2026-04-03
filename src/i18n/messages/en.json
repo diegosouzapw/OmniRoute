@@ -1543,6 +1543,7 @@
     "failedCreate": "Failed to create provider",
     "errorOccurred": "An error occurred. Please try again.",
     "modelStatus": "Model Status",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "All models operational",
     "modelsWithIssues": "{count} model(s) with issues",
     "allModelsNormal": "All models are responding normally.",

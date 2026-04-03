@@ -1490,6 +1490,7 @@
     "failedCreate": "Impossibile creare il fornitore",
     "errorOccurred": "Si è verificato un errore. Per favore riprova.",
     "modelStatus": "Stato del modello",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Tutti i modelli operativi",
     "modelsWithIssues": "{count} modelli con problemi",
     "allModelsNormal": "Tutti i modelli rispondono normalmente.",

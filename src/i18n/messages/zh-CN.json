@@ -1490,6 +1490,7 @@
     "failedCreate": "创建提供商失败",
     "errorOccurred": "发生错误。请再试一次。",
     "modelStatus": "模型状态",
+    "showConfiguredOnly": "仅显示已配置",
     "allModelsOperational": "所有模型运行正常",
     "modelsWithIssues": "{count} 有问题的模型",
     "allModelsNormal": "所有模型当前响应正常。",

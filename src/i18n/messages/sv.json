@@ -1490,6 +1490,7 @@
     "failedCreate": "Det gick inte att skapa leverantör",
     "errorOccurred": "Ett fel uppstod. Försök igen.",
     "modelStatus": "Modellstatus",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Alla modeller i drift",
     "modelsWithIssues": "{count} modell(er) med problem",
     "allModelsNormal": "Alla modeller svarar normalt.",

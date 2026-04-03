@@ -1490,6 +1490,7 @@
     "failedCreate": "יצירת הספק נכשלה",
     "errorOccurred": "אירעה שגיאה. אנא נסה שוב.",
     "modelStatus": "סטטוס דגם",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "כל הדגמים מבצעיים",
     "modelsWithIssues": "{count} דגמים עם בעיות",
     "allModelsNormal": "כל הדגמים מגיבים כרגיל.",

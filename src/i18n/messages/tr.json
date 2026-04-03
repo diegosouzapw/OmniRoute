@@ -1490,6 +1490,7 @@
     "failedCreate": "Sağlayıcı oluşturulamadı",
     "errorOccurred": "Bir hata oluştu. Lütfen tekrar deneyin.",
     "modelStatus": "Model Durumu",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Tüm modeller çalışır durumda",
     "modelsWithIssues": "{count} modelde sorun var",
     "allModelsNormal": "Tüm modeller normal şekilde yanıt veriyor.",

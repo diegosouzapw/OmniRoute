@@ -1490,6 +1490,7 @@
     "failedCreate": "Nabigong gumawa ng provider",
     "errorOccurred": "May naganap na error. Pakisubukang muli.",
     "modelStatus": "Katayuan ng Modelo",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Ang lahat ng mga modelo ay gumagana",
     "modelsWithIssues": "{count} (mga) modelong may mga isyu",
     "allModelsNormal": "Ang lahat ng mga modelo ay tumutugon nang normal.",

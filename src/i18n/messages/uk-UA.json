@@ -1490,6 +1490,7 @@
     "failedCreate": "Не вдалося створити постачальника",
     "errorOccurred": "Сталася помилка. Спробуйте ще раз.",
     "modelStatus": "Статус моделі",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Всі моделі робочі",
     "modelsWithIssues": "{count} моделі з проблемами",
     "allModelsNormal": "Усі моделі реагують нормально.",

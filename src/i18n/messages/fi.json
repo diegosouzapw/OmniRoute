@@ -1490,6 +1490,7 @@
     "failedCreate": "Palveluntarjoajan luominen epäonnistui",
     "errorOccurred": "Tapahtui virhe. Yritä uudelleen.",
     "modelStatus": "Mallin tila",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Kaikki mallit toimivat",
     "modelsWithIssues": "{count} malli(t), joissa on ongelmia",
     "allModelsNormal": "Kaikki mallit reagoivat normaalisti.",

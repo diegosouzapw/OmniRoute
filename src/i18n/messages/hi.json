@@ -1490,6 +1490,7 @@
     "failedCreate": "प्रदाता बनाने में विफल",
     "errorOccurred": "एक त्रुटि हुई. कृपया पुन: प्रयास करें।",
     "modelStatus": "मॉडल स्थिति",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "सभी मॉडल क्रियाशील",
     "modelsWithIssues": "मुद्दों के साथ {count} मॉडल",
     "allModelsNormal": "सभी मॉडल सामान्य रूप से प्रतिक्रिया दे रहे हैं।",

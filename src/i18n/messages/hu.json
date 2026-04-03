@@ -1490,6 +1490,7 @@
     "failedCreate": "Nem sikerült létrehozni a szolgáltatót",
     "errorOccurred": "Hiba történt. Kérjük, próbálja újra.",
     "modelStatus": "Modell állapota",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Minden modell működőképes",
     "modelsWithIssues": "{count} problémákkal küzdő modell(ek).",
     "allModelsNormal": "Minden modell normálisan reagál.",

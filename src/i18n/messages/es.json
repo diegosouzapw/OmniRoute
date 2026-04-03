@@ -1490,6 +1490,7 @@
     "failedCreate": "No se pudo crear el proveedor",
     "errorOccurred": "Se produjo un error. Por favor inténtalo de nuevo.",
     "modelStatus": "Estado del modelo",
+    "showConfiguredOnly": "Configured only",
     "allModelsOperational": "Todos los modelos operativos.",
     "modelsWithIssues": "{count} modelo(s) con problemas",
     "allModelsNormal": "Todos los modelos están respondiendo normalmente.",
