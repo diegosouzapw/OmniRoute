@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { KiroService } from "@/lib/oauth/services/kiro";
-import { createProviderConnection, isCloudEnabled } from "@/models";
+import { createProviderConnection, isCloudEnabled, resolveProxyForProvider } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * POST /api/oauth/kiro/import
@@ -35,8 +36,13 @@ export async function POST(request: any) {
 
     const kiroService = new KiroService();
 
-    // Validate and refresh token
-    const tokenData = await kiroService.validateImportToken(refreshToken.trim());
+    // Resolve proxy for this provider (provider-level → global → direct)
+    const proxy = await resolveProxyForProvider("kiro");
+
+    // Validate and refresh token (through proxy if configured)
+    const tokenData = await runWithProxyContext(proxy, () =>
+      kiroService.validateImportToken(refreshToken.trim())
+    );
 
     // Extract email from JWT if available
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);

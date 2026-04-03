@@ -63,6 +63,10 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Initialize proxy fetch patch FIRST (before any HTTP requests)
+  await import("@omniroute/open-sse/index.ts");
+  console.log("[STARTUP] Global fetch proxy patch initialized");
+
   await ensureSecrets();
 
   // Trigger request-log layout migration during startup, before any request hits usageDb.

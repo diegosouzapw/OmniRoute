@@ -129,6 +129,7 @@ export {
   getProxyWhereUsed,
   assignProxyToScope,
   resolveProxyForConnectionFromRegistry,
+  resolveProxyForProvider,
   migrateLegacyProxyConfigToRegistry,
   getProxyHealthStats,
   bulkAssignProxyToScope,

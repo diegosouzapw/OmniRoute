@@ -6,8 +6,9 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
-import { getModelIsHidden } from "@/lib/localDb";
+import { getModelIsHidden, resolveProxyForProvider } from "@/lib/localDb";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -397,6 +398,9 @@ export async function GET(
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }
 
+    // Resolve proxy for this provider (provider-level → global → direct)
+    const proxy = await resolveProxyForProvider(provider);
+
     const buildResponse = (payload: any, statusConfig?: ResponseInit) => {
       if (excludeHidden && payload.models && Array.isArray(payload.models)) {
         payload.models = payload.models.filter((m: any) => !getModelIsHidden(provider, m.id));
@@ -440,14 +444,16 @@ export async function GET(
 
       for (const modelsUrl of uniqueEndpoints) {
         try {
-          const response = await fetch(modelsUrl, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            signal: AbortSignal.timeout(5000), // Quick timeout for fallbacks
-          });
+          const response = await runWithProxyContext(proxy, () =>
+            fetch(modelsUrl, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              signal: AbortSignal.timeout(5000), // Quick timeout for fallbacks
+            })
+          );
 
           if (response.ok) {
             const data = await response.json();
@@ -512,13 +518,15 @@ export async function GET(
       const url = GLM_MODELS_URLS[region];
       const token = apiKey || accessToken;
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const response = await runWithProxyContext(proxy, () =>
+        fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        })
+      );
 
       if (!response.ok) {
         return NextResponse.json(
@@ -554,9 +562,8 @@ export async function GET(
       }
 
       try {
-        const quotaRes = await fetch(
-          "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
-          {
+        const quotaRes = await runWithProxyContext(proxy, () =>
+          fetch("https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -564,7 +571,7 @@ export async function GET(
             },
             body: JSON.stringify({ project: projectId }),
             signal: AbortSignal.timeout(10000),
-          }
+          })
         );
 
         if (!quotaRes.ok) {
@@ -618,15 +625,17 @@ export async function GET(
 
       const url = `${baseUrl}/models`;
       const token = accessToken || apiKey;
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey ? { "x-api-key": apiKey } : {}),
-          "anthropic-version": "2023-06-01",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const response = await runWithProxyContext(proxy, () =>
+        fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(apiKey ? { "x-api-key": apiKey } : {}),
+            "anthropic-version": "2023-06-01",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        })
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -713,10 +722,12 @@ export async function GET(
 
     while (pageUrl && pageCount < MAX_PAGES) {
       pageCount++;
-      const response = await fetch(pageUrl, {
-        ...fetchOptions,
-        signal: AbortSignal.timeout(15_000),
-      });
+      const response = await runWithProxyContext(proxy, () =>
+        fetch(pageUrl, {
+          ...fetchOptions,
+          signal: AbortSignal.timeout(15_000),
+        })
+      );
 
       if (!response.ok) {
         const errorText = await response.text();

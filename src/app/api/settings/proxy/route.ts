@@ -4,6 +4,8 @@ import {
   getProxyForLevel,
   deleteProxyForLevel,
   resolveProxyForConnection,
+  getProxyAssignments,
+  getProxyById,
 } from "../../../../lib/localDb";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
@@ -130,7 +132,30 @@ export async function GET(request: Request) {
       return Response.json(result);
     }
 
-    // Get proxy for a specific level
+    // Get proxy for a specific level - check Proxy Registry first
+    if (level === "global") {
+      const assignments = await getProxyAssignments({ scope: "global" });
+      if (assignments.length > 0 && assignments[0].proxyId) {
+        const proxyData = await getProxyById(assignments[0].proxyId, { includeSecrets: true });
+        if (proxyData) {
+          return Response.json({
+            level: "global",
+            id: null,
+            proxy: {
+              type: proxyData.type,
+              host: proxyData.host,
+              port: proxyData.port,
+              username: proxyData.username,
+              password: proxyData.password,
+            },
+          });
+        }
+      }
+      // Fallback to old system
+      const proxy = await getProxyForLevel(level, id);
+      return Response.json({ level, id, proxy });
+    }
+
     if (level) {
       const proxy = await getProxyForLevel(level, id);
       return Response.json({ level, id, proxy });

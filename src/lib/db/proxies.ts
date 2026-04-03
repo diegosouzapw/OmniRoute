@@ -586,3 +586,48 @@ export async function bulkAssignProxyToScope(
 
   return { updated, failed };
 }
+
+/**
+ * Resolve proxy for a provider (without connection ID).
+ * Used during OAuth flow before connection is created.
+ * Priority: provider-level → global → null
+ */
+export async function resolveProxyForProvider(providerId: string) {
+  const db = getDbInstance();
+
+  // Check provider-level proxy
+  const providerAssignment = db
+    .prepare(
+      "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'provider' AND a.scope_id = ? LIMIT 1"
+    )
+    .get(providerId);
+  if (providerAssignment) {
+    const record = toRecord(providerAssignment);
+    return {
+      type: record.type,
+      host: record.host,
+      port: record.port,
+      username: record.username,
+      password: record.password,
+    };
+  }
+
+  // Check global proxy
+  const globalAssignment = db
+    .prepare(
+      "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
+    )
+    .get();
+  if (globalAssignment) {
+    const record = toRecord(globalAssignment);
+    return {
+      type: record.type,
+      host: record.host,
+      port: record.port,
+      username: record.username,
+      password: record.password,
+    };
+  }
+
+  return null;
+}

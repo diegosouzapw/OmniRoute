@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { CursorService } from "@/lib/oauth/services/cursor";
-import { createProviderConnection, isCloudEnabled } from "@/models";
+import { createProviderConnection, isCloudEnabled, resolveProxyForProvider } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { cursorImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * POST /api/oauth/cursor/import
@@ -39,8 +40,13 @@ export async function POST(request: any) {
 
     const cursorService = new CursorService();
 
-    // Validate token by making API call
-    const tokenData = await cursorService.validateImportToken(accessToken.trim(), machineId.trim());
+    // Resolve proxy for this provider (provider-level → global → direct)
+    const proxy = await resolveProxyForProvider("cursor");
+
+    // Validate token by making API call (through proxy if configured)
+    const tokenData = await runWithProxyContext(proxy, () =>
+      cursorService.validateImportToken(accessToken.trim(), machineId.trim())
+    );
 
     // Try to extract user info from token
     const userInfo = cursorService.extractUserInfo(tokenData.accessToken);
