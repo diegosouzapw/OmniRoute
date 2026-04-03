@@ -6,7 +6,7 @@ import { MemoryType } from "./types";
  */
 export const MemoryConfigSchema = z.object({
   enabled: z.boolean(),
-  maxTokens: z.number().int().positive(),
+  maxTokens: z.number().int().nonnegative(),
   retrievalStrategy: z.enum(["exact", "semantic", "hybrid"]).optional(),
   autoSummarize: z.boolean(),
   persistAcrossModels: z.boolean(),

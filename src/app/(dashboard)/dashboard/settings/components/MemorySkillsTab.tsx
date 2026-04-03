@@ -33,15 +33,16 @@ export default function MemorySkillsTab() {
 
   useEffect(() => {
     fetch("/api/settings/memory")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        setConfig(data);
-        setLoading(false);
+        if (data) setConfig(data);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const save = async (updates: Partial<MemoryConfig>) => {
+    const previousConfig = config;
     const newConfig = { ...config, ...updates };
     setConfig(newConfig);
     setSaving(true);
@@ -53,12 +54,16 @@ export default function MemorySkillsTab() {
         body: JSON.stringify(newConfig),
       });
       if (res.ok) {
+        const savedConfig = await res.json().catch(() => newConfig);
+        setConfig(savedConfig);
         setStatus("saved");
         setTimeout(() => setStatus(""), 2000);
       } else {
+        setConfig(previousConfig);
         setStatus("error");
       }
     } catch {
+      setConfig(previousConfig);
       setStatus("error");
     } finally {
       setSaving(false);
@@ -243,8 +248,6 @@ export default function MemorySkillsTab() {
             />
           </button>
         </div>
-
-        <p className="text-xs text-text-muted mt-3">{t("skillsComingSoon")}</p>
       </Card>
     </div>
   );

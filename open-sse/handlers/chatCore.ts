@@ -100,6 +100,11 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import {
+  DEFAULT_MEMORY_SETTINGS,
+  getMemorySettings,
+  toMemoryRetrievalConfig,
+} from "@/lib/memory/settings";
+import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
@@ -714,9 +719,22 @@ export async function handleChatCore({
     });
   }
 
-  if (apiKeyInfo?.id && shouldInjectMemory(body as Parameters<typeof shouldInjectMemory>[0])) {
+  const memorySettings = apiKeyInfo?.id
+    ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
+    : null;
+
+  if (
+    apiKeyInfo?.id &&
+    memorySettings &&
+    shouldInjectMemory(body as Parameters<typeof shouldInjectMemory>[0], {
+      enabled: memorySettings.enabled && memorySettings.maxTokens > 0,
+    })
+  ) {
     try {
-      const memories = await retrieveMemories(apiKeyInfo.id);
+      const memories = await retrieveMemories(
+        apiKeyInfo.id,
+        toMemoryRetrievalConfig(memorySettings)
+      );
       if (memories.length > 0) {
         const injected = injectMemory(
           body as Parameters<typeof injectMemory>[0],

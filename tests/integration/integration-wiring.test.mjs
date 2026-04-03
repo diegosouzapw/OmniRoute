@@ -279,9 +279,11 @@ describe("Page Integration — settings page wiring", () => {
 describe("Page Integration — cache page wiring", () => {
   const src = readProjectFile("src/app/(dashboard)/dashboard/cache/page.tsx");
 
-  it("should include cache stats card for prompt cache metrics", () => {
+  it("should consolidate prompt cache metrics directly into cache management", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/cache/page.tsx should exist");
-    assert.match(src, /CacheStatsCard/);
+    assert.doesNotMatch(src, /CacheStatsCard/);
+    assert.match(src, /promptCacheReuseRatio/);
+    assert.match(src, /strategyEntries/);
   });
 });
 

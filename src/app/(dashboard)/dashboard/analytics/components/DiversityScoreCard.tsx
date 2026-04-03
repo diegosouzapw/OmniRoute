@@ -2,29 +2,55 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/shared/components";
-import { useTranslations } from "next-intl";
+
+interface DiversityProviderStat {
+  share: number;
+}
+
+interface DiversityReport {
+  score: number;
+  providers: Record<string, DiversityProviderStat>;
+  windowSize: number;
+  ttlMs: number;
+}
 
 export default function DiversityScoreCard() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DiversityReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const t = useTranslations("analytics");
 
   useEffect(() => {
-    fetch("/api/analytics/diversity")
-      .then((res) => res.json())
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+    let cancelled = false;
+
+    async function loadDiversity() {
+      try {
+        const res = await fetch("/api/analytics/diversity");
+        if (!res.ok) {
+          throw new Error(`Failed to fetch diversity analytics: ${res.status}`);
+        }
+
+        const json = (await res.json()) as DiversityReport;
+        if (!cancelled) {
+          setData(json);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadDiversity();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading || !data) {
     return (
-      <Card className="p-5 flex flex-col justify-center items-center h-full min-h-[200px]">
+      <Card className="p-5 flex flex-col justify-center items-center min-h-[220px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </Card>
     );
@@ -47,40 +73,43 @@ export default function DiversityScoreCard() {
   }
 
   return (
-    <Card className="p-5 flex flex-col h-full bg-[var(--card-bg,#1e1e2e)] relative overflow-hidden group">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="material-symbols-outlined text-[20px] text-cyan-400">pie_chart</span>
-        <h3 className="font-semibold text-[var(--text-primary,#fff)] flex-1">
-          Provider Diversity Score
-        </h3>
+    <Card className="p-5 flex flex-col gap-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
+            <h3 className="font-semibold text-text-main">Provider Diversity</h3>
+          </div>
+          <p className="text-sm text-text-muted mt-1">
+            Provider concentration snapshot for the recent traffic window.
+          </p>
+        </div>
         <span
-          className={`text-xs px-2 py-0.5 rounded-md border ${gaugeColor.replace("bg-", "border-").replace("500", "500/20")} ${gaugeColor.replace("500", "500/10")} ${riskColor}`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+            scorePercentage < 40
+              ? "bg-red-500/10 text-red-500"
+              : scorePercentage < 70
+                ? "bg-amber-500/10 text-amber-500"
+                : "bg-green-500/10 text-green-500"
+          }`}
         >
-          Shannon Entropy
+          Shannon entropy
         </span>
       </div>
 
-      <div className="flex items-center justify-between mt-2 mb-6">
-        <div className="flex flex-col">
-          <span className={`text-4xl font-bold tabular-nums tracking-tight ${riskColor}`}>
-            {scorePercentage}%
-          </span>
-          <span className="text-sm text-[var(--text-muted,#aaaaaa)] mt-1">{riskLabel}</span>
-        </div>
-
-        {/* Simple CSS Donut */}
-        <div className="relative w-20 h-20 flex-shrink-0">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+      <div className="grid gap-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center">
+        <div className="relative mx-auto h-28 w-28">
+          <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
             <path
-              className="text-[var(--border,#333)]"
-              strokeWidth="4"
+              className="text-border/70"
+              strokeWidth="3.5"
               stroke="currentColor"
               fill="none"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
               className={riskColor}
-              strokeWidth="4"
+              strokeWidth="3.5"
               strokeDasharray={`${scorePercentage}, 100`}
               stroke="currentColor"
               fill="none"
@@ -88,48 +117,58 @@ export default function DiversityScoreCard() {
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
           </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className={`text-2xl font-semibold tabular-nums ${riskColor}`}>
+              {scorePercentage}%
+            </span>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-text-muted">score</span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border/30 bg-surface/20 px-4 py-3">
+            <div className={`text-sm font-medium ${riskColor}`}>{riskLabel}</div>
+            <div className="text-xs text-text-muted mt-1">
+              Higher values indicate traffic is spread across multiple providers instead of
+              clustering on one vendor.
+            </div>
+          </div>
+
+          {Object.keys(data.providers || {}).length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border/50 px-4 py-5 text-sm text-text-muted">
+              No recent usage data available.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {Object.entries(data.providers)
+                .sort(([, a], [, b]) => b.share - a.share)
+                .slice(0, 4)
+                .map(([provider, stat]) => (
+                  <div key={provider} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="font-medium text-text-main capitalize">{provider}</span>
+                      <span className="tabular-nums text-text-muted">
+                        {Math.round(stat.share * 100)}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-surface/50 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${gaugeColor}`}
+                        style={{ width: `${Math.round(stat.share * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="space-y-4 flex-1">
-        <p className="text-xs uppercase tracking-wider font-semibold text-[var(--text-muted,#888)]">
-          Provider Share
-        </p>
-
-        {Object.keys(data.providers || {}).length === 0 ? (
-          <div className="text-sm text-[var(--text-secondary,#666)] py-2">
-            No recent usage data available.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {Object.entries(data.providers)
-              .sort(([, a]: any, [, b]: any) => b.share - a.share)
-              .slice(0, 4) // Top 4 providers
-              .map(([provider, stat]: [string, any]) => (
-                <div key={provider} className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-[var(--text-primary,#ddd)] capitalize">
-                      {provider}
-                    </span>
-                    <span className="font-mono text-[var(--text-muted,#aaa)]">
-                      {Math.round(stat.share * 100)}%
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 bg-[var(--surface,#333)] rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${gaugeColor} rounded-full`}
-                      style={{ width: `${Math.round(stat.share * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-[var(--border,#333)] flex justify-between text-[11px] text-[var(--text-muted,#777)]">
-        <span>Window: {data.windowSize} reqs</span>
-        <span>Based on Last {Math.round(data.ttlMs / 60000)} mins</span>
+      <div className="grid grid-cols-2 gap-3 border-t border-border/30 pt-4 text-xs text-text-muted">
+        <div className="rounded-lg bg-surface/20 px-3 py-2">Window: {data.windowSize} reqs</div>
+        <div className="rounded-lg bg-surface/20 px-3 py-2 text-right">
+          Based on last {Math.round(data.ttlMs / 60000)} mins
+        </div>
       </div>
     </Card>
   );

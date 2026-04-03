@@ -45,13 +45,11 @@ export default function AnalyticsPage() {
       />
 
       {activeTab === "overview" && (
-        <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <DiversityScoreCard />
-          </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
           <Suspense fallback={<CardSkeleton />}>
             <UsageAnalytics />
           </Suspense>
+          <DiversityScoreCard />
         </div>
       )}
       {activeTab === "evals" && <EvalsTab />}
