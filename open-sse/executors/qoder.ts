@@ -1,4 +1,4 @@
- // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-ignore — node:child_process available at runtime in Next.js server context
 import { spawn, type ChildProcess } from "node:child_process";
 import { BaseExecutor } from "./base.ts";
@@ -70,56 +70,35 @@ function createAbortError(): Error {
 }
 
 /**
- * Model alias mapping: OpenAI model names → qodercli --model values.
- * Based on battle-tested qoder-proxy implementation.
+ * Qoder does NOT support model name aliases like OpenAI or Anthropic.
+ * Users must specify exact qodercli model names.
+ * No mapping needed — pass model ID directly to qodercli.
  */
-const MODEL_ALIAS_MAP: Record<string, string> = {
-  // GPT-4 class → auto tier
-  "gpt-4": "auto",
-  "gpt-4-turbo": "auto",
-  "gpt-4o": "auto",
-  o1: "ultimate",
-  "o1-mini": "performance",
-  "o3-mini": "performance",
-  // Lightweight → lite
-  "gpt-4o-mini": "lite",
-  "gpt-3.5-turbo": "lite",
-  // Claude aliases
-  "claude-3-opus": "ultimate",
-  "claude-3-sonnet": "performance",
-  "claude-3-haiku": "lite",
-  "claude-3.5-sonnet": "auto",
-  "claude-3.5-haiku": "efficient",
-  "claude-3.7-sonnet": "auto",
-  // Gemini aliases
-  "gemini-pro": "performance",
-  "gemini-flash": "efficient",
-  // Friendly names for "new model" tier
-  qwen: "qmodel",
-  "qwen-3.5": "q35model",
-  glm: "gmodel",
-  kimi: "kmodel",
-  minimax: "mmodel",
-};
 
-/** Valid qodercli model IDs */
+/**
+ * Valid qodercli model IDs as of @qoder-ai/qodercli@0.1.37.
+ * Qoder uses two types:
+ * 1. Level-based: auto, ultimate, performance, efficient, lite (only lite is FREE)
+ * 2. Named models: qwen3.6-plus, glm-5, kimi-k2.5, minimax-m2.7 (all require credits)
+ */
 const VALID_QODER_MODELS = new Set([
+  // Level-based (only lite is free, rest require credits)
   "auto",
   "ultimate",
   "performance",
-  "qmodel",
-  "q35model",
-  "lite",
   "efficient",
-  "gmodel",
-  "kmodel",
-  "mmodel",
+  "lite",
+  // Named premium models (all require credits)
+  "qwen3.6-plus",
+  "glm-5",
+  "kimi-k2.5",
+  "minimax-m2.7",
 ]);
 
 function resolveModel(requestedModel: string | undefined): string {
-  if (!requestedModel) return "lite";
-  if (VALID_QODER_MODELS.has(requestedModel)) return requestedModel;
-  return MODEL_ALIAS_MAP[requestedModel] ?? requestedModel;
+  if (!requestedModel) return "lite"; // Default to free tier
+  // No alias mapping — Qoder doesn't support OpenAI/Anthropic model name compatibility
+  return VALID_QODER_MODELS.has(requestedModel) ? requestedModel : "lite";
 }
 
 function extractTextContent(content: string | Array<{ type: string; text?: string }>): string {
@@ -185,7 +164,7 @@ function mapFinishReason(reason: string | undefined): string {
  * Spawn qodercli with proper cross-platform support.
  * Windows: uses cmd.exe /c qodercli.cmd for .cmd resolution (shell: false).
  * Linux/macOS: spawns qodercli directly.
- * 
+ *
  * For long prompts, uses stdin piping to avoid command-line length limits.
  * Based on battle-tested qoder-proxy implementation.
  */
@@ -194,7 +173,7 @@ function spawnQoderCli(
   env: Record<string, string | undefined>,
   stdinPrompt?: string
 ): ChildProcess {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore — process global available at runtime in Node.js
   const isWindows = process.platform === "win32";
 
@@ -307,7 +286,7 @@ export class QoderExecutor extends BaseExecutor {
       };
     }
 
-    // Resolve model alias (gpt-4 → auto, etc.)
+    // Resolve model (defaults to lite if invalid)
     const resolvedModel = resolveModel(model);
 
     // Build qodercli args — use stdin for long prompts to avoid E2BIG
@@ -331,7 +310,7 @@ export class QoderExecutor extends BaseExecutor {
     }
 
     // Merge PAT into child process env
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+     
     // @ts-ignore — process global available at runtime in Node.js
     const spawnEnv: Record<string, string | undefined> = { ...process.env };
     if (pat) {

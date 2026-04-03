@@ -1010,6 +1010,7 @@ docker compose --profile cli up -d
 ```
 
 > **Note:** The `cli` profile includes `@qoder-ai/qodercli@0.1.37` required for Qoder AI provider support. If using the `base` profile, install it manually inside the container:
+>
 > ```bash
 > docker exec omniroute npm install -g @qoder-ai/qodercli@0.1.37
 > ```
@@ -1163,19 +1164,19 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
 | `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
 
-### 🟢 QODER MODELS (Free PAT Auth — No Credit Card)
+### 🟢 QODER MODELS (PAT Auth — Only "lite" is FREE)
 
-| Model          | Prefix   | Limit         | Description            |
-| -------------- | -------- | ------------- | ---------------------- |
-| `auto`         | `qoder/` | **Unlimited** | Smart model selection  |
-| `ultimate`     | `qoder/` | **Unlimited** | Best quality           |
-| `performance`  | `qoder/` | **Unlimited** | High performance       |
-| `lite`         | `qoder/` | **Unlimited** | Free tier (default)    |
-| `qmodel`       | `qoder/` | **Unlimited** | Qwen-Max               |
-| `q35model`     | `qoder/` | **Unlimited** | Qwen3.5-Plus           |
-| `gmodel`       | `qoder/` | **Unlimited** | GLM-5                  |
-| `kmodel`       | `qoder/` | **Unlimited** | Kimi-K2.5              |
-| `mmodel`       | `qoder/` | **Unlimited** | MiniMax-M2.7           |
+| Model          | Prefix   | Cost           | Description                   |
+| -------------- | -------- | -------------- | ----------------------------- |
+| `lite`         | `qoder/` | **FREE**       | Free tier (no credits needed) |
+| `auto`         | `qoder/` | **💳 Credits** | Smart model selection         |
+| `ultimate`     | `qoder/` | **💳 Credits** | Best quality                  |
+| `performance`  | `qoder/` | **💳 Credits** | High performance              |
+| `efficient`    | `qoder/` | **💳 Credits** | Efficient tier                |
+| `qwen3.6-plus` | `qoder/` | **💳 Credits** | Qwen 3.6 Plus                 |
+| `glm-5`        | `qoder/` | **💳 Credits** | GLM-5                         |
+| `kimi-k2.5`    | `qoder/` | **💳 Credits** | Kimi K2.5                     |
+| `minimax-m2.7` | `qoder/` | **💳 Credits** | MiniMax M2.7                  |
 
 ### 🟡 QWEN MODELS (Device Code Auth)
 
@@ -1729,20 +1730,26 @@ Models:
 <details>
 <summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
 
-### Qoder (5 FREE models via subprocess)
+### Qoder (1 FREE model + 8 premium models via subprocess)
 
 **Requirements:** `@qoder-ai/qodercli@0.1.37` (bundled in Docker `cli` profile, or install globally with `npm install -g @qoder-ai/qodercli`)
 
 ```bash
 Dashboard → Connect Qoder
 → Paste your Qoder Personal Access Token (PAT)
-→ Unlimited usage
+→ FREE: qoder/lite (no credits needed)
+→ PREMIUM: auto, ultimate, performance, efficient, qwen3.6-plus, glm-5, kimi-k2.5, minimax-m2.7 (require credits)
 
 Models:
-  qoder/auto (smart select)
-  qoder/ultimate (best quality)
-  qoder/performance
-  qoder/lite (free tier)
+  qoder/lite (FREE — no credit card needed)
+  qoder/auto (credits required)
+  qoder/ultimate (credits required)
+  qoder/performance (credits required)
+  qoder/efficient (credits required)
+  qoder/qwen3.6-plus (credits required)
+  qoder/glm-5 (credits required)
+  qoder/kimi-k2.5 (credits required)
+  qoder/minimax-m2.7 (credits required)
 ```
 
 **How it works:** OmniRoute spawns `qodercli -p "<prompt>" -f stream-json --quiet` internally and converts output to OpenAI-compatible responses. No reverse-engineering needed!
@@ -2273,4 +2280,3 @@ MIT License - see [LICENSE](LICENSE) for details.
   <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
-

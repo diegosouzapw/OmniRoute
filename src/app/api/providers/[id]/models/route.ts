@@ -83,17 +83,17 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (2025-10-01)" },
   ],
   qoder: () => [
-    // Qoder uses level-based model IDs (qodercli --model <level>)
-    { id: "auto", name: "Auto (Smart Select)" },
-    { id: "ultimate", name: "Ultimate (Best Quality)" },
-    { id: "performance", name: "Performance" },
-    { id: "efficient", name: "Efficient" },
-    { id: "lite", name: "Lite (Free)" },
-    { id: "qmodel", name: "Qwen-Max" },
-    { id: "q35model", name: "Qwen3.5-Plus" },
-    { id: "gmodel", name: "GLM-5" },
-    { id: "kmodel", name: "Kimi-K2.5" },
-    { id: "mmodel", name: "MiniMax-M2.7" },
+    // Level-based models (only lite is FREE, rest require credits)
+    { id: "lite", name: "Lite (FREE)" },
+    { id: "auto", name: "Auto (Smart Select) [💳 Credits]" },
+    { id: "ultimate", name: "Ultimate (Best Quality) [💳 Credits]" },
+    { id: "performance", name: "Performance [💳 Credits]" },
+    { id: "efficient", name: "Efficient [💳 Credits]" },
+    // Named premium models (all require credits)
+    { id: "qwen3.6-plus", name: "Qwen 3.6 Plus [💳 Credits]" },
+    { id: "glm-5", name: "GLM-5 [💳 Credits]" },
+    { id: "kimi-k2.5", name: "Kimi K2.5 [💳 Credits]" },
+    { id: "minimax-m2.7", name: "MiniMax M2.7 [💳 Credits]" },
   ],
   perplexity: () => [
     { id: "sonar", name: "Sonar (Fast Search)" },
