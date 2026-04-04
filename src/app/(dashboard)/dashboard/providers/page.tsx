@@ -31,6 +31,7 @@ import {
   buildProviderEntries,
   filterConfiguredProviderEntries,
 } from "./providerPageUtils";
+import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
 
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
@@ -115,9 +116,15 @@ export default function ProvidersPage() {
   const [testResults, setTestResults] = useState<any>(null);
   const [importingZed, setImportingZed] = useState(false);
   const [showConfiguredOnly, setShowConfiguredOnly] = useState(false);
+  const [configuredOnlyPreferenceReady, setConfiguredOnlyPreferenceReady] = useState(false);
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+
+  useEffect(() => {
+    setShowConfiguredOnly(readConfiguredOnlyPreference());
+    setConfiguredOnlyPreferenceReady(true);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,6 +151,12 @@ export default function ProvidersPage() {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!configuredOnlyPreferenceReady) return;
+
+    writeConfiguredOnlyPreference(showConfiguredOnly);
+  }, [configuredOnlyPreferenceReady, showConfiguredOnly]);
 
   const handleZedImport = async () => {
     setImportingZed(true);

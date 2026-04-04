@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const providerPageUtils =
   await import("../../src/app/(dashboard)/dashboard/providers/providerPageUtils.ts");
+const providerPageStorage =
+  await import("../../src/app/(dashboard)/dashboard/providers/providerPageStorage.ts");
 const providers = await import("../../src/shared/constants/providers.ts");
 
 test("merged OAuth providers keep free-tier providers in the OAuth section", () => {
@@ -71,4 +73,36 @@ test("configured-only filter keeps only providers with saved connections", () =>
     ["claude", "cursor"]
   );
   assert.equal(providerPageUtils.filterConfiguredProviderEntries(entries, false).length, 3);
+});
+
+test("configured-only preference parser only enables explicit true values", () => {
+  assert.equal(providerPageStorage.parseConfiguredOnlyPreference("true"), true);
+  assert.equal(providerPageStorage.parseConfiguredOnlyPreference("false"), false);
+  assert.equal(providerPageStorage.parseConfiguredOnlyPreference(null), false);
+  assert.equal(providerPageStorage.parseConfiguredOnlyPreference(undefined), false);
+});
+
+test("configured-only preference storage round-trips correctly", () => {
+  const storage = new Map();
+  const mockStorage = {
+    getItem(key) {
+      return storage.has(key) ? storage.get(key) : null;
+    },
+    setItem(key, value) {
+      storage.set(key, value);
+    },
+    removeItem(key) {
+      storage.delete(key);
+    },
+  };
+
+  assert.equal(providerPageStorage.readConfiguredOnlyPreference(mockStorage), false);
+
+  providerPageStorage.writeConfiguredOnlyPreference(true, mockStorage);
+  assert.equal(storage.get(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY), "true");
+  assert.equal(providerPageStorage.readConfiguredOnlyPreference(mockStorage), true);
+
+  providerPageStorage.writeConfiguredOnlyPreference(false, mockStorage);
+  assert.equal(storage.has(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY), false);
+  assert.equal(providerPageStorage.readConfiguredOnlyPreference(mockStorage), false);
 });

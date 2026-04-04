@@ -1753,6 +1753,8 @@
     "cacheTTL": "缓存生存时间",
     "maxCacheSize": "最大缓存大小",
     "clearCache": "清除缓存",
+    "cacheCleared": "缓存已成功清除",
+    "clearCacheFailed": "清除缓存失败",
     "cacheHits": "缓存命中",
     "cacheMisses": "缓存未命中",
     "hitRate": "命中率",
@@ -2164,7 +2166,17 @@
     "customPricingNote": "你可以覆盖特定模型的默认定价。自定义覆盖会优先于自动检测到的定价。",
     "editPricing": "编辑定价",
     "viewFullDetails": "查看完整详情",
-    "themeCoral": "珊瑚色"
+    "themeCoral": "珊瑚色",
+    "adaptiveVolumeRouting": "自适应流量路由",
+    "adaptiveVolumeRoutingDesc": "根据实时负载量和吞吐压力，动态调整各提供商连接承载的流量。",
+    "lkgpToggleTitle": "最后已知良好提供商（LKGP）",
+    "lkgpToggleDesc": "启用后，路由器会记住上一次成功返回响应的提供商，并在后续请求中优先尝试它。",
+    "clearLkgpCache": "清除 LKGP 缓存",
+    "lkgpCacheCleared": "LKGP 缓存已成功清除",
+    "lkgpCacheClearFailed": "清除 LKGP 缓存失败",
+    "maintenance": "维护",
+    "purgeExpiredLogs": "清理过期日志",
+    "purgeLogsFailed": "清理日志失败"
   },
   "translator": {
     "title": "翻译者",
