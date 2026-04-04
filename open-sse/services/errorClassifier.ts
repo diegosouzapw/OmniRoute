@@ -17,13 +17,12 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     const delta = firstChoice.delta as Record<string, unknown> | undefined;
 
     const content = message?.content ?? delta?.content;
-    const hasToolCalls = Array.isArray(firstChoice.tool_calls) && firstChoice.tool_calls.length > 0;
-    const hasDeltaToolCalls =
-      Array.isArray((delta as Record<string, unknown>)?.tool_calls) &&
-      ((delta as Record<string, unknown>)?.tool_calls as unknown[])?.length > 0;
+    const hasToolCalls =
+      (Array.isArray(message?.tool_calls) && (message.tool_calls as unknown[]).length > 0) ||
+      (Array.isArray(delta?.tool_calls) && (delta.tool_calls as unknown[]).length > 0);
 
     const hasContent = content !== null && content !== undefined && content !== "";
-    return !hasContent && !hasToolCalls && !hasDeltaToolCalls;
+    return !hasContent && !hasToolCalls;
   }
 
   if (Array.isArray(body.content)) {
@@ -55,7 +54,7 @@ export const PROVIDER_ERROR_TYPES = {
   EMPTY_CONTENT: "empty_content",
 };
 
-const CONTEXT_OVERFLOW_SIGNALS = [
+export const CONTEXT_OVERFLOW_SIGNALS = [
   "context overflow",
   "prompt too large",
   "context window",
@@ -69,16 +68,10 @@ const CONTEXT_OVERFLOW_SIGNALS = [
   "messages exceed",
 ];
 
+export const CONTEXT_OVERFLOW_REGEX = new RegExp(CONTEXT_OVERFLOW_SIGNALS.join("|"), "i");
+
 export function isContextOverflow(errorText: string): boolean {
-  const lower = String(errorText || "").toLowerCase();
-  return CONTEXT_OVERFLOW_SIGNALS.some((sig) => {
-    try {
-      const regex = new RegExp(sig, "i");
-      return regex.test(lower);
-    } catch {
-      return lower.includes(sig.toLowerCase());
-    }
-  });
+  return CONTEXT_OVERFLOW_REGEX.test(String(errorText || ""));
 }
 
 function responseBodyToString(responseBody: unknown): string {

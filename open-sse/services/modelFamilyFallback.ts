@@ -13,6 +13,7 @@
 
 import { getModelContextLimit } from "../../src/lib/modelsDevSync";
 import { parseModel } from "./model.ts";
+import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
 
@@ -119,31 +120,9 @@ export function isModelUnavailableError(status: number, errorMessage: string): b
   return MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment));
 }
 
-const CONTEXT_OVERFLOW_FRAGMENTS = [
-  "context overflow",
-  "prompt too large",
-  "context window",
-  "maximum context",
-  "exceeds context",
-  "input too long",
-  "token limit",
-  "too many tokens",
-  "context length",
-  "exceed.*context",
-  "messages exceed",
-];
-
 export function isContextOverflowError(status: number, errorMessage: string): boolean {
   if (status !== 400) return false;
-  const msg = errorMessage.toLowerCase();
-  return CONTEXT_OVERFLOW_FRAGMENTS.some((fragment) => {
-    try {
-      const regex = new RegExp(fragment, "i");
-      return regex.test(msg);
-    } catch {
-      return msg.includes(fragment.toLowerCase());
-    }
-  });
+  return CONTEXT_OVERFLOW_REGEX.test(errorMessage);
 }
 
 // ── Fallback Resolution ──────────────────────────────────────────────────────
