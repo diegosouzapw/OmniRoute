@@ -598,7 +598,8 @@ export function createSSEStream(options: StreamOptions = {}) {
               // #761: Responses API events have {event, data} structure — skip sanitization
               // entirely as it strips them to {"object":"chat.completion.chunk"}, losing all content.
               let itemSanitized: Record<string, unknown> = item;
-              const isResponsesEvent = item?.event && item?.data;
+              const isResponsesEvent =
+                typeof item?.event === "string" && item.event.startsWith("response.");
               if (sourceFormat === FORMATS.OPENAI && !isResponsesEvent) {
                 itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
 
