@@ -148,13 +148,6 @@ export function shouldPreserveCacheControl({
     return false;
   }
 
-  // CC-compatible bridges should default to OmniRoute-managed cache markers.
-  // Their request shape differs from native Claude Messages payloads, so
-  // preserving client markers in auto mode weakens cache coverage.
-  if (typeof targetProvider === "string" && targetProvider.startsWith("anthropic-compatible-cc-")) {
-    return false;
-  }
-
   // Auto mode: use automatic detection (existing logic)
   // Must be a caching-aware client
   if (!isClaudeCodeClient(userAgent)) {

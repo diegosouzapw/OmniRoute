@@ -172,11 +172,9 @@ export function buildClaudeCodeCompatibleRequest({
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
   const maxTokens = resolveClaudeCodeCompatibleMaxTokens(sourceBody, normalizedBody);
   const tools = preparedClaudeBody?.tools
-    ? applyClaudeCodeCompatibleToolCacheStrategy(
+    ? buildClaudeCodeCompatibleToolsFromClaude(
         preparedClaudeBody.tools as Record<string, unknown>[],
-        {
-          preserveExisting: preserveCacheControl,
-        }
+        preserveCacheControl
       )
     : buildClaudeCodeCompatibleTools(normalizedBody, sourceBody);
   const toolChoice =
@@ -312,13 +310,11 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
       return [
         {
           role: "user" as const,
-          content: [{ type: "text", text: fallbackText, cache_control: { type: "ephemeral" } }],
+          content: [{ type: "text", text: fallbackText }],
         },
       ];
     }
   }
-
-  applyClaudeCodeCompatibleMessageCacheStrategy(merged);
 
   return merged;
 }
@@ -358,9 +354,6 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
       stripCacheControlFromContentBlocks(message.content);
     }
   }
-  applyClaudeCodeCompatibleMessageCacheStrategy(merged, {
-    preserveExisting: preserveCacheControl,
-  });
 
   if (merged.length === 0) {
     const fallbackText = converted
@@ -373,7 +366,7 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
       return [
         {
           role: "user" as const,
-          content: [{ type: "text", text: fallbackText, cache_control: { type: "ephemeral" } }],
+          content: [{ type: "text", text: fallbackText }],
         },
       ];
     }
@@ -399,12 +392,6 @@ function buildClaudeCodeCompatibleSystemBlocks({
     Array.isArray(systemBlocks) && systemBlocks.length > 0
       ? systemBlocks.map((block) => ({ ...block }))
       : extractCustomSystemBlocks(messages);
-  const useLongSystemTtl =
-    !preserveCacheControl ||
-    customSystemBlocks.some((block) => readCacheControlTtl(block) === "1h");
-  const systemCacheControl = useLongSystemTtl
-    ? { type: "ephemeral", ttl: "1h" }
-    : { type: "ephemeral" };
 
   const dateText = formatDate(now);
   const blocks: Array<Record<string, unknown>> = [
@@ -415,30 +402,19 @@ function buildClaudeCodeCompatibleSystemBlocks({
     {
       type: "text",
       text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
-      cache_control: { ...systemCacheControl },
     },
     {
       type: "text",
       text: `You are Claude Code, Anthropic's official CLI for Claude.\n\nCWD: ${cwd}\nDate: ${dateText}`,
-      cache_control: { ...systemCacheControl },
     },
   ];
 
   for (const systemBlock of customSystemBlocks) {
     const preparedBlock = { ...systemBlock };
-    if (!preserveCacheControl || useLongSystemTtl) {
-      preparedBlock.cache_control = { ...systemCacheControl };
+    if (!preserveCacheControl) {
+      delete preparedBlock.cache_control;
     }
     blocks.push(preparedBlock);
-  }
-
-  if (
-    preserveCacheControl &&
-    customSystemBlocks.length > 0 &&
-    !customSystemBlocks.some((block) => hasCacheControl(block))
-  ) {
-    const lastCustomSystemBlock = blocks[blocks.length - 1];
-    lastCustomSystemBlock.cache_control = { ...systemCacheControl };
   }
 
   return blocks;
@@ -477,11 +453,22 @@ function buildClaudeCodeCompatibleTools(
   return rawTools
     .map((tool) => convertClaudeCodeCompatibleTool(tool))
     .filter((tool): tool is Record<string, unknown> => !!tool)
-    .map((tool) => ({ ...tool }))
-    .map((tool, index, tools) => {
-      if (index !== findLastCacheableToolIndex(tools)) return tool;
-      return { ...tool, cache_control: { type: "ephemeral", ttl: "1h" } };
-    });
+    .map((tool) => ({ ...tool }));
+}
+
+function buildClaudeCodeCompatibleToolsFromClaude(
+  tools: Record<string, unknown>[] | undefined,
+  preserveCacheControl: boolean
+) {
+  if (!Array.isArray(tools)) return [];
+
+  return tools.map((tool) => {
+    const preparedTool = { ...tool };
+    if (!preserveCacheControl) {
+      delete preparedTool.cache_control;
+    }
+    return preparedTool;
+  });
 }
 
 function convertClaudeCodeCompatibleTool(tool: unknown) {
@@ -546,6 +533,7 @@ function prepareClaudeCodeCompatibleBody(
   claudeBody: Record<string, unknown>,
   preserveCacheControl: boolean
 ) {
+  void preserveCacheControl;
   const prepared = prepareClaudeRequest(
     {
       system: normalizeClaudeSystemInput(claudeBody.system),
@@ -554,7 +542,7 @@ function prepareClaudeCodeCompatibleBody(
       thinking: readRecord(claudeBody.thinking) || claudeBody.thinking,
     },
     CLAUDE_CODE_COMPATIBLE_PREFIX,
-    preserveCacheControl
+    true
   );
 
   return readRecord(prepared);
@@ -673,109 +661,10 @@ function extractCustomSystemBlocks(messages: MessageLike[] | undefined) {
     }));
 }
 
-function applyClaudeCodeCompatibleMessageCacheStrategy(
-  messages: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }>,
-  options: {
-    preserveExisting?: boolean;
-  } = {}
-) {
-  const preserveExisting = options.preserveExisting === true;
-  const userIndexes = messages.reduce((indexes, message, index) => {
-    if (message.role === "user") indexes.push(index);
-    return indexes;
-  }, [] as number[]);
-  const hasAssistant = messages.some((message) => message.role === "assistant");
-  const secondToLastUserIndex = userIndexes.length >= 2 ? userIndexes[userIndexes.length - 2] : -1;
-
-  if (secondToLastUserIndex >= 0) {
-    markLastContentCacheControl(
-      messages[secondToLastUserIndex].content,
-      undefined,
-      preserveExisting
-    );
-  } else if (!hasAssistant && userIndexes.length > 0) {
-    markLastContentCacheControl(
-      messages[userIndexes[userIndexes.length - 1]].content,
-      undefined,
-      preserveExisting
-    );
-  }
-
-  const lastUserIndex = userIndexes.length > 0 ? userIndexes[userIndexes.length - 1] : -1;
-  const endsOnUser = lastUserIndex === messages.length - 1;
-  if (endsOnUser && lastUserIndex >= 0) {
-    markLastContentCacheControl(messages[lastUserIndex].content, undefined, preserveExisting);
-  }
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role !== "assistant") continue;
-    if (markLastContentCacheControl(messages[i].content, undefined, preserveExisting)) break;
-  }
-}
-
 function stripCacheControlFromContentBlocks(content: Array<Record<string, unknown>>) {
   for (const block of content) {
     delete block.cache_control;
   }
-}
-
-function applyClaudeCodeCompatibleToolCacheStrategy(
-  tools: Array<Record<string, unknown>>,
-  options: {
-    preserveExisting?: boolean;
-  } = {}
-) {
-  const preparedTools = tools.map((tool) => ({ ...tool }));
-  const lastCacheableToolIndex = findLastCacheableToolIndex(preparedTools);
-  if (lastCacheableToolIndex < 0) return preparedTools;
-
-  if (options.preserveExisting && preparedTools.some((tool) => hasCacheControl(tool))) {
-    return preparedTools;
-  }
-
-  preparedTools[lastCacheableToolIndex].cache_control = { type: "ephemeral", ttl: "1h" };
-  return preparedTools;
-}
-
-function markLastContentCacheControl(
-  content: Array<Record<string, unknown>>,
-  ttl?: string,
-  preserveExisting = false
-) {
-  if (!Array.isArray(content) || content.length === 0) return false;
-  const lastBlock = content[content.length - 1];
-  if (!lastBlock) return false;
-  if (
-    preserveExisting &&
-    content.some(
-      (block) =>
-        !!block &&
-        typeof block === "object" &&
-        !!readRecord(block)?.cache_control &&
-        typeof readRecord(block)?.cache_control === "object"
-    )
-  ) {
-    return true;
-  }
-  lastBlock.cache_control = ttl ? { type: "ephemeral", ttl } : { type: "ephemeral" };
-  return true;
-}
-
-function hasCacheControl(value: unknown) {
-  return !!readRecord(value)?.cache_control && typeof readRecord(value)?.cache_control === "object";
-}
-
-function readCacheControlTtl(value: unknown) {
-  return toNonEmptyString(readRecord(readRecord(value)?.cache_control)?.ttl);
-}
-
-function findLastCacheableToolIndex(tools: Array<Record<string, unknown>>) {
-  for (let i = tools.length - 1; i >= 0; i--) {
-    if (!tools[i].defer_loading) {
-      return i;
-    }
-  }
-  return -1;
 }
 
 function cloneValue<T>(value: T): T {
