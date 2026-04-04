@@ -91,6 +91,7 @@ import {
   getNextFamilyFallback,
   isContextOverflowError,
   findLargerContextModel,
+  getModelFamily,
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
@@ -1645,7 +1646,12 @@ export async function handleChatCore({
         return createErrorResult(statusCode, errMsg, retryAfterMs);
       }
     } else if (isContextOverflowError(statusCode, message)) {
-      const nextModel = getNextFamilyFallback(currentModel, triedModels);
+      const familyCandidates = getModelFamily(currentModel).filter(
+        (m) => m !== currentModel && !triedModels.has(m)
+      );
+      const nextModel =
+        findLargerContextModel(currentModel, familyCandidates) ??
+        getNextFamilyFallback(currentModel, triedModels);
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;
@@ -1852,7 +1858,7 @@ export async function handleChatCore({
       });
       persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "empty_content");
 
-      // Trigger fallback for empty content
+      // Trigger non-recursive fallback for empty content
       const nextModel = getNextFamilyFallback(currentModel, triedModels);
       if (nextModel) {
         triedModels.add(nextModel);
@@ -1865,36 +1871,30 @@ export async function handleChatCore({
         try {
           const fallbackResult = await executeProviderRequest(nextModel, false);
           if (fallbackResult.response.ok) {
-            providerResponse = fallbackResult.response;
-            providerUrl = fallbackResult.url;
-            providerHeaders = fallbackResult.headers;
-            finalBody = fallbackResult.transformedBody;
-            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-            log?.info("EMPTY_CONTENT_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
-            // Continue with the fallback response by re-processing
-            return handleChatCore({
-              body,
-              modelInfo: { provider, model: nextModel, extendedContext },
-              credentials,
-              log,
-              onCredentialsRefreshed,
-              onRequestSuccess,
-              onDisconnect,
-              clientRawRequest,
-              connectionId,
-              apiKeyInfo,
-              userAgent,
-              comboName,
-              comboStrategy,
-              isCombo,
-            });
+            const fallbackRaw = await fallbackResult.response.text();
+            try {
+              responseBody = fallbackRaw ? JSON.parse(fallbackRaw) : {};
+              providerUrl = fallbackResult.url;
+              providerHeaders = fallbackResult.headers;
+              finalBody = fallbackResult.transformedBody;
+              reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+              log?.info?.(
+                "EMPTY_CONTENT_FALLBACK",
+                `Serving ${nextModel} as fallback for ${model}`
+              );
+              // Fall through — continue processing with the new responseBody
+            } catch {
+              return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
+            }
+          } else {
+            return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
           }
         } catch {
-          // Fallback failed, continue to return error
+          return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
         }
+      } else {
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
       }
-
-      return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
     }
 
     if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
