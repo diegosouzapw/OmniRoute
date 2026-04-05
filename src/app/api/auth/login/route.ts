@@ -41,14 +41,8 @@ export async function POST(request) {
     if (storedHash) {
       isValid = await bcrypt.compare(password, storedHash);
     } else {
-      // SECURITY: No default password — must be set via env or onboarding
-      if (!process.env.INITIAL_PASSWORD) {
-        return NextResponse.json(
-          { error: "No password configured. Complete onboarding first.", needsSetup: true },
-          { status: 403 }
-        );
-      }
-      const initialPassword = process.env.INITIAL_PASSWORD;
+      // SECURITY: Fallback to env variable or default password 123456
+      const initialPassword = process.env.INITIAL_PASSWORD || "123456";
       isValid = password === initialPassword;
     }
 
