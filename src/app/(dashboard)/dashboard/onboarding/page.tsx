@@ -94,7 +94,7 @@ export default function OnboardingWizard() {
         await fetch("/api/settings/require-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requireLogin: true, password: "123456" }),
+          body: JSON.stringify({ requireLogin: false }),
         });
       } catch {}
       handleNext();
@@ -193,7 +193,7 @@ export default function OnboardingWizard() {
         await fetch("/api/settings/require-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requireLogin: true, password: "123456" }),
+          body: JSON.stringify({ requireLogin: false }),
         }).catch(() => {});
       }
 

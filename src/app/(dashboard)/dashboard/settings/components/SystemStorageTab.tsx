@@ -23,6 +23,7 @@ export default function SystemStorageTab() {
   const [purgeLogsLoading, setPurgeLogsLoading] = useState(false);
   const [purgeLogsStatus, setPurgeLogsStatus] = useState({ type: "", message: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const jsonInputRef = useRef<HTMLInputElement>(null);
   const locale = useLocale();
   const t = useTranslations("settings");
   const tc = useTranslations("common");
@@ -127,6 +128,85 @@ export default function SystemStorageTab() {
   useEffect(() => {
     loadStorageHealth();
   }, []);
+
+  const handleExportJson = async () => {
+    setExportLoading(true);
+    try {
+      const res = await fetch("/api/settings/export-json");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "JSON Export failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+      const filename = filenameMatch
+        ? filenameMatch[1]
+        : `omniroute-legacy-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export JSON failed:", err);
+      setImportStatus({
+        type: "error",
+        message: t("exportFailedWithError", { error: (err as Error).message }),
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleImportJsonClick = () => {
+    jsonInputRef.current?.click();
+  };
+
+  const handleJsonSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".json")) {
+      setImportStatus({
+        type: "error",
+        message: "Invalid file type. Only .json allowed.",
+      });
+      return;
+    }
+    
+    // Auto import JSON
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        setImportLoading(true);
+        const res = await fetch("/api/settings/import-json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: e.target?.result as string,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setImportStatus({
+            type: "success",
+            message: data.message || "Legacy JSON imported successfully!",
+          });
+          await loadStorageHealth();
+          if (backupsExpanded) await loadBackups();
+        } else {
+          setImportStatus({ type: "error", message: data.error || "Failed to import JSON" });
+        }
+      } catch (err) {
+        setImportStatus({ type: "error", message: "Error during JSON import" });
+      } finally {
+        setImportLoading(false);
+        if (jsonInputRef.current) jsonInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleExport = async () => {
     setExportLoading(true);
@@ -362,6 +442,25 @@ export default function SystemStorageTab() {
           accept=".sqlite"
           className="hidden"
           onChange={handleFileSelected}
+        />
+        <Button variant="outline" size="sm" onClick={handleExportJson} loading={exportLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            data_object
+          </span>
+          Export JSON
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleImportJsonClick} loading={importLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            data_object
+          </span>
+          Import JSON
+        </Button>
+        <input
+          ref={jsonInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleJsonSelected}
         />
       </div>
 
