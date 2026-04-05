@@ -741,6 +741,12 @@ export async function handleChatCore({
   // upstream providers to reject with 400 "Invalid 'tools[0].name': empty string."
   if (Array.isArray(body.tools)) {
     body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+      // Built-in Responses API tool types (web_search, file_search, computer, etc.)
+      // are identified solely by their `type` field and carry no name — preserve them.
+      const toolType = typeof tool.type === "string" ? tool.type : "";
+      if (toolType && toolType !== "function" && !tool.function && tool.name === undefined) {
+        return true;
+      }
       const fn = tool.function as Record<string, unknown> | undefined;
       const name = fn?.name ?? tool.name;
       return name && String(name).trim().length > 0;

@@ -10,9 +10,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-// Inline the filter logic from chatCore.ts (lines 225-231 after #397 fix)
+// Inline the filter logic from chatCore.ts (after #397 fix + built-in tool type preservation)
 function filterEmptyNameTools(tools) {
   return tools.filter((tool) => {
+    // Built-in Responses API tool types (web_search, file_search, computer, etc.)
+    // are identified solely by their `type` field and carry no name — preserve them.
+    const toolType = typeof tool.type === "string" ? tool.type : "";
+    if (toolType && toolType !== "function" && !tool.function && tool.name === undefined) {
+      return true;
+    }
     const fn = tool.function;
     const name = fn?.name ?? tool.name;
     return name && String(name).trim().length > 0;
@@ -89,5 +95,43 @@ describe("tools empty-name filter — #346 / PR #397", () => {
       { name: null, input_schema: { type: "object" } },
     ];
     assert.equal(filterEmptyNameTools(tools).length, 0);
+  });
+
+  it("should preserve built-in Responses API web_search tool (no name field)", () => {
+    const tools = [{ type: "web_search", external_web_access: true }];
+    assert.equal(filterEmptyNameTools(tools).length, 1);
+  });
+
+  it("should preserve built-in Responses API tools without names (file_search, computer)", () => {
+    const tools = [
+      { type: "file_search" },
+      { type: "computer", display_width: 1024, display_height: 768 },
+      { type: "code_interpreter" },
+      { type: "image_generation", output_format: "png" },
+    ];
+    assert.equal(filterEmptyNameTools(tools).length, 4);
+  });
+
+  it("should preserve web_search alongside function tools and still drop empty-name functions", () => {
+    const tools = [
+      { type: "web_search", external_web_access: true },
+      { type: "function", function: { name: "exec_command", description: "Run a command" } },
+      { type: "function", function: { name: "" } },
+      { type: "custom", name: "apply_patch" },
+    ];
+    const result = filterEmptyNameTools(tools);
+    assert.equal(result.length, 3, "Should keep web_search, exec_command, and apply_patch");
+    assert.ok(
+      result.some((t) => t.type === "web_search"),
+      "web_search preserved"
+    );
+    assert.ok(
+      result.some((t) => t.function?.name === "exec_command"),
+      "exec_command preserved"
+    );
+    assert.ok(
+      result.some((t) => t.name === "apply_patch"),
+      "apply_patch preserved"
+    );
   });
 });
