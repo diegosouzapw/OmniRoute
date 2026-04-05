@@ -115,6 +115,110 @@ type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
 let defaultFastServiceTierEnabled = false;
 
+function stringifyCodexInstructionContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === "string") return part.trim();
+        if (!part || typeof part !== "object") return "";
+        const record = part as Record<string, unknown>;
+        if (typeof record.text === "string") return record.text.trim();
+        if (typeof record.content === "string") return record.content.trim();
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+
+  return "";
+}
+
+function hoistSystemMessagesToInstructions(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  const systemChunks: string[] = [];
+  const filteredInput = body.input.filter((itemValue) => {
+    if (!itemValue || typeof itemValue !== "object" || Array.isArray(itemValue)) {
+      return true;
+    }
+
+    const item = itemValue as Record<string, unknown>;
+    const role = typeof item.role === "string" ? item.role : "";
+    const type = typeof item.type === "string" ? item.type : "";
+    const isSystemMessage = role === "system" && (!type || type === "message");
+    if (!isSystemMessage) {
+      return true;
+    }
+
+    const text = stringifyCodexInstructionContent(item.content);
+    if (text) {
+      systemChunks.push(text);
+    }
+    return false;
+  });
+
+  if (systemChunks.length === 0) return;
+
+  const existingInstructions =
+    typeof body.instructions === "string" ? body.instructions.trim() : "";
+  body.instructions = existingInstructions
+    ? `${systemChunks.join("\n\n")}\n\n${existingInstructions}`
+    : systemChunks.join("\n\n");
+  body.input = filteredInput;
+}
+
+function normalizeCodexTools(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.tools)) return;
+
+  const validToolNames = new Set<string>();
+  body.tools = body.tools.filter((toolValue) => {
+    if (!toolValue || typeof toolValue !== "object" || Array.isArray(toolValue)) {
+      return false;
+    }
+
+    const tool = toolValue as Record<string, unknown>;
+    if (tool.type !== "function") {
+      return false;
+    }
+
+    const rawName =
+      typeof tool.name === "string"
+        ? tool.name
+        : tool.function &&
+            typeof tool.function === "object" &&
+            !Array.isArray(tool.function) &&
+            typeof (tool.function as Record<string, unknown>).name === "string"
+          ? ((tool.function as Record<string, unknown>).name as string)
+          : "";
+    const name = rawName.trim();
+    if (!name) {
+      return false;
+    }
+
+    validToolNames.add(name);
+    return true;
+  });
+
+  if (
+    body.tool_choice &&
+    typeof body.tool_choice === "object" &&
+    !Array.isArray(body.tool_choice)
+  ) {
+    const toolChoice = body.tool_choice as Record<string, unknown>;
+    if (toolChoice.type === "function") {
+      const rawName = typeof toolChoice.name === "string" ? toolChoice.name.trim() : "";
+      if (!rawName || !validToolNames.has(rawName)) {
+        delete body.tool_choice;
+      }
+    }
+  }
+}
+
 function getResponsesSubpath(endpointPath: unknown): string | null {
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
   const match = normalizedEndpoint.match(/(?:^|\/)responses(?:(\/.*))?$/i);
@@ -269,6 +373,15 @@ export class CodexExecutor extends BaseExecutor {
 
     // Ensure store is false (Codex requirement)
     body.store = false;
+
+    // Cursor can send native Responses payloads with role=system items inside `input`.
+    // Codex rejects system messages there; they must be folded into `instructions`.
+    hoistSystemMessagesToInstructions(body);
+
+    // Codex Responses only supports function tools with non-empty names.
+    // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
+    // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
+    normalizeCodexTools(body);
 
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.

@@ -50,6 +50,17 @@ function buildAnthropicCompatibleUrl(baseUrl) {
 // contain max_tokens or Claude model names.
 export function detectFormatFromEndpoint(body, endpointPath = "") {
   const path = String(endpointPath || "");
+  const hasInputField =
+    body &&
+    typeof body === "object" &&
+    Object.prototype.hasOwnProperty.call(body, "input") &&
+    body.input !== undefined;
+  const hasResponsesSpecificFields =
+    body &&
+    typeof body === "object" &&
+    (body.max_output_tokens !== undefined ||
+      body.previous_response_id !== undefined ||
+      body.reasoning !== undefined);
 
   if (/\/responses(?=\/|$)/i.test(path) || /^responses(?=\/|$)/i.test(path)) {
     return "openai-responses";
@@ -63,6 +74,9 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
     /\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) ||
     /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)
   ) {
+    if (hasInputField || hasResponsesSpecificFields) {
+      return "openai-responses";
+    }
     return "openai";
   }
 

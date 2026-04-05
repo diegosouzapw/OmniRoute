@@ -496,6 +496,12 @@ export async function handleChatCore({
     sourceFormat,
     endpointPath,
   });
+  const isDroidCLI =
+    userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
+  const clientResponseFormat =
+    sourceFormat === FORMATS.OPENAI_RESPONSES && !isResponsesEndpoint && !isDroidCLI
+      ? FORMATS.OPENAI
+      : sourceFormat;
 
   // Check for bypass patterns (warmup, skip) - return fake response
   const bypassResponse = handleBypassRequest(body, model, userAgent);
@@ -1842,11 +1848,11 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(targetFormat, sourceFormat)
+    let translatedResponse = needsTranslation(targetFormat, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
           targetFormat,
-          sourceFormat,
+          clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )
       : responseBody;
@@ -1877,22 +1883,25 @@ export async function handleChatCore({
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
     // Extracts <think> and <thinking> tags into reasoning_content
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
-    if (sourceFormat === FORMATS.OPENAI || sourceFormat === FORMATS.OPENAI_RESPONSES) {
+    if (
+      clientResponseFormat === FORMATS.OPENAI ||
+      clientResponseFormat === FORMATS.OPENAI_RESPONSES
+    ) {
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
     // Add buffer and filter usage for client (to prevent CLI context errors)
     if (translatedResponse?.usage) {
       const buffered = addBufferToUsage(translatedResponse.usage);
-      translatedResponse.usage = filterUsageForFormat(buffered, sourceFormat);
+      translatedResponse.usage = filterUsageForFormat(buffered, clientResponseFormat);
     } else {
       // Fallback: estimate usage when provider returned no usage block
       const contentLength = JSON.stringify(
         translatedResponse?.choices?.[0]?.message?.content || ""
       ).length;
       if (contentLength > 0) {
-        const estimated = estimateUsage(body, contentLength, sourceFormat);
-        translatedResponse.usage = filterUsageForFormat(estimated, sourceFormat);
+        const estimated = estimateUsage(body, contentLength, clientResponseFormat);
+        translatedResponse.usage = filterUsageForFormat(estimated, clientResponseFormat);
       }
     }
 
@@ -2025,11 +2034,9 @@ export async function handleChatCore({
 
   // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back
-  const isDroidCLI =
-    userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
   const needsResponsesTranslation =
     targetFormat === FORMATS.OPENAI_RESPONSES &&
-    sourceFormat === FORMATS.OPENAI &&
+    clientResponseFormat === FORMATS.OPENAI &&
     !isResponsesEndpoint &&
     !isDroidCLI;
 
@@ -2048,12 +2055,12 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo
     );
-  } else if (needsTranslation(targetFormat, sourceFormat)) {
+  } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
-    log?.debug?.("STREAM", `Translation mode: ${targetFormat} → ${sourceFormat}`);
+    log?.debug?.("STREAM", `Translation mode: ${targetFormat} → ${clientResponseFormat}`);
     transformStream = createSSETransformStreamWithLogger(
       targetFormat,
-      sourceFormat,
+      clientResponseFormat,
       provider,
       reqLogger,
       toolNameMap,
