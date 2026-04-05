@@ -620,7 +620,13 @@ function ModelCompatPopover({
     const width = Math.min(window.innerWidth - 2 * margin, 24 * 16);
     let left = rect.right - width;
     left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
-    setPortalPanelRect({ top: rect.bottom + 8, left, width });
+    const maxPanelHeight = Math.min(0.82 * window.innerHeight, 42 * 16);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const top =
+      spaceBelow >= maxPanelHeight || spaceBelow >= window.innerHeight - rect.top - 8
+        ? rect.bottom + 8
+        : rect.top - 8 - maxPanelHeight;
+    setPortalPanelRect({ top, left, width });
   }, [open]);
 
   useLayoutEffect(() => {
@@ -2314,7 +2320,9 @@ export default function ProviderDetailPage() {
                         setShowEditModal(true);
                       }}
                       onDelete={() => handleDelete(conn.id)}
-                      onReauth={conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined}
+                      onReauth={
+                        conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
+                      }
                       onRefreshToken={
                         conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
                       }
