@@ -83,6 +83,16 @@ function ensurePackage(pkgPath, sourcePath) {
   cpSync(sourcePath, pkgPath, { recursive: true, dereference: true });
 }
 
+function removeGeneratedElectronArtifacts() {
+  const generatedDirs = [
+    join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron"),
+  ];
+
+  for (const dir of generatedDirs) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 function assertBundleIsPackagable(bundleDir) {
   const nodeModulesPath = join(bundleDir, "node_modules");
   if (!existsSync(nodeModulesPath)) return;
@@ -130,6 +140,8 @@ if (existsSync(STATIC_SRC)) {
 if (existsSync(PUBLIC_SRC)) {
   cpSync(PUBLIC_SRC, PUBLIC_DEST, { recursive: true, dereference: true });
 }
+
+removeGeneratedElectronArtifacts();
 
 ensurePackage(
   join(ELECTRON_STANDALONE_DIR, "node_modules", "@swc", "helpers"),

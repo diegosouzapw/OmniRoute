@@ -64,6 +64,25 @@ let serverPort = 20128;
 
 const getServerUrl = () => `http://localhost:${serverPort}`;
 
+function resolveNodeExecutable(env = process.env) {
+  const candidates = [
+    env.OMNIROUTE_NODE_PATH,
+    "/usr/local/bin/node",
+    "/opt/homebrew/bin/node",
+    "/opt/local/bin/node",
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      /* continue */
+    }
+  }
+
+  return "node";
+}
+
 function resolveDataDir(overridePath, env = process.env) {
   if (overridePath && overridePath.trim()) return path.resolve(overridePath);
 
@@ -516,11 +535,14 @@ function startNextServer() {
     }
   }
 
+  const nodeExecutable = resolveNodeExecutable(serverEnv);
+
   console.log("[Electron] Starting Next.js server on port", serverPort);
+  console.log("[Electron] Using Node executable:", nodeExecutable);
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
-  nextServer = spawn("node", [serverScript], {
+  nextServer = spawn(nodeExecutable, [serverScript], {
     cwd: NEXT_SERVER_PATH,
     env: {
       ...serverEnv,
