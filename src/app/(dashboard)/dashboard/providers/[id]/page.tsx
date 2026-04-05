@@ -622,10 +622,11 @@ function ModelCompatPopover({
     left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
     const maxPanelHeight = Math.min(0.82 * window.innerHeight, 42 * 16);
     const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
     const top =
-      spaceBelow >= maxPanelHeight || spaceBelow >= window.innerHeight - rect.top - 8
+      spaceBelow >= maxPanelHeight || spaceBelow >= spaceAbove
         ? rect.bottom + 8
-        : rect.top - 8 - maxPanelHeight;
+        : Math.max(8, rect.top - 8 - maxPanelHeight);
     setPortalPanelRect({ top, left, width });
   }, [open]);
 
