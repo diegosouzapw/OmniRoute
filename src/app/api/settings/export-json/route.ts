@@ -20,12 +20,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const settings = await getSettings();
-    
-    // REDACT sensitive security keys to maintain Zero-Trust posture 
+    const rawSettings = await getSettings();
+
+    // REDACT sensitive security keys to maintain Zero-Trust posture
     // even if the admin shares their backup file.
-    if ("password" in settings) delete settings.password;
-    if ("requireLogin" in settings) delete settings.requireLogin;
+    // Use destructuring (not delete) to avoid mutating a potentially cached object.
+    const { password: _pw, requireLogin: _rl, ...safeSettings } = rawSettings;
 
     const providerConnections = await getProviderConnections();
     const providerNodes = await getProviderNodes();
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     const apiKeys = await getApiKeys();
 
     const exportData = {
-      settings,
+      settings: safeSettings,
       providerConnections,
       providerNodes,
       combos,
