@@ -129,28 +129,43 @@ export default function SystemStorageTab() {
     loadStorageHealth();
   }, []);
 
+  /** Triggers a browser file download from an existing Blob. */
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /** Fetches a URL, reads the response as a Blob and triggers a download. */
+  const fetchAndDownload = async (
+    apiUrl: string,
+    fallbackFilename: string,
+    errorMessage: string
+  ) => {
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error((data as { error?: string }).error || errorMessage);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") || "";
+    const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+    triggerDownload(blob, filenameMatch?.[1] || fallbackFilename);
+  };
+
   const handleExportJson = async () => {
     setExportLoading(true);
     try {
-      const res = await fetch("/api/settings/export-json");
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "JSON Export failed");
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const disposition = res.headers.get("Content-Disposition") || "";
-      const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
-      const filename = filenameMatch
-        ? filenameMatch[1]
-        : `omniroute-legacy-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await fetchAndDownload(
+        "/api/settings/export-json",
+        `omniroute-legacy-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+        "JSON Export failed"
+      );
     } catch (err) {
       console.error("Export JSON failed:", err);
       setImportStatus({
@@ -211,25 +226,11 @@ export default function SystemStorageTab() {
   const handleExport = async () => {
     setExportLoading(true);
     try {
-      const res = await fetch("/api/db-backups/export");
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || t("exportFailed"));
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const disposition = res.headers.get("Content-Disposition") || "";
-      const filenameMatch = disposition.match(/filename="(.+)"/);
-      const filename = filenameMatch
-        ? filenameMatch[1]
-        : `omniroute-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.sqlite`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await fetchAndDownload(
+        "/api/db-backups/export",
+        `omniroute-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.sqlite`,
+        t("exportFailed")
+      );
     } catch (err) {
       console.error("Export failed:", err);
       setImportStatus({
@@ -400,20 +401,11 @@ export default function SystemStorageTab() {
           onClick={async () => {
             setExportLoading(true);
             try {
-              const res = await fetch("/api/db-backups/exportAll");
-              if (!res.ok) throw new Error(t("exportFailed"));
-              const blob = await res.blob();
-              const cd = res.headers.get("Content-Disposition") || "";
-              const filenameMatch = cd.match(/filename="?([^"]+)"?/);
-              const filename = filenameMatch?.[1] || `omniroute-full-backup.tar.gz`;
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
+              await fetchAndDownload(
+                "/api/db-backups/exportAll",
+                "omniroute-full-backup.tar.gz",
+                t("exportFailed")
+              );
             } catch (err) {
               setImportStatus({
                 type: "error",
