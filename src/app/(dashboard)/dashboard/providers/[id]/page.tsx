@@ -528,7 +528,8 @@ function ModelCompatPopover({
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [portalPanelRect, setPortalPanelRect] = useState<{
-    top: number;
+    top?: number;
+    bottom?: number;
     left: number;
     width: number;
   } | null>(null);
@@ -623,11 +624,13 @@ function ModelCompatPopover({
     const maxPanelHeight = Math.min(0.82 * window.innerHeight, 42 * 16);
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const spaceAbove = rect.top - 8;
-    const top =
-      spaceBelow >= maxPanelHeight || spaceBelow >= spaceAbove
-        ? rect.bottom + 8
-        : Math.max(8, rect.top - 8 - maxPanelHeight);
-    setPortalPanelRect({ top, left, width });
+    const flipUp = spaceBelow < maxPanelHeight && spaceBelow < spaceAbove;
+    if (flipUp) {
+      // Anchor bottom of panel to top of trigger so gap is correct regardless of panel height
+      setPortalPanelRect({ bottom: window.innerHeight - rect.top + 8, left, width });
+    } else {
+      setPortalPanelRect({ top: rect.bottom + 8, left, width });
+    }
   }, [open]);
 
   useLayoutEffect(() => {
@@ -668,7 +671,9 @@ function ModelCompatPopover({
             className={panelChromeClass}
             style={{
               position: "fixed",
-              top: portalPanelRect.top,
+              ...(portalPanelRect.bottom !== undefined
+                ? { bottom: portalPanelRect.bottom }
+                : { top: portalPanelRect.top }),
               left: portalPanelRect.left,
               width: portalPanelRect.width,
               zIndex: 10040,
