@@ -390,6 +390,7 @@ interface ConnectionRowConnection {
   globalPriority?: number;
   providerSpecificData?: Record<string, unknown>;
   expiresAt?: string;
+  tokenExpiresAt?: string;
 }
 
 interface ConnectionRowProps {
@@ -4181,6 +4182,7 @@ function ConnectionRow({
       const expiresMs = new Date(effectiveExpiresAt).getTime();
       setTokenMinsLeft(Math.floor((expiresMs - Date.now()) / 60000));
     };
+    update();
     const iv = setInterval(update, 30000);
     return () => clearInterval(iv);
   }, [isOAuth, effectiveExpiresAt]);
