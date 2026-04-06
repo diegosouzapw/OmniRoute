@@ -320,6 +320,10 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
     return { status: 504, message: combined, code: "timeout" };
   }
 
+  if (normalized.includes("command not found") || normalized.includes("no such file")) {
+    return { status: 503, message: combined, code: "runtime_error" };
+  }
+
   return { status: 502, message: combined, code: "upstream_error" };
 }
 

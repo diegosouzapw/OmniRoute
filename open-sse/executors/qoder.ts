@@ -24,6 +24,12 @@ export class QoderExecutor extends BaseExecutor {
     super("qoder", PROVIDERS.qoder);
   }
 
+  buildHeaders(credentials: ProviderCredentials, stream = true): Record<string, string> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (stream) headers["Accept"] = "text/event-stream";
+    return headers;
+  }
+
   async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {
     const token = getAuthToken(credentials);
 

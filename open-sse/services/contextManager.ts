@@ -12,7 +12,7 @@ import { getModelContextLimit } from "../../src/lib/modelsDevSync";
 const DEFAULT_LIMITS: Record<string, number> = {
   claude: 200000,
   openai: 128000,
-  gemini: 1000000,
+  gemini: 1048576,
   codex: 400000,
   default: 128000,
 };

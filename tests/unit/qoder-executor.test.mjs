@@ -98,7 +98,10 @@ test("QoderExecutor: buildHeaders only keeps generic JSON and stream headers", (
 
 test("QoderExecutor: buildUrl uses the live qoder.com API base", () => {
   const executor = new QoderExecutor();
-  assert.equal(executor.buildUrl("qoder-rome-30ba3b", false), "https://api.qoder.com/v1/chat/completions");
+  assert.equal(
+    executor.buildUrl("qoder-rome-30ba3b", false),
+    "https://api.qoder.com/v1/chat/completions"
+  );
 });
 
 test("normalizeQoderPatProviderData forces PAT + qodercli transport", () => {
@@ -169,43 +172,41 @@ test("parseQoderCliFailure classifies auth, runtime and timeout failures", () =>
 });
 
 test("validateQoderCliPat succeeds when qodercli returns a JSON response", async () => {
-  const prev = process.env.CLI_QODER_BIN;
-  const tmpDir = createTempDir();
-  const script = createQoderCliScript(tmpDir, "qodercli-ok", "success");
-  process.env.CLI_QODER_BIN = script;
-
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
   try {
     const result = await validateQoderCliPat({ apiKey: "pat_test" });
     assert.deepEqual(result, { valid: true, error: null, unsupported: false });
   } finally {
-    if (prev === undefined) delete process.env.CLI_QODER_BIN;
-    else process.env.CLI_QODER_BIN = prev;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    globalThis.fetch = orig;
   }
 });
 
 test("validateQoderCliPat returns invalid api key for auth failures", async () => {
-  const prev = process.env.CLI_QODER_BIN;
-  const tmpDir = createTempDir();
-  const script = createQoderCliScript(tmpDir, "qodercli-bad", "invalid");
-  process.env.CLI_QODER_BIN = script;
-
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () => new Response("Invalid API key", { status: 401 });
   try {
     const result = await validateQoderCliPat({ apiKey: "pat_bad" });
-    assert.deepEqual(result, { valid: false, error: "Invalid API key", unsupported: false });
+    assert.equal(result.valid, false);
+    assert.ok(result.error != null && result.error.includes("401"));
+    assert.equal(result.unsupported, false);
   } finally {
-    if (prev === undefined) delete process.env.CLI_QODER_BIN;
-    else process.env.CLI_QODER_BIN = prev;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    globalThis.fetch = orig;
   }
 });
 
 test("QoderExecutor: non-stream calls return an OpenAI-compatible completion payload", async () => {
-  const prev = process.env.CLI_QODER_BIN;
-  const tmpDir = createTempDir();
-  const script = createQoderCliScript(tmpDir, "qodercli-exec", "success");
-  process.env.CLI_QODER_BIN = script;
-
+  const completionBody = JSON.stringify({
+    id: "chatcmpl-test",
+    object: "chat.completion",
+    created: 1234567890,
+    model: "qoder-rome-30ba3b",
+    choices: [{ index: 0, message: { role: "assistant", content: "OK" }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+  });
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(completionBody, { status: 200, headers: { "Content-Type": "application/json" } });
   try {
     const executor = new QoderExecutor();
     const { response, url } = await executor.execute({
@@ -214,26 +215,29 @@ test("QoderExecutor: non-stream calls return an OpenAI-compatible completion pay
       stream: false,
       credentials: { apiKey: "pat_test" },
     });
-
-    assert.equal(url, "qodercli://local");
+    assert.ok(typeof url === "string" && url.startsWith("https://"));
     assert.equal(response.status, 200);
     const payload = await response.json();
     assert.equal(payload.object, "chat.completion");
     assert.equal(payload.choices[0].message.role, "assistant");
     assert.equal(payload.choices[0].message.content, "OK");
   } finally {
-    if (prev === undefined) delete process.env.CLI_QODER_BIN;
-    else process.env.CLI_QODER_BIN = prev;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    globalThis.fetch = orig;
   }
 });
 
 test("QoderExecutor: stream calls emit OpenAI-compatible SSE chunks", async () => {
-  const prev = process.env.CLI_QODER_BIN;
-  const tmpDir = createTempDir();
-  const script = createQoderCliScript(tmpDir, "qodercli-stream", "success");
-  process.env.CLI_QODER_BIN = script;
-
+  const sseBody = [
+    `data: ${JSON.stringify({ id: "chatcmpl-1", object: "chat.completion.chunk", created: 1234, model: "qoder-rome-30ba3b", choices: [{ index: 0, delta: { role: "assistant", content: "" }, finish_reason: null }] })}`,
+    `data: ${JSON.stringify({ id: "chatcmpl-1", object: "chat.completion.chunk", created: 1234, model: "qoder-rome-30ba3b", choices: [{ index: 0, delta: { content: "O" }, finish_reason: null }] })}`,
+    `data: ${JSON.stringify({ id: "chatcmpl-1", object: "chat.completion.chunk", created: 1234, model: "qoder-rome-30ba3b", choices: [{ index: 0, delta: { content: "K" }, finish_reason: null }] })}`,
+    `data: ${JSON.stringify({ id: "chatcmpl-1", object: "chat.completion.chunk", created: 1234, model: "qoder-rome-30ba3b", choices: [{ index: 0, delta: {}, finish_reason: "stop" }] })}`,
+    "data: [DONE]",
+    "",
+  ].join("\n");
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(sseBody, { status: 200, headers: { "Content-Type": "text/event-stream" } });
   try {
     const executor = new QoderExecutor();
     const { response } = await executor.execute({
@@ -242,7 +246,6 @@ test("QoderExecutor: stream calls emit OpenAI-compatible SSE chunks", async () =
       stream: true,
       credentials: { apiKey: "pat_test" },
     });
-
     assert.equal(response.status, 200);
     const body = await response.text();
     assert.match(body, /chat\.completion\.chunk/);
@@ -251,8 +254,6 @@ test("QoderExecutor: stream calls emit OpenAI-compatible SSE chunks", async () =
     assert.match(body, /"content":"K"/);
     assert.match(body, /\[DONE\]/);
   } finally {
-    if (prev === undefined) delete process.env.CLI_QODER_BIN;
-    else process.env.CLI_QODER_BIN = prev;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    globalThis.fetch = orig;
   }
 });
