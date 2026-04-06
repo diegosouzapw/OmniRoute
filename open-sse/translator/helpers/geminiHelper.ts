@@ -75,16 +75,34 @@ export function convertOpenAIContentToParts(content) {
     for (const item of content) {
       if (item.type === "text") {
         parts.push({ text: item.text });
-      } else if (item.type === "image_url" && item.image_url?.url?.startsWith("data:")) {
-        const url = item.image_url.url;
-        const commaIndex = url.indexOf(",");
-        if (commaIndex !== -1) {
-          const mimePart = url.substring(5, commaIndex); // skip "data:"
-          const data = url.substring(commaIndex + 1);
-          const mimeType = mimePart.split(";")[0];
+      } else {
+        // Try to find a data URL in common fields (image_url, file_url, input_file, file, or top-level url)
+        // This handles cases where clients use different names for file attachments like PDF, Audio, etc.
+        const url =
+          item.image_url?.url ||
+          item.file_url?.url ||
+          item.input_file?.url ||
+          item.file?.url ||
+          (typeof item.url === "string" ? item.url : undefined);
 
+        if (url?.startsWith("data:")) {
+          const commaIndex = url.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = url.substring(5, commaIndex); // skip "data:"
+            const data = url.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0];
+
+            parts.push({
+              inlineData: { mimeType, data },
+            });
+          }
+        } else if (item.data && (item.mime_type || item.mimeType)) {
+          // Handle explicit base64 data
           parts.push({
-            inlineData: { mimeType, data },
+            inlineData: {
+              mimeType: item.mime_type || item.mimeType,
+              data: item.data,
+            },
           });
         }
       }
