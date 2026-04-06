@@ -28,11 +28,13 @@ export const gemini = {
     } else {
       // (#537) Google's OAuth2 token endpoint always requires client_secret for
       // non-PKCE flows. Without it we get a cryptic "client_secret is missing" error.
-      // This typically happens in self-hosted / Docker deployments where
-      // GEMINI_OAUTH_CLIENT_SECRET is not set in the container environment.
+      const envName = config.clientId.includes("cli")
+        ? "GEMINI_CLI_OAUTH_CLIENT_SECRET"
+        : "GEMINI_OAUTH_CLIENT_SECRET";
+
       throw new Error(
-        "Gemini CLI OAuth requires GEMINI_OAUTH_CLIENT_SECRET to be set.\n" +
-          "In Docker: add 'GEMINI_OAUTH_CLIENT_SECRET=<your-secret>' to your docker-compose.yml env.\n" +
+        `Gemini OAuth requires ${envName} to be set.\n` +
+          `In Docker: add '${envName}=<your-secret>' to your docker-compose.yml env.\n` +
           "In npm: add it to ~/.omniroute/.env\n" +
           "Obtain the client secret from https://console.cloud.google.com/apis/credentials\n" +
           "for the same OAuth 2.0 Client ID configured as GEMINI_OAUTH_CLIENT_ID."
