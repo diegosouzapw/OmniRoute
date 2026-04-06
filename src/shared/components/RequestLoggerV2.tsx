@@ -31,7 +31,7 @@ const COLUMNS = [
   { key: "model", label: "Model" },
   { key: "requestedModel", label: "Requested" },
   { key: "provider", label: "Provider" },
-  { key: "protocol", label: "Protocol" },
+  { key: "protocol", label: "Req Protocol" },
   { key: "account", label: "Account" },
   { key: "apiKey", label: "API Key" },
   { key: "combo", label: "Combo" },
@@ -582,7 +582,7 @@ export default function RequestLoggerV2() {
                   )}
                   {visibleColumns.protocol && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      Protocol
+                      Req Protocol
                     </th>
                   )}
                   {visibleColumns.account && (
@@ -728,12 +728,12 @@ export default function RequestLoggerV2() {
                       )}
                       {visibleColumns.tokens && (
                         <td className="px-3 py-2 text-right whitespace-nowrap">
-                          <span className="text-text-muted">I:</span>{" "}
+                          <span className="text-text-muted">TI:</span>{" "}
                           <span className="text-primary">
                             {log.tokens?.in?.toLocaleString() || 0}
                           </span>
                           <span className="mx-1 text-border">|</span>
-                          <span className="text-text-muted">O:</span>{" "}
+                          <span className="text-text-muted">TO:</span>{" "}
                           <span className="text-emerald-700 dark:text-emerald-400">
                             {log.tokens?.out?.toLocaleString() || 0}
                           </span>

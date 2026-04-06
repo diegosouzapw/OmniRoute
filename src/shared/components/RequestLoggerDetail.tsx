@@ -159,14 +159,32 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Tokens (I/O)
+                Tokens
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
-                  In: {(detail?.tokens?.in || log.tokens?.in || 0).toLocaleString()}
+                  Total In: {(detail?.tokens?.in ?? log.tokens?.in ?? 0).toLocaleString()}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                  Out: {(detail?.tokens?.out || log.tokens?.out || 0).toLocaleString()}
+                  Total Out: {(detail?.tokens?.out ?? log.tokens?.out ?? 0).toLocaleString()}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold">
+                  Cache Read:{" "}
+                  {(detail?.tokens?.cacheRead ?? log.tokens?.cacheRead) != null
+                    ? (detail?.tokens?.cacheRead ?? log.tokens?.cacheRead).toLocaleString()
+                    : "N/A"}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
+                  Cache Write:{" "}
+                  {(detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite) != null
+                    ? (detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite).toLocaleString()
+                    : "N/A"}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
+                  Reasoning:{" "}
+                  {(detail?.tokens?.reasoning ?? log.tokens?.reasoning) != null
+                    ? (detail?.tokens?.reasoning ?? log.tokens?.reasoning).toLocaleString()
+                    : "N/A"}
                 </span>
               </div>
             </div>
@@ -202,7 +220,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Protocol
+                Req Protocol
               </div>
               <span
                 className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"

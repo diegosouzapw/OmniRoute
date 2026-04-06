@@ -30,7 +30,8 @@ export const PROVIDER_COLORS = {
 // ═══════════════════════════════════════════
 
 export const PROTOCOL_COLORS = {
-  openai: { bg: "#10A37F", text: "#fff", label: "OpenAI" },
+  openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
+  "openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },
   claude: { bg: "#D97757", text: "#fff", label: "Claude" },
   gemini: { bg: "#4285F4", text: "#fff", label: "Gemini" },
   warmup: { bg: "#F59E0B", text: "#000", label: "Warmup" },

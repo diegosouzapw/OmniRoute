@@ -14,6 +14,7 @@ import {
   getLoggedOutputTokens,
   getPromptCacheCreationTokens,
   getPromptCacheReadTokens,
+  getReasoningTokens,
 } from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
@@ -167,7 +168,7 @@ export async function saveRequestUsage(entry: any) {
       getLoggedOutputTokens(entry.tokens),
       getPromptCacheReadTokens(entry.tokens),
       getPromptCacheCreationTokens(entry.tokens),
-      entry.tokens?.reasoning ?? entry.tokens?.reasoning_tokens ?? 0,
+      getReasoningTokens(entry.tokens),
       entry.status || null,
       entry.success === false ? 0 : 1,
       Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
