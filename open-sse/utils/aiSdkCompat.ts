@@ -27,19 +27,30 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
 }
 
 /**
- * Detects explicit aliases meaning "do not stream".
- * Useful for clients that do not send OpenAI's canonical `stream: false` field.
+ * Resolves explicit stream aliases used by non-standard clients.
+ * Returns:
+ * - `true`  -> explicit streaming intent
+ * - `false` -> explicit non-stream intent
+ * - `undefined` -> no explicit alias present
  */
-export function hasExplicitNoStreamParam(body: unknown): boolean {
-  if (!body || typeof body !== "object") return false;
+export function resolveExplicitStreamAlias(body: unknown): boolean | undefined {
+  if (!body || typeof body !== "object") return undefined;
   const b = body as Record<string, unknown>;
 
-  if (b.non_stream === true) return true;
-  if (b.disable_stream === true) return true;
-  if (b.disable_streaming === true) return true;
-  if (b.streaming === false) return true;
+  if (b.streaming === true) return true;
+  if (b.streaming === false) return false;
+  if (b.non_stream === true) return false;
+  if (b.disable_stream === true) return false;
+  if (b.disable_streaming === true) return false;
 
-  return false;
+  return undefined;
+}
+
+/**
+ * Backward-compatible helper used by tests/legacy call sites.
+ */
+export function hasExplicitNoStreamParam(body: unknown): boolean {
+  return resolveExplicitStreamAlias(body) === false;
 }
 
 /**

@@ -105,7 +105,7 @@ import {
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
 import {
-  hasExplicitNoStreamParam,
+  resolveExplicitStreamAlias,
   resolveStreamFlag,
   stripMarkdownCodeFence,
 } from "../utils/aiSdkCompat.ts";
@@ -684,17 +684,23 @@ export async function handleChatCore({
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
 
-  const explicitNoStream = hasExplicitNoStreamParam(body);
-  const stream = explicitNoStream ? false : resolveStreamFlag(body?.stream, acceptHeader);
+  const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
   // Remove non-standard non-stream aliases before provider translation/execution.
   // They are accepted for compatibility at the OmniRoute API boundary only.
   if (body && typeof body === "object") {
-    delete (body as Record<string, unknown>).non_stream;
-    delete (body as Record<string, unknown>).disable_stream;
-    delete (body as Record<string, unknown>).disable_streaming;
-    delete (body as Record<string, unknown>).streaming;
+    const b = body as Record<string, unknown>;
+    if (explicitStreamAlias !== undefined) {
+      b.stream = explicitStreamAlias;
+    }
+
+    delete b.non_stream;
+    delete b.disable_stream;
+    delete b.disable_streaming;
+    delete b.streaming;
   }
+
+  const stream = resolveStreamFlag(body?.stream, acceptHeader);
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {

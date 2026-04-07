@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const {
   clientWantsJsonResponse,
   resolveStreamFlag,
+  resolveExplicitStreamAlias,
   hasExplicitNoStreamParam,
   stripMarkdownCodeFence,
 } = await import("../../open-sse/utils/aiSdkCompat.ts");
@@ -52,6 +53,14 @@ test("T26: explicit non-stream aliases are detected", () => {
   assert.equal(hasExplicitNoStreamParam({ disable_stream: true }), true);
   assert.equal(hasExplicitNoStreamParam({ disable_streaming: true }), true);
   assert.equal(hasExplicitNoStreamParam({ streaming: false }), true);
+  assert.equal(hasExplicitNoStreamParam({ streaming: true }), false);
   assert.equal(hasExplicitNoStreamParam({ stream: false }), false);
   assert.equal(hasExplicitNoStreamParam({}), false);
+});
+
+test("T26: explicit stream aliases resolve true/false correctly", () => {
+  assert.equal(resolveExplicitStreamAlias({ streaming: true }), true);
+  assert.equal(resolveExplicitStreamAlias({ streaming: false }), false);
+  assert.equal(resolveExplicitStreamAlias({ disable_streaming: true }), false);
+  assert.equal(resolveExplicitStreamAlias({}), undefined);
 });
