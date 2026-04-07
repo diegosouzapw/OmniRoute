@@ -104,7 +104,11 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
-import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
+import {
+  hasExplicitNoStreamParam,
+  resolveStreamFlag,
+  stripMarkdownCodeFence,
+} from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
@@ -680,7 +684,17 @@ export async function handleChatCore({
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
 
-  const stream = resolveStreamFlag(body?.stream, acceptHeader);
+  const explicitNoStream = hasExplicitNoStreamParam(body);
+  const stream = explicitNoStream ? false : resolveStreamFlag(body?.stream, acceptHeader);
+
+  // Remove non-standard non-stream aliases before provider translation/execution.
+  // They are accepted for compatibility at the OmniRoute API boundary only.
+  if (body && typeof body === "object") {
+    delete (body as Record<string, unknown>).non_stream;
+    delete (body as Record<string, unknown>).disable_stream;
+    delete (body as Record<string, unknown>).disable_streaming;
+    delete (body as Record<string, unknown>).streaming;
+  }
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {

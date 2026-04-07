@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { clientWantsJsonResponse, resolveStreamFlag, stripMarkdownCodeFence } =
-  await import("../../open-sse/utils/aiSdkCompat.ts");
+const {
+  clientWantsJsonResponse,
+  resolveStreamFlag,
+  hasExplicitNoStreamParam,
+  stripMarkdownCodeFence,
+} = await import("../../open-sse/utils/aiSdkCompat.ts");
 
 test("T26: explicit stream:true takes priority over Accept application/json (#656)", () => {
   assert.equal(clientWantsJsonResponse("application/json"), true);
@@ -41,4 +45,13 @@ test("T26: undefined stream falls back to Accept header heuristic (#656)", () =>
 test("T26: explicit stream:false always prevents streaming", () => {
   assert.equal(resolveStreamFlag(false, "text/event-stream"), false);
   assert.equal(resolveStreamFlag(false, undefined), false);
+});
+
+test("T26: explicit non-stream aliases are detected", () => {
+  assert.equal(hasExplicitNoStreamParam({ non_stream: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ disable_stream: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ disable_streaming: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ streaming: false }), true);
+  assert.equal(hasExplicitNoStreamParam({ stream: false }), false);
+  assert.equal(hasExplicitNoStreamParam({}), false);
 });

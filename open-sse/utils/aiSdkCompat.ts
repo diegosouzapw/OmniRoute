@@ -27,6 +27,22 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
 }
 
 /**
+ * Detects explicit aliases meaning "do not stream".
+ * Useful for clients that do not send OpenAI's canonical `stream: false` field.
+ */
+export function hasExplicitNoStreamParam(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const b = body as Record<string, unknown>;
+
+  if (b.non_stream === true) return true;
+  if (b.disable_stream === true) return true;
+  if (b.disable_streaming === true) return true;
+  if (b.streaming === false) return true;
+
+  return false;
+}
+
+/**
  * Removes surrounding markdown code fences when Claude wraps JSON payloads.
  * Example: ```json\n{"ok":true}\n``` -> {"ok":true}
  */
