@@ -61,11 +61,11 @@ const rows = db
 
 **Files to update:**
 
-- `src/lib/usage/usageHistory.ts` - Lines 112, 194, 292
-- `src/lib/usage/callLogs.ts` - Lines 475
-- `src/lib/db/apiKeys.ts` - Lines 228, 229
-- `src/lib/db/providers.ts` - Lines 39, 428
-- `src/lib/db/proxies.ts` - Multiple locations
+- `src/lib/usage/usageHistory.ts`
+- `src/lib/usage/callLogs.ts`
+- `src/lib/db/apiKeys.ts`
+- `src/lib/db/providers.ts`
+- `src/lib/db/proxies.ts`
 
 ### 2. Add Pagination to Unbounded Queries (High Priority)
 
