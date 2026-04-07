@@ -4,9 +4,8 @@
  * Tests SELECT * vs selective column fetching
  */
 
-import DatabaseCtor from "better-sqlite3";
+import Database from "better-sqlite3";
 import { performance } from "perf_hooks";
-const Database = DatabaseCtor;
 
 const DB_PATH = process.env.HOME + "/.omniroute/storage.sqlite";
 
