@@ -128,8 +128,14 @@ export async function computeAnalytics(
     }
   }
 
+  // Pre-fetch all costs in parallel — avoids N sequential async round-trips
+  const entryCosts = await Promise.all(
+    entries.map((e) => calculateCost(e.provider, e.model, e.tokens).catch(() => 0))
+  );
+
   // ---- Single pass over filtered entries for everything else ----
-  for (const entry of entries) {
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     const pt = entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? 0;
     const ct = entry.tokens?.output ?? entry.tokens?.completion_tokens ?? 0;
     const totalTkns = pt + ct;
@@ -138,13 +144,7 @@ export async function computeAnalytics(
     const dayOfWeek = entryDate.getDay();
     const modelShort = shortModelName(entry.model);
 
-    // Cost
-    let cost = 0;
-    try {
-      cost = await calculateCost(entry.provider, entry.model, entry.tokens);
-    } catch {
-      /* ignore */
-    }
+    const cost = entryCosts[i];
 
     // Summary
     summary.promptTokens += pt;

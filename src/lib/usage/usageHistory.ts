@@ -107,9 +107,13 @@ export function getPendingRequests() {
  * Returns an object compatible with the old LowDB interface.
  * Only `api/usage/analytics/route.js` uses this — it reads `db.data.history`.
  */
-export async function getUsageDb() {
+export async function getUsageDb(sinceIso?: string | null) {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all();
+  const rows = sinceIso
+    ? db
+        .prepare("SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC")
+        .all(sinceIso)
+    : db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all();
 
   const history = rows.map((row) => {
     const r = asRecord(row);

@@ -37,7 +37,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
 
-    const db = await getUsageDb();
+    // Cap history load to last 365 days — the heatmap never looks beyond that,
+    // and all named ranges (1d/7d/30d/90d/ytd) fall within this window.
+    const heatmapSince = new Date();
+    heatmapSince.setDate(heatmapSince.getDate() - 365);
+    const db = await getUsageDb(heatmapSince.toISOString());
     const history = db.data.history || [];
 
     // Build connection map for account names
