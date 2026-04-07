@@ -2,6 +2,7 @@ import {
   getAllProviderLimitsCache,
   getProviderConnectionById,
   getProviderConnections,
+  getQuotaSnapshots,
   getSettings,
   resolveProxyForConnection,
   setProviderLimitsCache,
@@ -160,6 +161,70 @@ function isNetworkFailureMessage(message: unknown): boolean {
   );
 }
 
+function buildCodexQuotaFallback(connection: ProviderConnectionLike): JsonRecord | null {
+  if (connection.provider !== "codex") return null;
+
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const snapshots = getQuotaSnapshots({ connectionId: connection.id, since });
+  if (!snapshots.length) return null;
+
+  const latestByWindow = new Map<string, (typeof snapshots)[number]>();
+  for (const snapshot of snapshots) {
+    const windowKey =
+      typeof (snapshot as { windowKey?: unknown }).windowKey === "string"
+        ? (snapshot as { windowKey: string }).windowKey
+        : "";
+    const createdAt =
+      typeof (snapshot as { createdAt?: unknown }).createdAt === "string"
+        ? (snapshot as { createdAt: string }).createdAt
+        : "";
+    if (!windowKey || !createdAt) continue;
+
+    const prev = latestByWindow.get(windowKey);
+    const prevCreatedAt =
+      prev && typeof (prev as { createdAt?: unknown }).createdAt === "string"
+        ? (prev as { createdAt: string }).createdAt
+        : "";
+
+    if (!prev || new Date(createdAt).getTime() > new Date(prevCreatedAt).getTime()) {
+      latestByWindow.set(windowKey, snapshot);
+    }
+  }
+
+  const quotas: Record<string, JsonRecord> = {};
+  for (const [windowKey, snapshot] of latestByWindow.entries()) {
+    const remaining =
+      typeof (snapshot as { remainingPercentage?: unknown }).remainingPercentage === "number"
+        ? (snapshot as { remainingPercentage: number }).remainingPercentage
+        : null;
+    if (remaining === null) continue;
+
+    quotas[windowKey] = {
+      used: Math.max(0, 100 - remaining),
+      total: 100,
+      remaining,
+      remainingPercentage: remaining,
+      resetAt:
+        typeof (snapshot as { nextResetAt?: unknown }).nextResetAt === "string"
+          ? (snapshot as { nextResetAt: string }).nextResetAt
+          : null,
+      unlimited: false,
+    };
+  }
+
+  if (Object.keys(quotas).length === 0) return null;
+
+  const providerSpecificData = (connection.providerSpecificData || {}) as JsonRecord;
+  const rawPlan = providerSpecificData.workspacePlanType;
+  const plan = typeof rawPlan === "string" && rawPlan.trim() ? rawPlan : null;
+
+  return {
+    quotas,
+    plan,
+    message: null,
+  };
+}
+
 async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
   const errorMessage = typeof usage.message === "string" ? usage.message.toLowerCase() : "";
   const isAuthError =
@@ -169,6 +234,15 @@ async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usa
     errorMessage.includes("unauthorized");
 
   if (!isAuthError || connection.testStatus === "expired") {
+    return;
+  }
+
+  // Codex "provider limits" uses a ChatGPT backend usage endpoint, while the regular
+  // connection test for Codex is intentionally expiry-only and actual request traffic
+  // can still succeed with the current access token. Treat usage fetch auth failures as
+  // non-authoritative for connection status so "Refresh all" does not poison otherwise
+  // working Codex accounts.
+  if (connection.provider === "codex") {
     return;
   }
 
@@ -286,6 +360,20 @@ export async function fetchLiveProviderLimits(connectionId: string): Promise<{
   if (isRecord(result.usage.quotas)) {
     setQuotaCache(connectionId, connection.provider, result.usage.quotas);
   }
+
+  if (
+    connection.provider === "codex" &&
+    !isRecord(result.usage.quotas) &&
+    typeof result.usage.message === "string" &&
+    result.usage.message.toLowerCase().includes("usage details are unavailable")
+  ) {
+    const fallback = buildCodexQuotaFallback(connection);
+    if (fallback) {
+      result = { usage: fallback };
+      setQuotaCache(connectionId, connection.provider, fallback.quotas as JsonRecord);
+    }
+  }
+
   await syncExpiredStatusIfNeeded(connection, result.usage);
 
   return {

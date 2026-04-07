@@ -976,7 +976,7 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, u
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         return {
-          message: `Codex token expired or access denied. Please re-authenticate the connection.`,
+          message: `Codex usage details are unavailable for this account.`,
         };
       }
       throw new Error(`Codex API error: ${response.status}`);
