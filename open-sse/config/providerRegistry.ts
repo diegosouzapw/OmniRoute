@@ -792,7 +792,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://api.minimax.io/anthropic/v1/messages",
     urlSuffix: "?beta=true",
     authType: "apikey",
-    authHeader: "x-api-key",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
     headers: {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
@@ -816,7 +817,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://api.minimaxi.com/anthropic/v1/messages",
     urlSuffix: "?beta=true",
     authType: "apikey",
-    authHeader: "x-api-key",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
     headers: {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",

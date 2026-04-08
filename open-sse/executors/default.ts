@@ -87,9 +87,11 @@ export class DefaultExecutor extends BaseExecutor {
       case "kimi-coding":
       case "bailian-coding-plan":
       case "kimi-coding-apikey":
+        headers["x-api-key"] = effectiveKey || credentials.accessToken;
+        break;
       case "minimax":
       case "minimax-cn":
-        headers["x-api-key"] = effectiveKey || credentials.accessToken;
+        headers["Authorization"] = `Bearer ${effectiveKey || credentials.accessToken}`;
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
