@@ -47,9 +47,11 @@ jobs:
           echo "langs=${LANGS}" >> "$GITHUB_OUTPUT"
 
   i18n:
-    name: i18n Validation
+    name: i18n Validation & Auto-fix
     runs-on: ubuntu-latest
-    continue-on-error: true
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -57,11 +59,30 @@ jobs:
     needs: i18n-matrix
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6.2.0
         with:
           python-version: "3.12"
 
-      - name: Validate ${{ matrix.lang }}
+      - name: Check and fix missing keys
+        run: |
+          # Run fix to auto-generate missing keys
+          python3 scripts/validate_translation.py fix -l '${{ matrix.lang }}'
+
+      - name: Commit auto-generated translations
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add src/i18n/messages/
+            git commit -m "chore(i18n): auto-fix missing translation keys (${{ matrix.lang }})" || true
+            git push || true
+          fi
+
+      - name: Validate after fix
         run: |
           python3 scripts/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
 

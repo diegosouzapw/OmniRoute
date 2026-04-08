@@ -515,7 +515,65 @@ Examples:
   python validate_translation.py diff common      # Diff common category
   python validate_translation.py csv              # Export to CSV
   python validate_translation.py md               # Export to Markdown
+  python validate_translation.py fix              # Auto-generate missing keys from en.json
 """)
+
+
+def fix_missing_keys() -> int:
+    """Auto-generate missing keys by copying from en.json"""
+    source_file = SOURCE_FILE
+    translation_file = get_translation_file()
+    
+    source = load_json(source_file)
+    trans = load_json(translation_file)
+    
+    # Get all keys recursively
+    def get_all_keys(obj, prefix=''):
+        keys = []
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                full_key = f"{prefix}.{k}" if prefix else k
+                if isinstance(v, dict):
+                    keys.extend(get_all_keys(v, full_key))
+                else:
+                    keys.append(full_key)
+        return keys
+    
+    source_keys = set(get_all_keys(source))
+    trans_keys = set(get_all_keys(trans))
+    
+    missing = source_keys - trans_keys
+    
+    if not missing:
+        print_success("No missing keys - translation file is complete!")
+        return 0
+    
+    print(f"Found {len(missing)} missing keys")
+    
+    # Add missing keys to translation
+    for key in missing:
+        parts = key.split('.')
+        current = trans
+        for i, part in enumerate(parts[:-1]):
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+        
+        # Get value from source
+        src = source
+        for part in parts:
+            src = src.get(part, {})
+        
+        # Set the value (use English as fallback)
+        current[parts[-1]] = src if isinstance(src, str) else key
+    
+    # Write back
+    with open(translation_file, 'w', encoding='utf-8') as f:
+        json.dump(trans, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    
+    print_success(f"Added {len(missing)} missing keys to {translation_file.name}")
+    return 0
 
 
 def main():
@@ -563,6 +621,8 @@ def main():
     elif args.command == "md":
         output = args.arg if args.arg else "translation_report.md"
         return export_markdown(output)
+    elif args.command == "fix":
+        return fix_missing_keys()
     else:
         print_error(f"Unknown command: {args.command}")
         usage()
