@@ -88,9 +88,18 @@ export async function proxy(request: any) {
       if (settings.requireLogin === false) {
         return response;
       }
-      // Skip auth ONLY for fresh installs (before onboarding) where no password exists yet.
-      // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
-      if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD) {
+
+      const hasPassword = !!settings.password || !!process.env.INITIAL_PASSWORD;
+
+      // Fresh installs can reach the dashboard before the first password exists.
+      if (!settings.setupComplete && !hasPassword) {
+        return response;
+      }
+
+      // If onboarding was completed without setting a password, the login page routes
+      // users to /dashboard/settings?tab=security so they can configure one later.
+      // Keep that path reachable without auth until a password exists.
+      if (pathname.startsWith("/dashboard/settings") && !hasPassword) {
         return response;
       }
     } catch (err) {
