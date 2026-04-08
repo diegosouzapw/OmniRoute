@@ -40,21 +40,40 @@ function rowToWebhook(row: WebhookRow): Webhook {
   };
 }
 
+const WEBHOOKS_COLUMNS = [
+  "id",
+  "url",
+  "events",
+  "secret",
+  "enabled",
+  "description",
+  "created_at",
+  "last_triggered_at",
+  "last_status",
+  "failure_count",
+].join(", ");
+
 export function getWebhooks(): Webhook[] {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM webhooks ORDER BY created_at DESC").all() as WebhookRow[];
+  const rows = db
+    .prepare(`SELECT ${WEBHOOKS_COLUMNS} FROM webhooks ORDER BY created_at DESC`)
+    .all() as WebhookRow[];
   return rows.map(rowToWebhook);
 }
 
 export function getWebhook(id: string): Webhook | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM webhooks WHERE id = ?").get(id) as WebhookRow | undefined;
+  const row = db.prepare(`SELECT ${WEBHOOKS_COLUMNS} FROM webhooks WHERE id = ?`).get(id) as
+    | WebhookRow
+    | undefined;
   return row ? rowToWebhook(row) : null;
 }
 
 export function getEnabledWebhooks(): Webhook[] {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM webhooks WHERE enabled = 1").all() as WebhookRow[];
+  const rows = db
+    .prepare(`SELECT ${WEBHOOKS_COLUMNS} FROM webhooks WHERE enabled = 1`)
+    .all() as WebhookRow[];
   return rows.map(rowToWebhook);
 }
 

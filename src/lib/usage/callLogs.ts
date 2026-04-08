@@ -498,9 +498,33 @@ if (shouldPersistToDisk) {
   }
 }
 
+const CALL_LOGS_COLUMNS = [
+  "id",
+  "timestamp",
+  "method",
+  "path",
+  "status",
+  "model",
+  "requested_model",
+  "provider",
+  "account",
+  "duration",
+  "tokens_in",
+  "tokens_out",
+  "source_format",
+  "target_format",
+  "error",
+  "combo_name",
+  "api_key_id",
+  "api_key_name",
+  "has_pipeline_details",
+  "request_body",
+  "response_body",
+].join(", ");
+
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
-  let sql = "SELECT * FROM call_logs";
+  let sql = `SELECT ${CALL_LOGS_COLUMNS} FROM call_logs`;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
 
