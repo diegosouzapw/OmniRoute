@@ -6,8 +6,10 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { validateProviderApiKey } from "@/lib/providers/validation";
+import { getProxyForLevel } from "@/lib/localDb";
 import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 // POST /api/providers/validate - Validate API key with provider
 export async function POST(request) {
@@ -57,11 +59,16 @@ export async function POST(request) {
       };
     }
 
-    const result = await validateProviderApiKey({
-      provider,
-      apiKey,
-      providerSpecificData,
-    });
+    const providerProxy = await getProxyForLevel("provider", provider);
+    const globalProxy = providerProxy ? null : await getProxyForLevel("global");
+
+    const result = await runWithProxyContext(providerProxy || globalProxy || null, () =>
+      validateProviderApiKey({
+        provider,
+        apiKey,
+        providerSpecificData,
+      })
+    );
 
     if (result.unsupported) {
       return NextResponse.json({ error: "Provider validation not supported" }, { status: 400 });
