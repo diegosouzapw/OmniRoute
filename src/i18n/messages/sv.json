@@ -192,7 +192,9 @@
     "themeCyan": "Cyan",
     "cliToolsShort": "Verktyg",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "memory": "Memory",
+    "skills": "Skills"
   },
   "themesPage": {
     "title": "Themes",
@@ -992,7 +994,11 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding.",
+    "auto": "Auto Combo",
+    "autoDesc": "Self-healing smart routing pool (Performance optimized)",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "costs": {
     "title": "Kostnader",
@@ -1723,7 +1729,12 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "modelsImported": "{count} models imported",
+    "close": "Close",
+    "statusDeactivated": "Deactivated (Manual)",
+    "statusBanned": "Banned / Sandbox Violation",
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
   },
   "settings": {
     "title": "Inställningar",
@@ -2203,7 +2214,21 @@
     "skillsComingSoon": "Skills marketplace coming soon.",
     "memorySkillsTitle": "Memory & Skills",
     "memorySkillsDesc": "Persistent context & capabilities",
-    "days": "Days"
+    "days": "Days",
+    "cacheCleared": "Cache cleared successfully",
+    "clearCacheFailed": "Failed to clear cache",
+    "adaptiveVolumeRouting": "Adaptive Volume Routing",
+    "adaptiveVolumeRoutingDesc": "Scale connections dynamically based on payload volume and throughput pressure.",
+    "lkgpToggleTitle": "Last Known Good Provider (LKGP)",
+    "lkgpToggleDesc": "When enabled, the router remembers which provider last served a successful response and tries it first on subsequent requests.",
+    "clearLkgpCache": "Clear LKGP Cache",
+    "lkgpCacheCleared": "LKGP cache cleared successfully",
+    "lkgpCacheClearFailed": "Failed to clear LKGP cache",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)",
+    "maintenance": "Maintenance",
+    "purgeExpiredLogs": "Purge Expired Logs",
+    "purgeLogsFailed": "Failed to purge logs"
   },
   "translator": {
     "title": "Översättare",
@@ -3064,7 +3089,11 @@
     "model": "Model",
     "created": "Created",
     "expires": "Expires",
-    "actions": "Actions"
+    "actions": "Actions",
+    "peakCached": "Peak cached",
+    "deduplicatedRequests": "Deduplicated Requests",
+    "savedCalls": "Saved API Calls",
+    "totalProcessed": "Total Requests Processed"
   },
   "memory": {
     "title": "Memory Management",

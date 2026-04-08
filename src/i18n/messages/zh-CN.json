@@ -192,7 +192,9 @@
     "themeCyan": "青色",
     "cliToolsShort": "工具",
     "cache": "缓存",
-    "cacheShort": "缓存"
+    "cacheShort": "缓存",
+    "memory": "Memory",
+    "skills": "Skills"
   },
   "themesPage": {
     "title": "主题",
@@ -992,7 +994,11 @@
       }
     },
     "templateFreeStack": "免费栈（$0）",
-    "templateFreeStackDesc": "在所有免费提供商之间进行轮询：Kiro（Claude）、Qoder（5 个模型）、Qwen（4 个模型）、Gemini CLI。零成本，编码不中断。"
+    "templateFreeStackDesc": "在所有免费提供商之间进行轮询：Kiro（Claude）、Qoder（5 个模型）、Qwen（4 个模型）、Gemini CLI。零成本，编码不中断。",
+    "auto": "Auto Combo",
+    "autoDesc": "Self-healing smart routing pool (Performance optimized)",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "costs": {
     "title": "成本",
@@ -1723,7 +1729,12 @@
     "chatPathHint": "为非标准 API 的提供商自定义聊天路径（例如：/v4/chat/completions）",
     "modelsPathLabel": "模型端点路径",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）"
+    "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）",
+    "modelsImported": "{count} models imported",
+    "close": "Close",
+    "statusDeactivated": "Deactivated (Manual)",
+    "statusBanned": "Banned / Sandbox Violation",
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
   },
   "settings": {
     "title": "设置",
@@ -2215,7 +2226,9 @@
     "skillsComingSoon": "Skills marketplace coming soon.",
     "memorySkillsTitle": "Memory & Skills",
     "memorySkillsDesc": "Persistent context & capabilities",
-    "days": "Days"
+    "days": "Days",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "translator": {
     "title": "翻译者",
@@ -3076,7 +3089,11 @@
     "model": "模型",
     "created": "创建时间",
     "expires": "到期时间",
-    "actions": "操作"
+    "actions": "操作",
+    "peakCached": "Peak cached",
+    "deduplicatedRequests": "Deduplicated Requests",
+    "savedCalls": "Saved API Calls",
+    "totalProcessed": "Total Requests Processed"
   },
   "memory": {
     "title": "Memory Management",
