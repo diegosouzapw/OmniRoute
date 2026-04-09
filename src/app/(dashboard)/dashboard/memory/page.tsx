@@ -128,13 +128,13 @@ export default function MemoryPage() {
         <Card>
           <div className="p-4">
             <div className="text-sm text-gray-500">{t("tokensUsed")}</div>
-            <div className="text-2xl font-bold">{stats.tokensUsed.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(stats.tokensUsed ?? 0).toLocaleString()}</div>
           </div>
         </Card>
         <Card>
           <div className="p-4">
             <div className="text-sm text-gray-500">{t("hitRate")}</div>
-            <div className="text-2xl font-bold">{(stats.hitRate * 100).toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{((stats.hitRate ?? 0) * 100).toFixed(1)}%</div>
           </div>
         </Card>
       </div>

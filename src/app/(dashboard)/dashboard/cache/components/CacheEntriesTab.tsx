@@ -120,7 +120,7 @@ export default function CacheEntriesTab() {
                     <td className="py-2 pr-4">{entry.model}</td>
                     <td className="py-2 pr-4 tabular-nums">{entry.hit_count}</td>
                     <td className="py-2 pr-4 tabular-nums text-green-500">
-                      {entry.tokens_saved.toLocaleString()}
+                      {(entry.tokens_saved ?? 0).toLocaleString()}
                     </td>
                     <td className="py-2 pr-4 text-xs text-text-muted">
                       {formatDate(entry.created_at)}
