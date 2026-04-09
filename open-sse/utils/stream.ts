@@ -26,6 +26,7 @@ import {
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
+import { buildErrorBody } from "./error.ts";
 
 export { COLORS, formatSSE };
 
@@ -67,6 +68,12 @@ type TranslateState = ReturnType<typeof initState> & {
   finishReason?: unknown;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
+  upstreamError?: {
+    status: number;
+    type: string;
+    code: string;
+    message: string;
+  } | null;
 };
 
 type ToolCall = {
@@ -468,6 +475,10 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Translate mode
           if (!trimmed) continue;
 
+          if (state?.upstreamError) {
+            continue;
+          }
+
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
           providerPayloadCollector.push(parsed);
@@ -793,6 +804,36 @@ export function createSSEStream(options: StreamOptions = {}) {
                 }
               }
             }
+          }
+
+          if (state?.upstreamError) {
+            const err = state.upstreamError;
+            trackPendingRequest(model, provider, connectionId, false);
+
+            const errorBody = buildErrorBody(err.status, err.message);
+            if (onComplete) {
+              try {
+                onComplete({
+                  status: err.status,
+                  usage: state?.usage,
+                  responseBody: errorBody,
+                  providerPayload: providerPayloadCollector.build(
+                    buildStreamSummaryFromEvents(
+                      providerPayloadCollector.getEvents(),
+                      targetFormat,
+                      model
+                    ),
+                    { includeEvents: false }
+                  ),
+                  clientPayload: clientPayloadCollector.build(errorBody, {
+                    includeEvents: false,
+                  }),
+                });
+              } catch {}
+            }
+
+            controller.error(new Error(err.message || "Upstream failure"));
+            return;
           }
 
           // Flush remaining events (only once at stream end)

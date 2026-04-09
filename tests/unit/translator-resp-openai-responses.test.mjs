@@ -296,3 +296,60 @@ test("Responses -> OpenAI: tool-call delta, reasoning delta and completed usage 
   assert.equal(completed.usage.prompt_tokens_details.cached_tokens, 1);
   assert.equal(completed.usage.prompt_tokens_details.cache_creation_tokens, 2);
 });
+
+test("Responses -> OpenAI: preserves upstream model instead of defaulting to gpt-4", () => {
+  const state = {};
+  const created = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.created",
+      response: {
+        id: "resp_1",
+        object: "response",
+        model: "gpt-5.4",
+        status: "in_progress",
+        output: [],
+      },
+    },
+    state
+  );
+  const text = openaiResponsesToOpenAIResponse(
+    { type: "response.output_text.delta", delta: "hello" },
+    state
+  );
+  const final = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.completed",
+      response: {
+        model: "gpt-5.4",
+      },
+    },
+    state
+  );
+
+  assert.equal(text.model, "gpt-5.4");
+  assert.equal(final.model, "gpt-5.4");
+  assert.equal(created, null);
+});
+
+test("Responses -> OpenAI: response.failed records upstream error", () => {
+  const state = {};
+  const result = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.failed",
+      response: {
+        error: {
+          message: "Rate limit reached for gpt-5.4",
+          code: "rate_limit_exceeded",
+        },
+      },
+    },
+    state
+  );
+
+  assert.equal(result, null);
+  assert.ok(state.upstreamError);
+  assert.equal(state.upstreamError.status, 429);
+  assert.equal(state.upstreamError.type, "rate_limit_error");
+  assert.equal(state.upstreamError.code, "rate_limit_exceeded");
+  assert.match(state.upstreamError.message, /Rate limit reached/);
+});
