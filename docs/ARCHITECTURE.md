@@ -73,7 +73,7 @@ Main pages under `src/app/(dashboard)/dashboard/`:
 - `/dashboard` — quick start + provider overview
 - `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
 - `/dashboard/providers` — provider connections and credentials
-- `/dashboard/combos` — combo strategies, templates, model routing rules
+- `/dashboard/combos` — combo strategies, templates, model routing rules, manual persisted ordering
 - `/dashboard/costs` — cost aggregation and pricing visibility
 - `/dashboard/analytics` — usage analytics and evaluations
 - `/dashboard/limits` — quota/rate controls

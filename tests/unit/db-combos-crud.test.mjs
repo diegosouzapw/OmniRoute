@@ -47,11 +47,12 @@ test("createCombo stores default strategy and supports lookup by id and name", a
   });
 
   assert.equal(combo.strategy, "priority");
+  assert.equal(combo.sortOrder, 1);
   assert.deepEqual(await combosDb.getComboById(combo.id), combo);
   assert.deepEqual(await combosDb.getComboByName("Priority Combo"), combo);
 });
 
-test("getCombos returns parsed combos sorted by name", async () => {
+test("getCombos returns parsed combos in persisted sort order", async () => {
   await combosDb.createCombo({
     name: "Zulu",
     models: [{ provider: "openai", model: "gpt-4.1" }],
@@ -65,7 +66,11 @@ test("getCombos returns parsed combos sorted by name", async () => {
 
   assert.deepEqual(
     combos.map((combo) => combo.name),
-    ["Alpha", "Zulu"]
+    ["Zulu", "Alpha"]
+  );
+  assert.deepEqual(
+    combos.map((combo) => combo.sortOrder),
+    [1, 2]
   );
 });
 
@@ -89,6 +94,35 @@ test("updateCombo merges fields while preserving immutable data", async () => {
   assert.equal(updated.strategy, "round-robin");
   assert.equal(updated.isHidden, true);
   assert.deepEqual(await combosDb.getComboById(combo.id), updated);
+});
+
+test("reorderCombos persists manual combo ordering in sqlite", async () => {
+  const alpha = await combosDb.createCombo({
+    name: "Alpha",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+  const bravo = await combosDb.createCombo({
+    name: "Bravo",
+    models: [{ provider: "anthropic", model: "claude-3-7-sonnet" }],
+  });
+  const charlie = await combosDb.createCombo({
+    name: "Charlie",
+    models: [{ provider: "google", model: "gemini-2.5-pro" }],
+  });
+
+  const reordered = await combosDb.reorderCombos([charlie.id, alpha.id, bravo.id]);
+
+  assert.deepEqual(
+    reordered.map((combo) => combo.name),
+    ["Charlie", "Alpha", "Bravo"]
+  );
+  assert.deepEqual(
+    reordered.map((combo) => combo.sortOrder),
+    [1, 2, 3]
+  );
+  assert.equal((await combosDb.getComboById(charlie.id))?.sortOrder, 1);
+  assert.equal((await combosDb.getComboById(alpha.id))?.sortOrder, 2);
+  assert.equal((await combosDb.getComboById(bravo.id))?.sortOrder, 3);
 });
 
 test("deleteCombo reports missing ids and removes existing rows", async () => {

@@ -75,8 +75,8 @@ export function runJsonMigration(
   );
 
   const insertCombo = db.prepare(`
-    INSERT OR REPLACE INTO combos (id, name, data, created_at, updated_at)
-    VALUES (@id, @name, @data, @createdAt, @updatedAt)
+    INSERT OR REPLACE INTO combos (id, name, data, sort_order, created_at, updated_at)
+    VALUES (@id, @name, @data, @sortOrder, @createdAt, @updatedAt)
   `);
 
   const insertKey = db.prepare(`
@@ -171,13 +171,18 @@ export function runJsonMigration(
     }
 
     // 5. Combos
-    for (const combo of data.combos ?? []) {
+    for (const [index, combo] of (data.combos ?? []).entries()) {
+      const normalizedCombo = {
+        ...combo,
+        sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
+      };
       insertCombo.run({
-        id: combo.id,
-        name: combo.name,
-        data: JSON.stringify(combo),
-        createdAt: combo.createdAt ?? new Date().toISOString(),
-        updatedAt: combo.updatedAt ?? new Date().toISOString(),
+        id: normalizedCombo.id,
+        name: normalizedCombo.name,
+        data: JSON.stringify(normalizedCombo),
+        sortOrder: normalizedCombo.sortOrder,
+        createdAt: normalizedCombo.createdAt ?? new Date().toISOString(),
+        updatedAt: normalizedCombo.updatedAt ?? new Date().toISOString(),
       });
     }
 

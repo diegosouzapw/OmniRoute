@@ -331,6 +331,13 @@ function getI18nOrFallback(t, key, fallback) {
   return fallback;
 }
 
+function moveArrayItem(items, fromIndex, toIndex) {
+  const nextItems = [...items];
+  const [movedItem] = nextItems.splice(fromIndex, 1);
+  nextItems.splice(toIndex, 0, movedItem);
+  return nextItems;
+}
+
 function getStrategyGuideText(t, strategy, field) {
   const strategyFallback =
     STRATEGY_GUIDANCE_FALLBACK[strategy] || STRATEGY_GUIDANCE_FALLBACK.priority;
@@ -388,6 +395,9 @@ export default function CombosPage() {
   const [providerNodes, setProviderNodes] = useState([]);
   const [showUsageGuide, setShowUsageGuide] = useState(true);
   const [recentlyCreatedCombo, setRecentlyCreatedCombo] = useState("");
+  const [comboDragIndex, setComboDragIndex] = useState(null);
+  const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
+  const [savingComboOrder, setSavingComboOrder] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -560,6 +570,75 @@ export default function CombosPage() {
     } catch {}
   };
 
+  const resetComboDragState = () => {
+    setComboDragIndex(null);
+    setComboDragOverIndex(null);
+  };
+
+  const handleComboDragStart = (e, index) => {
+    if (savingComboOrder || combos.length < 2) {
+      e.preventDefault();
+      return;
+    }
+    setComboDragIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", combos[index]?.id || `${index}`);
+    if (e.currentTarget instanceof HTMLElement) {
+      setTimeout(() => {
+        e.currentTarget.style.opacity = "0.5";
+      }, 0);
+    }
+  };
+
+  const handleComboDragEnd = (e) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1";
+    }
+    resetComboDragState();
+  };
+
+  const handleComboDragOver = (e, index) => {
+    e.preventDefault();
+    if (comboDragIndex === null || comboDragIndex === index) return;
+    e.dataTransfer.dropEffect = "move";
+    setComboDragOverIndex(index);
+  };
+
+  const handleComboDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    const fromIndex = comboDragIndex;
+    resetComboDragState();
+
+    if (fromIndex === null || fromIndex === dropIndex) return;
+
+    const previousCombos = combos;
+    const nextCombos = moveArrayItem(combos, fromIndex, dropIndex);
+    setCombos(nextCombos);
+    setSavingComboOrder(true);
+
+    try {
+      const res = await fetch("/api/combos/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comboIds: nextCombos.map((combo) => combo.id) }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || data.error || "Failed to reorder combos");
+      }
+
+      if (Array.isArray(data.combos)) {
+        setCombos(data.combos);
+      }
+    } catch {
+      setCombos(previousCombos);
+      notify.error(getI18nOrFallback(t, "failedReorder", "Failed to save combo order"));
+    } finally {
+      setSavingComboOrder(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col gap-6">
@@ -655,23 +734,34 @@ export default function CombosPage() {
         />
       ) : (
         <div className="flex flex-col gap-4">
-          {combos.map((combo) => (
-            <ComboCard
+          {combos.map((combo, index) => (
+            <div
               key={combo.id}
-              combo={combo}
-              metrics={metrics[combo.name]}
-              providerNodes={providerNodes}
-              copied={copied}
-              onCopy={copy}
-              onEdit={() => setEditingCombo(combo)}
-              onDelete={() => handleDelete(combo.id)}
-              onDuplicate={() => handleDuplicate(combo)}
-              onTest={() => handleTestCombo(combo)}
-              testing={testingCombo === combo.name}
-              onProxy={() => setProxyTargetCombo(combo)}
-              hasProxy={!!proxyConfig?.combos?.[combo.id]}
-              onToggle={() => handleToggleCombo(combo)}
-            />
+              data-testid={`combo-card-${combo.id}`}
+              onDragOver={(e) => handleComboDragOver(e, index)}
+              onDrop={(e) => handleComboDrop(e, index)}
+            >
+              <ComboCard
+                combo={combo}
+                metrics={metrics[combo.name]}
+                providerNodes={providerNodes}
+                copied={copied}
+                onCopy={copy}
+                onEdit={() => setEditingCombo(combo)}
+                onDelete={() => handleDelete(combo.id)}
+                onDuplicate={() => handleDuplicate(combo)}
+                onTest={() => handleTestCombo(combo)}
+                testing={testingCombo === combo.name}
+                onProxy={() => setProxyTargetCombo(combo)}
+                hasProxy={!!proxyConfig?.combos?.[combo.id]}
+                onToggle={() => handleToggleCombo(combo)}
+                dragDisabled={savingComboOrder || combos.length < 2}
+                isDragged={comboDragIndex === index}
+                isDropTarget={comboDragOverIndex === index && comboDragIndex !== index}
+                onDragStart={(e) => handleComboDragStart(e, index)}
+                onDragEnd={handleComboDragEnd}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -977,6 +1067,11 @@ function ComboCard({
   hasProxy,
   onToggle,
   providerNodes,
+  dragDisabled,
+  isDragged,
+  isDropTarget,
+  onDragStart,
+  onDragEnd,
 }) {
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
@@ -997,9 +1092,33 @@ function ComboCard({
   };
 
   return (
-    <Card padding="sm" className={`group ${isDisabled ? "opacity-50" : ""}`}>
+    <Card
+      padding="sm"
+      className={`group transition-all ${
+        isDisabled ? "opacity-50" : ""
+      } ${isDropTarget ? "border border-primary/30 bg-primary/5" : ""} ${
+        isDragged ? "opacity-60" : ""
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
+          <button
+            type="button"
+            draggable={!dragDisabled}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            data-testid={`combo-drag-handle-${combo.id}`}
+            className={`p-1 rounded-md transition-colors shrink-0 ${
+              dragDisabled
+                ? "cursor-not-allowed text-text-muted/40"
+                : "cursor-grab active:cursor-grabbing text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"
+            }`}
+            title={getI18nOrFallback(t, "reorderHandle", "Drag to reorder combo")}
+            aria-label={getI18nOrFallback(t, "reorderHandle", "Drag to reorder combo")}
+          >
+            <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+          </button>
+
           {/* Icon */}
           <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
@@ -1222,17 +1341,20 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     agentContextCache: boolean;
   };
 
-  const getEmptyCreateDraftSnapshot = (): CreateDraftSnapshot => ({
-    name: "",
-    models: [],
-    strategy: "priority",
-    config: {},
-    showAdvanced: false,
-    nameError: "",
-    agentSystemMessage: "",
-    agentToolFilter: "",
-    agentContextCache: false,
-  });
+  const getEmptyCreateDraftSnapshot = useCallback(
+    (): CreateDraftSnapshot => ({
+      name: "",
+      models: [],
+      strategy: "priority",
+      config: {},
+      showAdvanced: false,
+      nameError: "",
+      agentSystemMessage: "",
+      agentToolFilter: "",
+      agentContextCache: false,
+    }),
+    []
+  );
 
   const t = useTranslations("combos");
   const tc = useTranslations("common");
@@ -1486,7 +1608,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     return () => {
       cancelled = true;
     };
-  }, [combo, isOpen, resetFormForCombo]);
+  }, [combo, getEmptyCreateDraftSnapshot, isOpen, resetFormForCombo]);
 
   useEffect(() => {
     if (!strategyChangeMountedRef.current) {

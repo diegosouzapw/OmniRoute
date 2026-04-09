@@ -111,6 +111,7 @@ const SCHEMA_SQL = `
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     data TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -406,6 +407,11 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
   }
 }
 
+function hasColumn(db: SqliteDatabase, tableName: string, columnName: string): boolean {
+  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
+  return rows.some((row) => row.name === columnName);
+}
+
 export function getDbInstance(): SqliteDatabase {
   const existing = getDb();
   if (existing) return existing;
@@ -512,6 +518,12 @@ export function getDbInstance(): SqliteDatabase {
     INSERT OR IGNORE INTO _omniroute_migrations (version, name)
     VALUES ('001', 'initial_schema');
   `);
+  if (hasColumn(db, "combos", "sort_order")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "020",
+      "combo_sort_order"
+    );
+  }
   runMigrations(db);
 
   // Auto-migrate from db.json if exists
@@ -702,16 +714,21 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
       // 4. Combos
       const insertCombo = db.prepare(`
-        INSERT OR REPLACE INTO combos (id, name, data, created_at, updated_at)
-        VALUES (@id, @name, @data, @createdAt, @updatedAt)
+        INSERT OR REPLACE INTO combos (id, name, data, sort_order, created_at, updated_at)
+        VALUES (@id, @name, @data, @sortOrder, @createdAt, @updatedAt)
       `);
-      for (const combo of data.combos || []) {
+      for (const [index, combo] of (data.combos || []).entries()) {
+        const normalizedCombo = {
+          ...combo,
+          sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
+        };
         insertCombo.run({
-          id: combo.id,
-          name: combo.name,
-          data: JSON.stringify(combo),
-          createdAt: combo.createdAt || new Date().toISOString(),
-          updatedAt: combo.updatedAt || new Date().toISOString(),
+          id: normalizedCombo.id,
+          name: normalizedCombo.name,
+          data: JSON.stringify(normalizedCombo),
+          sortOrder: normalizedCombo.sortOrder,
+          createdAt: normalizedCombo.createdAt || new Date().toISOString(),
+          updatedAt: normalizedCombo.updatedAt || new Date().toISOString(),
         });
       }
 

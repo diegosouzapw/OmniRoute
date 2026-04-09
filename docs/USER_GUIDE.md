@@ -221,6 +221,8 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 
 ## 🎨 Combos
 
+You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
+
 ### Example 1: Maximize Subscription → Cheap Backup
 
 ```

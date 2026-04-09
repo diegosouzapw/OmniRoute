@@ -486,6 +486,7 @@ Developers who want all responses in a specific language, with a specific tone, 
 - **9 Routing Strategies** — Global strategies that determine how requests are distributed
 - **Wildcard Router** — `provider/*` patterns route dynamically to any provider
 - **Combo Enable/Disable Toggle** — Toggle combos directly from the dashboard
+- **Manual Combo Ordering** — Drag combo cards by handle and persist the order in SQLite
 - **Provider Toggle** — Enable/disable all connections for a provider with one click
 - **Blocked Providers** — Exclude specific providers from `/v1/models` listing
 

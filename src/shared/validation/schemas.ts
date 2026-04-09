@@ -925,6 +925,20 @@ export const updateComboSchema = z
     }
   });
 
+export const reorderCombosSchema = z
+  .object({
+    comboIds: z.array(z.string().trim().min(1).max(200)).min(1).max(1000),
+  })
+  .superRefine((value, ctx) => {
+    if (new Set(value.comboIds).size !== value.comboIds.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "comboIds must be unique",
+        path: ["comboIds"],
+      });
+    }
+  });
+
 export const testComboSchema = z.object({
   comboName: z.string().trim().min(1, "comboName is required"),
 });
