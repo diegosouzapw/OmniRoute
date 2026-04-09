@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | 'falsk' | Tillad Api Manager at kopiere hele API-nøgler efter behov |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Server-side opdateringskadence for cachelagrede Provider Limits-data; UI-opdateringsknapper udløser stadig manuel synkronisering |
 | `DISABLE_SQLITE_AUTO_BACKUP` | 'falsk' | Deaktiver automatiske SQLite-snapshots før skrivning/import/gendannelse; Manuelle sikkerhedskopier virker stadig |
-| `ENABLE_REQUEST_LOGS` | 'falsk' | Aktiverer anmodnings-/svarlogs |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | 'falsk' | Tving 'Sikker' auth-cookie (bag HTTPS omvendt proxy) |
 | `CLOUDFLARED_BIN` | frakoblet | Brug en eksisterende `cloudflared` binær i stedet for administreret download |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport til administrerede hurtige tunneler (`http2`, `quic` eller `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementerer modstandsdygtighed på udbyderniveau med fire komponente
 - Følsomhed for registrering af hastighedsgrænse
 - Eksponentielle backoff-parametre
 
-2.**Redigerbare hastighedsgrænser**— Standardindstillinger på systemniveau, der kan konfigureres i dashboardet: -**Requests Per Minute (RPM)**— Maksimale anmodninger pr. minut pr. konto -**Min Time Between Requests**— Minimumsafstand i millisekunder mellem anmodninger -**Maksimal samtidige anmodninger**— Maksimalt antal samtidige anmodninger pr. konto
+  2.**Redigerbare hastighedsgrænser**— Standardindstillinger på systemniveau, der kan konfigureres i dashboardet: -**Requests Per Minute (RPM)**— Maksimale anmodninger pr. minut pr. konto -**Min Time Between Requests**— Minimumsafstand i millisekunder mellem anmodninger -**Maksimal samtidige anmodninger**— Maksimalt antal samtidige anmodninger pr. konto
 
 - Klik på**Rediger**for at ændre, og klik derefter på**Gem**eller**Annuller**. Værdier bevarer via resilience API.
 
-3.**Circuit Breaker**— Sporer fejl pr. udbyder og åbner automatisk kredsløbet, når en tærskel er nået: -**LUKKET**(Sund) — Anmodninger flyder normalt -**ÅBEN**— Udbyderen er midlertidigt blokeret efter gentagne fejl -**HALF_OPEN**— Tester, om udbyderen er genoprettet
+  3.**Circuit Breaker**— Sporer fejl pr. udbyder og åbner automatisk kredsløbet, når en tærskel er nået: -**LUKKET**(Sund) — Anmodninger flyder normalt -**ÅBEN**— Udbyderen er midlertidigt blokeret efter gentagne fejl -**HALF_OPEN**— Tester, om udbyderen er genoprettet
 
-4.**Politik og låste identifikatorer**— Viser strømafbryderstatus og låste identifikatorer med tvangsoplåsningsfunktion.
+  4.**Politik og låste identifikatorer**— Viser strømafbryderstatus og låste identifikatorer med tvangsoplåsningsfunktion.
 
-5.**Rate Limit Auto-Detection**— Overvåger "429" og "Retry-After"-headere for proaktivt at undgå at ramme udbyderens takstgrænser.
+  5.**Rate Limit Auto-Detection**— Overvåger "429" og "Retry-After"-headere for proaktivt at undgå at ramme udbyderens takstgrænser.
 
 **Prof tip:**Brug knappen**Nulstil alle**til at rydde alle strømafbrydere og nedkøling, når en udbyder kommer sig efter en fejl.---
 

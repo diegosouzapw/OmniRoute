@@ -198,10 +198,22 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         if (store) store.used = false;
       }
     }
-    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
-      ...options,
-      dispatcher: getDefaultDispatcher(),
-    });
+    // Direct connection (no proxy) — use undici with custom dispatcher for timeout control.
+    // Falls back to original native fetch if dispatcher initialization fails (#1054).
+    try {
+      return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+        ...options,
+        dispatcher: getDefaultDispatcher(),
+      });
+    } catch (dispatcherError) {
+      const msg = dispatcherError instanceof Error ? dispatcherError.message : String(dispatcherError);
+      // Only fallback for connection/dispatcher errors, not HTTP errors
+      if (msg.includes("fetch failed") || msg.includes("ECONNREFUSED") || msg.includes("UND_ERR")) {
+        console.warn(`[ProxyFetch] Undici dispatcher failed, falling back to native fetch: ${msg}`);
+        return originalFetchWithDispatcher(input, options);
+      }
+      throw dispatcherError;
+    }
   }
 
   try {

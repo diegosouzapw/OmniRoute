@@ -110,10 +110,12 @@ test("parseQoderCliFailure classifies auth, upstream and timeout failures", () =
 test("validateQoderCliPat succeeds when the validation endpoint returns OK", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options) => {
-    assert.match(
-      String(url),
-      /api1\.qoder\.sh\/algo\/api\/v2\/service\/pro\/sse\/agent_chat_generation/
-    );
+    const urlStr = String(url);
+    // Handle ping check
+    if (urlStr.includes("/ping")) {
+      return new Response("pong", { status: 200 });
+    }
+    assert.match(urlStr, /api1\.qoder\.sh\/algo\/api\/v2\/service\/pro\/sse\/agent_chat_generation/);
     assert.equal(options.method, "POST");
     assert.match(String(options.headers.Authorization), /^Bearer COSY\./);
     return new Response("{}", { status: 200 });
@@ -127,17 +129,18 @@ test("validateQoderCliPat succeeds when the validation endpoint returns OK", asy
   }
 });
 
-test("validateQoderCliPat returns HTTP failures without touching the network", async () => {
+test("validateQoderCliPat returns auth failures with actionable error", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("Invalid API key", { status: 401 });
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
+    return new Response("Invalid API key", { status: 401 });
+  };
 
   try {
     const result = await validateQoderCliPat({ apiKey: "pat_bad" });
-    assert.deepEqual(result, {
-      valid: false,
-      error: "HTTP 401: Invalid API key",
-      unsupported: false,
-    });
+    assert.equal(result.valid, false);
+    assert.match(result.error, /Authentication failed/);
+    assert.equal(result.unsupported, false);
   } finally {
     globalThis.fetch = originalFetch;
   }

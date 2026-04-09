@@ -488,7 +488,13 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
 // Convert OpenAI tool choice to Claude format
 function convertOpenAIToolChoice(choice) {
   if (!choice) return { type: "auto" };
-  if (typeof choice === "object" && choice.type) return choice;
+  if (typeof choice === "object" && choice.type) {
+    // OpenAI sends {type: "function", function: {name}} — convert to Claude {type: "tool", name}
+    if (choice.type === "function" && choice.function?.name) {
+      return { type: "tool", name: choice.function.name };
+    }
+    return choice;
+  }
   if (choice === "auto" || choice === "none") return { type: "auto" };
   if (choice === "required") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
   if (typeof choice === "object" && choice.function) {

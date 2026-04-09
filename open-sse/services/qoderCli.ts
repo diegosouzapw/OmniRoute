@@ -400,6 +400,31 @@ export async function validateQoderCliPat({
   apiKey: string;
   providerSpecificData?: JsonRecord;
 }) {
+  // Resolve token: dashboard input → env var fallback
+  const resolvedToken = apiKey?.trim() || String(process.env.QODER_PERSONAL_ACCESS_TOKEN || "").trim();
+
+  if (!resolvedToken) {
+    return {
+      valid: false,
+      error:
+        "No Qoder token provided. Get your Personal Access Token from https://qoder.com/account/integrations or set QODER_PERSONAL_ACCESS_TOKEN env var.",
+      unsupported: false,
+    };
+  }
+
+  // PAT format guidance: Qoder PATs should be non-empty strings.
+  // Warn if the token looks like it might be an encrypted blob (from ~/.qoder/.auth/user)
+  // rather than a proper PAT from the website.
+  if (resolvedToken.length > 500) {
+    return {
+      valid: false,
+      error:
+        "Token appears to be an encrypted auth blob (from ~/.qoder/.auth/user). " +
+        "Please use a Personal Access Token from https://qoder.com/account/integrations instead.",
+      unsupported: false,
+    };
+  }
+
   const modelId =
     getString(providerSpecificData.validationModelId).trim() ||
     getString(providerSpecificData.modelId).trim() ||
@@ -411,7 +436,32 @@ export async function validateQoderCliPat({
     stream: false,
   });
 
-  const headers = buildCosyHeadersForValidation(bodyStr, apiKey);
+  // Step 1: Connectivity check — verify Qoder API is reachable
+  try {
+    const pingRes = await fetch("https://api1.qoder.sh/algo/api/v1/ping", {
+      method: "GET",
+      // @ts-ignore
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!pingRes.ok) {
+      return {
+        valid: false,
+        error: `Qoder API unreachable (ping returned ${pingRes.status}). Check your network/proxy configuration.`,
+        unsupported: false,
+      };
+    }
+  } catch (pingErr: any) {
+    return {
+      valid: false,
+      error:
+        `Cannot reach Qoder API (${pingErr.message}). ` +
+        "If behind a proxy, configure HTTPS_PROXY. For Docker, ensure the container has internet access.",
+      unsupported: false,
+    };
+  }
+
+  // Step 2: Auth validation — send a minimal request with the PAT
+  const headers = buildCosyHeadersForValidation(bodyStr, resolvedToken);
   const endpoint =
     "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
 
@@ -423,11 +473,45 @@ export async function validateQoderCliPat({
       // @ts-ignore
       signal: AbortSignal.timeout(30000),
     });
-    if (!res.ok) {
-      return { valid: false, error: `HTTP ${res.status}: ${await res.text()}`, unsupported: false };
+
+    if (res.ok || res.status === 200) {
+      return { valid: true, error: null, unsupported: false };
     }
-    return { valid: true, error: null, unsupported: false };
+
+    // Parse error body for better diagnostics
+    let errorDetail = "";
+    try {
+      const errBody = await res.text();
+      errorDetail = errBody.slice(0, 300);
+    } catch {}
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        valid: false,
+        error:
+          `Authentication failed (HTTP ${res.status}). ` +
+          "Make sure you're using a valid Personal Access Token from https://qoder.com/account/integrations. " +
+          "Note: tokens from ~/.qoder/.auth/user are encrypted and cannot be used directly." +
+          (errorDetail ? ` Server: ${errorDetail}` : ""),
+        unsupported: false,
+      };
+    }
+
+    // 4xx other than auth — token was accepted but request had issues (model, format, etc.)
+    if (res.status >= 400 && res.status < 500) {
+      return { valid: true, error: null, unsupported: false };
+    }
+
+    return {
+      valid: false,
+      error: `Qoder API returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}`,
+      unsupported: false,
+    };
   } catch (e: any) {
-    return { valid: false, error: e.message, unsupported: false };
+    return {
+      valid: false,
+      error: `Qoder validation request failed: ${e.message}`,
+      unsupported: false,
+    };
   }
 }

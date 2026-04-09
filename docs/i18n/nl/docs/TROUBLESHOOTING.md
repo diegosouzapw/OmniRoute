@@ -4,22 +4,20 @@
 
 ---
 
-
-
 Common problems and solutions for OmniRoute.
 
 ---
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                           |
-| ----------------------------- | ------------------------------------------------------------------ |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
-| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Problem                       | Solution                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                   |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                        |
+| No logs written to disk       | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                         |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                           |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)                              |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below      |
 | Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
 
 ---
@@ -33,6 +31,7 @@ Common problems and solutions for OmniRoute.
 **Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
 
 **Symptoms:**
+
 - Login page shows a blank screen or a server error
 - Console shows `Error: Module did not self-register` or similar native binding errors
 - Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
@@ -162,9 +161,11 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ## Debugging
 
-### Enable Request Logs
+### Enable Log Files
 
-Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+Set `APP_LOG_TO_FILE=true` in your `.env` file. Application logs are written under `logs/`.
+Request artifacts are stored under `${DATA_DIR}/call_logs/` when the call log pipeline is
+enabled in settings.
 
 ### Check Provider Health
 
@@ -179,8 +180,9 @@ curl http://localhost:20128/api/monitoring/health
 ### Runtime Storage
 
 - Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
-- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/call_logs/`
+- Application logs: `<repo>/logs/...` (when `APP_LOG_TO_FILE=true`)
+- Call log artifacts: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` when the call log pipeline is enabled
 
 ---
 

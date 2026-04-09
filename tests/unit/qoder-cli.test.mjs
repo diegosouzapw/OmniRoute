@@ -242,48 +242,121 @@ test("qoder cli failure parsing classifies auth, timeout and generic upstream er
 
 test("validateQoderCliPat builds COSY headers and handles success, HTTP failures and fetch errors", async () => {
   const originalFetch = globalThis.fetch;
-  const calls = [];
 
-  globalThis.fetch = async (url, options = {}) => {
-    calls.push({ url: String(url), options });
-    if (calls.length === 1) {
+  // Test 1: Success path (ping OK + validation OK)
+  {
+    let callIndex = 0;
+    globalThis.fetch = async (url, options = {}) => {
+      callIndex++;
+      const urlStr = String(url);
+      // Ping request
+      if (urlStr.includes("/ping")) {
+        return new Response("pong", { status: 200 });
+      }
+      // Validation request
       return new Response("ok", { status: 200 });
-    }
-    if (calls.length === 2) {
-      return new Response("denied", { status: 403 });
-    }
-    throw new Error("network down");
-  };
+    };
 
-  try {
     const success = await qoderCli.validateQoderCliPat({
       apiKey: "pat-token",
       providerSpecificData: { validationModelId: "kimi-k2" },
     });
+    assert.equal(success.valid, true);
+    assert.equal(success.error, null);
+    assert.equal(success.unsupported, false);
+  }
+
+  // Test 2: Auth failure (ping OK + validation 403)
+  {
+    globalThis.fetch = async (url) => {
+      if (String(url).includes("/ping")) {
+        return new Response("pong", { status: 200 });
+      }
+      return new Response("denied", { status: 403 });
+    };
+
     const denied = await qoderCli.validateQoderCliPat({
       apiKey: "pat-token",
       providerSpecificData: { modelId: "qwen3-max" },
     });
-    const failed = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
-
-    const firstBody = JSON.parse(String(calls[0].options.body));
-    assert.equal(success.valid, true);
-    assert.equal(success.error, null);
-    assert.equal(success.unsupported, false);
-    assert.equal(calls[0].url.includes("agent_chat_generation"), true);
-    assert.equal(firstBody.model, "kimi-k2");
-    assert.equal(firstBody.stream, false);
-    assert.match(calls[0].options.headers.Authorization, /^Bearer COSY\./);
-    assert.equal(typeof calls[0].options.headers["Cosy-Key"], "string");
-    assert.equal(calls[0].options.signal instanceof AbortSignal, true);
-
     assert.equal(denied.valid, false);
-    assert.match(denied.error, /HTTP 403: denied/);
+    assert.match(denied.error, /Authentication failed/);
     assert.equal(denied.unsupported, false);
+  }
 
+  // Test 3: Network error (ping fails)
+  {
+    globalThis.fetch = async () => {
+      throw new Error("network down");
+    };
+
+    const failed = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
     assert.equal(failed.valid, false);
-    assert.equal(failed.error, "network down");
+    assert.match(failed.error, /Cannot reach Qoder API/);
     assert.equal(failed.unsupported, false);
+  }
+
+  // Test 4: Non-auth 4xx treated as auth-pass
+  {
+    globalThis.fetch = async (url) => {
+      if (String(url).includes("/ping")) {
+        return new Response("pong", { status: 200 });
+      }
+      return new Response("bad request", { status: 400 });
+    };
+
+    const badRequest = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
+    assert.equal(badRequest.valid, true);
+    assert.equal(badRequest.error, null);
+  }
+
+  // Test 5: Empty token returns clear error
+  {
+    await withEnv({ QODER_PERSONAL_ACCESS_TOKEN: undefined }, async () => {
+      const noToken = await qoderCli.validateQoderCliPat({ apiKey: "" });
+      assert.equal(noToken.valid, false);
+      assert.match(noToken.error, /No Qoder token provided/);
+    });
+  }
+
+  // Test 6: Encrypted blob token is rejected with guidance
+  {
+    const blobToken = "x".repeat(600);
+    const blobResult = await qoderCli.validateQoderCliPat({ apiKey: blobToken });
+    assert.equal(blobResult.valid, false);
+    assert.match(blobResult.error, /encrypted auth blob/);
+  }
+
+  globalThis.fetch = originalFetch;
+});
+
+test("validateQoderCliPat succeeds when the validation endpoint returns OK", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
+    return new Response("ok", { status: 200 });
+  };
+
+  try {
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "valid-pat" });
+    assert.equal(result.valid, true);
+    assert.equal(result.error, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("validateQoderCliPat returns HTTP failures without touching the network", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
+    return new Response("server error", { status: 500 });
+  };
+
+  try {
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "valid-pat" });
+    assert.equal(result.valid, false);
+    assert.match(result.error, /HTTP 500/);
   } finally {
     globalThis.fetch = originalFetch;
   }

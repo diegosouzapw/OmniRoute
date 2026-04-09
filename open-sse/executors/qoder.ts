@@ -16,6 +16,9 @@ function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.refreshToken === "string" && credentials.refreshToken.trim()) {
     return credentials.refreshToken.trim();
   }
+  // Fallback: QODER_PERSONAL_ACCESS_TOKEN env var (#966)
+  const envToken = String(process.env.QODER_PERSONAL_ACCESS_TOKEN || "").trim();
+  if (envToken) return envToken;
   return "";
 }
 

@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `BENARKAN_KUNCI_API_DEDAH` | `palsu` | Benarkan Pengurus Api menyalin kunci API penuh atas permintaan |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Irama penyegaran sisi pelayan untuk data Had Penyedia yang dicache; Butang muat semula UI masih mencetuskan penyegerakan manual |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `palsu` | Lumpuhkan syot kilat SQLite automatik sebelum menulis/import/pulihkan; sandaran manual masih berfungsi |
-| `ENABLE_REQUEST_LOGS` | `palsu` | Mendayakan log permintaan/tindak balas |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `palsu` | Paksa kuki pengesahan `Secure` (di belakang proksi terbalik HTTPS) |
 | `CLOUDFLARED_BIN` | tidak ditetapkan | Gunakan binari `cloudflared` sedia ada dan bukannya muat turun terurus |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Pengangkutan untuk Terowong Pantas terurus (`http2`, `quic` atau `auto`) |
@@ -692,15 +692,15 @@ OmniRoute melaksanakan daya tahan peringkat penyedia dengan empat komponen:
 - Sensitiviti pengesanan had kadar
 - Parameter mundur eksponen
 
-2.**Had Kadar Boleh Diedit**— Lalai peringkat sistem boleh dikonfigurasikan dalam papan pemuka: -**Permintaan Per Minit (RPM)**— Permintaan maksimum seminit setiap akaun -**Masa Min Antara Permintaan**— Jurang minimum dalam milisaat antara permintaan -**Permintaan Serentak Maks**— Permintaan serentak maksimum bagi setiap akaun
+  2.**Had Kadar Boleh Diedit**— Lalai peringkat sistem boleh dikonfigurasikan dalam papan pemuka: -**Permintaan Per Minit (RPM)**— Permintaan maksimum seminit setiap akaun -**Masa Min Antara Permintaan**— Jurang minimum dalam milisaat antara permintaan -**Permintaan Serentak Maks**— Permintaan serentak maksimum bagi setiap akaun
 
 - Klik**Edit**untuk mengubah suai, kemudian**Simpan**atau**Batal**. Nilai kekal melalui API ketahanan.
 
-3.**Pemutus Litar**— Menjejaki kegagalan setiap pembekal dan membuka litar secara automatik apabila ambang dicapai: -**TUTUP**(Sihat) — Permintaan mengalir seperti biasa -**BUKA**— Pembekal disekat buat sementara waktu selepas kegagalan berulang -**HALF_OPEN**— Menguji jika pembekal telah pulih
+  3.**Pemutus Litar**— Menjejaki kegagalan setiap pembekal dan membuka litar secara automatik apabila ambang dicapai: -**TUTUP**(Sihat) — Permintaan mengalir seperti biasa -**BUKA**— Pembekal disekat buat sementara waktu selepas kegagalan berulang -**HALF_OPEN**— Menguji jika pembekal telah pulih
 
-4.**Dasar & Pengecam Terkunci**— Menunjukkan status pemutus litar dan pengecam terkunci dengan keupayaan buka kunci paksa.
+  4.**Dasar & Pengecam Terkunci**— Menunjukkan status pemutus litar dan pengecam terkunci dengan keupayaan buka kunci paksa.
 
-5.**Pengesanan Auto Had Kadar**— Memantau pengepala `429` dan `Retry-After` untuk mengelak daripada mencapai had kadar penyedia secara proaktif.
+  5.**Pengesanan Auto Had Kadar**— Memantau pengepala `429` dan `Retry-After` untuk mengelak daripada mencapai had kadar penyedia secara proaktif.
 
 **Petua Pro:**Gunakan butang**Reset Semua**untuk mengosongkan semua pemutus litar dan cooldown apabila pembekal pulih daripada gangguan.---
 

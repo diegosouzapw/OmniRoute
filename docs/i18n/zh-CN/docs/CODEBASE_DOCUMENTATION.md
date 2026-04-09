@@ -381,15 +381,15 @@ import "./request/claude-to-openai.js"; // ← self-registers
 
 ### 4.6 Utils (`open-sse/utils/`)
 
-| 文件               | 目的                                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `错误.ts`          | 错误响应构建（OpenAI 兼容格式）、上游错误解析、从错误消息中提取反重力重试时间、SSE 错误流。                                                                                                       |
-| `stream.ts`        | **SSE Transform Stream**— 核心流管道。两种模式：“TRANSLATE”（完整格式翻译）和“PASSTHROUGH”（规范化+提取使用）。处理块缓冲、使用情况估计、内容长度跟踪。每个流编码器/解码器实例避免共享状态。      |
-| `streamHelpers.ts` | 低级 SSE 实用程序：“parseSSELine”（容忍空格）、“hasValuableContent”（过滤 OpenAI/Claude/Gemini 的空块）、“fixInvalidId”、“formatSSE”（具有“perf_metrics”清理功能的格式感知 SSE 序列化）。         |
-| `usageTracking.ts` | 从任何格式（Claude/OpenAI/Gemini/Responses）提取令牌使用情况，使用单独的工具/消息字符/令牌比率进行估计，缓冲区添加（2000 个令牌安全裕度），特定于格式的字段过滤，使用 ANSI 颜色的控制台日志记录。 |
-| `requestLogger.ts` | 基于文件的请求日志记录（通过“ENABLE_REQUEST_LOGS=true”选择加入）。创建包含编号文件的会话文件夹：“1_req_client.json”→“7_res_client.txt”。所有 I/O 都是异步的（即发即弃）。屏蔽敏感标头。           |
-| `bypassHandler.ts` | 拦截来自 Claude CLI 的特定模式（标题提取、预热、计数）并返回虚假响应，而无需调用任何提供者。支持流式和非流式。有意限制于 Claude CLI 范围。                                                        |
-| `networkProxy.ts`  | 优先解析给定提供商的出站代理 URL：特定于提供商的配置 → 全局配置 → 环境变量 (`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`)。支持“NO_PROXY”排除。缓存配置 30 秒。                                         | #### SSE Streaming Pipeline |
+| 文件               | 目的                                                                                                                                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `错误.ts`          | 错误响应构建（OpenAI 兼容格式）、上游错误解析、从错误消息中提取反重力重试时间、SSE 错误流。                                                                                                          |
+| `stream.ts`        | **SSE Transform Stream**— 核心流管道。两种模式：“TRANSLATE”（完整格式翻译）和“PASSTHROUGH”（规范化+提取使用）。处理块缓冲、使用情况估计、内容长度跟踪。每个流编码器/解码器实例避免共享状态。         |
+| `streamHelpers.ts` | 低级 SSE 实用程序：“parseSSELine”（容忍空格）、“hasValuableContent”（过滤 OpenAI/Claude/Gemini 的空块）、“fixInvalidId”、“formatSSE”（具有“perf_metrics”清理功能的格式感知 SSE 序列化）。            |
+| `usageTracking.ts` | 从任何格式（Claude/OpenAI/Gemini/Responses）提取令牌使用情况，使用单独的工具/消息字符/令牌比率进行估计，缓冲区添加（2000 个令牌安全裕度），特定于格式的字段过滤，使用 ANSI 颜色的控制台日志记录。    |
+| `requestLogger.ts` | Legacy file-based request logging helper kept for compatibility. Current deployments should prefer `APP_LOG_TO_FILE` for application logs and the call log pipeline for persisted request artifacts. |
+| `bypassHandler.ts` | 拦截来自 Claude CLI 的特定模式（标题提取、预热、计数）并返回虚假响应，而无需调用任何提供者。支持流式和非流式。有意限制于 Claude CLI 范围。                                                           |
+| `networkProxy.ts`  | 优先解析给定提供商的出站代理 URL：特定于提供商的配置 → 全局配置 → 环境变量 (`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`)。支持“NO_PROXY”排除。缓存配置 30 秒。                                            | #### SSE Streaming Pipeline |
 
 ```mermaid
 flowchart TD

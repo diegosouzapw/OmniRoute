@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `falskt` | Tillåt Api Manager att kopiera fullständiga API-nycklar på begäran |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Uppdateringskadens på serversidan för cachelagrade Provider Limits-data; UI-uppdateringsknappar utlöser fortfarande manuell synkronisering |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `falskt` | Inaktivera automatiska SQLite-ögonblicksbilder före skrivning/import/återställning; manuella säkerhetskopieringar fungerar fortfarande |
-| `ENABLE_REQUEST_LOGS` | `falskt` | Aktiverar förfrågnings-/svarsloggar |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `falskt` | Tvinga "Säker" auth-cookie (bakom HTTPS omvänd proxy) |
 | `CLOUDFLARED_BIN` | avstängd | Använd en befintlig `cloudflared`-binär istället för hanterad nedladdning |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport för hanterade snabba tunnlar (`http2`, `quic` eller `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementerar motståndskraft på leverantörsnivå med fyra komponent
 - Känslighet för detektering av hastighetsgräns
 - Exponentiell backoff-parametrar
 
-2.**Redigerbara hastighetsgränser**— Standardinställningar på systemnivå som kan konfigureras i instrumentpanelen: -**Requests Per Minute (RPM)**— Maximalt antal förfrågningar per minut och konto -**Minsta tid mellan förfrågningar**— Minsta mellanrum i millisekunder mellan förfrågningar -**Max samtidiga förfrågningar**— Maximalt antal samtidiga förfrågningar per konto
+  2.**Redigerbara hastighetsgränser**— Standardinställningar på systemnivå som kan konfigureras i instrumentpanelen: -**Requests Per Minute (RPM)**— Maximalt antal förfrågningar per minut och konto -**Minsta tid mellan förfrågningar**— Minsta mellanrum i millisekunder mellan förfrågningar -**Max samtidiga förfrågningar**— Maximalt antal samtidiga förfrågningar per konto
 
 - Klicka på**Redigera**för att ändra och sedan på**Spara**eller**Avbryt**. Värden kvarstår via resilience API.
 
-3.**Circuit Breaker**— Spårar fel per leverantör och öppnar automatiskt kretsen när ett tröskelvärde nås: -**STÄNGD**(frisk) — Begäran flyter normalt -**ÖPPEN**— Leverantören är tillfälligt blockerad efter upprepade fel -**HALF_OPEN**— Testar om leverantören har återhämtat sig
+  3.**Circuit Breaker**— Spårar fel per leverantör och öppnar automatiskt kretsen när ett tröskelvärde nås: -**STÄNGD**(frisk) — Begäran flyter normalt -**ÖPPEN**— Leverantören är tillfälligt blockerad efter upprepade fel -**HALF_OPEN**— Testar om leverantören har återhämtat sig
 
-4.**Policy & Locked Identifiers**— Visar strömbrytarens status och låsta identifierare med tvångsupplåsning.
+  4.**Policy & Locked Identifiers**— Visar strömbrytarens status och låsta identifierare med tvångsupplåsning.
 
-5.**Rate Limit Auto-Detection**— Övervakar rubrikerna "429" och "Retry-After" för att proaktivt undvika att nå leverantörshastighetsgränser.
+  5.**Rate Limit Auto-Detection**— Övervakar rubrikerna "429" och "Retry-After" för att proaktivt undvika att nå leverantörshastighetsgränser.
 
 **Proffstips:**Använd knappen**Återställ alla**för att rensa alla strömbrytare och nedkylningar när en leverantör återhämtar sig efter ett avbrott.---
 

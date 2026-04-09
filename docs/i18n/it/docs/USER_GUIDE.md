@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `falso` | Consenti al gestore API di copiare le chiavi API complete su richiesta |
 | "PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES" | `70` | Cadenza di aggiornamento lato server per i dati sui limiti del provider memorizzati nella cache; I pulsanti di aggiornamento dell'interfaccia utente attivano ancora la sincronizzazione manuale |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `falso` | Disabilitare gli snapshot SQLite automatici prima delle operazioni di scrittura/importazione/ripristino; i backup manuali funzionano ancora |
-| `ENABLE_REQUEST_LOGS` | `falso` | Abilita i log di richiesta/risposta |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `falso` | Forza il cookie di autenticazione `Secure` (dietro il proxy inverso HTTPS) |
 | `CLOUDFLARED_BIN` | non impostato | Utilizza un file binario `cloudflared` esistente invece del download gestito |
 | `CLOUDFLARED_PROTOCOL` | "http2" | Trasporto per tunnel rapidi gestiti (`http2`, `quic` o `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementa la resilienza a livello di fornitore con quattro componenti
 - Sensibilità di rilevamento del limite di velocità
 - Parametri di backoff esponenziale
 
-2.**Limiti di velocità modificabili**: impostazioni predefinite a livello di sistema configurabili nel dashboard: -**Richieste al minuto (RPM)**: numero massimo di richieste al minuto per account -**Tempo minimo tra le richieste**: intervallo minimo in millisecondi tra le richieste -**Numero massimo di richieste simultanee**: numero massimo di richieste simultanee per account
+  2.**Limiti di velocità modificabili**: impostazioni predefinite a livello di sistema configurabili nel dashboard: -**Richieste al minuto (RPM)**: numero massimo di richieste al minuto per account -**Tempo minimo tra le richieste**: intervallo minimo in millisecondi tra le richieste -**Numero massimo di richieste simultanee**: numero massimo di richieste simultanee per account
 
 - Fai clic su**Modifica**per modificare, quindi su**Salva**o**Annulla**. I valori persistono tramite l'API di resilienza.
 
-3.**Interruttore di circuito**: tiene traccia dei guasti per fornitore e apre automaticamente il circuito quando viene raggiunta una soglia: -**CHIUSO**(integro): le richieste fluiscono normalmente -**APERTO**: il provider è temporaneamente bloccato dopo ripetuti errori -**HALF_OPEN**: verifica se il provider è stato ripristinato
+  3.**Interruttore di circuito**: tiene traccia dei guasti per fornitore e apre automaticamente il circuito quando viene raggiunta una soglia: -**CHIUSO**(integro): le richieste fluiscono normalmente -**APERTO**: il provider è temporaneamente bloccato dopo ripetuti errori -**HALF_OPEN**: verifica se il provider è stato ripristinato
 
-4.**Criteri e identificatori bloccati**: mostra lo stato dell'interruttore automatico e gli identificatori bloccati con funzionalità di sblocco forzato.
+  4.**Criteri e identificatori bloccati**: mostra lo stato dell'interruttore automatico e gli identificatori bloccati con funzionalità di sblocco forzato.
 
-5.**Rilevamento automatico del limite di velocità**: monitora le intestazioni "429" e "Retry-After" per evitare in modo proattivo di raggiungere i limiti di velocità del provider.
+  5.**Rilevamento automatico del limite di velocità**: monitora le intestazioni "429" e "Retry-After" per evitare in modo proattivo di raggiungere i limiti di velocità del provider.
 
 **Pro Tip:**Use**Reset All**button to clear all circuit breakers and cooldowns when a provider recovers from an outage.---
 

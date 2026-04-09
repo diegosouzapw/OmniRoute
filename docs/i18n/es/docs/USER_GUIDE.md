@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `falso` | Permitir que Api Manager copie claves API completas a pedido |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Cadencia de actualización del lado del servidor para datos de límites de proveedor almacenados en caché; Los botones de actualización de la interfaz de usuario aún activan la sincronización manual |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `falso` | Deshabilite las instantáneas automáticas de SQLite antes de escribir/importar/restaurar; las copias de seguridad manuales todavía funcionan |
-| `ENABLE_REQUEST_LOGS` | `falso` | Habilita registros de solicitud/respuesta |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `falso` | Forzar cookie de autenticación "segura" (detrás del proxy inverso HTTPS) |
 | `CLOUDFLARED_BIN` | desarmado | Utilice un binario `cloudflared` existente en lugar de una descarga administrada |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transporte para Quick Tunnels administrados (`http2`, `quic` o `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementa resiliencia a nivel de proveedor con cuatro componentes:
 - Sensibilidad de detección de límite de velocidad
 - Parámetros de retroceso exponencial
 
-2.**Límites de tarifas editables**: valores predeterminados a nivel del sistema configurables en el panel: -**Solicitudes por minuto (RPM)**: solicitudes máximas por minuto por cuenta -**Tiempo mínimo entre solicitudes**: intervalo mínimo en milisegundos entre solicitudes -**Máximo de solicitudes simultáneas**: máximo de solicitudes simultáneas por cuenta
+  2.**Límites de tarifas editables**: valores predeterminados a nivel del sistema configurables en el panel: -**Solicitudes por minuto (RPM)**: solicitudes máximas por minuto por cuenta -**Tiempo mínimo entre solicitudes**: intervalo mínimo en milisegundos entre solicitudes -**Máximo de solicitudes simultáneas**: máximo de solicitudes simultáneas por cuenta
 
 - Haga clic en**Editar**para modificar y luego en**Guardar**o**Cancelar**. Los valores persisten a través de la API de resiliencia.
 
-3.**Disyuntor**: realiza un seguimiento de las fallas por proveedor y abre automáticamente el circuito cuando se alcanza un umbral: -**CERRADO**(En buen estado): las solicitudes fluyen normalmente -**ABIERTO**: el proveedor está bloqueado temporalmente después de fallas repetidas -**HALF_OPEN**— Probando si el proveedor se ha recuperado
+  3.**Disyuntor**: realiza un seguimiento de las fallas por proveedor y abre automáticamente el circuito cuando se alcanza un umbral: -**CERRADO**(En buen estado): las solicitudes fluyen normalmente -**ABIERTO**: el proveedor está bloqueado temporalmente después de fallas repetidas -**HALF_OPEN**— Probando si el proveedor se ha recuperado
 
-4.**Políticas e identificadores bloqueados**: muestra el estado del disyuntor y los identificadores bloqueados con capacidad de desbloqueo forzado.
+  4.**Políticas e identificadores bloqueados**: muestra el estado del disyuntor y los identificadores bloqueados con capacidad de desbloqueo forzado.
 
-5.**Detección automática del límite de tasa**: monitorea los encabezados "429" y "Reintentar después" para evitar de manera proactiva alcanzar los límites de tasa del proveedor.
+  5.**Detección automática del límite de tasa**: monitorea los encabezados "429" y "Reintentar después" para evitar de manera proactiva alcanzar los límites de tasa del proveedor.
 
 **Consejo profesional:**Utilice el botón**Restablecer todo**para borrar todos los disyuntores y tiempos de reutilización cuando un proveedor se recupera de una interrupción.---
 

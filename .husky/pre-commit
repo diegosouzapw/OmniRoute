@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+if ! command -v npx >/dev/null 2>&1; then
+  echo "⚠️  npx not found in PATH — skipping pre-commit hooks"
+  echo "   Run 'npm run lint && npm run check:any-budget:t11' manually before pushing."
+  exit 0
+fi
+
 npx lint-staged
 node scripts/check-docs-sync.mjs
 npm run check:any-budget:t11

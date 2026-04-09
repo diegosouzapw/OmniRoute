@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `falso` | Permitir que o Api Manager copie chaves de API completas sob demanda |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Cadência de atualização do lado do servidor para dados armazenados em cache do Provider Limits; Os botões de atualização da IU ainda acionam a sincronização manual |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `falso` | Desative os instantâneos automáticos do SQLite antes de gravar/importar/restaurar; backups manuais ainda funcionam |
-| `ENABLE_REQUEST_LOGS` | `falso` | Habilita registros de solicitação/resposta |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `falso` | Forçar cookie de autenticação `Secure` (por trás do proxy reverso HTTPS) |
 | `CLOUDFLARED_BIN` | desarmar | Use um binário `cloudflared` existente em vez de download gerenciado |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transporte para Quick Tunnels gerenciados (`http2`, `quic` ou `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementa resiliência em nível de provedor com quatro componentes:
 - Sensibilidade de detecção de limite de taxa
 - Parâmetros de espera exponencial
 
-2.**Limites de taxa editáveis**— Padrões de nível de sistema configuráveis no painel: -**Solicitações por minuto (RPM)**— Máximo de solicitações por minuto por conta -**Tempo mínimo entre solicitações**— Intervalo mínimo em milissegundos entre solicitações -**Máximo de solicitações simultâneas**— Máximo de solicitações simultâneas por conta
+  2.**Limites de taxa editáveis**— Padrões de nível de sistema configuráveis no painel: -**Solicitações por minuto (RPM)**— Máximo de solicitações por minuto por conta -**Tempo mínimo entre solicitações**— Intervalo mínimo em milissegundos entre solicitações -**Máximo de solicitações simultâneas**— Máximo de solicitações simultâneas por conta
 
 - Clique em**Editar**para modificar e depois em**Salvar**ou**Cancelar**. Os valores persistem por meio da API de resiliência.
 
-3.**Disjuntor**— Rastreia falhas por provedor e abre automaticamente o circuito quando um limite é atingido: -**FECHADO**(Saudável) — As solicitações fluem normalmente -**OPEN**— O provedor é bloqueado temporariamente após falhas repetidas -**HALF_OPEN**— Testando se o provedor se recuperou
+  3.**Disjuntor**— Rastreia falhas por provedor e abre automaticamente o circuito quando um limite é atingido: -**FECHADO**(Saudável) — As solicitações fluem normalmente -**OPEN**— O provedor é bloqueado temporariamente após falhas repetidas -**HALF_OPEN**— Testando se o provedor se recuperou
 
-4.**Políticas e identificadores bloqueados**— Mostra o status do disjuntor e identificadores bloqueados com capacidade de desbloqueio forçado.
+  4.**Políticas e identificadores bloqueados**— Mostra o status do disjuntor e identificadores bloqueados com capacidade de desbloqueio forçado.
 
-5.**Detecção automática de limite de taxa**— Monitora os cabeçalhos `429` e `Retry-After` para evitar proativamente atingir os limites de taxa do provedor.
+  5.**Detecção automática de limite de taxa**— Monitora os cabeçalhos `429` e `Retry-After` para evitar proativamente atingir os limites de taxa do provedor.
 
 **Dica profissional:**Use o botão**Redefinir tudo**para limpar todos os disjuntores e resfriamentos quando um provedor se recupera de uma interrupção.---
 

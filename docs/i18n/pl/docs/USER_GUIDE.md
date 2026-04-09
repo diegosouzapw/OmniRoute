@@ -468,7 +468,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -500,7 +500,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `fałszywy` | Zezwalaj Api Managerowi na kopiowanie pełnych kluczy API na żądanie |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Częstotliwość odświeżania po stronie serwera buforowanych danych dotyczących limitów dostawcy; Przyciski odświeżania interfejsu użytkownika nadal uruchamiają ręczną synchronizację |
 | `WYŁĄCZ_SQLITE_AUTO_BACKUP` | `fałszywy` | Wyłącz automatyczne migawki SQLite przed zapisem/importem/przywróceniem; ręczne kopie zapasowe nadal działają |
-| `ENABLE_REQUEST_LOGS` | `fałszywy` | Włącza dzienniki żądań/odpowiedzi |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `fałszywy` | Wymuś „bezpieczny” plik cookie uwierzytelniający (za odwrotnym proxy HTTPS) |
 | `CLOUDFLARED_BIN` | rozbrojony | Użyj istniejącego pliku binarnego `cloudflared` zamiast zarządzanego pobierania |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport dla zarządzanych szybkich tuneli (`http2`, `quic` lub `auto`) |
@@ -693,15 +693,15 @@ OmniRoute wdraża odporność na poziomie dostawcy za pomocą czterech komponent
 - Czułość wykrywania limitu szybkości
 - Wykładnicze parametry wycofywania
 
-2.**Edytowalne limity prędkości**— Domyślne ustawienia na poziomie systemu można skonfigurować w panelu kontrolnym: -**Żądania na minutę (RPM)**— Maksymalna liczba żądań na minutę na konto -**Min. czas między żądaniami**— Minimalna przerwa w milisekundach między żądaniami -**Maksymalna liczba jednoczesnych żądań**— Maksymalna liczba jednoczesnych żądań na konto
+  2.**Edytowalne limity prędkości**— Domyślne ustawienia na poziomie systemu można skonfigurować w panelu kontrolnym: -**Żądania na minutę (RPM)**— Maksymalna liczba żądań na minutę na konto -**Min. czas między żądaniami**— Minimalna przerwa w milisekundach między żądaniami -**Maksymalna liczba jednoczesnych żądań**— Maksymalna liczba jednoczesnych żądań na konto
 
 - Kliknij**Edytuj**, aby zmodyfikować, a następnie**Zapisz**lub**Anuluj**. Wartości są zachowywane za pośrednictwem interfejsu API odporności.
 
-3.**Wyłącznik**— śledzi awarie według dostawcy i automatycznie otwiera obwód po osiągnięciu progu: -**ZAMKNIĘTE**(zdrowe) — Żądania przebiegają normalnie -**OTWARTE**— Dostawca jest tymczasowo blokowany po powtarzających się awariach -**HALF_OPEN**— Sprawdzanie, czy dostawca powrócił do zdrowia
+  3.**Wyłącznik**— śledzi awarie według dostawcy i automatycznie otwiera obwód po osiągnięciu progu: -**ZAMKNIĘTE**(zdrowe) — Żądania przebiegają normalnie -**OTWARTE**— Dostawca jest tymczasowo blokowany po powtarzających się awariach -**HALF_OPEN**— Sprawdzanie, czy dostawca powrócił do zdrowia
 
-4.**Zasady i zablokowane identyfikatory**— Pokazuje stan wyłącznika automatycznego i zablokowane identyfikatory z możliwością wymuszonego odblokowania.
+  4.**Zasady i zablokowane identyfikatory**— Pokazuje stan wyłącznika automatycznego i zablokowane identyfikatory z możliwością wymuszonego odblokowania.
 
-5.**Automatyczne wykrywanie limitu szybkości**— Monitoruje nagłówki „429” i „Retry-After”, aby aktywnie zapobiegać przekroczeniu limitów szybkości dostawcy.
+  5.**Automatyczne wykrywanie limitu szybkości**— Monitoruje nagłówki „429” i „Retry-After”, aby aktywnie zapobiegać przekroczeniu limitów szybkości dostawcy.
 
 **Wskazówka dla profesjonalistów:**Użyj przycisku**Resetuj wszystko**, aby wyczyścić wszystkie wyłączniki automatyczne i czasy odnowienia, gdy dostawca wznowi działanie po awarii.---
 

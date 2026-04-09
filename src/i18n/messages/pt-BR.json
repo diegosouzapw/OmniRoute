@@ -1792,7 +1792,9 @@
     "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
     "statusDeactivated": "Desativado (Manual)",
     "statusBanned": "Banido / Sandbox Violation",
-    "statusCreditsExhausted": "Saldo Insuficiente"
+    "statusCreditsExhausted": "Saldo Insuficiente",
+    "modelsImported": "{count} models imported",
+    "close": "Close"
   },
   "settings": {
     "title": "Configurações",
@@ -2284,7 +2286,15 @@
     "modelsDevInfo": "How It Works",
     "modelsDevInfoDesc": "models.dev is an open-source database of AI model specifications maintained by the SST/OpenCode team. It provides pricing, capabilities, context limits, and modalities for 4,000+ models across 100+ providers.",
     "modelsDevInfoResolution": "Pricing resolution order (highest priority first):",
-    "modelsDevInfoOrder": "User Override → models.dev → LiteLLM → Hardcoded Default"
+    "modelsDevInfoOrder": "User Override → models.dev → LiteLLM → Hardcoded Default",
+    "cacheCleared": "Cache cleared successfully",
+    "clearCacheFailed": "Failed to clear cache",
+    "lkgpToggleTitle": "Last Known Good Provider (LKGP)",
+    "lkgpToggleDesc": "When enabled, the router remembers which provider last served a successful response and tries it first on subsequent requests.",
+    "clearLkgpCache": "Clear LKGP Cache",
+    "lkgpCacheCleared": "LKGP cache cleared successfully",
+    "lkgpCacheClearFailed": "Failed to clear LKGP cache",
+    "maintenance": "Maintenance"
   },
   "translator": {
     "title": "Tradutor",
@@ -3148,6 +3158,7 @@
     "actions": "Actions",
     "deduplicatedRequests": "Requisições Desduplicadas",
     "savedCalls": "Chamadas API Poupadas",
-    "totalProcessed": "Total Processado"
+    "totalProcessed": "Total Processado",
+    "peakCached": "Peak cached"
   }
 }

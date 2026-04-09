@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | „falsch“ | Api Manager erlauben, bei Bedarf vollständige API-Schlüssel zu kopieren |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Serverseitige Aktualisierungsfrequenz für zwischengespeicherte Provider-Limit-Daten; Schaltflächen zum Aktualisieren der Benutzeroberfläche lösen weiterhin eine manuelle Synchronisierung aus |
 | `DISABLE_SQLITE_AUTO_BACKUP` | „falsch“ | Deaktivieren Sie automatische SQLite-Snapshots vor dem Schreiben/Importieren/Wiederherstellen. Manuelle Backups funktionieren weiterhin |
-| `ENABLE_REQUEST_LOGS` | „falsch“ | Aktiviert Anforderungs-/Antwortprotokolle |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | „falsch“ | „Sicheres“ Authentifizierungs-Cookie erzwingen (hinter HTTPS-Reverse-Proxy) |
 | `CLOUDFLARED_BIN` | nicht gesetzt | Verwenden Sie eine vorhandene „Cloudflared“-Binärdatei anstelle eines verwalteten Downloads |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport für verwaltete Quick Tunnels („http2“, „quic“ oder „auto“) |
@@ -693,15 +693,15 @@ OmniRoute implementiert Resilienz auf Anbieterebene mit vier Komponenten:
 - Empfindlichkeit der Grenzfrequenzerkennung
 - Exponentielle Backoff-Parameter
 
-2.**Bearbeitbare Ratenbegrenzungen**– Standardeinstellungen auf Systemebene, konfigurierbar im Dashboard: -**Anfragen pro Minute (RPM)**– Maximale Anfragen pro Minute und Konto -**Min. Zeit zwischen Anfragen**– Mindestlücke in Millisekunden zwischen Anfragen -**Max. gleichzeitige Anfragen**– Maximale gleichzeitige Anfragen pro Konto
+  2.**Bearbeitbare Ratenbegrenzungen**– Standardeinstellungen auf Systemebene, konfigurierbar im Dashboard: -**Anfragen pro Minute (RPM)**– Maximale Anfragen pro Minute und Konto -**Min. Zeit zwischen Anfragen**– Mindestlücke in Millisekunden zwischen Anfragen -**Max. gleichzeitige Anfragen**– Maximale gleichzeitige Anfragen pro Konto
 
 - Klicken Sie zum Ändern auf**Bearbeiten**und dann auf**Speichern**oder**Abbrechen**. Werte bleiben über die Resilience-API bestehen.
 
-3.**Leistungsschalter**– Verfolgt Ausfälle pro Anbieter und öffnet automatisch den Stromkreis, wenn ein Schwellenwert erreicht wird: -**GESCHLOSSEN**(fehlerfrei) – Anfragen fließen normal -**OFFEN**– Der Anbieter ist nach wiederholten Ausfällen vorübergehend gesperrt -**HALF_OPEN**– Testen, ob sich der Anbieter erholt hat
+  3.**Leistungsschalter**– Verfolgt Ausfälle pro Anbieter und öffnet automatisch den Stromkreis, wenn ein Schwellenwert erreicht wird: -**GESCHLOSSEN**(fehlerfrei) – Anfragen fließen normal -**OFFEN**– Der Anbieter ist nach wiederholten Ausfällen vorübergehend gesperrt -**HALF_OPEN**– Testen, ob sich der Anbieter erholt hat
 
-4.**Richtlinien und Sperrkennungen**– Zeigt den Status des Leistungsschalters und die Sperrkennungen mit der Möglichkeit zum erzwungenen Entsperren an.
+  4.**Richtlinien und Sperrkennungen**– Zeigt den Status des Leistungsschalters und die Sperrkennungen mit der Möglichkeit zum erzwungenen Entsperren an.
 
-5.**Automatische Erkennung von Ratenbegrenzungen**– Überwacht die Header „429“ und „Retry-After“, um proaktiv zu vermeiden, dass die Ratenbegrenzungen der Anbieter erreicht werden.
+  5.**Automatische Erkennung von Ratenbegrenzungen**– Überwacht die Header „429“ und „Retry-After“, um proaktiv zu vermeiden, dass die Ratenbegrenzungen der Anbieter erreicht werden.
 
 **Profi-Tipp:**Verwenden Sie die Schaltfläche**Alle zurücksetzen**, um alle Leistungsschalter und Abklingzeiten zu löschen, wenn ein Anbieter nach einem Ausfall wiederhergestellt wird.---
 

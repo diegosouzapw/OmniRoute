@@ -192,7 +192,9 @@
     "themeCyan": "Turkis",
     "cliToolsShort": "Værktøjer",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "memory": "Memory",
+    "skills": "Skills"
   },
   "themesPage": {
     "title": "Temaer",
@@ -992,7 +994,11 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding.",
+    "auto": "Auto Combo",
+    "autoDesc": "Self-healing smart routing pool (Performance optimized)",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "costs": {
     "title": "Omkostninger",
@@ -1723,7 +1729,12 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "modelsImported": "{count} models imported",
+    "close": "Close",
+    "statusDeactivated": "Deactivated (Manual)",
+    "statusBanned": "Banned / Sandbox Violation",
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
   },
   "settings": {
     "title": "Indstillinger",
@@ -2203,7 +2214,21 @@
     "skillsComingSoon": "Skills marketplace coming soon.",
     "memorySkillsTitle": "Memory & Skills",
     "memorySkillsDesc": "Persistent context & capabilities",
-    "days": "Days"
+    "days": "Days",
+    "cacheCleared": "Cache cleared successfully",
+    "clearCacheFailed": "Failed to clear cache",
+    "adaptiveVolumeRouting": "Adaptive Volume Routing",
+    "adaptiveVolumeRoutingDesc": "Scale connections dynamically based on payload volume and throughput pressure.",
+    "lkgpToggleTitle": "Last Known Good Provider (LKGP)",
+    "lkgpToggleDesc": "When enabled, the router remembers which provider last served a successful response and tries it first on subsequent requests.",
+    "clearLkgpCache": "Clear LKGP Cache",
+    "lkgpCacheCleared": "LKGP cache cleared successfully",
+    "lkgpCacheClearFailed": "Failed to clear LKGP cache",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)",
+    "maintenance": "Maintenance",
+    "purgeExpiredLogs": "Purge Expired Logs",
+    "purgeLogsFailed": "Failed to purge logs"
   },
   "translator": {
     "title": "Oversætter",
@@ -3064,6 +3089,61 @@
     "model": "Model",
     "created": "Created",
     "expires": "Expires",
-    "actions": "Actions"
+    "actions": "Actions",
+    "peakCached": "Peak cached",
+    "deduplicatedRequests": "Deduplicated Requests",
+    "savedCalls": "Saved API Calls",
+    "totalProcessed": "Total Requests Processed"
+  },
+  "memory": {
+    "title": "Memory Management",
+    "description": "View and manage stored memory entries",
+    "memories": "Memories",
+    "totalEntries": "Total Entries",
+    "tokensUsed": "Tokens Used",
+    "hitRate": "Hit Rate",
+    "loading": "Loading memories...",
+    "noMemories": "No memories found",
+    "search": "Search memories...",
+    "allTypes": "All Types",
+    "export": "Export",
+    "import": "Import",
+    "addMemory": "Add Memory",
+    "type": "Type",
+    "key": "Key",
+    "content": "Content",
+    "created": "Created",
+    "actions": "Actions",
+    "factual": "Factual",
+    "episodic": "Episodic",
+    "procedural": "Procedural",
+    "semantic": "Semantic"
+  },
+  "skills": {
+    "title": "Skills",
+    "description": "Manage and monitor AI skills",
+    "skillsTab": "Skills",
+    "executionsTab": "Executions",
+    "sandboxTab": "Sandbox",
+    "loading": "Loading skills...",
+    "noSkills": "No skills found",
+    "noExecutions": "No executions found",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "version": "Version",
+    "tableDescription": "Description",
+    "skill": "Skill",
+    "status": "Status",
+    "duration": "Duration",
+    "time": "Time",
+    "sandboxConfig": "Sandbox Configuration",
+    "cpuLimit": "CPU Limit",
+    "cpuLimitDesc": "Maximum execution time per skill",
+    "memoryLimit": "Memory Limit",
+    "memoryLimitDesc": "Maximum memory allocation",
+    "timeout": "Timeout",
+    "timeoutDesc": "Maximum wait time for response",
+    "networkAccess": "Network Access",
+    "networkAccessDesc": "Allow outbound network requests"
   }
 }

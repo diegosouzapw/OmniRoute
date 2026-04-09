@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `false` | Tillat at Api Manager kopierer fullstendige API-nøkler på forespørsel |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Oppdateringskadens på tjenersiden for bufrede Provider Limits-data; UI-oppdateringsknapper utløser fortsatt manuell synkronisering |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `false` | Deaktiver automatiske SQLite-øyeblikksbilder før skriving/importering/gjenoppretting; manuelle sikkerhetskopier fungerer fortsatt |
-| `ENABLE_REQUEST_LOGS` | `false` | Aktiverer forespørsels-/svarlogger |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `false` | Tving `Sikker` auth-informasjonskapsel (bak HTTPS omvendt proxy) |
 | `CLOUDFLARED_BIN` | deaktivert | Bruk en eksisterende `cloudflared`-binær i stedet for administrert nedlasting |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport for administrerte hurtigtunneler (`http2`, `quic` eller `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementerer motstandskraft på leverandørnivå med fire komponenter
 - Følsomhet for deteksjon av hastighetsgrense
 - Eksponentielle backoff-parametere
 
-2.**Redigerbare rategrenser**— Standardinnstillinger på systemnivå som kan konfigureres i dashbordet: -**Forespørsler per minutt (RPM)**— Maksimalt antall forespørsler per minutt per konto -**Min time Between Requests**— Minimumsavstand i millisekunder mellom forespørsler -**Maks samtidige forespørsler**— Maksimalt antall samtidige forespørsler per konto
+  2.**Redigerbare rategrenser**— Standardinnstillinger på systemnivå som kan konfigureres i dashbordet: -**Forespørsler per minutt (RPM)**— Maksimalt antall forespørsler per minutt per konto -**Min time Between Requests**— Minimumsavstand i millisekunder mellom forespørsler -**Maks samtidige forespørsler**— Maksimalt antall samtidige forespørsler per konto
 
 - Klikk på**Rediger**for å endre, deretter**Lagre**eller**Avbryt**. Verdiene vedvarer via resilience API.
 
-3.**Circuit Breaker**— Sporer feil per leverandør og åpner automatisk kretsen når en terskel er nådd: -**STENGT**(Sunn) — Forespørslene flyter normalt -**ÅPEN**— Leverandøren er midlertidig blokkert etter gjentatte feil -**HALF_OPEN**— Tester om leverandøren har kommet seg
+  3.**Circuit Breaker**— Sporer feil per leverandør og åpner automatisk kretsen når en terskel er nådd: -**STENGT**(Sunn) — Forespørslene flyter normalt -**ÅPEN**— Leverandøren er midlertidig blokkert etter gjentatte feil -**HALF_OPEN**— Tester om leverandøren har kommet seg
 
-4.**Retningslinjer og låste identifikatorer**— Viser strømbryterstatus og låste identifikatorer med tvangsopplåsingsfunksjon.
+  4.**Retningslinjer og låste identifikatorer**— Viser strømbryterstatus og låste identifikatorer med tvangsopplåsingsfunksjon.
 
-5.**Rate Limit Auto-Detection**— Overvåker «429» og «Retry-After»-overskrifter for å proaktivt unngå å treffe leverandørens takstgrenser.
+  5.**Rate Limit Auto-Detection**— Overvåker «429» og «Retry-After»-overskrifter for å proaktivt unngå å treffe leverandørens takstgrenser.
 
 **Profftips:**Bruk**Tilbakestill alle**-knappen for å fjerne alle strømbrytere og nedkjøling når en leverandør kommer seg etter et strømbrudd.---
 

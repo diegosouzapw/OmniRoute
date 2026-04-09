@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `fals` | Permiteți Managerului Api să copieze chei API complete la cerere |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | cadență de reîmprospătare la nivelul serverului pentru datele din cache ale Limitelor furnizorului; Butoanele de reîmprospătare a interfeței de utilizator declanșează în continuare sincronizarea manuală |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `fals` | Dezactivați instantaneele automate SQLite înainte de scriere/import/restaurare; backup-urile manuale încă funcționează |
-| `ENABLE_REQUEST_LOGS` | `fals` | Activează jurnalele cereri/răspuns |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `fals` | Forțați cookie-ul de autentificare „Securizat” (în spatele proxy-ului invers HTTPS) |
 | `CLOUDFLARED_BIN` | dezactivat | Utilizați un binar `cloudflared` existent în loc de descărcare gestionată |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport pentru tuneluri rapide gestionate (`http2`, `quic` sau `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementează rezistența la nivel de furnizor cu patru componente:
 - Sensibilitatea de detectare a limitei ratei
 - Parametrii de backoff exponenţial
 
-2.**Limite de rată editabile**— Setări implicite la nivel de sistem configurabile în tabloul de bord: -**Solicitări pe minut (RPM)**— Numărul maxim de solicitări pe minut per cont -**Timp minim între solicitări**— Intervalul minim în milisecunde între solicitări -**Max. de solicitări simultane**— Maxim de solicitări simultane per cont
+  2.**Limite de rată editabile**— Setări implicite la nivel de sistem configurabile în tabloul de bord: -**Solicitări pe minut (RPM)**— Numărul maxim de solicitări pe minut per cont -**Timp minim între solicitări**— Intervalul minim în milisecunde între solicitări -**Max. de solicitări simultane**— Maxim de solicitări simultane per cont
 
 - Faceți clic pe**Editați**pentru a modifica, apoi pe**Salvați**sau**Anulați**. Valorile persistă prin intermediul API-ului de rezistență.
 
-3.**Circuit Breaker**— Urmărește defecțiunile pentru fiecare furnizor și deschide automat circuitul când este atins un prag: -**ÎNCHIS**(sănătos) — Solicitările curg normal -**DESCHIS**— Furnizorul este blocat temporar după eșecuri repetate -**HALF_OPEN**— Se testează dacă furnizorul și-a revenit
+  3.**Circuit Breaker**— Urmărește defecțiunile pentru fiecare furnizor și deschide automat circuitul când este atins un prag: -**ÎNCHIS**(sănătos) — Solicitările curg normal -**DESCHIS**— Furnizorul este blocat temporar după eșecuri repetate -**HALF_OPEN**— Se testează dacă furnizorul și-a revenit
 
-4.**Politici și identificatori blocați**— Afișează starea întrerupătorului și identificatorii blocați cu capacitatea de deblocare forțată.
+  4.**Politici și identificatori blocați**— Afișează starea întrerupătorului și identificatorii blocați cu capacitatea de deblocare forțată.
 
-5.**Rate Limit Auto-Detection**— Monitorizează anteturile `429` și `Retry-After` pentru a evita în mod proactiv atingerea limitelor de rate ale furnizorului.
+  5.**Rate Limit Auto-Detection**— Monitorizează anteturile `429` și `Retry-After` pentru a evita în mod proactiv atingerea limitelor de rate ale furnizorului.
 
 **Sfat profesionist:**Folosiți butonul**Reset All**pentru a șterge toate întreruptoarele de circuit și perioadele de răcire atunci când un furnizor își revine după o întrerupere.---
 

@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `vals` | Sta Api Manager toe om op aanvraag volledige API-sleutels te kopiëren |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Verversingsfrequentie aan de serverzijde voor in de cache opgeslagen Provider Limits-gegevens; Knoppen voor het vernieuwen van de gebruikersinterface activeren nog steeds handmatige synchronisatie |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `vals` | Schakel automatische SQLite-snapshots uit vóór schrijven/importeren/herstellen; handmatige back-ups werken nog steeds |
-| `ENABLE_REQUEST_LOGS` | `vals` | Schakelt verzoek-/antwoordlogboeken in |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `vals` | Forceer `Secure` auth-cookie (achter HTTPS reverse proxy) |
 | `CLOUDFLARED_BIN` | uitgeschakeld | Gebruik een bestaand `cloudflared` binair bestand in plaats van een beheerde download |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport voor beheerde Quick Tunnels (`http2`, `quic` of `auto`) |
@@ -692,15 +692,15 @@ OmniRoute implementeert veerkracht op providerniveau met vier componenten:
 - Snelheidslimietdetectiegevoeligheid
 - Exponentiële uitstelparameters
 
-2.**Bewerkbare tarieflimieten**— Standaardinstellingen op systeemniveau configureerbaar in het dashboard: -**Verzoeken per minuut (RPM)**— Maximaal aantal verzoeken per minuut per account -**Min. tijd tussen verzoeken**— Minimale pauze in milliseconden tussen verzoeken -**Max. gelijktijdige verzoeken**— Maximaal gelijktijdige verzoeken per account
+  2.**Bewerkbare tarieflimieten**— Standaardinstellingen op systeemniveau configureerbaar in het dashboard: -**Verzoeken per minuut (RPM)**— Maximaal aantal verzoeken per minuut per account -**Min. tijd tussen verzoeken**— Minimale pauze in milliseconden tussen verzoeken -**Max. gelijktijdige verzoeken**— Maximaal gelijktijdige verzoeken per account
 
 - Klik op**Bewerken**om te wijzigen en vervolgens op**Opslaan**of**Annuleren**. Waarden blijven behouden via de veerkracht-API.
 
-3.**Circuit Breaker**— Volgt storingen per provider en opent automatisch het circuit wanneer een drempel wordt bereikt: -**GESLOTEN**(Gezond) — Verzoeken stromen normaal door -**OPEN**— Provider is tijdelijk geblokkeerd na herhaalde fouten -**HALF_OPEN**— Testen of de provider is hersteld
+  3.**Circuit Breaker**— Volgt storingen per provider en opent automatisch het circuit wanneer een drempel wordt bereikt: -**GESLOTEN**(Gezond) — Verzoeken stromen normaal door -**OPEN**— Provider is tijdelijk geblokkeerd na herhaalde fouten -**HALF_OPEN**— Testen of de provider is hersteld
 
-4.**Beleid en vergrendelde identificatiegegevens**— Toont de status van de stroomonderbreker en vergrendelde identificatiegegevens met de mogelijkheid tot geforceerd ontgrendelen.
+  4.**Beleid en vergrendelde identificatiegegevens**— Toont de status van de stroomonderbreker en vergrendelde identificatiegegevens met de mogelijkheid tot geforceerd ontgrendelen.
 
-5.**Automatische detectie van snelheidslimiet**— Controleert de headers '429' en 'Retry-After' om proactief te voorkomen dat de tarieflimieten van de provider worden overschreden.
+  5.**Automatische detectie van snelheidslimiet**— Controleert de headers '429' en 'Retry-After' om proactief te voorkomen dat de tarieflimieten van de provider worden overschreden.
 
 **Pro-tip:**Gebruik de knop**Alles resetten**om alle stroomonderbrekers en cooldowns te wissen wanneer een provider herstelt van een storing.---
 

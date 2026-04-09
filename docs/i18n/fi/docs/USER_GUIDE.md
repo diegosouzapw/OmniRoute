@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `väärä` | Salli Api Managerin kopioida täydet API-avaimet pyynnöstä |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES' | "70" | Palvelinpuolen päivitystiheys välimuistissa oleville palveluntarjoajan rajoitustiedoille; Käyttöliittymän päivityspainikkeet käynnistävät edelleen manuaalisen synkronoinnin |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `väärä` | Poista automaattiset SQLite-vedoskuvat käytöstä ennen kirjoitusta/tuontia/palautusta; manuaaliset varmuuskopiot toimivat edelleen |
-| `ENABLE_REQUEST_LOGS` | `väärä` | Ottaa käyttöön pyyntö-/vastauslokit |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `väärä` | Pakota "Suojattu" todennuseväste (HTTS:n käänteisen välityspalvelimen takana) |
 | "CLOUDFLARED_BIN" | pois käytöstä | Käytä olemassa olevaa "cloudflared"-binaaria hallitun latauksen sijasta |
 | `CLOUDFLARED_PROTOCOL' | `http2` | Kuljetus hallituille pikatunneleille ("http2", "quic" tai "auto") |
@@ -691,15 +691,15 @@ OmniRoute toteuttaa toimittajatason joustavuutta neljällä osalla:
 - Nopeusrajan tunnistusherkkyys
 - Eksponentiaaliset peruutusparametrit
 
-2.**Muokattavat nopeusrajoitukset**— Järjestelmätason oletusasetukset, jotka voidaan määrittää kojelaudassa: -**Pyynnöt minuutissa (RPM)**– Pyyntöjen enimmäismäärä minuutissa per tili -**Pyyntöjen välinen vähimmäisaika**- pyyntöjen välinen vähimmäisero millisekunteina -**Samanaikaisten pyyntöjen enimmäismäärä**— Samanaikaisten pyyntöjen enimmäismäärä tiliä kohden
+  2.**Muokattavat nopeusrajoitukset**— Järjestelmätason oletusasetukset, jotka voidaan määrittää kojelaudassa: -**Pyynnöt minuutissa (RPM)**– Pyyntöjen enimmäismäärä minuutissa per tili -**Pyyntöjen välinen vähimmäisaika**- pyyntöjen välinen vähimmäisero millisekunteina -**Samanaikaisten pyyntöjen enimmäismäärä**— Samanaikaisten pyyntöjen enimmäismäärä tiliä kohden
 
 - Napsauta**Muokkaa**muokataksesi ja sitten**Tallenna**tai**Peruuta**. Arvot säilyvät resilience API:n kautta.
 
-3.**Circuit Breaker**– Seuraa vikoja palveluntarjoajakohtaisesti ja avaa piirin automaattisesti, kun kynnys saavutetaan: -**SULJETTU**(terve) — Pyynnöt kulkevat normaalisti -**AUKI**— Palveluntarjoaja on tilapäisesti estetty toistuvien vikojen jälkeen -**HALF_OPEN**— Testataan, onko palveluntarjoaja palautunut
+  3.**Circuit Breaker**– Seuraa vikoja palveluntarjoajakohtaisesti ja avaa piirin automaattisesti, kun kynnys saavutetaan: -**SULJETTU**(terve) — Pyynnöt kulkevat normaalisti -**AUKI**— Palveluntarjoaja on tilapäisesti estetty toistuvien vikojen jälkeen -**HALF_OPEN**— Testataan, onko palveluntarjoaja palautunut
 
-4.**Policies & Locked Identifiers**— Näyttää katkaisijan tilan ja lukitut tunnisteet, joissa on pakko-avaaminen.
+  4.**Policies & Locked Identifiers**— Näyttää katkaisijan tilan ja lukitut tunnisteet, joissa on pakko-avaaminen.
 
-5.**Automaattinen nopeusrajoituksen tunnistus**— Valvoo "429"- ja "Retry-After"-otsikoita välttääkseen ennakoivasti palveluntarjoajan nopeusrajojen ylittymisen.
+  5.**Automaattinen nopeusrajoituksen tunnistus**— Valvoo "429"- ja "Retry-After"-otsikoita välttääkseen ennakoivasti palveluntarjoajan nopeusrajojen ylittymisen.
 
 **Ammattilaisen vinkki:**Käytä**Nollaa kaikki**-painiketta tyhjentääksesi kaikki katkaisijat ja jäähdytykset, kun palveluntarjoaja toipuu katkosta.---
 

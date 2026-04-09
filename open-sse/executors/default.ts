@@ -87,8 +87,6 @@ export class DefaultExecutor extends BaseExecutor {
       case "kimi-coding":
       case "bailian-coding-plan":
       case "kimi-coding-apikey":
-      case "minimax":
-      case "minimax-cn":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       default:
