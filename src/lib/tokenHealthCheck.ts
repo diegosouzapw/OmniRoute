@@ -10,7 +10,12 @@
  * updates the DB, and logs the result.
  */
 
-import { getProviderConnections, updateProviderConnection, getSettings, resolveProxyForConnection } from "@/lib/localDb";
+import {
+  getProviderConnections,
+  updateProviderConnection,
+  getSettings,
+  resolveProxyForConnection,
+} from "@/lib/localDb";
 import {
   getAccessToken,
   supportsTokenRefresh,
@@ -24,6 +29,25 @@ const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections befor
 const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+
+export function buildRefreshFailureUpdate(conn: any, now: string) {
+  const wasExpired = conn.testStatus === "expired";
+  const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
+
+  return {
+    lastHealthCheckAt: now,
+    // A failed background refresh should not evict otherwise healthy accounts
+    // from request routing. Keep non-expired connections active and only persist
+    // the refresh error metadata for observability.
+    testStatus: wasExpired ? "expired" : "active",
+    lastError: "Health check: token refresh failed",
+    lastErrorAt: now,
+    lastErrorType: "token_refresh_failed",
+    lastErrorSource: "oauth",
+    errorCode: "refresh_failed",
+    ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
+  };
+}
 
 function isEnvFlagEnabled(name: string): boolean {
   const value = process.env[name];
@@ -304,22 +328,13 @@ async function checkConnection(conn) {
     await updateProviderConnection(conn.id, updateData);
     log(`${LOG_PREFIX} ✓ ${conn.provider}/${conn.name || conn.email || conn.id} refreshed`);
   } else {
-    const wasExpired = conn.testStatus === "expired";
-    const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
-
-    await updateProviderConnection(conn.id, {
-      lastHealthCheckAt: now,
-      testStatus: wasExpired ? "expired" : "error",
-      lastError: "Health check: token refresh failed",
-      lastErrorAt: now,
-      lastErrorType: "token_refresh_failed",
-      lastErrorSource: "oauth",
-      errorCode: "refresh_failed",
-      ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
-    });
+    const updateData = buildRefreshFailureUpdate(conn, now);
+    await updateProviderConnection(conn.id, updateData);
     logWarn(
       `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} refresh failed` +
-        (wasExpired ? ` (expired retry ${retryCount}/${EXPIRED_RETRY_MAX})` : "")
+        (conn.testStatus === "expired"
+          ? ` (${updateData.expiredRetryCount}/${EXPIRED_RETRY_MAX} expired retries used)`
+          : "")
     );
   }
 }
