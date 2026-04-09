@@ -587,8 +587,26 @@ const checkKnownPath = async (commandPath: string) => {
     const realPath = await fs.realpath(commandPath);
 
     // Verify the resolved path is still within expected directories
-    // Use pre-computed expected parent paths (cached at module startup for performance)
-    const isWithinExpected = EXPECTED_PARENT_PATHS.some((parent) => isPathWithin(realPath, parent));
+    // Use pre-computed expected parent paths (cached at module startup for performance).
+    // On macOS temp directories often resolve from /var -> /private/var, so compare both
+    // the configured parent and its canonical realpath when available.
+    let isWithinExpected = false;
+    for (const parent of EXPECTED_PARENT_PATHS) {
+      if (isPathWithin(realPath, parent)) {
+        isWithinExpected = true;
+        break;
+      }
+
+      try {
+        const resolvedParent = await fs.realpath(parent);
+        if (isPathWithin(realPath, resolvedParent)) {
+          isWithinExpected = true;
+          break;
+        }
+      } catch {
+        // Ignore missing/unresolvable parents and continue checking the remaining ones.
+      }
+    }
 
     if (!isWithinExpected) {
       return { installed: false, commandPath: null, reason: "symlink_escape" };
