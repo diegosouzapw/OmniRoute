@@ -109,6 +109,15 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     : [];
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
+  const tokenStats = {
+    totalIn: detail?.tokens?.in ?? log.tokens?.in ?? 0,
+    totalOut: detail?.tokens?.out ?? log.tokens?.out ?? 0,
+    cacheRead: detail?.tokens?.cacheRead ?? log.tokens?.cacheRead,
+    cacheWrite: detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite,
+    reasoning: detail?.tokens?.reasoning ?? log.tokens?.reasoning,
+  };
+
+  const formatTokenValue = (value) => (value != null ? value.toLocaleString() : "N/A");
 
   return (
     <div
@@ -146,9 +155,14 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
 
         <div className="p-6 flex flex-col gap-6">
           {/* Metadata Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-bg-subtle rounded-xl border border-border"
+            data-testid="request-log-metadata-grid"
+          >
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Time</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Completed Time
+              </div>
               <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
             </div>
             <div>
@@ -158,33 +172,29 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
               <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Tokens
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Input</div>
+              <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-input">
                 <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
-                  Total In: {(detail?.tokens?.in ?? log.tokens?.in ?? 0).toLocaleString()}
-                </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                  Total Out: {(detail?.tokens?.out ?? log.tokens?.out ?? 0).toLocaleString()}
+                  Total In: {tokenStats.totalIn.toLocaleString()}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold">
-                  Cache Read:{" "}
-                  {(detail?.tokens?.cacheRead ?? log.tokens?.cacheRead) != null
-                    ? (detail?.tokens?.cacheRead ?? log.tokens?.cacheRead).toLocaleString()
-                    : "N/A"}
+                  Cache Read: {formatTokenValue(tokenStats.cacheRead)}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                  Cache Write:{" "}
-                  {(detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite) != null
-                    ? (detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite).toLocaleString()
-                    : "N/A"}
+                  Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Output
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-output">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
+                  Total Out: {tokenStats.totalOut.toLocaleString()}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
-                  Reasoning:{" "}
-                  {(detail?.tokens?.reasoning ?? log.tokens?.reasoning) != null
-                    ? (detail?.tokens?.reasoning ?? log.tokens?.reasoning).toLocaleString()
-                    : "N/A"}
+                  Reasoning: {formatTokenValue(tokenStats.reasoning)}
                 </span>
               </div>
             </div>
