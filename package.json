@@ -93,6 +93,7 @@
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@monaco-editor/react": "^4.7.0",
     "@swc/helpers": "0.5.21",
+    "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "bottleneck": "^2.19.5",
