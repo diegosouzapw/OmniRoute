@@ -277,7 +277,7 @@ function anyUpstreamHeadersBadge(
 }
 
 interface ModelRowProps {
-  model: { id: string };
+  model: { id: string; isHidden?: boolean };
   fullModel: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -288,6 +288,8 @@ interface ModelRowProps {
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
   getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
+  onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
+  togglingHidden?: boolean;
 }
 
 interface PassthroughModelRowProps {
@@ -856,6 +858,8 @@ export default function ProviderDetailPage() {
   }>({ customModels: [], modelCompatOverrides: [] });
   const [syncedAvailableModels, setSyncedAvailableModels] = useState<any[]>([]);
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
+  const [modelFilter, setModelFilter] = useState("");
+  const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
@@ -1941,6 +1945,28 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const handleToggleModelHidden = async (modelId: string, hidden: boolean): Promise<void> => {
+    setTogglingModelId(modelId);
+    try {
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}&modelId=${encodeURIComponent(modelId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHidden: hidden }),
+      });
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        notify.error(detail || t("failedSaveCustomModel"));
+        return;
+      }
+      // Optimistic update: refresh model meta
+      await fetchProviderModelMeta().catch(() => {});
+    } catch {
+      notify.error(t("failedSaveCustomModel"));
+    } finally {
+      setTogglingModelId(null);
+    }
+  };
+
   const renderModelsSection = () => {
     const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
       <button
@@ -2089,11 +2115,34 @@ export default function ProviderDetailPage() {
         </div>
       );
     }
+    const filteredModels = modelFilter
+      ? models.filter((m) => m.id.toLowerCase().includes(modelFilter.toLowerCase()))
+      : models;
+    const activeCount = models.filter((m) => !m.isHidden).length;
     return (
       <div>
         {importButton}
+        {models.length > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            <div className="relative flex-1 max-w-sm">
+              <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-text-muted pointer-events-none">
+                search
+              </span>
+              <input
+                type="text"
+                value={modelFilter}
+                onChange={(e) => setModelFilter(e.target.value)}
+                placeholder={t("filterModels") || "Filter models…"}
+                className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg border border-border bg-sidebar/50 focus:outline-none focus:ring-1 focus:ring-primary text-text-main placeholder:text-text-muted"
+              />
+            </div>
+            <span className="text-xs text-text-muted whitespace-nowrap">
+              {activeCount}/{models.length} {t("modelsActive") || "active"}
+            </span>
+          </div>
+        )}
         <div className="flex flex-wrap gap-3">
-          {models.map((model) => {
+          {filteredModels.map((model) => {
             return (
               <ModelRow
                 key={model.id}
@@ -2108,9 +2157,16 @@ export default function ProviderDetailPage() {
                 getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
                 saveModelCompatFlags={saveModelCompatFlags}
                 compatDisabled={compatSavingModelId === model.id}
+                onToggleHidden={handleToggleModelHidden}
+                togglingHidden={togglingModelId === model.id}
               />
             );
           })}
+          {filteredModels.length === 0 && modelFilter && (
+            <p className="text-sm text-text-muted py-2">
+              {t("noModelsMatch") || `No models match "${modelFilter}"`}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -2889,11 +2945,21 @@ function ModelRow({
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatDisabled,
+  onToggleHidden,
+  togglingHidden,
 }: ModelRowProps) {
+  const isHidden = Boolean(model.isHidden);
   return (
-    <div className="flex min-w-[220px] max-w-md items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50">
+    <div
+      className={`flex min-w-[220px] max-w-md items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50 transition-opacity ${
+        isHidden ? "opacity-50" : ""
+      }`}
+    >
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-        <span className="material-symbols-outlined shrink-0 text-base text-text-muted">
+        <span
+          className="material-symbols-outlined shrink-0 text-base"
+          style={{ color: isHidden ? "var(--color-text-muted)" : undefined }}
+        >
           smart_toy
         </span>
         <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
@@ -2909,7 +2975,19 @@ function ModelRow({
           </span>
         </button>
       </div>
-      <div className="shrink-0">
+      <div className="flex shrink-0 items-center gap-1">
+        {onToggleHidden && (
+          <button
+            onClick={() => onToggleHidden(model.id, !isHidden)}
+            disabled={togglingHidden}
+            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            title={isHidden ? (t("showModel") || "Show model") : (t("hideModel") || "Hide model")}
+          >
+            <span className="material-symbols-outlined text-sm">
+              {isHidden ? "visibility_off" : "visibility"}
+            </span>
+          </button>
+        )}
         <ModelCompatPopover
           t={t}
           effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
