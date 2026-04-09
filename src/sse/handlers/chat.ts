@@ -37,7 +37,7 @@ import { sanitizeRequest } from "../../shared/utils/inputSanitizer";
 import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
 import {
   isModelAvailable,
-  setModelUnavailable,
+  markModelAsProblematic,
   clearModelUnavailability,
 } from "../../domain/modelAvailability";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
@@ -420,6 +420,7 @@ async function handleSingleModelChat(
   let excludeConnectionId = null;
   let lastError = null;
   let lastStatus = null;
+  let lastCooldownMs = 0;
 
   while (true) {
     const credentials = await getProviderCredentials(
@@ -436,11 +437,15 @@ async function handleSingleModelChat(
     );
 
     if (!credentials || credentials.allRateLimited) {
-      if (lastStatus === 429 || lastStatus === 503) {
-        setModelUnavailable(provider, model, 60000, `HTTP ${lastStatus}`);
+      if ([408, 429, 500, 502, 503, 504].includes(Number(lastStatus))) {
+        const quarantine = markModelAsProblematic(provider, model, {
+          status: Number(lastStatus),
+          baseCooldownMs: lastCooldownMs,
+          reason: `HTTP ${lastStatus}`,
+        });
         log.info(
           "AVAILABILITY",
-          `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus})`
+          `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus}, cooldown ${Math.ceil(quarantine.cooldownMs / 1000)}s, failureCount ${quarantine.failureCount})`
         );
       }
       return handleNoCredentials(
@@ -575,7 +580,7 @@ async function handleSingleModelChat(
     }
 
     // 7. Fallback to next account
-    const { shouldFallback } = await markAccountUnavailable(
+    const { shouldFallback, cooldownMs } = await markAccountUnavailable(
       credentials.connectionId,
       result.status,
       result.error,
@@ -584,6 +589,9 @@ async function handleSingleModelChat(
     );
 
     if (shouldFallback) {
+      if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
+        lastCooldownMs = cooldownMs;
+      }
       log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
       excludeConnectionId = credentials.connectionId;
       lastError = result.error;
