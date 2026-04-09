@@ -6,8 +6,9 @@
  */
 
 import type { A2ATask, TaskArtifact } from "../taskManager";
+import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
 
-const OMNIROUTE_BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
+const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
 
 async function routeFetch(path: string, options: RequestInit = {}): Promise<any> {

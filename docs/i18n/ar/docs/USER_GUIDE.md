@@ -440,7 +440,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/بن/ش
 تصدير بورت = "$ {ميناء: -20128}"
 تصدير DATA_DIR = "${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-تصدير LOG_TO_FILE = "${LOG_TO_FILE:-false}"
+تصدير APP_LOG_TO_FILE = "${APP_LOG_TO_FILE:-false}"
 مكدير -p "${DATA_DIR}"
 عقدة exec /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -470,7 +470,7 @@ EOF
 | `ALLOW_API_KEY_REVEAL`                  | `كاذبة`                                              | السماح لـ Api Manager بنسخ مفاتيح API الكاملة عند الطلب                                                                       |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                                 | إيقاع التحديث من جانب الخادم لبيانات حدود الموفر المخزنة مؤقتًا؛ لا تزال أزرار تحديث واجهة المستخدم تؤدي إلى المزامنة اليدوية |
 | `DISABLE_SQLITE_AUTO_BACKUP`            | `كاذبة`                                              | تعطيل لقطات SQLite التلقائية قبل الكتابة/الاستيراد/الاستعادة؛ النسخ الاحتياطية اليدوية لا تزال تعمل                           |
-| `ENABLE_REQUEST_LOGS`                   | `كاذبة`                                              | تمكين سجلات الطلب/الاستجابة                                                                                                   |
+| `APP_LOG_TO_FILE`                       | `true`                                               | Enables application and audit log output to disk                                                                              |
 | `AUTH_COOKIE_SECURE`                    | `كاذبة`                                              | فرض ملف تعريف ارتباط المصادقة "الآمن" (خلف الوكيل العكسي HTTPS)                                                               |
 | `CLOUDFLARED_BIN`                       | غير محدد                                             | استخدم ملفًا ثنائيًا موجودًا `cloudflared` بدلاً من التنزيل المُدار                                                           |
 | `CLOUDFLARED_PROTOCOL`                  | `http2`                                              | النقل للأنفاق السريعة المُدارة (`http2` أو `quic` أو `auto`)                                                                  |

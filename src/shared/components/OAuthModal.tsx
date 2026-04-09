@@ -128,7 +128,7 @@ export default function OAuthModal({
               "For remote use, configure your own OAuth credentials via environment variables: " +
               (provider === "antigravity"
                 ? "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET"
-                : "GEMINI_OAUTH_CLIENT_ID and GEMINI_OAUTH_CLIENT_SECRET") +
+                : "GEMINI_CLI_OAUTH_CLIENT_ID and GEMINI_CLI_OAUTH_CLIENT_SECRET") +
               ". See the README section 'OAuth on a Remote Server'."
           );
         } else {

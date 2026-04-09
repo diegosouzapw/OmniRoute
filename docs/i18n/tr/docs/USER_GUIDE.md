@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | 'ALLOW_API_KEY_REVEAL' | 'yanlış' | API Yöneticisinin talep üzerine tam API anahtarlarını kopyalamasına izin verin |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | '70' | Önbelleğe alınan Sağlayıcı Sınırları verileri için sunucu tarafı yenileme temposu; Kullanıcı arayüzü yenileme düğmeleri hala manuel senkronizasyonu tetikliyor |
 | `DISABLE_SQLITE_AUTO_BACKUP` | 'yanlış' | Yazma/içe aktarma/geri yükleme öncesinde otomatik SQLite anlık görüntülerini devre dışı bırakın; manuel yedeklemeler hâlâ çalışıyor |
-| `ENABLE_REQUEST_LOGS` | 'yanlış' | İstek/yanıt günlüklerini etkinleştirir |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | 'yanlış' | 'Güvenli' kimlik doğrulama çerezini zorla (HTTPS ters proxy'nin arkasında) |
 | `CLOUDFLARED_BIN` | ayarlanmamış | Yönetilen indirme yerine mevcut bir "cloudflared" ikili programını kullanın |
 | `CLOUDFLARED_PROTOCOL` | 'http2' | Yönetilen Hızlı Tüneller için Aktarım (`http2`, `quic` veya `auto`) |
@@ -691,15 +691,15 @@ OmniRoute, sağlayıcı düzeyinde esnekliği dört bileşenle uygular:
 - Hız sınırı algılama hassasiyeti
 - Üstel geri çekilme parametreleri
 
-2.**Düzenlenebilir Hız Sınırları**— Kontrol panelinde yapılandırılabilen sistem düzeyinde varsayılanlar: -**Dakika Başına İstek (RPM)**— Hesap başına dakika başına maksimum istek -**İstekler Arasındaki Minimum Süre**— İstekler arasındaki milisaniye cinsinden minimum boşluk -**Maksimum Eşzamanlı İstekler**— Hesap başına maksimum eşzamanlı istekler
+  2.**Düzenlenebilir Hız Sınırları**— Kontrol panelinde yapılandırılabilen sistem düzeyinde varsayılanlar: -**Dakika Başına İstek (RPM)**— Hesap başına dakika başına maksimum istek -**İstekler Arasındaki Minimum Süre**— İstekler arasındaki milisaniye cinsinden minimum boşluk -**Maksimum Eşzamanlı İstekler**— Hesap başına maksimum eşzamanlı istekler
 
 - Değiştirmek için**Düzenle**'yi ve ardından**Kaydet**veya**İptal**'i tıklayın. Değerler, esneklik API'si aracılığıyla korunur.
 
-3.**Devre Kesici**— Sağlayıcı başına arızaları izler ve bir eşiğe ulaşıldığında devreyi otomatik olarak açar: -**KAPALI**(Sağlıklı) — İstekler normal şekilde akıyor -**AÇIK**— Tekrarlanan hatalardan sonra sağlayıcı geçici olarak engellenir -**HALF_OPEN**— Sağlayıcının iyileşip iyileşmediği test ediliyor
+  3.**Devre Kesici**— Sağlayıcı başına arızaları izler ve bir eşiğe ulaşıldığında devreyi otomatik olarak açar: -**KAPALI**(Sağlıklı) — İstekler normal şekilde akıyor -**AÇIK**— Tekrarlanan hatalardan sonra sağlayıcı geçici olarak engellenir -**HALF_OPEN**— Sağlayıcının iyileşip iyileşmediği test ediliyor
 
-4.**İlkeler ve Kilitli Tanımlayıcılar**— Zorunlu kilit açma özelliğiyle devre kesici durumunu ve kilitli tanımlayıcıları gösterir.
+  4.**İlkeler ve Kilitli Tanımlayıcılar**— Zorunlu kilit açma özelliğiyle devre kesici durumunu ve kilitli tanımlayıcıları gösterir.
 
-5.**Otomatik Hız Sınırı Algılama**— Sağlayıcının hız sınırlarına ulaşmayı proaktif olarak önlemek için "429" ve "Sonra Yeniden Dene" başlıklarını izler.
+  5.**Otomatik Hız Sınırı Algılama**— Sağlayıcının hız sınırlarına ulaşmayı proaktif olarak önlemek için "429" ve "Sonra Yeniden Dene" başlıklarını izler.
 
 **Profesyonel İpucu:**Sağlayıcı bir kesintiden kurtulduğunda tüm devre kesicileri ve bekleme sürelerini temizlemek için**Tümünü Sıfırla**düğmesini kullanın.---
 

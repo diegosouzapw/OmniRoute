@@ -468,7 +468,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -500,7 +500,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `sai` | Cho phép Api Manager sao chép toàn bộ khóa API theo yêu cầu |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Nhịp làm mới phía máy chủ cho dữ liệu Giới hạn nhà cung cấp được lưu trong bộ nhớ đệm; Nút làm mới giao diện người dùng vẫn kích hoạt đồng bộ hóa thủ công |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `sai` | Vô hiệu hóa ảnh chụp nhanh SQLite tự động trước khi ghi/nhập/khôi phục; sao lưu thủ công vẫn hoạt động |
-| `ENABLE_REQUEST_LOGS` | `sai` | Bật nhật ký yêu cầu/phản hồi |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `sai` | Buộc cookie xác thực `Secure` (đằng sau proxy ngược HTTPS) |
 | `CLOUDFLARED_BIN` | bỏ đặt | Sử dụng tệp nhị phân `cloudflared` hiện có thay vì tải xuống được quản lý |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Vận chuyển cho Đường hầm nhanh được quản lý (`http2`, `quic` hoặc `auto`) |
@@ -693,15 +693,15 @@ OmniRoute triển khai khả năng phục hồi cấp nhà cung cấp với bố
 - Độ nhạy phát hiện giới hạn tốc độ
 - Thông số backoff theo cấp số nhân
 
-2.**Giới hạn tỷ lệ có thể chỉnh sửa**— Giá trị mặc định ở cấp hệ thống có thể định cấu hình trong trang tổng quan: -**Số yêu cầu mỗi phút (RPM)**— Số yêu cầu tối đa mỗi phút cho mỗi tài khoản -**Thời gian tối thiểu giữa các yêu cầu**— Khoảng cách tối thiểu tính bằng mili giây giữa các yêu cầu -**Số yêu cầu đồng thời tối đa**— Số yêu cầu đồng thời tối đa cho mỗi tài khoản
+  2.**Giới hạn tỷ lệ có thể chỉnh sửa**— Giá trị mặc định ở cấp hệ thống có thể định cấu hình trong trang tổng quan: -**Số yêu cầu mỗi phút (RPM)**— Số yêu cầu tối đa mỗi phút cho mỗi tài khoản -**Thời gian tối thiểu giữa các yêu cầu**— Khoảng cách tối thiểu tính bằng mili giây giữa các yêu cầu -**Số yêu cầu đồng thời tối đa**— Số yêu cầu đồng thời tối đa cho mỗi tài khoản
 
 - Nhấp vào**Chỉnh sửa**để sửa đổi, sau đó nhấp vào**Lưu**hoặc**Hủy**. Các giá trị vẫn tồn tại thông qua API khả năng phục hồi.
 
-3.**Bộ ngắt mạch**— Theo dõi lỗi của mỗi nhà cung cấp và tự động mở mạch khi đạt đến ngưỡng: -**ĐÃ ĐÓNG**(Khỏe mạnh) — Yêu cầu diễn ra bình thường -**OPEN**— Nhà cung cấp bị chặn tạm thời sau nhiều lần thất bại -**HALF_OPEN**— Kiểm tra xem nhà cung cấp đã phục hồi chưa
+  3.**Bộ ngắt mạch**— Theo dõi lỗi của mỗi nhà cung cấp và tự động mở mạch khi đạt đến ngưỡng: -**ĐÃ ĐÓNG**(Khỏe mạnh) — Yêu cầu diễn ra bình thường -**OPEN**— Nhà cung cấp bị chặn tạm thời sau nhiều lần thất bại -**HALF_OPEN**— Kiểm tra xem nhà cung cấp đã phục hồi chưa
 
-4.**Chính sách & Mã định danh bị khóa**— Hiển thị trạng thái cầu dao và mã định danh bị khóa với khả năng buộc mở khóa.
+  4.**Chính sách & Mã định danh bị khóa**— Hiển thị trạng thái cầu dao và mã định danh bị khóa với khả năng buộc mở khóa.
 
-5.**Tự động phát hiện giới hạn tốc độ**— Giám sát tiêu đề `429` và `Thử lại sau` để chủ động tránh đạt giới hạn tốc độ của nhà cung cấp.
+  5.**Tự động phát hiện giới hạn tốc độ**— Giám sát tiêu đề `429` và `Thử lại sau` để chủ động tránh đạt giới hạn tốc độ của nhà cung cấp.
 
 **Mẹo chuyên nghiệp:**Sử dụng nút**Đặt lại tất cả**để xóa tất cả cầu dao và thời gian hồi chiêu khi nhà cung cấp khôi phục sau khi ngừng hoạt động.---
 

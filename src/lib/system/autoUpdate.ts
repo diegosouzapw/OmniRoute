@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 type ComposeCommand = "docker compose" | "docker-compose";
-export type AutoUpdateMode = "npm" | "docker-compose";
+export type AutoUpdateMode = "npm" | "docker-compose" | "source";
 
 type ExecFileLike = typeof execFileAsync;
 type SpawnLike = typeof spawn;
@@ -38,7 +38,10 @@ export type AutoUpdateLaunchResult = {
 };
 
 function normalizeMode(raw: string | undefined): AutoUpdateMode {
-  return raw === "docker-compose" ? "docker-compose" : "npm";
+  if (raw === "docker-compose" || raw === "source") {
+    return raw;
+  }
+  return "npm";
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {
@@ -74,7 +77,7 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
     // If we are not in a global node_modules directory, we are likely a local source install/build.
     // Even if .git is missing (downloaded zip), we should treat it as source.
     if (isGitRepo || !isGlobalNodeModules) {
-      mode = "source" as any;
+      mode = "source";
     }
   }
 
@@ -113,11 +116,29 @@ export async function validateAutoUpdateRuntime(
   execFileImpl: ExecFileLike = execFileAsync,
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
-  if (config.mode === ("source" as any)) {
+  if (config.mode === "source") {
+    const gitDir = path.join(process.cwd(), ".git");
+    if (!(await existsImpl(gitDir))) {
+      return {
+        supported: false,
+        reason: "Not a git repository. Download source or use npm install -g.",
+        composeCommand: null,
+      };
+    }
+
+    try {
+      await execFileImpl("git", ["--version"], { timeout: 10_000 });
+    } catch {
+      return {
+        supported: false,
+        reason: "git is not available. Install git to enable auto-update.",
+        composeCommand: null,
+      };
+    }
+
     return {
-      supported: false,
-      reason:
-        "Manual 'git pull && npm install && npm run build' is required for source installations.",
+      supported: true,
+      reason: null,
       composeCommand: null,
     };
   }
@@ -173,6 +194,21 @@ export async function validateAutoUpdateRuntime(
   return { supported: true, reason: null, composeCommand };
 }
 
+export async function ensureGitTagExists(
+  targetTag: string,
+  execFileImpl: ExecFileLike = execFileAsync,
+  cwd = process.cwd()
+): Promise<void> {
+  try {
+    await execFileImpl("git", ["rev-parse", "-q", "--verify", `refs/tags/${targetTag}`], {
+      timeout: 10_000,
+      cwd,
+    });
+  } catch {
+    throw new Error(`Git tag not found: ${targetTag}`);
+  }
+}
+
 export function buildNpmUpdateScript(latest: string): string {
   return [
     "set -eu",
@@ -181,6 +217,30 @@ export function buildNpmUpdateScript(latest: string): string {
     "  pm2 restart omniroute || true",
     "fi",
     `echo \"[AutoUpdate] Successfully updated to v${latest}.\"`,
+  ].join("\n");
+}
+
+export function buildSourceUpdateScript(latest: string, gitRemote = "origin"): string {
+  const targetTag = latest.startsWith("v") ? latest : `v${latest}`;
+
+  return [
+    "set -eu",
+    "git stash --include-untracked 2>/dev/null || true",
+    `git fetch --tags ${shellQuote(gitRemote)}`,
+    `if ! git rev-parse -q --verify "refs/tags/${targetTag}" >/dev/null 2>&1; then`,
+    `  echo "[AutoUpdate] Tag ${targetTag} not found." >&2`,
+    "  exit 1",
+    "fi",
+    'backup_branch="pre-update/$(git rev-parse --short HEAD)-$(date +%Y%m%d-%H%M%S)"',
+    'git branch "$backup_branch" 2>/dev/null || true',
+    `git checkout "${targetTag}"`,
+    "npm install --legacy-peer-deps",
+    "node scripts/sync-env.mjs 2>/dev/null || true",
+    "npm run build",
+    "if command -v pm2 >/dev/null 2>&1; then",
+    "  pm2 restart omniroute --update-env || true",
+    "fi",
+    `echo "[AutoUpdate] Successfully updated to ${targetTag}."`,
   ].join("\n");
 }
 
@@ -237,14 +297,16 @@ export async function launchAutoUpdate({
   env = process.env,
   execFileImpl = execFileAsync,
   spawnImpl = spawn,
+  existsImpl = pathExists,
 }: {
   latest: string;
   env?: NodeJS.ProcessEnv;
   execFileImpl?: ExecFileLike;
   spawnImpl?: SpawnLike;
+  existsImpl?: (targetPath: string) => Promise<boolean>;
 }): Promise<AutoUpdateLaunchResult> {
   const config = getAutoUpdateConfig(env);
-  const validation = await validateAutoUpdateRuntime(config, execFileImpl);
+  const validation = await validateAutoUpdateRuntime(config, execFileImpl, existsImpl);
 
   if (!validation.supported) {
     return {
@@ -263,7 +325,9 @@ export async function launchAutoUpdate({
           config,
           composeCommand: validation.composeCommand || "docker-compose",
         })
-      : buildNpmUpdateScript(latest);
+      : config.mode === "source"
+        ? buildSourceUpdateScript(latest, config.gitRemote)
+        : buildNpmUpdateScript(latest);
 
   mkdirSync(path.dirname(config.logPath), { recursive: true });
   const logFd = openSync(config.logPath, "a");

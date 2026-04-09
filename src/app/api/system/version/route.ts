@@ -10,6 +10,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
+  ensureGitTagExists,
   getAutoUpdateConfig,
   launchAutoUpdate,
   validateAutoUpdateRuntime,
@@ -85,6 +86,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const resolvedTargetTag = latest.startsWith("v") ? latest : `v${latest}`;
+
   if (!isNewer(latest, current)) {
     return NextResponse.json({
       success: false,
@@ -129,6 +132,148 @@ export async function POST(req: NextRequest) {
       to: latest,
       channel: launched.channel,
       logPath: launched.logPath,
+    });
+  }
+
+  if (config.mode === "source") {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const send = (data: Record<string, unknown>) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        };
+
+        try {
+          send({
+            step: "install",
+            status: "running",
+            message: `Fetching latest tags from ${config.gitRemote}...`,
+          });
+          await execFileAsync("git", ["fetch", "--tags", config.gitRemote], {
+            timeout: 60_000,
+            cwd: process.cwd(),
+          });
+          send({ step: "install", status: "done", message: "Tags fetched" });
+
+          send({
+            step: "install",
+            status: "running",
+            message: `Validating ${resolvedTargetTag}...`,
+          });
+          await ensureGitTagExists(resolvedTargetTag, execFileAsync, process.cwd());
+          send({
+            step: "install",
+            status: "done",
+            message: `Validated ${resolvedTargetTag}`,
+          });
+
+          send({
+            step: "install",
+            status: "running",
+            message: `Checking out ${resolvedTargetTag}...`,
+          });
+          try {
+            await execFileAsync("git", ["stash", "--include-untracked"], {
+              timeout: 30_000,
+              cwd: process.cwd(),
+            });
+          } catch {
+            // No local changes to stash.
+          }
+
+          const shortHead = (
+            await execFileAsync("git", ["rev-parse", "--short", "HEAD"], {
+              timeout: 10_000,
+              cwd: process.cwd(),
+            })
+          ).stdout.trim();
+          const backupBranch = `pre-update/${shortHead}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+
+          try {
+            await execFileAsync("git", ["branch", backupBranch], {
+              timeout: 10_000,
+              cwd: process.cwd(),
+            });
+          } catch {
+            // Backup branch is best-effort only.
+          }
+
+          await execFileAsync("git", ["checkout", resolvedTargetTag], {
+            timeout: 30_000,
+            cwd: process.cwd(),
+          });
+          send({ step: "install", status: "done", message: `Checked out ${resolvedTargetTag}` });
+
+          send({
+            step: "rebuild",
+            status: "running",
+            message: "Installing dependencies...",
+          });
+          await execFileAsync("npm", ["install", "--legacy-peer-deps"], {
+            timeout: 300_000,
+            cwd: process.cwd(),
+          });
+          send({ step: "rebuild", status: "done", message: "Dependencies installed" });
+
+          try {
+            await execFileAsync("node", ["scripts/sync-env.mjs"], {
+              timeout: 15_000,
+              cwd: process.cwd(),
+            });
+          } catch {
+            // .env sync is non-fatal during update.
+          }
+
+          send({
+            step: "rebuild",
+            status: "running",
+            message: "Building application...",
+          });
+          await execFileAsync("npm", ["run", "build"], {
+            timeout: 600_000,
+            cwd: process.cwd(),
+          });
+          send({ step: "rebuild", status: "done", message: "Build complete" });
+
+          send({ step: "restart", status: "running", message: "Restarting service..." });
+          try {
+            await execFileAsync("pm2", ["restart", "omniroute", "--update-env"], {
+              timeout: 30_000,
+              cwd: process.cwd(),
+            });
+            send({ step: "restart", status: "done", message: "Service restarted" });
+          } catch {
+            send({
+              step: "restart",
+              status: "skipped",
+              message: "PM2 not available — manual restart needed",
+            });
+          }
+
+          send({
+            step: "complete",
+            status: "done",
+            from: current,
+            to: latest,
+            message: `Update to ${resolvedTargetTag} complete!`,
+          });
+          console.log(`[AutoUpdate] Successfully updated to ${resolvedTargetTag} via source mode`);
+        } catch (err: any) {
+          const errMsg = err?.stderr || err?.message || String(err);
+          send({ step: "error", status: "failed", message: errMsg });
+          console.error("[AutoUpdate] Source update failed:", err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   }
 

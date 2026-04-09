@@ -1,8 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import PROVIDERS from "../../src/lib/oauth/providers/index.ts";
-import {
+const originalEnv = { ...process.env };
+Object.assign(process.env, {
+  CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
+  CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
+  GEMINI_OAUTH_CLIENT_ID:
+    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
+  GEMINI_OAUTH_CLIENT_SECRET: "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",
+  GEMINI_CLI_OAUTH_CLIENT_ID:
+    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
+  GEMINI_CLI_OAUTH_CLIENT_SECRET: "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",
+  QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
+  KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
+  ANTIGRAVITY_OAUTH_CLIENT_ID:
+    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
+  GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
+});
+
+const providersModule = await import("../../src/lib/oauth/providers/index.ts");
+const oauthModule = await import("../../src/lib/oauth/constants/oauth.ts");
+const registryModule = await import("../../open-sse/config/providerRegistry.ts");
+
+const PROVIDERS = providersModule.default;
+const {
   ANTIGRAVITY_CONFIG,
   CLAUDE_CONFIG,
   CLINE_CONFIG,
@@ -14,11 +36,11 @@ import {
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
   OAUTH_TIMEOUT,
-  PROVIDERS as OAUTH_PROVIDER_IDS,
+  PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   QWEN_CONFIG,
-} from "../../src/lib/oauth/constants/oauth.ts";
-import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
+} = oauthModule;
+const { REGISTRY } = registryModule;
 
 const originalFetch = globalThis.fetch;
 
@@ -135,6 +157,16 @@ function useFetchSequence(sequence) {
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+});
+
+test.after(() => {
+  globalThis.fetch = originalFetch;
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) {
+      delete process.env[key];
+    }
+  }
+  Object.assign(process.env, originalEnv);
 });
 
 test("OAuth provider registry exposes every expected provider exactly once", () => {
@@ -279,7 +311,10 @@ test("provider-specific config shapes remain valid for special cases", () => {
 });
 
 test("Gemini OAuth defaults do not hardcode a client secret fallback", () => {
-  assert.equal(GEMINI_CONFIG.clientSecret, process.env.GEMINI_OAUTH_CLIENT_SECRET || "");
+  assert.equal(
+    GEMINI_CONFIG.clientSecret,
+    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET || process.env.GEMINI_OAUTH_CLIENT_SECRET || ""
+  );
   assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, "");
   assert.equal(REGISTRY["gemini-cli"].oauth.clientSecretDefault, "");
 });

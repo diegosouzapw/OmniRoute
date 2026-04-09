@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `salah` | Izinkan Api Manager menyalin kunci API lengkap sesuai permintaan |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Irama penyegaran sisi server untuk data Batas Penyedia yang di-cache; Tombol penyegaran UI masih memicu sinkronisasi manual |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `salah` | Nonaktifkan snapshot SQLite otomatis sebelum menulis/impor/pulihkan; backup manual masih berfungsi |
-| `ENABLE_REQUEST_LOGS` | `salah` | Mengaktifkan log permintaan/respons |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `salah` | Paksa cookie autentikasi `Aman` (di belakang proksi terbalik HTTPS) |
 | `CLOUDFLARED_BIN` | tidak disetel | Gunakan biner `cloudflared` yang sudah ada alih-alih unduhan terkelola |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transportasi untuk Terowongan Cepat terkelola (`http2`, `quic`, atau `auto`) |
@@ -692,15 +692,15 @@ OmniRoute mengimplementasikan ketahanan tingkat penyedia dengan empat komponen:
 - Sensitivitas deteksi batas kecepatan
 - Parameter backoff eksponensial
 
-2.**Batas Tarif yang Dapat Diedit**— Default tingkat sistem dapat dikonfigurasi di dasbor: -**Permintaan Per Menit (RPM)**— Permintaan maksimum per menit per akun -**Waktu Minimum Antar Permintaan**— Kesenjangan minimum dalam milidetik antar permintaan -**Permintaan Bersamaan Maksimum**— Permintaan simultan maksimum per akun
+  2.**Batas Tarif yang Dapat Diedit**— Default tingkat sistem dapat dikonfigurasi di dasbor: -**Permintaan Per Menit (RPM)**— Permintaan maksimum per menit per akun -**Waktu Minimum Antar Permintaan**— Kesenjangan minimum dalam milidetik antar permintaan -**Permintaan Bersamaan Maksimum**— Permintaan simultan maksimum per akun
 
 - Klik**Edit**untuk mengubah, lalu**Simpan**atau**Batal**. Nilai-nilai bertahan melalui API ketahanan.
 
-3.**Pemutus Sirkuit**— Melacak kegagalan per penyedia dan secara otomatis membuka sirkuit ketika ambang batas tercapai: -**TUTUP**(Sehat) — Permintaan mengalir normal -**BUKA**— Penyedia diblokir sementara setelah kegagalan berulang kali -**HALF_OPEN**— Menguji apakah penyedia telah pulih
+  3.**Pemutus Sirkuit**— Melacak kegagalan per penyedia dan secara otomatis membuka sirkuit ketika ambang batas tercapai: -**TUTUP**(Sehat) — Permintaan mengalir normal -**BUKA**— Penyedia diblokir sementara setelah kegagalan berulang kali -**HALF_OPEN**— Menguji apakah penyedia telah pulih
 
-4.**Kebijakan & Pengidentifikasi Terkunci**— Menampilkan status pemutus sirkuit dan pengidentifikasi terkunci dengan kemampuan buka paksa.
+  4.**Kebijakan & Pengidentifikasi Terkunci**— Menampilkan status pemutus sirkuit dan pengidentifikasi terkunci dengan kemampuan buka paksa.
 
-5.**Deteksi Otomatis Batas Kecepatan**— Memantau header `429` dan `Coba Ulang-Setelah` untuk secara proaktif menghindari batas kecepatan penyedia.
+  5.**Deteksi Otomatis Batas Kecepatan**— Memantau header `429` dan `Coba Ulang-Setelah` untuk secara proaktif menghindari batas kecepatan penyedia.
 
 **Kiat Pro:**Gunakan tombol**Reset Semua**untuk menghapus semua pemutus sirkuit dan cooldown saat penyedia pulih dari pemadaman listrik.---
 

@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `false` | Payagan ang Api Manager na kopyahin ang buong API keys on demand |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Server-side refresh cadence para sa naka-cache na data ng Mga Limitasyon ng Provider; Ang mga button ng pag-refresh ng UI ay nagti-trigger pa rin ng manu-manong pag-sync |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `false` | Huwag paganahin ang mga awtomatikong snapshot ng SQLite bago magsulat/mag-import/mag-restore; gumagana pa rin ang mga manu-manong backup |
-| `ENABLE_REQUEST_LOGS` | `false` | Pinapagana ang mga log ng kahilingan/tugon |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `false` | Pilitin ang `Secure` auth cookie (sa likod ng HTTPS reverse proxy) |
 | `CLOUDFLARED_BIN` | hindi nakatakda | Gumamit ng kasalukuyang binary na `cloudflared` sa halip na pinamamahalaang pag-download |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport para sa pinamamahalaang Quick Tunnels (`http2`, `quic`, o `auto`) |
@@ -692,15 +692,15 @@ Ang OmniRoute ay nagpapatupad ng pagiging matatag sa antas ng provider na may ap
 - Rate limit detection sensitivity
 - Exponential backoff na mga parameter
 
-2.**Editable Rate Limits**— System-level defaults configurable sa dashboard: -**Requests Per Minute (RPM)**— Mga maximum na kahilingan kada minuto bawat account -**Min Time Between Requests**— Minimum na agwat sa millisecond sa pagitan ng mga kahilingan -**Max Kasabay na Kahilingan**— Pinakamataas na sabay-sabay na kahilingan sa bawat account
+  2.**Editable Rate Limits**— System-level defaults configurable sa dashboard: -**Requests Per Minute (RPM)**— Mga maximum na kahilingan kada minuto bawat account -**Min Time Between Requests**— Minimum na agwat sa millisecond sa pagitan ng mga kahilingan -**Max Kasabay na Kahilingan**— Pinakamataas na sabay-sabay na kahilingan sa bawat account
 
 - I-click ang**I-edit**upang baguhin, pagkatapos ay**I-save**o**Kanselahin**. Nananatili ang mga halaga sa pamamagitan ng resilience API.
 
-3.**Circuit Breaker**— Sinusubaybayan ang mga pagkabigo sa bawat provider at awtomatikong bubuksan ang circuit kapag naabot ang isang threshold: -**SARADO**(Healthy) — Normal na dumadaloy ang mga kahilingan -**OPEN**— Pansamantalang naka-block ang provider pagkatapos ng paulit-ulit na pagkabigo -**HALF_OPEN**— Pagsubok kung nakabawi na ang provider
+  3.**Circuit Breaker**— Sinusubaybayan ang mga pagkabigo sa bawat provider at awtomatikong bubuksan ang circuit kapag naabot ang isang threshold: -**SARADO**(Healthy) — Normal na dumadaloy ang mga kahilingan -**OPEN**— Pansamantalang naka-block ang provider pagkatapos ng paulit-ulit na pagkabigo -**HALF_OPEN**— Pagsubok kung nakabawi na ang provider
 
-4.**Mga Patakaran at Mga Naka-lock na Identifier**— Nagpapakita ng status ng circuit breaker at mga naka-lock na identifier na may kakayahan sa force-unlock.
+  4.**Mga Patakaran at Mga Naka-lock na Identifier**— Nagpapakita ng status ng circuit breaker at mga naka-lock na identifier na may kakayahan sa force-unlock.
 
-5.**Awtomatikong Pagtukoy sa Limitasyon ng Rate**— Sinusubaybayan ang mga header ng `429` at `Retry-After` upang aktibong maiwasang maabot ang mga limitasyon sa rate ng provider.
+  5.**Awtomatikong Pagtukoy sa Limitasyon ng Rate**— Sinusubaybayan ang mga header ng `429` at `Retry-After` upang aktibong maiwasang maabot ang mga limitasyon sa rate ng provider.
 
 **Pro Tip:**Gamitin ang**I-reset Lahat**na button para i-clear ang lahat ng mga circuit breaker at cooldown kapag gumaling ang isang provider mula sa isang outage.---
 

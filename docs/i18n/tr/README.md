@@ -4,7 +4,6 @@
 
 ---
 
-
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
 _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
@@ -959,7 +958,7 @@ do_install() {
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -1313,13 +1312,13 @@ OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
 
 ### 🆕 New — v3.5.5 Highlights (Apr 2026)
 
-| Feature                                     | What It Does                                                                                                               |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 🔗 **Context Relay Strategy**               | New combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation |
-| 🛡️ **Proxy Hardening**                      | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs   |
-| ⚠️ **Node.js 24 Login Warning**             | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions            |
-| 📎 **Gemini PDF Attachments**               | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
-| 🔒 **CodeQL Security Hardening**            | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                               |
+| Feature                          | What It Does                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 🔗 **Context Relay Strategy**    | New combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation |
+| 🛡️ **Proxy Hardening**           | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs    |
+| ⚠️ **Node.js 24 Login Warning**  | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions             |
+| 📎 **Gemini PDF Attachments**    | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
+| 🔒 **CodeQL Security Hardening** | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -2195,22 +2194,22 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## Belgeler
 
-| Document                                       | Description                                         |
-| ---------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)               | Providers, combos, CLI integration, deployment      |
-| [API Reference](docs/API_REFERENCE.md)         | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)    | 25 MCP tools, IDE configs, Python/TS/Go clients     |
-| [A2A Server](src/lib/a2a/README.md)            | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)        | 6-factor scoring, mode packs, self-healing          |
-| [Context Relay](docs/features/context-relay.md)| Session handoff strategy for account rotation        |
-| [Troubleshooting](docs/TROUBLESHOOTING.md)     | Common problems and solutions                       |
-| [Architecture](docs/ARCHITECTURE.md)           | System architecture and internals                   |
-| [Contributing](CONTRIBUTING.md)                | Development setup and guidelines                    |
-| [OpenAPI Spec](docs/openapi.yaml)              | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                 | Vulnerability reporting and security practices      |
-| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)   | Complete guide: VM + nginx + Cloudflare setup       |
-| [Features Gallery](docs/FEATURES.md)           | Visual dashboard tour with screenshots              |
-| [Release Checklist](docs/RELEASE_CHECKLIST.md) | Pre-release validation steps                        |
+| Document                                        | Description                                         |
+| ----------------------------------------------- | --------------------------------------------------- |
+| [User Guide](docs/USER_GUIDE.md)                | Providers, combos, CLI integration, deployment      |
+| [API Reference](docs/API_REFERENCE.md)          | All endpoints with examples                         |
+| [MCP Server](open-sse/mcp-server/README.md)     | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [A2A Server](src/lib/a2a/README.md)             | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
+| [Auto-Combo Engine](docs/auto-combo.md)         | 6-factor scoring, mode packs, self-healing          |
+| [Context Relay](docs/features/context-relay.md) | Session handoff strategy for account rotation       |
+| [Troubleshooting](docs/TROUBLESHOOTING.md)      | Common problems and solutions                       |
+| [Architecture](docs/ARCHITECTURE.md)            | System architecture and internals                   |
+| [Contributing](CONTRIBUTING.md)                 | Development setup and guidelines                    |
+| [OpenAPI Spec](docs/openapi.yaml)               | OpenAPI 3.0 specification                           |
+| [Security Policy](SECURITY.md)                  | Vulnerability reporting and security practices      |
+| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)    | Complete guide: VM + nginx + Cloudflare setup       |
+| [Features Gallery](docs/FEATURES.md)            | Visual dashboard tour with screenshots              |
+| [Release Checklist](docs/RELEASE_CHECKLIST.md)  | Pre-release validation steps                        |
 
 ---
 

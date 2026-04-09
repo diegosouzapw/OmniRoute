@@ -28,9 +28,12 @@ const require = createRequire(import.meta.url);
 
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
-  { key: "ANTIGRAVITY_OAUTH_CLIENT_SECRET", label: "Antigravity OAuth" },
-  { key: "QODER_OAUTH_CLIENT_SECRET", label: "Qoder OAuth" },
-  { key: "GEMINI_OAUTH_CLIENT_SECRET", label: "Gemini OAuth" },
+  { keys: ["ANTIGRAVITY_OAUTH_CLIENT_SECRET"], label: "Antigravity OAuth" },
+  { keys: ["QODER_OAUTH_CLIENT_SECRET"], label: "Qoder OAuth" },
+  {
+    keys: ["GEMINI_CLI_OAUTH_CLIENT_SECRET", "GEMINI_OAUTH_CLIENT_SECRET"],
+    label: "Gemini OAuth",
+  },
 ];
 
 // ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
@@ -198,11 +201,13 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   }
 
   // ── Warn about missing optional OAuth secrets ──────────────────────────────
-  const missingOauth = OPTIONAL_OAUTH_SECRETS.filter(({ key }) => !merged[key]?.trim());
+  const missingOauth = OPTIONAL_OAUTH_SECRETS.filter(
+    ({ keys }) => !keys.some((key) => merged[key]?.trim())
+  );
   if (missingOauth.length > 0) {
     log("ℹ️  The following OAuth integrations are not configured:");
-    for (const { key, label } of missingOauth) {
-      log(`   • ${label} (${key}) — set in .env or ${serverEnvPath}`);
+    for (const { keys, label } of missingOauth) {
+      log(`   • ${label} (${keys.join(" or ")}) — set in .env or ${serverEnvPath}`);
     }
     log("   These providers will not work until configured.");
   }

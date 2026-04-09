@@ -54,19 +54,67 @@ test("detectComposeCommand prefers docker compose and falls back to docker-compo
 });
 
 test("validateAutoUpdateRuntime covers source, docker preconditions and successful docker runtime", async () => {
-  const sourceValidation = await autoUpdate.validateAutoUpdateRuntime({
-    mode: "source",
-    repoDir: "/repo",
-    composeFile: "/repo/docker-compose.yml",
-    composeProfile: "cli",
-    composeService: "omniroute-cli",
-    gitRemote: "origin",
-    patchCommits: [],
-    logPath: "/tmp/log",
+  const sourceValidation = await autoUpdate.validateAutoUpdateRuntime(
+    {
+      mode: "source",
+      repoDir: "/repo",
+      composeFile: "/repo/docker-compose.yml",
+      composeProfile: "cli",
+      composeService: "omniroute-cli",
+      gitRemote: "origin",
+      patchCommits: [],
+      logPath: "/tmp/log",
+    },
+    async (command, args) => {
+      if (command === "git" && args[0] === "--version") {
+        return { stdout: "git version 2.0", stderr: "" };
+      }
+      throw new Error(`unexpected: ${command}`);
+    },
+    async () => true
+  );
+
+  assert.deepEqual(sourceValidation, {
+    supported: true,
+    reason: null,
+    composeCommand: null,
   });
 
-  assert.equal(sourceValidation.supported, false);
-  assert.match(sourceValidation.reason, /Manual 'git pull && npm install && npm run build'/);
+  const sourceMissingGitRepo = await autoUpdate.validateAutoUpdateRuntime(
+    {
+      mode: "source",
+      repoDir: "/repo",
+      composeFile: "/repo/docker-compose.yml",
+      composeProfile: "cli",
+      composeService: "omniroute-cli",
+      gitRemote: "origin",
+      patchCommits: [],
+      logPath: "/tmp/log",
+    },
+    async () => ({ stdout: "git version 2.0", stderr: "" }),
+    async () => false
+  );
+  assert.equal(sourceMissingGitRepo.supported, false);
+  assert.match(sourceMissingGitRepo.reason, /Not a git repository/);
+
+  const sourceMissingGit = await autoUpdate.validateAutoUpdateRuntime(
+    {
+      mode: "source",
+      repoDir: "/repo",
+      composeFile: "/repo/docker-compose.yml",
+      composeProfile: "cli",
+      composeService: "omniroute-cli",
+      gitRemote: "origin",
+      patchCommits: [],
+      logPath: "/tmp/log",
+    },
+    async () => {
+      throw new Error("git missing");
+    },
+    async () => true
+  );
+  assert.equal(sourceMissingGit.supported, false);
+  assert.match(sourceMissingGit.reason, /git is not available/);
 
   const missingRepo = await autoUpdate.validateAutoUpdateRuntime(
     {
@@ -171,11 +219,43 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
   });
 });
 
-test("auto update script builders generate npm and docker-compose scripts with quoting and patch commits", () => {
+test("ensureGitTagExists verifies refs/tags paths and throws a clear error when missing", async () => {
+  const calls = [];
+  await autoUpdate.ensureGitTagExists("v3.6.0", async (command, args, options) => {
+    calls.push({ command, args, options });
+    return { stdout: "deadbeef", stderr: "" };
+  });
+
+  assert.deepEqual(calls, [
+    {
+      command: "git",
+      args: ["rev-parse", "-q", "--verify", "refs/tags/v3.6.0"],
+      options: {
+        timeout: 10_000,
+        cwd: process.cwd(),
+      },
+    },
+  ]);
+
+  await assert.rejects(
+    autoUpdate.ensureGitTagExists("v9.9.9", async () => {
+      throw new Error("missing tag");
+    }),
+    /Git tag not found: v9\.9\.9/
+  );
+});
+
+test("auto update script builders generate npm, source, and docker-compose scripts with quoting and patch commits", () => {
   const npmScript = autoUpdate.buildNpmUpdateScript("3.6.0");
   assert.match(npmScript, /npm install -g omniroute@3.6.0/);
   assert.match(npmScript, /pm2 restart omniroute \|\| true/);
   assert.match(npmScript, /Successfully updated to v3.6.0/);
+
+  const sourceScript = autoUpdate.buildSourceUpdateScript("3.6.0", "upstream");
+  assert.match(sourceScript, /git fetch --tags 'upstream'/);
+  assert.match(sourceScript, /git stash --include-untracked/);
+  assert.match(sourceScript, /node scripts\/sync-env\.mjs 2>\/dev\/null \|\| true/);
+  assert.match(sourceScript, /Successfully updated to v3\.6\.0/);
 
   const dockerScript = autoUpdate.buildDockerComposeUpdateScript({
     latest: "3.6.0",
@@ -205,11 +285,45 @@ test("launchAutoUpdate returns validation failures and starts detached update sc
       AUTO_UPDATE_MODE: "source",
       AUTO_UPDATE_LOG_PATH: "/tmp/auto-update-source.log",
     },
+    existsImpl: async () => false,
   });
 
   assert.equal(unsupported.started, false);
   assert.equal(unsupported.channel, "source");
-  assert.match(unsupported.error, /Manual 'git pull && npm install && npm run build'/);
+  assert.match(unsupported.error, /Not a git repository/);
+
+  const sourceSpawnCalls = [];
+  const sourceStarted = await autoUpdate.launchAutoUpdate({
+    latest: "3.6.0",
+    env: {
+      AUTO_UPDATE_MODE: "source",
+      AUTO_UPDATE_GIT_REMOTE: "upstream",
+      AUTO_UPDATE_LOG_PATH: "/tmp/auto-update-source.log",
+    },
+    execFileImpl: async (command, args) => {
+      if (command === "git" && args[0] === "--version") {
+        return { stdout: "git version 2.0", stderr: "" };
+      }
+      throw new Error(`unexpected exec: ${command}`);
+    },
+    existsImpl: async () => true,
+    spawnImpl: (command, args, options) => {
+      sourceSpawnCalls.push({ command, args, options, unrefCalled: false });
+      return {
+        unref() {
+          sourceSpawnCalls[0].unrefCalled = true;
+        },
+      };
+    },
+  });
+
+  assert.equal(sourceStarted.started, true);
+  assert.equal(sourceStarted.channel, "source");
+  assert.equal(sourceStarted.composeCommand, null);
+  assert.equal(sourceSpawnCalls.length, 1);
+  assert.match(sourceSpawnCalls[0].args[1], /git fetch --tags 'upstream'/);
+  assert.match(sourceSpawnCalls[0].args[1], /npm run build/);
+  assert.equal(sourceSpawnCalls[0].unrefCalled, true);
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-autoupdate-"));
   const repoDir = path.join(tempRoot, "repo");

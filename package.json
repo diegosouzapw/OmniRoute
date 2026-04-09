@@ -12,7 +12,9 @@
     "app/",
     "open-sse/mcp-server/",
     "src/shared/contracts/",
+    ".env.example",
     "scripts/postinstall.mjs",
+    "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",
     "README.md",
     "LICENSE"
@@ -67,6 +69,7 @@
     "check:docs-sync": "node scripts/check-docs-sync.mjs",
     "typecheck:core": "tsc --pretty false -p tsconfig.typecheck-core.json",
     "typecheck:noimplicit:core": "tsc --pretty false -p tsconfig.typecheck-noimplicit-core.json",
+    "env:sync": "node scripts/sync-env.mjs",
     "test:integration": "node --import tsx/esm --test tests/integration/*.test.mjs",
     "test:e2e": "node scripts/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
     "test:protocols:e2e": "node scripts/run-protocol-clients-tests.mjs",

@@ -468,7 +468,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -500,7 +500,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | "hamis" | Engedélyezze az Api Managernek a teljes API-kulcsok igény szerinti másolását |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | "70" | Szerveroldali frissítési ütem a gyorsítótárazott szolgáltatói korlátok adataihoz; A felhasználói felület frissítő gombjai továbbra is kézi szinkronizálást indítanak el |
 | `DISABLE_SQLITE_AUTO_BACKUP` | "hamis" | Az automatikus SQLite pillanatképek letiltása az írás/importálás/visszaállítás előtt; a kézi biztonsági mentések továbbra is működnek |
-| `ENABLE_REQUEST_LOGS` | "hamis" | Engedélyezi a kérés/válasz naplózást |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE' | "hamis" | "Biztonságos" hitelesítési cookie kényszerítése (a HTTPS fordított proxy mögött) |
 | `CLOUDFLARED_BIN` | beállítva | A felügyelt letöltés helyett használjon egy létező 'cloudflared' bináris fájlt |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Felügyelt gyorsalagutak szállítása ("http2", "quic" vagy "auto") |
@@ -693,15 +693,15 @@ Az OmniRoute szolgáltatói szintű rugalmasságot valósít meg négy összetev
 - Sebességkorlát érzékelési érzékenység
 - Exponenciális backoff paraméterek
 
-2.**Szerkeszthető díjkorlátok**— Az irányítópulton konfigurálható rendszerszintű alapértékek: -**Percenkénti kérések (RPM)**– A percenkénti kérések száma fiókonként -**Minimális idő a kérések között**- Minimális eltérés ezredmásodpercben a kérések között -**Maximális egyidejű kérések**- Maximális egyidejű kérések száma fiókonként
+  2.**Szerkeszthető díjkorlátok**— Az irányítópulton konfigurálható rendszerszintű alapértékek: -**Percenkénti kérések (RPM)**– A percenkénti kérések száma fiókonként -**Minimális idő a kérések között**- Minimális eltérés ezredmásodpercben a kérések között -**Maximális egyidejű kérések**- Maximális egyidejű kérések száma fiókonként
 
 - Kattintson a**Szerkesztés**gombra a módosításhoz, majd a**Mentés**vagy a**Mégse**gombra. Az értékek a rezilience API-n keresztül megmaradnak.
 
-3.**Circuit Breaker**– Nyomon követi a hibákat szolgáltatónként, és automatikusan megnyitja az áramkört egy küszöbérték elérésekor: -**ZÁRVA**(egészséges) – A kérések normálisan futnak -**NYITVA**— A szolgáltató ideiglenesen blokkolva van ismétlődő hibák után -**HALF_OPEN**— Tesztelés, hogy a szolgáltató helyreállt-e
+  3.**Circuit Breaker**– Nyomon követi a hibákat szolgáltatónként, és automatikusan megnyitja az áramkört egy küszöbérték elérésekor: -**ZÁRVA**(egészséges) – A kérések normálisan futnak -**NYITVA**— A szolgáltató ideiglenesen blokkolva van ismétlődő hibák után -**HALF_OPEN**— Tesztelés, hogy a szolgáltató helyreállt-e
 
-4.**Policies & Locked Identifiers**— Megjeleníti a megszakító állapotát és a zárolt azonosítókat kényszer-feloldási képességgel.
+  4.**Policies & Locked Identifiers**— Megjeleníti a megszakító állapotát és a zárolt azonosítókat kényszer-feloldási képességgel.
 
-5.**Automatikus díjkorlát-észlelés**– Figyeli a "429" és az "Újrapróbálkozás után" fejléceket, hogy proaktívan elkerülje a szolgáltatói díjkorlátok átlépését.
+  5.**Automatikus díjkorlát-észlelés**– Figyeli a "429" és az "Újrapróbálkozás után" fejléceket, hogy proaktívan elkerülje a szolgáltatói díjkorlátok átlépését.
 
 **Profi tipp:**Használja a**Reset All**gombot az összes megszakító és leállás törléséhez, amikor a szolgáltató felépül egy kiesésből.---
 

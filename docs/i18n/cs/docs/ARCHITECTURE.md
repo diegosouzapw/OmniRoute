@@ -4,8 +4,6 @@
 
 ---
 
-
-
 _Last updated: 2026-03-28_
 
 ## Executive Summary
@@ -717,16 +715,14 @@ Additional processing layers in the translation pipeline:
 
 The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
 
-## Request Logger Pipeline
+## Request Logging and Artifacts
 
-The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+The older file-based request logger (`open-sse/utils/requestLogger.ts`) is retained only for
+legacy compatibility. The current runtime contract uses:
 
-```
-1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
-→ 5_res_provider.txt → 6_res_openai.txt → 7_res_client.txt
-```
-
-Files are written to `<repo>/logs/<session>/` for each request session.
+- `APP_LOG_TO_FILE=true` for application and audit logs written under `<repo>/logs/`
+- SQLite-backed call log records in `call_logs`
+- `${DATA_DIR}/call_logs/YYYY-MM-DD/...` artifacts when the call log pipeline is enabled
 
 ## Failure Modes and Resilience
 
@@ -765,7 +761,8 @@ Runtime visibility sources:
 - per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
 - four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
 - textual request status log in `log.txt` (optional/compat)
-- optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
+- optional application log files under `logs/` when `APP_LOG_TO_FILE=true`
+- optional request artifacts under `${DATA_DIR}/call_logs/` when the call log pipeline is enabled
 - dashboard usage endpoints (`/api/usage/*`) for UI consumption
 
 Detailed request payload capture stores up to four JSON payload stages per routed call:
@@ -792,7 +789,7 @@ Environment variables actively used by code:
 - Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
 - Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
 - Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Logging: `ENABLE_REQUEST_LOGS`
+- Logging: `APP_LOG_TO_FILE`, `APP_LOG_RETENTION_DAYS`, `CALL_LOG_RETENTION_DAYS`
 - Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
 - Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
 - SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`

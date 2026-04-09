@@ -387,7 +387,7 @@ import "./request/claude-to-openai.js"; // ← self-registers
 | `stream.ts`        | **SSE 변환 스트림**— 핵심 스트리밍 파이프라인입니다. 두 가지 모드: `TRANSLATE`(전체 형식 번역) 및 `PASSTHROUGH`(정규화 + 사용법 추출). 청크 버퍼링, 사용량 추정, 콘텐츠 길이 추적을 처리합니다. 스트림별 인코더/디코더 인스턴스는 공유 상태를 방지합니다. |
 | `streamHelpers.ts` | 하위 수준 SSE 유틸리티: `parseSSELine`(공백 허용), `hasValuableContent`(OpenAI/Claude/Gemini의 빈 청크 필터링), `fixInvalidId`, `formatSSE`(`perf_metrics` 정리를 통한 형식 인식 SSE 직렬화).                                                             |
 | `usageTracking.ts` | 모든 형식(Claude/OpenAI/Gemini/Responses)에서 토큰 사용량 추출, 별도 도구/토큰당 메시지 문자 비율을 사용한 추정, 버퍼 추가(2000 토큰 안전 마진), 형식별 필드 필터링, ANSI 색상을 사용한 콘솔 로깅.                                                        |
-| `requestLogger.ts` | 파일 기반 요청 로깅(`ENABLE_REQUEST_LOGS=true`를 통해 선택). 번호가 매겨진 파일(`1_req_client.json` → `7_res_client.txt`)로 세션 폴더를 생성합니다. 모든 I/O는 비동기식입니다(fire-and-forget). 민감한 헤더를 마스킹합니다.                               |
+| `requestLogger.ts` | Legacy file-based request logging helper kept for compatibility. Current deployments should prefer `APP_LOG_TO_FILE` for application logs and the call log pipeline for persisted request artifacts.                                                      |
 | `bypassHandler.ts` | Claude CLI(제목 추출, 워밍업, 카운트)의 특정 패턴을 가로채고 공급자를 호출하지 않고 가짜 응답을 반환합니다. 스트리밍과 비스트리밍을 모두 지원합니다. 의도적으로 Claude CLI 범위로 제한되었습니다.                                                         |
 | `networkProxy.ts`  | 공급자별 구성 → 전역 구성 → 환경 변수(`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`) 우선 순위에 따라 특정 공급자에 대한 아웃바운드 프록시 URL을 확인합니다. 'NO_PROXY' 제외를 지원합니다. 30초 동안 캐시 구성.                                                  | #### SSE Streaming Pipeline |
 

@@ -467,7 +467,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -499,7 +499,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | "nepravda" | Povolit Api Manager kopírovat úplné klíče API na vyžádání |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | "70" | Obnovovací kadence na straně serveru pro data o limitech poskytovatelů uložená v mezipaměti; Tlačítka pro obnovení uživatelského rozhraní stále spouštějí ruční synchronizaci |
 | `DISABLE_SQLITE_AUTO_BACKUP` | "nepravda" | Zakázat automatické snímky SQLite před zápisem/importem/obnovením; ruční zálohování stále funguje |
-| `ENABLE_REQUEST_LOGS` | "nepravda" | Povolí protokoly požadavků/odpovědí |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | "nepravda" | Vynutit `Secure` auth cookie (za HTTPS reverzní proxy) |
 | `CLOUDFLARED_BIN` | odstaveno | Místo řízeného stahování použijte existující binární soubor `cloudflared` |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport pro spravované rychlé tunely (`http2`, `quic` nebo `auto`) |
@@ -693,15 +693,15 @@ OmniRoute implementuje odolnost na úrovni poskytovatele se čtyřmi komponentam
 - Citlivost detekce rychlostního limitu
 - Exponenciální backoff parametry
 
-2.**Upravitelné limity rychlosti**— Výchozí nastavení na úrovni systému konfigurovatelné na řídicím panelu: -**Požadavky za minutu (RPM)**– Maximální počet požadavků za minutu na účet -**Min Time Between Requests**— Minimální prodleva v milisekundách mezi požadavky -**Max Concurrent Requests**– Maximální počet souběžných požadavků na účet
+  2.**Upravitelné limity rychlosti**— Výchozí nastavení na úrovni systému konfigurovatelné na řídicím panelu: -**Požadavky za minutu (RPM)**– Maximální počet požadavků za minutu na účet -**Min Time Between Requests**— Minimální prodleva v milisekundách mezi požadavky -**Max Concurrent Requests**– Maximální počet souběžných požadavků na účet
 
 - Klikněte na**Upravit**pro úpravu a poté na**Uložit**nebo**Zrušit**. Hodnoty přetrvávají prostřednictvím rozhraní API pro odolnost.
 
-3.**Circuit Breaker**— Sleduje poruchy na poskytovatele a automaticky otevře okruh, když je dosaženo prahové hodnoty: -**UZAVŘENO**(Zdravé) – Požadavky běží normálně -**OPEN**— Poskytovatel je po opakovaných selháních dočasně zablokován -**HALF_OPEN**— Testování, zda se poskytovatel zotavil
+  3.**Circuit Breaker**— Sleduje poruchy na poskytovatele a automaticky otevře okruh, když je dosaženo prahové hodnoty: -**UZAVŘENO**(Zdravé) – Požadavky běží normálně -**OPEN**— Poskytovatel je po opakovaných selháních dočasně zablokován -**HALF_OPEN**— Testování, zda se poskytovatel zotavil
 
-4.**Policies & Locked Identifiers**– Zobrazuje stav jističe a uzamčené identifikátory s možností vynuceného odemknutí.
+  4.**Policies & Locked Identifiers**– Zobrazuje stav jističe a uzamčené identifikátory s možností vynuceného odemknutí.
 
-5.**Automatická detekce limitu rychlosti**— Monitoruje hlavičky `429` a `Retry-After`, aby se proaktivně zabránilo překročení limitů sazeb poskytovatele.
+  5.**Automatická detekce limitu rychlosti**— Monitoruje hlavičky `429` a `Retry-After`, aby se proaktivně zabránilo překročení limitů sazeb poskytovatele.
 
 **Tip pro profesionály:**Když se poskytovatel zotaví z výpadku, použijte tlačítko**Resetovat vše**k vymazání všech jističů a ochlazení.---
 

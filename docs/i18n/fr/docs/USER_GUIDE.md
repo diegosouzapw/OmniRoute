@@ -468,7 +468,7 @@ vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
-export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
 exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
 EOF
@@ -500,7 +500,7 @@ vlicense LICENSE
 | `ALLOW_API_KEY_REVEAL` | `faux` | Autoriser Api Manager à copier des clés API complètes à la demande |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | '70' | Cadence d'actualisation côté serveur pour les données de limites du fournisseur mises en cache ; Les boutons d'actualisation de l'interface utilisateur déclenchent toujours la synchronisation manuelle |
 | `DISABLE_SQLITE_AUTO_BACKUP` | `faux` | Désactivez les instantanés SQLite automatiques avant les écritures/importations/restaurations ; les sauvegardes manuelles fonctionnent toujours |
-| `ENABLE_REQUEST_LOGS` | `faux` | Active les journaux de requêtes/réponses |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
 | `AUTH_COOKIE_SECURE` | `faux` | Forcer le cookie d'authentification « sécurisé » (derrière le proxy inverse HTTPS) |
 | `CLOUDFLARED_BIN` | non défini | Utiliser un binaire `cloudflared` existant au lieu d'un téléchargement géré |
 | `CLOUDFLARED_PROTOCOL` | `http2` | Transport pour les tunnels rapides gérés (`http2`, `quic` ou `auto`) |
@@ -693,15 +693,15 @@ OmniRoute met en œuvre la résilience au niveau du fournisseur avec quatre comp
 - Sensibilité de détection de limite de débit
 - Paramètres d'intervalle exponentiel
 
-2.**Limites de débit modifiables**— Paramètres par défaut au niveau du système configurables dans le tableau de bord : -**Requêtes par minute (RPM)**— Nombre maximal de requêtes par minute et par compte -**Min Time Between Requests**— Écart minimum en millisecondes entre les requêtes -**Max Concurrent Requests**— Nombre maximal de requêtes simultanées par compte
+  2.**Limites de débit modifiables**— Paramètres par défaut au niveau du système configurables dans le tableau de bord : -**Requêtes par minute (RPM)**— Nombre maximal de requêtes par minute et par compte -**Min Time Between Requests**— Écart minimum en millisecondes entre les requêtes -**Max Concurrent Requests**— Nombre maximal de requêtes simultanées par compte
 
 - Cliquez sur**Modifier**pour modifier, puis sur**Enregistrer**ou**Annuler**. Les valeurs persistent via l'API de résilience.
 
-3.**Disjoncteur**— Suit les pannes par fournisseur et ouvre automatiquement le circuit lorsqu'un seuil est atteint : -**FERMÉ**(sain) — Les demandes circulent normalement -**OPEN**— Le fournisseur est temporairement bloqué après des échecs répétés -**HALF_OPEN**— Test si le fournisseur a récupéré
+  3.**Disjoncteur**— Suit les pannes par fournisseur et ouvre automatiquement le circuit lorsqu'un seuil est atteint : -**FERMÉ**(sain) — Les demandes circulent normalement -**OPEN**— Le fournisseur est temporairement bloqué après des échecs répétés -**HALF_OPEN**— Test si le fournisseur a récupéré
 
-4.**Politiques et identifiants verrouillés**— Affiche l'état du disjoncteur et les identifiants verrouillés avec capacité de déverrouillage forcé.
+  4.**Politiques et identifiants verrouillés**— Affiche l'état du disjoncteur et les identifiants verrouillés avec capacité de déverrouillage forcé.
 
-5.**Détection automatique des limites de débit**— Surveille les en-têtes « 429 » et « Retry-After » pour éviter de manière proactive d'atteindre les limites de débit du fournisseur.
+  5.**Détection automatique des limites de débit**— Surveille les en-têtes « 429 » et « Retry-After » pour éviter de manière proactive d'atteindre les limites de débit du fournisseur.
 
 **Conseil de pro :**Utilisez le bouton**Réinitialiser tout**pour effacer tous les disjoncteurs et les temps de recharge lorsqu'un fournisseur se remet d'une panne.---
 

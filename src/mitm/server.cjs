@@ -15,7 +15,14 @@ function getDataDir() {
 // Configuration
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
 const LOCAL_PORT = 443;
-const ROUTER_URL = "http://localhost:20128/v1/chat/completions";
+const ROUTER_BASE_URL = (
+  process.env.OMNIROUTE_BASE_URL ||
+  process.env.BASE_URL ||
+  "http://localhost:20128"
+)
+  .trim()
+  .replace(/\/+$/, "");
+const ROUTER_URL = `${ROUTER_BASE_URL}/v1/chat/completions`;
 const API_KEY = process.env.ROUTER_API_KEY;
 const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");

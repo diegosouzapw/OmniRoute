@@ -5,8 +5,9 @@
  */
 
 import { NextResponse } from "next/server";
+import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
 
-const OMNIROUTE_BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
+const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 
 export async function GET() {
   try {
