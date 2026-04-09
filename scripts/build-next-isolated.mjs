@@ -3,6 +3,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
 /**
  * This repository contains a legacy `app/` snapshot (packaging/runtime artifacts)
@@ -21,6 +22,27 @@ async function exists(targetPath) {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
+  try {
+    await fsImpl.rename(sourcePath, destinationPath);
+  } catch (error) {
+    if (error?.code !== "EXDEV") {
+      throw error;
+    }
+
+    console.warn(
+      `[build-next-isolated] EXDEV while moving ${sourcePath} -> ${destinationPath}; falling back to copy/remove`
+    );
+    await fsImpl.cp(sourcePath, destinationPath, {
+      recursive: true,
+      preserveTimestamps: true,
+      force: false,
+      errorOnExist: true,
+    });
+    await fsImpl.rm(sourcePath, { recursive: true, force: true });
   }
 }
 
@@ -52,12 +74,12 @@ function runNextBuild() {
   });
 }
 
-async function main() {
+export async function main() {
   let moved = false;
 
   try {
     if (await exists(legacyAppDir)) {
-      await fs.rename(legacyAppDir, backupDir);
+      await movePath(legacyAppDir, backupDir);
       moved = true;
     }
 
@@ -86,7 +108,7 @@ async function main() {
   } finally {
     if (moved) {
       try {
-        await fs.rename(backupDir, legacyAppDir);
+        await movePath(backupDir, legacyAppDir);
       } catch (restoreError) {
         console.error(
           `[build-next-isolated] Failed to restore legacy app dir from ${backupDir}:`,
@@ -98,4 +120,8 @@ async function main() {
   }
 }
 
-await main();
+const entryScript = process.argv[1] ? pathToFileURL(process.argv[1]).href : null;
+
+if (entryScript === import.meta.url) {
+  await main();
+}
