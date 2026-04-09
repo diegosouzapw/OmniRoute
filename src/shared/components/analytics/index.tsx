@@ -11,6 +11,7 @@
 export {
   SortIndicator,
   StatCard,
+  CompactStatGrid,
   ActivityHeatmap,
   DailyTrendChart,
   AccountDonut,
