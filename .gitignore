@@ -8,6 +8,7 @@ omnirouteSite/
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
 !/_ideia/
+!/_tasks/
 
 # Draft features documentation (internal only)
 docs/new-features/
