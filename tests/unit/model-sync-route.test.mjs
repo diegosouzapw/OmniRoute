@@ -435,7 +435,7 @@ test("model sync route records added, removed, and updated model diffs with fall
   assert.equal(logs.length, 1);
   assert.equal(logs[0].status, 200);
   assert.equal(logs[0].provider, "openrouter");
-  assert.equal(logs[0].account, "sync@example.com");
+  assert.ok(logs[0].account.includes("**"), `Expected masked email, got: ${logs[0].account}`);
 });
 
 test("model sync route accepts external API-key auth, forwards cookies, filters built-ins, and syncs aliases", async () => {

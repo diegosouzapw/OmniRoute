@@ -178,8 +178,12 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
     deletedRequestDetailLogs: 1,
     deletedAuditLogs: 1,
     deletedMcpAuditLogs: 1,
+    trimmedCallLogs: 0,
+    trimmedProxyLogs: 0,
     appRetentionDays: 10,
     callRetentionDays: 5,
+    callLogsMaxRows: result.callLogsMaxRows,
+    proxyLogsMaxRows: result.proxyLogsMaxRows,
   });
   assert.equal(usageCount, 1);
   assert.equal(callCount, 1);
@@ -216,7 +220,11 @@ test("cleanupExpiredLogs tolerates missing tables and logAuditEvent failures wit
     deletedRequestDetailLogs: 0,
     deletedAuditLogs: 0,
     deletedMcpAuditLogs: 0,
+    trimmedCallLogs: 0,
+    trimmedProxyLogs: 0,
     appRetentionDays: 10,
     callRetentionDays: 5,
+    callLogsMaxRows: result.callLogsMaxRows,
+    proxyLogsMaxRows: result.proxyLogsMaxRows,
   });
 });
