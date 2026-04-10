@@ -15,6 +15,35 @@ Common problems and solutions for OmniRoute.
 | No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
 | EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
 | Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
+
+---
+
+## macOS: `dlopen` / "slice is not valid mach-o file"
+
+<a name="macos-native-module-rebuild"></a>
+
+**Cause:** After a global `npm install -g omniroute`, the `better-sqlite3` native binary inside the package may have been compiled for a different architecture or Node.js ABI than what is running locally. This is common on macOS (both Apple Silicon and Intel) when the pre-built binary does not match your environment.
+
+**Symptoms:**
+
+- Server fails immediately on startup with a `dlopen` error
+- Error contains `slice is not valid mach-o file`
+- Full example:
+
+```
+dlopen(/Users/<user>/.nvm/versions/node/v24.13.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
+```
+
+**Fix — rebuild for your local environment (no Node.js downgrade required):**
+
+```bash
+cd $(npm root -g)/omniroute/app
+npm rebuild better-sqlite3
+omniroute
+```
+
+> **Note:** This compiles the native binding against your current Node.js version and CPU architecture. It works with Node.js 18, 20, 22, and 24 — you do not need to downgrade Node.js if the rebuild succeeds.
 
 ---
 
