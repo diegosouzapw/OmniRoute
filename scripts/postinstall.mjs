@@ -128,10 +128,17 @@ async function fixBetterSqliteBinary() {
 
   try {
     const { execSync } = await import("node:child_process");
-    execSync("npm rebuild better-sqlite3", {
+    
+    // On Android/Termux, rebuild from source with --build-from-source flag
+    const isAndroid = process.platform === "android";
+    const rebuildCmd = isAndroid
+      ? "npm install better-sqlite3 --build-from-source --force"
+      : "npm rebuild better-sqlite3";
+    
+    execSync(rebuildCmd, {
       cwd: join(ROOT, "app"),
       stdio: "inherit",
-      timeout: 120_000,
+      timeout: 300_000, // 5 minutes for source builds
     });
 
     process.dlopen({ exports: {} }, appBinary);
@@ -140,7 +147,7 @@ async function fixBetterSqliteBinary() {
   } catch (err) {
     const isTimeout = err.killed || err.signal === "SIGTERM";
     if (isTimeout) {
-      console.warn("  ⚠️  npm rebuild timed out after 120s.");
+      console.warn("  ⚠️  npm rebuild timed out after 300s.");
     } else {
       console.warn(`  ⚠️  npm rebuild failed: ${err.message}`);
     }
