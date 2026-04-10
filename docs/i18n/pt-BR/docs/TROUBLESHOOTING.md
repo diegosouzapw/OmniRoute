@@ -17,8 +17,9 @@ Common problems and solutions for OmniRoute.
 | No logs written to disk       | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                         |
 | EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                           |
 | Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)                              |
-| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below      |
-| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+| Login crash / tela em branco  | Pode ser Node.js 24+ — veja [Compatibilidade com Node.js](#nodejs-compatibility) abaixo   |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | Execute `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3` — veja [Rebuild nativo no macOS](#macos-native-module-rebuild) abaixo |
+| Proxy "fetch failed"          | Verifique se o proxy está configurado no nível correto — veja [Problemas de Proxy](#proxy-issues) abaixo |
 
 ---
 
@@ -47,7 +48,33 @@ Common problems and solutions for OmniRoute.
 3. Reinstall OmniRoute: `npm install -g omniroute`
 4. Restart: `omniroute`
 
-> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+> **Versões suportadas:** Node.js 18, 20 ou 22 LTS. Node.js 24+ **não é suportado**.
+
+### macOS: `dlopen` / "slice is not valid mach-o file"
+
+<a name="macos-native-module-rebuild"></a>
+
+**Causa:** Após `npm install -g omniroute`, o binário nativo do `better-sqlite3` incluído no pacote pode ter sido compilado para uma arquitetura ou versão ABI do Node.js diferente da que está sendo usada localmente. Isso é comum no macOS (Apple Silicon e Intel) quando o binário pré-compilado não corresponde ao ambiente.
+
+**Sintomas:**
+
+- O servidor falha imediatamente ao iniciar com um erro `dlopen`
+- A mensagem contém `slice is not valid mach-o file`
+- Exemplo completo:
+
+```
+dlopen(/Users/<usuario>/.nvm/versions/node/v24.13.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
+```
+
+**Solução — recompilar para o ambiente local (sem precisar fazer downgrade do Node.js):**
+
+```bash
+cd $(npm root -g)/omniroute/app
+npm rebuild better-sqlite3
+omniroute
+```
+
+> **Nota:** Isso recompila o binding nativo para a versão e arquitetura local do Node.js, resolvendo o erro de incompatibilidade de binário. O intervalo oficialmente suportado continua sendo **Node.js 18, 20 ou 22 LTS** (campo `engines` no `package.json`). Se você estiver no Node.js 24, o rebuild pode silenciar este erro específico de inicialização, mas outros problemas ainda podem ocorrer — fazer downgrade para o Node.js 22 LTS continua sendo o caminho recomendado.
 
 ---
 

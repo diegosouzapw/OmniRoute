@@ -16,6 +16,7 @@ Common problems and solutions for OmniRoute.
 | EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                           |
 | Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)                              |
 | Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below      |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
 
 ---
@@ -46,6 +47,32 @@ Common problems and solutions for OmniRoute.
 4. Restart: `omniroute`
 
 > **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+### macOS: `dlopen` / "slice is not valid mach-o file"
+
+<a name="macos-native-module-rebuild"></a>
+
+**Cause:** After a global `npm install -g omniroute`, the `better-sqlite3` native binary inside the package may have been compiled for a different architecture or Node.js ABI than what is running locally. This is common on macOS (both Apple Silicon and Intel) when the pre-built binary does not match your environment.
+
+**Symptoms:**
+
+- Server fails immediately on startup with a `dlopen` error
+- Error contains `slice is not valid mach-o file`
+- Full example:
+
+```
+dlopen(/Users/<user>/.nvm/versions/node/v24.13.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
+```
+
+**Fix — rebuild for your local environment (no Node.js downgrade required):**
+
+```bash
+cd $(npm root -g)/omniroute/app
+npm rebuild better-sqlite3
+omniroute
+```
+
+> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range remains **Node.js 18, 20, or 22 LTS** (`engines` field in `package.json`). If you are on Node.js 24, the rebuild may silence this specific startup error but other issues can still occur — downgrading to Node.js 22 LTS remains the recommended path.
 
 ---
 
