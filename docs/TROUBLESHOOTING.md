@@ -16,7 +16,7 @@ Common problems and solutions for OmniRoute.
 | EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                           |
 | Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)                              |
 | Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below      |
-| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
 
 ---
