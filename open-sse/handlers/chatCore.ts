@@ -2017,21 +2017,31 @@ export async function handleChatCore({
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
       } catch {
+        const isHtmlResponse =
+          rawBody && typeof rawBody === "string" && /^\s*(?:\s|<!|<[a-zA-Z]|<\?xml)/.test(rawBody);
         appendRequestLog({
           model,
           provider,
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-        const invalidJsonMessage = "Invalid JSON response from provider";
+
+        const invalidJsonMessage = isHtmlResponse
+          ? "Provider returned HTML error page instead of JSON - check credentials and endpoint"
+          : "Invalid JSON response from provider";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidJsonMessage,
           providerRequest: finalBody || translatedBody,
-          providerResponse: normalizedProviderPayload,
+          providerResponse: isHtmlResponse
+            ? { _raw: rawBody?.slice(0, 500) }
+            : normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
         });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
+        persistFailureUsage(
+          HTTP_STATUS.BAD_GATEWAY,
+          isHtmlResponse ? "html_error_response" : "invalid_json_payload"
+        );
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }

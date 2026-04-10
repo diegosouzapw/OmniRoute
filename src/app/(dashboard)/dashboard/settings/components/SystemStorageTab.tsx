@@ -35,6 +35,10 @@ export default function SystemStorageTab() {
       app: 7,
       call: 7,
     },
+    tableMaxRows: {
+      callLogs: 100000,
+      proxyLogs: 100000,
+    },
     lastBackupAt: null,
   });
 
@@ -372,8 +376,9 @@ export default function SystemStorageTab() {
           <div>
             <p className="text-sm font-medium text-text-main">Log retention policy</p>
             <p className="text-xs text-text-muted">
-              Request logs follow <code>CALL_LOG_RETENTION_DAYS</code>. Application and audit logs
-              follow <code>APP_LOG_RETENTION_DAYS</code>.
+              Request logs retain up to <code>CALL_LOGS_TABLE_MAX_ROWS</code> rows (default:
+              100,000). Proxy logs retain up to <code>PROXY_LOGS_TABLE_MAX_ROWS</code> rows. Older
+              entries auto-deleted.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -382,6 +387,9 @@ export default function SystemStorageTab() {
             </Badge>
             <Badge variant="default" size="sm">
               App {storageHealth.retentionDays.app}d
+            </Badge>
+            <Badge variant="default" size="sm">
+              {storageHealth.tableMaxRows?.callLogs?.toLocaleString() || "100K"} rows
             </Badge>
           </div>
         </div>

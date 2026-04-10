@@ -10,7 +10,12 @@
  */
 
 import { getDbInstance } from "../db/core";
-import { getAppLogRetentionDays, getCallLogRetentionDays } from "../logEnv";
+import {
+  getAppLogRetentionDays,
+  getCallLogRetentionDays,
+  getCallLogsTableMaxRows,
+  getProxyLogsTableMaxRows,
+} from "../logEnv";
 
 /** @returns {import("better-sqlite3").Database | null} */
 function getDb() {
@@ -231,14 +236,20 @@ export function getRetentionDays() {
  *   deletedRequestDetailLogs: number,
  *   deletedAuditLogs: number,
  *   deletedMcpAuditLogs: number,
+ *   trimmedCallLogs: number,
+ *   trimmedProxyLogs: number,
  *   appRetentionDays: number,
- *   callRetentionDays: number
+ *   callRetentionDays: number,
+ *   callLogsMaxRows: number,
+ *   proxyLogsMaxRows: number
  * }}
  */
 export function cleanupExpiredLogs() {
   const db = getDb();
   const appRetentionDays = getAppLogRetentionDays();
   const callRetentionDays = getCallLogRetentionDays();
+  const callLogsMaxRows = getCallLogsTableMaxRows();
+  const proxyLogsMaxRows = getProxyLogsTableMaxRows();
 
   if (!db) {
     return {
@@ -248,8 +259,12 @@ export function cleanupExpiredLogs() {
       deletedRequestDetailLogs: 0,
       deletedAuditLogs: 0,
       deletedMcpAuditLogs: 0,
+      trimmedCallLogs: 0,
+      trimmedProxyLogs: 0,
       appRetentionDays,
       callRetentionDays,
+      callLogsMaxRows,
+      proxyLogsMaxRows,
     };
   }
 
@@ -262,6 +277,8 @@ export function cleanupExpiredLogs() {
   let deletedRequestDetailLogs = 0;
   let deletedAuditLogs = 0;
   let deletedMcpAuditLogs = 0;
+  let trimmedCallLogs = 0;
+  let trimmedProxyLogs = 0;
 
   try {
     const r1 = db.prepare("DELETE FROM usage_history WHERE timestamp < ?").run(callCutoff);
@@ -305,6 +322,54 @@ export function cleanupExpiredLogs() {
     /* table may not exist */
   }
 
+  // Enforce row count limits to prevent unbounded DB growth (batched to avoid long locks)
+  const BATCH_SIZE = 5000;
+  if (callLogsMaxRows > 0) {
+    try {
+      let currentCount = db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get() as {
+        cnt: number;
+      };
+      while (currentCount.cnt > callLogsMaxRows) {
+        const toDelete = Math.min(currentCount.cnt - callLogsMaxRows, BATCH_SIZE);
+        const trimmed = db
+          .prepare(
+            `DELETE FROM call_logs WHERE id IN (
+              SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
+            )`
+          )
+          .run(toDelete);
+        trimmedCallLogs += trimmed.changes;
+        currentCount.cnt -= trimmed.changes;
+        if (trimmed.changes === 0) break;
+      }
+    } catch {
+      /* best effort */
+    }
+  }
+
+  if (proxyLogsMaxRows > 0) {
+    try {
+      let currentProxyCount = db.prepare("SELECT COUNT(*) as cnt FROM proxy_logs").get() as {
+        cnt: number;
+      };
+      while (currentProxyCount.cnt > proxyLogsMaxRows) {
+        const toDelete = Math.min(currentProxyCount.cnt - proxyLogsMaxRows, BATCH_SIZE);
+        const trimmed = db
+          .prepare(
+            `DELETE FROM proxy_logs WHERE id IN (
+              SELECT id FROM proxy_logs ORDER BY timestamp ASC LIMIT ?
+            )`
+          )
+          .run(toDelete);
+        trimmedProxyLogs += trimmed.changes;
+        currentProxyCount.cnt -= trimmed.changes;
+        if (trimmed.changes === 0) break;
+      }
+    } catch {
+      /* best effort */
+    }
+  }
+
   logAuditEvent({
     action: "compliance.cleanup",
     details: {
@@ -314,8 +379,12 @@ export function cleanupExpiredLogs() {
       deletedRequestDetailLogs,
       deletedAuditLogs,
       deletedMcpAuditLogs,
+      trimmedCallLogs,
+      trimmedProxyLogs,
       appRetentionDays,
       callRetentionDays,
+      callLogsMaxRows,
+      proxyLogsMaxRows,
     },
   });
 
@@ -326,7 +395,11 @@ export function cleanupExpiredLogs() {
     deletedRequestDetailLogs,
     deletedAuditLogs,
     deletedMcpAuditLogs,
+    trimmedCallLogs,
+    trimmedProxyLogs,
     appRetentionDays,
     callRetentionDays,
+    callLogsMaxRows,
+    proxyLogsMaxRows,
   };
 }

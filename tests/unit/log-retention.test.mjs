@@ -8,6 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-log-reten
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.APP_LOG_RETENTION_DAYS = "2";
 process.env.CALL_LOG_RETENTION_DAYS = "1";
+process.env.CALL_LOGS_TABLE_MAX_ROWS = "5";
+process.env.PROXY_LOGS_TABLE_MAX_ROWS = "5";
 
 const core = await import("../../src/lib/db/core.ts");
 const compliance = await import("../../src/lib/compliance/index.ts");
@@ -131,4 +133,57 @@ test("cleanupExpiredLogs uses separate APP and CALL retention windows", () => {
   assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM request_detail_logs").get().cnt, 1);
   assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM audit_log").get().cnt, 2);
   assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM mcp_tool_audit").get().cnt, 1);
+});
+
+test("cleanupExpiredLogs enforces row count limits", () => {
+  compliance.initAuditLog();
+  const db = core.getDbInstance();
+
+  const now = new Date().toISOString();
+
+  for (let i = 0; i < 10; i++) {
+    db.prepare(
+      "INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, account, duration, tokens_in, tokens_out, has_pipeline_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(
+      `call-${i}`,
+      now,
+      "POST",
+      "/v1/chat/completions",
+      200,
+      "model",
+      "provider",
+      "-",
+      1,
+      1,
+      1,
+      0
+    );
+  }
+
+  for (let i = 0; i < 10; i++) {
+    db.prepare(
+      "INSERT INTO proxy_logs (id, timestamp, status, level, latency_ms) VALUES (?, ?, ?, ?, ?)"
+    ).run(`proxy-${i}`, now, "success", "direct", 1);
+  }
+
+  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get().cnt, 10);
+  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get().cnt, 10);
+
+  const result = compliance.cleanupExpiredLogs();
+
+  assert.equal(result.trimmedCallLogs, 5);
+  assert.equal(result.trimmedProxyLogs, 5);
+  assert.equal(result.callLogsMaxRows, 5);
+  assert.equal(result.proxyLogsMaxRows, 5);
+
+  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get().cnt, 5);
+  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get().cnt, 5);
+});
+
+test("getCallLogsTableMaxRows returns configured value", async () => {
+  const { getCallLogsTableMaxRows, getProxyLogsTableMaxRows } =
+    await import("../../src/lib/logEnv.ts");
+
+  assert.equal(getCallLogsTableMaxRows(), 5);
+  assert.equal(getProxyLogsTableMaxRows(), 5);
 });
