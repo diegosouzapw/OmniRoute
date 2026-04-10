@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload result
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: i18n-${{ matrix.lang }}
           path: result.txt
@@ -201,7 +201,7 @@ jobs:
           cat coverage/coverage-report.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
