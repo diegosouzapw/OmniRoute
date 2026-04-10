@@ -2018,9 +2018,7 @@ export async function handleChatCore({
         responseBody = rawBody ? JSON.parse(rawBody) : {};
       } catch {
         const isHtmlResponse =
-          rawBody &&
-          typeof rawBody === "string" &&
-          /^(\s|<!|<[a-zA-Z][a-zA-Z0-9]*|<\?xml)/.test(rawBody.trim());
+          rawBody && typeof rawBody === "string" && /^\s*(?:\s|<!|<[a-zA-Z]|<\?xml)/.test(rawBody);
         appendRequestLog({
           model,
           provider,

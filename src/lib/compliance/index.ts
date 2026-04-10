@@ -322,22 +322,25 @@ export function cleanupExpiredLogs() {
     /* table may not exist */
   }
 
-  // Enforce row count limits to prevent unbounded DB growth
+  // Enforce row count limits to prevent unbounded DB growth (batched to avoid long locks)
+  const BATCH_SIZE = 5000;
   if (callLogsMaxRows > 0) {
     try {
-      const callCount = db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get() as {
+      let currentCount = db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get() as {
         cnt: number;
       };
-      if (callCount.cnt > callLogsMaxRows) {
-        const excess = callCount.cnt - callLogsMaxRows;
+      while (currentCount.cnt > callLogsMaxRows) {
+        const toDelete = Math.min(currentCount.cnt - callLogsMaxRows, BATCH_SIZE);
         const trimmed = db
           .prepare(
             `DELETE FROM call_logs WHERE id IN (
-            SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
-          )`
+              SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
+            )`
           )
-          .run(excess);
-        trimmedCallLogs = trimmed.changes;
+          .run(toDelete);
+        trimmedCallLogs += trimmed.changes;
+        currentCount.cnt -= trimmed.changes;
+        if (trimmed.changes === 0) break;
       }
     } catch {
       /* best effort */
@@ -346,19 +349,21 @@ export function cleanupExpiredLogs() {
 
   if (proxyLogsMaxRows > 0) {
     try {
-      const proxyCount = db.prepare("SELECT COUNT(*) as cnt FROM proxy_logs").get() as {
+      let currentProxyCount = db.prepare("SELECT COUNT(*) as cnt FROM proxy_logs").get() as {
         cnt: number;
       };
-      if (proxyCount.cnt > proxyLogsMaxRows) {
-        const excess = proxyCount.cnt - proxyLogsMaxRows;
+      while (currentProxyCount.cnt > proxyLogsMaxRows) {
+        const toDelete = Math.min(currentProxyCount.cnt - proxyLogsMaxRows, BATCH_SIZE);
         const trimmed = db
           .prepare(
             `DELETE FROM proxy_logs WHERE id IN (
-            SELECT id FROM proxy_logs ORDER BY timestamp ASC LIMIT ?
-          )`
+              SELECT id FROM proxy_logs ORDER BY timestamp ASC LIMIT ?
+            )`
           )
-          .run(excess);
-        trimmedProxyLogs = trimmed.changes;
+          .run(toDelete);
+        trimmedProxyLogs += trimmed.changes;
+        currentProxyCount.cnt -= trimmed.changes;
+        if (trimmed.changes === 0) break;
       }
     } catch {
       /* best effort */
