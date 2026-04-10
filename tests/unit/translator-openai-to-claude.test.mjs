@@ -312,3 +312,87 @@ test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-
     "read_file"
   );
 });
+
+test("OpenAI -> Claude rewrites confirmed lexical triggers only on the prefixed OAuth lane", () => {
+  const oauthResult = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [
+        {
+          role: "system",
+          content: "Use background_output, background_cancel, and <directories>src/</directories>",
+        },
+        {
+          role: "assistant",
+          reasoning_content: "Prefer background_output before background_cancel",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: {
+                name: "background_output",
+                arguments: "{}",
+              },
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "background_cancel",
+            description: "Cancel background work",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false
+  );
+
+  assert.match(oauthResult.system[1].text, /background_result/);
+  assert.match(oauthResult.system[1].text, /background_stop/);
+  assert.match(oauthResult.system[1].text, /directories:\nsrc\//);
+  assert.doesNotMatch(oauthResult.system[1].text, /background_output/);
+  assert.doesNotMatch(oauthResult.system[1].text, /background_cancel/);
+  assert.doesNotMatch(oauthResult.system[1].text, /<directories>/);
+  assert.equal(oauthResult.tools[0].name, `${CLAUDE_OAUTH_TOOL_PREFIX}background_stop`);
+  assert.equal(
+    oauthResult._toolNameMap.get(`${CLAUDE_OAUTH_TOOL_PREFIX}background_stop`),
+    "background_cancel"
+  );
+  assert.equal(
+    oauthResult.messages[0].content.find((block) => block.type === "thinking").thinking,
+    "Prefer background_result before background_stop"
+  );
+  assert.equal(
+    oauthResult.messages[0].content.find((block) => block.type === "tool_use").name,
+    `${CLAUDE_OAUTH_TOOL_PREFIX}background_result`
+  );
+
+  const passthroughResult = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      _disableToolPrefix: true,
+      messages: [
+        { role: "system", content: "Use background_output and <directories>src/</directories>" },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "background_cancel",
+            description: "Cancel background work",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false
+  );
+
+  assert.match(passthroughResult.system[1].text, /background_output/);
+  assert.match(passthroughResult.system[1].text, /<directories>src\/<\/directories>/);
+  assert.equal(passthroughResult.tools[0].name, "background_cancel");
+});

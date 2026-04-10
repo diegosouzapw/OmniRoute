@@ -9,6 +9,12 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 // Can be disabled per-request via body._disableToolPrefix = true
 export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
+const CLAUDE_OAUTH_LEXICAL_TOOL_REWRITES = {
+  background_output: "background_result",
+  background_cancel: "background_stop",
+} as const;
+const CLAUDE_OAUTH_DIRECTORIES_OPEN_TAG = /<directories>/g;
+const CLAUDE_OAUTH_DIRECTORIES_CLOSE_TAG = /<\/directories>/g;
 
 type ClaudeContentBlock = Record<string, unknown>;
 type ClaudeMessage = {
@@ -27,6 +33,24 @@ type ClaudeTool = {
   cache_control?: { type: string; ttl?: string };
   defer_loading?: boolean;
 };
+
+function rewriteClaudeOAuthLexicalText(text: string): string {
+  if (!text) return text;
+
+  return text
+    .replaceAll("background_output", CLAUDE_OAUTH_LEXICAL_TOOL_REWRITES.background_output)
+    .replaceAll("background_cancel", CLAUDE_OAUTH_LEXICAL_TOOL_REWRITES.background_cancel)
+    .replace(CLAUDE_OAUTH_DIRECTORIES_OPEN_TAG, "directories:\n")
+    .replace(CLAUDE_OAUTH_DIRECTORIES_CLOSE_TAG, "");
+}
+
+function rewriteClaudeOAuthToolName(toolName: string): string {
+  return (
+    CLAUDE_OAUTH_LEXICAL_TOOL_REWRITES[
+      toolName as keyof typeof CLAUDE_OAUTH_LEXICAL_TOOL_REWRITES
+    ] ?? toolName
+  );
+}
 
 /**
  * T02: Recursively strips empty text blocks from content arrays.
@@ -70,13 +94,21 @@ export function stripEmptyTextBlocks(content: unknown[] | undefined): unknown[] 
  * Handles both string and array-of-blocks forms (Cursor, Codex 2.x, etc.).
  * Ref: sub2api PR #1197
  */
-export function normalizeContentToString(content: string | unknown[] | null | undefined): string {
+export function normalizeContentToString(
+  content: string | unknown[] | null | undefined,
+  rewriteLexicalTriggers = true
+): string {
   if (!content) return "";
-  if (typeof content === "string") return content;
+  if (typeof content === "string") {
+    return rewriteLexicalTriggers ? rewriteClaudeOAuthLexicalText(content) : content;
+  }
   if (Array.isArray(content)) {
     return (content as Array<Record<string, unknown>>)
       .filter((b) => b.type === "text")
-      .map((b) => String(b.text ?? ""))
+      .map((b) => {
+        const text = String(b.text ?? "");
+        return rewriteLexicalTriggers ? rewriteClaudeOAuthLexicalText(text) : text;
+      })
       .join("\n");
   }
   return "";
@@ -86,6 +118,7 @@ export function normalizeContentToString(content: string | unknown[] | null | un
 export function openaiToClaudeRequest(model, body, stream) {
   // Check if tool prefix should be disabled (configured per-provider or global)
   const disableToolPrefix = body?._disableToolPrefix === true;
+  const shouldRewriteClaudeOAuthLexicalTriggers = !disableToolPrefix;
 
   // Tool name mapping for Claude OAuth (capitalizedName → originalName)
   const toolNameMap = new Map();
@@ -126,7 +159,11 @@ export function openaiToClaudeRequest(model, body, stream) {
     for (const msg of body.messages) {
       if (msg.role === "system") {
         systemParts.push(
-          typeof msg.content === "string" ? msg.content : normalizeContentToString(msg.content)
+          typeof msg.content === "string"
+            ? disableToolPrefix
+              ? msg.content
+              : rewriteClaudeOAuthLexicalText(msg.content)
+            : normalizeContentToString(msg.content, !disableToolPrefix)
         );
       }
     }
@@ -243,19 +280,24 @@ export function openaiToClaudeRequest(model, body, stream) {
     result.tools = body.tools
       .map((tool) => {
         const toolData = tool.type === "function" && tool.function ? tool.function : tool;
-        const originalName = typeof toolData.name === "string" ? toolData.name.trim() : "";
+        const rawName = typeof toolData.name === "string" ? toolData.name.trim() : "";
+        const rewrittenName = shouldRewriteClaudeOAuthLexicalTriggers
+          ? rewriteClaudeOAuthToolName(rawName)
+          : rawName;
 
-        if (!originalName) {
+        if (!rewrittenName) {
           return null;
         }
 
         // Claude OAuth requires prefixed tool names to avoid conflicts
         // When prefix is disabled (non-Claude backends), use original name
-        const toolName = disableToolPrefix ? originalName : CLAUDE_OAUTH_TOOL_PREFIX + originalName;
+        const toolName = disableToolPrefix
+          ? rewrittenName
+          : CLAUDE_OAUTH_TOOL_PREFIX + rewrittenName;
 
-        // Store mapping for response translation (prefixed → original)
+        // Store mapping for response translation (prefixed rewritten → original client name)
         if (!disableToolPrefix) {
-          toolNameMap.set(toolName, originalName);
+          toolNameMap.set(toolName, rawName);
         }
 
         // Normalize input_schema: Anthropic requires `properties` when type is "object" (#595).
@@ -369,6 +411,7 @@ export function openaiToClaudeRequest(model, body, stream) {
 
 // Get content blocks from single message
 function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPrefix = false) {
+  void toolNameMap;
   const blocks = [];
 
   if (msg.role === "tool") {
@@ -384,12 +427,18 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
   } else if (msg.role === "user") {
     if (typeof msg.content === "string") {
       if (msg.content) {
-        blocks.push({ type: "text", text: msg.content });
+        blocks.push({
+          type: "text",
+          text: disableToolPrefix ? msg.content : rewriteClaudeOAuthLexicalText(msg.content),
+        });
       }
     } else if (Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (part.type === "text" && part.text) {
-          blocks.push({ type: "text", text: part.text });
+          blocks.push({
+            type: "text",
+            text: disableToolPrefix ? part.text : rewriteClaudeOAuthLexicalText(part.text),
+          });
         } else if (part.type === "tool_result") {
           // Skip tool_result with no tool_use_id (would be useless and may cause errors)
           if (!part.tool_use_id) continue;
@@ -427,7 +476,9 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
     if (msg.reasoning_content) {
       blocks.push({
         type: "thinking",
-        thinking: msg.reasoning_content,
+        thinking: disableToolPrefix
+          ? msg.reasoning_content
+          : rewriteClaudeOAuthLexicalText(msg.reasoning_content),
         signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
       });
     }
@@ -435,30 +486,48 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
     if (Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (part.type === "text" && part.text) {
-          blocks.push({ type: "text", text: part.text });
+          blocks.push({
+            type: "text",
+            text: disableToolPrefix ? part.text : rewriteClaudeOAuthLexicalText(part.text),
+          });
         } else if (part.type === "thinking" || part.type === "redacted_thinking") {
           // Preserve thinking blocks with signature
           blocks.push({
             ...part,
+            ...(typeof part.thinking === "string" && !disableToolPrefix
+              ? { thinking: rewriteClaudeOAuthLexicalText(part.thinking) }
+              : {}),
             signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,
           });
         } else if (part.type === "tool_use") {
           // Tool name already has prefix from tool declarations, keep as-is
           // CRITICAL: Skip tool_use blocks with empty name (causes Claude 400 error)
           if (part.name && part.name.trim()) {
+            const normalizedToolUseName = part.name.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)
+              ? part.name.slice(CLAUDE_OAUTH_TOOL_PREFIX.length)
+              : part.name.trim();
+            const toolUseName = disableToolPrefix
+              ? normalizedToolUseName
+              : rewriteClaudeOAuthToolName(normalizedToolUseName);
             blocks.push({
               type: "tool_use",
               id: sanitizeToolId(part.id),
-              name: part.name,
+              name: disableToolPrefix ? toolUseName : CLAUDE_OAUTH_TOOL_PREFIX + toolUseName,
               input: part.input,
             });
           }
         }
       }
     } else if (msg.content) {
-      const text = typeof msg.content === "string" ? msg.content : extractTextContent(msg.content);
+      const text =
+        typeof msg.content === "string"
+          ? msg.content
+          : extractTextContent(msg.content, !disableToolPrefix);
       if (text) {
-        blocks.push({ type: "text", text });
+        blocks.push({
+          type: "text",
+          text: disableToolPrefix ? text : rewriteClaudeOAuthLexicalText(text),
+        });
       }
     }
 
@@ -470,7 +539,12 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           if (!fnName || !fnName.trim()) continue;
 
           // Apply prefix to tool name (skip if disabled)
-          const toolName = disableToolPrefix ? fnName : CLAUDE_OAUTH_TOOL_PREFIX + fnName;
+          const rewrittenName = disableToolPrefix
+            ? fnName
+            : rewriteClaudeOAuthToolName(fnName.trim());
+          const toolName = disableToolPrefix
+            ? rewrittenName
+            : CLAUDE_OAUTH_TOOL_PREFIX + rewrittenName;
           blocks.push({
             type: "tool_use",
             id: sanitizeToolId(tc.id),
@@ -495,7 +569,8 @@ function convertOpenAIToolChoice(choice) {
     }
     // Map OpenAI string types to Claude equivalents
     if (choice.type === "auto" || choice.type === "none") return { type: "auto" };
-    if (choice.type === "required" || choice.type === "any") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
+    if (choice.type === "required" || choice.type === "any")
+      return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
     if (choice.type === "tool" && choice.name) return choice;
     // Fallback: unknown object type — default to auto to avoid 400 errors
@@ -510,12 +585,17 @@ function convertOpenAIToolChoice(choice) {
 }
 
 // Extract text from content
-function extractTextContent(content) {
-  if (typeof content === "string") return content;
+function extractTextContent(content, rewriteLexicalTriggers = true) {
+  if (typeof content === "string") {
+    return rewriteLexicalTriggers ? rewriteClaudeOAuthLexicalText(content) : content;
+  }
   if (Array.isArray(content)) {
     return content
       .filter((c) => c.type === "text")
-      .map((c) => c.text)
+      .map((c) => {
+        const text = typeof c.text === "string" ? c.text : String(c.text ?? "");
+        return rewriteLexicalTriggers ? rewriteClaudeOAuthLexicalText(text) : text;
+      })
       .join("\n");
   }
   return "";
@@ -533,7 +613,7 @@ function tryParseJSON(str) {
 
 // OpenAI -> Claude format for Antigravity (without system prompt modifications)
 function openaiToClaudeRequestForAntigravity(model, body, stream) {
-  const result = openaiToClaudeRequest(model, body, stream);
+  const result = openaiToClaudeRequest(model, { ...body, _disableToolPrefix: true }, stream);
 
   // Remove Claude Code system prompt, keep only user's system messages
   if (result.system && Array.isArray(result.system)) {
