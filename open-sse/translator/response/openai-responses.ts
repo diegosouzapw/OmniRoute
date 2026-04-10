@@ -755,12 +755,8 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
   }
 
   if (eventType === "response.failed" || eventType === "error") {
-    state.upstreamError = normalizeUpstreamFailure(
-      data,
-      eventType === "error" ? "server_error" : "server_error"
-    );
+    state.upstreamError = normalizeUpstreamFailure(data);
     state.finishReasonSent = true;
-    state.completedSent = true;
     return null;
   }
 
