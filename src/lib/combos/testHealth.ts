@@ -1,5 +1,9 @@
 type JsonRecord = Record<string, unknown>;
 
+const COMBO_TEST_MAX_TOKENS = 2048;
+const COMBO_TEST_OPERAND_MIN = 10000;
+const COMBO_TEST_OPERAND_RANGE = 90000;
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -103,14 +107,26 @@ function hasReasoningOnlyCompletion(body: JsonRecord): boolean {
   });
 }
 
+function getRandomFiveDigitNumber() {
+  return COMBO_TEST_OPERAND_MIN + Math.floor(Math.random() * COMBO_TEST_OPERAND_RANGE);
+}
+
+function buildComboTestPrompt() {
+  const left = getRandomFiveDigitNumber();
+  const right = getRandomFiveDigitNumber();
+
+  return `Calculate ${left}+${right}, and reply with the result only.`;
+}
+
 export function buildComboTestRequestBody(modelStr: string) {
   return {
     model: modelStr,
-    messages: [{ role: "user", content: "Reply with OK only." }],
-    // Give reasoning-heavy models enough headroom to emit a tiny visible answer
-    // without turning the smoke test into a full-cost real request.
-    max_tokens: 64,
-    temperature: 0,
+    // Randomize the arithmetic prompt so upstream providers are less likely to
+    // satisfy the smoke test with cached completions.
+    messages: [{ role: "user", content: buildComboTestPrompt() }],
+    // Give reasoning-heavy models enough headroom to finish the request and
+    // still emit a visible answer without immediate truncation.
+    max_tokens: COMBO_TEST_MAX_TOKENS,
     stream: false,
   };
 }

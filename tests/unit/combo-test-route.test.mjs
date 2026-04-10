@@ -88,6 +88,8 @@ test("combo test route marks a model healthy only when it returns assistant text
   await createTestCombo();
 
   const fetchCalls = [];
+  const originalRandom = Math.random;
+  let callCount = 0;
   globalThis.fetch = async (url, init = {}) => {
     fetchCalls.push({ url: String(url), init });
     return new Response(
@@ -108,7 +110,16 @@ test("combo test route marks a model healthy only when it returns assistant text
     );
   };
 
-  const response = await route.POST(makeRequest());
+  let response;
+  try {
+    Math.random = () => {
+      callCount += 1;
+      return callCount === 1 ? 0.4680222223 : 0.2677;
+    };
+    response = await route.POST(makeRequest());
+  } finally {
+    Math.random = originalRandom;
+  }
   const body = await response.json();
   const forwardedBody = JSON.parse(fetchCalls[0].init.body);
 
@@ -119,9 +130,12 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-No-Cache"], "true");
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
-  assert.equal(forwardedBody.messages[0].content, "Reply with OK only.");
-  assert.equal(forwardedBody.max_tokens, 64);
-  assert.equal(forwardedBody.temperature, 0);
+  assert.equal(
+    forwardedBody.messages[0].content,
+    "Calculate 52122+34093, and reply with the result only."
+  );
+  assert.equal(forwardedBody.max_tokens, 2048);
+  assert.equal("temperature" in forwardedBody, false);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
   assert.equal(body.results[0].responseText, "OK");

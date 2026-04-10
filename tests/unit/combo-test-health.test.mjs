@@ -5,12 +5,24 @@ const { buildComboTestRequestBody, extractComboTestResponseText } =
   await import("../../src/lib/combos/testHealth.ts");
 
 test("combo test helper builds a realistic smoke payload", () => {
-  const body = buildComboTestRequestBody("openrouter/openai/gpt-5.4");
+  const originalRandom = Math.random;
+  let callCount = 0;
+  let body;
+  try {
+    Math.random = () => {
+      callCount += 1;
+      return callCount === 1 ? 0.4680222223 : 0.2677;
+    };
+
+    body = buildComboTestRequestBody("openrouter/openai/gpt-5.4");
+  } finally {
+    Math.random = originalRandom;
+  }
 
   assert.equal(body.model, "openrouter/openai/gpt-5.4");
-  assert.equal(body.messages[0].content, "Reply with OK only.");
-  assert.equal(body.max_tokens, 64);
-  assert.equal(body.temperature, 0);
+  assert.equal(body.messages[0].content, "Calculate 52122+34093, and reply with the result only.");
+  assert.equal(body.max_tokens, 2048);
+  assert.equal("temperature" in body, false);
   assert.equal(body.stream, false);
 });
 
