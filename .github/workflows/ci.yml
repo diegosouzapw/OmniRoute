@@ -281,7 +281,7 @@ jobs:
               echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
             fi
           } > .artifacts/pr-coverage-comment.md
-      - uses: actions/github-script@v8
+      - uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
