@@ -425,6 +425,31 @@ function flushEvents(state) {
   return events;
 }
 
+function normalizeUpstreamFailure(data, fallbackType = "server_error") {
+  const response = data?.response && typeof data.response === "object" ? data.response : null;
+  const error =
+    response?.error && typeof response.error === "object"
+      ? response.error
+      : data?.error && typeof data.error === "object"
+        ? data.error
+        : null;
+
+  const code = typeof error?.code === "string" ? error.code : "";
+  const message =
+    typeof error?.message === "string"
+      ? error.message
+      : typeof data?.message === "string"
+        ? data.message
+        : "Upstream failure";
+
+  return {
+    status: code === "rate_limit_exceeded" ? 429 : 502,
+    type: code === "rate_limit_exceeded" ? "rate_limit_error" : fallbackType,
+    code: code || (fallbackType === "rate_limit_error" ? "rate_limit_exceeded" : "bad_gateway"),
+    message,
+  };
+}
+
 /**
  * Translate OpenAI Responses API chunk to OpenAI Chat Completions format
  * This is for when Codex returns data and we need to send it to an OpenAI-compatible client
@@ -455,6 +480,19 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
   // Handle different event types from Responses API
   const eventType = chunk.type || chunk.event;
   const data = chunk.data || chunk;
+
+  if (!state.model) {
+    const upstreamModel =
+      (data?.response && typeof data.response === "object" && data.response.model) ||
+      data?.model ||
+      data?.modelVersion ||
+      data?.model_version ||
+      null;
+
+    if (typeof upstreamModel === "string" && upstreamModel.trim().length > 0) {
+      state.model = upstreamModel.trim();
+    }
+  }
 
   // Initialize state
   if (!state.started) {
@@ -713,6 +751,12 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
       return finalChunk;
     }
+    return null;
+  }
+
+  if (eventType === "response.failed" || eventType === "error") {
+    state.upstreamError = normalizeUpstreamFailure(data);
+    state.finishReasonSent = true;
     return null;
   }
 

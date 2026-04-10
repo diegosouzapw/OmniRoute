@@ -6,6 +6,7 @@ import { CardSkeleton } from "./Loading";
 import { fmtCompact as fmt, fmtFull, fmtCost } from "@/shared/utils/formatting";
 import {
   StatCard,
+  CompactStatGrid,
   ActivityHeatmap,
   DailyTrendChart,
   AccountDonut,
@@ -109,7 +110,7 @@ export default function UsageAnalytics() {
   const ioRatio = s.completionTokens > 0 ? (s.promptTokens / s.completionTokens).toFixed(1) : "—";
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 min-w-0">
       {/* Header + Time Range */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -133,8 +134,8 @@ export default function UsageAnalytics() {
         </div>
       </div>
 
-      {/* Summary Cards — Row 1: Core metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
+      {/* Primary KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard
           icon="generating_tokens"
           label="Total Tokens"
@@ -159,56 +160,71 @@ export default function UsageAnalytics() {
           value={fmtCost(s.totalCost)}
           color="text-amber-500"
         />
-        <StatCard icon="group" label="Accounts" value={s.uniqueAccounts || 0} />
-        <StatCard icon="vpn_key" label="API Keys" value={s.uniqueApiKeys || 0} />
-        <StatCard icon="model_training" label="Models" value={s.uniqueModels || 0} />
-        <StatCard
-          icon="swap_horiz"
-          label="Fallback Rate"
-          value={`${Number(s.fallbackRatePct || 0).toFixed(1)}%`}
-          subValue={`${fmtFull(s.fallbackCount || 0)} fallbacks`}
-          color="text-amber-500"
-        />
       </div>
 
-      {/* Summary Cards — Row 2: Derived insights */}
-      <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
-        <StatCard
-          icon="speed"
-          label="Avg Tokens/Req"
-          value={fmt(avgTokensPerReq)}
-          color="text-cyan-500"
-        />
-        <StatCard
-          icon="request_quote"
-          label="Cost/Request"
-          value={fmtCost(costPerReq)}
-          color="text-orange-500"
-        />
-        <StatCard
-          icon="compare_arrows"
-          label="I/O Ratio"
-          value={`${ioRatio}x`}
-          color="text-violet-500"
-        />
-        <StatCard icon="star" label="Top Model" value={topModel} color="text-pink-500" />
-        <StatCard icon="cloud" label="Top Provider" value={topProvider} color="text-teal-500" />
-        <StatCard icon="today" label="Busiest Day" value={busiestDay} color="text-rose-500" />
-        <StatCard icon="dns" label="Providers" value={providerCount} color="text-indigo-500" />
-        <StatCard
-          icon="network_node"
-          label="Diversity Score"
-          value={`${providerDiversity.toFixed(1)}%`}
-          color="text-sky-500"
-        />
-      </div>
+      {/* Secondary Metrics — compact grid with sections */}
+      <CompactStatGrid
+        sections={[
+          {
+            title: "Infrastructure",
+            items: [
+              { icon: "group", label: "Accounts", value: s.uniqueAccounts || 0 },
+              { icon: "dns", label: "Providers", value: providerCount, color: "text-indigo-500" },
+              { icon: "vpn_key", label: "API Keys", value: s.uniqueApiKeys || 0 },
+              { icon: "model_training", label: "Models", value: s.uniqueModels || 0 },
+            ],
+          },
+          {
+            title: "Performance",
+            items: [
+              {
+                icon: "speed",
+                label: "Avg Tokens/Req",
+                value: fmt(avgTokensPerReq),
+                color: "text-cyan-500",
+              },
+              {
+                icon: "request_quote",
+                label: "Cost/Req",
+                value: fmtCost(costPerReq),
+                color: "text-orange-500",
+              },
+              {
+                icon: "compare_arrows",
+                label: "I/O Ratio",
+                value: `${ioRatio}x`,
+                color: "text-violet-500",
+              },
+              {
+                icon: "swap_horiz",
+                label: "Fallback Rate",
+                value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
+                color: "text-amber-500",
+              },
+            ],
+          },
+          {
+            title: "Highlights",
+            wideValues: true,
+            items: [
+              { icon: "star", label: "Top Model", value: topModel, color: "text-pink-500" },
+              { icon: "cloud", label: "Top Provider", value: topProvider, color: "text-teal-500" },
+              { icon: "today", label: "Busiest Day", value: busiestDay, color: "text-rose-500" },
+              {
+                icon: "network_node",
+                label: "Diversity",
+                value: `${providerDiversity.toFixed(1)}%`,
+                color: "text-sky-500",
+              },
+            ],
+          },
+        ]}
+      />
 
       {/* Activity Heatmap + Weekly Widgets */}
-      <div
-        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, alignItems: "stretch" }}
-      >
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch">
         <ActivityHeatmap activityMap={analytics?.activityMap} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="flex flex-col gap-4">
           <MostActiveDay7d activityMap={analytics?.activityMap} />
           <WeeklySquares7d activityMap={analytics?.activityMap} />
         </div>

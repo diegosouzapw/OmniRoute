@@ -41,6 +41,17 @@ if (existsSync(APP_DIR)) {
 console.log("  📦 Installing dependencies...");
 execSync("npm install", { cwd: ROOT, stdio: "inherit" });
 
+// ── Step 2.5: Remove app/ directory before build ───────────
+// CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
+// which causes Next.js 16 to interpret app/ as an App Router directory
+// (competing with src/app/). This makes the build silently skip all real
+// routes, producing a standalone with only _global-error and _not-found.
+// We MUST remove app/ before running `next build`.
+if (existsSync(APP_DIR)) {
+  console.log("  🧹 Removing app/ created by postinstall (App Router conflict fix)...");
+  rmSync(APP_DIR, { recursive: true, force: true });
+}
+
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
 execSync("npx next build", {
@@ -48,9 +59,6 @@ execSync("npx next build", {
   stdio: "inherit",
   env: {
     ...process.env,
-    // Force webpack codegen — Turbopack emits hashed require() calls for
-    // server external packages that break npm global installs (#394, #396, #398).
-    EXPERIMENTAL_TURBOPACK: "0",
     NEXT_PRIVATE_BUILD_WORKER: "0",
   },
 });

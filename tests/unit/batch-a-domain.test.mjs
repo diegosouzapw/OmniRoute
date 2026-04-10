@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import {
   isModelAvailable,
   setModelUnavailable,
+  markModelAsProblematic,
   clearModelUnavailability,
   getAvailabilityReport,
   getUnavailableCount,
@@ -57,6 +58,41 @@ describe("modelAvailability", () => {
     const start = Date.now();
     while (Date.now() - start < 5) {} // spin wait
     assert.equal(isModelAvailable("anthropic", "claude-sonnet-4-20250514"), true);
+  });
+
+  it("should apply adaptive quarantine for repeated problematic failures", () => {
+    const first = markModelAsProblematic("nvidia", "z-ai/glm4.7", {
+      status: 502,
+      baseCooldownMs: 3000,
+      reason: "HTTP 502",
+    });
+    const second = markModelAsProblematic("nvidia", "z-ai/glm4.7", {
+      status: 502,
+      baseCooldownMs: 3000,
+      reason: "HTTP 502",
+    });
+
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 120000);
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 240000);
+
+    const report = getAvailabilityReport();
+    const entry = report.find((r) => r.provider === "nvidia" && r.model === "z-ai/glm4.7");
+    assert.ok(entry, "nvidia model should be quarantined");
+    assert.ok(entry.remainingMs >= 200000, "cooldown should be preserved/escalated");
+  });
+
+  it("should reset failure history after model recovery", () => {
+    clearModelUnavailability("nvidia", "z-ai/glm4.7");
+    const afterReset = markModelAsProblematic("nvidia", "z-ai/glm4.7", {
+      status: 502,
+      baseCooldownMs: 3000,
+      reason: "HTTP 502",
+    });
+
+    assert.equal(afterReset.failureCount, 1);
+    assert.equal(afterReset.cooldownMs, 120000);
   });
 });
 

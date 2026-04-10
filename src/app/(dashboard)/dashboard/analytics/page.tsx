@@ -45,12 +45,12 @@ export default function AnalyticsPage() {
       />
 
       {activeTab === "overview" && (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+        <>
           <Suspense fallback={<CardSkeleton />}>
             <UsageAnalytics />
           </Suspense>
           <DiversityScoreCard />
-        </div>
+        </>
       )}
       {activeTab === "evals" && <EvalsTab />}
       {activeTab === "search" && <SearchAnalyticsTab />}

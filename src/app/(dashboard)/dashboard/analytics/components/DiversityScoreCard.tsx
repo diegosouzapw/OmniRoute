@@ -72,33 +72,43 @@ export default function DiversityScoreCard() {
     riskLabel = "Moderate Distribution";
   }
 
+  const providerEntries = Object.entries(data.providers || {})
+    .sort(([, a], [, b]) => b.share - a.share)
+    .slice(0, 4);
+
   return (
-    <Card className="p-5 flex flex-col gap-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
-            <h3 className="font-semibold text-text-main">Provider Diversity</h3>
-          </div>
-          <p className="text-sm text-text-muted mt-1">
-            Provider concentration snapshot for the recent traffic window.
-          </p>
+    <Card className="p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
+          <h3 className="font-semibold text-text-main">Provider Diversity</h3>
+          <span className="text-xs text-text-muted hidden sm:inline">
+            — Provider concentration snapshot for the recent traffic window.
+          </span>
         </div>
-        <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-            scorePercentage < 40
-              ? "bg-red-500/10 text-red-500"
-              : scorePercentage < 70
-                ? "bg-amber-500/10 text-amber-500"
-                : "bg-green-500/10 text-green-500"
-          }`}
-        >
-          Shannon entropy
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-text-muted hidden md:inline">
+            Window: {data.windowSize} reqs · Last {Math.round(data.ttlMs / 60000)} mins
+          </span>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+              scorePercentage < 40
+                ? "bg-red-500/10 text-red-500"
+                : scorePercentage < 70
+                  ? "bg-amber-500/10 text-amber-500"
+                  : "bg-green-500/10 text-green-500"
+            }`}
+          >
+            Shannon entropy
+          </span>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center">
-        <div className="relative mx-auto h-28 w-28">
+      {/* Horizontal layout: gauge + risk label + provider bars */}
+      <div className="flex flex-col sm:flex-row items-center gap-5">
+        {/* Gauge */}
+        <div className="relative shrink-0 h-20 w-20">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
             <path
               className="text-border/70"
@@ -118,56 +128,52 @@ export default function DiversityScoreCard() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-2xl font-semibold tabular-nums ${riskColor}`}>
+            <span className={`text-lg font-semibold tabular-nums ${riskColor}`}>
               {scorePercentage}%
             </span>
-            <span className="text-[11px] uppercase tracking-[0.18em] text-text-muted">score</span>
+            <span className="text-[9px] uppercase tracking-[0.15em] text-text-muted">score</span>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border/30 bg-surface/20 px-4 py-3">
-            <div className={`text-sm font-medium ${riskColor}`}>{riskLabel}</div>
-            <div className="text-xs text-text-muted mt-1">
-              Higher values indicate traffic is spread across multiple providers instead of
-              clustering on one vendor.
-            </div>
+        {/* Risk label */}
+        <div className="shrink-0 text-center sm:text-left">
+          <div className={`text-sm font-medium ${riskColor}`}>{riskLabel}</div>
+          <div className="text-xs text-text-muted mt-0.5 max-w-[200px]">
+            Higher values mean traffic is spread across multiple providers.
           </div>
+        </div>
 
-          {Object.keys(data.providers || {}).length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/50 px-4 py-5 text-sm text-text-muted">
+        {/* Divider */}
+        <div className="hidden sm:block w-px h-14 bg-border/30 shrink-0" />
+
+        {/* Provider bars */}
+        <div className="flex-1 min-w-0 w-full">
+          {providerEntries.length === 0 ? (
+            <div className="text-sm text-text-muted text-center py-2">
               No recent usage data available.
             </div>
           ) : (
-            <div className="space-y-3">
-              {Object.entries(data.providers)
-                .sort(([, a], [, b]) => b.share - a.share)
-                .slice(0, 4)
-                .map(([provider, stat]) => (
-                  <div key={provider} className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="font-medium text-text-main capitalize">{provider}</span>
-                      <span className="tabular-nums text-text-muted">
-                        {Math.round(stat.share * 100)}%
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-surface/50 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${gaugeColor}`}
-                        style={{ width: `${Math.round(stat.share * 100)}%` }}
-                      />
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              {providerEntries.map(([provider, stat]) => (
+                <div key={provider} className="space-y-1">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium text-text-main capitalize truncate">
+                      {provider}
+                    </span>
+                    <span className="tabular-nums text-text-muted shrink-0">
+                      {Math.round(stat.share * 100)}%
+                    </span>
                   </div>
-                ))}
+                  <div className="h-1.5 rounded-full bg-surface/50 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${gaugeColor}`}
+                      style={{ width: `${Math.round(stat.share * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 border-t border-border/30 pt-4 text-xs text-text-muted">
-        <div className="rounded-lg bg-surface/20 px-3 py-2">Window: {data.windowSize} reqs</div>
-        <div className="rounded-lg bg-surface/20 px-3 py-2 text-right">
-          Based on last {Math.round(data.ttlMs / 60000)} mins
         </div>
       </div>
     </Card>

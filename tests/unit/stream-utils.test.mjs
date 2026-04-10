@@ -237,6 +237,59 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
 });
 
+test("createSSEStream translate mode aborts on Responses failure with rate limit error", async () => {
+  let onCompletePayload = null;
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `data: ${JSON.stringify({
+          type: "response.created",
+          response: {
+            id: "resp_fail",
+            object: "response",
+            model: "gpt-5.4",
+            status: "in_progress",
+            output: [],
+          },
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          type: "response.failed",
+          response: {
+            id: "resp_fail",
+            object: "response",
+            model: "gpt-5.4",
+            status: "failed",
+            error: {
+              message: "Rate limit reached for gpt-5.4",
+              code: "rate_limit_exceeded",
+            },
+          },
+        })}\n\n`,
+        `data: [DONE]\n\n`,
+      ],
+      {
+        mode: "translate",
+        targetFormat: FORMATS.OPENAI_RESPONSES,
+        sourceFormat: FORMATS.OPENAI,
+        provider: "codex",
+        model: "gpt-5.4",
+        body: { messages: [{ role: "user", content: "hello" }] },
+        onComplete(payload) {
+          onCompletePayload = payload;
+        },
+      }
+    ),
+    /Rate limit reached for gpt-5\.4|Upstream failure/
+  );
+
+  assert.ok(onCompletePayload, "should capture completion payload before aborting");
+  assert.equal(onCompletePayload.status, 429);
+  assert.equal(onCompletePayload.responseBody.error.type, "rate_limit_error");
+  assert.equal(onCompletePayload.responseBody.error.code, "rate_limit_exceeded");
+  assert.match(onCompletePayload.responseBody.error.message, /Rate limit reached/);
+});
+
 test("createSSEStream passthrough restores Claude tool names from the mapping table", async () => {
   const toolNameMap = new Map([["tool_alias", "read_file"]]);
   const text = await readTransformed(

@@ -364,6 +364,8 @@ test("launchAutoUpdate returns validation failures and starts detached update sc
         },
       };
     },
+    existsImpl: async (targetPath) =>
+      targetPath === repoDir || targetPath === composeFile || targetPath === "/var/run/docker.sock",
   });
 
   try {
