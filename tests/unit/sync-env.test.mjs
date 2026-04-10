@@ -27,6 +27,25 @@ function writeEnvExample(rootDir) {
   );
 }
 
+function writeOauthEnvExample(rootDir) {
+  fs.writeFileSync(
+    path.join(rootDir, ".env.example"),
+    [
+      "# ═══════════════════════════════════════════════════",
+      "#   OAUTH PROVIDER CREDENTIALS",
+      "# ═══════════════════════════════════════════════════",
+      "CLAUDE_OAUTH_CLIENT_ID=claude-default",
+      "CODEX_OAUTH_CLIENT_ID=codex-default",
+      "# ─────────────────────────────────────────────────────────────────────────────",
+      "# Provider User-Agent Overrides (optional — customize per-provider UA headers)",
+      "# ─────────────────────────────────────────────────────────────────────────────",
+      "JWT_SECRET=should-not-be-copied",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+}
+
 test("syncEnv creates .env from .env.example and generates blank secrets", () => {
   const rootDir = createTempRoot();
 
@@ -93,6 +112,25 @@ test("syncEnv is idempotent when .env is already complete", () => {
 
     assert.deepEqual(result, { created: false, added: 0 });
     assert.equal(after, before);
+  } finally {
+    fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("syncEnv oauth scope only copies oauth defaults", () => {
+  const rootDir = createTempRoot();
+
+  try {
+    writeOauthEnvExample(rootDir);
+
+    const result = syncEnv({ rootDir, quiet: true, scope: "oauth" });
+    const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
+
+    assert.deepEqual(result, { created: true, added: 2 });
+    assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
+    assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
+    assert.doesNotMatch(envContent, /^JWT_SECRET=/m);
+    assert.doesNotMatch(envContent, /^Provider User-Agent Overrides/m);
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }

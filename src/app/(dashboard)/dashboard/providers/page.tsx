@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import PropTypes from "prop-types";
@@ -117,6 +117,11 @@ export default function ProvidersPage() {
   const [importingZed, setImportingZed] = useState(false);
   const [showConfiguredOnly, setShowConfiguredOnly] = useState(false);
   const [configuredOnlyPreferenceReady, setConfiguredOnlyPreferenceReady] = useState(false);
+  const [oauthEnvRepairStatus, setOauthEnvRepairStatus] = useState<{
+    available: boolean;
+    missingCount: number;
+  } | null>(null);
+  const [repairingEnv, setRepairingEnv] = useState(false);
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const tc = useTranslations("common");
@@ -158,6 +163,27 @@ export default function ProvidersPage() {
     writeConfiguredOnlyPreference(showConfiguredOnly);
   }, [configuredOnlyPreferenceReady, showConfiguredOnly]);
 
+  const fetchOauthEnvRepairStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/system/env/repair", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok) {
+        setOauthEnvRepairStatus({
+          available: Boolean(data.available),
+          missingCount: Number(data.missingCount || 0),
+        });
+      } else {
+        setOauthEnvRepairStatus(null);
+      }
+    } catch {
+      setOauthEnvRepairStatus(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchOauthEnvRepairStatus();
+  }, [fetchOauthEnvRepairStatus]);
+
   const handleZedImport = async () => {
     setImportingZed(true);
     try {
@@ -182,6 +208,30 @@ export default function ProvidersPage() {
       notify.error("Network error while trying to import from Zed.");
     } finally {
       setImportingZed(false);
+    }
+  };
+
+  const handleRepairEnv = async () => {
+    if (!oauthEnvRepairStatus?.available || repairingEnv) return;
+
+    setRepairingEnv(true);
+    try {
+      const res = await fetch("/api/system/env/repair", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || t("repairEnvFailed"));
+      }
+      notify.success(
+        data.backupPath ? `${t("repairEnvSuccess")} (${data.backupPath})` : t("repairEnvSuccess")
+      );
+      await fetchOauthEnvRepairStatus();
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : t("repairEnvFailed"));
+    } finally {
+      setRepairingEnv(false);
     }
   };
 
@@ -450,6 +500,24 @@ export default function ProvidersPage() {
               </span>
               {importingZed ? "Importing..." : "Import from Zed"}
             </button>
+            {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
+              <button
+                onClick={handleRepairEnv}
+                disabled={repairingEnv}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  repairingEnv
+                    ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                }`}
+                title={t("repairEnvHint")}
+                aria-label={t("repairEnv")}
+              >
+                <span className="material-symbols-outlined text-[14px]">
+                  {repairingEnv ? "sync" : "settings_backup_restore"}
+                </span>
+                {repairingEnv ? t("repairEnvWorking") : t("repairEnv")}
+              </button>
+            )}
             <button
               onClick={() => handleBatchTest("oauth")}
               disabled={!!testingMode}

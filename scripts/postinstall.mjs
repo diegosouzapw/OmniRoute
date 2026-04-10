@@ -128,13 +128,13 @@ async function fixBetterSqliteBinary() {
 
   try {
     const { execSync } = await import("node:child_process");
-    
+
     // On Android/Termux, rebuild from source with --build-from-source flag
     const isAndroid = process.platform === "android";
     const rebuildCmd = isAndroid
       ? "npm install better-sqlite3 --build-from-source --force"
       : "npm rebuild better-sqlite3";
-    
+
     execSync(rebuildCmd, {
       cwd: join(ROOT, "app"),
       stdio: "inherit",
