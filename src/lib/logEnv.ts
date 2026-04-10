@@ -5,6 +5,8 @@ const DEFAULT_CALL_LOG_RETENTION_DAYS = 7;
 const DEFAULT_APP_LOG_MAX_SIZE = 50 * 1024 * 1024;
 const DEFAULT_APP_LOG_MAX_FILES = 20;
 const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
+const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
+const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
@@ -60,6 +62,14 @@ export function getAppLogMaxFiles(): number {
 
 export function getCallLogMaxEntries(): number {
   return parsePositiveInt(process.env.CALL_LOG_MAX_ENTRIES, DEFAULT_CALL_LOG_MAX_ENTRIES);
+}
+
+export function getCallLogsTableMaxRows(): number {
+  return parsePositiveInt(process.env.CALL_LOGS_TABLE_MAX_ROWS, DEFAULT_CALL_LOGS_TABLE_MAX_ROWS);
+}
+
+export function getProxyLogsTableMaxRows(): number {
+  return parsePositiveInt(process.env.PROXY_LOGS_TABLE_MAX_ROWS, DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS);
 }
 
 export function getAppLogLevel(defaultLevel: string): string {
