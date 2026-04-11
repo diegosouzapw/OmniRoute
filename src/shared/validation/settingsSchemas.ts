@@ -9,14 +9,14 @@ import { z } from "zod";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
 const forwardingKeywordRuleSchema = z.object({
-  match: z.string().min(1).max(200),
+  match: z.string().trim().min(1).max(200),
   replace: z.string().max(200),
 });
 
 const forwardingTagRuleSchema = z.object({
-  open: z.string().min(1).max(200),
+  open: z.string().trim().min(1).max(200),
   openReplacement: z.string().max(200),
-  close: z.string().min(1).max(200),
+  close: z.string().trim().min(1).max(200),
   closeReplacement: z.string().max(200),
 });
 

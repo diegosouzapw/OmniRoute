@@ -16,6 +16,9 @@ vi.mock("../../../../lib/localDb", () => {
 
 import { getSettings, updateSettings } from "../../../../lib/localDb";
 
+const mockedGetSettings = vi.mocked(getSettings);
+const mockedUpdateSettings = vi.mocked(updateSettings);
+
 function createPutRequest(body: unknown) {
   return new Request("http://localhost/api/settings/forwarding-keywords", {
     method: "PUT",
@@ -28,10 +31,10 @@ describe("/api/settings/forwarding-keywords", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     setForwardingKeywordConfig(getDefaultForwardingKeywordConfig());
-    (getSettings as any).mockResolvedValue({
+    mockedGetSettings.mockResolvedValue({
       forwardingKeywordRules: getDefaultForwardingKeywordConfig(),
     });
-    (updateSettings as any).mockImplementation(async (updates: Record<string, unknown>) => updates);
+    mockedUpdateSettings.mockImplementation(async (updates: Record<string, unknown>) => updates);
   });
 
   it("returns persisted forwarding keyword config", async () => {
@@ -64,8 +67,8 @@ describe("/api/settings/forwarding-keywords", () => {
     const res = await PUT(createPutRequest(body));
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(updateSettings).toHaveBeenCalledOnce();
-    expect((updateSettings as any).mock.calls[0][0].forwardingKeywordRules).toEqual(body);
+    expect(mockedUpdateSettings).toHaveBeenCalledOnce();
+    expect(mockedUpdateSettings.mock.calls[0][0].forwardingKeywordRules).toEqual(body);
     expect(json.config["claude-oauth-prefixed"].toolNames[0].replace).toBe("bg_out");
   });
 
@@ -82,5 +85,26 @@ describe("/api/settings/forwarding-keywords", () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.config["claude-oauth-prefixed"]).toEqual(body["claude-oauth-prefixed"]);
+  });
+
+  it("rejects whitespace-only keyword matches", async () => {
+    const body = {
+      "claude-oauth-prefixed": {
+        toolNames: [{ match: "   ", replace: "bg_out" }],
+        text: [{ match: "background_output", replace: "bg_out" }],
+        tags: [
+          {
+            open: "<directories>",
+            openReplacement: "dirs:\n",
+            close: "</directories>",
+            closeReplacement: "",
+          },
+        ],
+      },
+    };
+
+    const res = await PUT(createPutRequest(body));
+    expect(res.status).toBe(400);
+    expect(mockedUpdateSettings).not.toHaveBeenCalled();
   });
 });
