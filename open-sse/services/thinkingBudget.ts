@@ -174,12 +174,14 @@ export function applyThinkingBudget(body, config = null) {
   // Pre-processing: auto-inject thinking config for -thinking suffix models
   processed = ensureThinkingConfig(processed);
 
-  if (isClaudeModel(modelStr) && cfg.mode === ThinkingMode.ADAPTIVE) {
+  if (isClaudeModel(modelStr)) {
     if (!hasExplicitThinkingConfig(processed) && hasExplicitEffortSignal(processed)) {
       return setAdaptiveClaudeThinking(processed, cfg);
     }
 
-    return processed;
+    if (cfg.mode === ThinkingMode.ADAPTIVE) {
+      return processed;
+    }
   }
 
   switch (cfg.mode) {
