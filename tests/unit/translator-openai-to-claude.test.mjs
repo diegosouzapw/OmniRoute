@@ -485,9 +485,54 @@ test("Forwarding keyword normalization rejects blank match and tag boundaries", 
 
   assert.deepEqual(normalized["claude-oauth-prefixed"].toolNames, [
     { match: "background_output", replace: "background_result" },
+    { match: "background_cancel", replace: "background_stop" },
   ]);
-  assert.deepEqual(normalized["claude-oauth-prefixed"].text, []);
-  assert.deepEqual(normalized["claude-oauth-prefixed"].tags, []);
+  assert.deepEqual(normalized["claude-oauth-prefixed"].text, [
+    { match: "background_output", replace: "background_result" },
+    { match: "background_cancel", replace: "background_stop" },
+  ]);
+  assert.deepEqual(normalized["claude-oauth-prefixed"].tags, [
+    {
+      open: "<directories>",
+      openReplacement: "directories:\n",
+      close: "</directories>",
+      closeReplacement: "",
+    },
+  ]);
+});
+
+test("Forwarding keyword normalization overlays saved rules onto defaults", () => {
+  const normalized = normalizeForwardingKeywordConfig({
+    "claude-oauth-prefixed": {
+      toolNames: [{ match: "background_output", replace: "bg_out" }],
+      text: [],
+      tags: [
+        {
+          open: "<directories>",
+          openReplacement: "dirs:\n",
+          close: "</directories>",
+          closeReplacement: "",
+        },
+      ],
+    },
+  });
+
+  assert.deepEqual(normalized["claude-oauth-prefixed"].toolNames, [
+    { match: "background_output", replace: "bg_out" },
+    { match: "background_cancel", replace: "background_stop" },
+  ]);
+  assert.deepEqual(normalized["claude-oauth-prefixed"].text, [
+    { match: "background_output", replace: "background_result" },
+    { match: "background_cancel", replace: "background_stop" },
+  ]);
+  assert.deepEqual(normalized["claude-oauth-prefixed"].tags, [
+    {
+      open: "<directories>",
+      openReplacement: "dirs:\n",
+      close: "</directories>",
+      closeReplacement: "",
+    },
+  ]);
 });
 
 test("Forwarding keyword settings reset to defaults only after successful settings load", () => {
@@ -505,6 +550,29 @@ test("Forwarding keyword settings reset to defaults only after successful settin
     getForwardingKeywordRulesForLane("claude-oauth-prefixed"),
     getDefaultForwardingKeywordConfig()["claude-oauth-prefixed"]
   );
+});
+
+test("Forwarding keyword settings keep defaults active when saved config has empty arrays", () => {
+  applyForwardingKeywordSettings({
+    forwardingKeywordRules: {
+      "claude-oauth-prefixed": {
+        toolNames: [],
+        text: [],
+        tags: [],
+      },
+    },
+  });
+
+  const rewrittenText = rewriteForwardedTextForLane(
+    "claude-oauth-prefixed",
+    "background_output <directories>src/</directories>"
+  );
+
+  assert.equal(
+    rewriteForwardedToolNameForLane("claude-oauth-prefixed", "background_cancel"),
+    "background_stop"
+  );
+  assert.equal(rewrittenText, "background_result directories:\nsrc/");
 });
 
 test("OpenAI-compatible -> Claude -> OpenAI-compatible preserves original tool names", () => {

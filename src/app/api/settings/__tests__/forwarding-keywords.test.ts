@@ -72,7 +72,7 @@ describe("/api/settings/forwarding-keywords", () => {
     expect(json.config["claude-oauth-prefixed"].toolNames[0].replace).toBe("bg_out");
   });
 
-  it("preserves intentionally empty rule arrays", async () => {
+  it("keeps default rewrite rules when empty arrays are saved", async () => {
     const body = {
       "claude-oauth-prefixed": {
         toolNames: [],
@@ -84,7 +84,30 @@ describe("/api/settings/forwarding-keywords", () => {
     const res = await PUT(createPutRequest(body));
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json.config["claude-oauth-prefixed"]).toEqual(body["claude-oauth-prefixed"]);
+    expect(json.config["claude-oauth-prefixed"]).toEqual(
+      getDefaultForwardingKeywordConfig()["claude-oauth-prefixed"]
+    );
+  });
+
+  it("overrides matching defaults without disabling the rest", async () => {
+    const body = {
+      "claude-oauth-prefixed": {
+        toolNames: [{ match: "background_output", replace: "bg_out" }],
+        text: [],
+        tags: [],
+      },
+    };
+
+    const res = await PUT(createPutRequest(body));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.config["claude-oauth-prefixed"].toolNames).toEqual([
+      { match: "background_output", replace: "bg_out" },
+      { match: "background_cancel", replace: "background_stop" },
+    ]);
+    expect(json.config["claude-oauth-prefixed"].text).toEqual(
+      getDefaultForwardingKeywordConfig()["claude-oauth-prefixed"].text
+    );
   });
 
   it("rejects whitespace-only keyword matches", async () => {
