@@ -17,6 +17,8 @@ const {
   rewriteForwardedTextForLane,
   rewriteForwardedToolNameForLane,
 } = await import("../../open-sse/config/forwardingKeywordRules.ts");
+const { applyClaudeOAuthLexicalRewrite } =
+  await import("../../open-sse/translator/helpers/claudeHelper.ts");
 const { translateNonStreamingResponse } =
   await import("../../open-sse/handlers/responseTranslator.ts");
 const { claudeToOpenAIResponse } =
@@ -626,4 +628,68 @@ test("OpenAI -> Claude rewrites nested tool_result text on the prefixed OAuth la
     tool_use_id: "call_1",
     content: [{ type: "text", text: "background_result directories:\nsrc/" }],
   });
+});
+
+test("Claude-native passthrough rewrites lexical triggers before Anthropic forwarding", () => {
+  const payload = {
+    system: [
+      {
+        type: "text",
+        text: "Use background_output and <directories>src/</directories>",
+      },
+    ],
+    tools: [
+      {
+        name: "background_cancel",
+        description: "Cancel background_output requests",
+        input_schema: { type: "object", properties: {} },
+      },
+    ],
+    tool_choice: { type: "tool", name: "background_cancel" },
+    messages: [
+      {
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "background_output first" },
+          { type: "tool_use", id: "tool_1", name: "background_output", input: {} },
+        ],
+      },
+    ],
+  };
+
+  const { body, toolNameMap } = applyClaudeOAuthLexicalRewrite(structuredClone(payload));
+
+  assert.equal(body.system[0].text, "Use background_result and directories:\nsrc/");
+  assert.equal(body.tools[0].name, "background_stop");
+  assert.equal(body.tools[0].description, "Cancel background_result requests");
+  assert.deepEqual(body.tool_choice, { type: "tool", name: "background_stop" });
+  assert.equal(body.messages[0].content[0].thinking, "background_result first");
+  assert.equal(body.messages[0].content[1].name, "background_result");
+  assert.equal(toolNameMap.get("background_result"), "background_output");
+  assert.equal(toolNameMap.get("background_stop"), "background_cancel");
+});
+
+test("Claude-native passthrough rewrites string-form Anthropic payloads", () => {
+  const payload = {
+    system: "Use <directories>src/</directories> before background_output",
+    messages: [
+      { role: "user", content: "background_cancel then background_output" },
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "call_1",
+            content: "background_output completed",
+          },
+        ],
+      },
+    ],
+  };
+
+  const { body } = applyClaudeOAuthLexicalRewrite(structuredClone(payload));
+
+  assert.equal(body.system, "Use directories:\nsrc/ before background_result");
+  assert.equal(body.messages[0].content, "background_stop then background_result");
+  assert.equal(body.messages[1].content[0].content, "background_result completed");
 });

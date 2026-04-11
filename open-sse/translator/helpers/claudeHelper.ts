@@ -1,5 +1,11 @@
 // Claude helper functions for translator
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
+import {
+  rewriteForwardedTextForLane,
+  rewriteForwardedToolNameForLane,
+} from "../../config/forwardingKeywordRules.ts";
+
+const CLAUDE_OAUTH_FORWARDING_LANE = "claude-oauth-prefixed";
 
 // Check if message has valid non-empty content
 export function hasValidContent(msg) {
@@ -248,4 +254,109 @@ export function prepareClaudeRequest(body, provider = null, preserveCacheControl
   }
 
   return body;
+}
+
+export function applyClaudeOAuthLexicalRewrite(body) {
+  if (!body || typeof body !== "object") {
+    return { body, toolNameMap: null };
+  }
+
+  const toolNameMap = new Map();
+  const rewriteText = (text) =>
+    typeof text === "string"
+      ? rewriteForwardedTextForLane(CLAUDE_OAUTH_FORWARDING_LANE, text)
+      : text;
+  const rewriteToolName = (toolName) => {
+    if (typeof toolName !== "string") return toolName;
+    const normalizedToolName = toolName.trim();
+    if (!normalizedToolName) return toolName;
+    const rewrittenToolName = rewriteForwardedToolNameForLane(
+      CLAUDE_OAUTH_FORWARDING_LANE,
+      normalizedToolName
+    );
+    if (rewrittenToolName !== normalizedToolName) {
+      toolNameMap.set(rewrittenToolName, normalizedToolName);
+    }
+    return rewrittenToolName;
+  };
+
+  if (Array.isArray(body.system)) {
+    body.system = body.system.map((block) =>
+      block && typeof block === "object" && typeof block.text === "string"
+        ? { ...block, text: rewriteText(block.text) }
+        : block
+    );
+  } else if (typeof body.system === "string") {
+    body.system = rewriteText(body.system);
+  }
+
+  if (Array.isArray(body.tools)) {
+    body.tools = body.tools.map((tool) => {
+      if (!tool || typeof tool !== "object") return tool;
+      const rewrittenTool = { ...tool };
+      if (typeof rewrittenTool.name === "string") {
+        rewrittenTool.name = rewriteToolName(rewrittenTool.name);
+      }
+      if (typeof rewrittenTool.description === "string") {
+        rewrittenTool.description = rewriteText(rewrittenTool.description);
+      }
+      return rewrittenTool;
+    });
+  }
+
+  if (body.tool_choice && typeof body.tool_choice === "object") {
+    if (body.tool_choice.type === "tool" && typeof body.tool_choice.name === "string") {
+      body.tool_choice = {
+        ...body.tool_choice,
+        name: rewriteToolName(body.tool_choice.name),
+      };
+    }
+  }
+
+  if (Array.isArray(body.messages)) {
+    body.messages = body.messages.map((message) => {
+      if (!message || typeof message !== "object") return message;
+      if (typeof message.content === "string") {
+        return {
+          ...message,
+          content: rewriteText(message.content),
+        };
+      }
+      if (!Array.isArray(message.content)) return message;
+      return {
+        ...message,
+        content: message.content.map((block) => {
+          if (!block || typeof block !== "object") return block;
+          if (block.type === "text" && typeof block.text === "string") {
+            return { ...block, text: rewriteText(block.text) };
+          }
+          if (block.type === "thinking" && typeof block.thinking === "string") {
+            return { ...block, thinking: rewriteText(block.thinking) };
+          }
+          if (block.type === "tool_use" && typeof block.name === "string") {
+            return { ...block, name: rewriteToolName(block.name) };
+          }
+          if (block.type === "tool_result" && Array.isArray(block.content)) {
+            return {
+              ...block,
+              content: block.content.map((nestedBlock) =>
+                nestedBlock?.type === "text" && typeof nestedBlock.text === "string"
+                  ? { ...nestedBlock, text: rewriteText(nestedBlock.text) }
+                  : nestedBlock
+              ),
+            };
+          }
+          if (block.type === "tool_result" && typeof block.content === "string") {
+            return {
+              ...block,
+              content: rewriteText(block.content),
+            };
+          }
+          return block;
+        }),
+      };
+    });
+  }
+
+  return { body, toolNameMap: toolNameMap.size > 0 ? toolNameMap : null };
 }
