@@ -10,6 +10,7 @@ import SecurityTab from "./components/SecurityTab";
 import RoutingTab from "./components/RoutingTab";
 import ComboDefaultsTab from "./components/ComboDefaultsTab";
 import ProxyTab from "./components/ProxyTab";
+import ForwardingKeywordsTab from "./components/ForwardingKeywordsTab";
 import AppearanceTab from "./components/AppearanceTab";
 import ThinkingBudgetTab from "./components/ThinkingBudgetTab";
 import CodexServiceTierTab from "./components/CodexServiceTierTab";
@@ -116,6 +117,7 @@ export default function SettingsPage() {
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">
               <ProxyTab />
+              <ForwardingKeywordsTab />
               <CliproxyapiSettingsTab />
             </div>
           )}
