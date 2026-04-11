@@ -39,9 +39,9 @@ export const THINKING_LEVEL_MAP = {
 
 // Default config (passthrough = backward compatible)
 export const DEFAULT_THINKING_CONFIG = {
-  mode: ThinkingMode.PASSTHROUGH,
+  mode: ThinkingMode.ADAPTIVE,
   customBudget: 10240,
-  effortLevel: "medium",
+  effortLevel: "max",
 };
 
 // In-memory config (loaded from DB on startup, or default)
@@ -59,6 +59,15 @@ export function setThinkingBudgetConfig(config) {
  */
 export function getThinkingBudgetConfig() {
   return { ..._config };
+}
+
+export function applyThinkingBudgetSettings(settings) {
+  if (settings && typeof settings === "object" && settings.thinkingBudget) {
+    setThinkingBudgetConfig(settings.thinkingBudget);
+    return;
+  }
+
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 }
 
 /**
@@ -165,6 +174,10 @@ export function applyThinkingBudget(body, config = null) {
   // Pre-processing: auto-inject thinking config for -thinking suffix models
   processed = ensureThinkingConfig(processed);
 
+  if (isClaudeModel(modelStr) && cfg.mode === ThinkingMode.ADAPTIVE) {
+    return setAdaptiveClaudeThinking(processed, cfg);
+  }
+
   switch (cfg.mode) {
     case ThinkingMode.AUTO:
       return stripThinkingConfig(processed);
@@ -181,6 +194,50 @@ export function applyThinkingBudget(body, config = null) {
     default:
       return processed;
   }
+}
+
+function isClaudeModel(model) {
+  return typeof model === "string" && model.toLowerCase().includes("claude");
+}
+
+function resolveAnthropicEffort(body, cfg) {
+  const rawEffort =
+    body?.output_config?.effort ||
+    body?.reasoning?.effort ||
+    body?.reasoning_effort ||
+    cfg.effortLevel;
+  const normalized = String(rawEffort || "").toLowerCase();
+
+  if (
+    normalized === "low" ||
+    normalized === "medium" ||
+    normalized === "high" ||
+    normalized === "max"
+  ) {
+    return normalized;
+  }
+  if (normalized === "none" || normalized === "disabled") {
+    return "low";
+  }
+  return cfg.effortLevel || "max";
+}
+
+function setAdaptiveClaudeThinking(body, cfg) {
+  const result = { ...body };
+  const effort = resolveAnthropicEffort(result, cfg);
+
+  result.thinking = { type: "adaptive" };
+  result.output_config = {
+    ...(result.output_config && typeof result.output_config === "object"
+      ? result.output_config
+      : {}),
+    effort,
+  };
+
+  delete result.thinkingLevel;
+  delete result.thinking_level;
+
+  return result;
 }
 
 /**
