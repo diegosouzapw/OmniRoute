@@ -74,6 +74,7 @@ async function invokeResponsesCore({
   model = "gpt-4o-mini",
   credentials,
   responseFactory,
+  signal,
 } = {}) {
   const calls = [];
 
@@ -101,6 +102,7 @@ async function invokeResponsesCore({
       onRequestSuccess: null,
       onDisconnect: null,
       connectionId: null,
+      signal,
     });
 
     return { result, calls, call: calls.at(-1) };
@@ -277,6 +279,53 @@ test("handleResponsesCore injects SSE keepalive comments for Responses streams",
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
     assert.equal(heartbeatInterval.cleared, true);
+  } finally {
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+});
+
+test("handleResponsesCore clears heartbeat timers immediately when the request signal aborts", async () => {
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  const intervals = [];
+  let nextId = 0;
+
+  globalThis.setInterval = (callback, delay = 0, ...args) => {
+    const interval = {
+      id: ++nextId,
+      callback,
+      delay,
+      args,
+      cleared: false,
+    };
+    intervals.push(interval);
+    return interval;
+  };
+
+  globalThis.clearInterval = (interval) => {
+    if (interval && typeof interval === "object") {
+      interval.cleared = true;
+    }
+  };
+
+  try {
+    const controller = new AbortController();
+    const { result } = await invokeResponsesCore({
+      body: {
+        model: "gpt-4o-mini",
+        input: "hello",
+      },
+      signal: controller.signal,
+    });
+
+    assert.equal(result.success, true);
+    const heartbeatInterval = intervals.find((interval) => interval.delay === 15000);
+    assert.ok(heartbeatInterval, "expected a 15s heartbeat interval");
+
+    controller.abort();
+    assert.equal(heartbeatInterval.cleared, true);
+    await result.response.body?.cancel();
   } finally {
     globalThis.setInterval = originalSetInterval;
     globalThis.clearInterval = originalClearInterval;

@@ -158,6 +158,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
+  let skipPassthroughEvent = false;
 
   // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
@@ -240,9 +241,17 @@ export function createSSEStream(options: StreamOptions = {}) {
             let injectedUsage = false;
             let clientPayload: unknown = null;
 
-            // Drop bare keepalive events — strict OpenAI-compatible SDKs try to
-            // JSON.parse them and crash on the empty payload.
+            if (skipPassthroughEvent) {
+              if (!trimmed) {
+                skipPassthroughEvent = false;
+              }
+              continue;
+            }
+
+            // Drop whole keepalive event blocks — strict OpenAI-compatible SDKs
+            // try to JSON.parse empty keepalive payloads and crash.
             if (/^event:\s*keepalive\b/i.test(trimmed)) {
+              skipPassthroughEvent = true;
               continue;
             }
 
@@ -678,12 +687,15 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (remaining) buffer += remaining;
 
           if (mode === STREAM_MODE.PASSTHROUGH) {
-            if (buffer) {
+            const bufferedLine = buffer.trim();
+            if (skipPassthroughEvent || /^event:\s*keepalive\b/i.test(bufferedLine)) {
+              skipPassthroughEvent = false;
+            } else if (buffer) {
               let output = buffer;
               if (buffer.startsWith("data:") && !buffer.startsWith("data: ")) {
                 output = "data: " + buffer.slice(5);
               }
-              const bufferedPayload = parseSSELine(buffer.trim());
+              const bufferedPayload = parseSSELine(bufferedLine);
               if (bufferedPayload) {
                 providerPayloadCollector.push(bufferedPayload);
                 clientPayloadCollector.push(bufferedPayload);

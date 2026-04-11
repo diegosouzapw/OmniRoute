@@ -705,10 +705,10 @@ test("createStructuredSSECollector drops excess events and compactStructuredStre
   });
 });
 
-test("createSSEStream passthrough drops bare keepalive events without losing Responses deltas", async () => {
+test("createSSEStream passthrough drops keepalive event blocks without losing Responses deltas", async () => {
   const text = await readTransformed(
     [
-      "event: keepalive\n\n",
+      "event: keepalive\ndata:\n\n",
       `data: ${JSON.stringify({
         type: "response.output_text.delta",
         delta: "Hello keepalive-safe",
@@ -735,6 +735,7 @@ test("createSSEStream passthrough drops bare keepalive events without losing Res
   );
 
   assert.equal(text.includes("event: keepalive"), false);
+  assert.equal(text.includes("data:\n\n"), false);
   assert.match(text, /response\.output_text\.delta/);
   assert.match(text, /Hello keepalive-safe/);
   assert.match(text, /data: \[DONE\]/);

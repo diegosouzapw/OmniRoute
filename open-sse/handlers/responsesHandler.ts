@@ -20,6 +20,7 @@ import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
  * @param {function} options.onRequestSuccess - Callback when request succeeds
  * @param {function} options.onDisconnect - Callback when client disconnects
  * @param {string} options.connectionId - Connection ID for usage tracking
+ * @param {AbortSignal} [options.signal] - Abort signal for request/disconnect cleanup
  * @returns {Promise<{success: boolean, response?: Response, status?: number, error?: string}>}
  */
 export async function handleResponsesCore({
@@ -31,6 +32,7 @@ export async function handleResponsesCore({
   onRequestSuccess,
   onDisconnect,
   connectionId,
+  signal,
 }) {
   // Convert Responses API format to Chat Completions format
   const convertedBody = convertResponsesApiFormat(body);
@@ -69,7 +71,7 @@ export async function handleResponsesCore({
   const transformStream = createResponsesApiTransformStream(null);
   const transformedBody = response.body
     .pipeThrough(transformStream)
-    .pipeThrough(createSseHeartbeatTransform());
+    .pipeThrough(createSseHeartbeatTransform({ signal }));
 
   return {
     success: true,
