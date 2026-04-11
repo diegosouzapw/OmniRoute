@@ -222,24 +222,50 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig = nu
  */
 export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig = null) {
   try {
-    // Standard OAuth2 token refresh uses form-urlencoded (not JSON)
-    const params = new URLSearchParams({
+    const payload = {
       grant_type: "refresh_token",
       refresh_token: refreshToken,
       client_id: PROVIDERS.claude.clientId,
-    });
+    };
 
-    const response = await runWithProxyContext(proxyConfig, () =>
-      fetch(OAUTH_ENDPOINTS.anthropic.token, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-          "anthropic-beta": "oauth-2025-04-20",
-        },
-        body: params.toString(),
-      })
-    );
+    const makeRequest = (contentType) =>
+      runWithProxyContext(proxyConfig, () =>
+        fetch(OAUTH_ENDPOINTS.anthropic.token, {
+          method: "POST",
+          headers: {
+            "Content-Type": contentType,
+            Accept: "application/json",
+            "User-Agent": "anthropic",
+            "anthropic-beta": "oauth-2025-04-20",
+          },
+          body:
+            contentType === "application/json"
+              ? JSON.stringify(payload)
+              : new URLSearchParams(payload).toString(),
+        })
+      );
+
+    let response = await makeRequest("application/json");
+
+    if (!response.ok) {
+      const initialErrorText = await response.text();
+      const shouldRetryAsForm =
+        response.status === 400 && /invalid request format/i.test(initialErrorText || "");
+
+      if (!shouldRetryAsForm) {
+        log?.error?.("TOKEN_REFRESH", "Failed to refresh Claude OAuth token", {
+          status: response.status,
+          error: initialErrorText,
+        });
+        return null;
+      }
+
+      log?.warn?.(
+        "TOKEN_REFRESH",
+        "Claude OAuth refresh rejected JSON payload, retrying as form-encoded"
+      );
+      response = await makeRequest("application/x-www-form-urlencoded");
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

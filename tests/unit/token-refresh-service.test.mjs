@@ -279,7 +279,7 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
-test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract", async () => {
+test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract as JSON first", async () => {
   const log = createLog();
   const calls = [];
 
@@ -303,9 +303,53 @@ test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract", async
   );
 
   assert.equal(calls[0].url, OAUTH_ENDPOINTS.anthropic.token);
+  assert.equal(calls[0].options.headers["Content-Type"], "application/json");
+  assert.equal(calls[0].options.headers["User-Agent"], "anthropic");
   assert.equal(calls[0].options.headers["anthropic-beta"], "oauth-2025-04-20");
-  assert.match(calls[0].options.body, /grant_type=refresh_token/);
-  assert.match(calls[0].options.body, /client_id=/);
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    grant_type: "refresh_token",
+    refresh_token: "claude-refresh",
+    client_id: PROVIDERS.claude.clientId,
+  });
+});
+
+test("refreshClaudeOAuthToken falls back to form-encoded when Anthropic rejects JSON format", async () => {
+  const log = createLog();
+  const calls = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      if (calls.length === 1) {
+        return textResponse(
+          JSON.stringify({
+            type: "error",
+            error: { type: "invalid_request_error", message: "Invalid request format" },
+          }),
+          400
+        );
+      }
+
+      return jsonResponse({
+        access_token: "claude-access-form",
+        refresh_token: "claude-refresh-form",
+        expires_in: 900,
+      });
+    },
+    async () => {
+      const result = await refreshClaudeOAuthToken("claude-refresh", log);
+      assert.deepEqual(result, {
+        accessToken: "claude-access-form",
+        refreshToken: "claude-refresh-form",
+        expiresIn: 900,
+      });
+    }
+  );
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].options.headers["Content-Type"], "application/x-www-form-urlencoded");
+  assert.match(calls[1].options.body, /grant_type=refresh_token/);
+  assert.match(calls[1].options.body, /client_id=/);
 });
 
 test("refreshGoogleToken exchanges refresh tokens against the shared google endpoint", async () => {
