@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Card } from "@/shared/components";
 
 type ForwardingKeywordsResponse = {
@@ -13,6 +13,7 @@ function formatJson(value: unknown) {
 }
 
 export default function ForwardingKeywordsTab() {
+  const saveStatusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [config, setConfig] = useState<Record<string, unknown> | null>(null);
   const [defaults, setDefaults] = useState<Record<string, unknown> | null>(null);
   const [draft, setDraft] = useState("");
@@ -44,6 +45,12 @@ export default function ForwardingKeywordsTab() {
 
   useEffect(() => {
     load();
+
+    return () => {
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current);
+      }
+    };
   }, []);
 
   const save = async () => {
@@ -74,7 +81,13 @@ export default function ForwardingKeywordsTab() {
       setDefaults(data.defaults);
       setDraft(formatJson(data.config));
       setStatus("saved");
-      setTimeout(() => setStatus(""), 2000);
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current);
+      }
+      saveStatusTimeoutRef.current = setTimeout(() => {
+        setStatus("");
+        saveStatusTimeoutRef.current = null;
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save forwarding keyword settings");
     } finally {
