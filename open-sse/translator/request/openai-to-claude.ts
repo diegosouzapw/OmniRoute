@@ -5,6 +5,7 @@ import {
   rewriteForwardedTextForLane,
   rewriteForwardedToolNameForLane,
 } from "../../config/forwardingKeywordRules.ts";
+import { capMaxOutputTokens, capThinkingBudget } from "@/shared/constants/modelSpecs";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -392,6 +393,16 @@ export function openaiToClaudeRequest(model, body, stream) {
       ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
       ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
     };
+    if (
+      body.thinking.type === "adaptive" &&
+      body.output_config &&
+      typeof body.output_config === "object" &&
+      typeof body.output_config.effort === "string"
+    ) {
+      result.output_config = {
+        effort: body.output_config.effort,
+      };
+    }
   } else if (body.reasoning_effort) {
     // Convert OpenAI reasoning_effort to Claude thinking format (#627)
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
@@ -408,17 +419,33 @@ export function openaiToClaudeRequest(model, body, stream) {
         type: "enabled",
         budget_tokens: budget,
       };
-      // Claude requires max_tokens > budget_tokens
-      if (result.max_tokens <= budget) {
-        result.max_tokens = budget + 8192;
-      }
     }
   }
 
-  // Ensure max_tokens > budget_tokens for all thinking configurations (#627)
+  result.max_tokens = capMaxOutputTokens(model, result.max_tokens);
+
+  // Ensure thinking budget stays below the model-capped max_tokens (#627)
   const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
-  if (budgetTokens > 0 && result.max_tokens <= budgetTokens) {
-    result.max_tokens = budgetTokens + 8192;
+  if (budgetTokens > 0) {
+    const maxBudgetForRequest = Math.max(0, result.max_tokens);
+    const cappedBudget = Math.min(capThinkingBudget(model, budgetTokens), maxBudgetForRequest);
+
+    if (cappedBudget > 0) {
+      result.thinking = {
+        ...result.thinking,
+        budget_tokens: cappedBudget,
+        ...(result.thinking?.max_tokens
+          ? { max_tokens: Math.min(Number(result.thinking.max_tokens), maxBudgetForRequest) }
+          : {}),
+      };
+    } else {
+      delete result.thinking;
+    }
+  }
+
+  if (result.thinking?.type === "adaptive") {
+    delete result.thinking.budget_tokens;
+    delete result.thinking.max_tokens;
   }
 
   // Attach toolNameMap to result for response translation

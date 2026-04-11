@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import {
+  applyThinkingBudgetSettings,
   setThinkingBudgetConfig,
   getThinkingBudgetConfig,
-  ThinkingMode,
 } from "@omniroute/open-sse/services/thinkingBudget.ts";
-import { updateThinkingBudgetSchema } from "@/shared/validation/schemas";
+import { updateThinkingBudgetSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 export async function GET() {
   try {
+    const settings = await getSettings();
+    applyThinkingBudgetSettings(settings);
     const config = getThinkingBudgetConfig();
     return NextResponse.json(config);
   } catch (error) {

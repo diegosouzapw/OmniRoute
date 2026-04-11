@@ -36,6 +36,7 @@ const EFFORTS = [
   { value: "low", labelKey: "effortLow" },
   { value: "medium", labelKey: "effortMedium" },
   { value: "high", labelKey: "effortHigh" },
+  { value: "max", label: "Max (pass through)" },
 ];
 
 export default function ThinkingBudgetTab() {
@@ -166,8 +167,11 @@ export default function ThinkingBudgetTab() {
       {config.mode === "adaptive" && (
         <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
           <p className="text-sm font-medium mb-3">{t("baseEffortLevel")}</p>
-          <p className="text-xs text-text-muted mb-3">{t("adaptiveHint")}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <p className="text-xs text-text-muted mb-3">
+            Claude/Anthropic requests use adaptive thinking and forward the effort setting upstream.
+            Other providers continue to scale proxy-managed thinking budgets from this base level.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {EFFORTS.map((e) => (
               <button
                 key={e.value}
@@ -179,7 +183,7 @@ export default function ThinkingBudgetTab() {
                     : "border-border/50 text-text-muted hover:border-border"
                 }`}
               >
-                {t(e.labelKey)}
+                {e.label ?? t(e.labelKey)}
               </button>
             ))}
           </div>

@@ -30,6 +30,12 @@ export const updateForwardingKeywordRulesSchema = z.object({
   "claude-oauth-prefixed": forwardingKeywordLaneSchema,
 });
 
+export const updateThinkingBudgetSchema = z.object({
+  mode: z.enum(["auto", "passthrough", "custom", "adaptive"]),
+  customBudget: z.number().int().min(0).max(131072),
+  effortLevel: z.enum(["none", "low", "medium", "high", "max"]),
+});
+
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),

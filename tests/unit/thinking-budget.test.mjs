@@ -16,9 +16,10 @@ const {
 
 // ─── Config Management ──────────────────────────────────────────────────────
 
-test("default config is passthrough", () => {
+test("default config uses adaptive thinking with max effort", () => {
   const config = getThinkingBudgetConfig();
-  assert.equal(config.mode, ThinkingMode.PASSTHROUGH);
+  assert.equal(config.mode, ThinkingMode.ADAPTIVE);
+  assert.equal(config.effortLevel, "max");
 });
 
 test("setThinkingBudgetConfig updates config", () => {
@@ -120,19 +121,59 @@ test("CUSTOM: budget 0 disables Claude thinking", () => {
 
 // ─── ADAPTIVE Mode ──────────────────────────────────────────────────────────
 
-test("ADAPTIVE: simple request gets base budget", () => {
+test("ADAPTIVE: Claude requests use adaptive thinking and pass through effort", () => {
   setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "medium" });
   const body = {
     model: "claude-sonnet-4-20250514",
     messages: [{ role: "user", content: "hello" }],
-    thinking: { type: "enabled", budget_tokens: 8192 },
+    reasoning_effort: "low",
   };
   const result = applyThinkingBudget(body);
-  assert.equal(result.thinking.budget_tokens, EFFORT_BUDGETS.medium);
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+  assert.deepEqual(result.output_config, { effort: "low" });
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 
-test("ADAPTIVE: complex request (many messages + tools) gets higher budget", () => {
+test("ADAPTIVE: Claude requests use configured effort when client does not send one", () => {
+  setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "max" });
+  const body = {
+    model: "claude-opus-4-6",
+    messages: [{ role: "user", content: "hello" }],
+  };
+  const result = applyThinkingBudget(body);
+  assert.equal(result.thinking, undefined);
+  assert.equal(result.output_config, undefined);
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
+
+test("ADAPTIVE: Claude requests preserve explicit thinking config", () => {
+  setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "max" });
+  const body = {
+    model: "claude-opus-4-6",
+    messages: [{ role: "user", content: "hello" }],
+    reasoning_effort: "max",
+    thinking: { type: "enabled", budget_tokens: 4096 },
+  };
+  const result = applyThinkingBudget(body);
+  assert.deepEqual(result.thinking, { type: "enabled", budget_tokens: 4096 });
+  assert.equal(result.output_config, undefined);
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
+
+test("ADAPTIVE: Claude requests preserve xhigh effort values", () => {
+  setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "max" });
+  const body = {
+    model: "claude-opus-4-6",
+    messages: [{ role: "user", content: "hello" }],
+    reasoning_effort: "xhigh",
+  };
+  const result = applyThinkingBudget(body);
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+  assert.deepEqual(result.output_config, { effort: "xhigh" });
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
+
+test("ADAPTIVE: non-Claude requests still use adaptive proxy budgets", () => {
   setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "medium" });
   const messages = Array.from({ length: 15 }, (_, i) => ({
     role: i % 2 === 0 ? "user" : "assistant",
@@ -140,14 +181,13 @@ test("ADAPTIVE: complex request (many messages + tools) gets higher budget", () 
   }));
   const tools = Array.from({ length: 5 }, (_, i) => ({ name: `tool${i}` }));
   const body = {
-    model: "claude-sonnet-4-20250514",
+    model: "o3-mini",
     messages,
     tools,
-    thinking: { type: "enabled", budget_tokens: 1000 },
+    reasoning_effort: "low",
   };
   const result = applyThinkingBudget(body);
-  // multiplier = 1.0 + 0.5 (msgs>10) + 0.5 (tools>3) + 0.3 (lastMsg>2000) = 2.3
-  assert.ok(result.thinking.budget_tokens > EFFORT_BUDGETS.medium);
+  assert.ok(result.reasoning_effort === "high" || result.reasoning_effort === "max");
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 
@@ -233,7 +273,7 @@ test("ensureThinkingConfig: auto-injects for -thinking suffix model", () => {
   };
   const result = ensureThinkingConfig(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, EFFORT_BUDGETS.medium);
+  assert.equal(result.thinking.budget_tokens, 10000);
 });
 
 test("ensureThinkingConfig: does NOT override existing thinking config", () => {
@@ -282,6 +322,6 @@ test("applyThinkingBudget: -thinking model without config + PASSTHROUGH = auto-i
   };
   const result = applyThinkingBudget(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, EFFORT_BUDGETS.medium);
+  assert.equal(result.thinking.budget_tokens, 10000);
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });

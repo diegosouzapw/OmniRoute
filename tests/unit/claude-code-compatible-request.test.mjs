@@ -35,7 +35,7 @@ test("Claude Code compatible URL helpers cover empty values, version trimming an
 test("Claude Code compatible effort and max token helpers cover priority fallbacks", () => {
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning_effort: "medium" }), "medium");
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning: { effort: "none" } }), "low");
-  assert.equal(resolveClaudeCodeCompatibleEffort({ output_config: { effort: "xhigh" } }), "high");
+  assert.equal(resolveClaudeCodeCompatibleEffort({ output_config: { effort: "xhigh" } }), "xhigh");
   assert.equal(
     resolveClaudeCodeCompatibleEffort({ output_config: { effort: "unexpected" } }),
     "high"
