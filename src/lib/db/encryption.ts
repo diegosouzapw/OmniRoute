@@ -10,6 +10,15 @@
 
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
 
+// Warn once at startup if encryption is not configured
+if (!process.env.STORAGE_ENCRYPTION_KEY) {
+  console.warn(
+    "[Security] STORAGE_ENCRYPTION_KEY is not set. Provider credentials and tokens " +
+      "will be stored in plaintext. Set this variable to enable field-level encryption. " +
+      "Generate with: openssl rand -hex 32",
+  );
+}
+
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;

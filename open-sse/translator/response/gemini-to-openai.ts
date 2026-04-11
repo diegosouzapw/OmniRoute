@@ -1,6 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
+import { randomUUID } from "crypto";
 
 // Convert Gemini response chunk to OpenAI format
 export function geminiToOpenAIResponse(chunk, state) {
@@ -59,6 +60,7 @@ export function geminiToOpenAIResponse(chunk, state) {
     state.messageId = response.responseId || `msg_${Date.now()}`;
     state.model = response.modelVersion || "gemini";
     state.functionIndex = 0;
+    state.toolCalls = state.toolCalls || new Map();
     results.push({
       id: `chatcmpl-${state.messageId}`,
       object: "chat.completion.chunk",
@@ -110,7 +112,7 @@ export function geminiToOpenAIResponse(chunk, state) {
           const toolCallIndex = state.functionIndex++;
 
           const toolCall = {
-            id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+            id: randomUUID(),
             index: toolCallIndex,
             type: "function",
             function: {
@@ -167,7 +169,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         const toolCallIndex = state.functionIndex++;
 
         const toolCall = {
-          id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+          id: randomUUID(),
           index: toolCallIndex,
           type: "function",
           function: {

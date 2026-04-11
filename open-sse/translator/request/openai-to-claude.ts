@@ -455,7 +455,8 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           }
         }
       }
-    } else if (msg.content) {
+    } else if (msg.content !== null && msg.content !== undefined) {
+      // OpenAI tool-only messages have content: null — skip content block to avoid Claude 400
       const text = typeof msg.content === "string" ? msg.content : extractTextContent(msg.content);
       if (text) {
         blocks.push({ type: "text", text });

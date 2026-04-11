@@ -58,10 +58,11 @@ const COMPRESS_FLAG = {
   GZIP_BOTH: 0x03,
 };
 
+// CURSOR_STREAM_DEBUG: set env var to "1" to enable verbose frame-level logging
 const CURSOR_STREAM_DEBUG = process.env.CURSOR_STREAM_DEBUG === "1";
-const debugLog = (...args: unknown[]) => {
-  if (CURSOR_STREAM_DEBUG) console.log(...args);
-};
+const debugLog = CURSOR_STREAM_DEBUG
+  ? (...args: unknown[]) => console.debug("[CURSOR_FRAME]", String(args[0]), ...args.slice(1))
+  : () => {};
 
 function decompressPayload(payload, flags) {
   // Check if payload is JSON error (starts with {"error")
@@ -242,6 +243,9 @@ export class CursorExecutor extends BaseExecutor {
 
     if (!machineId) {
       throw new Error("Machine ID is required for Cursor API");
+    }
+    if (!accessToken) {
+      throw new Error("Cursor requires an access token — complete OAuth first");
     }
 
     const cleanToken = accessToken.includes("::") ? accessToken.split("::")[1] : accessToken;

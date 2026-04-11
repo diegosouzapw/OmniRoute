@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       source: foundFile,
     });
   } catch (error) {
-    console.log("Kiro auto-import error:", error);
-    return NextResponse.json({ found: false, error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ found: false, error: "Internal server error" }, { status: 500 });
   }
 }

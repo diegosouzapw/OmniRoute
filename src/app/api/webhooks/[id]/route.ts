@@ -29,7 +29,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     }
     return NextResponse.json({ webhook });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -48,7 +49,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     return NextResponse.json({ webhook });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -61,6 +63,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     }
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

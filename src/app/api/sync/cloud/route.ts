@@ -51,7 +51,8 @@ export async function GET() {
       return NextResponse.json({ enabled: true, connected: false });
     }
   } catch (error: any) {
-    return NextResponse.json({ enabled: false, error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ enabled: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -111,8 +112,8 @@ export async function POST(request: any) {
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
   } catch (error: any) {
-    console.log("Cloud sync error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
