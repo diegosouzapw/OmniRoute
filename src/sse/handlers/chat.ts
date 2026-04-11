@@ -49,6 +49,7 @@ import {
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
 import { applyForwardingKeywordSettings } from "@omniroute/open-sse/config/forwardingKeywordRules.ts";
+import { applyThinkingBudgetSettings } from "@omniroute/open-sse/services/thinkingBudget.ts";
 import {
   generateSessionId as generateStableSessionId,
   touchSession,
@@ -451,6 +452,7 @@ async function handleSingleModelChat(
   try {
     const settings = await getSettings();
     applyForwardingKeywordSettings(settings);
+    applyThinkingBudgetSettings(settings);
   } catch (error) {
     log.warn("forwarding-keyword-settings", "Failed to load forwarding keyword settings", {
       error,
