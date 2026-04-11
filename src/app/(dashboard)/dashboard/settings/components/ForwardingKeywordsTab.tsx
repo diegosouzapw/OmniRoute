@@ -33,6 +33,7 @@ export default function ForwardingKeywordsTab() {
     statusAfterLoad: ForwardingKeywordsStatus = "loaded",
     statusWhileLoading: ForwardingKeywordsStatus = "loading"
   ) => {
+    setLoading(true);
     setStatus(statusWhileLoading);
     setError("");
     try {

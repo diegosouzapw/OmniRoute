@@ -330,7 +330,10 @@ export function applyClaudeOAuthLexicalRewrite(body) {
           if (block.type === "text" && typeof block.text === "string") {
             return { ...block, text: rewriteText(block.text) };
           }
-          if (block.type === "thinking" && typeof block.thinking === "string") {
+          if (
+            (block.type === "thinking" || block.type === "redacted_thinking") &&
+            typeof block.thinking === "string"
+          ) {
             return { ...block, thinking: rewriteText(block.thinking) };
           }
           if (block.type === "tool_use" && typeof block.name === "string") {

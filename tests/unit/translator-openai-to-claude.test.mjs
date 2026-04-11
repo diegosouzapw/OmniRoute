@@ -651,6 +651,7 @@ test("Claude-native passthrough rewrites lexical triggers before Anthropic forwa
         role: "assistant",
         content: [
           { type: "thinking", thinking: "background_output first" },
+          { type: "redacted_thinking", thinking: "background_cancel hidden" },
           { type: "tool_use", id: "tool_1", name: "background_output", input: {} },
         ],
       },
@@ -664,7 +665,8 @@ test("Claude-native passthrough rewrites lexical triggers before Anthropic forwa
   assert.equal(body.tools[0].description, "Cancel background_result requests");
   assert.deepEqual(body.tool_choice, { type: "tool", name: "background_stop" });
   assert.equal(body.messages[0].content[0].thinking, "background_result first");
-  assert.equal(body.messages[0].content[1].name, "background_result");
+  assert.equal(body.messages[0].content[1].thinking, "background_stop hidden");
+  assert.equal(body.messages[0].content[2].name, "background_result");
   assert.equal(toolNameMap.get("background_result"), "background_output");
   assert.equal(toolNameMap.get("background_stop"), "background_cancel");
 });
