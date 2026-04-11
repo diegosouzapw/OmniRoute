@@ -147,7 +147,7 @@
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
-    "eslint-config-next": "16.2.2",
+    "eslint-config-next": "16.2.3",
     "husky": "^9.1.7",
     "jsdom": "^29.0.1",
     "lint-staged": "^16.2.7",
