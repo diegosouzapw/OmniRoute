@@ -274,8 +274,8 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
     false
   );
 
-  assert.deepEqual(effortResult.thinking, { type: "enabled", budget_tokens: 1024 });
-  assert.equal(effortResult.max_tokens, 9216);
+  assert.deepEqual(effortResult.thinking, { type: "enabled", budget_tokens: 10 });
+  assert.equal(effortResult.max_tokens, 10);
 
   const explicitThinkingResult = openaiToClaudeRequest(
     "claude-4-sonnet",
@@ -289,10 +289,26 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
 
   assert.deepEqual(explicitThinkingResult.thinking, {
     type: "enabled",
-    budget_tokens: 2000,
-    max_tokens: 3000,
+    budget_tokens: 1000,
+    max_tokens: 1000,
   });
-  assert.equal(explicitThinkingResult.max_tokens, 10192);
+  assert.equal(explicitThinkingResult.max_tokens, 1000);
+
+  const cappedOpusResult = openaiToClaudeRequest(
+    "claude-opus-4-6",
+    {
+      messages: [{ role: "user", content: "Think harder" }],
+      max_tokens: 128000,
+      reasoning_effort: "max",
+    },
+    true
+  );
+
+  assert.equal(cappedOpusResult.max_tokens, 128000);
+  assert.deepEqual(cappedOpusResult.thinking, {
+    type: "enabled",
+    budget_tokens: 128000,
+  });
 });
 
 test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-only prompting", () => {

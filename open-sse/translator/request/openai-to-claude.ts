@@ -5,6 +5,7 @@ import {
   rewriteForwardedTextForLane,
   rewriteForwardedToolNameForLane,
 } from "../../config/forwardingKeywordRules.ts";
+import { capMaxOutputTokens, capThinkingBudget } from "@/shared/constants/modelSpecs";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -408,17 +409,28 @@ export function openaiToClaudeRequest(model, body, stream) {
         type: "enabled",
         budget_tokens: budget,
       };
-      // Claude requires max_tokens > budget_tokens
-      if (result.max_tokens <= budget) {
-        result.max_tokens = budget + 8192;
-      }
     }
   }
 
-  // Ensure max_tokens > budget_tokens for all thinking configurations (#627)
+  result.max_tokens = capMaxOutputTokens(model, result.max_tokens);
+
+  // Ensure thinking budget stays below the model-capped max_tokens (#627)
   const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
-  if (budgetTokens > 0 && result.max_tokens <= budgetTokens) {
-    result.max_tokens = budgetTokens + 8192;
+  if (budgetTokens > 0) {
+    const maxBudgetForRequest = Math.max(0, result.max_tokens);
+    const cappedBudget = Math.min(capThinkingBudget(model, budgetTokens), maxBudgetForRequest);
+
+    if (cappedBudget > 0) {
+      result.thinking = {
+        ...result.thinking,
+        budget_tokens: cappedBudget,
+        ...(result.thinking?.max_tokens
+          ? { max_tokens: Math.min(Number(result.thinking.max_tokens), maxBudgetForRequest) }
+          : {}),
+      };
+    } else {
+      delete result.thinking;
+    }
   }
 
   // Attach toolNameMap to result for response translation

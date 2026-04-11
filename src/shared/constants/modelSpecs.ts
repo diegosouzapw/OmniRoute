@@ -66,6 +66,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  // ── Claude Opus 4.6 ─────────────────────────────────────────────
+  "claude-opus-4-6": {
+    maxOutputTokens: 128000,
+    contextWindow: 200000,
+    defaultThinkingBudget: 10000,
+    thinkingBudgetCap: 128000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
   // Defaults
   __default__: {
     maxOutputTokens: 8192,
