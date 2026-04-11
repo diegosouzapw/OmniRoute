@@ -609,7 +609,11 @@ function convertOpenAIToolChoice(choice, disableToolPrefix = false) {
       return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
     if (choice.type === "tool" && choice.name) {
-      return { ...choice, name: mapToolChoiceName(choice.name) };
+      const normalizedName = choice.name.trim();
+      if (!disableToolPrefix && normalizedName.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
+        return { ...choice, name: normalizedName };
+      }
+      return { ...choice, name: mapToolChoiceName(normalizedName) };
     }
     // Fallback: unknown object type — default to auto to avoid 400 errors
     return { type: "auto" };

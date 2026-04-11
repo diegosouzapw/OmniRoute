@@ -244,6 +244,20 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
     type: "tool",
     name: `${CLAUDE_OAUTH_TOOL_PREFIX}emit_json`,
   });
+
+  const claudeNativeToolChoiceResult = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Use the existing Claude-native tool choice" }],
+      tool_choice: { type: "tool", name: `${CLAUDE_OAUTH_TOOL_PREFIX}emit_json` },
+    },
+    false
+  );
+
+  assert.deepEqual(claudeNativeToolChoiceResult.tool_choice, {
+    type: "tool",
+    name: `${CLAUDE_OAUTH_TOOL_PREFIX}emit_json`,
+  });
   assert.match(jsonObjectResult.system[1].text, /Respond ONLY with a JSON object/i);
 });
 
