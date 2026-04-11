@@ -81,12 +81,3 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect "${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-
-      - name: Update Docker Hub description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: i1hwan/apexroute
-          short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
-          readme-filepath: ./README.md
