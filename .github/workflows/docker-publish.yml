@@ -22,7 +22,7 @@ jobs:
     name: Build and Push Docker (multi-arch)
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: diegosouzapw/omniroute
+      IMAGE_NAME: i1hwan/apexroute
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -65,13 +65,13 @@ jobs:
         with:
           context: .
           target: runner-base
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.IMAGE_NAME }}:latest
-            ghcr.io/diegosouzapw/omniroute:${{ steps.version.outputs.version }}
-            ghcr.io/diegosouzapw/omniroute:latest
+            ghcr.io/i1hwan/apexroute:${{ steps.version.outputs.version }}
+            ghcr.io/i1hwan/apexroute:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache: false
@@ -87,6 +87,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: diegosouzapw/omniroute
+          repository: i1hwan/apexroute
           short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
           readme-filepath: ./README.md
