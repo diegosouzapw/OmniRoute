@@ -48,6 +48,7 @@ import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
+import { setForwardingKeywordConfig } from "@omniroute/open-sse/config/forwardingKeywordRules.ts";
 import {
   generateSessionId as generateStableSessionId,
   touchSession,
@@ -447,6 +448,8 @@ async function handleSingleModelChat(
 
   const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+  const settings = await getSettings().catch(() => ({}));
+  setForwardingKeywordConfig((settings as any)?.forwardingKeywordRules);
 
   // 2. Pipeline gates (availability + circuit breaker)
   const gate = checkPipelineGates(provider, model, {
