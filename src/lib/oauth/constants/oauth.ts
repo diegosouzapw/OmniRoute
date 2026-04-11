@@ -13,7 +13,7 @@ export const CLAUDE_CONFIG = {
   authorizeUrl: "https://claude.ai/oauth/authorize",
   tokenUrl: "https://console.anthropic.com/v1/oauth/token",
   redirectUri:
-    process.env.CLAUDE_CODE_REDIRECT_URI || "https://console.anthropic.com/oauth/code/callback",
+    process.env.CLAUDE_CODE_REDIRECT_URI || "https://platform.claude.com/oauth/code/callback",
   scopes: [
     "org:create_api_key",
     "user:profile",

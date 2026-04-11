@@ -301,7 +301,7 @@ test("device and import-token providers expose the flow-specific fields expected
 });
 
 test("provider-specific config shapes remain valid for special cases", () => {
-  assert.equal(CLAUDE_CONFIG.redirectUri, "https://console.anthropic.com/oauth/code/callback");
+  assert.equal(CLAUDE_CONFIG.redirectUri, "https://platform.claude.com/oauth/code/callback");
   assert.ok(Array.isArray(CLAUDE_CONFIG.scopes) && CLAUDE_CONFIG.scopes.length > 0);
   assert.ok(Array.isArray(GEMINI_CONFIG.scopes) && GEMINI_CONFIG.scopes.length > 0);
   assert.ok(Array.isArray(ANTIGRAVITY_CONFIG.scopes) && ANTIGRAVITY_CONFIG.scopes.length > 0);
