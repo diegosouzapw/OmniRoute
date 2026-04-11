@@ -279,7 +279,7 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
-test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract as JSON first", async () => {
+test("refreshClaudeOAuthToken first matches Claude auth exchange token contract", async () => {
   const log = createLog();
   const calls = [];
 
@@ -304,8 +304,8 @@ test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract as JSON
 
   assert.equal(calls[0].url, OAUTH_ENDPOINTS.anthropic.token);
   assert.equal(calls[0].options.headers["Content-Type"], "application/json");
-  assert.equal(calls[0].options.headers["User-Agent"], "anthropic");
-  assert.equal(calls[0].options.headers["anthropic-beta"], "oauth-2025-04-20");
+  assert.equal(calls[0].options.headers["User-Agent"], undefined);
+  assert.equal(calls[0].options.headers["anthropic-beta"], undefined);
   assert.deepEqual(JSON.parse(calls[0].options.body), {
     grant_type: "refresh_token",
     refresh_token: "claude-refresh",
@@ -313,14 +313,14 @@ test("refreshClaudeOAuthToken posts the anthropic oauth refresh contract as JSON
   });
 });
 
-test("refreshClaudeOAuthToken falls back to form-encoded when Anthropic rejects JSON format", async () => {
+test("refreshClaudeOAuthToken retries with user-agent JSON then form when format is rejected", async () => {
   const log = createLog();
   const calls = [];
 
   await withMockedFetch(
     async (url, options = {}) => {
       calls.push({ url, options });
-      if (calls.length === 1) {
+      if (calls.length <= 2) {
         return textResponse(
           JSON.stringify({
             type: "error",
@@ -346,10 +346,12 @@ test("refreshClaudeOAuthToken falls back to form-encoded when Anthropic rejects 
     }
   );
 
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].options.headers["Content-Type"], "application/x-www-form-urlencoded");
-  assert.match(calls[1].options.body, /grant_type=refresh_token/);
-  assert.match(calls[1].options.body, /client_id=/);
+  assert.equal(calls.length, 3);
+  assert.equal(calls[1].options.headers["Content-Type"], "application/json");
+  assert.equal(calls[1].options.headers["User-Agent"], "anthropic");
+  assert.equal(calls[2].options.headers["Content-Type"], "application/x-www-form-urlencoded");
+  assert.match(calls[2].options.body, /grant_type=refresh_token/);
+  assert.match(calls[2].options.body, /client_id=/);
 });
 
 test("refreshGoogleToken exchanges refresh tokens against the shared google endpoint", async () => {
