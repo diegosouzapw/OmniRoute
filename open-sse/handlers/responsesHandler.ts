@@ -7,6 +7,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
+import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
 
 /**
  * Handle /v1/responses request
@@ -66,7 +67,9 @@ export async function handleResponsesCore({
 
   // Transform SSE stream to Responses API format (no logging in worker)
   const transformStream = createResponsesApiTransformStream(null);
-  const transformedBody = response.body.pipeThrough(transformStream);
+  const transformedBody = response.body
+    .pipeThrough(transformStream)
+    .pipeThrough(createSseHeartbeatTransform());
 
   return {
     success: true,

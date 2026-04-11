@@ -240,6 +240,12 @@ export function createSSEStream(options: StreamOptions = {}) {
             let injectedUsage = false;
             let clientPayload: unknown = null;
 
+            // Drop bare keepalive events — strict OpenAI-compatible SDKs try to
+            // JSON.parse them and crash on the empty payload.
+            if (/^event:\s*keepalive\b/i.test(trimmed)) {
+              continue;
+            }
+
             if (trimmed.startsWith("data:")) {
               const providerPayload = parseSSELine(trimmed);
               if (providerPayload) {

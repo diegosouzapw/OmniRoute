@@ -704,3 +704,38 @@ test("createStructuredSSECollector drops excess events and compactStructuredStre
     },
   });
 });
+
+test("createSSEStream passthrough drops bare keepalive events without losing Responses deltas", async () => {
+  const text = await readTransformed(
+    [
+      "event: keepalive\n\n",
+      `data: ${JSON.stringify({
+        type: "response.output_text.delta",
+        delta: "Hello keepalive-safe",
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_keepalive",
+          object: "response",
+          model: "gpt-4.1-mini",
+          status: "completed",
+          usage: { input_tokens: 2, output_tokens: 1, total_tokens: 3 },
+        },
+      })}\n\n`,
+      "data: [DONE]\n\n",
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: { input: "hello" },
+    }
+  );
+
+  assert.equal(text.includes("event: keepalive"), false);
+  assert.match(text, /response\.output_text\.delta/);
+  assert.match(text, /Hello keepalive-safe/);
+  assert.match(text, /data: \[DONE\]/);
+});

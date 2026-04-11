@@ -233,3 +233,52 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
       error.message.includes("web_search_preview tool type is not supported")
   );
 });
+
+test("handleResponsesCore injects SSE keepalive comments for Responses streams", async () => {
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+  const intervals = [];
+  let nextId = 0;
+
+  globalThis.setInterval = (callback, delay = 0, ...args) => {
+    const interval = {
+      id: ++nextId,
+      callback,
+      delay,
+      args,
+      cleared: false,
+    };
+    intervals.push(interval);
+    return interval;
+  };
+
+  globalThis.clearInterval = (interval) => {
+    if (interval && typeof interval === "object") {
+      interval.cleared = true;
+    }
+  };
+
+  try {
+    const { result } = await invokeResponsesCore({
+      body: {
+        model: "gpt-4o-mini",
+        input: "hello",
+      },
+    });
+
+    assert.equal(result.success, true);
+    const heartbeatInterval = intervals.find((interval) => interval.delay === 15000);
+    assert.ok(heartbeatInterval, "expected a 15s heartbeat interval");
+
+    await heartbeatInterval.callback(...heartbeatInterval.args);
+    const sse = await result.response.text();
+
+    assert.match(sse, /^: keepalive .*$/m);
+    assert.match(sse, /event: response\.created/);
+    assert.match(sse, /data: \[DONE\]/);
+    assert.equal(heartbeatInterval.cleared, true);
+  } finally {
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+});
