@@ -884,8 +884,10 @@ export const cacheStatsOutput = z.object({
     .object({
       totalRequests: z.number(),
       requestsWithCacheControl: z.number(),
+      totalInputTokens: z.number(),
       totalCachedTokens: z.number(),
       totalCacheCreationTokens: z.number(),
+      tokensSaved: z.number(),
       estimatedCostSaved: z.number(),
     })
     .nullable(),
@@ -893,6 +895,11 @@ export const cacheStatsOutput = z.object({
     activeKeys: z.number(),
     windowMs: z.number(),
   }),
+  config: z
+    .object({
+      semanticCacheEnabled: z.boolean(),
+    })
+    .optional(),
 });
 
 export const cacheStatsTool: McpToolDefinition<typeof cacheStatsInput, typeof cacheStatsOutput> = {

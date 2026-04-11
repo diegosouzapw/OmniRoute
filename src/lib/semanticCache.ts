@@ -336,15 +336,18 @@ export function cleanOldMetrics(retentionDays = 90): number {
 /**
  * Clear all cache entries.
  */
-export function clearCache() {
+export function clearCache(): number {
   getMemoryCache().clear();
+  let removed = 0;
   try {
     const db = getDbInstance();
-    db.prepare("DELETE FROM semantic_cache").run();
+    const result = db.prepare("DELETE FROM semantic_cache").run();
+    removed = result.changes || 0;
     db.prepare("UPDATE cache_metrics SET value = 0").run();
   } catch {
     // DB not available
   }
+  return removed;
 }
 
 export function getCacheStats() {

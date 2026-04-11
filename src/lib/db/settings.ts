@@ -582,19 +582,21 @@ export async function getCacheMetrics() {
         `
       SELECT
         provider,
-        COUNT(*) as requests,
-        SUM(tokens_input) as inputTokens,
+        COUNT(*) as totalRequests,
+        SUM(CASE WHEN tokens_cache_read > 0 OR tokens_cache_creation > 0 THEN 1 ELSE 0 END) as cachedRequests,
+        SUM(CASE WHEN tokens_cache_read > 0 OR tokens_cache_creation > 0 THEN tokens_input ELSE 0 END) as inputTokens,
         SUM(tokens_cache_read) as cachedTokens,
         SUM(tokens_cache_creation) as cacheCreationTokens
       FROM usage_history
-      WHERE (tokens_cache_read > 0 OR tokens_cache_creation > 0)
-        AND provider IS NOT NULL
+      WHERE provider IS NOT NULL
       GROUP BY provider
+      HAVING cachedRequests > 0
     `
       )
       .all() as Array<{
       provider: string;
-      requests: number;
+      totalRequests: number;
+      cachedRequests: number;
       inputTokens: number | null;
       cachedTokens: number | null;
       cacheCreationTokens: number | null;
@@ -638,6 +640,8 @@ export async function getCacheMetrics() {
       string,
       {
         requests: number;
+        totalRequests: number;
+        cachedRequests: number;
         inputTokens: number;
         cachedTokens: number;
         cacheCreationTokens: number;
@@ -645,7 +649,9 @@ export async function getCacheMetrics() {
     > = {};
     for (const row of byProviderRows) {
       byProvider[row.provider] = {
-        requests: row.requests,
+        requests: row.cachedRequests,
+        totalRequests: row.totalRequests,
+        cachedRequests: row.cachedRequests,
         inputTokens: row.inputTokens || 0,
         cachedTokens: row.cachedTokens || 0,
         cacheCreationTokens: row.cacheCreationTokens || 0,

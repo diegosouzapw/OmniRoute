@@ -123,6 +123,8 @@ describe("Cache Metrics Database", () => {
       // Check provider breakdown
       assert.ok(metrics.byProvider["test-provider"]);
       assert.ok(metrics.byProvider["test-provider"].requests >= 2);
+      assert.ok(metrics.byProvider["test-provider"].totalRequests >= 2);
+      assert.ok(metrics.byProvider["test-provider"].cachedRequests >= 2);
       assert.ok(metrics.byProvider["test-provider"].inputTokens >= 1500);
       assert.ok(metrics.byProvider["test-provider"].cachedTokens >= 600);
       assert.ok(metrics.byProvider["test-provider"].cacheCreationTokens >= 300);

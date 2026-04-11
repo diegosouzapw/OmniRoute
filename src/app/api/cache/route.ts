@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getCacheStats,
   clearCache,
-  cleanExpiredEntries,
   invalidateByModel,
   invalidateBySignature,
   invalidateStale,
 } from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 function errorMessage(error: unknown): string {
@@ -29,12 +29,16 @@ export async function GET(req: NextRequest) {
     const idempotencyStats = await getIdempotencyStats();
     const promptCacheMetrics = await getCacheMetrics();
     const trend = await getCacheTrend(trendHours);
+    const settings = await getCachedSettings().catch(() => ({}));
 
     return NextResponse.json({
       semanticCache: cacheStats,
       promptCache: promptCacheMetrics,
       trend,
       idempotency: idempotencyStats,
+      config: {
+        semanticCacheEnabled: settings.semanticCacheEnabled !== false,
+      },
     });
   } catch (error) {
     return NextResponse.json({ error: errorMessage(error) }, { status: 500 });
@@ -87,9 +91,8 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Full clear
-    clearCache();
-    const expiredRemoved = cleanExpiredEntries();
-    return NextResponse.json({ ok: true, expiredRemoved, scope: "all" });
+    const cleared = clearCache();
+    return NextResponse.json({ ok: true, cleared, scope: "all" });
   } catch (error) {
     return NextResponse.json({ error: errorMessage(error) }, { status: 500 });
   }

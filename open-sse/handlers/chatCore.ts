@@ -51,12 +51,13 @@ import {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getUpstreamProxyConfig,
+  getCachedSettings,
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
-import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import {
   shouldPreserveCacheControl,
   providerSupportsCaching,
+  type CacheControlMode,
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 
@@ -810,9 +811,16 @@ export async function handleChatCore({
   }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
+  const runtimeSettings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
+  const semanticCacheEnabled = runtimeSettings.semanticCacheEnabled !== false;
+  const cacheControlMode =
+    runtimeSettings.alwaysPreserveClientCache === "always" ||
+    runtimeSettings.alwaysPreserveClientCache === "never"
+      ? (runtimeSettings.alwaysPreserveClientCache as CacheControlMode)
+      : "auto";
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
-  if (isCacheable(body, clientRawRequest?.headers)) {
+  if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
     const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
     const cached = getCachedResponse(signature);
     if (cached) {
@@ -948,8 +956,6 @@ export async function handleChatCore({
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
-  // Fetch settings from DB to get user preference
-  const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
   const preserveCacheControl = shouldPreserveCacheControl({
     userAgent,
     isCombo,
@@ -2269,7 +2275,7 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (isCacheable(body, clientRawRequest?.headers)) {
+    if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
       const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);
