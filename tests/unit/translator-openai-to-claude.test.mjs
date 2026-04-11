@@ -311,6 +311,23 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
   });
 });
 
+test("OpenAI -> Claude passes adaptive thinking effort upstream when provided", () => {
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-6",
+    {
+      messages: [{ role: "user", content: "Think harder" }],
+      thinking: { type: "adaptive" },
+      output_config: { effort: "max" },
+      max_tokens: 128000,
+    },
+    true
+  );
+
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+  assert.deepEqual(result.output_config, { effort: "max" });
+  assert.equal(result.max_tokens, 128000);
+});
+
 test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-only prompting", () => {
   const baseBody = {
     messages: [

@@ -235,7 +235,7 @@ export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
   model?: string | null
-): "low" | "medium" | "high" {
+): "low" | "medium" | "high" | "max" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
     readNestedString(sourceBody, ["reasoning", "effort"]) ||
@@ -254,7 +254,7 @@ export function resolveClaudeCodeCompatibleEffort(
   if (normalizedEffort === "high") return "high";
   if (normalizedEffort === "none" || normalizedEffort === "disabled") return "low";
   if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
-    return "high";
+    return "max";
   }
   return "high";
 }

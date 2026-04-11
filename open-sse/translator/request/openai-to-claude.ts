@@ -393,6 +393,16 @@ export function openaiToClaudeRequest(model, body, stream) {
       ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
       ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
     };
+    if (
+      body.thinking.type === "adaptive" &&
+      body.output_config &&
+      typeof body.output_config === "object" &&
+      typeof body.output_config.effort === "string"
+    ) {
+      result.output_config = {
+        effort: body.output_config.effort,
+      };
+    }
   } else if (body.reasoning_effort) {
     // Convert OpenAI reasoning_effort to Claude thinking format (#627)
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
@@ -431,6 +441,11 @@ export function openaiToClaudeRequest(model, body, stream) {
     } else {
       delete result.thinking;
     }
+  }
+
+  if (result.thinking?.type === "adaptive") {
+    delete result.thinking.budget_tokens;
+    delete result.thinking.max_tokens;
   }
 
   // Attach toolNameMap to result for response translation
