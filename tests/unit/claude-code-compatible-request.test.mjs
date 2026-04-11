@@ -109,16 +109,29 @@ test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, 
 test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-control stripping", () => {
   const stripped = buildClaudeCodeCompatibleRequest({
     claudeBody: {
-      system: [{ type: "text", text: "sys", cache_control: { type: "ephemeral" } }],
+      system: [
+        {
+          type: "text",
+          text: "sys <directories>src/</directories>",
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [
         {
           role: "assistant",
-          content: [{ type: "text", text: "prefill", cache_control: { type: "ephemeral" } }],
+          content: [
+            { type: "text", text: "prefill", cache_control: { type: "ephemeral" } },
+            { type: "tool_use", id: "call_1", name: "background_output", input: {} },
+          ],
         },
         {
           role: "user",
           content: [
-            { type: "text", text: "ask", cache_control: { type: "ephemeral" } },
+            {
+              type: "text",
+              text: "ask background_cancel",
+              cache_control: { type: "ephemeral" },
+            },
             {
               type: "image",
               source: { type: "base64", media_type: "image/png", data: "abc" },
@@ -132,8 +145,14 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
         },
       ],
       tools: [
-        { name: "toolA", input_schema: { type: "object" }, cache_control: { type: "ephemeral" } },
+        {
+          name: "background_cancel",
+          description: "Cancel background_output work",
+          input_schema: { type: "object" },
+          cache_control: { type: "ephemeral" },
+        },
       ],
+      tool_choice: { type: "tool", name: "background_cancel" },
       thinking: { type: "enabled", budget_tokens: 12 },
     },
     model: "claude-sonnet-4-6",
@@ -171,8 +190,16 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
   assert.equal(JSON.parse(stripped.metadata.user_id).session_id, "explicit-session");
   assert.equal(stripped.messages.at(-1).role, "user");
   assert.equal(stripped.messages[0].content[0].cache_control, undefined);
+  assert.equal(stripped.messages[0].content[1].name, "background_result");
+  assert.equal(stripped.messages[1].content[0].text, "ask background_stop");
   assert.equal(stripped.system.at(-1).cache_control, undefined);
+  assert.equal(stripped.system.at(-1).text, "sys directories:\nsrc/");
   assert.equal(stripped.tools[0].cache_control, undefined);
+  assert.equal(stripped.tools[0].name, "background_stop");
+  assert.equal(stripped.tools[0].description, "Cancel background_result work");
+  assert.deepEqual(stripped.tool_choice, { type: "tool", name: "background_stop" });
+  assert.equal(stripped._toolNameMap.get("background_result"), "background_output");
+  assert.equal(stripped._toolNameMap.get("background_stop"), "background_cancel");
   assert.equal(preserved.messages[0].content[0].cache_control.type, "ephemeral");
   assert.equal(preserved.system.at(-1).cache_control.type, "ephemeral");
   assert.equal(preserved.tools[0].cache_control.type, "ephemeral");

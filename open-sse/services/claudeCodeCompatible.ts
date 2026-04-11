@@ -1,6 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
+import {
+  applyClaudeOAuthLexicalRewrite,
+  prepareClaudeRequest,
+} from "../translator/helpers/claudeHelper.ts";
 
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -180,11 +183,13 @@ export function buildClaudeCodeCompatibleRequest({
   const toolChoice =
     tools.length > 0
       ? buildClaudeCodeCompatibleToolChoice(
-          normalizedBody?.["tool_choice"] ?? sourceBody?.["tool_choice"]
+          preparedClaudeBody?.tool_choice ??
+            normalizedBody?.["tool_choice"] ??
+            sourceBody?.["tool_choice"]
         )
       : undefined;
 
-  return {
+  const requestBody = {
     model,
     messages,
     system,
@@ -217,6 +222,13 @@ export function buildClaudeCodeCompatibleRequest({
     ...(toolChoice ? { tool_choice: toolChoice } : {}),
     ...(stream ? { stream: true } : {}),
   };
+
+  const lexicalRewrite = applyClaudeOAuthLexicalRewrite(requestBody);
+  if (lexicalRewrite.toolNameMap) {
+    lexicalRewrite.body._toolNameMap = lexicalRewrite.toolNameMap;
+  }
+
+  return lexicalRewrite.body;
 }
 
 export function resolveClaudeCodeCompatibleEffort(
@@ -539,6 +551,7 @@ function prepareClaudeCodeCompatibleBody(
       system: normalizeClaudeSystemInput(claudeBody.system),
       messages: normalizeClaudeMessageInput(claudeBody.messages),
       tools: normalizeClaudeToolInput(claudeBody.tools),
+      tool_choice: readRecord(claudeBody.tool_choice) || claudeBody.tool_choice,
       thinking: readRecord(claudeBody.thinking) || claudeBody.thinking,
     },
     CLAUDE_CODE_COMPATIBLE_PREFIX,
