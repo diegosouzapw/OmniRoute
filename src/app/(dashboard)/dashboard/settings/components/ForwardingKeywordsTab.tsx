@@ -8,6 +8,8 @@ type ForwardingKeywordsResponse = {
   defaults: Record<string, unknown>;
 };
 
+type ForwardingKeywordsStatus = "" | "loading" | "loaded" | "reloading" | "reloaded" | "saved";
+
 function formatJson(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
@@ -19,7 +21,7 @@ export default function ForwardingKeywordsTab() {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<ForwardingKeywordsStatus>("");
   const [error, setError] = useState("");
 
   const isDirty = useMemo(() => {
@@ -27,7 +29,13 @@ export default function ForwardingKeywordsTab() {
     return draft !== formatJson(config);
   }, [config, draft]);
 
-  const load = async () => {
+  const load = async (
+    statusAfterLoad: ForwardingKeywordsStatus = "loaded",
+    statusWhileLoading: ForwardingKeywordsStatus = "loading"
+  ) => {
+    setLoading(true);
+    setStatus(statusWhileLoading);
+    setError("");
     try {
       const res = await fetch("/api/settings/forwarding-keywords");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -35,8 +43,9 @@ export default function ForwardingKeywordsTab() {
       setConfig(data.config);
       setDefaults(data.defaults);
       setDraft(formatJson(data.config));
-      setError("");
+      setStatus(statusAfterLoad);
     } catch (err) {
+      setStatus("");
       setError(err instanceof Error ? err.message : "Failed to load forwarding keyword settings");
     } finally {
       setLoading(false);
@@ -113,22 +122,50 @@ export default function ForwardingKeywordsTab() {
         <div className="flex-1">
           <h3 className="text-lg font-semibold">Forwarding Keyword Rules</h3>
           <p className="text-sm text-text-muted">
-            Manage Claude OAuth lexical rewrite rules in OmniRoute settings instead of editing proxy
-            code. Changes apply only inside the proxy forwarding path.
+            Configure Claude OAuth lexical rewrite rules in OmniRoute settings. These rules apply
+            only inside the proxy forwarding path.
           </p>
         </div>
-        {status === "saved" && (
-          <span className="text-xs font-medium text-emerald-500 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-            Saved
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {isDirty ? (
+            <span className="text-xs font-medium text-amber-400 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">edit</span>
+              Unsaved edits
+            </span>
+          ) : status === "saved" ? (
+            <span className="text-xs font-medium text-emerald-500 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+              Saved and applied
+            </span>
+          ) : status === "reloading" ? (
+            <span className="text-xs font-medium text-sky-400 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">hourglass_top</span>
+              Reloading from server
+            </span>
+          ) : status === "loading" ? (
+            <span className="text-xs font-medium text-text-muted flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">hourglass_top</span>
+              Loading from server
+            </span>
+          ) : status === "reloaded" ? (
+            <span className="text-xs font-medium text-sky-400 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">refresh</span>
+              Reloaded from server
+            </span>
+          ) : status === "loaded" ? (
+            <span className="text-xs font-medium text-text-muted flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">info</span>
+              Loaded from server
+            </span>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
         <div className="rounded-lg border border-border/40 bg-surface/30 p-3 text-xs text-text-muted leading-relaxed">
           Edit the JSON for lane-specific rewrite rules. Tool names, free text, and prompt-tag
-          replacements are all persisted in settings and loaded by the proxy before forwarding.
+          replacements are persisted in settings and applied by the proxy before the Anthropic
+          request is forwarded. Reload replaces local edits with the last saved server config.
         </div>
 
         <textarea
@@ -159,7 +196,12 @@ export default function ForwardingKeywordsTab() {
           >
             Reset editor to defaults
           </Button>
-          <Button size="sm" variant="ghost" onClick={load} disabled={loading || saving}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => load("reloaded", "reloading")}
+            disabled={loading || saving}
+          >
             Reload
           </Button>
         </div>

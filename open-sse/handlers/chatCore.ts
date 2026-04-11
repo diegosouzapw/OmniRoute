@@ -69,6 +69,7 @@ import {
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
+import { applyClaudeOAuthLexicalRewrite } from "../translator/helpers/claudeHelper.ts";
 import {
   parseSSEToClaudeResponse,
   parseSSEToOpenAIResponse,
@@ -1019,6 +1020,13 @@ export async function handleChatCore({
       // Claude Code sends well-formed Messages API payloads — trust it.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
+      if (provider === "claude") {
+        const lexicalRewrite = applyClaudeOAuthLexicalRewrite(translatedBody);
+        translatedBody = lexicalRewrite.body;
+        if (lexicalRewrite.toolNameMap) {
+          translatedBody._toolNameMap = lexicalRewrite.toolNameMap;
+        }
+      }
 
       log?.debug?.("FORMAT", "claude passthrough with cache_control preservation");
     } else if (isClaudePassthrough) {
@@ -1057,6 +1065,13 @@ export async function handleChatCore({
         reqLogger,
         { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
       );
+      if (provider === "claude") {
+        const lexicalRewrite = applyClaudeOAuthLexicalRewrite(translatedBody);
+        translatedBody = lexicalRewrite.body;
+        if (lexicalRewrite.toolNameMap) {
+          translatedBody._toolNameMap = lexicalRewrite.toolNameMap;
+        }
+      }
       log?.debug?.("FORMAT", "claude->openai->claude normalized passthrough");
     } else {
       translatedBody = { ...body };
