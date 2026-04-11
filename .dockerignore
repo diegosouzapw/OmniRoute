@@ -40,10 +40,28 @@ blob-report
 # Documentation (not needed in container)
 docs
 *.md
-!README.md
 
 # Electron (separate build)
 electron
+
+# Container and CI metadata
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
+fly.toml
+sonar-project.properties
+
+# Local engineering metadata
+AGENTS.md
+playwright.config.ts
+vitest.config.ts
+vitest.mcp.config.ts
+eslint.config.mjs
+prettier.config.mjs
+tsconfig.json
+tsconfig.typecheck-core.json
+tsconfig.typecheck-noimplicit-core.json
+llm.txt
 
 # VS Code extension (separate project)
 vscode-extension

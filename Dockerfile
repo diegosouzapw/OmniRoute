@@ -11,7 +11,37 @@ COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
-RUN mkdir -p /app/data && npm run build -- --webpack
+RUN mkdir -p /app/data \
+  && npm run build -- --webpack \
+  && rm -f /app/.next/standalone/.env \
+  && rm -rf \
+    /app/.next/standalone/.git \
+    /app/.next/standalone/coverage \
+    /app/.next/standalone/docs \
+    /app/.next/standalone/electron \
+    /app/.next/standalone/images \
+    /app/.next/standalone/logs \
+    /app/.next/standalone/tests \
+  && rm -f \
+    /app/.next/standalone/AGENTS.md \
+    /app/.next/standalone/CHANGELOG.md \
+    /app/.next/standalone/CONTRIBUTING.md \
+    /app/.next/standalone/Dockerfile \
+    /app/.next/standalone/README.md \
+    /app/.next/standalone/SECURITY.md \
+    /app/.next/standalone/docker-compose.yml \
+    /app/.next/standalone/docker-compose.prod.yml \
+    /app/.next/standalone/eslint.config.mjs \
+    /app/.next/standalone/fly.toml \
+    /app/.next/standalone/llm.txt \
+    /app/.next/standalone/playwright.config.ts \
+    /app/.next/standalone/prettier.config.mjs \
+    /app/.next/standalone/sonar-project.properties \
+    /app/.next/standalone/tsconfig.json \
+    /app/.next/standalone/tsconfig.typecheck-core.json \
+    /app/.next/standalone/tsconfig.typecheck-noimplicit-core.json \
+    /app/.next/standalone/vitest.config.ts \
+    /app/.next/standalone/vitest.mcp.config.ts
 
 FROM node:22.22.2-trixie-slim AS runner-base
 WORKDIR /app
