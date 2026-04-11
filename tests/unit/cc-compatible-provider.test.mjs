@@ -92,7 +92,7 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   });
 
   assert.equal(payload.max_tokens, CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS);
-  assert.equal(payload.output_config.effort, "high");
+  assert.equal(payload.output_config.effort, "max");
   assert.deepEqual(
     payload.messages.map((message) => ({
       role: message.role,
