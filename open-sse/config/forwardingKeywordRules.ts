@@ -85,6 +85,34 @@ function normalizeTagRule(rule: unknown): ForwardingTagRule | null {
   };
 }
 
+function mergeKeywordRules(
+  defaults: ForwardingKeywordRule[],
+  overrides: ForwardingKeywordRule[]
+): ForwardingKeywordRule[] {
+  if (overrides.length === 0) return defaults;
+
+  const merged = new Map(defaults.map((rule) => [rule.match, rule]));
+  for (const override of overrides) {
+    merged.set(override.match, override);
+  }
+
+  return Array.from(merged.values());
+}
+
+function mergeTagRules(
+  defaults: ForwardingTagRule[],
+  overrides: ForwardingTagRule[]
+): ForwardingTagRule[] {
+  if (overrides.length === 0) return defaults;
+
+  const merged = new Map(defaults.map((rule) => [`${rule.open}::${rule.close}`, rule]));
+  for (const override of overrides) {
+    merged.set(`${override.open}::${override.close}`, override);
+  }
+
+  return Array.from(merged.values());
+}
+
 export function normalizeForwardingKeywordConfig(value: unknown): ForwardingKeywordConfig {
   const normalized = cloneForwardingKeywordConfig(DEFAULT_FORWARDING_KEYWORD_CONFIG);
   if (!value || typeof value !== "object") return normalized;
@@ -95,20 +123,20 @@ export function normalizeForwardingKeywordConfig(value: unknown): ForwardingKeyw
     if (!rawLane || typeof rawLane !== "object") continue;
 
     const rawLaneConfig = rawLane as Record<string, unknown>;
-    const toolNames = Array.isArray(rawLaneConfig.toolNames)
+    const toolNameOverrides = Array.isArray(rawLaneConfig.toolNames)
       ? rawLaneConfig.toolNames.map(normalizeKeywordRule).filter(Boolean)
-      : normalized[lane].toolNames;
-    const text = Array.isArray(rawLaneConfig.text)
+      : [];
+    const textOverrides = Array.isArray(rawLaneConfig.text)
       ? rawLaneConfig.text.map(normalizeKeywordRule).filter(Boolean)
-      : normalized[lane].text;
-    const tags = Array.isArray(rawLaneConfig.tags)
+      : [];
+    const tagOverrides = Array.isArray(rawLaneConfig.tags)
       ? rawLaneConfig.tags.map(normalizeTagRule).filter(Boolean)
-      : normalized[lane].tags;
+      : [];
 
     normalized[lane] = {
-      toolNames,
-      text,
-      tags,
+      toolNames: mergeKeywordRules(normalized[lane].toolNames, toolNameOverrides),
+      text: mergeKeywordRules(normalized[lane].text, textOverrides),
+      tags: mergeTagRules(normalized[lane].tags, tagOverrides),
     };
   }
 
