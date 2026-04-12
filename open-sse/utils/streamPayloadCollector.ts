@@ -261,6 +261,16 @@ function buildResponsesSummary(
   let latestResponse: JsonRecord | null = null;
   let usage: JsonRecord | null = null;
   const textParts: string[] = [];
+  const buildOutputFromText = () =>
+    textParts.length > 0
+      ? [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: textParts.join("") }],
+          },
+        ]
+      : [];
 
   for (const payload of payloads) {
     const eventType = toString(payload.type);
@@ -292,11 +302,12 @@ function buildResponsesSummary(
 
   const picked = completed || latestResponse;
   if (picked && Object.keys(picked).length > 0) {
+    const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
     return {
       id: toString(picked.id, `resp_${Date.now()}`),
       object: "response",
       model: toString(picked.model, fallbackModel || "unknown"),
-      output: Array.isArray(picked.output) ? picked.output : [],
+      output: pickedOutput.length > 0 ? pickedOutput : buildOutputFromText(),
       usage: picked.usage ?? usage ?? null,
       status: toString(picked.status, completed ? "completed" : "in_progress"),
       created_at: toNumber(picked.created_at, Math.floor(Date.now() / 1000)),
@@ -308,16 +319,7 @@ function buildResponsesSummary(
     id: `resp_${Date.now()}`,
     object: "response",
     model: fallbackModel || "unknown",
-    output:
-      textParts.length > 0
-        ? [
-            {
-              type: "message",
-              role: "assistant",
-              content: [{ type: "output_text", text: textParts.join("") }],
-            },
-          ]
-        : [],
+    output: buildOutputFromText(),
     usage: usage ?? null,
     status: "completed",
     created_at: Math.floor(Date.now() / 1000),

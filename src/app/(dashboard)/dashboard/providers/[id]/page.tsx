@@ -535,6 +535,13 @@ interface EditCompatibleNodeModalProps {
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
+const CODEX_REASONING_STRENGTH_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "xhigh", label: "XHigh" },
+];
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -545,6 +552,29 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
     use5h: typeof record.use5h === "boolean" ? record.use5h : true,
     useWeekly: typeof record.useWeekly === "boolean" ? record.useWeekly : true,
   };
+}
+
+function getCodexRequestDefaults(providerSpecificData: unknown): {
+  reasoningEffort: string;
+  serviceTier?: "priority";
+} {
+  const record =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as Record<string, unknown>)
+      : {};
+  const requestDefaults =
+    record.requestDefaults && typeof record.requestDefaults === "object"
+      ? (record.requestDefaults as Record<string, unknown>)
+      : {};
+  const reasoningEffort =
+    typeof requestDefaults.reasoningEffort === "string" &&
+    CODEX_REASONING_STRENGTH_OPTIONS.some(
+      (option) => option.value === requestDefaults.reasoningEffort
+    )
+      ? requestDefaults.reasoningEffort
+      : "medium";
+  const serviceTier = requestDefaults.serviceTier === "priority" ? "priority" : undefined;
+  return { reasoningEffort, ...(serviceTier ? { serviceTier } : {}) };
 }
 
 function compatProtocolLabelKey(protocol: string): string {
@@ -5340,6 +5370,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     tag: "",
     customUserAgent: "",
     accountId: "",
+    codexReasoningEffort: "medium",
+    codexFastServiceTier: false,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5358,6 +5390,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isVertex = connection?.provider === "vertex";
   const isGlm = connection?.provider === "glm";
   const isCloudflare = connection?.provider === "cloudflare-ai";
+  const isCodex = connection?.provider === "codex";
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -5371,6 +5404,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
+      const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5383,6 +5417,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         tag: (connection.providerSpecificData?.tag as string) || "",
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
+        codexReasoningEffort: codexRequestDefaults.reasoningEffort,
+        codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5533,6 +5569,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           ...(connection.providerSpecificData || {}),
           tag: formData.tag.trim() || undefined,
         };
+        if (isCodex) {
+          updates.providerSpecificData.requestDefaults = {
+            reasoningEffort: formData.codexReasoningEffort,
+            ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
+          };
+        }
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
@@ -5570,6 +5612,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           placeholder="e.g. personal, work, team-a"
           hint="Used to group accounts in the provider view"
         />
+        {isCodex && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Select
+              label="Default thinking strength"
+              value={formData.codexReasoningEffort}
+              options={CODEX_REASONING_STRENGTH_OPTIONS}
+              onChange={(e) => setFormData({ ...formData, codexReasoningEffort: e.target.value })}
+              hint="Used when the client does not send a reasoning effort and the global Thinking Budget mode is passthrough."
+            />
+            <Toggle
+              checked={formData.codexFastServiceTier}
+              onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
+              label="Codex Fast Service Tier"
+              description="When enabled, injects `service_tier=priority` for this connection if the client leaves the tier unset."
+            />
+          </div>
+        )}
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
             <p className="text-sm text-text-muted mb-1">{t("email")}</p>

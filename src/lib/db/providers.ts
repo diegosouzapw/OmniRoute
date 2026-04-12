@@ -7,6 +7,7 @@ import { getDbInstance, rowToCamel, cleanNulls } from "./core";
 import { backupDbFile } from "./backup";
 import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
 import { invalidateDbCache } from "./readCache";
+import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -67,6 +68,10 @@ export async function getProviderConnectionById(id: string) {
 export async function createProviderConnection(data: JsonRecord) {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
+  const normalizedProviderSpecificData = normalizeProviderSpecificData(
+    toStringOrNull(data.provider),
+    data.providerSpecificData
+  );
 
   // Upsert check
   // For Codex/OpenAI, a single email can have multiple workspaces (Team + Personal)
@@ -121,7 +126,11 @@ export async function createProviderConnection(data: JsonRecord) {
   if (existing) {
     const existingId = toStringOrNull(existing.id);
     if (!existingId) return null;
-    const merged = { ...toRecord(rowToCamel(existing)), ...data, updatedAt: now };
+    const merged: JsonRecord = { ...toRecord(rowToCamel(existing)), ...data, updatedAt: now };
+    merged.providerSpecificData = normalizeProviderSpecificData(
+      toStringOrNull(merged.provider),
+      merged.providerSpecificData
+    );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
     return cleanNulls(merged);
@@ -192,8 +201,8 @@ export async function createProviderConnection(data: JsonRecord) {
       connection[field] = data[field];
     }
   }
-  if (data.providerSpecificData && Object.keys(data.providerSpecificData).length > 0) {
-    connection.providerSpecificData = data.providerSpecificData;
+  if (normalizedProviderSpecificData && Object.keys(normalizedProviderSpecificData).length > 0) {
+    connection.providerSpecificData = normalizedProviderSpecificData;
   }
 
   _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
@@ -347,7 +356,15 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   const existing = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return null;
 
-  const merged = { ...rowToCamel(existing), ...data, updatedAt: new Date().toISOString() };
+  const merged: JsonRecord = {
+    ...toRecord(rowToCamel(existing)),
+    ...data,
+    updatedAt: new Date().toISOString(),
+  };
+  merged.providerSpecificData = normalizeProviderSpecificData(
+    toStringOrNull(merged.provider),
+    merged.providerSpecificData
+  );
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache

@@ -16,6 +16,7 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { createProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
+import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 
 // GET /api/providers - List all connections
 export async function GET() {
@@ -131,6 +132,8 @@ export async function POST(request: Request) {
         ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
       };
     }
+
+    providerSpecificData = normalizeProviderSpecificData(provider, providerSpecificData) || null;
 
     const newConnection = await createProviderConnection({
       provider,

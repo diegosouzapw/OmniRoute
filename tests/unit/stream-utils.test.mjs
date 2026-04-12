@@ -237,6 +237,49 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
 });
 
+test("buildStreamSummaryFromEvents falls back to response.output_text.delta when completed output is empty", () => {
+  const summary = buildStreamSummaryFromEvents(
+    [
+      {
+        index: 0,
+        data: {
+          type: "response.output_text.delta",
+          delta: "Hello ",
+        },
+      },
+      {
+        index: 1,
+        data: {
+          type: "response.output_text.delta",
+          delta: "world",
+        },
+      },
+      {
+        index: 2,
+        data: {
+          type: "response.completed",
+          response: {
+            id: "resp_fallback",
+            object: "response",
+            model: "gpt-5.4",
+            status: "completed",
+            output: [],
+            usage: { output_tokens: 2 },
+          },
+        },
+      },
+    ],
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.4"
+  );
+
+  assert.equal(summary.object, "response");
+  assert.equal(summary.output[0].type, "message");
+  assert.equal(summary.output[0].content[0].type, "output_text");
+  assert.equal(summary.output[0].content[0].text, "Hello world");
+  assert.equal(summary.usage.output_tokens, 2);
+});
+
 test("createSSEStream translate mode aborts on Responses failure with rate limit error", async () => {
   let onCompletePayload = null;
 

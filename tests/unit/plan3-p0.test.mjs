@@ -8,7 +8,7 @@ import { shouldUseNativeCodexPassthrough } from "../../open-sse/handlers/chatCor
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
-import { CodexExecutor, setDefaultFastServiceTierEnabled } from "../../open-sse/executors/codex.ts";
+import { CodexExecutor } from "../../open-sse/executors/codex.ts";
 import { translateNonStreamingResponse } from "../../open-sse/handlers/responseTranslator.ts";
 import { extractUsageFromResponse } from "../../open-sse/handlers/usageExtractor.ts";
 import {
@@ -218,20 +218,19 @@ test("shouldUseNativeCodexPassthrough only enables responses-native Codex reques
   );
 });
 
-test("CodexExecutor can force fast service tier from settings", () => {
-  setDefaultFastServiceTierEnabled(true);
-
-  try {
-    const executor = new CodexExecutor();
-    const transformed = executor.transformRequest(
-      "gpt-5.1-codex",
-      { model: "gpt-5.1-codex", input: [] },
-      true
-    );
-    assert.equal(transformed.service_tier, "priority");
-  } finally {
-    setDefaultFastServiceTierEnabled(false);
-  }
+test("CodexExecutor can apply per-connection fast service tier defaults", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.1-codex",
+    { model: "gpt-5.1-codex", input: [] },
+    true,
+    {
+      providerSpecificData: {
+        requestDefaults: { serviceTier: "priority" },
+      },
+    }
+  );
+  assert.equal(transformed.service_tier, "priority");
 });
 
 test("CodexExecutor always requests SSE accept header", () => {
@@ -275,7 +274,8 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.equal(transformed.instructions, "custom system prompt");
   assert.equal(transformed.store, false);
   assert.deepEqual(transformed.metadata, { source: "codex-client" });
-  assert.equal(transformed.reasoning_effort, "high");
+  assert.equal(transformed.reasoning.effort, "high");
+  assert.equal(transformed.reasoning_effort, undefined);
   assert.ok(!("_nativeCodexPassthrough" in transformed));
 });
 

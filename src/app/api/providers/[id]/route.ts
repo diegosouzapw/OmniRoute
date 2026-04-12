@@ -9,6 +9,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -142,7 +143,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         }
       }
 
-      updateData.providerSpecificData = mergedPsd;
+      updateData.providerSpecificData =
+        normalizeProviderSpecificData(existing.provider, mergedPsd) || {};
     }
 
     const updated = await updateProviderConnection(id, updateData);
