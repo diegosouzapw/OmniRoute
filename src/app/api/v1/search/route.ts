@@ -191,7 +191,7 @@ export async function POST(request: Request) {
     { filters: body.filters, offset: body.offset, time_range: body.time_range }
   );
 
-  const ttl = providerConfig.cacheTTLMs || SEARCH_CACHE_DEFAULT_TTL_MS;
+  const ttl = providerConfig.cacheTTLMs ?? SEARCH_CACHE_DEFAULT_TTL_MS;
 
   try {
     const { data: searchResult, cached } = await getOrCoalesce(cacheKey, ttl, async () => {
