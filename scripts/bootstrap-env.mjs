@@ -13,9 +13,10 @@
  *
  * Priority (lowest → highest):
  *   1. Auto-generated defaults
- *   2. {DATA_DIR}/server.env  (persisted on first boot)
- *   3. Preferred config .env  (DATA_DIR/.env -> ~/.omniroute/.env -> ./.env)
- *   4. process.env            (shell / Docker -e flags, highest priority)
+ *   2. OAuth defaults from .env.example (public client IDs for bootstrap)
+ *   3. {DATA_DIR}/server.env  (persisted on first boot)
+ *   4. Preferred config .env  (DATA_DIR/.env -> ~/.omniroute/.env -> ./.env)
+ *   5. process.env            (shell / Docker -e flags, highest priority)
  */
 
 import { randomBytes } from "node:crypto";
@@ -113,6 +114,38 @@ function parseEnvFile(filePath) {
   return env;
 }
 
+function parseOauthDefaultsFromExample(filePath) {
+  if (!existsSync(filePath)) return {};
+
+  const defaults = {};
+  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  let inOauthSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (/OAUTH PROVIDER CREDENTIALS/i.test(trimmed)) {
+      inOauthSection = true;
+      continue;
+    }
+
+    if (!inOauthSection) continue;
+    if (/Provider User-Agent Overrides/i.test(trimmed)) break;
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx < 1) continue;
+
+    const key = trimmed.slice(0, eqIdx).trim();
+    const value = trimmed.slice(eqIdx + 1).trim();
+    if (!key.endsWith("_OAUTH_CLIENT_ID") || !value) continue;
+
+    defaults[key] = value;
+  }
+
+  return defaults;
+}
+
 // ── Write a simple KEY=VALUE env file ───────────────────────────────────────
 function writeEnvFile(filePath, env) {
   const lines = [
@@ -133,9 +166,15 @@ function writeEnvFile(filePath, env) {
 export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   const log = quiet ? () => {} : (msg) => process.stderr.write(`[bootstrap] ${msg}\n`);
 
+  const envExamplePath = join(process.cwd(), ".env.example");
+  const oauthDefaults = parseOauthDefaultsFromExample(envExamplePath);
   const preferredEnvPath = getPreferredEnvFilePath(process.env);
   const preferredEnv = preferredEnvPath ? parseEnvFile(preferredEnvPath) : {};
-  const dataDir = resolveDataDir(dataDirOverride, { ...preferredEnv, ...process.env });
+  const dataDir = resolveDataDir(dataDirOverride, {
+    ...oauthDefaults,
+    ...preferredEnv,
+    ...process.env,
+  });
   const serverEnvPath = join(dataDir, "server.env");
 
   // ── Layer 1: Load persisted server.env ────────────────────────────────────
@@ -143,7 +182,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
   // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
-  const merged = { ...persisted, ...preferredEnv, ...process.env };
+  const merged = { ...oauthDefaults, ...persisted, ...preferredEnv, ...process.env };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;

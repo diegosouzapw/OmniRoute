@@ -114,3 +114,57 @@ test("bootstrapEnv ignores blank dataDirOverride values", () => {
     assert.equal(env.JWT_SECRET, "jwt-from-dot-env");
   });
 });
+
+test("bootstrapEnv falls back to oauth client ids from .env.example when .env is absent", () => {
+  withTempEnv(({ tempCwd, dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tempCwd, ".env.example"),
+      [
+        "# ═══════════════════════════════════════════════════",
+        "#   OAUTH PROVIDER CREDENTIALS",
+        "# ═══════════════════════════════════════════════════",
+        "CLAUDE_OAUTH_CLIENT_ID=claude-default",
+        "CODEX_OAUTH_CLIENT_ID=codex-default",
+        "# ─────────────────────────────────────────────────────────────────────────────",
+        "# Provider User-Agent Overrides (optional — customize per-provider UA headers)",
+        "# ─────────────────────────────────────────────────────────────────────────────",
+        "CLAUDE_USER_AGENT=ignored",
+        "",
+      ].join("\n"),
+      "utf8"
+    );
+
+    const env = bootstrapEnv({ quiet: true });
+
+    assert.equal(env.CLAUDE_OAUTH_CLIENT_ID, "claude-default");
+    assert.equal(env.CODEX_OAUTH_CLIENT_ID, "codex-default");
+    assert.equal(env.CLAUDE_USER_AGENT, undefined);
+  });
+});
+
+test("bootstrapEnv prefers process env over oauth defaults from .env.example", () => {
+  withTempEnv(({ tempCwd, dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    process.env.CLAUDE_OAUTH_CLIENT_ID = "claude-from-process";
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tempCwd, ".env.example"),
+      [
+        "# ═══════════════════════════════════════════════════",
+        "#   OAUTH PROVIDER CREDENTIALS",
+        "# ═══════════════════════════════════════════════════",
+        "CLAUDE_OAUTH_CLIENT_ID=claude-default",
+        "# ─────────────────────────────────────────────────────────────────────────────",
+        "# Provider User-Agent Overrides (optional — customize per-provider UA headers)",
+        "",
+      ].join("\n"),
+      "utf8"
+    );
+
+    const env = bootstrapEnv({ quiet: true });
+
+    assert.equal(env.CLAUDE_OAUTH_CLIENT_ID, "claude-from-process");
+  });
+});
