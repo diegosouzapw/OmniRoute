@@ -85,7 +85,7 @@ function evictIfNeeded(): void {
  * or execute the fetch function and cache the result.
  *
  * @param key - Cache key from computeCacheKey()
- * @param ttlMs - TTL in milliseconds (0 to bypass cache)
+ * @param ttlMs - TTL in milliseconds (0 to bypass cache AND coalescing)
  * @param fetchFn - Function to execute on cache miss
  * @returns The cached or freshly fetched data
  */
@@ -94,6 +94,17 @@ export async function getOrCoalesce<T>(
   ttlMs: number,
   fetchFn: () => Promise<T>
 ): Promise<{ data: T; cached: boolean }> {
+  // When ttlMs === 0 the caller explicitly wants to bypass the cache.
+  // Skip both the cache lookup AND the inflight-coalescing step so every
+  // concurrent call gets its own independent upstream fetch.  Without this
+  // guard, ttlMs=0 callers still get coalesced results and receive
+  // { cached: true } even though caching was explicitly disabled.
+  if (ttlMs <= 0) {
+    misses++;
+    const data = await fetchFn();
+    return { data, cached: false };
+  }
+
   // 1. Check cache
   const cached = cache.get(key) as CacheEntry<T> | undefined;
   if (cached && cached.expiresAt > Date.now()) {
@@ -117,11 +128,8 @@ export async function getOrCoalesce<T>(
   try {
     const data = await promise;
 
-    // Store in cache
-    if (ttlMs > 0) {
-      evictIfNeeded();
-      cache.set(key, { data, expiresAt: Date.now() + ttlMs });
-    }
+    evictIfNeeded();
+    cache.set(key, { data, expiresAt: Date.now() + ttlMs });
 
     return { data, cached: false };
   } finally {
