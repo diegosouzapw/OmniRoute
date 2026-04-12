@@ -131,6 +131,7 @@ export const ANTIGRAVITY_CONFIG = {
   apiVersion: "v1internal",
   loadCodeAssistEndpoint: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
   onboardUserEndpoint: "https://cloudcode-pa.googleapis.com/v1internal:onboardUser",
+  fetchAvailableModelsEndpoint: "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   loadCodeAssistUserAgent: "google-api-nodejs-client/9.15.1",
   loadCodeAssistApiClient: "google-cloud-sdk vscode_cloudshelleditor/0.1",
   loadCodeAssistClientMetadata: `{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}`,

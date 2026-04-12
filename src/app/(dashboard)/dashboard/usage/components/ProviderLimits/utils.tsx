@@ -19,6 +19,8 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   code_review: "Code Review",
   agentic_request: "Agentic",
   agentic_request_freetrial: "Agentic (Trial)",
+  credits: "AI Credits",
+  models: "Models",
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -203,6 +205,27 @@ export function parseQuotaData(provider, data) {
       case "antigravity":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
+            if (modelKey === "credits") {
+              // Credit balance: render as "N credits remaining" counter, not a progress bar
+              const remaining = Number(quota?.remaining ?? 0);
+              normalizedQuotas.push({
+                name: "credits",
+                used: 0,
+                total: 0,
+                remaining,
+                resetAt: null,
+                unlimited: false,
+                isCredits: true,
+                // Show green if >50, yellow if >10, red if ≤10
+                remainingPercentage: remaining > 50 ? 100 : remaining > 10 ? 60 : 20,
+                creditCount: remaining,
+              });
+              return;
+            }
+            if (modelKey === "models") {
+              // Summary row: skip — individual models are shown via modelQuotas if needed
+              return;
+            }
             if (quota?.unlimited && (!quota?.total || quota.total <= 0)) {
               return;
             }

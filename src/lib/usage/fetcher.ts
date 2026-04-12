@@ -3,6 +3,7 @@
  */
 
 import { GITHUB_CONFIG, GEMINI_CONFIG, ANTIGRAVITY_CONFIG } from "@/lib/oauth/constants/oauth";
+import { getAntigravityRemainingCredits } from "@omniroute/open-sse/executors/antigravity.ts";
 
 /**
  * Get usage data for a provider connection
@@ -18,7 +19,7 @@ export async function getUsageForProvider(connection) {
     case "gemini-cli":
       return await getGeminiUsage(accessToken);
     case "antigravity":
-      return await getAntigravityUsage(accessToken);
+      return await getAntigravityUsage(accessToken, providerSpecificData);
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
@@ -146,13 +147,107 @@ async function getGeminiUsage(accessToken) {
 
 /**
  * Antigravity Usage
+ * Calls fetchAvailableModels to get per-model quota fractions.
+ * Credit balance (GOOGLE_ONE_AI) is read from the executor's in-memory cache,
+ * which is populated automatically after each successful credit-injected SSE call.
  */
-async function getAntigravityUsage(accessToken) {
+async function getAntigravityUsage(accessToken: string, providerSpecificData: Record<string, unknown> = {}) {
   try {
-    // Similar to Gemini, uses Google Cloud
-    return { message: "Antigravity connected. Usage tracked via Google Cloud Console." };
+    // Derive accountId (same key used in AntigravityExecutor.execute)
+    const accountId: string =
+      (providerSpecificData?.email as string) ||
+      (providerSpecificData?.sub as string) ||
+      "unknown";
+
+    // Read cached credit balance from executor module (populated from SSE remainingCredits)
+    const creditBalance = getAntigravityRemainingCredits(accountId);
+
+    // fetchAvailableModels — resolves project from token, no projectId needed
+    const res = await fetch(ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "User-Agent": "antigravity/1.11.3 Darwin/arm64",
+      },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!res.ok) {
+      return {
+        plan: "Antigravity",
+        message: "Antigravity connected. Unable to fetch model quotas.",
+        ...(creditBalance !== null && {
+          quotas: {
+            credits: {
+              used: 0,
+              total: 0,
+              remaining: creditBalance,
+              unlimited: false,
+              resetAt: null,
+            },
+          },
+        }),
+      };
+    }
+
+    const data = await res.json();
+    const models: Record<string, unknown> = data?.models ?? {};
+
+    // Walk quota-based models (those with remainingFraction in quotaInfo)
+    let quotaModelsTotal = 0;
+    let quotaModelsAvailable = 0;
+    const modelQuotas: Record<string, { remaining: number; resetAt: string | null; limited: boolean }> = {};
+
+    for (const [modelId, rawInfo] of Object.entries(models)) {
+      const info = rawInfo as Record<string, unknown>;
+      if (info.isInternal) continue;
+      const quotaInfo = (info.quotaInfo as Record<string, unknown>) ?? {};
+
+      if ("remainingFraction" in quotaInfo) {
+        const fraction = typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
+        const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
+        modelQuotas[modelId] = {
+          remaining: Math.round(fraction * 100),
+          resetAt: resetTime,
+          limited: fraction <= 0,
+        };
+        quotaModelsTotal++;
+        if (fraction > 0) quotaModelsAvailable++;
+      }
+      // Credit-based models have no remainingFraction — their availability is
+      // tracked via the GOOGLE_ONE_AI credit balance cached from SSE responses.
+    }
+
+    const allLimited = quotaModelsTotal > 0 && quotaModelsAvailable === 0;
+
+    return {
+      plan: "Antigravity",
+      quotas: {
+        models: {
+          used: quotaModelsTotal - quotaModelsAvailable,
+          total: quotaModelsTotal,
+          remaining: quotaModelsAvailable,
+          limited: allLimited,
+          unlimited: false,
+          resetAt: null,
+        },
+        ...(creditBalance !== null && {
+          credits: {
+            used: 0,
+            total: 0,
+            remaining: creditBalance,
+            unlimited: false,
+            resetAt: null,
+          },
+        }),
+      },
+      modelQuotas,
+      limitReached: allLimited,
+    };
   } catch (error) {
-    return { message: "Unable to fetch Antigravity usage." };
+    return { message: `Unable to fetch Antigravity usage: ${(error as Error).message}` };
   }
 }
 
