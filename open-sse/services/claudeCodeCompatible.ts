@@ -1,6 +1,16 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
+import { signRequestBody } from "./claudeCodeCCH.ts";
+import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
+import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
+import {
+  enforceThinkingTemperature,
+  disableThinkingIfToolChoiceForced,
+  enforceCacheControlLimit,
+  ensureCacheControlOnLastUserMessage,
+} from "./claudeCodeConstraints.ts";
+import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -8,10 +18,24 @@ export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.89 (external, sdk-cli)";
+  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,fast-mode-2025-04-01,redact-thinking-2025-06-20,token-efficient-tools-2025-02-19";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
+/**
+ * Build the billing header dynamically with fingerprint and CCH placeholder.
+ * The cch=00000 placeholder is later replaced by signRequestBody().
+ */
+export function buildBillingHeader(
+  messages?: Array<{ role?: string; content?: unknown }>
+): string {
+  const msgText = extractFirstUserMessageText(messages);
+  const fp = computeFingerprint(msgText, CLAUDE_CODE_COMPATIBLE_VERSION);
+  return `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.${fp}; cc_entrypoint=cli; cch=00000;`;
+}
+
+/** @deprecated Use buildBillingHeader() for dynamic fingerprint */
 export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER =
-  "x-anthropic-billing-header: cc_version=2.1.89.728; cc_entrypoint=sdk-cli; cch=00000;";
+  `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.000; cc_entrypoint=cli; cch=00000;`;
 
 type HeaderLike =
   | Headers
@@ -97,17 +121,18 @@ export function buildClaudeCodeCompatibleHeaders(
     "x-app": "cli",
     "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
     "X-Stainless-Retry-Count": "0",
-    "X-Stainless-Timeout": "300",
+    "X-Stainless-Timeout": "600",
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": "0.74.0",
+    "X-Stainless-Package-Version": "0.80.0",
     "X-Stainless-OS": "MacOS",
     "X-Stainless-Arch": "arm64",
     "X-Stainless-Runtime": "node",
-    "X-Stainless-Runtime-Version": "v25.8.1",
+    "X-Stainless-Runtime-Version": "v24.3.0",
     "accept-language": "*",
     "sec-fetch-mode": "cors",
     "accept-encoding": "identity",
     ...(sessionId ? { "X-Claude-Code-Session-Id": sessionId } : {}),
+    "x-client-request-id": randomUUID(),
   };
 }
 
@@ -161,12 +186,15 @@ export function buildClaudeCodeCompatibleRequest({
     : Array.isArray(normalized.messages)
       ? buildClaudeCodeCompatibleMessages(normalized.messages as MessageLike[])
       : [];
+  const allMessages = (preparedClaudeBody?.messages || normalized.messages || []) as Array<{ role?: string; content?: unknown }>;
+  const billingHeader = buildBillingHeader(allMessages);
   const system = buildClaudeCodeCompatibleSystemBlocks({
     messages: normalized.messages as MessageLike[],
     systemBlocks: preparedClaudeBody?.system as Record<string, unknown>[] | undefined,
     cwd,
     now,
     preserveCacheControl,
+    billingHeader,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
@@ -218,6 +246,73 @@ export function buildClaudeCodeCompatibleRequest({
     ...(stream ? { stream: true } : {}),
   };
 }
+
+
+/**
+ * Full Claude Code request processing pipeline.
+ *
+ * Applies all mechanisms that real Claude Code uses:
+ * 1. Build base request (system prompt, billing header, messages, tools)
+ * 2. Remap tool names to TitleCase
+ * 3. Enforce thinking temperature constraint (temp=1)
+ * 4. Disable thinking when tool_choice forces a specific tool
+ * 5. Enforce 4-block cache_control limit
+ * 6. Auto-inject cache_control on last user message
+ * 7. Obfuscate sensitive words in user messages
+ * 8. Serialize with CCH placeholder
+ * 9. Sign body with xxHash64 CCH attestation
+ *
+ * Returns { bodyString, headers } ready to send upstream.
+ */
+export async function buildAndSignClaudeCodeRequest(
+  options: BuildRequestOptions & { apiKey: string; enableObfuscation?: boolean }
+): Promise<{ bodyString: string; headers: Record<string, string> }> {
+  const { apiKey, enableObfuscation = false, ...buildOptions } = options;
+
+  // Step 1: Build base request
+  const body = buildClaudeCodeCompatibleRequest(buildOptions);
+
+  // Step 2: Remap tool names
+  remapToolNamesInRequest(body);
+
+  // Step 3-4: Thinking constraints
+  enforceThinkingTemperature(body);
+  disableThinkingIfToolChoiceForced(body);
+
+  // Step 5-6: Cache control
+  enforceCacheControlLimit(body);
+  ensureCacheControlOnLastUserMessage(body);
+
+  // Step 7: Obfuscation (optional, per-provider setting)
+  if (enableObfuscation) {
+    obfuscateInBody(body);
+  }
+
+  // Step 8: Serialize with CCH placeholder
+  const serialized = JSON.stringify(body);
+
+  // Step 9: Sign with xxHash64
+  const bodyString = await signRequestBody(serialized);
+
+  // Build headers
+  const sessionId = options.sessionId || resolveClaudeCodeCompatibleSessionId();
+  const headers = buildClaudeCodeCompatibleHeaders(apiKey, options.stream ?? false, sessionId);
+
+  return { bodyString, headers };
+}
+
+/**
+ * Re-export for consumers that need to post-process SSE response chunks.
+ */
+export { remapToolNamesInResponse } from "./claudeCodeToolRemapper.ts";
+export { signRequestBody } from "./claudeCodeCCH.ts";
+export { computeFingerprint } from "./claudeCodeFingerprint.ts";
+export { obfuscateSensitiveWords, setSensitiveWords } from "./claudeCodeObfuscation.ts";
+export {
+  enforceThinkingTemperature,
+  disableThinkingIfToolChoiceForced,
+  enforceCacheControlLimit,
+} from "./claudeCodeConstraints.ts";
 
 export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
@@ -381,12 +476,14 @@ function buildClaudeCodeCompatibleSystemBlocks({
   cwd,
   now,
   preserveCacheControl,
+  billingHeader,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
   cwd: string;
   now: Date;
   preserveCacheControl: boolean;
+  billingHeader: string;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
@@ -397,7 +494,8 @@ function buildClaudeCodeCompatibleSystemBlocks({
   const blocks: Array<Record<string, unknown>> = [
     {
       type: "text",
-      text: CLAUDE_CODE_COMPATIBLE_BILLING_HEADER,
+      text: billingHeader,
+      cache_control: { type: "ephemeral" },
     },
     {
       type: "text",
