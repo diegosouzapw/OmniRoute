@@ -7,8 +7,16 @@ import {
   getCodexRateLimitKey,
   getCodexResetTime,
   parseCodexQuotaHeaders,
-  setDefaultFastServiceTierEnabled,
 } from "../../open-sse/executors/codex.ts";
+import {
+  DEFAULT_THINKING_CONFIG,
+  setThinkingBudgetConfig,
+  ThinkingMode,
+} from "../../open-sse/services/thinkingBudget.ts";
+
+test.afterEach(() => {
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
 
 test("Codex helper functions isolate rate-limit scopes and parse quota headers", () => {
   const quota = parseCodexQuotaHeaders(
@@ -102,26 +110,121 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
 
 test("CodexExecutor.transformRequest preserves compact requests and native passthrough semantics", () => {
   const executor = new CodexExecutor();
-  setDefaultFastServiceTierEnabled(true);
+  const body = {
+    _nativeCodexPassthrough: true,
+    instructions: "keep this",
+    stream: false,
+  };
+  const result = executor.transformRequest("gpt-5.3-codex", body, false, {
+    requestEndpointPath: "/responses/compact",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "priority" },
+    },
+  });
 
-  try {
-    const body = {
-      _nativeCodexPassthrough: true,
-      instructions: "keep this",
-      stream: false,
-    };
-    const result = executor.transformRequest("gpt-5.3-codex", body, false, {
-      requestEndpointPath: "/responses/compact",
-    });
+  assert.equal(result._nativeCodexPassthrough, undefined);
+  assert.equal(result.stream, undefined);
+  assert.equal(result.service_tier, "priority");
+  assert.equal(result.reasoning.effort, "medium");
+  assert.equal(result.store, false);
+  assert.equal(result.instructions, "keep this");
+});
 
-    assert.equal(result._nativeCodexPassthrough, undefined);
-    assert.equal(result.stream, undefined);
-    assert.equal(result.service_tier, "priority");
-    assert.equal(result.store, false);
-    assert.equal(result.instructions, "keep this");
-  } finally {
-    setDefaultFastServiceTierEnabled(false);
-  }
+test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.3-codex",
+    { model: "gpt-5.3-codex", input: [] },
+    false,
+    {
+      providerSpecificData: {
+        requestDefaults: {
+          reasoningEffort: "high",
+          serviceTier: "priority",
+        },
+      },
+    }
+  );
+
+  assert.equal(result.reasoning.effort, "high");
+  assert.equal(result.service_tier, "priority");
+});
+
+test("CodexExecutor.transformRequest keeps explicit request values ahead of connection defaults", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      model: "gpt-5.3-codex",
+      input: [],
+      reasoning_effort: "none",
+      service_tier: "standard",
+    },
+    false,
+    {
+      providerSpecificData: {
+        requestDefaults: {
+          reasoningEffort: "high",
+          serviceTier: "priority",
+        },
+      },
+    }
+  );
+
+  assert.equal(result.reasoning.effort, "none");
+  assert.equal(result.service_tier, "standard");
+});
+
+test("CodexExecutor.transformRequest lets model suffix beat connection reasoning defaults", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.3-codex-high",
+    { model: "gpt-5.3-codex-high", input: [] },
+    false,
+    {
+      providerSpecificData: {
+        requestDefaults: {
+          reasoningEffort: "low",
+        },
+      },
+    }
+  );
+
+  assert.equal(result.model, "gpt-5.3-codex");
+  assert.equal(result.reasoning.effort, "high");
+});
+
+test("CodexExecutor.transformRequest does not apply connection reasoning defaults when Thinking Budget is not passthrough", () => {
+  const executor = new CodexExecutor();
+  setThinkingBudgetConfig({ mode: ThinkingMode.AUTO });
+
+  const noDefaults = executor.transformRequest(
+    "gpt-5.3-codex",
+    { model: "gpt-5.3-codex", input: [] },
+    false,
+    {
+      providerSpecificData: {
+        requestDefaults: {
+          reasoningEffort: "high",
+        },
+      },
+    }
+  );
+  const explicit = executor.transformRequest(
+    "gpt-5.3-codex",
+    { model: "gpt-5.3-codex", input: [], reasoning_effort: "high" },
+    false,
+    {
+      providerSpecificData: {
+        requestDefaults: {
+          reasoningEffort: "low",
+        },
+      },
+    }
+  );
+
+  assert.equal(noDefaults.reasoning, undefined);
+  assert.equal(explicit.reasoning.effort, "high");
 });
 
 test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null without a refresh token", async () => {
