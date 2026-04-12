@@ -71,6 +71,33 @@ function resolveNodeExecutable(env = process.env) {
   return process.execPath;
 }
 
+function resolveServerNodePath(env = process.env) {
+  const seen = new Set();
+  const entries = [];
+
+  const addEntry = (entry) => {
+    if (!entry || typeof entry !== "string") return;
+    const trimmed = entry.trim();
+    if (!trimmed) return;
+    const normalized = path.normalize(trimmed);
+    if (seen.has(normalized) || !fs.existsSync(normalized)) return;
+    seen.add(normalized);
+    entries.push(normalized);
+  };
+
+  for (const existing of (env.NODE_PATH || "").split(path.delimiter)) {
+    addEntry(existing);
+  }
+
+  // Electron-builder installs native modules like better-sqlite3 under
+  // app.asar.unpacked, while the standalone bundle still carries helper deps
+  // such as bindings/file-uri-to-path inside resources/app/node_modules.
+  addEntry(path.join(process.resourcesPath, "app.asar.unpacked", "node_modules"));
+  addEntry(path.join(NEXT_SERVER_PATH, "node_modules"));
+
+  return entries.join(path.delimiter);
+}
+
 function resolveDataDir(overridePath, env = process.env) {
   if (overridePath && overridePath.trim()) return path.resolve(overridePath);
 
@@ -538,7 +565,7 @@ function startNextServer() {
       PORT: String(serverPort),
       NODE_ENV: "production",
       ELECTRON_RUN_AS_NODE: "1",
-      NODE_PATH: path.join(process.resourcesPath, "app.asar.unpacked", "node_modules"),
+      NODE_PATH: resolveServerNodePath(serverEnv),
     },
     stdio: "pipe",
   });
