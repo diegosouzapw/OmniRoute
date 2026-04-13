@@ -34,17 +34,32 @@ export default function MemoryPage() {
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetchMemories();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchMemories();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [page, filterType, searchQuery]);
 
   const fetchMemories = async () => {
     try {
-      const response = await fetch("/api/memory");
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+      });
+      if (filterType !== "all") params.append("type", filterType);
+      if (searchQuery) params.append("q", searchQuery);
+
+      const response = await fetch(`/api/memory?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setMemories(data.data || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
         setStats(data.stats || { totalEntries: 0, tokensUsed: 0, hitRate: 0 });
       }
     } catch (error) {
@@ -72,15 +87,6 @@ export default function MemoryPage() {
     link.download = `memory-export-${new Date().toISOString()}.json`;
     link.click();
   };
-
-  const filteredMemories = memories.filter((memory) => {
-    const matchesType = filterType === "all" || memory.type === filterType;
-    const matchesSearch =
-      searchQuery === "" ||
-      memory.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      memory.key.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesType && matchesSearch;
-  });
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -147,10 +153,19 @@ export default function MemoryPage() {
               <Input
                 placeholder={t("search")}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
                 className="w-64"
               />
-              <Select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+              <Select
+                value={filterType}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setPage(1);
+                }}
+              >
                 <option value="all">{t("allTypes")}</option>
                 <option value="factual">{t("factual")}</option>
                 <option value="episodic">{t("episodic")}</option>
@@ -172,7 +187,7 @@ export default function MemoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMemories.map((memory) => (
+                {memories.map((memory) => (
                   <tr key={memory.id} className="border-b">
                     <td className="py-2 px-4">
                       <Badge variant={getTypeColor(memory.type) as any}>{memory.type}</Badge>
@@ -189,6 +204,30 @@ export default function MemoryPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-500">
+              Page {page} of {totalPages} ({total} total)
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
