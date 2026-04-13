@@ -90,15 +90,15 @@ export const memoryTools = {
     description: "Clear memories for an API key, optionally filtered by type or age",
     inputSchema: MemoryClearSchema,
     handler: async (args: z.infer<typeof MemoryClearSchema>) => {
-      const memories = await listMemories({
+      const result = await listMemories({
         apiKeyId: args.apiKeyId,
         type: args.type as MemoryType | undefined,
       });
 
-      let toDelete = memories;
+      let toDelete = result.data;
       if (args.olderThan) {
         const cutoff = new Date(args.olderThan);
-        toDelete = memories.filter((m) => new Date(m.createdAt) < cutoff);
+        toDelete = result.data.filter((m) => new Date(m.createdAt) < cutoff);
       }
 
       let deletedCount = 0;

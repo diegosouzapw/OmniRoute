@@ -116,7 +116,9 @@ test("getMemory returns null for invalid identifiers and tolerates malformed met
 
 test("updateMemory returns false for missing ids and listMemories handles an empty store", async () => {
   assert.equal(await store.updateMemory("missing-id", { content: "noop" }), false);
-  assert.deepEqual(await store.listMemories({ apiKeyId: "missing-key" }), []);
+  const result = await store.listMemories({ apiKeyId: "missing-key" });
+  assert.deepEqual(result.data, []);
+  assert.equal(result.total, 0);
 });
 
 test("listMemories filters by api key, type and session while preserving newest-first ordering", async () => {
@@ -156,17 +158,20 @@ test("listMemories filters by api key, type and session while preserving newest-
   const onlyEpisodic = await store.listMemories({ apiKeyId: "key-a", type: MemoryType.EPISODIC });
 
   assert.deepEqual(
-    allForKeyA.map((memory) => memory.id),
+    allForKeyA.data.map((memory) => memory.id),
     ["mem-2", "mem-1"]
   );
+  assert.equal(allForKeyA.total, 2);
   assert.deepEqual(
-    onlySessionA.map((memory) => memory.id),
+    onlySessionA.data.map((memory) => memory.id),
     ["mem-2", "mem-1"]
   );
+  assert.equal(onlySessionA.total, 2);
   assert.deepEqual(
-    onlyEpisodic.map((memory) => memory.id),
+    onlyEpisodic.data.map((memory) => memory.id),
     ["mem-2"]
   );
+  assert.equal(onlyEpisodic.total, 1);
 });
 
 test("listMemories supports limit and offset pagination even when only offset is provided", async () => {
@@ -193,11 +198,13 @@ test("listMemories supports limit and offset pagination even when only offset is
   const offsetOnly = await store.listMemories({ apiKeyId: "key-a", offset: 1 });
 
   assert.deepEqual(
-    paged.map((memory) => memory.id),
+    paged.data.map((memory) => memory.id),
     ["page-2"]
   );
+  assert.equal(paged.total, 3);
   assert.deepEqual(
-    offsetOnly.map((memory) => memory.id),
+    offsetOnly.data.map((memory) => memory.id),
     ["page-2", "page-1"]
   );
+  assert.equal(offsetOnly.total, 3);
 });

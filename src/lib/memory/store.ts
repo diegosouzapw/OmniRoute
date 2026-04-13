@@ -232,7 +232,7 @@ export async function deleteMemory(id: string): Promise<boolean> {
 }
 
 /**
- * List memories with optional filtering
+ * List memories with optional filtering and pagination
  */
 export async function listMemories(filters: {
   apiKeyId?: string;
@@ -240,51 +240,60 @@ export async function listMemories(filters: {
   sessionId?: string;
   limit?: number;
   offset?: number;
-}): Promise<Memory[]> {
+  page?: number;
+}): Promise<{ data: Memory[]; total: number }> {
   const db = getDbInstance();
 
-  // Build dynamic query
-  let query = "SELECT * FROM memories";
-  const params: unknown[] = [];
+  // Build dynamic query conditions
   const whereClauses: string[] = [];
+  const whereParams: unknown[] = [];
 
   if (filters.apiKeyId) {
     whereClauses.push("api_key_id = ?");
-    params.push(filters.apiKeyId);
+    whereParams.push(filters.apiKeyId);
   }
 
   if (filters.type) {
     whereClauses.push("type = ?");
-    params.push(filters.type);
+    whereParams.push(filters.type);
   }
 
   if (filters.sessionId) {
     whereClauses.push("session_id = ?");
-    params.push(filters.sessionId);
+    whereParams.push(filters.sessionId);
   }
 
+  // Run COUNT query first with same WHERE clauses
+  let countQuery = "SELECT COUNT(*) as total FROM memories";
+  if (whereClauses.length > 0) {
+    countQuery += " WHERE " + whereClauses.join(" AND ");
+  }
+  const countStmt = db.prepare(countQuery);
+  const countRow = countStmt.get(...whereParams) as { total: number };
+  const total = countRow.total;
+
+  // Calculate effective limit and offset
+  const effectiveLimit = filters.limit ?? 50;
+  const effectivePage = filters.page ?? 1;
+  const effectiveOffset = filters.offset ?? (effectivePage - 1) * effectiveLimit;
+
+  // Build SELECT query with pagination
+  let query = "SELECT * FROM memories";
   if (whereClauses.length > 0) {
     query += " WHERE " + whereClauses.join(" AND ");
   }
 
   // Add ordering and pagination
-  query += " ORDER BY created_at DESC";
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
 
-  if (filters.limit !== undefined) {
-    query += " LIMIT ?";
-    params.push(filters.limit);
-  }
-
-  if (filters.offset !== undefined) {
-    if (filters.limit === undefined) {
-      query += " LIMIT -1";
-    }
-    query += " OFFSET ?";
-    params.push(filters.offset);
-  }
+  // Build params for SELECT query (WHERE params + pagination params)
+  const params = [...whereParams, effectiveLimit, effectiveOffset];
 
   const stmt = db.prepare(query);
   const rows = stmt.all(...params);
 
-  return (rows as MemoryRow[]).map(rowToMemory);
+  return {
+    data: (rows as MemoryRow[]).map(rowToMemory),
+    total,
+  };
 }

@@ -22,17 +22,19 @@ export async function GET(request: Request) {
     const sessionId = searchParams.get("sessionId") || undefined;
     const limitParams = searchParams.get("limit");
     const offsetParams = searchParams.get("offset");
+    const pageParams = searchParams.get("page");
 
-    const memories = await listMemories({
+    const result = await listMemories({
       apiKeyId,
       type,
       sessionId,
       limit: limitParams ? parseInt(limitParams, 10) : undefined,
       offset: offsetParams ? parseInt(offsetParams, 10) : undefined,
+      page: pageParams ? parseInt(pageParams, 10) : undefined,
     });
     const stats = {
-      total: memories.length,
-      byType: memories.reduce(
+      total: result.total,
+      byType: result.data.reduce(
         (acc, m) => {
           acc[m.type] = (acc[m.type] || 0) + 1;
           return acc;
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
         {} as Record<string, number>
       ),
     };
-    return NextResponse.json({ memories, stats });
+    return NextResponse.json({ memories: result.data, stats, total: result.total });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error }, { status: 500 });
