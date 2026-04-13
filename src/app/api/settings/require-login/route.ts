@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import bcrypt from "bcryptjs";
+import { getNodeCompatibility } from "@/lib/runtime/nodeCompatibility";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-
-// Node.js compatibility check — better-sqlite3 requires Node <24
-function getNodeCompatibility() {
-  const nodeVersion = process.version;
-  const major = parseInt(nodeVersion.replace("v", "").split(".")[0], 10);
-  return { nodeVersion, nodeCompatible: major >= 18 && major < 24 };
-}
 
 export async function GET() {
   const nodeInfo = getNodeCompatibility();

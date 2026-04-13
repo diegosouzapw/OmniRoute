@@ -2713,10 +2713,10 @@
     "waitingForAntigravityAuthorization": "正在等待 Antigravity 授权...",
     "waitingForQoderAuthorization": "正在等待 Qoder 授权...",
     "exchangingCodeForTokens": "正在用授权码换取 Tokens...",
-    "nodeIncompatibleTitle": "不兼容的 Node.js 版本",
-    "nodeIncompatibleDesc": "你当前运行的是 Node.js {version}，它与 OmniRoute 不兼容。原生 SQLite 模块（better-sqlite3）要求使用 Node.js 18–22 LTS。",
-    "nodeIncompatibleFixLabel": "修复：安装 Node.js 22 LTS",
-    "nodeIncompatibleHint": "OmniRoute 要求 Node.js ≥18 且 <24。为保证稳定性，建议使用 Node 22 LTS。"
+    "nodeIncompatibleTitle": "原生 SQLite 模块异常",
+    "nodeIncompatibleDesc": "OmniRoute 在 Node.js {version} 下未能加载原生 SQLite 模块（better-sqlite3）。",
+    "nodeIncompatibleFixLabel": "修复：用 Node.js 22 LTS 重新安装依赖",
+    "nodeIncompatibleHint": "如果应用已经能启动且登录正常，可以忽略这条提示；否则请切换到 Node.js 22 LTS 并重新构建原生模块。"
   },
   "landing": {
     "brandName": "OmniRoute",

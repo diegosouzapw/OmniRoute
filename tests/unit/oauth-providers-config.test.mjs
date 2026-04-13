@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
 
 const originalEnv = { ...process.env };
 Object.assign(process.env, {
@@ -187,6 +188,27 @@ test("OAuth constants include all provider ids and use a sane timeout", () => {
       constantIds.includes(providerId),
       `Expected oauth constants to include provider id ${providerId}`
     );
+  }
+});
+
+test("Codex and OpenAI OAuth configs keep a built-in client id fallback when env is missing", async () => {
+  const previous = process.env.CODEX_OAUTH_CLIENT_ID;
+  delete process.env.CODEX_OAUTH_CLIENT_ID;
+
+  try {
+    const moduleUrl = pathToFileURL(
+      new URL("../../src/lib/oauth/constants/oauth.ts", import.meta.url).pathname
+    ).href;
+    const freshModule = await import(`${moduleUrl}?fallback=${Date.now()}`);
+
+    assert.equal(freshModule.CODEX_CONFIG.clientId, "app_EMoamEEZ73f0CkXaXp7hrann");
+    assert.equal(freshModule.OPENAI_CONFIG.clientId, "app_EMoamEEZ73f0CkXaXp7hrann");
+  } finally {
+    if (previous === undefined) {
+      delete process.env.CODEX_OAUTH_CLIENT_ID;
+    } else {
+      process.env.CODEX_OAUTH_CLIENT_ID = previous;
+    }
   }
 });
 

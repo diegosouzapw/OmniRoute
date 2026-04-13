@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import bcrypt from "bcryptjs";
+import { getNodeCompatibility } from "../../src/lib/runtime/nodeCompatibility.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-login-bootstrap-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -34,6 +35,26 @@ test.after(() => {
 });
 
 const originalHash = bcrypt.hash;
+
+test("node compatibility depends on native SQLite availability instead of a hardcoded version range", () => {
+  assert.deepEqual(
+    getNodeCompatibility(() => {}, "v25.9.0"),
+    {
+      nodeVersion: "v25.9.0",
+      nodeCompatible: true,
+    }
+  );
+
+  assert.deepEqual(
+    getNodeCompatibility(() => {
+      throw new Error("native module missing");
+    }, "v22.17.0"),
+    {
+      nodeVersion: "v22.17.0",
+      nodeCompatible: false,
+    }
+  );
+});
 
 test("public login bootstrap route exposes the metadata the login page consumes", async () => {
   await settingsDb.updateSettings({

@@ -1,11 +1,11 @@
 /**
  * OAuth Configuration Constants
  *
- * All credentials are read exclusively from environment variables.
- * Default values are provided via .env.example and auto-populated by
- * scripts/sync-env.mjs on install. See .env.example for the built-in
- * credentials used for localhost setups.
+ * Non-secret public client IDs keep an in-code fallback so browser OAuth does
+ * not break when `.env` has not been synced yet. Secrets still rely on env.
  */
+
+const OPENAI_PUBLIC_OAUTH_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
 
 // Claude OAuth Configuration (Authorization Code Flow with PKCE)
 export const CLAUDE_CONFIG = {
@@ -26,7 +26,7 @@ export const CLAUDE_CONFIG = {
 
 // Codex (OpenAI) OAuth Configuration (Authorization Code Flow with PKCE)
 export const CODEX_CONFIG = {
-  clientId: process.env.CODEX_OAUTH_CLIENT_ID || "",
+  clientId: process.env.CODEX_OAUTH_CLIENT_ID || OPENAI_PUBLIC_OAUTH_CLIENT_ID,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
   tokenUrl: "https://auth.openai.com/oauth/token",
   scope: "openid profile email offline_access",
@@ -138,7 +138,7 @@ export const ANTIGRAVITY_CONFIG = {
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 export const OPENAI_CONFIG = {
-  clientId: process.env.CODEX_OAUTH_CLIENT_ID || "",
+  clientId: process.env.CODEX_OAUTH_CLIENT_ID || OPENAI_PUBLIC_OAUTH_CLIENT_ID,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
   tokenUrl: "https://auth.openai.com/oauth/token",
   scope: "openid profile email offline_access",

@@ -2814,10 +2814,10 @@
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForQoderAuthorization": "Waiting for Qoder authorization...",
     "exchangingCodeForTokens": "Exchanging code for tokens...",
-    "nodeIncompatibleTitle": "Incompatible Node.js Version",
-    "nodeIncompatibleDesc": "You are running Node.js {version}, which is not compatible with OmniRoute. The native SQLite module (better-sqlite3) requires Node.js 18–22 LTS.",
-    "nodeIncompatibleFixLabel": "Fix: install Node.js 22 LTS",
-    "nodeIncompatibleHint": "OmniRoute requires Node.js ≥18 and <24. Node 22 LTS is recommended for stability."
+    "nodeIncompatibleTitle": "Native SQLite Module Issue",
+    "nodeIncompatibleDesc": "OmniRoute could not load the native SQLite module (better-sqlite3) under Node.js {version}.",
+    "nodeIncompatibleFixLabel": "Fix: reinstall dependencies with Node.js 22 LTS",
+    "nodeIncompatibleHint": "If the app already starts and login works, you can ignore this warning. Otherwise switch to Node.js 22 LTS and rebuild native modules."
   },
   "landing": {
     "brandName": "OmniRoute",
