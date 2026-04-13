@@ -463,6 +463,7 @@ interface ConnectionRowProps {
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
   isCcCompatible?: boolean;
+  cliproxyapiEnabled?: boolean;
   onToggleCliproxyapiMode?: (enabled?: boolean) => void;
   onRetest: () => void;
   isRetesting?: boolean;
@@ -1315,49 +1316,59 @@ export default function ProviderDetailPage() {
   };
 
 
-  const handleToggleCliproxyapiMode = async (connectionId, enabled) => {
+  const [cpaProviderEnabled, setCpaProviderEnabled] = useState(false);
+
+  // Load upstream proxy config for this provider on mount
+  useEffect(() => {
+    if (!isCcCompatible) return;
+    fetch(`/api/settings`)
+      .then((r) => r.json())
+      .then((data) => {
+        // Check if this provider has CLIProxyAPI routing enabled
+        // The upstream_proxy_config is synced via the settings API
+      })
+      .catch(() => {});
+
+    // Also check via direct upstream proxy config lookup
+    fetch(`/api/upstream-proxy/${providerId}`)
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then((data) => {
+        if (data?.enabled && (data.mode === "cliproxyapi" || data.mode === "fallback")) {
+          setCpaProviderEnabled(true);
+        }
+      })
+      .catch(() => {});
+  }, [isCcCompatible, providerId]);
+
+  const handleToggleCliproxyapiMode = async (_connectionId, enabled) => {
     try {
-      const target = connections.find((connection) => connection.id === connectionId);
-      if (!target) return;
-
-      const providerSpecificData =
-        target.providerSpecificData && typeof target.providerSpecificData === "object"
-          ? target.providerSpecificData
-          : {};
-
-      const res = await fetch(`/api/providers/${connectionId}`, {
+      // Write to upstream_proxy_config table which resolveExecutorWithProxy reads
+      const res = await fetch(`/api/upstream-proxy/${providerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerSpecificData: {
-            ...providerSpecificData,
-            cliproxyapiMode: enabled ? "claude-native" : "native",
-          },
+          mode: enabled ? "cliproxyapi" : "native",
+          enabled: enabled,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update CLIProxyAPI mode");
+        notify.error(data.error || "Failed to update CLIProxyAPI routing");
         return;
       }
 
-      setConnections((prev) =>
-        prev.map((c) =>
-          c.id === connectionId
-            ? {
-                ...c,
-                providerSpecificData: {
-                  ...(c.providerSpecificData || {}),
-                  cliproxyapiMode: enabled ? "claude-native" : "native",
-                },
-              }
-            : c
-        )
+      setCpaProviderEnabled(enabled);
+      notify.success(
+        enabled
+          ? "Requests now route through CLIProxyAPI (deeper emulation)"
+          : "Requests now use native OmniRoute (direct)"
       );
-      notify.success(enabled ? "CLIProxyAPI deep mode enabled" : "CLIProxyAPI deep mode disabled");
     } catch {
-      notify.error("Failed to update CLIProxyAPI mode");
+      notify.error("Failed to update CLIProxyAPI routing");
     }
   };
 
@@ -2639,6 +2650,7 @@ export default function ProviderDetailPage() {
                       onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
                       isCodex={providerId === "codex"}
                       isCcCompatible={isCcCompatible}
+                      cliproxyapiEnabled={cpaProviderEnabled}
                       onToggleCliproxyapiMode={(enabled) =>
                         handleToggleCliproxyapiMode(conn.id, enabled)
                       }
@@ -4609,6 +4621,7 @@ function ConnectionRow({
   isOAuth,
   isCodex,
   isCcCompatible,
+  cliproxyapiEnabled,
   isFirst,
   isLast,
   onMoveUp,
@@ -4709,8 +4722,7 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
-  const cliproxyapiDeepMode =
-    connection.providerSpecificData?.cliproxyapiMode === "claude-native";
+  const cliproxyapiDeepMode = !!cliproxyapiEnabled;
 
   return (
     <div
@@ -5010,6 +5022,7 @@ ConnectionRow.propTypes = {
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
   isCcCompatible: PropTypes.bool,
+  cliproxyapiEnabled: PropTypes.bool,
   onToggleCliproxyapiMode: PropTypes.func,
   onRetest: PropTypes.func.isRequired,
   isRetesting: PropTypes.bool,

@@ -1,20 +1,18 @@
 /**
  * CLIProxyAPI Executor — routes requests to a local CLIProxyAPI instance.
  *
- * Supports two modes:
- *   1. OpenAI-compatible (/v1/chat/completions) — default for most providers
- *   2. Native Claude (/api/provider/claude/v1/messages) — for Claude Code OAuth
- *      subscriptions where CLIProxyAPI has deeper emulation (uTLS, multi-account
- *      rotation, device profile learning, per-key config, sensitive word obfuscation)
+ * Always uses the OpenAI-compatible /v1/chat/completions endpoint. CLIProxyAPI
+ * internally detects Claude models and routes them through its Claude executor
+ * with full emulation (CCH signing, billing header, system prompt, uTLS,
+ * multi-account rotation, device profile learning, etc.).
  *
- * Mode selection priority:
- *   1. Explicit `cliproxyapiMode` in providerSpecificData (set via Settings UI)
- *   2. Provider type: anthropic-compatible-cc-* → claude-native
- *   3. Default: openai
+ * The UI toggle (cliproxyapiMode in providerSpecificData) controls WHETHER
+ * to use CLIProxyAPI as the backend, not the wire format. Response format
+ * is always OpenAI-compatible, so chatCore's SSE parsing works unchanged.
  *
- * Token prefix alone is NOT used for mode detection (review feedback #4):
- * a sk-ant-oat01-* key routed through an OpenAI-format provider would send
- * an OpenAI-shaped body to the Claude Messages endpoint, causing failures.
+ * Activation:
+ *   1. Per-provider upstream_proxy_config (mode=cliproxyapi or fallback)
+ *   2. Per-connection cliproxyapiMode toggle in providerSpecificData (UI)
  */
 
 import {
@@ -24,13 +22,10 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { isClaudeCodeCompatibleProvider } from "../services/claudeCodeCompatible.ts";
 
 const DEFAULT_PORT = 8317;
 const DEFAULT_HOST = "127.0.0.1";
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
-
-export type CliproxyapiMode = "openai" | "claude-native";
 
 function resolveCliproxyapiBaseUrl(): string {
   const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
@@ -39,6 +34,16 @@ function resolveCliproxyapiBaseUrl(): string {
 }
 
 export { resolveCliproxyapiBaseUrl };
+
+/**
+ * Check if a connection has CLIProxyAPI deep mode enabled via UI toggle.
+ * Used by chatCore's resolveExecutorWithProxy to decide routing.
+ */
+export function isCliproxyapiDeepModeEnabled(
+  providerSpecificData?: Record<string, unknown> | null
+): boolean {
+  return providerSpecificData?.cliproxyapiMode === "claude-native";
+}
 
 export class CliproxyapiExecutor extends BaseExecutor {
   private readonly upstreamBaseUrl: string;
@@ -53,47 +58,18 @@ export class CliproxyapiExecutor extends BaseExecutor {
     this.upstreamBaseUrl = effectiveBase;
   }
 
-  /**
-   * Determine which CLIProxyAPI endpoint to use.
-   *
-   * Decision order:
-   *   1. Explicit override via providerSpecificData.cliproxyapiMode (Settings UI toggle)
-   *   2. Provider name starts with anthropic-compatible-cc- → claude-native
-   *   3. Default: openai
-   *
-   * Does NOT sniff token prefix (review #4): the caller's provider/format
-   * must match the endpoint format. An OAuth token on an OpenAI-format
-   * provider stays on the OpenAI path.
-   */
-  resolveMode(credentials: ProviderCredentials | null, provider?: string): CliproxyapiMode {
-    // 1. Explicit per-provider toggle (set via Settings UI)
-    const explicit = credentials?.providerSpecificData?.cliproxyapiMode;
-    if (explicit === "claude-native") return "claude-native";
-    if (explicit === "openai") return "openai";
-
-    // 2. Provider type detection
-    const providerName =
-      typeof provider === "string" ? provider : String(credentials?.providerSpecificData?.providerId || "");
-    if (isClaudeCodeCompatibleProvider(providerName)) return "claude-native";
-
-    return "openai";
-  }
-
   buildUrl(
-    model: string,
-    stream: boolean,
+    _model: string,
+    _stream: boolean,
     _urlIndex = 0,
-    credentials: ProviderCredentials | null = null
+    _credentials: ProviderCredentials | null = null
   ): string {
-    const mode = this.resolveMode(credentials);
-    if (mode === "claude-native") {
-      return `${this.upstreamBaseUrl}/api/provider/claude/v1/messages`;
-    }
+    // Always OpenAI-compatible. CLIProxyAPI detects Claude models internally
+    // and applies full emulation (CCH, billing header, system prompt, uTLS).
     return `${this.upstreamBaseUrl}/v1/chat/completions`;
   }
 
   buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
-    const mode = this.resolveMode(credentials);
     const key = credentials?.apiKey || credentials?.accessToken;
 
     const headers: Record<string, string> = {
@@ -107,11 +83,6 @@ export class CliproxyapiExecutor extends BaseExecutor {
       headers["Accept"] = "text/event-stream";
     }
 
-    // Claude-native: pass anthropic-version so CLIProxyAPI can use it
-    if (mode === "claude-native") {
-      headers["anthropic-version"] = "2023-06-01";
-    }
-
     return headers;
   }
 
@@ -122,16 +93,10 @@ export class CliproxyapiExecutor extends BaseExecutor {
     _credentials: ProviderCredentials | null
   ): unknown {
     if (!body || typeof body !== "object") return body;
-    const mode = this.resolveMode(_credentials);
 
     const transformed = { ...(body as Record<string, unknown>) };
     if (transformed.model !== model) {
       transformed.model = model;
-    }
-
-    // Anthropic API reads stream from the body, not just the Accept header
-    if (mode === "claude-native" && _stream && !transformed.stream) {
-      transformed.stream = true;
     }
 
     return transformed;
@@ -146,7 +111,6 @@ export class CliproxyapiExecutor extends BaseExecutor {
     log?: any;
     upstreamExtraHeaders?: Record<string, string> | null;
   }) {
-    const mode = this.resolveMode(input.credentials);
     const url = this.buildUrl(input.model, input.stream, 0, input.credentials);
     const headers = this.buildHeaders(input.credentials, input.stream);
     const transformedBody = this.transformRequest(
@@ -164,7 +128,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
     input.log?.info?.(
       "CPA",
-      `CLIProxyAPI ${mode} → ${url} (model: ${input.model})`
+      `CLIProxyAPI → ${url} (model: ${input.model})`
     );
 
     const response = await fetch(url, {
