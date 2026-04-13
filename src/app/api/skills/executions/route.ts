@@ -1,22 +1,30 @@
 import { NextResponse } from "next/server";
 import { skillExecutor } from "@/lib/skills/executor";
+import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
+import { z } from "zod";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const executions = skillExecutor.listExecutions();
-    return NextResponse.json({ executions });
+    const url = new URL(request.url);
+    const params = parsePaginationParams(url.searchParams);
+    const apiKeyId = url.searchParams.get("apiKeyId") || undefined;
+    const total = skillExecutor.countExecutions(apiKeyId);
+    const executions = skillExecutor.listExecutions(
+      apiKeyId,
+      params.limit,
+      (params.page - 1) * params.limit
+    );
+    return NextResponse.json(buildPaginatedResponse(executions, total, params));
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error }, { status: 500 });
   }
 }
-
-import { z } from "zod";
-import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 const executionSchema = z.object({
   skillName: z.string().min(1),
