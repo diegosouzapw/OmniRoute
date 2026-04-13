@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Badge, Button, Input, Select } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -40,14 +40,7 @@ export default function MemoryPage() {
   const [health, setHealth] = useState<{ working: boolean; latencyMs: number } | null>(null);
   const [checkingHealth, setCheckingHealth] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchMemories();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [page, filterType, searchQuery]);
-
-  const fetchMemories = async () => {
+  const fetchMemories = useCallback(async () => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -69,7 +62,14 @@ export default function MemoryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, filterType, searchQuery]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchMemories();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchMemories]);
 
   const handleDelete = async (id: string) => {
     try {
