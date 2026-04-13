@@ -1,5 +1,5 @@
 import open from "open";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { QWEN_CONFIG } from "../constants/oauth";
 import { getServerCredentials } from "../config/index";
 import { generatePKCE } from "../utils/pkce";
