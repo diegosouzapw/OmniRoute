@@ -951,7 +951,7 @@ export async function handleComboChat({
         // SDKs close the connection on finish_reason, so anything sent after
         // that marker is silently dropped.
         if (!res.body) return res;
-        const tagContent = `\\n<omniModel>${modelStr}</omniModel>\\n`;
+        const tagContent = `<omniModel>${modelStr}</omniModel>`;
         const encoder = new TextEncoder();
         const decoder = new TextDecoder();
         let tagInjected = false;
