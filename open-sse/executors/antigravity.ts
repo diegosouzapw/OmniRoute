@@ -36,7 +36,10 @@ export function updateAntigravityRemainingCredits(accountId: string, balance: nu
 function isCreditsExhausted(accountId: string): boolean {
   const until = creditsExhaustedUntil.get(accountId);
   if (!until) return false;
-  if (Date.now() >= until) { creditsExhaustedUntil.delete(accountId); return false; }
+  if (Date.now() >= until) {
+    creditsExhaustedUntil.delete(accountId);
+    return false;
+  }
   return true;
 }
 
@@ -378,8 +381,11 @@ export class AntigravityExecutor extends BaseExecutor {
     // non-streaming Response so chatCore's non-streaming path stays unchanged.
     const upstreamStream = true;
 
-    // Account ID for credits-exhausted tracking (use email or subject if available)
-    const accountId: string = credentials?.email || credentials?.sub || credentials?.refreshToken?.slice(0, 16) || "unknown";
+    // Account ID for credits-exhausted tracking.
+    // Key must match getAntigravityUsage() in fetcher.ts (providerSpecificData?.email || sub).
+    // credentials.email and credentials.sub are populated from the same OAuth token store,
+    // so the cache keys written here and read in the fetcher will always match.
+    const accountId: string = credentials?.email || credentials?.sub || "unknown";
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
@@ -445,7 +451,13 @@ export class AntigravityExecutor extends BaseExecutor {
                   if (creditRes.ok) {
                     if (!stream) {
                       const collected = await this.collectStreamToResponse(
-                        creditRes, model, url, headers, creditBody, log, signal
+                        creditRes,
+                        model,
+                        url,
+                        headers,
+                        creditBody,
+                        log,
+                        signal
                       );
                       // Parse _remainingCredits from the synthetic response and cache
                       try {
@@ -455,10 +467,13 @@ export class AntigravityExecutor extends BaseExecutor {
                           const googleCredit = rc.find((c) => c.creditType === "GOOGLE_ONE_AI");
                           if (googleCredit) {
                             const balance = parseInt(googleCredit.creditAmount, 10);
-                            if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
+                            if (!isNaN(balance))
+                              updateAntigravityRemainingCredits(accountId, balance);
                           }
                         }
-                      } catch { /**/ }
+                      } catch {
+                        /**/
+                      }
                       return collected;
                     }
                     return { response: creditRes, url, headers, transformedBody: creditBody };
@@ -480,7 +495,9 @@ export class AntigravityExecutor extends BaseExecutor {
                       );
                       markCreditsExhausted(accountId);
                     }
-                  } catch { /**/ }
+                  } catch {
+                    /**/
+                  }
                   // Fall through to normal fallback logic below
                 } else if (!isCreditsExhausted(accountId) && transformedBody?.enabledCreditTypes) {
                   // Already had credits injected and still failed — mark exhausted
