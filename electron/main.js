@@ -80,7 +80,11 @@ function resolveServerNodePath(env = process.env) {
     const trimmed = entry.trim();
     if (!trimmed) return;
     const normalized = path.normalize(trimmed);
-    if (seen.has(normalized) || !fs.existsSync(normalized)) return;
+    if (seen.has(normalized)) return; // already included
+    if (!fs.existsSync(normalized)) {
+      console.debug("[Electron] NODE_PATH candidate not found (skipped):", normalized);
+      return;
+    }
     seen.add(normalized);
     entries.push(normalized);
   };
