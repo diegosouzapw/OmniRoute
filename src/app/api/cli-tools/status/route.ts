@@ -20,28 +20,62 @@ async function checkToolConfigStatus(toolId: string): Promise<string> {
     if (!configPath) return "unknown";
 
     const content = await fs.readFile(configPath, "utf-8");
+
+    // Codex uses TOML config — parse as raw text, not JSON
+    if (toolId === "codex") {
+      const lower = content.toLowerCase();
+      const hasOmniRoute =
+        lower.includes("omniroute") ||
+        lower.includes(`localhost:${apiPort}`) ||
+        lower.includes(`127.0.0.1:${apiPort}`);
+      if (!hasOmniRoute) return "not_configured";
+
+      // Also verify auth.json has an API key (not masked/empty)
+      try {
+        const authPath = configPath.replace(/config\.toml$/, "auth.json");
+        const authContent = await fs.readFile(authPath, "utf-8");
+        const auth = JSON.parse(authContent);
+        const apiKey = auth?.OPENAI_API_KEY || "";
+        if (!apiKey || apiKey.includes("****") || apiKey.length < 20) {
+          return "not_configured";
+        }
+      } catch {
+        return "not_configured";
+      }
+
+      return "configured";
+    }
+
     const config = JSON.parse(content);
 
     // Each tool stores OmniRoute config differently
     switch (toolId) {
       case "claude":
         return config?.env?.ANTHROPIC_BASE_URL ? "configured" : "not_configured";
-      case "codex":
-        return config?.providers?.omniroute || config?.providers?.["openai-compatible"]
-          ? "configured"
-          : "not_configured";
       case "droid":
       case "openclaw":
       case "cline":
       case "kilo":
         // Generic check: look for OmniRoute-specific markers in the config
         const configStr = JSON.stringify(config).toLowerCase();
-        return configStr.includes("omniroute") ||
+        if (
+          configStr.includes("omniroute") ||
           configStr.includes("sk_omniroute") ||
           configStr.includes(`localhost:${apiPort}`) ||
           configStr.includes(`127.0.0.1:${apiPort}`)
-          ? "configured"
-          : "not_configured";
+        ) {
+          return "configured";
+        }
+        // Also accept openai-compatible provider with any non-empty baseUrl
+        // (user may configure an external domain instead of localhost)
+        if (
+          toolId === "cline" &&
+          (config.actModeApiProvider === "openai" || config.planModeApiProvider === "openai") &&
+          (config.openAiBaseUrl || "").trim().length > 0
+        ) {
+          return "configured";
+        }
+        return "not_configured";
       default:
         return "unknown";
     }

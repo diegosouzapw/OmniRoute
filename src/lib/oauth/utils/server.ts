@@ -68,8 +68,6 @@ export function startLocalServer(
     });
 
     // Listen on fixed port or find available port
-    // Use 0.0.0.0 to allow external CLI tools to complete OAuth callback
-    // when OmniRoute runs on a remote server/VPS
     const portToUse = fixedPort || 0;
     server.listen(portToUse, "0.0.0.0", () => {
       const addr = server.address() as { port: number };

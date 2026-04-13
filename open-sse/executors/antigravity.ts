@@ -4,8 +4,48 @@ import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts"
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
+const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
+
+/**
+ * Per-account GOOGLE_ONE_AI credits-exhausted tracker.
+ * Key: accountId (OAuth subject / email). Value: expiry timestamp.
+ * When credits hit 0 we skip the credit retry for CREDITS_EXHAUSTED_TTL_MS.
+ */
+const creditsExhaustedUntil = new Map<string, number>();
+
+/**
+ * Per-account GOOGLE_ONE_AI remaining credit balance cache.
+ * Populated from the final SSE chunk's `remainingCredits` field after every
+ * successful credit-injected request. Keyed by accountId.
+ */
+const creditBalanceCache = new Map<string, number>();
+
+/** Read the last-known GOOGLE_ONE_AI credit balance for a given account. */
+export function getAntigravityRemainingCredits(accountId: string): number | null {
+  const balance = creditBalanceCache.get(accountId);
+  return balance !== undefined ? balance : null;
+}
+
+/** Update the balance cache — called when we parse `remainingCredits` from an SSE stream. */
+export function updateAntigravityRemainingCredits(accountId: string, balance: number): void {
+  creditBalanceCache.set(accountId, balance);
+}
+
+function isCreditsExhausted(accountId: string): boolean {
+  const until = creditsExhaustedUntil.get(accountId);
+  if (!until) return false;
+  if (Date.now() >= until) {
+    creditsExhaustedUntil.delete(accountId);
+    return false;
+  }
+  return true;
+}
+
+function markCreditsExhausted(accountId: string): void {
+  creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
+}
 
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
@@ -213,7 +253,12 @@ export class AntigravityExecutor extends BaseExecutor {
     if (match[2]) totalMs += parseInt(match[2]) * 60 * 1000; // minutes
     if (match[3]) totalMs += parseInt(match[3]) * 1000; // seconds
 
-    return totalMs > 0 ? totalMs : null;
+    // "reset after 0s" = burst/RPM limit, not quota exhaustion.
+    // Return a minimum backoff so the auto-retry loop handles it
+    // instead of falling through to the 24h exhaustion classifier.
+    if (totalMs === 0) return 2_000; // 2s minimum burst-limit backoff
+
+    return totalMs;
   }
 
   /**
@@ -259,6 +304,7 @@ export class AntigravityExecutor extends BaseExecutor {
       let textContent = "";
       let finishReason = "stop";
       let usage: Record<string, unknown> | null = null;
+      let remainingCredits: Array<{ creditType: string; creditAmount: string }> | null = null;
       const lines = rawSSE.split("\n");
       for (const line of lines) {
         const trimmed = line.trim();
@@ -289,6 +335,10 @@ export class AntigravityExecutor extends BaseExecutor {
               total_tokens: um.totalTokenCount || 0,
             };
           }
+          // Credit balance — arrives in the final chunk alongside consumedCredits
+          if (Array.isArray(parsed?.remainingCredits)) {
+            remainingCredits = parsed.remainingCredits;
+          }
         } catch (e) {
           log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
         }
@@ -307,6 +357,8 @@ export class AntigravityExecutor extends BaseExecutor {
           },
         ],
         ...(usage && { usage }),
+        // Expose credit balance for upstream consumers (usage service, dashboard)
+        ...(remainingCredits && { _remainingCredits: remainingCredits }),
       };
 
       const syntheticStatus = timedOut ? 504 : response.status;
@@ -333,6 +385,12 @@ export class AntigravityExecutor extends BaseExecutor {
     // For non-streaming clients, we collect the SSE below and return a synthetic
     // non-streaming Response so chatCore's non-streaming path stays unchanged.
     const upstreamStream = true;
+
+    // Account ID for credits-exhausted tracking.
+    // Key must match getAntigravityUsage() in fetcher.ts (providerSpecificData?.email || sub).
+    // credentials.email and credentials.sub are populated from the same OAuth token store,
+    // so the cache keys written here and read in the fetcher will always match.
+    const accountId: string = credentials?.email || credentials?.sub || "unknown";
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
@@ -369,28 +427,105 @@ export class AntigravityExecutor extends BaseExecutor {
               const errorBody = await response.clone().text();
               const errorJson = JSON.parse(errorBody);
               const errorMessage = errorJson?.error?.message || errorJson?.message || "";
-              retryMs = this.parseRetryFromErrorMessage(errorMessage);
+              const lowerMsg = errorMessage.toLowerCase();
 
-              if (!retryMs) {
-                // Dynamic quota interpretation logic for Free vs Pro accounts
-                const lowerMsg = errorMessage.toLowerCase();
+              // ── AI Credits Overages fallback ─────────────────────────────────
+              // MUST run BEFORE parseRetryFromErrorMessage: the API embeds the
+              // reset time in the same message ("reset after 141h22m11s"), so
+              // parseRetryFromErrorMessage fills retryMs and the !retryMs guard
+              // below would silently skip the credit injection.
+              if (
+                lowerMsg.includes("exhausted your capacity") ||
+                lowerMsg.includes("exhausted your") ||
+                lowerMsg.includes("daily limit") ||
+                lowerMsg.includes("quota exceeded")
+              ) {
+                if (!isCreditsExhausted(accountId) && !transformedBody?.enabledCreditTypes) {
+                  log?.info?.(
+                    "CREDITS",
+                    `Quota exhausted for ${model} — retrying with GOOGLE_ONE_AI credits (account: ${accountId})`
+                  );
+                  const creditBody = { ...transformedBody, enabledCreditTypes: ["GOOGLE_ONE_AI"] };
+                  const creditRes = await fetch(url, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify(creditBody),
+                    signal,
+                  });
 
-                if (
-                  lowerMsg.includes("free tier") ||
-                  lowerMsg.includes("exhausted your capacity") ||
-                  lowerMsg.includes("daily limit") ||
-                  lowerMsg.includes("quota exceeded")
-                ) {
-                  // Hard limit hit for Free accounts (or exhausting general capacity), fallback immediately.
-                  // Setting a massive retryMs forces an instant fallback.
-                  retryMs = 24 * 60 * 60 * 1000; // 24 hours
-                } else if (
-                  lowerMsg.includes("pro") ||
-                  lowerMsg.includes("per minute") ||
-                  lowerMsg.includes("rpm")
-                ) {
-                  // RPM limit for Pro counts, backoff up to 1 minute, then fallback
-                  retryMs = 60 * 1000; // 60s
+                  if (creditRes.ok) {
+                    if (!stream) {
+                      const collected = await this.collectStreamToResponse(
+                        creditRes,
+                        model,
+                        url,
+                        headers,
+                        creditBody,
+                        log,
+                        signal
+                      );
+                      // Parse _remainingCredits from the synthetic response and cache
+                      try {
+                        const syntheticJson = await collected.response.clone().json();
+                        const rc = syntheticJson?._remainingCredits;
+                        if (Array.isArray(rc)) {
+                          const googleCredit = rc.find((c) => c.creditType === "GOOGLE_ONE_AI");
+                          if (googleCredit) {
+                            const balance = parseInt(googleCredit.creditAmount, 10);
+                            if (!isNaN(balance))
+                              updateAntigravityRemainingCredits(accountId, balance);
+                          }
+                        }
+                      } catch {
+                        /**/
+                      }
+                      return collected;
+                    }
+                    return { response: creditRes, url, headers, transformedBody: creditBody };
+                  }
+
+                  // Credit retry also failed — check if credits are exhausted
+                  try {
+                    const creditErrText = await creditRes.clone().text();
+                    const creditErrJson = JSON.parse(creditErrText);
+                    const creditErrMsg = (creditErrJson?.error?.message || "").toLowerCase();
+                    if (
+                      creditErrMsg.includes("credit") ||
+                      creditErrMsg.includes("insufficient") ||
+                      creditErrMsg.includes("exhausted")
+                    ) {
+                      log?.warn?.(
+                        "CREDITS",
+                        `GOOGLE_ONE_AI credits exhausted for account ${accountId} — caching for 5h`
+                      );
+                      markCreditsExhausted(accountId);
+                    }
+                  } catch {
+                    /**/
+                  }
+                  // Fall through to normal fallback logic below
+                } else if (!isCreditsExhausted(accountId) && transformedBody?.enabledCreditTypes) {
+                  // Already had credits injected and still failed — mark exhausted
+                  markCreditsExhausted(accountId);
+                  log?.warn?.("CREDITS", `Credits exhausted for account ${accountId}`);
+                }
+
+                // Hard quota limit — force fallback to next account regardless
+                retryMs = 24 * 60 * 60 * 1000;
+              } else {
+                // Not a quota-exhaustion error — try to parse a Retry-After from the message
+                retryMs = this.parseRetryFromErrorMessage(errorMessage);
+
+                if (!retryMs) {
+                  if (lowerMsg.includes("free tier") || lowerMsg.includes("free")) {
+                    retryMs = 24 * 60 * 60 * 1000;
+                  } else if (
+                    lowerMsg.includes("pro") ||
+                    lowerMsg.includes("per minute") ||
+                    lowerMsg.includes("rpm")
+                  ) {
+                    retryMs = 60 * 1000;
+                  }
                 }
               }
             } catch (e) {
