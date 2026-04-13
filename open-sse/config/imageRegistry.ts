@@ -150,6 +150,25 @@ export const IMAGE_PROVIDERS = {
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "256x256", "512x512"],
   },
+
+  // Freepik Pikaso (subscription/cookie-based, like Claude Code/Codex OAuth)
+  // Uses browser cookie auth, NOT the official Freepik API (api.freepik.com).
+  // A future "freepik-api" provider could use the official API key flow.
+  freepik: {
+    id: "freepik",
+    baseUrl: "https://www.freepik.com/pikaso/api",
+    renderUrl: "https://pikaso-data.freepik.com/pikaso/api/render/v4",
+    authType: "cookie",
+    authHeader: "cookie",
+    format: "freepik",
+    models: [
+      { id: "auto", name: "Freepik Auto (Imagen 3)" },
+      { id: "imagen3", name: "Freepik Imagen 3" },
+      { id: "nano_banana_pro", name: "Freepik Nano Banana Pro" },
+      { id: "nano_banana_2", name: "Freepik Nano Banana 2" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "512x512", "768x1024", "1024x768"],
+  },
 };
 
 /**

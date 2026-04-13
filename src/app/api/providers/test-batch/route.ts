@@ -4,6 +4,7 @@ import {
   FREE_PROVIDERS,
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
+  COOKIE_PROVIDERS,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -16,6 +17,7 @@ function getAuthGroup(providerId) {
   if (FREE_PROVIDERS[providerId]) return "free";
   if (OAUTH_PROVIDERS[providerId]) return "oauth";
   if (APIKEY_PROVIDERS[providerId]) return "apikey";
+  if (COOKIE_PROVIDERS[providerId]) return "cookie";
   if (
     typeof providerId === "string" &&
     (providerId.startsWith(OPENAI_COMPATIBLE_PREFIX) ||
@@ -73,13 +75,15 @@ export async function POST(request) {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "free");
     } else if (mode === "apikey") {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "apikey");
+    } else if (mode === "cookie") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "cookie");
     } else if (mode === "compatible") {
       connectionsToTest = allConnections.filter((c) => isCompatibleProvider(c.provider));
     } else if (mode === "all") {
       connectionsToTest = allConnections;
     } else {
       return NextResponse.json(
-        { error: "Invalid mode. Use: provider, oauth, free, apikey, compatible, all" },
+        { error: "Invalid mode. Use: provider, oauth, free, apikey, cookie, compatible, all" },
         { status: 400 }
       );
     }

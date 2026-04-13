@@ -14,7 +14,7 @@ import {
   Select,
   Toggle,
 } from "@/shared/components";
-import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
+import { OAUTH_PROVIDERS, APIKEY_PROVIDERS, COOKIE_PROVIDERS } from "@/shared/constants/config";
 import {
   FREE_PROVIDERS,
   isAnthropicCompatibleProvider,
@@ -399,6 +399,11 @@ export default function ProvidersPage() {
     showConfiguredOnly
   );
 
+  const cookieProviderEntries = filterConfiguredProviderEntries(
+    buildProviderEntries(COOKIE_PROVIDERS, "cookie", "cookie", getProviderStats),
+    showConfiguredOnly
+  );
+
   const compatibleProviderEntries = filterConfiguredProviderEntries(
     [
       ...compatibleProviders.map((provider) => ({
@@ -578,6 +583,49 @@ export default function ProvidersPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {apiKeyProviderEntries.map(
+            ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+              <ApiKeyProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType={displayAuthType}
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Browser Cookie Providers — subscription-based, browser cookie auth */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+            {t("cookieProviders", { defaultMessage: "Browser Cookie Providers" })}{" "}
+            <span
+              className="size-2.5 rounded-full bg-emerald-500"
+              title={t("cookieLabel", { defaultMessage: "Browser Cookie" })}
+            />
+          </h2>
+          <button
+            onClick={() => handleBatchTest("cookie")}
+            disabled={!!testingMode}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              testingMode === "cookie"
+                ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+            }`}
+            title={t("testAllCookie", { defaultMessage: "Test All Cookie Providers" })}
+            aria-label={t("testAllCookie", { defaultMessage: "Test All Cookie Providers" })}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {testingMode === "cookie" ? "sync" : "play_arrow"}
+            </span>
+            {testingMode === "cookie" ? t("testing") : t("testAll")}
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {cookieProviderEntries.map(
             ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
               <ApiKeyProviderCard
                 key={providerId}

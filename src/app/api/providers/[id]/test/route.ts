@@ -580,7 +580,7 @@ export async function testSingleConnection(connectionId: string, validationModel
       refreshed: false,
       diagnosis: (runtime as any).diagnosis,
     };
-  } else if (connection.authType === "apikey") {
+  } else if (connection.authType === "apikey" || connection.authType === "cookie") {
     const enrichedConnection = validationModelId
       ? {
           ...connection,

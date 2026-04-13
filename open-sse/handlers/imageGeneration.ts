@@ -142,6 +142,17 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
     return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
   }
 
+  if (providerConfig.format === "freepik") {
+    return handleFreepikImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
 }
 
@@ -1080,6 +1091,341 @@ async function handleComfyUIImageGeneration({ model, provider, providerConfig, b
     }).catch(() => {});
     return { success: false, status: 502, error: `Image provider error: ${err.message}` };
   }
+}
+
+/**
+ * Handle Freepik Pikaso image generation (cookie-based, 3-step async pipeline)
+ * Ported from github.com/woghks90729072/freepik2api
+ */
+async function handleFreepikImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const cookie = credentials.apiKey || credentials.accessToken || "";
+  if (!cookie) {
+    const errorMsg = "Freepik cookie is required. Set your Freepik cookie as the API key.";
+    if (log) log.error("IMAGE", `freepik auth error: ${errorMsg}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 401,
+      model: `freepik/${model || "auto"}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: errorMsg,
+    }).catch(() => {});
+    return { success: false, status: 401, error: errorMsg };
+  }
+
+  const xsrfMatch = cookie.match(/XSRF-TOKEN=([^;]+)/);
+  const xsrfToken = xsrfMatch ? decodeURIComponent(xsrfMatch[1]) : null;
+  if (!xsrfToken) {
+    const errorMsg = "XSRF-TOKEN not found in cookie string";
+    if (log) log.error("IMAGE", `freepik auth error: ${errorMsg}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 401,
+      model: `freepik/${model || "auto"}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: errorMsg,
+    }).catch(() => {});
+    return { success: false, status: 401, error: errorMsg };
+  }
+
+  const providerSpecificData =
+    credentials.providerSpecificData && typeof credentials.providerSpecificData === "object"
+      ? credentials.providerSpecificData
+      : null;
+  const userIdFromProviderData =
+    providerSpecificData && typeof providerSpecificData.userId === "string"
+      ? providerSpecificData.userId
+      : "";
+  const userId =
+    userIdFromProviderData ||
+    (() => {
+      const m = cookie.match(/UID=([^;]+)/);
+      return m ? m[1] : "";
+    })();
+  if (!userId) {
+    const errorMsg = "User ID not found. Set providerSpecificData.userId or include UID in cookie.";
+    if (log) log.error("IMAGE", `freepik auth error: ${errorMsg}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 401,
+      model: `freepik/${model || "auto"}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: errorMsg,
+    }).catch(() => {});
+    return { success: false, status: 401, error: errorMsg };
+  }
+
+  const freepikHeaders = {
+    accept: "application/json",
+    "content-type": "application/json",
+    "x-requested-with": "XMLHttpRequest",
+    "x-xsrf-token": xsrfToken,
+    cookie,
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    origin: "https://www.freepik.com",
+    referer: "https://www.freepik.com/pikaso/ai-image-generator",
+  };
+
+  const numImages = Math.min(Math.max(body.n || 1, 1), 4);
+  const [width, height] = (body.size || "1024x1024").split("x").map(Number);
+  const mode = model || "auto";
+  const sizeToAspect = {
+    "1024x1024": "1:1",
+    "1024x1792": "9:16",
+    "1792x1024": "16:9",
+    "512x512": "1:1",
+    "768x1024": "3:4",
+    "1024x768": "4:3",
+  };
+  const aspectRatio = sizeToAspect[body.size] || mapImageSize(body.size) || "1:1";
+  const logRequestBody = {
+    model: body.model,
+    prompt:
+      typeof body.prompt === "string"
+        ? body.prompt.slice(0, 200)
+        : String(body.prompt ?? "").slice(0, 200),
+    size: body.size || "default",
+    n: numImages,
+  };
+
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info(
+      "IMAGE",
+      `freepik/${mode} | prompt: "${promptPreview}..." | ${numImages} image(s) | aspect: ${aspectRatio}`
+    );
+  }
+
+  try {
+    // Step 1: Start generation
+    const startUrl = `${providerConfig.baseUrl}/start-tti-v2?lang=en_US&user_id=${encodeURIComponent(userId)}`;
+    const startBody = {
+      mode,
+      prompt: body.prompt,
+      references: [],
+      num_images: numImages,
+      aspect_ratio: aspectRatio,
+      color_palette: null,
+      color_palette_id: null,
+      variations: false,
+      force_credits: false,
+    };
+    const startResp = await fetch(startUrl, {
+      method: "POST",
+      headers: freepikHeaders,
+      body: JSON.stringify(startBody),
+    });
+    if (!startResp.ok) {
+      const errorText = await startResp.text();
+      if (log) {
+        log.error(
+          "IMAGE",
+          `freepik start-tti-v2 error ${startResp.status}: ${errorText.slice(0, 200)}`
+        );
+      }
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: startResp.status,
+        model: `freepik/${mode}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText.slice(0, 500),
+        requestBody: logRequestBody,
+      }).catch(() => {});
+      return { success: false, status: startResp.status, error: errorText };
+    }
+    const startData = await startResp.json();
+    const { family, request_tokens } = startData;
+    if (!family || !request_tokens?.length) {
+      const errorText = `Freepik start-tti-v2 missing family/tokens: ${JSON.stringify(startData).slice(0, 400)}`;
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 502,
+        model: `freepik/${mode}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText,
+      }).catch(() => {});
+      return { success: false, status: 502, error: errorText };
+    }
+    // Validate enough tokens were returned for the requested number of images
+    if (request_tokens.length < numImages) {
+      const errorText = `Freepik returned ${request_tokens.length} request token(s) but ${numImages} were requested`;
+      if (log) log.error("IMAGE", `freepik: ${errorText}`);
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 502,
+        model: `freepik/${mode}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText,
+        requestBody: logRequestBody,
+      }).catch(() => {});
+      return { success: false, status: 502, error: errorText };
+    }
+    if (log) log.info("IMAGE", `freepik: family=${family}, tokens=${request_tokens.length}`);
+
+    // Step 2: Submit render requests in parallel
+    const renderUrl = `${providerConfig.renderUrl}?lang=en_US&user_id=${encodeURIComponent(userId)}`;
+    const renderPromises: Promise<{ creation?: { id?: string } }>[] = [];
+    for (let i = 0; i < numImages; i++) {
+      const renderBody = {
+        tool: "text-to-image",
+        mode,
+        family,
+        prompt: body.prompt,
+        negative_prompt: body.negative_prompt || "",
+        width: width || 1024,
+        height: height || 1024,
+        seed: body.seed ?? Math.floor(Math.random() * 999999),
+        aspect_ratio: aspectRatio,
+        request_token: request_tokens[i],
+        force_credits: false,
+        metadata: {},
+        smart_prompt: true,
+        image_index: i,
+        num_images: numImages,
+      };
+      renderPromises.push(
+        fetch(renderUrl, {
+          method: "POST",
+          headers: freepikHeaders,
+          body: JSON.stringify(renderBody),
+        }).then(async (resp) => {
+          if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`render/v4 failed (${resp.status}): ${errText.slice(0, 200)}`);
+          }
+          return resp.json();
+        })
+      );
+    }
+    const renderResults = await Promise.all(renderPromises);
+    const creationIds = renderResults
+      .map((r) => r.creation?.id)
+      .filter((id): id is string => Boolean(id));
+    if (creationIds.length === 0) {
+      const errorText = `Freepik render returned no creation IDs: ${JSON.stringify(renderResults).slice(0, 400)}`;
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 502,
+        model: `freepik/${mode}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText,
+      }).catch(() => {});
+      return { success: false, status: 502, error: errorText };
+    }
+    if (log) log.info("IMAGE", `freepik: ${creationIds.length} render(s) submitted, polling...`);
+
+    // Step 3: Poll for completion
+    const pollCreation = async (creationId: string) => {
+      const pollUrl = `${providerConfig.baseUrl}/creations?ids[]=${encodeURIComponent(creationId)}&lang=en_US&user_id=${encodeURIComponent(userId)}`;
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const pollResp = await fetch(pollUrl, { method: "GET", headers: freepikHeaders });
+        if (!pollResp.ok) throw new Error(`Poll failed (${pollResp.status})`);
+        const pollData = await pollResp.json();
+        const creation = pollData.data?.[0];
+        if (!creation) {
+          await sleep(2000);
+          continue;
+        }
+        if (creation.status === "completed") {
+          return { url: creation.url, revised_prompt: creation.metadata?.prompt || body.prompt };
+        }
+        if (creation.status === "failed") {
+          throw new Error(`Generation failed: ${JSON.stringify(creation.metadata).slice(0, 200)}`);
+        }
+        await sleep(2000);
+      }
+      throw Object.assign(new Error("Freepik generation timed out after 60s"), { isTimeout: true });
+    };
+    const completedImages = await Promise.all(creationIds.map(pollCreation));
+    if (log) log.info("IMAGE", `freepik: ${completedImages.length} image(s) completed`);
+
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 200,
+      model: `freepik/${mode}`,
+      provider,
+      duration: Date.now() - startTime,
+      tokens: { prompt_tokens: 0, completion_tokens: 0 },
+      requestBody: logRequestBody,
+      responseBody: { images_count: completedImages.length },
+    }).catch(() => {});
+    return {
+      success: true,
+      data: { created: Math.floor(Date.now() / 1000), data: completedImages },
+    };
+  } catch (err) {
+    const errMsg = (err as Error).message;
+    const isTimeout = (err as Error & { isTimeout?: boolean }).isTimeout === true;
+    const status = isTimeout ? 504 : 502;
+    if (log) log.error("IMAGE", `freepik error: ${errMsg}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status,
+      model: `freepik/${mode}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: errMsg,
+      requestBody: logRequestBody,
+    }).catch(() => {});
+    return { success: false, status, error: `Freepik image error: ${errMsg}` };
+  }
+}
+
+/**
+ * Freepik account utilities — wallet and limits (ported from freepik2api)
+ * These proxy through to Freepik's Pikaso API using the same cookie auth.
+ */
+export async function getFreepikAccountInfo(cookie: string, endpoint: "wallet" | "limits") {
+  const xsrfMatch = cookie.match(/XSRF-TOKEN=([^;]+)/);
+  const xsrfToken = xsrfMatch ? decodeURIComponent(xsrfMatch[1]) : null;
+  if (!xsrfToken) return { error: "XSRF-TOKEN not found in cookie string" };
+
+  const uidMatch = cookie.match(/UID=([^;]+)/);
+  const userId = uidMatch ? uidMatch[1] : "";
+  if (!userId) return { error: "UID not found in cookie string" };
+
+  const headers = {
+    accept: "application/json",
+    "x-requested-with": "XMLHttpRequest",
+    "x-xsrf-token": xsrfToken,
+    cookie,
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    origin: "https://www.freepik.com",
+    referer: "https://www.freepik.com/pikaso/ai-image-generator",
+  };
+
+  const url = `https://www.freepik.com/pikaso/api/${endpoint}?lang=en_US&user_id=${encodeURIComponent(userId)}`;
+  const resp = await fetch(url, { method: "GET", headers });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    return { error: `Freepik ${endpoint} failed (${resp.status}): ${errText.slice(0, 300)}` };
+  }
+  return resp.json();
 }
 
 type Imagen3ImageGenArgs = {

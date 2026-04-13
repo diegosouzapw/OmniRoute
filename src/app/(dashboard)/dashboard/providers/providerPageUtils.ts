@@ -7,15 +7,15 @@ export interface ProviderEntry<TProvider = Record<string, unknown>> {
   providerId: string;
   provider: TProvider;
   stats: ProviderStatsSnapshot;
-  displayAuthType: "oauth" | "apikey" | "compatible";
-  toggleAuthType: "oauth" | "free" | "apikey";
+  displayAuthType: "oauth" | "apikey" | "cookie" | "compatible";
+  toggleAuthType: "oauth" | "free" | "apikey" | "cookie";
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
 type GetProviderStats = (
   providerId: string,
-  authType: "oauth" | "free" | "apikey"
+  authType: "oauth" | "free" | "apikey" | "cookie"
 ) => ProviderStatsSnapshot;
 
 export function buildProviderEntries<TProvider = Record<string, unknown>>(

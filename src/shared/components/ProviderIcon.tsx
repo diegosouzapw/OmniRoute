@@ -188,6 +188,7 @@ const KNOWN_SVGS = new Set([
   "comfyui",
   "elevenlabs",
   "exa-search",
+  "freepik",
   "exa",
   "huggingface",
   "hyperbolic",

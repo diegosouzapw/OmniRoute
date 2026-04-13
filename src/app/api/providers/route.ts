@@ -5,7 +5,7 @@ import {
   getProviderNodeById,
   isCloudEnabled,
 } from "@/models";
-import { APIKEY_PROVIDERS } from "@/shared/constants/config";
+import { APIKEY_PROVIDERS, COOKIE_PROVIDERS } from "@/shared/constants/config";
 import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
     const newConnection = await createProviderConnection({
       provider,
-      authType: "apikey",
+      authType: COOKIE_PROVIDERS[provider] ? "cookie" : "apikey",
       name,
       apiKey,
       priority: priority || 1,

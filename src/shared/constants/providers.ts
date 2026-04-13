@@ -933,6 +933,23 @@ export const APIKEY_PROVIDERS = {
   },
 };
 
+// Browser Cookie Providers (subscription-based, use browser session cookies)
+export const COOKIE_PROVIDERS = {
+  freepik: {
+    id: "freepik",
+    alias: "fpk",
+    name: "Freepik (Browser Cookie)",
+    icon: "image",
+    color: "#0B63E5",
+    textIcon: "FP",
+    website: "https://www.freepik.com/pikaso/ai-image-generator",
+    freeNote:
+      "Uses your Freepik subscription via browser cookie \u2014 Imagen 3, Nano Banana Pro/2",
+    authHint:
+      "Paste your full Freepik browser cookie (from DevTools \u2192 Application \u2192 Cookies). Must include XSRF-TOKEN and UID.",
+  },
+};
+
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 export const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
@@ -972,6 +989,7 @@ export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
   ...OAUTH_PROVIDERS,
   ...APIKEY_PROVIDERS,
+  ...COOKIE_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
 };
 
@@ -979,6 +997,7 @@ export const AI_PROVIDERS = {
 export const AUTH_METHODS = {
   oauth: { id: "oauth", name: "OAuth", icon: "lock" },
   apikey: { id: "apikey", name: "API Key", icon: "key" },
+  cookie: { id: "cookie", name: "Browser Cookie", icon: "cookie" },
 };
 
 // Helper: Get provider by alias
@@ -1033,3 +1052,4 @@ import { validateProviders } from "../validation/providerSchema";
 validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
 validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
 validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
+validateProviders(COOKIE_PROVIDERS, "COOKIE_PROVIDERS");

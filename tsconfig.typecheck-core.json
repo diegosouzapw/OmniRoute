@@ -9,6 +9,7 @@
   },
   "include": [],
   "files": [
+    "src/types/global.d.ts",
     "src/app/api/settings/proxy/test/route.ts",
     "src/lib/db/apiKeys.ts",
     "src/lib/db/cliToolState.ts",

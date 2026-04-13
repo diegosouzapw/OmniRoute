@@ -1,6 +1,6 @@
 const DEFAULT_OMNIROUTE_BASE_URL = "http://localhost:20128";
 
-type OmniRouteBaseUrlEnv = {
+type OmniRouteBaseUrlEnv = NodeJS.ProcessEnv & {
   OMNIROUTE_BASE_URL?: string;
   BASE_URL?: string;
   NEXT_PUBLIC_BASE_URL?: string;

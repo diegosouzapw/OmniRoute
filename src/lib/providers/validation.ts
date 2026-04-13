@@ -1014,6 +1014,20 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,
+    freepik: async ({ apiKey }: any) => {
+      try {
+        // Freepik uses browser cookie auth — validate by calling the wallet endpoint
+        const { getFreepikAccountInfo } =
+          await import("@omniroute/open-sse/handlers/imageGeneration.ts");
+        const result = await getFreepikAccountInfo(apiKey, "wallet");
+        if (result && typeof result === "object" && "error" in result) {
+          return { valid: false, error: result.error as string };
+        }
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: error.message || "Cookie validation failed" };
+      }
+    },
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
