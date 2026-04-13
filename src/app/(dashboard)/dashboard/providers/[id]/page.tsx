@@ -46,6 +46,7 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
+import { getCodexRequestDefaults as _getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -554,27 +555,19 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
   };
 }
 
+/**
+ * UI adapter around the canonical getCodexRequestDefaults from requestDefaults.ts.
+ * Adds the "medium" fallback for reasoningEffort required by the connection form.
+ */
 function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort: string;
   serviceTier?: "priority";
 } {
-  const record =
-    providerSpecificData && typeof providerSpecificData === "object"
-      ? (providerSpecificData as Record<string, unknown>)
-      : {};
-  const requestDefaults =
-    record.requestDefaults && typeof record.requestDefaults === "object"
-      ? (record.requestDefaults as Record<string, unknown>)
-      : {};
-  const reasoningEffort =
-    typeof requestDefaults.reasoningEffort === "string" &&
-    CODEX_REASONING_STRENGTH_OPTIONS.some(
-      (option) => option.value === requestDefaults.reasoningEffort
-    )
-      ? requestDefaults.reasoningEffort
-      : "medium";
-  const serviceTier = requestDefaults.serviceTier === "priority" ? "priority" : undefined;
-  return { reasoningEffort, ...(serviceTier ? { serviceTier } : {}) };
+  const defaults = _getCodexRequestDefaults(providerSpecificData);
+  return {
+    reasoningEffort: defaults.reasoningEffort ?? "medium",
+    ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
+  };
 }
 
 function compatProtocolLabelKey(protocol: string): string {
