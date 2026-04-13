@@ -2,11 +2,16 @@ import { Skill, SkillSchema } from "./types";
 import { SkillCreateInputSchema } from "./schemas";
 import { getDbInstance } from "../db/core";
 import { randomUUID } from "crypto";
+import { logger } from "../../../open-sse/utils/logger.js";
+
+const log = logger("SKILLS");
 
 class SkillRegistry {
   private static instance: SkillRegistry;
   private registeredSkills: Map<string, Skill> = new Map();
   private versionCache: Map<string, Map<string, Skill>> = new Map();
+  private lastLoaded: number = 0;
+  private readonly cacheTTL: number = 60_000; // 60 seconds
 
   private constructor() {}
 
@@ -15,6 +20,14 @@ class SkillRegistry {
       SkillRegistry.instance = new SkillRegistry();
     }
     return SkillRegistry.instance;
+  }
+
+  private isCacheStale(): boolean {
+    return Date.now() - this.lastLoaded > this.cacheTTL;
+  }
+
+  invalidateCache(): void {
+    this.lastLoaded = 0;
   }
 
   async register(skillData: {
@@ -63,6 +76,7 @@ class SkillRegistry {
 
     this.registeredSkills.set(`${parsed.name}@${parsed.version}`, skill);
     this.updateVersionCache(skill);
+    this.invalidateCache();
 
     return skill;
   }
@@ -77,6 +91,7 @@ class SkillRegistry {
         db.prepare("DELETE FROM skills WHERE id = ?").run(skill.id);
         this.registeredSkills.delete(key);
         this.rebuildVersionCache(name);
+        this.invalidateCache();
         return true;
       }
     } else {
@@ -90,6 +105,7 @@ class SkillRegistry {
           .map(([key]) => key);
         keysToDelete.forEach((k) => this.registeredSkills.delete(k));
         this.rebuildVersionCache(name);
+        this.invalidateCache();
         return true;
       }
     }
@@ -110,12 +126,14 @@ class SkillRegistry {
         });
       keysToDelete.forEach((k) => this.registeredSkills.delete(k));
       affectedNames.forEach((name) => this.rebuildVersionCache(name));
+      this.invalidateCache();
       return true;
     }
     return false;
   }
 
   list(apiKeyId?: string): Skill[] {
+    log.debug("skills.registry.list", { apiKeyId, cached: !this.isCacheStale() });
     if (apiKeyId) {
       return Array.from(this.registeredSkills.values()).filter((s) => s.apiKeyId === apiKeyId);
     }
@@ -212,6 +230,10 @@ class SkillRegistry {
   }
 
   async loadFromDatabase(apiKeyId?: string): Promise<void> {
+    if (!this.isCacheStale()) return;
+
+    log.debug("skills.registry.loadFromDatabase", { cached: false });
+
     const db = getDbInstance();
     const rows = apiKeyId
       ? db.prepare("SELECT * FROM skills WHERE api_key_id = ?").all(apiKeyId)
@@ -233,6 +255,8 @@ class SkillRegistry {
       this.registeredSkills.set(`${skill.name}@${skill.version}`, skill);
       this.updateVersionCache(skill);
     }
+
+    this.lastLoaded = Date.now();
   }
 }
 
