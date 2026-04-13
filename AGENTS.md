@@ -141,9 +141,70 @@ All persistence uses SQLite through domain-specific modules:
 Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
+#### DB Internals
+
+- **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
+  journaling. `SCHEMA_SQL` defines 14 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
+- **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
+  Tracks applied migrations in `_omniroute_migrations` table.
+- **Migrations**: 21 files (`001_initial_schema.sql` → `021_combo_call_log_targets.sql`).
+  Each migration is idempotent and runs in a transaction.
+- **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
+  Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
+  `combos.ts` → `combos`). Encryption helpers protect sensitive fields at rest.
+- **`localDb.ts`** re-exports all domain modules — consumers import from here for convenience,
+  but **never add logic** to this file.
+
+### API Route Layer (`src/app/api/v1/`)
+
+Next.js App Router routes — each follows a consistent pattern:
+
+```
+Route → CORS preflight → Body validation (Zod) → Optional auth (extractApiKey/isValidApiKey)
+  → API key policy enforcement (enforceApiKeyPolicy) → Handler delegation (open-sse)
+```
+
+| Route                           | Handler                   | Notes                                     |
+| ------------------------------- | ------------------------- | ----------------------------------------- |
+| `chat/completions/route.ts`     | `handleChat()`            | + prompt injection guard (clones request) |
+| `responses/route.ts`            | `handleChat()` (unified)  | Responses API format                      |
+| `embeddings/route.ts`           | `handleEmbedding()`       | Model listing + creation                  |
+| `images/generations/route.ts`   | `handleImageGeneration()` | Model listing + creation                  |
+| `audio/transcriptions/route.ts` | audio handler             | Multipart form data                       |
+| `audio/speech/route.ts`         | TTS handler               | Binary audio response                     |
+| `videos/generations/route.ts`   | video handler             | ComfyUI/SD WebUI                          |
+| `music/generations/route.ts`    | music handler             | ComfyUI workflows                         |
+| `moderations/route.ts`          | moderation handler        | Content safety                            |
+| `rerank/route.ts`               | rerank handler            | Document relevance                        |
+| `search/route.ts`               | search handler            | Web search (5 providers)                  |
+
+**No global Next.js middleware file** — interception is route-specific. Auth is optional
+(controlled by `REQUIRE_API_KEY` env). Prompt injection guard is unique to chat completions.
+
 ### Request Pipeline (`open-sse/`)
 
-`chatCore.ts` → executor → upstream provider. Translations in `open-sse/translator/`.
+The `open-sse/` workspace is the core streaming engine. Full request flow:
+
+```
+Client Request
+  → src/app/api/v1/.../route.ts (Next.js route)
+    → open-sse/handlers/chatCore.ts::handleChatCore()
+      → Semantic/signature cache check
+      → Rate limit check (rateLimitManager)
+      → Combo routing? → open-sse/services/combo.ts::handleComboChat()
+        → resolveComboTargets() → ordered ResolvedComboTarget[]
+        → For each target: handleSingleModel() (wraps chatCore)
+      → translateRequest() (open-sse/translator/)
+        → Convert source format (e.g., OpenAI) → target format (e.g., Claude)
+      → getExecutor() → provider-specific executor instance
+        → executor.execute() (BaseExecutor → DefaultExecutor or provider-specific)
+          → buildUrl() + buildHeaders() + transformRequest()
+          → fetch() to upstream provider
+          → Retry logic with exponential backoff
+      → Response translation back to client format
+      → If Responses API: responsesTransformer.ts TransformStream
+  → SSE stream or JSON response to client
+```
 
 **Handlers** (`open-sse/handlers/`): `chatCore.ts`, `responsesHandler.ts`, `embeddings.ts`,
 `imageGeneration.ts`, `videoGeneration.ts`, `musicGeneration.ts`, `audioSpeech.ts`,
@@ -180,14 +241,45 @@ Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `code
 `antigravity.ts`, `github.ts`, `gemini-cli.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
 `cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
 
+#### Executor Internals
+
+- **`base.ts`** (`BaseExecutor`): Abstract base with `buildUrl()`, `buildHeaders()`,
+  `transformRequest()`, retry logic (exponential backoff), and `execute()`. Subclasses
+  override URL/header/transform methods for provider-specific behavior.
+- **`default.ts`** (`DefaultExecutor extends BaseExecutor`): Handles most OpenAI-compatible
+  providers. Reads provider config from `providerRegistry.ts` to resolve base URL, auth
+  header format, and request transformations.
+- **`getExecutor()`** (`executors/index.ts`): Factory that returns the correct executor
+  instance based on provider ID. Provider-specific executors (Cursor, Codex, Vertex, etc.)
+  override only what differs from the default.
+
 ### Translator (`open-sse/translator/`)
 
 Translates between API formats (OpenAI-format ↔ Anthropic, Gemini, etc.).
 Includes request/response translators with helpers for image handling.
 
+#### Translator Internals
+
+- **`translator/index.ts`**: Exports `translateRequest()` and format constants. Called by
+  `chatCore.ts` before executor dispatch.
+- **Flow**: `translateRequest(body, sourceFormat, targetFormat)` → detects source format
+  (OpenAI, Anthropic, Gemini) → applies the matching translator module → returns
+  transformed body ready for the target provider.
+- **Response translation** runs in reverse after upstream response, converting back to
+  the client's expected format.
+
 ### Transformer (`open-sse/transformer/`)
 
 `responsesTransformer.ts` — transforms Responses API format to/from Chat Completions format.
+
+#### Transformer Internals
+
+- **`createResponsesApiTransformStream()`**: Returns a `TransformStream` that converts
+  Chat Completions SSE chunks (`data: {"choices":[...]}`) into Responses API SSE events
+  (`response.output_item.added`, `response.output_text.delta`, etc.).
+- Used when the client sends a Responses API request: the request is internally converted
+  to Chat Completions format, dispatched normally, and the response is piped through this
+  transform stream before reaching the client.
 
 ### Services (`open-sse/services/`)
 
@@ -197,6 +289,17 @@ Includes request/response translators with helpers for image handling.
 `contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
 `emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
 `signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, and more.
+
+#### Combo Routing Engine (`combo.ts`)
+
+- **`handleComboChat()`**: Entry point for combo-routed requests. Receives the combo config
+  and iterates through targets in order until one succeeds or all fail.
+- **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
+  `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
+- **Strategies** (13): priority, weighted, fill-first, round-robin, P2C, random, least-used,
+  cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay.
+- Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
+  per-target error handling and circuit breaker checks.
 
 ### Domain Layer (`src/domain/`)
 
@@ -217,11 +320,36 @@ best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
 
 **Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
 
+#### MCP Internals
+
+- **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
+handler: async (args) => {...} }`. Zod validates inputs before the handler fires.
+- **`createMcpServer()`** and **`startMcpStdio()`** exported from `mcp-server/index.ts`.
+  `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
+- **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
+  (`/api/mcp/stream`). All share the same tool/scope engine.
+- **Scopes** (10): Control which tool categories an API key can access. Enforcement happens
+  before handler dispatch.
+- **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
+  args, success/failure, API key attribution, and timestamp.
+
 ### A2A Server (`src/lib/a2a/`)
 
-JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup(
+JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
 Agent Card at `/.well-known/agent.json`.
 Skills: `quotaManagement.ts`, `smartRouting.ts`.
+
+#### A2A Internals
+
+- **`taskManager.ts`**: State machine lifecycle for tasks: `submitted → working →
+completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
+- **JSON-RPC methods**: `message/send` (sync), `message/stream` (SSE), `tasks/get`,
+  `tasks/cancel`. Dispatched via `POST /a2a`.
+- **Skills**: Registered in a DB-backed registry. Each skill receives task context
+  (messages, metadata) and returns structured results. `quotaManagement.ts` summarizes
+  quota; `smartRouting.ts` recommends routing decisions.
+- **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
+  for client auto-discovery.
 
 ### ACP Module (`src/lib/acp/`)
 
@@ -236,6 +364,19 @@ conversational memory across sessions.
 
 Extensible skill framework: registry, executor, sandbox, built-in skills,
 custom skill support, interception, and injection.
+
+#### Skills Internals
+
+- **`registry.ts`**: DB-backed skill registration and discovery. Skills have metadata
+  (name, description, version, enabled status) stored in SQLite.
+- **`executor.ts`**: Execution engine with configurable timeout and retry logic.
+  Receives skill name + input, looks up the skill, runs it in the sandbox.
+- **`sandbox.ts`**: Isolation layer for custom (user-provided) skills. Limits resource
+  access and execution time.
+- **Built-in skills**: Ship with OmniRoute (e.g., quota management, routing). Located
+  alongside the registry.
+- **Interception/Injection**: Skills can intercept requests in the pipeline (pre/post
+  processing) or inject context into prompts.
 
 ### Compliance (`src/lib/compliance/`)
 
