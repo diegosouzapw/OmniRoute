@@ -64,16 +64,11 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (60% minimum for statements, lines, functions, and branches)
+# Coverage (see CONTRIBUTING.md)
 npm run test:coverage
 ```
 
-### PR Coverage Policy
-
-- `npm run test:coverage` is the PR coverage gate in CI.
-- The repository minimum is **60%** for statements, lines, functions, and branches.
-- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must include or update automated tests in the same PR.
-- For agent-driven review or coding flows: if coverage is below the gate or source changes ship without tests, do not stop at reporting. Add or update tests first, rerun the gate, and only then ask for confirmation.
+**For authoritative coverage requirements, test execution, and PR gates, see [`CONTRIBUTING.md`](CONTRIBUTING.md#running-tests) (lines 136–162).**
 
 ---
 
@@ -152,8 +147,7 @@ Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
   `combos.ts` → `combos`). Encryption helpers protect sensitive fields at rest.
-- **`localDb.ts`** re-exports all domain modules — consumers import from here for convenience,
-  but **never add logic** to this file.
+- **`localDb.ts`** re-exports all domain modules — consumers import from here for convenience.
 
 ### API Route Layer (`src/app/api/v1/`)
 
@@ -397,6 +391,14 @@ Request middleware including `promptInjectionGuard.ts`.
 3. Add translator in `open-sse/translator/` (if non-OpenAI format)
 4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` (if OAuth-based)
 5. Add models in `open-sse/config/providerRegistry.ts`
+
+---
+
+## Subdirectory AGENTS.md Files
+
+- **[`open-sse/AGENTS.md`](open-sse/AGENTS.md)** — Streaming engine, request pipeline, handlers, and executors
+- **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
+- **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
 
 ---
 
