@@ -7,19 +7,28 @@
  *      subscriptions where CLIProxyAPI has deeper emulation (uTLS, multi-account
  *      rotation, device profile learning, per-key config, sensitive word obfuscation)
  *
- * The mode is selected based on provider type or explicit configuration.
- * When routing Claude Code OAuth requests, CLIProxyAPI handles all 21 Claude Code
- * mechanisms (CCH signing, billing header, system prompt, tool remapping, etc.)
- * natively in Go, which may provide better fingerprint parity than the Node.js
- * implementation in OmniRoute.
+ * Mode selection priority:
+ *   1. Explicit `cliproxyapiMode` in providerSpecificData (set via Settings UI)
+ *   2. Provider type: anthropic-compatible-cc-* → claude-native
+ *   3. Default: openai
+ *
+ * Token prefix alone is NOT used for mode detection (review feedback #4):
+ * a sk-ant-oat01-* key routed through an OpenAI-format provider would send
+ * an OpenAI-shaped body to the Claude Messages endpoint, causing failures.
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "./base.ts";
+import {
+  BaseExecutor,
+  mergeUpstreamExtraHeaders,
+  mergeAbortSignals,
+  type ProviderCredentials,
+} from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { isClaudeCodeCompatibleProvider } from "../services/claudeCodeCompatible.ts";
 
 const DEFAULT_PORT = 8317;
 const DEFAULT_HOST = "127.0.0.1";
+const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
 export type CliproxyapiMode = "openai" | "claude-native";
 
@@ -45,61 +54,62 @@ export class CliproxyapiExecutor extends BaseExecutor {
   }
 
   /**
-   * Determine which CLIProxyAPI endpoint to use based on provider type.
-   * Claude Code compatible providers use the native Claude route for
-   * deeper emulation; everything else uses OpenAI-compatible.
+   * Determine which CLIProxyAPI endpoint to use.
+   *
+   * Decision order:
+   *   1. Explicit override via providerSpecificData.cliproxyapiMode (Settings UI toggle)
+   *   2. Provider name starts with anthropic-compatible-cc- → claude-native
+   *   3. Default: openai
+   *
+   * Does NOT sniff token prefix (review #4): the caller's provider/format
+   * must match the endpoint format. An OAuth token on an OpenAI-format
+   * provider stays on the OpenAI path.
    */
-  private resolveMode(credentials: any): CliproxyapiMode {
-    // Explicit mode override from provider config
-    const explicitMode = credentials?.providerSpecificData?.cliproxyapiMode;
-    if (explicitMode === "claude-native") return "claude-native";
-    if (explicitMode === "openai") return "openai";
+  resolveMode(credentials: ProviderCredentials | null, provider?: string): CliproxyapiMode {
+    // 1. Explicit per-provider toggle (set via Settings UI)
+    const explicit = credentials?.providerSpecificData?.cliproxyapiMode;
+    if (explicit === "claude-native") return "claude-native";
+    if (explicit === "openai") return "openai";
 
-    // Auto-detect: if the credential looks like a Claude OAuth token, use native
-    const key = credentials?.apiKey || credentials?.accessToken || "";
-    if (typeof key === "string" && key.startsWith("sk-ant-oat01-")) {
-      return "claude-native";
-    }
+    // 2. Provider type detection
+    const providerName =
+      typeof provider === "string" ? provider : String(credentials?.providerSpecificData?.providerId || "");
+    if (isClaudeCodeCompatibleProvider(providerName)) return "claude-native";
 
     return "openai";
   }
 
-  buildUrl(model: string, stream: boolean, _urlIndex = 0, credentials: any = null): string {
+  buildUrl(
+    model: string,
+    stream: boolean,
+    _urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ): string {
     const mode = this.resolveMode(credentials);
     if (mode === "claude-native") {
-      // Route through CLIProxyAPI's dedicated Claude provider endpoint
-      // which applies full CCH signing, billing header, system prompt, etc.
       return `${this.upstreamBaseUrl}/api/provider/claude/v1/messages`;
     }
     return `${this.upstreamBaseUrl}/v1/chat/completions`;
   }
 
-  buildHeaders(credentials: any, stream = true): Record<string, string> {
+  buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
     const mode = this.resolveMode(credentials);
+    const key = credentials?.apiKey || credentials?.accessToken;
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    const key = credentials?.apiKey || credentials?.accessToken;
+    if (key) {
+      headers["Authorization"] = `Bearer ${key}`;
+    }
+    if (stream) {
+      headers["Accept"] = "text/event-stream";
+    }
 
+    // Claude-native: pass anthropic-version so CLIProxyAPI can use it
     if (mode === "claude-native") {
-      // For Claude native mode, pass the OAuth token directly
-      // CLIProxyAPI's Claude executor will handle all header injection
-      if (key) {
-        headers["Authorization"] = `Bearer ${key}`;
-      }
-      if (stream) {
-        headers["Accept"] = "text/event-stream";
-      }
-      // Pass through anthropic-specific headers so CLIProxyAPI can use them
       headers["anthropic-version"] = "2023-06-01";
-    } else {
-      if (key) {
-        headers["Authorization"] = `Bearer ${key}`;
-      }
-      if (stream) {
-        headers["Accept"] = "text/event-stream";
-      }
     }
 
     return headers;
@@ -107,19 +117,19 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
   transformRequest(
     model: string,
-    body: any,
+    body: unknown,
     _stream: boolean,
-    _credentials: any
-  ): any {
-    const mode = this.resolveMode(_credentials);
+    _credentials: ProviderCredentials | null
+  ): unknown {
     if (!body || typeof body !== "object") return body;
+    const mode = this.resolveMode(_credentials);
 
-    const transformed = { ...body };
+    const transformed = { ...(body as Record<string, unknown>) };
     if (transformed.model !== model) {
       transformed.model = model;
     }
 
-    // For Claude native mode, ensure stream is set in body (Anthropic API reads it from body)
+    // Anthropic API reads stream from the body, not just the Accept header
     if (mode === "claude-native" && _stream && !transformed.stream) {
       transformed.stream = true;
     }
@@ -131,7 +141,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
     model: string;
     body: unknown;
     stream: boolean;
-    credentials: any;
+    credentials: ProviderCredentials;
     signal?: AbortSignal | null;
     log?: any;
     upstreamExtraHeaders?: Record<string, string> | null;
@@ -178,7 +188,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
     const start = Date.now();
     try {
       const res = await fetch(`${this.upstreamBaseUrl}/health`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
       });
       return {
         ok: res.ok,

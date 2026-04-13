@@ -462,6 +462,8 @@ interface ConnectionRowProps {
   onToggleRateLimit: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
+  isCcCompatible?: boolean;
+  onToggleCliproxyapiMode?: (enabled?: boolean) => void;
   onRetest: () => void;
   isRetesting?: boolean;
   onEdit: () => void;
@@ -1309,6 +1311,53 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+
+  const handleToggleCliproxyapiMode = async (connectionId, enabled) => {
+    try {
+      const target = connections.find((connection) => connection.id === connectionId);
+      if (!target) return;
+
+      const providerSpecificData =
+        target.providerSpecificData && typeof target.providerSpecificData === "object"
+          ? target.providerSpecificData
+          : {};
+
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: {
+            ...providerSpecificData,
+            cliproxyapiMode: enabled ? "claude-native" : "native",
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update CLIProxyAPI mode");
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? {
+                ...c,
+                providerSpecificData: {
+                  ...(c.providerSpecificData || {}),
+                  cliproxyapiMode: enabled ? "claude-native" : "native",
+                },
+              }
+            : c
+        )
+      );
+      notify.success(enabled ? "CLIProxyAPI deep mode enabled" : "CLIProxyAPI deep mode disabled");
+    } catch {
+      notify.error("Failed to update CLIProxyAPI mode");
     }
   };
 
@@ -2589,6 +2638,10 @@ export default function ProviderDetailPage() {
                       onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                       onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
                       isCodex={providerId === "codex"}
+                      isCcCompatible={isCcCompatible}
+                      onToggleCliproxyapiMode={(enabled) =>
+                        handleToggleCliproxyapiMode(conn.id, enabled)
+                      }
                       onToggleCodex5h={(enabled) =>
                         handleToggleCodexLimit(conn.id, "use5h", enabled)
                       }
@@ -4555,6 +4608,7 @@ function ConnectionRow({
   connection,
   isOAuth,
   isCodex,
+  isCcCompatible,
   isFirst,
   isLast,
   onMoveUp,
@@ -4563,6 +4617,7 @@ function ConnectionRow({
   onToggleRateLimit,
   onToggleCodex5h,
   onToggleCodexWeekly,
+  onToggleCliproxyapiMode,
   onRetest,
   isRetesting,
   onEdit,
@@ -4654,6 +4709,8 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
+  const cliproxyapiDeepMode =
+    connection.providerSpecificData?.cliproxyapiMode === "claude-native";
 
   return (
     <div
@@ -4743,6 +4800,26 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isCcCompatible && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleCliproxyapiMode?.(!cliproxyapiDeepMode)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    cliproxyapiDeepMode
+                      ? "bg-indigo-500/15 text-indigo-500 hover:bg-indigo-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={cliproxyapiDeepMode
+                    ? "Using CLIProxyAPI for deeper Claude Code emulation (uTLS, multi-account, device profiles)"
+                    : "Enable CLIProxyAPI backend for deeper Claude Code OAuth emulation"
+                  }
+                >
+                  <span className="material-symbols-outlined text-[13px]">swap_horiz</span>
+                  CPA {cliproxyapiDeepMode ? "ON" : "OFF"}
+                </button>
+              </>
+            )}
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -4932,6 +5009,8 @@ ConnectionRow.propTypes = {
   onToggleRateLimit: PropTypes.func.isRequired,
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
+  isCcCompatible: PropTypes.bool,
+  onToggleCliproxyapiMode: PropTypes.func,
   onRetest: PropTypes.func.isRequired,
   isRetesting: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,
