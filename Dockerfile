@@ -33,6 +33,9 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/data
+RUN groupadd -r omniroute && useradd -r -g omniroute -u 1001 -d /app omniroute \
+  && chown -R omniroute:omniroute /app
+USER omniroute
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
@@ -63,6 +66,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
-
-# Install CLI tools globally. Separate layer from apt for better cache reuse.
+# Install CLI tools globally before dropping to non-root user.
+# Global npm installs write to /usr/local (root-owned) and must run as root.
 RUN npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
+
+USER omniroute

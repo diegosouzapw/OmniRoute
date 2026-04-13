@@ -1,10 +1,7 @@
 import crypto from "crypto";
 
-// FASE-01: No hardcoded fallback — enforced by secretsValidator at startup
-if (!process.env.API_KEY_SECRET) {
-  console.error("[SECURITY] API_KEY_SECRET is not set. API key CRC validation is disabled.");
-}
-
+// Security: API_KEY_SECRET is required. No fallback — a known public default would allow
+// anyone reading the source to forge valid API keys.
 function getApiKeySecret(): string {
   const secret = process.env.API_KEY_SECRET;
   if (!secret || secret.trim() === "") {

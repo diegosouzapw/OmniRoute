@@ -8,7 +8,7 @@ import { getOpenAICompatibleType } from "../services/provider.ts";
  * Valid paths must start with '/', contain no '..' segments,
  * no null bytes, and be reasonable in length.
  */
-function sanitizePath(path: string): boolean {
+export function sanitizePath(path: string): boolean {
   if (typeof path !== "string") return false;
   if (!path.startsWith("/")) return false;
   if (path.includes("\0")) return false; // null byte

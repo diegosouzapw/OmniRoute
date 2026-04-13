@@ -12,6 +12,7 @@ export async function GET() {
     const byApiKey = getAllActiveSessionCountsByKey();
     return NextResponse.json({ count, sessions, byApiKey });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

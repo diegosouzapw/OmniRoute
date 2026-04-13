@@ -19,6 +19,14 @@ services:
       target: runner-cli
     image: omniroute:prod
     restart: unless-stopped
+    # Non-root user (uid 1001). If upgrading from a version that ran as root,
+    # existing volume data may be root-owned. Run once to fix:
+    #   docker run --rm -v omniroute-prod-data:/data alpine chown -R 1001:1001 /data
+    user: "1001:1001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     stop_grace_period: 40s
     env_file: .env
     environment:
@@ -30,8 +38,8 @@ services:
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
     ports:
-      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
-      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
+      - "127.0.0.1:${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
+      - "127.0.0.1:${PROD_API_PORT:-20131}:${API_PORT:-20129}"
     volumes:
       - omniroute-prod-data:/app/data
     healthcheck:

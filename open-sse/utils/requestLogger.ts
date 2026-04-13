@@ -1,5 +1,21 @@
 type JsonRecord = Record<string, unknown>;
 
+// Matches header names containing auth/key/token/cookie patterns (case-insensitive).
+// More robust than a fixed set — catches provider-specific variants like xi-api-key (ElevenLabs),
+// x-goog-api-key, x-anthropic-api-key, etc.
+const SENSITIVE_HEADER_PATTERN = /api[-_]?key|authorization|x-api-key|cookie|token/i;
+
+function isSensitiveHeader(name: string): boolean {
+  return SENSITIVE_HEADER_PATTERN.test(name);
+}
+
+function redactHeaders(headers: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!headers) return {};
+  return Object.fromEntries(
+    Object.entries(headers).map(([k, v]) => [k, isSensitiveHeader(k) ? "[REDACTED]" : v])
+  );
+}
+
 type HeaderInput =
   | Headers
   | Record<string, unknown>
@@ -144,7 +160,7 @@ export async function createRequestLogger(
       payloads.clientRawRequest = {
         timestamp: new Date().toISOString(),
         endpoint,
-        headers: maskSensitiveHeaders(headers),
+        headers: redactHeaders(maskSensitiveHeaders(headers)),
         body,
       };
     },
@@ -160,7 +176,7 @@ export async function createRequestLogger(
       payloads.providerRequest = {
         timestamp: new Date().toISOString(),
         url,
-        headers: maskSensitiveHeaders(headers),
+        headers: redactHeaders(maskSensitiveHeaders(headers)),
         body,
       };
     },
@@ -170,7 +186,7 @@ export async function createRequestLogger(
         timestamp: new Date().toISOString(),
         status,
         statusText,
-        headers: maskSensitiveHeaders(headers),
+        headers: redactHeaders(maskSensitiveHeaders(headers)),
         body,
       };
     },

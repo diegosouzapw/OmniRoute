@@ -10,37 +10,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
-
-// ──────────────── Public Routes (No Auth Required) ────────────────
-
-/**
- * Routes that are ALWAYS accessible without authentication.
- * Pattern matching: startsWith check against the pathname.
- */
-const PUBLIC_API_ROUTES = [
-  // Auth flow — must be accessible to unauthenticated users
-  "/api/auth/login",
-  "/api/auth/logout",
-  "/api/auth/status",
-
-  // Settings check — used by login page / onboarding
-  "/api/settings/require-login",
-
-  // Init — first-run setup
-  "/api/init",
-
-  // Health monitoring — probes must work without auth
-  "/api/monitoring/health",
-
-  // LLM proxy routes — use their own API key auth in the SSE layer
-  "/api/v1/",
-
-  // Cloud routes — use Bearer API key auth internally
-  "/api/cloud/",
-
-  // OAuth callback routes — provider redirects back here
-  "/api/oauth/",
-];
+import { PUBLIC_API_ROUTES, isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 
 // ──────────────── Auth Verification ────────────────
 
@@ -131,10 +101,14 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
 
 /**
  * Check if a route is in the public (no-auth) allowlist.
+ * Uses exact matching for leaf routes, prefix matching for routes ending with "/".
  */
 export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route));
+  return isPublicApiRoute(pathname);
 }
+
+// isPublicApiRoute is re-exported from publicApiRoutes for consumers that import it from here.
+export { isPublicApiRoute };
 
 /**
  * Check if authentication is required based on settings.
@@ -153,7 +127,11 @@ export async function isAuthRequired(): Promise<boolean> {
     // The security concern from #151 (password row lost after being set) is handled by the
     // hasPassword flag — if a password WAS set and then somehow lost, the user can use the
     // reset-password CLI tool (bin/reset-password.mjs).
-    if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
+    // If a password was EVER set on this instance, require auth even if the current
+    // password row is missing (DB corruption protection). Fall-open only on fresh
+    // installs that have never had a password configured.
+    if (!settings.password && !process.env.INITIAL_PASSWORD && !settings.passwordEverSet)
+      return false;
     return true;
   } catch (error: any) {
     // On error, require auth (secure by default)

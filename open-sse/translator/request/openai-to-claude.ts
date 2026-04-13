@@ -455,7 +455,8 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           }
         }
       }
-    } else if (msg.content) {
+    } else if (msg.content !== null && msg.content !== undefined) {
+      // OpenAI tool-only messages have content: null — skip content block to avoid Claude 400
       const text = typeof msg.content === "string" ? msg.content : extractTextContent(msg.content);
       if (text) {
         blocks.push({ type: "text", text });
@@ -495,7 +496,8 @@ function convertOpenAIToolChoice(choice) {
     }
     // Map OpenAI string types to Claude equivalents
     if (choice.type === "auto" || choice.type === "none") return { type: "auto" };
-    if (choice.type === "required" || choice.type === "any") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
+    if (choice.type === "required" || choice.type === "any")
+      return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
     if (choice.type === "tool" && choice.name) return choice;
     // Fallback: unknown object type — default to auto to avoid 400 errors

@@ -26,10 +26,8 @@ export async function GET() {
     }));
     return NextResponse.json({ webhooks: masked });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to list webhooks" },
-      { status: 500 }
-    );
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -51,9 +49,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ webhook }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to create webhook" },
-      { status: 500 }
-    );
+    console.error("[ROUTE_ERROR]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

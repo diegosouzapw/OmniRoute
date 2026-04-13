@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { spawnSync } from "node:child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
-
 /**
  * GET /api/db-backups/exportAll
- * Exports the entire database + settings as a ZIP archive
+ * Exports the entire database + settings as a tar.gz archive
  * Security: Requires admin authentication.
  */
 export async function GET(request: NextRequest) {
-  if (!(await isAuthenticated(request))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
 
   try {
     if (!SQLITE_FILE) {
@@ -27,6 +26,7 @@ export async function GET(request: NextRequest) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`);
     const zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
+    const tarPath = zipPath.replace(".zip", ".tar.gz");
 
     try {
       // Create temp directory
@@ -104,13 +104,15 @@ export async function GET(request: NextRequest) {
       };
       fs.writeFileSync(path.join(tempDir, "metadata.json"), JSON.stringify(metadata, null, 2));
 
-      // Create ZIP using tar (available on all Linux/macOS, and the archiver npm package is not installed)
-      // We'll use Node.js built-in zlib to create a simple tar.gz instead
-      const { execSync } = require("node:child_process");
-      const tarPath = zipPath.replace(".zip", ".tar.gz");
-      execSync(`tar -czf "${tarPath}" -C "${path.dirname(tempDir)}" "${path.basename(tempDir)}"`, {
-        timeout: 30000,
-      });
+      // Create tar.gz archive using tar (available on Linux/macOS)
+      const tarResult = spawnSync(
+        "tar",
+        ["-czf", tarPath, "-C", path.dirname(tempDir), path.basename(tempDir)],
+        { timeout: 30000, stdio: "pipe" }
+      );
+      if (tarResult.status !== 0) {
+        throw new Error(`tar failed: ${tarResult.stderr?.toString() ?? "unknown error"}`);
+      }
 
       // Read the archive
       const archiveBuffer = fs.readFileSync(tarPath);
@@ -131,7 +133,7 @@ export async function GET(request: NextRequest) {
       // Cleanup on error
       try {
         if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
-        if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+        if (fs.existsSync(tarPath)) fs.unlinkSync(tarPath);
       } catch {
         /* ignore cleanup errors */
       }

@@ -148,7 +148,7 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
 function getWildcardRegex(pattern: string): RegExp {
   let regex = _regexCache.get(pattern);
   if (!regex) {
-    const regexStr = pattern.replace(/\*/g, ".*");
+    const regexStr = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
     regex = new RegExp(`^${regexStr}$`);
     _regexCache.set(pattern, regex);
     // Prevent unbounded growth

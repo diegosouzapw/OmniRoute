@@ -129,6 +129,8 @@ import {
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+import { getCircuitBreaker, CircuitBreakerOpenError } from "@/shared/utils/circuitBreaker";
+import { getProviderProfile } from "../services/accountFallback.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1382,21 +1384,49 @@ export async function handleChatCore({
         }
       }
 
+      // Hoist breaker outside withRateLimit so the refresh-retry path (below) can also route
+      // through it, keeping failure counts and circuit state consistent across all execution paths.
+      const providerKey = `${provider}:${connectionId || "default"}`;
+      const providerProfile = getProviderProfile(provider);
+      const breaker = getCircuitBreaker(providerKey, {
+        failureThreshold: providerProfile?.circuitBreakerThreshold ?? 5,
+        resetTimeout: providerProfile?.circuitBreakerReset ?? 30000,
+      });
+
       const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
         let attempts = 0;
         const maxAttempts = provider === "qwen" ? 3 : 1;
 
         while (attempts < maxAttempts) {
-          const res = await executor.execute({
-            model: modelToCall,
-            body: bodyToSend,
-            stream: upstreamStream,
-            credentials: getExecutionCredentials(),
-            signal: streamController.signal,
-            log,
-            extendedContext,
-            upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-          });
+          const res = await breaker
+            .execute(async () => {
+              const result = await executor.execute({
+                model: modelToCall,
+                body: bodyToSend,
+                stream: upstreamStream,
+                credentials: getExecutionCredentials(),
+                signal: streamController.signal,
+                log,
+                extendedContext,
+                upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+              });
+              // BaseExecutor resolves (not throws) on 5xx/429 — explicitly signal breaker failures
+              // so the circuit opens under sustained upstream errors.
+              const s = result.response.status;
+              if (s === 429 || (s >= 500 && s < 600)) {
+                throw Object.assign(new Error(`upstream ${s}`), {
+                  _breakerFailure: true,
+                  _result: result,
+                });
+              }
+              return result;
+            })
+            .catch((err) => {
+              // Re-surface the original result for non-breaker-open errors so the pipeline
+              // can handle 429/5xx through its existing retry/fallback logic.
+              if (err._breakerFailure && err._result) return err._result;
+              throw err;
+            });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
           if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -1497,6 +1527,29 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
+
+    if (error instanceof CircuitBreakerOpenError) {
+      const retryAfterSec = Math.ceil((error.retryAfterMs ?? 30000) / 1000);
+      return {
+        success: false,
+        response: new Response(
+          JSON.stringify({
+            error: "Provider temporarily unavailable (circuit open)",
+            provider,
+            retryAfterMs: error.retryAfterMs ?? 30000,
+          }),
+          {
+            status: 503,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": getCorsOrigin(),
+              "Retry-After": String(retryAfterSec),
+            },
+          }
+        ),
+      };
+    }
+
     const failureStatus =
       error.name === "AbortError"
         ? 499
@@ -1553,7 +1606,17 @@ export async function handleChatCore({
     parsedMessage &&
     parsedMessage.toLowerCase().includes("session has expired");
 
-  const streamOptionsOnlyFailed = false; // TODO: properly track stream options failure? (placeholder from existing logic)
+  // streamOptionsOnlyFailed: This flag was intended to distinguish 401/403 responses caused
+  // exclusively by an unsupported stream_options field from genuine auth failures. When true,
+  // the token-refresh retry block below would be skipped (pointless if the token itself is valid).
+  // Implementing this reliably would require inspecting the upstream error body to confirm
+  // stream_options was the rejected field — fragile across provider error formats.
+  // Current behavior (always false): token refresh is always attempted on 401/403, which is
+  // the correct safe default. Worst case: one extra token refresh call that returns the same
+  // token and the retry also fails with 403. Acceptable cost vs. the complexity and risk of
+  // mis-classifying a real auth failure as a stream_options-only failure.
+  // Known limitation: tracked in issue #stream-options-auth-skip (deferred, low priority).
+  const streamOptionsOnlyFailed = false;
 
   // Handle 401/403 (and Qwen explicit expiration) - try token refresh using executor
   if (
@@ -1586,16 +1649,18 @@ export async function handleChatCore({
       // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
         const retryModelId = String(translatedBody.model || effectiveModel);
-        const retryResult = await executor.execute({
-          model: retryModelId,
-          body: translatedBody,
-          stream: upstreamStream,
-          credentials: getExecutionCredentials(),
-          signal: streamController.signal,
-          log,
-          extendedContext,
-          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
-        });
+        const retryResult = await breaker.execute(() =>
+          executor.execute({
+            model: retryModelId,
+            body: translatedBody,
+            stream: upstreamStream,
+            credentials: getExecutionCredentials(),
+            signal: streamController.signal,
+            log,
+            extendedContext,
+            upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
+          })
+        );
 
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;

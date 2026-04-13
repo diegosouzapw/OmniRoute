@@ -328,6 +328,8 @@ export class AntigravityExecutor extends BaseExecutor {
     let lastStatus = 0;
     const MAX_AUTO_RETRIES = 3;
     const retryAttemptsByUrl = {}; // Track retry attempts per URL
+    const retryAfterCountByUrl: number[] = new Array(fallbackCount).fill(0);
+    const MAX_RETRY_AFTER_ATTEMPTS = 5;
 
     // Always stream upstream — buildUrl always returns the streaming endpoint.
     // For non-streaming clients, we collect the SSE below and return a synthetic
@@ -399,14 +401,23 @@ export class AntigravityExecutor extends BaseExecutor {
           }
 
           if (retryMs && retryMs <= LONG_RETRY_THRESHOLD_MS) {
-            const effectiveRetryMs = Math.min(retryMs, MAX_RETRY_AFTER_MS);
-            log?.debug?.(
-              "RETRY",
-              `${response.status} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
-            );
-            await new Promise((resolve) => setTimeout(resolve, effectiveRetryMs));
-            urlIndex--;
-            continue;
+            if (retryAfterCountByUrl[urlIndex] >= MAX_RETRY_AFTER_ATTEMPTS) {
+              // Exceeded Retry-After attempts for this URL — fall through to next URL
+              log?.debug?.(
+                "RETRY",
+                `${response.status} Retry-After cap (${MAX_RETRY_AFTER_ATTEMPTS}) reached for URL ${urlIndex}, trying fallback`
+              );
+            } else {
+              retryAfterCountByUrl[urlIndex] = retryAfterCountByUrl[urlIndex] + 1;
+              const effectiveRetryMs = Math.min(retryMs, MAX_RETRY_AFTER_MS);
+              log?.debug?.(
+                "RETRY",
+                `${response.status} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting... (attempt ${retryAfterCountByUrl[urlIndex]}/${MAX_RETRY_AFTER_ATTEMPTS})`
+              );
+              await new Promise((resolve) => setTimeout(resolve, effectiveRetryMs));
+              urlIndex--;
+              continue;
+            }
           }
 
           // Auto retry only for 429 when retryMs is 0 or undefined
