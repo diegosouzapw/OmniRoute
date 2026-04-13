@@ -1,4 +1,5 @@
 import open from "open";
+import { randomUUID } from "crypto";
 import { QWEN_CONFIG } from "../constants/oauth";
 import { getServerCredentials } from "../config/index";
 import { generatePKCE } from "../utils/pkce";
@@ -24,6 +25,7 @@ export class QwenService {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
+        "x-request-id": randomUUID(),
       },
       body: new URLSearchParams({
         client_id: this.config.clientId,
