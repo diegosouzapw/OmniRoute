@@ -44,7 +44,7 @@ export default function MemoryPage() {
       const response = await fetch("/api/memory");
       if (response.ok) {
         const data = await response.json();
-        setMemories(data.memories || []);
+        setMemories(data.data || []);
         setStats(data.stats || { totalEntries: 0, tokensUsed: 0, hitRate: 0 });
       }
     } catch (error) {

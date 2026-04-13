@@ -145,15 +145,17 @@ class SkillExecutor {
     };
   }
 
-  listExecutions(apiKeyId?: string, limit: number = 50): SkillExecution[] {
+  listExecutions(apiKeyId?: string, limit: number = 50, offset: number = 0): SkillExecution[] {
     const db = getDbInstance();
     const rows = apiKeyId
       ? db
           .prepare(
-            "SELECT * FROM skill_executions WHERE api_key_id = ? ORDER BY created_at DESC LIMIT ?"
+            "SELECT * FROM skill_executions WHERE api_key_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
           )
-          .all(apiKeyId, limit)
-      : db.prepare("SELECT * FROM skill_executions ORDER BY created_at DESC LIMIT ?").all(limit);
+          .all(apiKeyId, limit, offset)
+      : db
+          .prepare("SELECT * FROM skill_executions ORDER BY created_at DESC LIMIT ? OFFSET ?")
+          .all(limit, offset);
 
     return (rows as any[]).map((row) => ({
       id: row.id,
@@ -167,6 +169,16 @@ class SkillExecutor {
       durationMs: row.duration_ms,
       createdAt: new Date(row.created_at),
     }));
+  }
+
+  countExecutions(apiKeyId?: string): number {
+    const db = getDbInstance();
+    const row = apiKeyId
+      ? (db
+          .prepare("SELECT COUNT(*) as count FROM skill_executions WHERE api_key_id = ?")
+          .get(apiKeyId) as any)
+      : (db.prepare("SELECT COUNT(*) as count FROM skill_executions").get() as any);
+    return row?.count ?? 0;
   }
 }
 

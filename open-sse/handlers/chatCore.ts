@@ -907,6 +907,9 @@ export async function handleChatCore({
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
     : null;
 
+  // skillsEnabled is stored in memory settings but represents an independent feature flag
+  const skillsEnabled = memorySettings?.skillsEnabled ?? false;
+
   if (
     apiKeyInfo?.id &&
     memorySettings &&
@@ -936,7 +939,7 @@ export async function handleChatCore({
     }
   }
 
-  if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+  if (apiKeyInfo?.id && skillsEnabled) {
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),
@@ -2268,7 +2271,7 @@ export async function handleChatCore({
       }
     }
 
-    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+    if (apiKeyInfo?.id && skillsEnabled) {
       const skillSessionId = pipelineSessionId;
 
       translatedResponse = await handleToolCallExecution(

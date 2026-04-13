@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { listMemories, createMemory } from "@/lib/memory/store";
 import { MemoryType } from "@/lib/memory/types";
+import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
@@ -16,22 +17,23 @@ const createMemorySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
+    const url = new URL(request.url);
+    const { searchParams } = url;
+
+    const paginationParams = parsePaginationParams(searchParams);
+
     const apiKeyId = searchParams.get("apiKeyId") || undefined;
     const type = (searchParams.get("type") as any) || undefined;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const limitParams = searchParams.get("limit");
-    const offsetParams = searchParams.get("offset");
-    const pageParams = searchParams.get("page");
 
     const result = await listMemories({
       apiKeyId,
       type,
       sessionId,
-      limit: limitParams ? parseInt(limitParams, 10) : undefined,
-      offset: offsetParams ? parseInt(offsetParams, 10) : undefined,
-      page: pageParams ? parseInt(pageParams, 10) : undefined,
+      page: paginationParams.page,
+      limit: paginationParams.limit,
     });
+
     const stats = {
       total: result.total,
       byType: result.data.reduce(
@@ -42,7 +44,13 @@ export async function GET(request: Request) {
         {} as Record<string, number>
       ),
     };
-    return NextResponse.json({ memories: result.data, stats, total: result.total });
+
+    const paginatedResponse = buildPaginatedResponse(result.data, result.total, paginationParams);
+
+    return NextResponse.json({
+      ...paginatedResponse,
+      stats,
+    });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error }, { status: 500 });
