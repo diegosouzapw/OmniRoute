@@ -185,7 +185,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels(["MiMo-7B-RL", "MiMo-7B-SFT"]),
+  "xiaomi-mimo": buildModels(["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -1804,7 +1804,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "mimo",
     format: "openai",
     executor: "default",
-    baseUrl: "https://api.xiaomi.com/v1/chat/completions",
+    baseUrl: "https://token-plan-sgp.xiaomimimo.com/v1",
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],

@@ -5059,6 +5059,7 @@ ConnectionRow.propTypes = {
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "bailian-coding-plan",
+  "xiaomi-mimo",
   "heroku",
   "databricks",
   "snowflake",
@@ -5066,6 +5067,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+  "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
 };
 
 function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -5076,6 +5078,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
+    case "xiaomi-mimo":
+      return "Optional: Xiaomi MiMo token-plan base URL. Examples: https://token-plan-ams.xiaomimimo.com/v1, https://token-plan-sgp.xiaomimimo.com/v1, https://token-plan-cn.xiaomimimo.com/v1";
     case "heroku":
       return "Required: paste the Heroku Inference base URL. The app will append /v1/chat/completions.";
     case "databricks":
@@ -5090,6 +5094,7 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
+    case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
     case "heroku":
       return "https://us.inference.heroku.com";
