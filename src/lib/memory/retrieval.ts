@@ -180,7 +180,6 @@ export async function retrieveMemories(
   switch (strategy) {
     case "semantic": {
       if (config.query && ftsAvailable) {
-        // FTS5 search: JOIN memory_fts on rowid matching memories.id
         const ftsQuery =
           `SELECT m.* FROM ${tableName} m ` +
           `JOIN memory_fts f ON m.id = f.rowid ` +
@@ -206,12 +205,13 @@ export async function retrieveMemories(
         try {
           rows = db.prepare(ftsQuery).all(...ftsParams) as MemoryRow[];
         } catch {
-          // Fallback to chronological if FTS5 query fails (e.g. bad MATCH syntax)
+          rows = [];
+        }
+        if (rows.length === 0) {
           query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
           rows = db.prepare(query).all(...params) as MemoryRow[];
         }
       } else {
-        // Fallback to chronological when no query or FTS5 table missing
         query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
         rows = db.prepare(query).all(...params) as MemoryRow[];
       }
@@ -244,9 +244,14 @@ export async function retrieveMemories(
           ftsParams.push(cutoff);
         }
         try {
-          ftsRows = db.prepare(ftsQuery).all(...ftsParams) as MemoryRow[];
+          rows = db.prepare(ftsQuery).all(...ftsParams) as MemoryRow[];
+          if (rows.length === 0) {
+            query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
+            rows = db.prepare(query).all(...params) as MemoryRow[];
+          }
         } catch {
-          // Ignore FTS5 errors, proceed with keyword results only
+          query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
+          rows = db.prepare(query).all(...params) as MemoryRow[];
         }
       }
       // Get chronological results for keyword scoring

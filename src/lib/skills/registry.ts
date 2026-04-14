@@ -12,6 +12,7 @@ class SkillRegistry {
   private versionCache: Map<string, Map<string, Skill>> = new Map();
   private lastLoaded: number = 0;
   private readonly cacheTTL: number = 60_000; // 60 seconds
+  private pendingLoad: Promise<void> | null = null; // dedupes concurrent cache fills
 
   private constructor() {}
 
@@ -230,33 +231,42 @@ class SkillRegistry {
   }
 
   async loadFromDatabase(apiKeyId?: string): Promise<void> {
+    if (this.pendingLoad) {
+      await this.pendingLoad;
+      return;
+    }
     if (!this.isCacheStale()) return;
 
-    log.debug("skills.registry.loadFromDatabase", { cached: false });
+    this.pendingLoad = (async () => {
+      try {
+        log.debug("skills.registry.loadFromDatabase", { cached: false });
+        const db = getDbInstance();
+        const rows = apiKeyId
+          ? db.prepare("SELECT * FROM skills WHERE api_key_id = ?").all(apiKeyId)
+          : db.prepare("SELECT * FROM skills").all();
 
-    const db = getDbInstance();
-    const rows = apiKeyId
-      ? db.prepare("SELECT * FROM skills WHERE api_key_id = ?").all(apiKeyId)
-      : db.prepare("SELECT * FROM skills").all();
-
-    for (const row of rows as any[]) {
-      const skill: Skill = {
-        id: row.id,
-        apiKeyId: row.api_key_id,
-        name: row.name,
-        version: row.version,
-        description: row.description || "",
-        schema: JSON.parse(row.schema),
-        handler: row.handler,
-        enabled: row.enabled === 1,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at),
-      };
-      this.registeredSkills.set(`${skill.name}@${skill.version}`, skill);
-      this.updateVersionCache(skill);
-    }
-
-    this.lastLoaded = Date.now();
+        for (const row of rows as any[]) {
+          const skill: Skill = {
+            id: row.id,
+            apiKeyId: row.api_key_id,
+            name: row.name,
+            version: row.version,
+            description: row.description || "",
+            schema: JSON.parse(row.schema),
+            handler: row.handler,
+            enabled: row.enabled === 1,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at),
+          };
+          this.registeredSkills.set(`${skill.name}@${skill.version}`, skill);
+          this.updateVersionCache(skill);
+        }
+        this.lastLoaded = Date.now();
+      } finally {
+        this.pendingLoad = null;
+      }
+    })();
+    await this.pendingLoad;
   }
 }
 

@@ -123,6 +123,7 @@ import {
   toMemoryRetrievalConfig,
 } from "@/lib/memory/settings";
 import { injectSkills } from "@/lib/skills/injection";
+import { skillRegistry } from "@/lib/skills/registry";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import {
   buildClaudeCodeCompatibleRequest,
@@ -940,6 +941,7 @@ export async function handleChatCore({
   }
 
   if (apiKeyInfo?.id && skillsEnabled) {
+    await skillRegistry.loadFromDatabase(apiKeyInfo.id);
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),

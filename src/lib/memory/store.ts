@@ -248,7 +248,7 @@ export async function listMemories(filters: {
   limit?: number;
   offset?: number;
   page?: number;
-}): Promise<{ data: Memory[]; total: number }> {
+}): Promise<{ data: Memory[]; total: number; byType: Record<string, number> }> {
   const db = getDbInstance();
 
   // Build dynamic query conditions
@@ -270,7 +270,7 @@ export async function listMemories(filters: {
     whereParams.push(filters.sessionId);
   }
 
-  // Run COUNT query first with same WHERE clauses
+  // Run COUNT query + byType aggregation in a single query
   let countQuery = "SELECT COUNT(*) as total FROM memories";
   if (whereClauses.length > 0) {
     countQuery += " WHERE " + whereClauses.join(" AND ");
@@ -278,6 +278,20 @@ export async function listMemories(filters: {
   const countStmt = db.prepare(countQuery);
   const countRow = countStmt.get(...whereParams) as { total: number };
   const total = countRow.total;
+
+  // Build byType aggregation (counts ALL matching rows, not just the page)
+  let byTypeQuery = "SELECT type, COUNT(*) as count FROM memories";
+  const byTypeParams: unknown[] = [...whereParams];
+  if (whereClauses.length > 0) {
+    byTypeQuery += " WHERE " + whereClauses.join(" AND ");
+  }
+  byTypeQuery += " GROUP BY type";
+  const byTypeStmt = db.prepare(byTypeQuery);
+  const byTypeRows = byTypeStmt.all(...byTypeParams) as { type: string; count: number }[];
+  const byType = Object.fromEntries(byTypeRows.map((r) => [r.type, r.count])) as Record<
+    string,
+    number
+  >;
 
   // Calculate effective limit and offset
   const effectiveLimit = filters.limit ?? 50;
@@ -302,5 +316,6 @@ export async function listMemories(filters: {
   return {
     data: (rows as MemoryRow[]).map(rowToMemory),
     total,
+    byType,
   };
 }

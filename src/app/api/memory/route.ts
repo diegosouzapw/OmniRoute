@@ -36,13 +36,7 @@ export async function GET(request: Request) {
 
     const stats = {
       total: result.total,
-      byType: result.data.reduce(
-        (acc, m) => {
-          acc[m.type] = (acc[m.type] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
-      ),
+      byType: result.byType ?? {},
     };
 
     const paginatedResponse = buildPaginatedResponse(result.data, result.total, paginationParams);
