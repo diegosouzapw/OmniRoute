@@ -4,6 +4,7 @@
 
 import { PROVIDERS } from "../config/constants.ts";
 import { safePercentage } from "@/shared/utils/formatting";
+import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 
 // GitHub API config
 const GITHUB_CONFIG = {
@@ -165,12 +166,50 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 }
 
 /**
+ * Bailian (Alibaba Coding Plan) Usage
+ * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
+ */
+async function getBailianCodingPlanUsage(
+  connectionId: string,
+  apiKey: string,
+  providerSpecificData?: Record<string, unknown>
+) {
+  try {
+    const connection = { apiKey, providerSpecificData };
+    const quota = await fetchBailianQuota(connectionId, connection);
+
+    if (!quota) {
+      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+    }
+
+    const bailianQuota = quota as BailianTripleWindowQuota;
+    const used = bailianQuota.used;
+    const total = bailianQuota.total;
+    const remaining = Math.max(0, total - used);
+    const remainingPercentage = Math.round(remaining);
+
+    return {
+      plan: "Alibaba Coding Plan",
+      used,
+      total,
+      remaining,
+      remainingPercentage,
+      resetAt: bailianQuota.resetAt,
+      unlimited: false,
+      displayName: "Alibaba Coding Plan",
+    };
+  } catch (error) {
+    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
 export async function getUsageForProvider(connection) {
-  const { provider, accessToken, apiKey, providerSpecificData, projectId } = connection;
+  const { id, provider, accessToken, apiKey, providerSpecificData, projectId } = connection;
 
   switch (provider) {
     case "github":
@@ -195,6 +234,8 @@ export async function getUsageForProvider(connection) {
       return await getGlmUsage(apiKey, providerSpecificData);
     case "cursor":
       return await getCursorUsage(accessToken);
+    case "bailian-coding-plan":
+      return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

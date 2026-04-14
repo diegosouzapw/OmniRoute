@@ -5136,6 +5136,7 @@ function AddApiKeyModal({
     validationModelId: "",
     customUserAgent: "",
     accountId: "",
+    consoleApiKey: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5215,6 +5216,9 @@ function AddApiKeyModal({
       const providerSpecificData: Record<string, unknown> = {};
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
+      }
+      if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
+        providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
@@ -5339,6 +5343,16 @@ function AddApiKeyModal({
               placeholder="my-app/1.0"
               hint="Optional override sent upstream as the User-Agent header for this connection"
             />
+            {provider === "bailian-coding-plan" && (
+              <Input
+                label="Console API Key (Oracle)"
+                value={formData.consoleApiKey}
+                onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                placeholder="Alibaba Console API Key"
+                hint="Required for quota fetching. Do not share."
+                type="password"
+              />
+            )}
           </div>
         )}
         <Input
@@ -5462,6 +5476,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexReasoningEffort: "medium",
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
+    consoleApiKey: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5495,6 +5510,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
+      const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
+      const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5510,6 +5527,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
+        consoleApiKey: existingConsoleApiKey,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5642,6 +5660,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tag: formData.tag.trim() || undefined,
           customUserAgent: formData.customUserAgent.trim(),
         };
+        if (connection.provider === "bailian-coding-plan") {
+          if (formData.consoleApiKey.trim()) {
+            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
+          } else {
+            updates.providerSpecificData.consoleApiKey = undefined;
+          }
+        }
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
         }
@@ -5829,6 +5854,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
                 />
+                {connection.provider === "bailian-coding-plan" && (
+                  <Input
+                    label="Console API Key (Oracle)"
+                    value={formData.consoleApiKey}
+                    onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                    placeholder="Alibaba Console API Key"
+                    hint="Required for quota fetching. Do not share."
+                    type="password"
+                  />
+                )}
               </div>
             )}
             <Input

@@ -69,11 +69,14 @@ import {
   registerCodexConnection,
   registerCodexQuotaFetcher,
 } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
+import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
 
-// Register Codex quota fetcher at module load (once per server start).
-// This hooks into the quotaPreflight + quotaMonitor systems so that combos
-// can proactively switch accounts before the 5h or 7d quota is exhausted.
 registerCodexQuotaFetcher();
+
+// Register Bailian Coding Plan quota fetcher at module load (once per server start).
+// This hooks into the quotaPreflight + quotaMonitor systems so that combos
+// can proactively switch accounts before quota is exhausted.
+registerBailianCodingPlanQuotaFetcher();
 
 /**
  * Handle chat completion request

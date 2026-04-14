@@ -91,6 +91,24 @@ function validateProviderSpecificData(
       path: ["requestDefaults", "serviceTier"],
     });
   }
+
+  // [Oracle CONDITIONAL] consoleApiKey는 bailian-coding-plan 전용 필드.
+  // 다른 프로바이더 공통 규약으로 재사용하지 않는다.
+  const consoleApiKey = data.consoleApiKey;
+  if (consoleApiKey !== undefined && consoleApiKey !== null && typeof consoleApiKey !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.consoleApiKey must be a string",
+      path: ["consoleApiKey"],
+    });
+  }
+  if (typeof consoleApiKey === "string" && consoleApiKey.length > 10000) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
+      path: ["consoleApiKey"],
+    });
+  }
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file

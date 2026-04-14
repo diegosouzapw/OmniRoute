@@ -30,6 +30,12 @@ export async function GET() {
       accessToken: undefined,
       refreshToken: undefined,
       idToken: undefined,
+      providerSpecificData: c.providerSpecificData
+        ? {
+            ...c.providerSpecificData,
+            consoleApiKey: undefined,
+          }
+        : undefined,
     }));
 
     return NextResponse.json({ connections: safeConnections });
@@ -153,6 +159,9 @@ export async function POST(request: Request) {
     // Hide sensitive fields
     const result: Record<string, any> = { ...newConnection };
     delete result.apiKey;
+    if (result.providerSpecificData) {
+      delete result.providerSpecificData.consoleApiKey;
+    }
 
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
