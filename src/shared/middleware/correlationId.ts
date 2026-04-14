@@ -10,9 +10,9 @@
 
 import { AsyncLocalStorage } from "node:async_hooks";
 import crypto from "crypto";
-import { z } from "zod";
 
 const correlationStore = new AsyncLocalStorage();
+const CORRELATION_ID_PATTERN = /^[a-zA-Z0-9_\-]{1,64}$/;
 
 /**
  * Generate a unique correlation ID.
@@ -57,10 +57,7 @@ export function runWithCorrelation(correlationId, fn) {
  */
 export function correlationMiddleware(request, next) {
   const rawId = request.headers.get("x-request-id") || request.headers.get("x-correlation-id");
-  // Validate using Zod — consistent with project-wide validation pattern
-  const CORRELATION_ID_SCHEMA = z.string().regex(/^[a-zA-Z0-9_\-]{1,64}$/);
-  const parsed = rawId ? CORRELATION_ID_SCHEMA.safeParse(rawId) : null;
-  const requestId = parsed?.success ? parsed.data : generateCorrelationId();
+  const requestId = rawId && CORRELATION_ID_PATTERN.test(rawId) ? rawId : generateCorrelationId();
 
   return runWithCorrelation(requestId, async () => {
     const response = await next();

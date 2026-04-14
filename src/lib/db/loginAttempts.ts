@@ -1,8 +1,7 @@
 import { getDbInstance } from "./core";
 
 const MAX_ATTEMPTS = 10;
-const LOCKOUT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 function getKey(identifier: string): string {
   return `login:${identifier}`;
@@ -23,7 +22,7 @@ export function recordLoginFailure(identifier: string): { locked: boolean; attem
   const db = getDbInstance();
   const key = getKey(identifier);
   const now = Date.now();
-  const windowStart = now - ATTEMPT_WINDOW_MS;
+  const windowStart = now - WINDOW_MS;
 
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'login_attempts' AND key = ?")
@@ -44,7 +43,7 @@ export function checkLoginLockout(identifier: string): { locked: boolean; retryA
   const db = getDbInstance();
   const key = getKey(identifier);
   const now = Date.now();
-  const windowStart = now - ATTEMPT_WINDOW_MS;
+  const windowStart = now - WINDOW_MS;
 
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'login_attempts' AND key = ?")
@@ -63,7 +62,7 @@ export function checkLoginLockout(identifier: string): { locked: boolean; retryA
   if (attempts.length < MAX_ATTEMPTS) return { locked: false, retryAfterMs: 0 };
 
   const oldestInWindow = attempts.reduce((a, b) => (b < a ? b : a));
-  const retryAfterMs = Math.max(0, oldestInWindow + LOCKOUT_WINDOW_MS - now);
+  const retryAfterMs = Math.max(0, oldestInWindow + WINDOW_MS - now);
   return { locked: true, retryAfterMs };
 }
 

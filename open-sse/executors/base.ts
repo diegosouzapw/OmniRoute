@@ -17,6 +17,13 @@ export function sanitizePath(path: string): boolean {
   return true;
 }
 
+/** Extract and sanitize a custom chatPath from provider-specific data. */
+export function sanitizedChatPath(psd: unknown): string | null {
+  const obj = psd as Record<string, unknown> | null | undefined;
+  const raw = typeof obj?.chatPath === "string" && obj.chatPath ? obj.chatPath : null;
+  return raw && sanitizePath(raw) ? raw : null;
+}
+
 type JsonRecord = Record<string, unknown>;
 
 export type ProviderConfig = {
@@ -162,9 +169,7 @@ export class BaseExecutor {
       const psd = credentials?.providerSpecificData;
       const baseUrl = typeof psd?.baseUrl === "string" ? psd.baseUrl : "https://api.openai.com/v1";
       const normalized = baseUrl.replace(/\/$/, "");
-      // Sanitize custom path: must start with '/', no path traversal, no null bytes
-      const rawPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
-      const customPath = rawPath && sanitizePath(rawPath) ? rawPath : null;
+      const customPath = sanitizedChatPath(psd);
       if (customPath) return `${normalized}${customPath}`;
       const path =
         getOpenAICompatibleType(this.provider, psd) === "responses"

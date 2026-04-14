@@ -1,20 +1,8 @@
 type JsonRecord = Record<string, unknown>;
 
 // Matches header names containing auth/key/token/cookie patterns (case-insensitive).
-// More robust than a fixed set — catches provider-specific variants like xi-api-key (ElevenLabs),
-// x-goog-api-key, x-anthropic-api-key, etc.
-const SENSITIVE_HEADER_PATTERN = /api[-_]?key|authorization|x-api-key|cookie|token/i;
-
-function isSensitiveHeader(name: string): boolean {
-  return SENSITIVE_HEADER_PATTERN.test(name);
-}
-
-function redactHeaders(headers: Record<string, unknown> | undefined): Record<string, unknown> {
-  if (!headers) return {};
-  return Object.fromEntries(
-    Object.entries(headers).map(([k, v]) => [k, isSensitiveHeader(k) ? "[REDACTED]" : v])
-  );
-}
+// Catches provider-specific variants like xi-api-key, x-goog-api-key, x-anthropic-api-key, etc.
+const SENSITIVE_HEADER_PATTERN = /api[-_]?key|authorization|cookie|token/i;
 
 type HeaderInput =
   | Headers
@@ -65,18 +53,9 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
       : { ...(headers as Record<string, unknown>) };
 
   const masked = { ...headerEntries };
-  const sensitiveKeys = ["authorization", "x-api-key", "cookie", "token"];
 
   for (const key of Object.keys(masked)) {
-    const lowerKey = key.toLowerCase();
-    if (!sensitiveKeys.some((candidate) => lowerKey.includes(candidate))) {
-      continue;
-    }
-
-    const value = masked[key];
-    if (typeof value === "string" && value.length > 20) {
-      masked[key] = `${value.slice(0, 10)}...${value.slice(-5)}`;
-    } else if (value) {
+    if (SENSITIVE_HEADER_PATTERN.test(key) && masked[key]) {
       masked[key] = "[REDACTED]";
     }
   }
@@ -160,7 +139,7 @@ export async function createRequestLogger(
       payloads.clientRawRequest = {
         timestamp: new Date().toISOString(),
         endpoint,
-        headers: redactHeaders(maskSensitiveHeaders(headers)),
+        headers: maskSensitiveHeaders(headers),
         body,
       };
     },
@@ -176,7 +155,7 @@ export async function createRequestLogger(
       payloads.providerRequest = {
         timestamp: new Date().toISOString(),
         url,
-        headers: redactHeaders(maskSensitiveHeaders(headers)),
+        headers: maskSensitiveHeaders(headers),
         body,
       };
     },
@@ -186,7 +165,7 @@ export async function createRequestLogger(
         timestamp: new Date().toISOString(),
         status,
         statusText,
-        headers: redactHeaders(maskSensitiveHeaders(headers)),
+        headers: maskSensitiveHeaders(headers),
         body,
       };
     },
