@@ -5079,7 +5079,7 @@ function getProviderBaseUrlHint(providerId?: string | null) {
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
     case "xiaomi-mimo":
-      return "Optional: Xiaomi MiMo token-plan base URL. Examples: https://token-plan-ams.xiaomimimo.com/v1, https://token-plan-sgp.xiaomimimo.com/v1, https://token-plan-cn.xiaomimimo.com/v1";
+      return "Optional: Xiaomi MiMo token-plan base URL. Examples: https://token-plan-ams.xiaomimimo.com/v1, https://token-plan-sgp.xiaomimimo.com/v1, https://token-plan-cn.xiaomimimo.com/v1. The app will append /chat/completions.";
     case "heroku":
       return "Required: paste the Heroku Inference base URL. The app will append /v1/chat/completions.";
     case "databricks":

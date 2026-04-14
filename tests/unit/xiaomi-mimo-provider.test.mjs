@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
+import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import {
   createProviderSchema,
   updateProviderConnectionSchema,
@@ -16,6 +17,28 @@ test("xiaomi-mimo registry uses current token-plan base URL and current MiMo V2 
   assert.deepEqual(
     entry.models.map((model) => model.id),
     ["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]
+  );
+});
+
+test("xiaomi-mimo executor appends /chat/completions for regional base URLs", () => {
+  const executor = new DefaultExecutor("xiaomi-mimo");
+
+  assert.equal(
+    executor.buildUrl("mimo-v2-pro", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://token-plan-ams.xiaomimimo.com/v1",
+      },
+    }),
+    "https://token-plan-ams.xiaomimimo.com/v1/chat/completions"
+  );
+
+  assert.equal(
+    executor.buildUrl("mimo-v2-pro", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://token-plan-cn.xiaomimimo.com/v1/chat/completions",
+      },
+    }),
+    "https://token-plan-cn.xiaomimimo.com/v1/chat/completions"
   );
 });
 

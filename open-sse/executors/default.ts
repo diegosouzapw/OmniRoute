@@ -33,6 +33,11 @@ function normalizeDatabricksChatUrl(baseUrl) {
   return `${normalized}/chat/completions`;
 }
 
+function normalizeXiaomiMimoChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
+  return `${normalized}/chat/completions`;
+}
+
 function normalizeSnowflakeChatUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl)
     .replace(/\/cortex\/inference:complete$/, "")
@@ -91,6 +96,10 @@ export class DefaultExecutor extends BaseExecutor {
       case "databricks": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeDatabricksChatUrl(baseUrl);
+      }
+      case "xiaomi-mimo": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeXiaomiMimoChatUrl(baseUrl);
       }
       case "snowflake": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
