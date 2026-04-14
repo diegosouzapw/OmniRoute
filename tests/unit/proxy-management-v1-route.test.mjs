@@ -152,6 +152,11 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     assert.equal(deleteAuthRes.status, 401);
   });
 
+  // Reset storage to clear the passwordEverSet flag that getSettings() auto-complete
+  // persisted to the DB when INITIAL_PASSWORD was set inside the withEnv block above.
+  // Without this, isAuthRequired() returns true and unauthenticated requests below get 401.
+  await resetStorage();
+
   const providerConn = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",

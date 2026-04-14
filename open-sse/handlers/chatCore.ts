@@ -1362,6 +1362,15 @@ export async function handleChatCore({
   const dedupEnabled = shouldDeduplicate(dedupRequestBody);
   const dedupHash = dedupEnabled ? computeRequestHash(dedupRequestBody) : null;
 
+  // Hoist breaker outside executeProviderRequest so the refresh-retry path (below) can also route
+  // through it, keeping failure counts and circuit state consistent across all execution paths.
+  const providerKey = `${provider}:${connectionId || "default"}`;
+  const providerProfile = getProviderProfile(provider);
+  const breaker = getCircuitBreaker(providerKey, {
+    failureThreshold: providerProfile?.circuitBreakerThreshold ?? 5,
+    resetTimeout: providerProfile?.circuitBreakerReset ?? 30000,
+  });
+
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
       let bodyToSend =
@@ -1383,15 +1392,6 @@ export async function handleChatCore({
           bodyToSend = { ...bodyToSend, prompt_cache_key: cacheKey };
         }
       }
-
-      // Hoist breaker outside withRateLimit so the refresh-retry path (below) can also route
-      // through it, keeping failure counts and circuit state consistent across all execution paths.
-      const providerKey = `${provider}:${connectionId || "default"}`;
-      const providerProfile = getProviderProfile(provider);
-      const breaker = getCircuitBreaker(providerKey, {
-        failureThreshold: providerProfile?.circuitBreakerThreshold ?? 5,
-        resetTimeout: providerProfile?.circuitBreakerReset ?? 30000,
-      });
 
       const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
         let attempts = 0;
