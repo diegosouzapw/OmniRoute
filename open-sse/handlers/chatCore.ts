@@ -1033,10 +1033,9 @@ export async function handleChatCore({
 
       // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
       // runs later in BaseExecutor over the serialized string).
-      // Only thinking constraints and tool remapping are applied here; cache-control
-      // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
-      // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
-      // toward the 4-block cap and would strip legitimate client cache markers.
+      // Only thinking constraints and tool remapping are applied here. Cache-control
+      // helpers stay out of the runtime bridge path so auto mode remains passthrough:
+      // if the client sends cache_control we preserve it, otherwise we do not inject it.
       remapToolNamesInRequest(translatedBody);
       enforceThinkingTemperature(translatedBody);
       disableThinkingIfToolChoiceForced(translatedBody);

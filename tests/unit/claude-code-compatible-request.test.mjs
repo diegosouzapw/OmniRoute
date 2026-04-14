@@ -170,9 +170,11 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
   assert.equal(stripped.stream, true);
   assert.equal(JSON.parse(stripped.metadata.user_id).session_id, "explicit-session");
   assert.equal(stripped.messages.at(-1).role, "user");
+  assert.equal(stripped.system[0].cache_control, undefined);
   assert.equal(stripped.messages[0].content[0].cache_control, undefined);
   assert.equal(stripped.system.at(-1).cache_control, undefined);
   assert.equal(stripped.tools[0].cache_control, undefined);
+  assert.equal(preserved.system[0].cache_control, undefined);
   assert.equal(preserved.messages[0].content[0].cache_control.type, "ephemeral");
   assert.equal(preserved.system.at(-1).cache_control.type, "ephemeral");
   assert.equal(preserved.tools[0].cache_control.type, "ephemeral");

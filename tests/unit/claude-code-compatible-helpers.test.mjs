@@ -5,6 +5,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS,
+  CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
   CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS,
   isClaudeCodeCompatibleProvider,
   stripAnthropicMessagesSuffix,
@@ -55,6 +56,13 @@ test("buildClaudeCodeCompatibleHeaders emits stream-aware auth headers and sessi
   assert.equal(jsonHeaders["X-Claude-Code-Session-Id"], undefined);
 });
 
+test("Claude Code compatible beta set stays conservative for third-party proxies", () => {
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("oauth-2025-04-20"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("token-efficient-tools-2025-02-19"));
+  assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("fast-mode-2025-04-01"), false);
+  assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("redact-thinking-2025-06-20"), false);
+});
+
 test("resolveClaudeCodeCompatibleSessionId prefers explicit session headers and generates a fallback id", () => {
   const headers = new Headers({
     "x-session-id": "legacy-session",
@@ -81,6 +89,7 @@ test("buildClaudeCodeCompatibleValidationPayload produces the expected smoke-tes
     content: [{ type: "text", text: "ok" }],
   });
   assert.equal(payload.tools.length, 0);
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.ok(JSON.parse(payload.metadata.user_id).session_id);
   assert.ok(payload.system.some((block) => String(block.text).includes(process.cwd())));
   assert.ok(CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS > payload.max_tokens);

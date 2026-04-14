@@ -109,6 +109,7 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.equal(payload.system[3].cache_control, undefined);
@@ -177,6 +178,7 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.deepEqual(payload.system.at(-1).cache_control, { type: "ephemeral", ttl: "5m" });
   assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content[0].cache_control, {
@@ -228,6 +230,7 @@ test("buildClaudeCodeCompatibleRequest does not supplement missing Claude cache 
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.messages[0].content[0].cache_control, undefined);
   assert.equal(payload.messages[1].content[0].cache_control, undefined);
   assert.equal(payload.messages[2].content[0].cache_control, undefined);
@@ -257,6 +260,7 @@ test("buildClaudeCodeCompatibleRequest keeps built-in system blocks untagged whe
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral" });
@@ -287,6 +291,7 @@ test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserv
     preserveCacheControl: false,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.equal(payload.system[3].cache_control, undefined);
@@ -520,15 +525,7 @@ test("handleChatCore respects non-streaming upstream requests for CC compatible 
   assert.equal(calls.length, 1);
   assert.equal(calls[0].headers.Accept, "application/json");
   assert.equal(calls[0].body.stream, undefined);
-  // PR #1188: billing header system block carries cache_control: ephemeral for
-  // proper billing attribution. Only user-facing message blocks should be free of
-  // auto-injected cache markers (non-preserve mode).
-  assert.equal(
-    calls[0].body.messages.some((message) =>
-      message.content.some((block) => block.cache_control !== undefined)
-    ),
-    false
-  );
+  assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
 
   const payload = await result.response.json();
   assert.equal(payload.choices[0].message.content, "Hello from CC");
@@ -640,6 +637,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
+  assert.equal(calls[0].body.system[0].cache_control, undefined);
   assert.deepEqual(calls[0].body.system.at(-1).cache_control, {
     type: "ephemeral",
     ttl: "5m",
