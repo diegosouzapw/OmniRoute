@@ -2,9 +2,14 @@
  * OAuth Configuration Constants
  *
  * All credentials are read exclusively from environment variables.
- * Default values are provided via .env.example and auto-populated by
- * scripts/sync-env.mjs on install. See .env.example for the built-in
- * credentials used for localhost setups.
+ * Default values match the public CLI client IDs from .env.example
+ * (auto-populated by scripts/sync-env.mjs on install).
+ *
+ * These are public OAuth client credentials for desktop/CLI applications
+ * that rely on PKCE for security (RFC 8252), not on secret confidentiality.
+ * The same values appear in providerRegistry.ts for the legacy provider
+ * bridge; they are intentionally co-located with their respective config
+ * objects here for readability and to avoid a cross-layer import.
  */
 
 // Claude OAuth Configuration (Authorization Code Flow with PKCE)
@@ -139,8 +144,9 @@ export const ANTIGRAVITY_CONFIG = {
 };
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
+// Re-uses CODEX_CONFIG.clientId to avoid duplication — same provider, different originator.
 export const OPENAI_CONFIG = {
-  clientId: process.env.CODEX_OAUTH_CLIENT_ID || "app_EMoamEEZ73f0CkXaXp7hrann",
+  clientId: CODEX_CONFIG.clientId,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
   tokenUrl: "https://auth.openai.com/oauth/token",
   scope: "openid profile email offline_access",
