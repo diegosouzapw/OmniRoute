@@ -33,7 +33,7 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
 
         if (data.found) {
           setAccessToken(data.accessToken);
-          setMachineId(data.machineId);
+          setMachineId(data.machineId || "");
           setAutoDetected(true);
         } else {
           setError(data.error || "Could not auto-detect tokens");
@@ -54,22 +54,17 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
       return;
     }
 
-    if (!machineId.trim()) {
-      setError("Please enter a machine ID");
-      return;
-    }
-
     setImporting(true);
     setError(null);
 
     try {
+      const body: Record<string, string> = { accessToken: accessToken.trim() };
+      if (machineId.trim()) body.machineId = machineId.trim();
+
       const res = await fetch("/api/oauth/cursor/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accessToken: accessToken.trim(),
-          machineId: machineId.trim(),
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -100,7 +95,7 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
               </span>
             </div>
             <h3 className="text-lg font-semibold mb-2">Auto-detecting tokens...</h3>
-            <p className="text-sm text-text-muted">Reading from Cursor IDE database</p>
+            <p className="text-sm text-text-muted">Reading from Cursor IDE or cursor-agent</p>
           </div>
         )}
 
@@ -149,10 +144,10 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
               />
             </div>
 
-            {/* Machine ID Input */}
+            {/* Machine ID Input (optional — not needed for cursor-agent imports) */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Machine ID <span className="text-red-500">*</span>
+                Machine ID <span className="text-text-muted text-xs">(optional)</span>
               </label>
               <Input
                 value={machineId}
@@ -174,7 +169,7 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
               <Button
                 onClick={handleImportToken}
                 fullWidth
-                disabled={importing || !accessToken.trim() || !machineId.trim()}
+                disabled={importing || !accessToken.trim()}
               >
                 {importing ? "Importing..." : "Import Token"}
               </Button>
