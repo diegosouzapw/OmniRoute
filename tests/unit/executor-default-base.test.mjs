@@ -371,14 +371,19 @@ test("BaseExecutor.mergeAbortSignals aborts when either source signal aborts", (
   const merged = mergeAbortSignals(primary.signal, secondary.signal);
 
   assert.equal(merged.aborted, false);
-  primary.abort();
+  const primaryReason = new Error("primary timeout");
+  primaryReason.name = "TimeoutError";
+  primary.abort(primaryReason);
   assert.equal(merged.aborted, true);
+  assert.equal(merged.reason, primaryReason);
 
   const otherPrimary = new AbortController();
   const otherSecondary = new AbortController();
   const merged2 = mergeAbortSignals(otherPrimary.signal, otherSecondary.signal);
-  otherSecondary.abort();
+  const secondaryReason = new Error("client closed");
+  otherSecondary.abort(secondaryReason);
   assert.equal(merged2.aborted, true);
+  assert.equal(merged2.reason, secondaryReason);
 });
 
 test("BaseExecutor.needsRefresh returns true only when expiry is near", () => {
@@ -626,6 +631,38 @@ test("BaseExecutor.execute propagates aborted requests through the merged signal
       /aborted/
     );
   } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("BaseExecutor.execute clears the startup timeout after headers arrive", async () => {
+  const executor = new TestExecutor({ baseUrls: ["https://single.example/v1/chat/completions"] });
+  const originalFetch = globalThis.fetch;
+  const originalFetchStartTimeoutMs = BaseExecutor.FETCH_START_TIMEOUT_MS;
+  let capturedSignal;
+
+  BaseExecutor.FETCH_START_TIMEOUT_MS = 20;
+  globalThis.fetch = async (_url, options) => {
+    capturedSignal = options.signal;
+    return new Response("ok", {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    await executor.execute({
+      model: "gpt-4.1",
+      body: {},
+      stream: true,
+      credentials: {},
+    });
+
+    assert.equal(capturedSignal?.aborted, false);
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    assert.equal(capturedSignal?.aborted, false);
+  } finally {
+    BaseExecutor.FETCH_START_TIMEOUT_MS = originalFetchStartTimeoutMs;
     globalThis.fetch = originalFetch;
   }
 });

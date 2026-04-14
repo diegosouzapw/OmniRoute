@@ -457,8 +457,8 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.headers.Accept ?? call.headers.accept, "application/json");
-  assert.equal(call.body.stream, undefined);
+  assert.equal(call.headers.Accept ?? call.headers.accept, "text/event-stream");
+  assert.equal(call.body.stream, true);
   assert.equal(call.body.context_management.edits[0].type, "clear_thinking_20251015");
   assert.equal(typeof call.body.metadata.user_id, "string");
   assert.equal(call.body.messages[0].role, "user");

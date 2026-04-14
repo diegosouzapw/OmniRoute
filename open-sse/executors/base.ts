@@ -109,19 +109,23 @@ export function applyConfiguredUserAgent(
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
-  const abortBoth = () => {
+  const abortFrom = (source: AbortSignal) => {
     if (!controller.signal.aborted) {
-      controller.abort();
+      controller.abort(source.reason);
     }
   };
 
-  if (primary.aborted || secondary.aborted) {
-    abortBoth();
+  if (primary.aborted) {
+    abortFrom(primary);
+    return controller.signal;
+  }
+  if (secondary.aborted) {
+    abortFrom(secondary);
     return controller.signal;
   }
 
-  primary.addEventListener("abort", abortBoth, { once: true });
-  secondary.addEventListener("abort", abortBoth, { once: true });
+  primary.addEventListener("abort", () => abortFrom(primary), { once: true });
+  secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
   return controller.signal;
 }
 
@@ -231,6 +235,9 @@ export class BaseExecutor {
 
   // Intra-URL retry config: retry same URL before falling back to next node
   static readonly RETRY_CONFIG = { maxAttempts: 2, delayMs: 2000 };
+  // Timeout for receiving the initial upstream response headers. Once the response
+  // starts streaming, STREAM_IDLE_TIMEOUT_MS / Undici bodyTimeout handle stalls.
+  static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
   async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
@@ -313,12 +320,26 @@ export class BaseExecutor {
       const transformedBody = await this.transformRequest(model, body, stream, activeCredentials);
 
       try {
-        // Apply timeout to all requests. Non-streaming requests need this to prevent
-        // stalled connections. Streaming requests also need it for the initial fetch() call
-        // to prevent hanging on unresponsive providers (e.g. 300s TCP default timeout — #769).
-        // Stream idle detection (STREAM_IDLE_TIMEOUT_MS) handles stalls after data starts flowing.
-        const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
-        const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
+        // Only enforce the timeout while waiting for the initial fetch() response.
+        // Once headers arrive, active streams must not be cut off by total elapsed time;
+        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
+        const fetchStartTimeoutMs = BaseExecutor.FETCH_START_TIMEOUT_MS;
+        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        if (timeoutController) {
+          timeoutId = setTimeout(() => {
+            const timeoutError = new Error(
+              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
+            );
+            timeoutError.name = "TimeoutError";
+            timeoutController.abort(timeoutError);
+          }, fetchStartTimeoutMs);
+        }
+        const timeoutSignal = timeoutController?.signal ?? null;
+        const combinedSignal =
+          signal && timeoutSignal
+            ? mergeAbortSignals(signal, timeoutSignal)
+            : signal || timeoutSignal;
 
         // Apply CLI fingerprint ordering if enabled for this provider
         let finalHeaders = headers;
@@ -346,7 +367,15 @@ export class BaseExecutor {
         };
         if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        const response = await fetch(url, fetchOptions);
+        let response;
+        try {
+          response = await fetch(url, fetchOptions);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+        }
 
         // Intra-URL retry: if 429 and we haven't exhausted per-URL retries, wait and retry the same URL
         if (
@@ -375,7 +404,10 @@ export class BaseExecutor {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));
         if (err.name === "TimeoutError") {
-          log?.warn?.("TIMEOUT", `Fetch timeout after ${FETCH_TIMEOUT_MS}ms on ${url}`);
+          log?.warn?.(
+            "TIMEOUT",
+            `Fetch timeout after ${BaseExecutor.FETCH_START_TIMEOUT_MS}ms on ${url}`
+          );
         }
         lastError = err;
         if (urlIndex + 1 < fallbackCount) {

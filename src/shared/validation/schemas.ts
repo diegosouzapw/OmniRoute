@@ -204,7 +204,7 @@ const comboRuntimeConfigSchema = z
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
-    timeoutMs: z.coerce.number().int().min(1000).max(600000).optional(),
+    timeoutMs: z.coerce.number().int().min(1000).max(1200000).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
