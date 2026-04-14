@@ -639,6 +639,7 @@
       "continue": "在 IDE 中运行“Continue”并且需要可移植的基于 JSON 的提供程序配置时使用。",
       "opencode": "当您更喜欢通过 OpenCode 进行终端本机代理运行和脚本自动化时使用。",
       "kiro": "在集成 Kiro 并从 OmniRoute 集中控制模型路由时使用。",
+      "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
       "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。"
     },
@@ -1765,7 +1766,9 @@
     "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）",
     "statusDeactivated": "已停用（手动）",
     "statusBanned": "已封禁 / 沙箱违规",
-    "statusCreditsExhausted": "余额不足 / 配额已耗尽"
+    "statusCreditsExhausted": "余额不足 / 配额已耗尽",
+    "showEmails": "显示所有邮箱",
+    "hideEmails": "隐藏所有邮箱"
   },
   "settings": {
     "title": "设置",

@@ -639,6 +639,7 @@
       "continue": "Use when running Continue in IDEs and you need portable JSON-based provider configuration.",
       "opencode": "Use when you prefer terminal-native agent runs and scripted automation via OpenCode.",
       "kiro": "Use when integrating Kiro and controlling model routing centrally from OmniRoute.",
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
     },

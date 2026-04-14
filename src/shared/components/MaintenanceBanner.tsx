@@ -22,7 +22,7 @@ export default function MaintenanceBanner() {
   useEffect(() => {
     const checkHealth = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort("Health check timeout"), 8000);
       try {
         const res = await fetch("/api/monitoring/health", {
           signal: controller.signal,
