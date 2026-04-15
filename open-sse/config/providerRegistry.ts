@@ -1047,6 +1047,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "grok-web": {
+    id: "grok-web",
+    alias: "grok-web",
+    format: "openai",
+    executor: "grok-web",
+    baseUrl: "https://grok.com/rest/app-chat/conversations/new",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "grok-3", name: "Grok 3" },
+      { id: "grok-3-mini", name: "Grok 3 Mini (Thinking)" },
+      { id: "grok-3-thinking", name: "Grok 3 Thinking" },
+      { id: "grok-4", name: "Grok 4" },
+      { id: "grok-4-mini", name: "Grok 4 Mini (Thinking)" },
+      { id: "grok-4-thinking", name: "Grok 4 Thinking" },
+      { id: "grok-4-heavy", name: "Grok 4 Heavy (SuperGrok)" },
+      { id: "grok-4.1-mini", name: "Grok 4.1 Mini (Thinking)" },
+      { id: "grok-4.1-fast", name: "Grok 4.1 Fast" },
+      { id: "grok-4.1-expert", name: "Grok 4.1 Expert" },
+      { id: "grok-4.1-thinking", name: "Grok 4.1 Thinking" },
+      { id: "grok-4.2", name: "Grok 4.2 (4.20 Beta)" },
+    ],
+  },
+
   mistral: {
     id: "mistral",
     alias: "mistral",

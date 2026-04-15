@@ -239,6 +239,17 @@ export const APIKEY_PROVIDERS = {
     textIcon: "XA",
     website: "https://x.ai",
   },
+  "grok-web": {
+    id: "grok-web",
+    alias: "grok-web",
+    name: "Grok Web (Subscription)",
+    icon: "auto_awesome",
+    color: "#1DA1F2",
+    textIcon: "GW",
+    website: "https://grok.com",
+    authHint:
+      "Paste your sso cookie value from grok.com (found in browser DevTools → Cookies → sso)",
+  },
   mistral: {
     id: "mistral",
     alias: "mistral",
