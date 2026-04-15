@@ -69,6 +69,8 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                         |
 | `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups. |
 | `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                     |
+| `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
+| `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
 
 ### Scenarios
 
@@ -122,15 +124,16 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 4. Security & Authentication
 
-| Variable               | Default               | Source File                              | Description                                                                                              |
-| ---------------------- | --------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `MACHINE_ID_SALT`      | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation. |
-| `AUTH_COOKIE_SECURE`   | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                 |
-| `REQUIRE_API_KEY`      | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                    |
-| `ALLOW_API_KEY_REVEAL` | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.             |
-| `NO_LOG_API_KEY_IDS`   | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                               |
-| `MAX_BODY_SIZE_BYTES`  | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                |
-| `CORS_ORIGIN`          | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                       |
+| Variable                      | Default               | Source File                              | Description                                                                                               |
+| ----------------------------- | --------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `MACHINE_ID_SALT`             | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.  |
+| `AUTH_COOKIE_SECURE`          | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                  |
+| `REQUIRE_API_KEY`             | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                     |
+| `ALLOW_API_KEY_REVEAL`        | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.              |
+| `NO_LOG_API_KEY_IDS`          | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                |
+| `MAX_BODY_SIZE_BYTES`         | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                 |
+| `CORS_ORIGIN`                 | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                        |
+| `OUTBOUND_SSRF_GUARD_ENABLED` | `true`                | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs. |
 
 ### Hardening Checklist
 
@@ -330,17 +333,18 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 > **Source:** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| Variable                 | Default Value                                | When to Update                            |
-| ------------------------ | -------------------------------------------- | ----------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/1.0.83 (external, cli)`          | When Anthropic releases a new CLI version |
-| `CODEX_USER_AGENT`       | `codex-cli/0.92.0 (Windows 10.0.26100; x64)` | When OpenAI updates the Codex CLI         |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.26.7`                   | When GitHub Copilot Chat updates          |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.104.0 darwin/arm64`           | When Antigravity IDE updates              |
-| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`            | When Kiro IDE updates                     |
-| `QODER_USER_AGENT`       | `Qoder-Cli`                                  | When Qoder CLI updates                    |
-| `QWEN_USER_AGENT`        | `QwenCode/0.12.3 (linux; x64)`               | When Qwen Code updates                    |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                           | When Cursor updates                       |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/9.15.1`            | When Google API client updates            |
+| Variable                 | Default Value                                | When to Update                                                |
+| ------------------------ | -------------------------------------------- | ------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/1.0.83 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.92.0 (Windows 10.0.26100; x64)` | When OpenAI updates the Codex CLI                             |
+| `CODEX_CLIENT_VERSION`   | `0.92.0`                                     | Override Codex client version independently of full UA string |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.26.7`                   | When GitHub Copilot Chat updates                              |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.104.0 darwin/arm64`           | When Antigravity IDE updates                                  |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`            | When Kiro IDE updates                                         |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                  | When Qoder CLI updates                                        |
+| `QWEN_USER_AGENT`        | `QwenCode/0.12.3 (linux; x64)`               | When Qwen Code updates                                        |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                           | When Cursor updates                                           |
+| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/9.15.1`            | When Google API client updates                                |
 
 > [!TIP]
 > You can add User-Agent overrides for **any** provider using the pattern `{PROVIDER_ID}_USER_AGENT`. The executor dynamically constructs the env var name.
@@ -544,11 +548,13 @@ Automatic model pricing data synchronization from external sources.
 
 ## 21. Proxy Health
 
-| Variable                     | Default          | Source File                             | Description                                           |
-| ---------------------------- | ---------------- | --------------------------------------- | ----------------------------------------------------- |
-| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`           | `src/lib/proxyHealth.ts`                | Fast-fail health check timeout.                       |
-| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`          | `src/lib/proxyHealth.ts`                | Health check result cache TTL.                        |
-| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 min) | `open-sse/services/rateLimitManager.ts` | Max time to wait on a 429 before failing the request. |
+| Variable                     | Default          | Source File                              | Description                                                                                                         |
+| ---------------------------- | ---------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`           | `src/lib/proxyHealth.ts`                 | Fast-fail health check timeout.                                                                                     |
+| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`          | `src/lib/proxyHealth.ts`                 | Health check result cache TTL.                                                                                      |
+| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 min) | `open-sse/services/rateLimitManager.ts`  | Max time to wait on a 429 before failing the request.                                                               |
+| `REQUEST_RETRY`              | `2`              | `src/sse/services/cooldownAwareRetry.ts` | Number of automatic retries on model-scoped cooldown responses before returning error to client.                    |
+| `MAX_RETRY_INTERVAL_SEC`     | `30`             | `src/sse/services/cooldownAwareRetry.ts` | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`. |
 
 ---
 
