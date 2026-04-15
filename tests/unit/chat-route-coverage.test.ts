@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.mjs";
+import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("chat-route-unit");
 const {

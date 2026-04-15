@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 
-import { createChatPipelineHarness } from "./_chatPipelineHarness.mjs";
+import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("memory-pipeline");
 

@@ -214,7 +214,7 @@ import {
   PAGES,
   generateTestMatrix,
   getViewportNames,
-} from "../../tests/e2e/responsiveSpecs.mjs";
+} from "../../tests/e2e/responsiveSpecs.ts";
 
 describe("responsiveSpecs", () => {
   it("should define mobile, tablet, desktop viewports", () => {

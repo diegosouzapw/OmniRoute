@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createChatPipelineHarness } from "./_chatPipelineHarness.mjs";
+import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("combo-routing");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");

@@ -5,7 +5,7 @@
  * circuit breaker integration, and the new Phase 2 modules (DI container,
  * prompt versioning, plugin architecture, eval scheduler).
  *
- * @module tests/integration/proxy-pipeline.test.mjs
+ * @module tests/integration/proxy-pipeline.test.ts
  */
 
 import { describe, it, beforeEach, afterEach } from "node:test";

@@ -253,7 +253,7 @@ test("listMemories applies query filtering before pagination and type stats", as
 // SKIPPED: These tests require insertMemoryRow() which triggers a pre-existing
 // SQLITE_MISMATCH error in the test environment (same issue that affects 7 of
 // the 9 original tests above). The pagination logic itself is covered by the
-// pure-function tests in tests/unit/pagination.test.mjs.
+// pure-function tests in tests/unit/pagination.test.ts.
 // ---------------------------------------------------------------------------
 
 test.skip("listMemories supports page-based pagination (page 1)", async () => {
