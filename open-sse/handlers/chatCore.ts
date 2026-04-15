@@ -86,7 +86,8 @@ import {
   generateSignature,
   getCachedResponse,
   setCachedResponse,
-  isCacheable,
+  isCacheableForRead,
+  isCacheableForWrite,
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
@@ -727,6 +728,7 @@ export async function handleChatCore({
     clientResponse,
     claudeCacheMeta,
     claudeCacheUsageMeta,
+    cacheSource,
   }: {
     status: number;
     tokens?: unknown;
@@ -737,6 +739,7 @@ export async function handleChatCore({
     clientResponse?: unknown;
     claudeCacheMeta?: Record<string, unknown>;
     claudeCacheUsageMeta?: Record<string, unknown>;
+    cacheSource?: "upstream" | "semantic";
   }) => {
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
@@ -788,6 +791,7 @@ export async function handleChatCore({
       comboName,
       comboStepId,
       comboExecutionKey,
+      cacheSource: cacheSource === "semantic" ? "semantic" : "upstream",
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
@@ -856,25 +860,6 @@ export async function handleChatCore({
   const settings = await getCachedSettings();
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
-  // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
-  if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
-    const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
-    const cached = getCachedResponse(signature);
-    if (cached) {
-      log?.debug?.("CACHE", `Semantic cache HIT for ${model}`);
-      return {
-        success: true,
-        response: new Response(JSON.stringify(cached), {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": getCorsOrigin(),
-            "X-OmniRoute-Cache": "HIT",
-          },
-        }),
-      };
-    }
-  }
-
   // Create request logger for this session: sourceFormat_targetFormat_model
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model);
 
@@ -888,6 +873,41 @@ export async function handleChatCore({
   }
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
+
+  // ── Phase 9.1: Semantic cache check (temp=0, any streaming mode) ──
+  // Streaming responses are cached after assembly; cache hits return JSON regardless of stream flag.
+  if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
+    const signature = generateSignature(
+      model,
+      body.messages ?? body.input,
+      body.temperature,
+      body.top_p
+    );
+    const cached = getCachedResponse(signature);
+    if (cached) {
+      log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);
+      reqLogger.logConvertedResponse(cached as Record<string, unknown>);
+      persistAttemptLogs({
+        status: 200,
+        tokens: (cached as Record<string, unknown>)?.usage,
+        responseBody: cached,
+        providerRequest: null,
+        providerResponse: null,
+        clientResponse: cached,
+        cacheSource: "semantic",
+      });
+      return {
+        success: true,
+        response: new Response(JSON.stringify(cached), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": getCorsOrigin(),
+            "X-OmniRoute-Cache": "HIT",
+          },
+        }),
+      };
+    }
+  }
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
   // #994: Normalize max_output_tokens to max_tokens for universal compatibility
@@ -1198,6 +1218,38 @@ export async function handleChatCore({
         }
       }
 
+      // OpenAI-compatible providers only support function tools.
+      // Non-function tool types (computer, mcp, web_search, custom, etc.) are handled:
+      //   - tools with a name → converted to function format in-place before translation
+      //   - tools without a name AND without .function → dropped (unconvertible)
+      // This must happen before translateRequest, which validates and throws on unknown types.
+      if (provider?.startsWith("openai-compatible-") && Array.isArray(translatedBody.tools)) {
+        const before = (translatedBody.tools as unknown[]).length;
+        translatedBody.tools = (translatedBody.tools as Record<string, unknown>[])
+          .filter((t) => !t.type || t.type === "function" || !!t.function || !!t.name)
+          .map((t) => {
+            if (!t.type || t.type === "function" || t.function) return t;
+            // Named non-function tool: normalise to function format so the translator
+            // does not throw on the unknown type.
+            return {
+              type: "function",
+              function: {
+                name: t.name,
+                ...(t.description !== undefined ? { description: t.description } : {}),
+                ...(t.parameters !== undefined ? { parameters: t.parameters } : {}),
+                ...(t.strict !== undefined ? { strict: t.strict } : {}),
+              },
+            };
+          });
+        const dropped = before - (translatedBody.tools as unknown[]).length;
+        if (dropped > 0) {
+          log?.debug?.(
+            "TOOLS",
+            `Dropped ${dropped} unconvertible tool(s) for openai-compatible provider`
+          );
+        }
+      }
+
       const normalizeToolCallId = getModelNormalizeToolCallId(
         provider || "",
         model || "",
@@ -1445,6 +1497,21 @@ export async function handleChatCore({
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
 
+      // Qwen OAuth rejects requests without a non-empty `user` field.
+      // Some minimal OpenAI-compatible clients omit it, so we backfill a
+      // stable default only for OAuth mode (API key mode is unaffected).
+      const hasValidQwenUser =
+        typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
+      const isQwenOAuthRequest =
+        provider === "qwen" &&
+        !credentials?.apiKey &&
+        typeof credentials?.accessToken === "string" &&
+        credentials.accessToken.trim().length > 0;
+      if (isQwenOAuthRequest && !hasValidQwenUser) {
+        bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
+        log?.debug?.("QWEN", "Injected fallback user for OAuth request");
+      }
+
       // Inject prompt_cache_key only for providers that support it
       if (
         targetFormat === FORMATS.OPENAI &&
@@ -1597,6 +1664,7 @@ export async function handleChatCore({
       providerRequest: finalBody || translatedBody,
       clientResponse: buildErrorBody(failureStatus, failureMessage),
       claudeCacheMeta: claudePromptCacheLogMeta,
+      cacheSource: "upstream",
     });
     if (error.name === "AbortError") {
       streamController.handleError(error);
@@ -1901,6 +1969,7 @@ export async function handleChatCore({
               providerRequest: finalBody || translatedBody,
               providerResponse: upstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
+              cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "model_unavailable");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1912,6 +1981,7 @@ export async function handleChatCore({
             providerRequest: finalBody || translatedBody,
             providerResponse: upstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
+            cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "model_unavailable");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1923,6 +1993,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: upstreamErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
+          cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "model_unavailable");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1958,6 +2029,7 @@ export async function handleChatCore({
               providerRequest: finalBody || translatedBody,
               providerResponse: upstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
+              cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "context_overflow");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1969,6 +2041,7 @@ export async function handleChatCore({
             providerRequest: finalBody || translatedBody,
             providerResponse: upstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
+            cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "context_overflow");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1980,6 +2053,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: upstreamErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
+          cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "context_overflow");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1991,6 +2065,7 @@ export async function handleChatCore({
         providerRequest: finalBody || translatedBody,
         providerResponse: upstreamErrorBody,
         clientResponse: buildErrorBody(statusCode, errMsg),
+        cacheSource: "upstream",
       });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
 
@@ -2099,6 +2174,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
+          cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
@@ -2123,6 +2199,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+          cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
@@ -2144,6 +2221,7 @@ export async function handleChatCore({
         providerRequest: finalBody || translatedBody,
         providerResponse: normalizedProviderPayload,
         clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage),
+        cacheSource: "upstream",
       });
       persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "empty_content");
 
@@ -2352,8 +2430,13 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
-      const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
+    if (semanticCacheEnabled && isCacheableForWrite(body, clientRawRequest?.headers)) {
+      const signature = generateSignature(
+        model,
+        body.messages ?? body.input,
+        body.temperature,
+        body.top_p
+      );
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);
       log?.debug?.("CACHE", `Stored response for ${model} (${tokensSaved} tokens)`);
@@ -2377,6 +2460,7 @@ export async function handleChatCore({
       clientResponse: translatedResponse,
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
+      cacheSource: "upstream",
     });
 
     return {
@@ -2467,6 +2551,7 @@ export async function handleChatCore({
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
+      cacheSource: "upstream",
     });
 
     if (apiKeyInfo?.id && streamUsage) {
@@ -2475,6 +2560,32 @@ export async function handleChatCore({
           if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
         })
         .catch(() => {});
+    }
+
+    // Semantic cache: store assembled streaming response for future cache hits
+    if (
+      semanticCacheEnabled &&
+      streamStatus === 200 &&
+      streamResponseBody &&
+      isCacheableForWrite(body, clientRawRequest?.headers)
+    ) {
+      try {
+        const cleanBody = { ...streamResponseBody };
+        delete cleanBody._streamed;
+        const sig = generateSignature(
+          model,
+          body.messages ?? body.input,
+          body.temperature,
+          body.top_p
+        );
+        const u = streamUsage as Record<string, unknown> | null;
+        const tokensSaved =
+          (Number(u?.prompt_tokens ?? 0) || 0) + (Number(u?.completion_tokens ?? 0) || 0);
+        setCachedResponse(sig, model, cleanBody, tokensSaved);
+        log?.debug?.("CACHE", `Stored streaming response for ${model} (${tokensSaved} tokens)`);
+      } catch {
+        // Cache write failed — non-critical
+      }
     }
   };
 

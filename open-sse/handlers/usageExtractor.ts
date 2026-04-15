@@ -19,8 +19,12 @@ export function extractUsageFromResponse(responseBody, provider) {
     return {
       prompt_tokens: responseBody.usage.prompt_tokens || 0,
       completion_tokens: responseBody.usage.completion_tokens || 0,
-      cached_tokens: responseBody.usage.prompt_tokens_details?.cached_tokens,
-      reasoning_tokens: responseBody.usage.completion_tokens_details?.reasoning_tokens,
+      cached_tokens:
+        responseBody.usage.prompt_tokens_details?.cached_tokens ??
+        responseBody.usage.input_tokens_details?.cached_tokens,
+      reasoning_tokens:
+        responseBody.usage.completion_tokens_details?.reasoning_tokens ??
+        responseBody.usage.output_tokens_details?.reasoning_tokens,
     };
   }
 
@@ -60,10 +64,13 @@ export function extractUsageFromResponse(responseBody, provider) {
       cache_read_input_tokens: responsesUsage.cache_read_input_tokens,
       cached_tokens:
         responsesUsage.input_tokens_details?.cached_tokens ??
+        responsesUsage.prompt_tokens_details?.cached_tokens ??
         responsesUsage.cache_read_input_tokens,
       cache_creation_input_tokens: responsesUsage.cache_creation_input_tokens,
       reasoning_tokens:
-        responsesUsage.reasoning_tokens || responsesUsage.output_tokens_details?.reasoning_tokens,
+        responsesUsage.output_tokens_details?.reasoning_tokens ??
+        responsesUsage.completion_tokens_details?.reasoning_tokens ??
+        responsesUsage.reasoning_tokens,
     };
   }
 

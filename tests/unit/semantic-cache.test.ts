@@ -51,6 +51,22 @@ describe("Semantic Cache", () => {
       const sig = generateSignature("gpt-4", [], 0, 1);
       assert.ok(sig.length > 0);
     });
+
+    it("generates different signatures for different responses input payloads", () => {
+      const input1 = [{ role: "user", content: [{ type: "input_text", text: "hello" }] }];
+      const input2 = [{ role: "user", content: [{ type: "input_text", text: "goodbye" }] }];
+      const sig1 = generateSignature("gpt-5", input1, 0, 1);
+      const sig2 = generateSignature("gpt-5", input2, 0, 1);
+      assert.notEqual(sig1, sig2);
+    });
+
+    it("normalizes missing role in responses input payloads", () => {
+      const input1 = [{ content: [{ type: "input_text", text: "hello" }] }];
+      const input2 = [{ role: "user", content: [{ type: "input_text", text: "hello" }] }];
+      const sig1 = generateSignature("gpt-5", input1, 0, 1);
+      const sig2 = generateSignature("gpt-5", input2, 0, 1);
+      assert.equal(sig1, sig2);
+    });
   });
 
   describe("isCacheable", () => {

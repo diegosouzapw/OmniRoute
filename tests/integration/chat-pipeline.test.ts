@@ -244,6 +244,52 @@ function buildOpenAIStreamResponse(text = "streamed from openai") {
   );
 }
 
+function buildOpenAIResponsesSSE({
+  text = "responses streamed from codex",
+  model = "gpt-5.1-codex",
+  usage = null,
+} = {}) {
+  return new Response(
+    [
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_stream",
+          object: "response",
+          status: "completed",
+          model,
+          output: [
+            {
+              id: "msg_stream",
+              type: "message",
+              role: "assistant",
+              content: [{ type: "output_text", text, annotations: [] }],
+            },
+          ],
+          usage: usage || {
+            input_tokens: 120,
+            output_tokens: 30,
+            prompt_tokens_details: {
+              cached_tokens: 40,
+            },
+            cache_creation_input_tokens: 11,
+            completion_tokens_details: {
+              reasoning_tokens: 13,
+            },
+          },
+        },
+      })}`,
+      "",
+      "data: [DONE]",
+      "",
+    ].join("\n"),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+}
+
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   process.env.REQUIRE_API_KEY = "false";
@@ -375,6 +421,12 @@ async function getLatestCallLog() {
   return callLogsDb.getCallLogById(rows[0].id);
 }
 
+async function getResponsesCallLogCount() {
+  const rows = await callLogsDb.getCallLogs({ limit: 200 });
+  if (!Array.isArray(rows) || rows.length === 0) return 0;
+  return rows.filter((row) => row.path === "/v1/responses").length;
+}
+
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
@@ -428,6 +480,131 @@ test("chat pipeline handles OpenAI passthrough with valid API key auth", async (
   assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-openai-primary");
   assert.equal(fetchCalls[0].body.messages[0].content, "Hello OpenAI");
   assert.equal(json.choices[0].message.content, "OpenAI passthrough");
+});
+
+test("chat pipeline persists Codex responses cache and reasoning tokens to call logs", async () => {
+  await seedConnection("codex", { apiKey: "sk-codex-primary" });
+  const fetchCalls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+    return buildOpenAIResponsesSSE();
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      body: {
+        model: "codex/gpt-5.1-codex",
+        stream: false,
+        input: "Persist cache + reasoning usage",
+      },
+    })
+  );
+
+  const json = await response.json();
+  const callLog = await waitFor(() => getLatestCallLog());
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  assert.match(fetchCalls[0].url, /\/responses$/);
+  assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-codex-primary");
+  assert.equal(json.object, "response");
+
+  assert.ok(callLog, "expected a call log row to be created");
+  assert.equal(callLog.provider, "codex");
+  assert.equal(callLog.path, "/v1/responses");
+  assert.equal(callLog.tokens.cacheRead, 40);
+  assert.equal(callLog.tokens.cacheWrite, 11);
+  assert.equal(callLog.tokens.reasoning, 13);
+});
+
+test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and logs only once", async () => {
+  await seedConnection("codex", { apiKey: "sk-codex-cache-seq" });
+  const fetchCalls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+    return buildOpenAIResponsesSSE({
+      text: "cached semantic response",
+      usage: {
+        input_tokens: 21,
+        output_tokens: 7,
+        prompt_tokens_details: {
+          cached_tokens: 5,
+        },
+        cache_creation_input_tokens: 2,
+        completion_tokens_details: {
+          reasoning_tokens: 3,
+        },
+      },
+    });
+  };
+
+  const uniquePrompt = `semantic-cache-seq-${Math.random().toString(16).slice(2)}`;
+  const requestBody = {
+    model: "codex/gpt-5.3-codex",
+    stream: false,
+    input: [{ role: "user", content: [{ type: "input_text", text: uniquePrompt }] }],
+  };
+
+  const beforeCount = await getResponsesCallLogCount();
+
+  const firstResponse = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      body: requestBody,
+    })
+  );
+
+  const secondResponse = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      body: requestBody,
+    })
+  );
+
+  const thirdResponse = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      body: requestBody,
+    })
+  );
+
+  await firstResponse.json();
+  await secondResponse.json();
+  await thirdResponse.json();
+
+  assert.equal(firstResponse.status, 200);
+  assert.equal(secondResponse.status, 200);
+  assert.equal(thirdResponse.status, 200);
+
+  assert.equal(firstResponse.headers.get("X-OmniRoute-Cache"), "MISS");
+  assert.equal(secondResponse.headers.get("X-OmniRoute-Cache"), "HIT");
+  assert.equal(thirdResponse.headers.get("X-OmniRoute-Cache"), "HIT");
+
+  assert.equal(fetchCalls.length, 1, "expected upstream to be called only once for MISS");
+  assert.match(fetchCalls[0].url, /\/responses$/);
+
+  const afterCount = await waitFor(async () => {
+    const count = await getResponsesCallLogCount();
+    return count === beforeCount + 1 ? count : null;
+  }, 2000);
+
+  assert.equal(afterCount, beforeCount + 1, "expected exactly one new /v1/responses call log");
+
+  const callLog = await waitFor(() => getLatestCallLog());
+  assert.ok(callLog, "expected a call log row to exist");
+  assert.equal(callLog.path, "/v1/responses");
+  assert.equal(callLog.status, 200);
 });
 
 test("chat pipeline translates OpenAI requests to Claude and returns OpenAI-shaped responses", async () => {
