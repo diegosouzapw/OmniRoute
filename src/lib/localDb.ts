@@ -151,6 +151,9 @@ export {
 export {
   // Backup Management
   backupDbFile,
+  cleanupDbBackups,
+  getDbBackupMaxFiles,
+  getDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
 } from "./db/backup";

@@ -8,6 +8,7 @@ import {
   getCallLogsTableMaxRows,
   getProxyLogsTableMaxRows,
 } from "@/lib/logEnv";
+import { getDbBackupMaxFiles, getDbBackupRetentionDays } from "@/lib/db/backup";
 
 /**
  * GET /api/storage/health — Return database storage information.
@@ -69,6 +70,10 @@ export async function GET() {
       tableMaxRows: {
         callLogs: getCallLogsTableMaxRows(),
         proxyLogs: getProxyLogsTableMaxRows(),
+      },
+      backupRetention: {
+        maxFiles: getDbBackupMaxFiles(),
+        days: getDbBackupRetentionDays(),
       },
       dataDir: dataDir.startsWith(homeDir) ? "~" + dataDir.slice(homeDir.length) : dataDir,
     });
