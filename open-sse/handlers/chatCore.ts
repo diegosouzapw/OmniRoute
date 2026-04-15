@@ -1972,7 +1972,7 @@ export async function handleChatCore({
       }
 
       if (!emergencyFallbackServed) {
-        return createErrorResult(statusCode, errMsg);
+        return createErrorResult(statusCode, errMsg, retryAfterMs);
       }
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
