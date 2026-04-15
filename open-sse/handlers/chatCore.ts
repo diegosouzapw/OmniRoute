@@ -45,7 +45,10 @@ import {
 } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
+import {
+  CLAUDE_OAUTH_TOOL_PREFIX,
+  stripEmptyTextBlocks,
+} from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
@@ -1049,10 +1052,7 @@ export async function handleChatCore({
       if (Array.isArray(translatedBody.messages)) {
         for (const msg of translatedBody.messages) {
           if (Array.isArray(msg.content)) {
-            msg.content = msg.content.filter(
-              (block: Record<string, unknown>) =>
-                block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
-            );
+            msg.content = stripEmptyTextBlocks(msg.content);
           }
         }
       }
