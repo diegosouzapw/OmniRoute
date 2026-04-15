@@ -23,7 +23,13 @@ import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
-import { calculateFactors, calculateScore, DEFAULT_WEIGHTS } from "./autoCombo/scoring.ts";
+import {
+  calculateFactors,
+  calculateScore,
+  DEFAULT_WEIGHTS,
+  type ProviderCandidate,
+  type ScoringWeights,
+} from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
@@ -494,8 +500,8 @@ function selectWeightedTarget<T extends { weight?: number }>(targets: T[]) {
   return targets[targets.length - 1];
 }
 
-function orderTargetsForWeightedFallback(
-  targets: Array<{ executionKey: string; weight: number }>,
+function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(
+  targets: T[],
   selectedExecutionKey: string,
   preserveExistingOrder = false
 ) {
@@ -504,7 +510,7 @@ function orderTargetsForWeightedFallback(
   if (!preserveExistingOrder) {
     rest.sort((a, b) => b.weight - a.weight);
   }
-  return [selected, ...rest].filter(Boolean);
+  return [selected, ...rest].filter(Boolean) as T[];
 }
 
 // shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
@@ -871,7 +877,7 @@ function scoreAutoTargets(
   targets: ResolvedComboTarget[],
   candidates: ProviderCandidate[],
   taskType: string | null,
-  weights: Record<string, number>
+  weights: ScoringWeights
 ) {
   const candidateByExecutionKey = new Map(
     candidates.map((candidate) => [candidate.executionKey, candidate])
