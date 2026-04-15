@@ -137,7 +137,9 @@
     "Failed to save pricing": "Failed to save pricing",
     "Failed to reset pricing": "Failed to reset pricing",
     "apikey": "API Key",
-    "http": "HTTP"
+    "http": "HTTP",
+    "goToDashboard": "Go to Dashboard",
+    "checkSystemStatus": "Check System Status"
   },
   "sidebar": {
     "home": "Home",

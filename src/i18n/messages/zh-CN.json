@@ -137,7 +137,9 @@
     "Failed to save pricing": "保存定价失败",
     "Failed to reset pricing": "重置定价失败",
     "apikey": "API 密钥",
-    "http": "HTTP"
+    "http": "HTTP",
+    "goToDashboard": "前往仪表板",
+    "checkSystemStatus": "查看系统状态"
   },
   "sidebar": {
     "home": "首页",
