@@ -3257,6 +3257,7 @@
     "content": "内容",
     "created": "创建时间",
     "actions": "操作",
+    "delete": "删除",
     "factual": "事实型",
     "episodic": "情景型",
     "procedural": "程序型",
