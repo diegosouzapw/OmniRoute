@@ -1042,11 +1042,6 @@ export async function handleChatCore({
       disableThinkingIfToolChoiceForced(translatedBody);
 
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
-    } else if (isClaudePassthrough && preserveCacheControl) {
-      translatedBody = { ...body };
-      translatedBody._disableToolPrefix = true;
-
-      log?.debug?.("FORMAT", "claude passthrough with cache_control preservation");
     } else if (isClaudePassthrough) {
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
@@ -1062,7 +1057,11 @@ export async function handleChatCore({
         }
       }
 
-      log?.debug?.("FORMAT", "claude direct passthrough (no round-trip)");
+      if (preserveCacheControl) {
+        log?.debug?.("FORMAT", "claude passthrough with cache_control preservation");
+      } else {
+        log?.debug?.("FORMAT", "claude direct passthrough (no round-trip)");
+      }
     } else {
       translatedBody = { ...body };
 
@@ -1799,10 +1798,7 @@ export async function handleChatCore({
             finalBody = fallbackResult.transformedBody;
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             // Continue processing with the fallback response — skip error return
-            log?.info?.(
-              "MODEL_FALLBACK",
-              `Serving ${nextModel} as fallback for ${model}`
-            );
+            log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
             // Jump to streaming/non-streaming handling below
             // We fall through by NOT returning here
           } else {
@@ -1976,7 +1972,7 @@ export async function handleChatCore({
       }
 
       if (!emergencyFallbackServed) {
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(statusCode, errMsg);
       }
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
