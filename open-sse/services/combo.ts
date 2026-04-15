@@ -4,7 +4,11 @@
  * strict-random, auto, fill-first, p2c, lkgp, context-optimized, and context-relay strategies
  */
 
-import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
+import {
+  checkFallbackError,
+  formatRetryAfter,
+  getRuntimeProviderProfile,
+} from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
@@ -1312,7 +1316,7 @@ export async function handleComboChat({
     const target = orderedTargets[i];
     const modelStr = target.modelStr;
     const provider = target.provider;
-    const profile = getProviderProfile(provider);
+    const profile = await getRuntimeProviderProfile(provider);
     const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const breaker = getCircuitBreaker(breakerKey, {
       failureThreshold: profile.circuitBreakerThreshold,
@@ -1489,7 +1493,8 @@ export async function handleComboChat({
         0,
         null,
         provider,
-        result.headers
+        result.headers,
+        profile
       );
       const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
@@ -1648,7 +1653,7 @@ async function handleRoundRobinCombo({
     const target = orderedTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
-    const profile = getProviderProfile(provider);
+    const profile = await getRuntimeProviderProfile(provider);
     const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
     const breaker = getCircuitBreaker(breakerKey, {
@@ -1803,7 +1808,8 @@ async function handleRoundRobinCombo({
           0,
           null,
           provider,
-          result.headers
+          result.headers,
+          profile
         );
         const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 

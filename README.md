@@ -324,8 +324,8 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 **How OmniRoute solves it:**
 
-- **Circuit Breaker per-model** — Auto-open/close with configurable thresholds and cooldown (Closed/Open/Half-Open), scoped per-model to avoid cascading blocks
-- **Exponential Backoff** — Progressive retry delays
+- **Settings-Driven Lock Hierarchy** — Provider profiles control default account/model lockouts, global model quarantine, and provider circuit breakers from one control surface, while explicit upstream `Retry-After` windows still take priority
+- **Exponential Backoff** — Progressive retry delays for both account/model lockouts and higher-level quarantine
 - **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
 - **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
 - **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain
@@ -808,18 +808,18 @@ only forwards client-provided `cache_control` markers. If the request does not i
 
 Advanced overrides are available if you need finer control:
 
-| Variable                               | Default                                    | Purpose                                                            |
-| -------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
-| `FETCH_TIMEOUT_MS`                     | inherits `REQUEST_TIMEOUT_MS`              | Upstream response-start timeout used until response headers arrive |
-| `FETCH_HEADERS_TIMEOUT_MS`             | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers          |
-| `FETCH_BODY_TIMEOUT_MS`                | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)   |
-| `FETCH_CONNECT_TIMEOUT_MS`             | `30000`                                    | Undici TCP connect timeout                                         |
-| `FETCH_KEEPALIVE_TIMEOUT_MS`           | `4000`                                     | Undici idle keep-alive socket timeout                              |
-| `TLS_CLIENT_TIMEOUT_MS`                | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`        |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`          | inherits `REQUEST_TIMEOUT_MS` or `30000`   | Timeout for `/v1` proxy forwarding from API port to dashboard port |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS` | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                  |
-| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                   |
-| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                        |
+| Variable                                 | Default                                    | Purpose                                                              |
+| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Upstream response-start timeout used until response headers arrive   |
+| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers            |
+| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                |
+| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`          |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `30000`   | Timeout for `/v1` proxy forwarding from API port to dashboard port   |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                    |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                     |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
 | `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
 
 For streaming requests, `FETCH_TIMEOUT_MS` only covers connection setup / waiting for the first upstream response. Once the stream is active, OmniRoute will only abort on an actual stall (`STREAM_IDLE_TIMEOUT_MS`) or Undici body inactivity (`FETCH_BODY_TIMEOUT_MS`).

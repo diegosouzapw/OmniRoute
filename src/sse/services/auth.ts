@@ -17,11 +17,10 @@ import {
   getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
+  getRuntimeProviderProfile,
+  recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import {
-  isLocalProvider,
-  getPassthroughProviders,
-} from "@omniroute/open-sse/config/providerRegistry.ts";
+import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
@@ -1110,7 +1109,8 @@ export async function markAccountUnavailable(
   status: number,
   errorText: string,
   provider: string | null = null,
-  model: string | null = null
+  model: string | null = null,
+  providerProfile = null
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1123,27 +1123,6 @@ export async function markAccountUnavailable(
 
   try {
     await currentMutex;
-
-    // ── Per-model lockout for providers with independent model quotas ──
-    // Providers like Gemini AI Studio have per-model quotas. A 429/404 on one
-    // model must NOT lock out other models on the same API key.
-    if (hasPerModelQuota(provider) && model && (status === 429 || status === 404)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
-      const cooldown = status === 404 ? COOLDOWN_MS.notFoundLocal : COOLDOWN_MS.rateLimit;
-      lockModel(provider, connectionId, model, reason, cooldown);
-      // Update last error for observability (without changing terminal status)
-      updateProviderConnection(connectionId, {
-        lastErrorType: reason,
-        lastError: `Model ${model} ${reason}`,
-        lastErrorAt: new Date().toISOString(),
-        errorCode: status,
-      }).catch(() => {});
-      log.info(
-        "AUTH",
-        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
-      );
-      return { shouldFallback: true, cooldownMs: cooldown };
-    }
 
     // Read current connection to get backoffLevel
     const connectionsRaw = await getProviderConnections({ provider });
@@ -1195,54 +1174,80 @@ export async function markAccountUnavailable(
       }
     }
 
+    const effectiveProviderProfile =
+      providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
+      const reason = status === 404 ? "not_found" : "rate_limited";
+      const fallbackCooldown =
+        status === 404
+          ? (effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.notFoundLocal)
+          : 0;
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        reason,
+        status,
+        fallbackCooldown,
+        effectiveProviderProfile
+      );
+      // Update last error for observability (without changing terminal status)
+      updateProviderConnection(connectionId, {
+        lastErrorType: reason,
+        lastError: `Model ${model} ${reason}`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const result = checkFallbackError(
       status,
       errorText,
       backoffLevel,
       model,
-      provider // ← Now passes provider for profile-aware cooldowns
+      provider,
+      null,
+      effectiveProviderProfile
     );
     const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── 404 model-only lockout: connection stays active ──
-    // For local providers (detected by URL) and cloud providers with passthrough models
-    // (like Antigravity), a 404 means the specific model doesn't exist or isn't available
-    // for this account — it should NOT lock out the entire connection.
+    // For local providers (detected by URL), a 404 means the specific model
+    // doesn't exist or isn't available for this account — it should NOT lock
+    // out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
       | string
       | undefined;
 
-    const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
-    const isPerModelQuotaProvider = hasPerModelQuota(provider);
-    if (
-      (isLocalProvider(connBaseUrl) || isPerModelQuotaProvider) &&
-      status === 404 &&
-      provider &&
-      model
-    ) {
-      const localCooldown = COOLDOWN_MS.notFoundLocal;
-      lockModel(provider, connectionId, model, "not_found", localCooldown);
+    if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "not_found",
+        status,
+        COOLDOWN_MS.notFoundLocal,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "not_found",
+        lastError: `Model ${model} not_found`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
       log.info(
         "AUTH",
-        `Model-only lockout for ${model} — 404 lockout ${localCooldown / 1000}s (connection stays active)`
+        `Model-only lockout for ${provider}:${model} — 404 not_found ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
       );
-      return { shouldFallback: true, cooldownMs: localCooldown };
-    }
-
-    // ── 429 model-only lockout for per-model quota providers ──
-    // For providers where each model has independent quota (passthrough providers,
-    // Gemini AI Studio), a 429 on one model should NOT lock out the entire connection
-    // — other models may still have quota available. Use lockModel() instead of
-    // connection-wide rateLimitedUntil.
-    if (isPerModelQuotaProvider && status === 429 && provider && model) {
-      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
-      lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
-      log.info(
-        "AUTH",
-        `Model-only lockout for ${model} — 429 rate limit ${Math.ceil(modelCooldown / 1000)}s (connection stays active)`
-      );
-      return { shouldFallback: true, cooldownMs: modelCooldown };
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);

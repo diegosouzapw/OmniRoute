@@ -16,8 +16,12 @@ const {
   applyErrorState,
   lockModelIfPerModelQuota,
   isModelLocked,
+  getModelLockoutInfo,
   hasPerModelQuota,
   getProviderProfile,
+  recordModelLockoutFailure,
+  clearModelLock,
+  shouldMarkAccountExhaustedFrom429,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -151,9 +155,13 @@ test("applyErrorState and selectAccount advance to the next account after an aut
 test("lockModelIfPerModelQuota only locks supported providers and real models", () => {
   const geminiConnectionId = `gemini-${Date.now()}`;
   const openAiConnectionId = `openai-${Date.now()}`;
+  const compatibleConnectionId = `compatible-${Date.now()}`;
+  const compatibleProvider = "openai-compatible-custom-node";
+  const compatibleModel = "custom-model-a";
 
   assert.equal(hasPerModelQuota("gemini"), true);
   assert.equal(hasPerModelQuota("openai"), false);
+  assert.equal(hasPerModelQuota(compatibleProvider, compatibleModel), true);
 
   assert.equal(
     lockModelIfPerModelQuota(
@@ -178,9 +186,107 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
     false
   );
   assert.equal(isModelLocked("openai", openAiConnectionId, "gpt-5-mini"), false);
+
+  assert.equal(
+    lockModelIfPerModelQuota(
+      compatibleProvider,
+      compatibleConnectionId,
+      compatibleModel,
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(isModelLocked(compatibleProvider, compatibleConnectionId, compatibleModel), true);
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
   assert.deepEqual(getProviderProfile("claude"), PROVIDER_PROFILES.oauth);
   assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
+});
+
+test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatible providers", () => {
+  assert.equal(shouldMarkAccountExhaustedFrom429("gemini", "gemini-2.5-pro"), false);
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("openai-compatible-custom-node", "any-model"),
+    false
+  );
+  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
+});
+
+test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and reset window", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const compatibleProvider = "openai-compatible-custom-node";
+    const compatibleModel = "custom-model-a";
+    const profile = {
+      transientCooldown: 250,
+      rateLimitCooldown: 125,
+      maxBackoffLevel: 2,
+      circuitBreakerThreshold: 60,
+      circuitBreakerReset: 500,
+    };
+
+    const first = recordModelLockoutFailure(
+      compatibleProvider,
+      "conn-compatible",
+      compatibleModel,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    now += 50;
+    const second = recordModelLockoutFailure(
+      compatibleProvider,
+      "conn-compatible",
+      compatibleModel,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    now += 50;
+    const third = recordModelLockoutFailure(
+      compatibleProvider,
+      "conn-compatible",
+      compatibleModel,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+
+    const info = getModelLockoutInfo(compatibleProvider, "conn-compatible", compatibleModel);
+
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 125);
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 250);
+    assert.equal(third.failureCount, 3);
+    assert.equal(third.cooldownMs, 500);
+    assert.equal(info.failureCount, 3);
+
+    clearModelLock(compatibleProvider, "conn-compatible", compatibleModel);
+    now += 600;
+
+    const afterReset = recordModelLockoutFailure(
+      compatibleProvider,
+      "conn-compatible",
+      compatibleModel,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+
+    assert.equal(afterReset.failureCount, 1);
+    assert.equal(afterReset.cooldownMs, 125);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("openai-compatible-custom-node", "conn-compatible", "custom-model-a");
+  }
 });

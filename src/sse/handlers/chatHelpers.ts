@@ -27,6 +27,7 @@ import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/c
 import { isModelAvailable } from "../../domain/modelAvailability";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
+import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 
 export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
@@ -65,13 +66,17 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
   return { provider, model, sourceFormat, targetFormat, extendedContext };
 }
 
-export function checkPipelineGates(
+export async function checkPipelineGates(
   provider: string,
   model: string,
   options: {
     ignoreCircuitBreaker?: boolean;
     ignoreModelCooldown?: boolean;
     bypassReason?: string;
+    providerProfile?: {
+      circuitBreakerThreshold?: number;
+      circuitBreakerReset?: number;
+    } | null;
   } = {}
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
@@ -87,9 +92,10 @@ export function checkPipelineGates(
     );
   }
 
+  const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: 5,
-    resetTimeout: 30000,
+    failureThreshold: providerProfile.circuitBreakerThreshold,
+    resetTimeout: providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });

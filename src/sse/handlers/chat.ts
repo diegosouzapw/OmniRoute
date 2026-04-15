@@ -5,6 +5,11 @@ import {
   extractApiKey,
   isValidApiKey,
 } from "../services/auth";
+import {
+  getRuntimeProviderProfile,
+  shouldMarkAccountExhaustedFrom429,
+  clearModelLock,
+} from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -472,16 +477,18 @@ async function handleSingleModelChat(
       : undefined;
 
   // 2. Pipeline gates (availability + circuit breaker)
-  const gate = checkPipelineGates(provider, model, {
+  const providerProfile = await getRuntimeProviderProfile(provider);
+  const gate = await checkPipelineGates(provider, model, {
     ignoreCircuitBreaker: forceLiveComboTest || hasForcedConnection,
     ignoreModelCooldown: forceLiveComboTest || hasForcedConnection,
+    providerProfile,
     ...(bypassReason ? { bypassReason } : {}),
   });
   if (gate) return gate;
 
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: 5,
-    resetTimeout: 30000,
+    failureThreshold: providerProfile.circuitBreakerThreshold,
+    resetTimeout: providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
@@ -526,11 +533,19 @@ async function handleSingleModelChat(
             status: Number(lastStatus),
             baseCooldownMs: lastCooldownMs,
             reason: `HTTP ${lastStatus}`,
+            profile: providerProfile,
           });
-          log.info(
-            "AVAILABILITY",
-            `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus}, cooldown ${Math.ceil(quarantine.cooldownMs / 1000)}s, failureCount ${quarantine.failureCount})`
-          );
+          if (quarantine.quarantined) {
+            log.info(
+              "AVAILABILITY",
+              `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus}, cooldown ${Math.ceil(quarantine.cooldownMs / 1000)}s, failureCount ${quarantine.failureCount}/${quarantine.threshold})`
+            );
+          } else {
+            log.info(
+              "AVAILABILITY",
+              `${provider}/${model} recorded exhaustion failure ${quarantine.failureCount}/${quarantine.threshold} (HTTP ${lastStatus}, cooldown basis ${Math.ceil(quarantine.cooldownMs / 1000)}s)`
+            );
+          }
         }
 
         if (credentials?.allRateLimited) {
@@ -680,6 +695,7 @@ async function handleSingleModelChat(
       });
 
       if (result.success) {
+        clearModelLock(provider, credentials.connectionId, model);
         clearModelUnavailability(provider, model);
         if (injectedHandoff && runtimeOptions.sessionId && comboName) {
           deleteHandoff(runtimeOptions.sessionId, comboName);
@@ -754,9 +770,9 @@ async function handleSingleModelChat(
       }
 
       // 6. Mark account as quota-exhausted on 429 response
-      // For per-model quota providers (Gemini), a 429 on one model doesn't mean
-      // the entire account is exhausted — skip connection-wide exhaustion marking.
-      if (result.status === 429 && provider !== "gemini") {
+      // For providers that route quota/cooldown at model scope, a 429 on one model
+      // does not mean the whole connection is exhausted.
+      if (result.status === 429 && shouldMarkAccountExhaustedFrom429(provider, model)) {
         markAccountExhaustedFrom429(credentials.connectionId, provider);
       }
 
@@ -766,7 +782,8 @@ async function handleSingleModelChat(
         result.status,
         result.error,
         provider,
-        model
+        model,
+        providerProfile
       );
 
       if (shouldFallback) {

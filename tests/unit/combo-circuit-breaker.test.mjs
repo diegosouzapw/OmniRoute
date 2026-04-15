@@ -60,15 +60,15 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
   };
   const breakerKey = getComboTargetBreakerKey(combo);
   const breaker = getCircuitBreaker(breakerKey, {
-    failureThreshold: 3,
+    failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold,
     resetTimeout: 60000,
   });
   breaker.reset();
 
   const log = mockLog();
 
-  // Send 3 requests that all fail with 502 → breaker should open
-  for (let i = 0; i < 3; i++) {
+  // Send requests that all fail with 502 until the API-key profile threshold is reached.
+  for (let i = 0; i < PROVIDER_PROFILES.apikey.circuitBreakerThreshold; i++) {
     await handleComboChat({
       body: {},
       combo,
@@ -82,9 +82,17 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
 
   // Breaker should now be OPEN
   const status = breaker.getStatus();
-  console.log("=== BREAKER STATUS AFTER 3 CALLS ===", status);
-  assert.equal(status.state, STATE.OPEN, "Breaker should be OPEN after 3 failures");
-  assert.equal(status.failureCount, 3, "Failure count should be 3");
+  console.log("=== BREAKER STATUS AFTER THRESHOLD CALLS ===", status);
+  assert.equal(
+    status.state,
+    STATE.OPEN,
+    "Breaker should be OPEN after the API-key failure threshold is reached"
+  );
+  assert.equal(
+    status.failureCount,
+    PROVIDER_PROFILES.apikey.circuitBreakerThreshold,
+    "Failure count should match the API-key profile threshold"
+  );
 });
 
 test("handleComboChat: skips models with open circuit breaker", async () => {
