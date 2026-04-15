@@ -1,14 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  getSignatures,
-  addSignature,
-  detectAndLearn,
-  getModelFamily,
-  getCacheStats,
-  clearCache,
-} = await import("../../open-sse/services/signatureCache.ts");
+const { getSignatures, addSignature, detectAndLearn, getModelFamily, getCacheStats, clearCache } =
+  await import("../../open-sse/services/signatureCache.ts");
 
 test.beforeEach(() => clearCache());
 

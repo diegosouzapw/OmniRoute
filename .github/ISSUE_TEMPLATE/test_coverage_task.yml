@@ -26,7 +26,7 @@ body:
         Example:
         - open-sse/handlers/chatCore.ts
         - open-sse/services/combo.ts
-        - tests/integration/chat-pipeline.test.mjs
+        - tests/integration/chat-pipeline.test.ts
     validations:
       required: true
 
@@ -59,7 +59,7 @@ body:
       description: "List the commands that must pass before this issue can be closed."
       placeholder: |
         Example:
-        - node --import tsx/esm --test tests/unit/my-suite.test.mjs
+        - node --import tsx/esm --test tests/unit/my-suite.test.ts
         - npm run test:coverage
     validations:
       required: true

@@ -94,5 +94,9 @@ test("Claude-to-Claude passthrough should not alter tool names", () => {
 
   // Claude-to-Claude should preserve tool names
   assert.ok(Array.isArray(result.tools), "tools should be an array");
-  assert.equal(result.tools[0].name, "TodoWrite", "tool name should stay unchanged for Claude-to-Claude");
+  assert.equal(
+    result.tools[0].name,
+    "TodoWrite",
+    "tool name should stay unchanged for Claude-to-Claude"
+  );
 });

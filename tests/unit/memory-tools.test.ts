@@ -37,7 +37,8 @@ test("memory add stores entries with default session and metadata", async () => 
     content: "TypeScript is preferred.",
   });
 
-  const rows = await memoryStore.listMemories({ apiKeyId: "key-add" });
+  const rowsResult = await memoryStore.listMemories({ apiKeyId: "key-add" });
+  const rows = Array.isArray(rowsResult) ? rowsResult : rowsResult.data;
 
   assert.equal(result.success, true);
   assert.equal(result.data.message, "Memory created successfully");
@@ -125,7 +126,8 @@ test("memory clear deletes only older filtered entries and reports the deleted c
     olderThan: cutoff.toISOString(),
   });
 
-  const remaining = await memoryStore.listMemories({ apiKeyId: "key-clear" });
+  const remainingResult = await memoryStore.listMemories({ apiKeyId: "key-clear" });
+  const remaining = Array.isArray(remainingResult) ? remainingResult : remainingResult.data;
 
   assert.equal(result.success, true);
   assert.equal(result.data.deletedCount, 1);

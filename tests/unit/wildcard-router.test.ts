@@ -1,12 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  wildcardMatch,
-  getSpecificity,
-  resolveWildcardAlias,
-  resolveModel,
-} = await import("../../open-sse/services/wildcardRouter.ts");
+const { wildcardMatch, getSpecificity, resolveWildcardAlias, resolveModel } =
+  await import("../../open-sse/services/wildcardRouter.ts");
 
 // ─── wildcardMatch ──────────────────────────────────────────────────────────
 

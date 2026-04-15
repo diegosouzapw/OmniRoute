@@ -32,6 +32,7 @@ const eslintConfig = [
       "src/.next/**",
       "out/**",
       "build/**",
+      "coverage/**",
       "next-env.d.ts",
       // Scripts and binaries
       "scripts/**",
@@ -40,6 +41,7 @@ const eslintConfig = [
       "node_modules/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",
+      "_references/**",
       "_mono_repo/**",
       // Electron app
       "electron/**",
@@ -51,7 +53,11 @@ const eslintConfig = [
       "playwright-report/**",
       "test-results/**",
       // Subdirectory .next build output (app/ subdir)
+      "app/**",
       "app/.next/**",
+      "app/bin/**",
+      "app.__qa_backup/**",
+      "app/app.__qa_backup/**",
       // CLI package copy directory
       "clipr/**",
     ],

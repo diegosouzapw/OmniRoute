@@ -529,8 +529,14 @@ test("chatCore extracts memories from Claude content arrays and Responses output
 
   await waitForAsyncMemoryFlush();
 
-  const claudeMemories = await listMemories({ apiKeyId: claudeKeyId });
-  const responsesMemories = await listMemories({ apiKeyId: responsesKeyId });
+  const claudeMemoriesResult = await listMemories({ apiKeyId: claudeKeyId });
+  const responsesMemoriesResult = await listMemories({ apiKeyId: responsesKeyId });
+  const claudeMemories = Array.isArray(claudeMemoriesResult)
+    ? claudeMemoriesResult
+    : (claudeMemoriesResult.data ?? []);
+  const responsesMemories = Array.isArray(responsesMemoriesResult)
+    ? responsesMemoriesResult
+    : (responsesMemoriesResult.data ?? []);
 
   assert.equal(claudeMemories.length, 1);
   assert.equal(claudeMemories[0].content, "strongly typed APIs");

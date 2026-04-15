@@ -59,6 +59,7 @@ import {
   providerSupportsCaching,
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
+import { getCachedSettings } from "@/lib/db/readCache";
 
 import {
   parseCodexQuotaHeaders,
@@ -78,6 +79,7 @@ import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
+  updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
 import {
@@ -264,6 +266,42 @@ function getSkillsModelIdForFormat(format: string): string {
     default:
       return "openai";
   }
+}
+
+function parseNonStreamingSSEPayload(
+  rawBody: string,
+  preferredFormat: string,
+  fallbackModel: string
+): { body: Record<string, unknown>; format: string } | null {
+  const formatsToTry: string[] = [];
+  const seen = new Set<string>();
+  const queueFormat = (format: string) => {
+    if (!format || seen.has(format)) return;
+    seen.add(format);
+    formatsToTry.push(format);
+  };
+
+  queueFormat(preferredFormat);
+  queueFormat(FORMATS.OPENAI_RESPONSES);
+  queueFormat(FORMATS.CLAUDE);
+  queueFormat(FORMATS.OPENAI);
+
+  for (const format of formatsToTry) {
+    const parsed =
+      format === FORMATS.OPENAI_RESPONSES
+        ? parseSSEToResponsesOutput(rawBody, fallbackModel)
+        : format === FORMATS.CLAUDE
+          ? parseSSEToClaudeResponse(rawBody, fallbackModel)
+          : parseSSEToOpenAIResponse(rawBody, fallbackModel);
+    if (parsed && typeof parsed === "object") {
+      return {
+        body: parsed as Record<string, unknown>,
+        format,
+      };
+    }
+  }
+
+  return null;
 }
 
 function getHeaderValueCaseInsensitive(
@@ -478,6 +516,8 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  comboStepId = null,
+  comboExecutionKey = null,
   disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
@@ -745,6 +785,8 @@ export async function handleChatCore({
       sourceFormat,
       targetFormat,
       comboName,
+      comboStepId,
+      comboExecutionKey,
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
@@ -810,9 +852,11 @@ export async function handleChatCore({
   }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
+  const settings = await getCachedSettings();
+  const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
-  if (isCacheable(body, clientRawRequest?.headers)) {
+  if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
     const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
     const cached = getCachedResponse(signature);
     if (cached) {
@@ -1654,23 +1698,24 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
+          const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "rate_limited",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              rateLimitCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(rateLimitCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
-            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+            const rateLimitedUntil = new Date(Date.now() + rateLimitCooldownMs).toISOString();
             await updateProviderConnection(connectionId, {
               rateLimitedUntil: rateLimitedUntil,
-              testStatus: "credits_exhausted",
+              testStatus: "unavailable",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
@@ -1772,6 +1817,9 @@ export async function handleChatCore({
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
+    if (connectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
+      updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
+    }
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
     // Before returning a model-unavailable error upstream, try sibling models
@@ -1979,6 +2027,7 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
+    let responsePayloadFormat = targetFormat;
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
@@ -1986,12 +2035,7 @@ export async function handleChatCore({
 
     if (looksLikeSSE) {
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
-      const parsedFromSSE =
-        targetFormat === FORMATS.OPENAI_RESPONSES
-          ? parseSSEToResponsesOutput(rawBody, model)
-          : targetFormat === FORMATS.CLAUDE
-            ? parseSSEToClaudeResponse(rawBody, model)
-            : parseSSEToOpenAIResponse(rawBody, model);
+      const parsedFromSSE = parseNonStreamingSSEPayload(rawBody, targetFormat, model);
 
       if (!parsedFromSSE) {
         appendRequestLog({
@@ -2012,7 +2056,8 @@ export async function handleChatCore({
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
-      responseBody = parsedFromSSE;
+      responseBody = parsedFromSSE.body;
+      responsePayloadFormat = parsedFromSSE.format;
     } else {
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
@@ -2171,10 +2216,10 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(targetFormat, clientResponseFormat)
+    let translatedResponse = needsTranslation(responsePayloadFormat, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
-          targetFormat,
+          responsePayloadFormat,
           clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )
@@ -2259,7 +2304,7 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (isCacheable(body, clientRawRequest?.headers)) {
+    if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
       const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);

@@ -55,8 +55,14 @@ export function openaiResponsesToOpenAIRequest(
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
       const toolType = toString(tool.type);
-      // Allow: function tools, and tools already in Chat format (have .function property)
-      if (toolType && toolType !== "function" && !tool.function) {
+      // Allow: function tools, tools already in Chat format (have .function property), and CLI subagent tools
+      if (
+        toolType &&
+        toolType !== "function" &&
+        toolType !== "custom" &&
+        toolType !== "command" &&
+        !tool.function
+      ) {
         throw unsupportedFeature(
           `Unsupported Responses API feature: ${toolType} tool type is not supported by omniroute`
         );

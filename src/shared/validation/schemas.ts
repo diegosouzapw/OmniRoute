@@ -52,44 +52,45 @@ function validateProviderSpecificData(
   }
 
   const requestDefaults = data.requestDefaults;
-  if (requestDefaults === undefined) return;
-  if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "providerSpecificData.requestDefaults must be an object",
-      path: ["requestDefaults"],
-    });
-    return;
-  }
+  if (requestDefaults !== undefined) {
+    if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.requestDefaults must be an object",
+        path: ["requestDefaults"],
+      });
+    } else {
+      const requestDefaultsRecord = requestDefaults as Record<string, unknown>;
+      const reasoningEffort = requestDefaultsRecord.reasoningEffort;
+      if (
+        reasoningEffort !== undefined &&
+        reasoningEffort !== null &&
+        (typeof reasoningEffort !== "string" ||
+          !CODEX_REASONING_EFFORT_VALUES.has(reasoningEffort.trim().toLowerCase()))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
+          path: ["requestDefaults", "reasoningEffort"],
+        });
+      }
 
-  const requestDefaultsRecord = requestDefaults as Record<string, unknown>;
-  const reasoningEffort = requestDefaultsRecord.reasoningEffort;
-  if (
-    reasoningEffort !== undefined &&
-    reasoningEffort !== null &&
-    (typeof reasoningEffort !== "string" ||
-      !CODEX_REASONING_EFFORT_VALUES.has(reasoningEffort.trim().toLowerCase()))
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message:
-        "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
-      path: ["requestDefaults", "reasoningEffort"],
-    });
-  }
-
-  const serviceTier = requestDefaultsRecord.serviceTier;
-  if (
-    serviceTier !== undefined &&
-    serviceTier !== null &&
-    (typeof serviceTier !== "string" ||
-      !REQUEST_DEFAULT_SERVICE_TIER_VALUES.has(serviceTier.trim().toLowerCase()))
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
-      path: ["requestDefaults", "serviceTier"],
-    });
+      const serviceTier = requestDefaultsRecord.serviceTier;
+      if (
+        serviceTier !== undefined &&
+        serviceTier !== null &&
+        (typeof serviceTier !== "string" ||
+          !REQUEST_DEFAULT_SERVICE_TIER_VALUES.has(serviceTier.trim().toLowerCase()))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+          path: ["requestDefaults", "serviceTier"],
+        });
+      }
+    }
   }
 
   // [Oracle CONDITIONAL] consoleApiKey는 bailian-coding-plan 전용 필드.
@@ -1316,6 +1317,9 @@ export const cliModelConfigSchema = z.object({
   baseUrl: z.string().trim().min(1, "baseUrl and model are required"),
   apiKey: z.string().optional(),
   model: z.string().trim().min(1, "baseUrl and model are required"),
+  reasoningEffort: z.enum(["none", "low", "medium", "high"]).optional(),
+  wireApi: z.enum(["chat", "responses"]).optional(),
+  modelMappings: z.record(z.string().trim().min(1), z.string().trim().min(1)).optional(),
 });
 
 export const codexProfileNameSchema = z.object({

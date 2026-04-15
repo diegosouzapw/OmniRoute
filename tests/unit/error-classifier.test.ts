@@ -34,10 +34,18 @@ test("classifyProviderError: 429 without billing signal => RATE_LIMITED", () => 
   assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
 });
 
+test("classifyProviderError: 429 with billing signal => QUOTA_EXHAUSTED", () => {
+  const result = classifyProviderError(429, {
+    error: { message: "insufficient_quota: exceeded your current quota" },
+  });
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+});
+
 test("classifyProviderError: 403 with 'has not been used in project' => PROJECT_ROUTE_ERROR (transient)", () => {
   const result = classifyProviderError(403, {
     error: {
-      message: "Cloud Code Private API has not been used in project 12345 before or it is disabled.",
+      message:
+        "Cloud Code Private API has not been used in project 12345 before or it is disabled.",
     },
   });
   assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);

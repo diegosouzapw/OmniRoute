@@ -48,6 +48,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 ];
 
 const MAX_COMBO_DEPTH = 3;
+const MAX_FALLBACK_WAIT_MS = 5000;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -1543,9 +1544,13 @@ export async function handleComboChat({
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-      if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
-        log.info("COMBO", `Waiting ${cooldownMs}ms before fallback to next model`);
-        await new Promise((r) => setTimeout(r, cooldownMs));
+      const fallbackWaitMs =
+        retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+          ? Math.min(cooldownMs, retryDelayMs)
+          : 0;
+      if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+        log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+        await new Promise((r) => setTimeout(r, fallbackWaitMs));
       }
 
       break; // Move to next model
@@ -1863,9 +1868,13 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
-        if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
-          log.info("COMBO-RR", `Waiting ${cooldownMs}ms before fallback to next model`);
-          await new Promise((r) => setTimeout(r, cooldownMs));
+        const fallbackWaitMs =
+          retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+            ? Math.min(cooldownMs, retryDelayMs)
+            : 0;
+        if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+          log.info("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          await new Promise((r) => setTimeout(r, fallbackWaitMs));
         }
 
         break;

@@ -95,6 +95,7 @@ const readConfig = async () => {
 const hasOmniRouteConfig = (config: string | null) => {
   if (!config) return false;
   return (
+    config.includes("openai_base_url") ||
     config.includes('model_provider = "omniroute"') ||
     config.includes("[model_providers.omniroute]")
   );
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, model } = validation.data;
+    const { baseUrl, model, reasoningEffort, wireApi, modelMappings } = validation.data;
     let { apiKey } = validation.data;
     if (!apiKey) {
       return NextResponse.json(
@@ -214,16 +215,45 @@ export async function POST(request: Request) {
 
     // Update only OmniRoute related fields (api_key goes to auth.json, not config.toml)
     parsed._root.model = model;
-    parsed._root.model_provider = "omniroute";
 
-    // Update or create omniroute provider section (no api_key - Codex reads from auth.json)
-    // Ensure /v1 suffix is added only once
-    const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
-    parsed._sections["model_providers.omniroute"] = {
-      name: "OmniRoute",
-      base_url: normalizedBaseUrl,
-      wire_api: "responses",
-    };
+    if (reasoningEffort && reasoningEffort !== "none") {
+      // Optional: low, medium, high
+      parsed._root.model_reasoning_effort = reasoningEffort;
+    } else {
+      delete parsed._root.model_reasoning_effort;
+    }
+
+    // Fix: Codex CLI sends /chat/completions; ensure the base resolves strictly to /api/v1
+    const normalizedBaseUrl = baseUrl.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "") + "/api/v1";
+
+    if (wireApi === "responses") {
+      // Create a custom provider if wire_api is specified and is not the default
+      parsed._root.model_provider = "omniroute";
+      parsed._sections["model_providers.omniroute"] = {
+        name: "OmniRoute",
+        base_url: normalizedBaseUrl,
+        wire_api: "responses",
+        env_key: "OPENAI_API_KEY",
+      };
+      delete parsed._root.openai_base_url;
+    } else {
+      // Use native openai_base_url for default standard chat/completions integrations
+      parsed._root.openai_base_url = normalizedBaseUrl;
+      delete parsed._root.model_provider;
+      delete parsed._sections["model_providers.omniroute"];
+    }
+
+    // Process model aliases into notice.model_migrations
+    if (modelMappings && Object.keys(modelMappings).length > 0) {
+      if (!parsed._sections["notice.model_migrations"]) {
+        parsed._sections["notice.model_migrations"] = {};
+      }
+      for (const [from, to] of Object.entries(modelMappings)) {
+        parsed._sections["notice.model_migrations"][from] = to;
+      }
+    } else {
+      delete parsed._sections["notice.model_migrations"];
+    }
 
     // Write merged config
     const configContent = toToml(parsed);
@@ -287,7 +317,9 @@ export async function DELETE() {
       throw error;
     }
 
-    // Remove OmniRoute related root fields only if they point to omniroute
+    // Remove OmniRoute related root fields
+    delete parsed._root.openai_base_url;
+
     if (parsed._root.model_provider === "omniroute") {
       delete parsed._root.model;
       delete parsed._root.model_provider;

@@ -1,13 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } = await import(
-  "../../open-sse/translator/request/openai-responses.ts"
-);
+const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } =
+  await import("../../open-sse/translator/request/openai-responses.ts");
 
-const { openaiToClaudeRequest } = await import(
-  "../../open-sse/translator/request/openai-to-claude.ts"
-);
+const { openaiToClaudeRequest } =
+  await import("../../open-sse/translator/request/openai-to-claude.ts");
 
 test("openaiResponsesToOpenAIRequest: filters orphaned tool messages", () => {
   const body = {
@@ -70,9 +68,7 @@ test("openaiToOpenAIResponsesRequest: preserves all items when no orphans", () =
       {
         role: "assistant",
         content: null,
-        tool_calls: [
-          { id: "call_a", type: "function", function: { name: "ls", arguments: "{}" } },
-        ],
+        tool_calls: [{ id: "call_a", type: "function", function: { name: "ls", arguments: "{}" } }],
       },
       { role: "tool", tool_call_id: "call_a", content: "result" },
     ],

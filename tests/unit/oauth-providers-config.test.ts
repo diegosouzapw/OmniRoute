@@ -310,13 +310,16 @@ test("provider-specific config shapes remain valid for special cases", () => {
   assert.equal(typeof KILOCODE_CONFIG.pollUrlBase, "string");
 });
 
-test("Gemini OAuth defaults do not hardcode a client secret fallback", () => {
+test("Gemini OAuth defaults use common Gemini CLI client secret as fallback", () => {
   assert.equal(
     GEMINI_CONFIG.clientSecret,
     process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET || process.env.GEMINI_OAUTH_CLIENT_SECRET || ""
   );
-  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, "");
-  assert.equal(REGISTRY["gemini-cli"].oauth.clientSecretDefault, "");
+  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, "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");
+  assert.equal(
+    REGISTRY["gemini-cli"].oauth.clientSecretDefault,
+    "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"
+  );
 });
 
 test("Qoder remains a safe special case when browser OAuth is disabled", () => {

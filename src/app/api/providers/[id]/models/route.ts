@@ -24,6 +24,12 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
+function toNonEmptyString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   const data = asRecord(providerSpecificData);
   const baseUrl = data.baseUrl;

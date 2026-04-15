@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
-const { getStaticModelsForProvider } = await import("../../src/app/api/providers/[id]/models/route.ts");
+const { getStaticModelsForProvider } =
+  await import("../../src/app/api/providers/[id]/models/route.ts");
 const { resolveModelAlias: resolveDeprecatedAlias } =
   await import("../../open-sse/services/modelDeprecation.ts");
 const { normalizeThinkingLevel } = await import("../../open-sse/services/thinkingBudget.ts");

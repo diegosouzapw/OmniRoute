@@ -64,6 +64,19 @@ test("parseSSEToOpenAIResponse preserves UTF-8 multibyte content", () => {
   assert.equal(parsed.choices[0].message.content, "Olá 世界");
 });
 
+test("parseSSEToOpenAIResponse ignores Responses API SSE payloads", () => {
+  const rawSSE = [
+    'data: {"type":"response.created","response":{"id":"resp_1","model":"gpt-5.3-codex","status":"in_progress","output":[]}}',
+    'data: {"type":"response.output_text.delta","output_index":0,"delta":"Brasilia"}',
+    'data: {"type":"response.completed","response":{"id":"resp_1","object":"response","model":"gpt-5.3-codex","status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Brasilia"}]}]}}',
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToOpenAIResponse(rawSSE, "fallback-model");
+
+  assert.equal(parsed, null);
+});
+
 test("parseSSEToClaudeResponse parses text, thinking, tool_use, and usage events", () => {
   const rawSSE = [
     "event: message_start",
@@ -106,6 +119,22 @@ test("parseSSEToClaudeResponse ignores malformed payloads and returns null when 
     ["event: content_block_delta", "data: not-json", "", "data: [DONE]"].join("\n"),
     "fallback-model"
   );
+
+  assert.equal(parsed, null);
+});
+
+test("parseSSEToClaudeResponse ignores Responses API SSE payloads", () => {
+  const rawSSE = [
+    "event: response.created",
+    'data: {"type":"response.created","response":{"id":"resp_1","model":"gpt-5.3-codex","status":"in_progress","output":[]}}',
+    "",
+    "event: response.output_text.delta",
+    'data: {"type":"response.output_text.delta","output_index":0,"delta":"Brasilia"}',
+    "",
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
 
   assert.equal(parsed, null);
 });

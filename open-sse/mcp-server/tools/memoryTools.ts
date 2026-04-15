@@ -94,11 +94,16 @@ export const memoryTools = {
         apiKeyId: args.apiKeyId,
         type: args.type as MemoryType | undefined,
       });
+      const existingMemories = Array.isArray(result)
+        ? result
+        : Array.isArray(result?.data)
+          ? result.data
+          : [];
 
-      let toDelete = result.data;
+      let toDelete = existingMemories;
       if (args.olderThan) {
         const cutoff = new Date(args.olderThan);
-        toDelete = result.data.filter((m) => new Date(m.createdAt) < cutoff);
+        toDelete = existingMemories.filter((m) => new Date(m.createdAt) < cutoff);
       }
 
       let deletedCount = 0;

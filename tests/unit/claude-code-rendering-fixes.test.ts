@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiResponsesToOpenAIResponse } = await import(
-  "../../open-sse/translator/response/openai-responses.ts"
-);
+const { openaiResponsesToOpenAIResponse } =
+  await import("../../open-sse/translator/response/openai-responses.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { createSSETransformStreamWithLogger } = await import("../../open-sse/utils/stream.ts");
 

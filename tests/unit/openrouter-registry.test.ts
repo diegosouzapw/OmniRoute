@@ -5,10 +5,7 @@ import {
   parseEmbeddingModel,
   getAllEmbeddingModels,
 } from "../../open-sse/config/embeddingRegistry.ts";
-import {
-  getImageProvider,
-  parseImageModel,
-} from "../../open-sse/config/imageRegistry.ts";
+import { getImageProvider, parseImageModel } from "../../open-sse/config/imageRegistry.ts";
 
 describe("OpenRouter & GitHub registry entries (#960)", () => {
   // ── Embedding Registry ──────────────────────────────────────────────────

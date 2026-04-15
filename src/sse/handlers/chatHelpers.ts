@@ -256,6 +256,14 @@ export function handleNoCredentials(
       credentials.retryAfterHuman
     );
   }
+  if (lastError && lastStatus) {
+    log.warn("CHAT", "Preserving last upstream error after credential exhaustion", {
+      provider,
+      model,
+      lastStatus,
+    });
+    return errorResponse(lastStatus, lastError);
+  }
   if (!excludeConnectionId) {
     log.error("AUTH", `No credentials for provider: ${provider}`);
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);

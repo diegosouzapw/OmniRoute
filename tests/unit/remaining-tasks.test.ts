@@ -37,7 +37,10 @@ test("RequestTelemetry: measure() wraps async functions", async () => {
 test("RequestTelemetry: measure() records errors", async () => {
   const t = new RequestTelemetry("tel-3");
   await assert.rejects(
-    () => t.measure("connect", async () => { throw new Error("timeout"); }),
+    () =>
+      t.measure("connect", async () => {
+        throw new Error("timeout");
+      }),
     (err) => err.message === "timeout"
   );
   assert.equal(t.getSummary().phases[0].error, "timeout");
@@ -57,10 +60,7 @@ test("RequestTelemetry: getTelemetrySummary returns valid output", () => {
 
 // ─── Combo Resolver (T-46) ──────────────────────
 
-import {
-  resolveComboModel,
-  getComboFallbacks,
-} from "../../src/domain/comboResolver.ts";
+import { resolveComboModel, getComboFallbacks } from "../../src/domain/comboResolver.ts";
 
 test("comboResolver: priority returns first model", () => {
   const combo = {

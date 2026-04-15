@@ -327,6 +327,8 @@ const binaryDirsToRemove = [
   "_mono_repo",
   "_tasks",
   "_ideia",
+  "tests",
+  "docs",
 ];
 for (const dir of binaryDirsToRemove) {
   const targetDir = join(APP_DIR, dir);

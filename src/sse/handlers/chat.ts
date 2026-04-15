@@ -494,19 +494,31 @@ async function handleSingleModelChat(
   });
 
   const userAgent = request?.headers?.get("user-agent") || "";
-  const retrySettings = resolveCooldownAwareRetrySettings(
+  const baseRetrySettings = resolveCooldownAwareRetrySettings(
     await getCachedSettings().catch(() => ({}))
   );
+  const disableCooldownAwareRetry = isCombo || runtimeOptions.emergencyFallbackTried === true;
+  const retrySettings = disableCooldownAwareRetry
+    ? {
+        ...baseRetrySettings,
+        requestRetry: 0,
+        maxRetryIntervalSec: 0,
+        maxRetryIntervalMs: 0,
+      }
+    : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
 
   // 3. Credential retry loop
   let requestRetryAttempt = 0;
+  let requestRetryLastError = null;
+  let requestRetryLastStatus = null;
+  let requestRetryLastCooldownMs = 0;
 
   requestAttemptLoop: while (true) {
     let excludeConnectionId = null;
-    let lastError = null;
-    let lastStatus = null;
-    let lastCooldownMs = 0;
+    let lastError = requestRetryLastError;
+    let lastStatus = requestRetryLastStatus;
+    let lastCooldownMs = requestRetryLastCooldownMs;
 
     while (true) {
       const credentials = await getProviderCredentialsWithQuotaPreflight(
@@ -789,11 +801,14 @@ async function handleSingleModelChat(
       if (shouldFallback) {
         if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
           lastCooldownMs = cooldownMs;
+          requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
         excludeConnectionId = credentials.connectionId;
         lastError = result.error;
         lastStatus = result.status;
+        requestRetryLastError = result.error;
+        requestRetryLastStatus = result.status;
         continue;
       }
 
