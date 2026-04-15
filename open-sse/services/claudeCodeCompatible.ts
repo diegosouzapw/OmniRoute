@@ -13,6 +13,16 @@ import {
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 
+/**
+ * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
+ * traffic which looks like the official Claude Code client, often because those
+ * gateways resell the same models at materially lower prices than the direct API.
+ *
+ * This bridge is intentionally compatibility-first, not lossless. We normalize
+ * requests into the smallest Claude Code-shaped surface that consistently passes
+ * provider-side client checks, instead of trying to preserve every original
+ * field one-to-one.
+ */
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
@@ -112,6 +122,9 @@ export function buildClaudeCodeCompatibleHeaders(
   stream = false,
   sessionId?: string | null
 ): Record<string, string> {
+  // These headers intentionally mirror Claude Code's wire image closely.
+  // For CC-compatible relays, passing the upstream's client-gating checks is
+  // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
     Accept: stream ? "text/event-stream" : "application/json",

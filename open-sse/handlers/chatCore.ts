@@ -992,8 +992,10 @@ export async function handleChatCore({
     } else if (isClaudeCodeCompatible) {
       let normalizedForCc = { ...body };
 
-      // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
-      // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
+      // CC-compatible relays are optimized for gateway compatibility, not for
+      // lossless request preservation. Normalize through an OpenAI-like view,
+      // then rebuild a Claude Code-shaped payload that is more likely to pass
+      // upstream client fingerprint checks than a field-for-field passthrough.
       if (sourceFormat !== FORMATS.OPENAI) {
         const normalizeToolCallId = getModelNormalizeToolCallId(
           provider || "",
