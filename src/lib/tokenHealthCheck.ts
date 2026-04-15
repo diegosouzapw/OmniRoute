@@ -35,6 +35,19 @@ function getConnectionLogLabel(conn: { name?: string; email?: string; id?: strin
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
 }
 
+export function extractResolvedProxyConfig(resolvedProxy: unknown) {
+  if (
+    resolvedProxy &&
+    typeof resolvedProxy === "object" &&
+    !Array.isArray(resolvedProxy) &&
+    "proxy" in resolvedProxy
+  ) {
+    return (resolvedProxy as { proxy?: unknown }).proxy ?? null;
+  }
+
+  return resolvedProxy ?? null;
+}
+
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
   const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
@@ -202,7 +215,7 @@ async function sweep() {
 /**
  * Check a single connection and refresh if due.
  */
-async function checkConnection(conn) {
+export async function checkConnection(conn) {
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
@@ -255,7 +268,8 @@ async function checkConnection(conn) {
   };
 
   const hideLogs = await shouldHideLogs();
-  const proxyConfig = await resolveProxyForConnection(conn.id);
+  const proxyResolution = await resolveProxyForConnection(conn.id);
+  const proxyConfig = extractResolvedProxyConfig(proxyResolution);
   const result = await getAccessToken(
     conn.provider,
     credentials,
