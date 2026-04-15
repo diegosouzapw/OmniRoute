@@ -153,9 +153,21 @@ vi.mock("../audit.ts", () => ({
 
 describe("omniroute_web_search handler (via MCP dispatch)", () => {
   let client: Client;
+  const originalSearchTimeout = process.env.MCP_SEARCH_TIMEOUT_MS;
+  let timeoutSpy: ReturnType<typeof vi.spyOn>;
+
+  function restoreSearchTimeoutEnv() {
+    if (originalSearchTimeout === undefined) {
+      delete process.env.MCP_SEARCH_TIMEOUT_MS;
+      return;
+    }
+    process.env.MCP_SEARCH_TIMEOUT_MS = originalSearchTimeout;
+  }
 
   beforeEach(async () => {
     mockFetch.mockReset();
+    restoreSearchTimeoutEnv();
+    timeoutSpy = vi.spyOn(AbortSignal, "timeout");
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createMcpServer();
@@ -166,6 +178,8 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
 
   afterEach(async () => {
     await client.close();
+    timeoutSpy.mockRestore();
+    restoreSearchTimeoutEnv();
   });
 
   it("should appear in tools/list after registration", async () => {
@@ -293,5 +307,84 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
     });
 
     expect(result.isError).toBe(true);
+  });
+
+  it("should use MCP_SEARCH_TIMEOUT_MS for /v1/search", async () => {
+    process.env.MCP_SEARCH_TIMEOUT_MS = "25000";
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "search-timeout-env",
+        provider: "serper-search",
+        query: "timeout test",
+        results: [],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0 },
+      }),
+    });
+
+    await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "timeout test" },
+    });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(25000);
+  });
+
+  it("should default /v1/search timeout to 20000 when env is unset", async () => {
+    delete process.env.MCP_SEARCH_TIMEOUT_MS;
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "search-timeout-default",
+        provider: "serper-search",
+        query: "timeout default test",
+        results: [],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0 },
+      }),
+    });
+
+    await client.callTool({
+      name: "omniroute_web_search",
+      arguments: { query: "timeout default test" },
+    });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(20000);
+  });
+
+  it("should keep 10000 timeout for non-search MCP endpoints", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status: "healthy",
+          uptime: 123,
+          memoryUsage: { heapUsed: 1, heapTotal: 2 },
+          cacheStats: { hits: 0, misses: 0, hitRate: 0 },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          circuitBreakers: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          limits: [],
+        }),
+      });
+
+    await client.callTool({
+      name: "omniroute_get_health",
+      arguments: {},
+    });
+
+    expect(timeoutSpy).toHaveBeenCalledTimes(3);
+    for (const [timeoutMs] of timeoutSpy.mock.calls) {
+      expect(timeoutMs).toBe(10000);
+    }
   });
 });

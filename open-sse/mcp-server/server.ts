@@ -73,6 +73,8 @@ import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRoute
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
+const DEFAULT_MCP_FETCH_TIMEOUT_MS = 10_000;
+const DEFAULT_MCP_SEARCH_TIMEOUT_MS = 20_000;
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
     .split(",")
@@ -108,6 +110,25 @@ function toStringArray(value: unknown, fallback: string[] = []): string[] {
   return values.length > 0 ? values : fallback;
 }
 
+function parsePositiveInt(rawValue: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(rawValue || "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function resolveFetchTimeoutMs(path: string): number {
+  if (path === "/v1/search") {
+    return parsePositiveInt(process.env.MCP_SEARCH_TIMEOUT_MS, DEFAULT_MCP_SEARCH_TIMEOUT_MS);
+  }
+  return DEFAULT_MCP_FETCH_TIMEOUT_MS;
+}
+
+function isTimeoutError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === "TimeoutError";
+  }
+  return error instanceof Error && /timeout|timed out|aborted due to timeout/i.test(error.message);
+}
+
 function normalizeComboModels(
   rawModels: unknown
 ): Array<{ provider: string; model: string; priority: number }> {
@@ -138,7 +159,23 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
     ...((options.headers as Record<string, string>) || {}),
   };
 
-  const response = await fetch(url, { ...options, headers, signal: AbortSignal.timeout(10000) });
+  // /v1/search can legitimately take longer than the default MCP fetch timeout
+  // because the search handler has its own 15s global timeout and provider failover.
+  const timeoutMs = resolveFetchTimeoutMs(path);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      throw new Error(`OmniRoute API timeout after ${timeoutMs}ms for ${path}`);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Unknown error");
