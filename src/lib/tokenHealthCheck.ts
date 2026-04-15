@@ -35,6 +35,19 @@ function getConnectionLogLabel(conn: { name?: string; email?: string; id?: strin
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
 }
 
+export function extractResolvedProxyConfig(resolvedProxy: unknown) {
+  if (
+    resolvedProxy &&
+    typeof resolvedProxy === "object" &&
+    !Array.isArray(resolvedProxy) &&
+    "proxy" in resolvedProxy
+  ) {
+    return (resolvedProxy as { proxy?: unknown }).proxy ?? null;
+  }
+
+  return resolvedProxy ?? null;
+}
+
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
   const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
@@ -210,7 +223,7 @@ async function sweep() {
 /**
  * Check a single connection and refresh if due.
  */
-async function checkConnection(conn) {
+export async function checkConnection(conn) {
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
@@ -263,10 +276,8 @@ async function checkConnection(conn) {
   };
 
   const hideLogs = await shouldHideLogs();
-  // resolveProxyForConnection returns { proxy, level, levelId } — unwrap to pass the inner
-  // proxy config object (with .host) to getAccessToken. Passing the full wrapper causes
-  // [ProxyDispatcher] Context proxy host is required (#1187/#1218).
-  const proxyResult = await resolveProxyForConnection(conn.id);
+  const proxyResolution = await resolveProxyForConnection(conn.id);
+  const proxyConfig = extractResolvedProxyConfig(proxyResolution);
   const result = await getAccessToken(
     conn.provider,
     credentials,
@@ -281,7 +292,7 @@ async function checkConnection(conn) {
         if (!hideLogs) console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || "");
       },
     },
-    proxyResult?.proxy || null
+    proxyConfig
   );
 
   const now = new Date().toISOString();
