@@ -242,6 +242,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "PP",
     website: "https://www.perplexity.ai",
   },
+  "perplexity-web": {
+    id: "perplexity-web",
+    alias: "pplx-web",
+    name: "Perplexity Web (Session)",
+    icon: "search",
+    color: "#20808D",
+    textIcon: "PW",
+    website: "https://www.perplexity.ai",
+    authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
+  },
   together: {
     id: "together",
     alias: "together",
