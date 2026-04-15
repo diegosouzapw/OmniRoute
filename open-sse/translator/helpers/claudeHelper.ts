@@ -209,10 +209,8 @@ export function prepareClaudeRequest(body, provider = null, preserveCacheControl
           let hasToolUse = false;
           let hasThinking = false;
 
-          // Always replace signature for all thinking blocks
           for (const block of msg.content) {
             if (block.type === "thinking" || block.type === "redacted_thinking") {
-              block.signature = DEFAULT_THINKING_CLAUDE_SIGNATURE;
               hasThinking = true;
             }
             if (block.type === "tool_use") hasToolUse = true;
@@ -223,7 +221,6 @@ export function prepareClaudeRequest(body, provider = null, preserveCacheControl
             msg.content.unshift({
               type: "thinking",
               thinking: ".",
-              signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
             });
           }
         }

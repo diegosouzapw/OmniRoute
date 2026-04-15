@@ -7,7 +7,7 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 // Can be disabled per-request via body._disableToolPrefix = true
-export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
+export const CLAUDE_OAUTH_TOOL_PREFIX = "";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
 
 type ClaudeContentBlock = Record<string, unknown>;
@@ -310,17 +310,12 @@ export function openaiToClaudeRequest(model, body, stream) {
     }
   }
 
-  // System with Claude Code prompt and cache_control
-  const claudeCodePrompt = { type: "text", text: CLAUDE_SYSTEM_PROMPT };
-
+  // System - use only user-provided system messages, never inject hardcoded prompts
   if (systemParts.length > 0) {
     const systemText = systemParts.join("\n");
     result.system = [
-      claudeCodePrompt,
       { type: "text", text: systemText, cache_control: { type: "ephemeral", ttl: "1h" } },
     ];
-  } else {
-    result.system = [claudeCodePrompt];
   }
 
   // Thinking configuration
@@ -428,7 +423,6 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
       blocks.push({
         type: "thinking",
         thinking: msg.reasoning_content,
-        signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
       });
     }
 
@@ -437,10 +431,8 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
         if (part.type === "text" && part.text) {
           blocks.push({ type: "text", text: part.text });
         } else if (part.type === "thinking" || part.type === "redacted_thinking") {
-          // Preserve thinking blocks with signature
           blocks.push({
             ...part,
-            signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,
           });
         } else if (part.type === "tool_use") {
           // Tool name already has prefix from tool declarations, keep as-is

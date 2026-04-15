@@ -1043,51 +1043,26 @@ export async function handleChatCore({
 
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
-      // Pure passthrough: when preserveCacheControl is true, forward the body
-      // as-is without prior normalization. The OpenAI round-trip would strip
-      // cache_control markers; even prepareClaudeRequest can alter structure.
-      // Claude Code sends well-formed Messages API payloads — trust it.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
 
       log?.debug?.("FORMAT", "claude passthrough with cache_control preservation");
     } else if (isClaudePassthrough) {
-      // Claude OAuth expects the same Claude Code prompt + structural normalization
-      // as the OpenAI-compatible chat path. Round-trip through OpenAI to reuse the
-      // working Claude translator instead of forwarding raw Messages payloads.
-      const normalizeToolCallId = getModelNormalizeToolCallId(
-        provider || "",
-        model || "",
-        sourceFormat
-      );
-      const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
-        provider || "",
-        model || "",
-        sourceFormat
-      );
-      translatedBody = translateRequest(
-        FORMATS.CLAUDE,
-        FORMATS.OPENAI,
-        model,
-        { ...body },
-        stream,
-        credentials,
-        provider,
-        reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
-      );
-      translatedBody = translateRequest(
-        FORMATS.OPENAI,
-        FORMATS.CLAUDE,
-        model,
-        { ...translatedBody, _disableToolPrefix: true },
-        stream,
-        credentials,
-        provider,
-        reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
-      );
-      log?.debug?.("FORMAT", "claude->openai->claude normalized passthrough");
+      translatedBody = { ...body };
+      translatedBody._disableToolPrefix = true;
+
+      if (Array.isArray(translatedBody.messages)) {
+        for (const msg of translatedBody.messages) {
+          if (Array.isArray(msg.content)) {
+            msg.content = msg.content.filter(
+              (block: Record<string, unknown>) =>
+                block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+            );
+          }
+        }
+      }
+
+      log?.debug?.("FORMAT", "claude direct passthrough (no round-trip)");
     } else {
       translatedBody = { ...body };
 
@@ -1824,7 +1799,10 @@ export async function handleChatCore({
             finalBody = fallbackResult.transformedBody;
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             // Continue processing with the fallback response — skip error return
-            log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
+            log?.info?.(
+              "MODEL_FALLBACK",
+              `Serving ${nextModel} as fallback for ${model}`
+            );
             // Jump to streaming/non-streaming handling below
             // We fall through by NOT returning here
           } else {
