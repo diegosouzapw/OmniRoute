@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 
 interface PageAction {
   href: string;
@@ -25,7 +25,7 @@ export default function ErrorPageScaffold({
   primaryAction,
   secondaryAction,
 }: ErrorPageScaffoldProps) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const resolvedPrimary = primaryAction ?? { href: "/dashboard", label: t("goToDashboard") };
   const resolvedSecondary = secondaryAction ?? { href: "/status", label: t("checkSystemStatus") };
 

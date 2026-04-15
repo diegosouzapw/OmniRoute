@@ -1,7 +1,7 @@
 "use client";
 
 import type { HTMLAttributes } from "react";
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 type SpinnerSize = "sm" | "md" | "lg" | "xl";
@@ -39,7 +39,7 @@ interface LoadingProps extends HTMLAttributes<HTMLDivElement> {
 
 // Spinner loading
 export function Spinner({ size = "md", className, label }: SpinnerProps) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const ariaLabel = label ?? t("loading");
   return (
     <span
@@ -64,7 +64,7 @@ export function Spinner({ size = "md", className, label }: SpinnerProps) {
 
 // Full page loading
 export function PageLoading({ message, className }: PageLoadingProps) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   return (
     <div
       className={cn(

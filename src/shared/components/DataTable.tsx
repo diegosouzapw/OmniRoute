@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 
 /**
  * DataTable — Shared UI primitive (T-29)
@@ -58,7 +58,7 @@ export default function DataTable({
   emptyIcon = "📭",
   emptyMessage,
 }: DataTableProps) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const resolvedEmptyMessage = emptyMessage ?? t("noData");
 
   if (loading) {

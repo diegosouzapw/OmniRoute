@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import PropTypes from "prop-types";
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -31,7 +31,7 @@ export default function ModelSelectModal({
   modelAliases = {},
   addedModelValues = [],
 }) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const resolvedTitle = title ?? t("selectModel");
   const [searchQuery, setSearchQuery] = useState("");
   const [combos, setCombos] = useState<any[]>([]);

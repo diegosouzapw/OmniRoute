@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 
 export default function ManualConfigModal({ isOpen, onClose, title, configs = [] }) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const resolvedTitle = title ?? t("manualConfig");
   const [copiedIndex, setCopiedIndex] = useState(null);
 

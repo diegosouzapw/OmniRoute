@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslation } from "@/i18n";
+import { useTranslations } from "next-intl";
 
 /**
  * EmptyState — FASE-07 UX
@@ -33,7 +33,7 @@ export default function EmptyState({
   actionLabel = "",
   onAction = null,
 }: EmptyStateProps) {
-  const { t } = useTranslation("common");
+  const t = useTranslations("common");
   const resolvedTitle = title ?? t("nothingHere");
   return (
     <div
