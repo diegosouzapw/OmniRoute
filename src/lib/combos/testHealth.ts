@@ -121,14 +121,30 @@ function buildComboTestPrompt() {
 export function buildComboTestRequestBody(modelStr: string) {
   return {
     model: modelStr,
-    // Randomize the arithmetic prompt so upstream providers are less likely to
-    // satisfy the smoke test with cached completions.
     messages: [{ role: "user", content: buildComboTestPrompt() }],
-    // Give reasoning-heavy models enough headroom to finish the request and
-    // still emit a visible answer without immediate truncation.
     max_tokens: COMBO_TEST_MAX_TOKENS,
     stream: false,
   };
+}
+
+export function buildComboTestRequestBodyEmbedding(modelStr: string) {
+  return {
+    model: modelStr,
+    input: "OmniRoute embedding combo health check",
+  };
+}
+
+const EMBEDDING_MODEL_PATTERNS = [
+  /embed/i,
+  /e5-/i,
+  /bge-/i,
+  /text-embedding/i,
+  /mistral-embed/i,
+  /nomic-embed/i,
+];
+
+export function isEmbeddingModel(modelStr: string): boolean {
+  return EMBEDDING_MODEL_PATTERNS.some((p) => p.test(modelStr));
 }
 
 export function extractComboTestResponseText(responseBody: unknown): string {

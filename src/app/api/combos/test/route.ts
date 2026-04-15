@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
+import {
+  buildComboTestRequestBody,
+  buildComboTestRequestBodyEmbedding,
+  extractComboTestResponseText,
+  isEmbeddingModel,
+} from "@/lib/combos/testHealth";
 import { getComboByName, getCombos } from "@/lib/localDb";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
@@ -18,19 +23,21 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, internalUrl) {
+async function testComboTarget(target, internalUrl, useEmbeddingsEndpoint = false) {
   const startTime = Date.now();
   try {
-    // Send a minimal but real chat request through the same internal
-    // endpoint an external OpenAI-compatible client would use.
-    const testBody = buildComboTestRequestBody(target.modelStr);
+    const testBody = useEmbeddingsEndpoint
+      ? buildComboTestRequestBodyEmbedding(target.modelStr)
+      : buildComboTestRequestBody(target.modelStr);
+
+    const endpoint = useEmbeddingsEndpoint ? "/v1/embeddings" : "/v1/chat/completions";
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
 
     let res;
     try {
-      res = await fetch(internalUrl, {
+      res = await fetch(`${internalUrl}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,6 +65,24 @@ async function testComboTarget(target, internalUrl) {
         responseBody = await res.json();
       } catch {
         responseBody = null;
+      }
+
+      if (useEmbeddingsEndpoint) {
+        const embeddingData =
+          Array.isArray(responseBody?.data) && responseBody.data.length > 0;
+        if (embeddingData) {
+          return buildComboTestResult(target, {
+            status: "ok",
+            latencyMs,
+            responseText: `[embedding OK: ${responseBody.data.length} vector(s)]`,
+          });
+        }
+        return buildComboTestResult(target, {
+          status: "error",
+          statusCode: res.status,
+          error: "Provider returned HTTP 200 but no embedding data.",
+          latencyMs,
+        });
       }
 
       const responseText = extractComboTestResponseText(responseBody);
@@ -137,9 +162,12 @@ export async function POST(request) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
     }
 
-    const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
+    const useEmbeddings = targets.some((t) => isEmbeddingModel(t.modelStr));
+    const baseUrl = getBaseUrl(request);
     const results = await Promise.all(
-      targets.map((target) => testComboTarget(target, internalUrl))
+      targets.map((target) =>
+        testComboTarget(target, baseUrl, useEmbeddings)
+      )
     );
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;

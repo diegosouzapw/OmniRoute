@@ -621,6 +621,22 @@ function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
     .filter((target): target is ResolvedComboTarget => target !== null);
 }
 
+function groupTargetsByProvider(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
+  const providerOrder: string[] = [];
+  const providerGroups = new Map<string, ResolvedComboTarget[]>();
+
+  for (const target of targets) {
+    const key = target.provider;
+    if (!providerGroups.has(key)) {
+      providerOrder.push(key);
+      providerGroups.set(key, []);
+    }
+    providerGroups.get(key)!.push(target);
+  }
+
+  return providerOrder.flatMap((provider) => providerGroups.get(provider) || []);
+}
+
 function toTextContent(content) {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -1295,6 +1311,11 @@ export async function handleComboChat({
   } else if (strategy === "context-optimized") {
     orderedTargets = sortTargetsByContextSize(orderedTargets);
     log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
+  }
+
+  if (strategy === "priority" && orderedTargets.length > 1) {
+    orderedTargets = groupTargetsByProvider(orderedTargets);
+    log.info("COMBO", `Priority: grouped by provider (${orderedTargets.map((t) => t.executionKey).join(", ")})`);
   }
 
   if (orderedTargets.length === 0) {

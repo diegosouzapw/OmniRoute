@@ -22,7 +22,8 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels, getProviderNodes } from "@/lib/localDb";
+import { getAllCustomModels, getProviderNodes, getComboByName, getCombos } from "@/lib/localDb";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 
 /**
  * Handle CORS preflight
@@ -148,8 +149,24 @@ export async function POST(request) {
     log.error("EMBED", `Failed to load provider_nodes for embeddings: ${err}`);
   }
 
+  // Resolve combo alias: if body.model is a combo name, expand to first target's provider/model
+  let effectiveModel = body.model;
+  try {
+    const combo = await getComboByName(body.model);
+    if (combo && Array.isArray(combo.models) && combo.models.length > 0) {
+      const allCombos = await getCombos();
+      const targets = resolveNestedComboTargets(combo, allCombos);
+      if (targets.length > 0) {
+        effectiveModel = targets[0].modelStr;
+        log.info("EMBED", `Resolved combo "${body.model}" → ${effectiveModel}`);
+      }
+    }
+  } catch {
+    // body.model is not a combo name — use as-is
+  }
+
   // Parse model to get provider
-  const { provider, model: resolvedModel } = parseEmbeddingModel(body.model, dynamicProviders);
+  const { provider, model: resolvedModel } = parseEmbeddingModel(effectiveModel, dynamicProviders);
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
