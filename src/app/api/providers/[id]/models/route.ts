@@ -726,7 +726,10 @@ export async function GET(
         baseUrl = baseUrl.slice(0, -9);
       }
 
-      const url = `${baseUrl}/models`;
+      // Use modelsPath from provider node if available, otherwise default to /models
+      const psd = asRecord(connection.providerSpecificData);
+      const modelsPath = toNonEmptyString(psd.modelsPath) || "/models";
+      const url = `${baseUrl}${modelsPath}`;
       const token = accessToken || apiKey;
       const response = await safeOutboundFetch(url, {
         ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,

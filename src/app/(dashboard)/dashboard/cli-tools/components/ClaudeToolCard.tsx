@@ -100,7 +100,10 @@ export default function ClaudeToolCard({
       // Restore selected key from file: match token stored in file against known keys
       const tokenFromFile = env.ANTHROPIC_AUTH_TOKEN;
       if (tokenFromFile) {
-        const matchedKey = apiKeys?.find((k) => k.key === tokenFromFile);
+        // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
+        // Mask the token from file to compare against the masked list.
+        const maskedToken = tokenFromFile.slice(0, 8) + "****" + tokenFromFile.slice(-4);
+        const matchedKey = apiKeys?.find((k) => k.key === maskedToken);
         if (matchedKey) setSelectedApiKey(matchedKey.id);
       }
     }
