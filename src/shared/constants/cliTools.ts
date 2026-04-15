@@ -286,6 +286,48 @@ export const CLI_TOOLS = {
       { step: 4, title: "Select Model", type: "modelSelector" },
     ],
   },
+  qwen: {
+    id: "qwen",
+    name: "Qwen Code",
+    icon: "psychology",
+    color: "#10B981",
+    description: "Alibaba Qwen Code CLI — OpenAI-compatible endpoint",
+    docsUrl: "https://qwenlm.github.io/qwen-code-docs/",
+    configType: "custom",
+    defaultCommand: "qwen",
+    notes: [
+      {
+        type: "info",
+        text: "Qwen Code supports custom OpenAI-compatible API endpoints via environment variables or settings.json.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.qwen/ • Windows %USERPROFILE%\\.qwen\\",
+      },
+    ],
+    guideSteps: [
+      { step: 1, title: "Install Qwen Code", desc: "npm install -g @qwen-code/qwen-code" },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      {
+        step: 4,
+        title: "Configure Settings",
+        desc: "Add to your ~/.qwen/.env file or settings.json env field:",
+      },
+    ],
+    codeBlock: {
+      language: "bash",
+      code: `# ~/.qwen/.env
+OPENAI_API_KEY="{{apiKey}}"
+OPENAI_BASE_URL="{{baseUrl}}"
+OPENAI_MODEL="auto"
+# Or add to settings.json:
+# "env": {
+#   "OPENAI_API_KEY": "{{apiKey}}",
+#   "OPENAI_BASE_URL": "{{baseUrl}}"
+# }`,
+    },
+  },
   // HIDDEN: gemini-cli
   // "gemini-cli": {
   //   id: "gemini-cli",

@@ -655,7 +655,8 @@
       "opencode": "OpenCode AI coding agent (Terminal)",
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
-      "copilot": "GitHub Copilot AI Assistant"
+      "copilot": "GitHub Copilot AI Assistant",
+      "qwen": "Alibaba Qwen Code CLI"
     },
     "guides": {
       "cursor": {

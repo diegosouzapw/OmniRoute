@@ -46,6 +46,7 @@ Current list (v3.0.0-rc.16):
 | **GitHub Copilot**| `copilot`    | extension    | custom     | VS Code        |
 | **OpenCode**     | `opencode`    | `opencode`   | guide      | npm            |
 | **Kiro AI**      | `kiro`        | app/cli      | mitm       | desktop/CLI    |
+| **Qwen Code**    | `qwen`        | `qwen`       | custom     | npm            |
 
 ### CLI fingerprint sync (Agents + Settings)
 
@@ -253,6 +254,55 @@ kiro-cli status
 
 ---
 
+### Qwen Code (Alibaba)
+
+Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+
+**Option 1: Environment variables (`~/.qwen/.env`)**
+
+```bash
+mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
+OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_MODEL="auto"
+EOF
+```
+
+**Option 2: `settings.json` with model providers**
+
+```json
+// ~/.qwen/settings.json
+{
+  "env": {
+    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+  },
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "omniroute-default",
+        "name": "OmniRoute (Auto)",
+        "envKey": "OPENAI_API_KEY",
+        "baseUrl": "http://localhost:20128/v1"
+      }
+    ]
+  }
+}
+```
+
+**Option 3: Inline CLI flags**
+
+```bash
+OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_MODEL="auto" \
+qwen
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain.
+
+**Test:** `qwen "say hello"`
+
 ### Cursor (Desktop App)
 
 > **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
@@ -322,7 +372,7 @@ They run as internal routes and use OmniRoute's model routing automatically.
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
