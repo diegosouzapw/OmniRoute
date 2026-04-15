@@ -5,9 +5,7 @@
  * Real Claude Code uses TitleCase tool names (Bash, Read, Write, etc.)
  * while third-party clients like OpenCode use lowercase.
  *
- * This module remaps tool names in both directions:
- * - Request path: lowercase → TitleCase (before sending to Anthropic)
- * - Response path: TitleCase → lowercase (for clients expecting lowercase)
+ * Request path: lowercase → TitleCase (before sending to Anthropic)
  */
 
 const TOOL_RENAME_MAP: Record<string, string> = {
@@ -27,13 +25,7 @@ const TOOL_RENAME_MAP: Record<string, string> = {
   notebook: "Notebook",
 };
 
-const REVERSE_MAP: Record<string, string> = {};
-for (const [k, v] of Object.entries(TOOL_RENAME_MAP)) {
-  REVERSE_MAP[v] = k;
-}
-
 export function remapToolNamesInRequest(body: Record<string, unknown>): void {
-  // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) {
@@ -44,7 +36,6 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): void {
     }
   }
 
-  // Remap tool_result references in messages
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(messages)) {
     for (const msg of messages) {
@@ -59,7 +50,6 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): void {
     }
   }
 
-  // Remap tool_choice
   const toolChoice = body.tool_choice as Record<string, unknown> | undefined;
   if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
     const mapped = TOOL_RENAME_MAP[toolChoice.name];
@@ -67,14 +57,4 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): void {
   }
 }
 
-export function remapToolNamesInResponse(text: string): string {
-  // Replace TitleCase tool names back to lowercase in SSE chunks
-  for (const [titleCase, lower] of Object.entries(REVERSE_MAP)) {
-    // Match in "name":"ToolName" patterns
-    text = text.replaceAll(`"name":"${titleCase}"`, `"name":"${lower}"`);
-    text = text.replaceAll(`"name": "${titleCase}"`, `"name": "${lower}"`);
-  }
-  return text;
-}
-
-export { TOOL_RENAME_MAP, REVERSE_MAP };
+export { TOOL_RENAME_MAP };

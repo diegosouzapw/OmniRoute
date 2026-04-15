@@ -307,7 +307,6 @@ export async function buildAndSignClaudeCodeRequest(
 /**
  * Re-export for consumers that need to post-process SSE response chunks.
  */
-export { remapToolNamesInResponse } from "./claudeCodeToolRemapper.ts";
 export { signRequestBody } from "./claudeCodeCCH.ts";
 export { computeFingerprint } from "./claudeCodeFingerprint.ts";
 export { obfuscateSensitiveWords, setSensitiveWords } from "./claudeCodeObfuscation.ts";
