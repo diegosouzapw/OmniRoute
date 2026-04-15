@@ -510,6 +510,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.n;
     delete body.seed;
     delete body.max_tokens;
+    delete body.max_output_tokens; // Responses API translator maps max_tokens -> max_output_tokens, but Codex rejects it
     delete body.user; // Cursor sends this but Codex doesn't support it
     delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
     delete body.metadata; // Cursor sends this but Codex doesn't support it
