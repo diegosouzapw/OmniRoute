@@ -248,6 +248,8 @@ Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Eve
 - **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
 - **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
 - **Custom Combos** — Customizable fallback chains with 13 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, **context-relay**)
+- **Structured Combo Builder** — Build combos step-by-step with explicit provider + model + account selection, including repeated providers and fixed-account targets
+- **Quota-Aware P2C** — Power-of-two account selection now factors quota headroom, backoff, recent errors, and consecutive use
 - **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
 
 </details>
@@ -326,8 +328,8 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 **How OmniRoute solves it:**
 
-- **Circuit Breaker per-model** — Auto-open/close with configurable thresholds and cooldown (Closed/Open/Half-Open), scoped per-model to avoid cascading blocks
-- **Exponential Backoff** — Progressive retry delays
+- **Settings-Driven Lock Hierarchy** — Provider profiles control default account/model lockouts, global model quarantine, and provider circuit breakers from one control surface, while explicit upstream `Retry-After` windows still take priority
+- **Exponential Backoff** — Progressive retry delays for both account/model lockouts and higher-level quarantine
 - **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
 - **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
 - **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain
@@ -678,6 +680,19 @@ Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
 </details>
 
+<details>
+<summary><b>📚 31. "My long sessions crash with 'context_length_exceeded' limits"</b></summary>
+
+During deep debugging, long histories with tool results quickly exceed provider token windows, causing failed requests and orphaned context.
+
+**How OmniRoute solves it:**
+
+- **Proactive Context Compression** — Evaluates token budgets before the request hits upstream and proactively prunes old conversation history with a smart binary-search mechanism.
+- **Structural Integrity Guards** — Automatically tracks explicit `tool_use` definitions and ensures that if a tool input is truncated, its corresponding `tool_result` is also safely removed, preventing API validation errors.
+- **Multi-Layer Dropping** — Progressively drops system messages, regular messages, and finally enforces strict length limits without breaking conversational logic.
+
+</details>
+
 ### Example Playbooks (Integrated Use Cases)
 
 **Playbook A: Maximize paid subscription + cheap backup**
@@ -794,18 +809,25 @@ When you no longer need OmniRoute, we provide two quick scripts for a clean remo
 
 For most deployments, you only need:
 
-| Variable                 | Default                       | Purpose                                                                                                                     |
-| ------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream fetch, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                 |
+| Variable                 | Default                       | Purpose                                                                                                                                      |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream response-start timeout, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                                  |
 
 Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
+
+For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), OmniRoute also derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
+
+For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default
+`anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`,
+only forwards client-provided `cache_control` markers. If the request does not include
+`cache_control`, OmniRoute does not inject bridge-owned markers.
 
 Advanced overrides are available if you need finer control:
 
 | Variable                                 | Default                                    | Purpose                                                              |
 | ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Total upstream request timeout used by the main fetch abort signal   |
+| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Upstream response-start timeout used until response headers arrive   |
 | `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers            |
 | `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
 | `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
@@ -816,6 +838,8 @@ Advanced overrides are available if you need finer control:
 | `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                     |
 | `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
 | `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
+
+For streaming requests, `FETCH_TIMEOUT_MS` only covers connection setup / waiting for the first upstream response. Once the stream is active, OmniRoute will only abort on an actual stall (`STREAM_IDLE_TIMEOUT_MS`) or Undici body inactivity (`FETCH_BODY_TIMEOUT_MS`).
 
 If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
 timeouts are also higher than your OmniRoute stream/fetch timeouts.
@@ -1073,7 +1097,7 @@ volumes:
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Current version       |
 
 ---
 
@@ -1320,17 +1344,32 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
+OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
-### 🆕 New — v3.5.5 Highlights (Apr 2026)
+### 🆕 New — v3.6.x Highlights (Apr 2026)
 
-| Feature                          | What It Does                                                                                                                |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 🔗 **Context Relay Strategy**    | New combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation |
-| 🛡️ **Proxy Hardening**           | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs    |
-| ⚠️ **Node.js 24 Login Warning**  | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions             |
-| 📎 **Gemini PDF Attachments**    | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
-| 🔒 **CodeQL Security Hardening** | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                |
+| Feature                            | What It Does                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌐 **V1 WebSocket Bridge**         | OpenAI-compatible WebSocket traffic upgraded and proxied via `/v1/ws` — full streaming over WS with session auth (API key or session cookie)      |
+| 🔑 **Sync Tokens & Config Bundle** | Issue/revoke sync tokens for config sync endpoints. Config bundles versioned with ETag for bandwidth-efficient polling                            |
+| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API        |
+| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                   |
+| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
+| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection |
+| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                     |
+| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                  |
+| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                    |
+| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
+| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
+| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
+| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
+| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
+| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
+| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
+| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                     |
+| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                         |
+| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                      |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -1411,24 +1450,28 @@ OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
 
 ### 🛡️ Resilience, Security & Governance
 
-| Feature                             | What It Does                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                         |
-| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                 |
-| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                     |
-| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                           |
-| ⚡ **Request Idempotency**          | Duplicate protection window                                                            |
-| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**          |
-| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP** |
-| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                    |
-| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                             |
-| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                    |
-| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks          |
-| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures  |
-| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically   |
-| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                               |
-| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                 |
-| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                             |
+| Feature                             | What It Does                                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                          |
+| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                  |
+| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                      |
+| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                            |
+| ⚡ **Request Idempotency**          | Duplicate protection window                                                             |
+| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**           |
+| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**  |
+| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                     |
+| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                              |
+| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                     |
+| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks           |
+| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures   |
+| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically    |
+| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                                |
+| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                  |
+| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                              |
+| 🛡️ **Safe Outbound Fetch** 🆕       | Guarded fetch for provider calls — blocks private/local URLs, retries, SSRF protection  |
+| 🔄 **Cooldown-Aware Retries** 🆕    | Auto-retry chat on model cooldowns; configurable `requestRetry` / `maxRetryIntervalSec` |
+| 🔍 **Runtime Env Validation** 🆕    | Zod-based env schema validation at startup with actionable error messages               |
+| 📋 **Compliance Audit v2** 🆕       | Pagination, request context, auth events, provider CRUD, and SSRF-blocked logging       |
 
 ### 📊 Observability & Analytics
 
@@ -1443,6 +1486,7 @@ OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
 | 📈 **Analytics Visualizations**  | Model/provider usage insights and trend views         |
 | 🧪 **Evaluation Framework**      | Golden set testing with configurable match strategies |
 | 📡 **Live Diagnostics** 🆕       | Semantic cache bypass for accurate combo live testing |
+| 🔐 **TPS Log Metric** 🆕         | Tokens Per Second badge in log details modal          |
 
 ### ☁️ Deployment & Platform
 
@@ -1462,6 +1506,8 @@ OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
 | 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
 | 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
 | 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
+| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`              |
+| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support      |
 
 ### Feature Deep Dive
 
@@ -2188,7 +2234,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: LowDB (JSON) + SQLite (domain state + proxy logs + MCP audit + routing decisions)
+- **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
 - **Schemas**: Zod (MCP tool I/O validation, API contracts)
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
 - **Streaming**: Server-Sent Events (SSE)
@@ -2206,37 +2252,40 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 文档
 
-| Document                                        | Description                                         |
-| ----------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)                | Providers, combos, CLI integration, deployment      |
-| [API Reference](docs/API_REFERENCE.md)          | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)     | 25 MCP tools, IDE configs, Python/TS/Go clients     |
-| [A2A Server](src/lib/a2a/README.md)             | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)         | 6-factor scoring, mode packs, self-healing          |
-| [Context Relay](docs/features/context-relay.md) | Session handoff strategy for account rotation       |
-| [Troubleshooting](docs/TROUBLESHOOTING.md)      | Common problems and solutions                       |
-| [Architecture](docs/ARCHITECTURE.md)            | System architecture and internals                   |
-| [Contributing](CONTRIBUTING.md)                 | Development setup and guidelines                    |
-| [OpenAPI Spec](docs/openapi.yaml)               | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                  | Vulnerability reporting and security practices      |
-| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)    | Complete guide: VM + nginx + Cloudflare setup       |
-| [Features Gallery](docs/FEATURES.md)            | Visual dashboard tour with screenshots              |
-| [Release Checklist](docs/RELEASE_CHECKLIST.md)  | Pre-release validation steps                        |
+| Document                                                 | Description                                         |
+| -------------------------------------------------------- | --------------------------------------------------- |
+| [User Guide](docs/USER_GUIDE.md)                         | Providers, combos, CLI integration, deployment      |
+| [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
+| [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
+| [Auto-Combo Engine](docs/auto-combo.md)                  | 6-factor scoring, mode packs, self-healing          |
+| [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |
+| [Troubleshooting](docs/TROUBLESHOOTING.md)               | Common problems and solutions                       |
+| [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |
+| [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
+| [Uninstall Guide](docs/UNINSTALL.md)                     | Clean removal for all install methods               |
+| [Environment Config](docs/ENVIRONMENT.md)                | Complete `.env` variables and references            |
+| [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                    |
+| [OpenAPI Spec](docs/openapi.yaml)                        | OpenAPI 3.0 specification                           |
+| [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices      |
+| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)             | Complete guide: VM + nginx + Cloudflare setup       |
+| [Features Gallery](docs/FEATURES.md)                     | Visual dashboard tour with screenshots              |
+| [Release Checklist](docs/RELEASE_CHECKLIST.md)           | Pre-release validation steps                        |
 
 ---
 
 ## 🗺️ Roadmap
 
-OmniRoute has **210+ features planned** across multiple development phases. Here are the key areas:
+OmniRoute has **218+ features planned** across multiple development phases. Here are the key areas:
 
-| Category                      | Planned Features | Highlights                                                                             |
-| ----------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, P2C account selection      |
-| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping   |
-| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, cost tracking per model         |
-| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing |
-| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API         |
-| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode            |
+| Category                      | Planned Features | Highlights                                                                                            |
+| ----------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, quota-aware P2C, step-based combo routing |
+| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping                  |
+| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, combo target health, cost tracking per model   |
+| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing                |
+| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API                        |
+| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                           |
 
 ### 🔜 Coming Soon
 

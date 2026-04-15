@@ -676,6 +676,19 @@ Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
 </details>
 
+<details>
+<summary><b>📚 31. "My long sessions crash with 'context_length_exceeded' limits"</b></summary>
+
+During deep debugging, long histories with tool results quickly exceed provider token windows, causing failed requests and orphaned context.
+
+**How OmniRoute solves it:**
+
+- **Proactive Context Compression** — Evaluates token budgets before the request hits upstream and proactively prunes old conversation history with a smart binary-search mechanism.
+- **Structural Integrity Guards** — Automatically tracks explicit `tool_use` definitions and ensures that if a tool input is truncated, its corresponding `tool_result` is also safely removed, preventing API validation errors.
+- **Multi-Layer Dropping** — Progressively drops system messages, regular messages, and finally enforces strict length limits without breaking conversational logic.
+
+</details>
+
 ### Example Playbooks (Integrated Use Cases)
 
 **Playbook A: Maximize paid subscription + cheap backup**
