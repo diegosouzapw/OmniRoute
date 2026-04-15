@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Badge, Button, Input, Select } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -34,17 +34,27 @@ export default function MemoryPage() {
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [health, setHealth] = useState<{ working: boolean; latencyMs: number } | null>(null);
+  const [checkingHealth, setCheckingHealth] = useState(false);
 
-  useEffect(() => {
-    fetchMemories();
-  }, []);
-
-  const fetchMemories = async () => {
+  const fetchMemories = useCallback(async () => {
     try {
-      const response = await fetch("/api/memory");
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+      });
+      if (filterType !== "all") params.append("type", filterType);
+      if (searchQuery) params.append("q", searchQuery);
+
+      const response = await fetch(`/api/memory?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
-        setMemories(data.memories || []);
+        setMemories(data.data || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
         setStats(data.stats || { totalEntries: 0, tokensUsed: 0, hitRate: 0 });
       }
     } catch (error) {
@@ -52,7 +62,14 @@ export default function MemoryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, filterType, searchQuery]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchMemories();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchMemories]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -73,14 +90,19 @@ export default function MemoryPage() {
     link.click();
   };
 
-  const filteredMemories = memories.filter((memory) => {
-    const matchesType = filterType === "all" || memory.type === filterType;
-    const matchesSearch =
-      searchQuery === "" ||
-      memory.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      memory.key.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesType && matchesSearch;
-  });
+  const checkHealth = async () => {
+    setCheckingHealth(true);
+    try {
+      const res = await fetch("/api/memory/health");
+      if (res.ok) {
+        setHealth(await res.json());
+      }
+    } catch {
+      setHealth(null);
+    } finally {
+      setCheckingHealth(false);
+    }
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -108,7 +130,26 @@ export default function MemoryPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <div className="flex items-center gap-2">
+            {health !== null && (
+              <span
+                className={`inline-block w-3 h-3 rounded-full ${health.working ? "bg-green-500" : "bg-red-500"}`}
+                title={health.working ? `Pipeline OK (${health.latencyMs}ms)` : "Pipeline error"}
+              />
+            )}
+            {health === null && !checkingHealth && (
+              <span
+                className="inline-block w-3 h-3 rounded-full bg-gray-400"
+                title="Health unknown"
+              />
+            )}
+            <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
+              {checkingHealth ? "Checking..." : "Check Health"}
+            </Button>
+          </div>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExport}>
             {t("export")}
@@ -147,10 +188,19 @@ export default function MemoryPage() {
               <Input
                 placeholder={t("search")}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
                 className="w-64"
               />
-              <Select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+              <Select
+                value={filterType}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setPage(1);
+                }}
+              >
                 <option value="all">{t("allTypes")}</option>
                 <option value="factual">{t("factual")}</option>
                 <option value="episodic">{t("episodic")}</option>
@@ -172,7 +222,7 @@ export default function MemoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMemories.map((memory) => (
+                {memories.map((memory) => (
                   <tr key={memory.id} className="border-b">
                     <td className="py-2 px-4">
                       <Badge variant={getTypeColor(memory.type) as any}>{memory.type}</Badge>
@@ -189,6 +239,30 @@ export default function MemoryPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-500">
+              Page {page} of {totalPages} ({total} total)
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

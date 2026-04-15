@@ -211,3 +211,58 @@ Key features:
 - **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
 📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+
+---
+
+## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+
+Key behaviours:
+
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
+
+---
+
+## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+
+Multi-device and external operator access is now possible via **scoped sync tokens**:
+
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+
+---
+
+## 🧠 GLM Thinking Preset _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## 📋 Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

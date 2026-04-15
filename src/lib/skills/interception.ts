@@ -1,5 +1,8 @@
 import { skillExecutor } from "./executor";
 import { detectProvider } from "./injection";
+import { logger } from "../../../open-sse/utils/logger.js";
+
+const log = logger("SKILLS_INTERCEPTION");
 
 interface ToolCall {
   id: string;
@@ -26,6 +29,11 @@ export async function interceptToolCalls(
 
         const skillName = version === "latest" ? name : `${name}@${version}`;
 
+        log.info("skills.interception.tool_call_detected", {
+          toolName: call.name,
+          callId: call.id,
+        });
+
         const execution = await skillExecutor.execute(skillName, call.arguments, {
           apiKeyId: context.apiKeyId,
           sessionId: context.sessionId,
@@ -37,11 +45,21 @@ export async function interceptToolCalls(
             ? { error: execution.errorMessage }
             : { error: "Skill execution returned no output" });
 
+        log.info("skills.interception.execution_complete", {
+          toolName: call.name,
+          callId: call.id,
+        });
+
         return {
           id: call.id,
           result,
         };
       } catch (err) {
+        log.error("skills.interception.execution_failed", {
+          toolName: call.name,
+          callId: call.id,
+          err: err instanceof Error ? err.message : String(err),
+        });
         return {
           id: call.id,
           result: { error: err instanceof Error ? err.message : String(err) },

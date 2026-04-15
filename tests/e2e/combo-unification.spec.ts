@@ -140,7 +140,12 @@ test.describe("Combo Unification", () => {
 
     test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
-    await expect(page.getByRole("button", { name: /^layers all$/i })).toBeVisible();
+    await expect(
+      page
+        .locator("button")
+        .filter({ has: page.locator("span", { hasText: "layers" }) })
+        .filter({ hasText: "All" })
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: /intelligent/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /deterministic/i })).toBeVisible();
     await expect(page.getByText("Intelligent Routing Dashboard")).toBeVisible();

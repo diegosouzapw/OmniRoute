@@ -371,12 +371,10 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // instead of hanging in the queue until reservoir refreshes (which can
     // be hours for providers like Codex with long rate limit windows).
     // This lets upstream callers (e.g. LiteLLM) trigger fallback to other providers.
-    // After stop, delete from Map so getLimiter() creates a fresh instance.
-    trackAsyncOperation(
-      limiter.stop({ dropWaitingJobs: true }).finally(() => {
-        limiters.delete(limiterKey);
-      })
-    );
+    // Delete from the Map first so follow-up learning from the same error body
+    // can materialize a fresh limiter immediately.
+    limiters.delete(limiterKey);
+    trackAsyncOperation(limiter.stop({ dropWaitingJobs: true }));
     return;
   }
 
@@ -551,6 +549,23 @@ export async function __resetRateLimitManagerForTests() {
   if (pendingAsyncOperations.size > 0) {
     await Promise.allSettled(Array.from(pendingAsyncOperations));
   }
+}
+
+export async function __getLimiterStateForTests(provider, connectionId, model = null) {
+  const key = getLimiterKey(provider, connectionId, model);
+  const limiter = limiters.get(key);
+  if (!limiter) return null;
+
+  const counts = limiter.counts();
+  const reservoir = await limiter.currentReservoir();
+  return {
+    key,
+    reservoir,
+    queued: counts.QUEUED || 0,
+    running: counts.RUNNING || 0,
+    executing: counts.EXECUTING || 0,
+    done: counts.DONE || 0,
+  };
 }
 
 /**

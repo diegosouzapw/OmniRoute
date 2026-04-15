@@ -1043,7 +1043,7 @@ export async function handleComboChat({
             if (text) {
               if (text.includes("<omniModel>")) {
                 const cleaned = text.replace(
-                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
@@ -1057,7 +1057,7 @@ export async function handleComboChat({
             if (tail) {
               if (tail.includes("<omniModel>")) {
                 const cleaned = tail.replace(
-                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));

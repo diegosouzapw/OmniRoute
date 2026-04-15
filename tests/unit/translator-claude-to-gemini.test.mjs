@@ -132,6 +132,54 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
   assert.equal(result.contents[0].parts[0].thoughtSignature, DEFAULT_THINKING_GEMINI_SIGNATURE);
 });
 
+test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {
+  const longToolName =
+    "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tu_long_1", name: longToolName, input: { path: "/tmp/a" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "tu_long_1", content: "ok" }],
+        },
+      ],
+      tools: [
+        {
+          name: longToolName,
+          description: "Read files",
+          input_schema: {
+            type: "object",
+            properties: {
+              path: { type: "string", "x-ui": "hidden" },
+            },
+            examples: [{ path: "/tmp/a" }],
+          },
+        },
+      ],
+    },
+    false
+  );
+
+  const sanitizedToolName = result.tools[0].functionDeclarations[0].name;
+  assert.ok(longToolName.length > 64);
+  assert.equal(sanitizedToolName.length, 64);
+  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
+  assert.equal(result.contents[0].parts[0].functionCall.name, sanitizedToolName);
+  assert.equal(result.contents[1].parts[0].functionResponse.name, sanitizedToolName);
+  assert.equal(result.tools[0].functionDeclarations[0].parameters.examples, undefined);
+  assert.equal(
+    result.tools[0].functionDeclarations[0].parameters.properties.path["x-ui"],
+    undefined
+  );
+});
+
 test("Claude -> Gemini handles empty bodies without producing invalid content", () => {
   const result = claudeToGeminiRequest("gemini-2.5-flash", {}, false);
 

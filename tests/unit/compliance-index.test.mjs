@@ -36,6 +36,9 @@ test("compliance audit log initialization, writes and filtered reads work end to
     actor: "admin",
     target: "system-settings",
     details: { changed: ["theme"] },
+    resourceType: "settings",
+    status: "success",
+    requestId: "req-123",
     ipAddress: "127.0.0.1",
   });
   compliance.logAuditEvent({
@@ -55,6 +58,13 @@ test("compliance audit log initialization, writes and filtered reads work end to
   assert.equal(all[0].action, "apiKey.create");
   assert.equal(all[0].actor, "system");
   assert.equal(all[0].details, "manual note");
+  assert.equal(filtered[0].resourceType, "settings");
+  assert.equal(filtered[0].resource_type, "settings");
+  assert.equal(filtered[0].status, "success");
+  assert.equal(filtered[0].requestId, "req-123");
+  assert.equal(filtered[0].request_id, "req-123");
+  assert.equal(filtered[0].ip, "127.0.0.1");
+  assert.deepEqual(filtered[0].metadata, { changed: ["theme"] });
   assert.deepEqual(filtered, [
     {
       ...filtered[0],
@@ -65,6 +75,67 @@ test("compliance audit log initialization, writes and filtered reads work end to
       ip_address: "127.0.0.1",
     },
   ]);
+});
+
+test("compliance audit log supports structured filters, totals and secret redaction", () => {
+  compliance.initAuditLog();
+
+  compliance.logAuditEvent({
+    action: "provider.credentials.updated",
+    actor: "admin",
+    target: "openai:primary",
+    resourceType: "provider_credentials",
+    status: "success",
+    requestId: "req-provider-1",
+    details: {
+      apiKey: "sk-secret",
+      nested: {
+        refreshToken: "refresh-secret",
+      },
+      changedFields: ["defaultModel"],
+    },
+    ipAddress: "10.0.0.4",
+    createdAt: "2026-04-14T10:00:00.000Z",
+  });
+  compliance.logAuditEvent({
+    action: "provider.validation.ssrf_blocked",
+    actor: "admin",
+    target: "provider-node",
+    resourceType: "provider_validation",
+    status: "blocked",
+    requestId: "req-provider-2",
+    metadata: {
+      reason: "Blocked private or local provider URL",
+      baseUrl: "http://127.0.0.1:11434/v1",
+    },
+    createdAt: "2026-04-14T11:00:00.000Z",
+  });
+
+  const filtered = compliance.getAuditLog({
+    resourceType: "provider_validation",
+    status: "blocked",
+    requestId: "req-provider-2",
+    from: "2026-04-14T10:30:00.000Z",
+    to: "2026-04-14T12:00:00.000Z",
+  });
+
+  assert.equal(compliance.countAuditLog({ actor: "admin" }), 2);
+  assert.equal(filtered.length, 1);
+  assert.equal(filtered[0].action, "provider.validation.ssrf_blocked");
+  assert.deepEqual(filtered[0].metadata, {
+    reason: "Blocked private or local provider URL",
+    baseUrl: "http://127.0.0.1:11434/v1",
+  });
+
+  const updatedEntry = compliance.getAuditLog({ action: "provider.credentials.updated" })[0];
+  assert.deepEqual(updatedEntry.details, {
+    apiKey: "[redacted]",
+    nested: {
+      refreshToken: "[redacted]",
+    },
+    changedFields: ["defaultModel"],
+  });
+  assert.deepEqual(updatedEntry.metadata, updatedEntry.details);
 });
 
 test("compliance noLog helpers cover missing ids, in-memory overrides and persisted DB values", () => {
@@ -169,7 +240,8 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
     .prepare("SELECT COUNT(*) as count FROM request_detail_logs")
     .get().count;
   const mcpAuditCount = db.prepare("SELECT COUNT(*) as count FROM mcp_tool_audit").get().count;
-  const auditActions = compliance.getAuditLog().map((entry) => entry.action);
+  const auditEntries = compliance.getAuditLog();
+  const auditActions = auditEntries.map((entry) => entry.action);
 
   assert.deepEqual(result, {
     deletedUsage: 1,
@@ -191,6 +263,10 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
   assert.equal(requestDetailCount, 1);
   assert.equal(mcpAuditCount, 1);
   assert.ok(auditActions.includes("compliance.cleanup"));
+  const cleanupEntry = auditEntries.find((entry) => entry.action === "compliance.cleanup");
+  assert.equal(cleanupEntry.resourceType, "maintenance");
+  assert.equal(cleanupEntry.status, "success");
+  assert.equal(cleanupEntry.target, "log-retention");
 });
 
 test("cleanupExpiredLogs tolerates missing tables and logAuditEvent failures without breaking", () => {

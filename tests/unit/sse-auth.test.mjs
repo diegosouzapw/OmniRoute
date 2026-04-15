@@ -421,6 +421,31 @@ test("getProviderCredentials skips codex scope-limited accounts unless suppressi
   assert.equal(bypassed.connectionId, connection.id);
 });
 
+test("getProviderCredentials reports allRateLimited when every account is model-locked", async () => {
+  const first = await seedConnection("gemini", {
+    name: "gemini-model-lock-first",
+  });
+  const second = await seedConnection("gemini", {
+    name: "gemini-model-lock-second",
+  });
+
+  await auth.markAccountUnavailable(first.id, 429, "too many requests", "gemini", "gemini-2.5-pro");
+  await auth.markAccountUnavailable(
+    second.id,
+    429,
+    "too many requests",
+    "gemini",
+    "gemini-2.5-pro"
+  );
+
+  const blocked = await auth.getProviderCredentials("gemini", null, null, "gemini-2.5-pro");
+
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(Number(blocked.lastErrorCode), 429);
+  assert.ok(typeof blocked.retryAfter === "string" && blocked.retryAfter.length > 0);
+  assert.match(String(blocked.retryAfterHuman), /reset after/i);
+});
+
 test("getProviderCredentials auto-decays stale backoff metadata for recovered accounts", async () => {
   const connection = await seedConnection("openai", {
     name: "stale-backoff",

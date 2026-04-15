@@ -17,6 +17,8 @@ const {
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 const textEncoder = new TextEncoder();
+const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
+  "[Proxy Error] The upstream API returned an empty response. Please retry the request.";
 
 async function readTransformed(chunks, options) {
   const source = new ReadableStream({
@@ -501,6 +503,105 @@ test("createSSEStream passthrough merges Claude usage chunks and restores mapped
   assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 6);
   assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 4);
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 10);
+});
+
+test("createSSEStream passthrough injects a synthetic Claude text block for empty assistant SSE", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `event: message_start\ndata: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_empty_passthrough",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4",
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 7, output_tokens: 0 },
+        },
+      })}\n\n`,
+      `event: message_stop\ndata: ${JSON.stringify({
+        type: "message_stop",
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.CLAUDE,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal((text.match(/event: message_start/g) || []).length, 1);
+  assert.equal((text.match(/event: message_delta/g) || []).length, 1);
+  assert.match(text, /event: content_block_start/);
+  assert.match(text, /event: content_block_delta/);
+  assert.match(text, /event: message_stop/);
+  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
+  assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
+  assert.ok(text.indexOf("event: message_stop") > text.indexOf("event: content_block_stop"));
+  assert.equal(
+    onCompletePayload.responseBody.choices[0].message.content,
+    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
+  );
+});
+
+test("createSSEStream translate mode injects a synthetic Claude text block when OpenAI finishes empty", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty_1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: { role: "assistant" } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty_1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: { prompt_tokens: 3, completion_tokens: 0, total_tokens: 3 },
+      })}\n\n`,
+    ],
+    {
+      mode: "translate",
+      targetFormat: FORMATS.OPENAI,
+      sourceFormat: FORMATS.CLAUDE,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal((text.match(/event: message_start/g) || []).length, 1);
+  assert.match(text, /event: content_block_start/);
+  assert.match(text, /event: content_block_delta/);
+  assert.match(text, /event: message_delta/);
+  assert.match(text, /event: message_stop/);
+  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
+  assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
+  assert.ok(text.indexOf("event: message_delta") > text.indexOf("event: content_block_stop"));
+  assert.equal(
+    onCompletePayload.responseBody.choices[0].message.content,
+    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
+  );
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 3);
 });
 
 test("createSSETransformStreamWithLogger flushes a trailing Claude usage event without a newline", async () => {

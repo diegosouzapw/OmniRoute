@@ -124,6 +124,39 @@ test("Gemini non-stream: promptFeedback-only block becomes content_filter", () =
   assert.equal(result.choices[0].finish_reason, "content_filter");
 });
 
+test("Gemini non-stream: restores sanitized tool names from the request map", () => {
+  const sanitizedToolName = "read_multiple_files_with_validation_bundle_ab12cd34";
+  const originalToolName =
+    "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
+  const result = translateNonStreamingResponse(
+    {
+      responseId: "resp-tool-map",
+      modelVersion: "gemini-2.5-pro",
+      createTime: "2026-04-05T12:00:00.000Z",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: {
+                  name: sanitizedToolName,
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    FORMATS.GEMINI,
+    FORMATS.OPENAI,
+    new Map([[sanitizedToolName, originalToolName]])
+  );
+
+  assert.equal(result.choices[0].message.tool_calls[0].function.name, originalToolName);
+});
+
 test("Gemini stream: first text chunk emits assistant role then content delta", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
@@ -173,7 +206,15 @@ test("Gemini stream: subsequent text chunks append content without re-emitting r
 });
 
 test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are converted", () => {
-  const state = createStreamingState();
+  const state = {
+    ...createStreamingState(),
+    toolNameMap: new Map([
+      [
+        "weather_lookup_bundle_ab12cd34",
+        "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2",
+      ],
+    ]),
+  };
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-rich",
@@ -183,7 +224,12 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
           content: {
             parts: [
               { thought: true, thoughtSignature: "sig-1", text: "Need a plan." },
-              { functionCall: { name: "weather", args: { city: "Sao Paulo" } } },
+              {
+                functionCall: {
+                  name: "weather_lookup_bundle_ab12cd34",
+                  args: { city: "Sao Paulo" },
+                },
+              },
               { inlineData: { mimeType: "image/png", data: "imgdata" } },
             ],
           },
@@ -202,7 +248,10 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   );
 
   assert.equal(result[1].choices[0].delta.reasoning_content, "Need a plan.");
-  assert.equal(result[2].choices[0].delta.tool_calls[0].function.name, "weather");
+  assert.equal(
+    result[2].choices[0].delta.tool_calls[0].function.name,
+    "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2"
+  );
   assert.equal(
     result[2].choices[0].delta.tool_calls[0].function.arguments,
     JSON.stringify({ city: "Sao Paulo" })

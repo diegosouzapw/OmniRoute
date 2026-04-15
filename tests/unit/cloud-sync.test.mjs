@@ -215,14 +215,14 @@ test("cloudSync syncs data upstream and refreshes only locally stale provider to
 
   assert.equal(Array.isArray(postedBody.providers), true);
   assert.equal(Array.isArray(postedBody.apiKeys), true);
+  assert.match(postedBody.version, /^[a-f0-9]{64}$/);
   assert.equal(postedBody.providers.length, 2);
   assert.equal(postedBody.apiKeys.length, 1);
-  assert.deepEqual(result, {
-    success: true,
-    message: "Synced successfully",
-    changes: { providers: 1 },
-    createdKey: "created-key-1",
-  });
+  assert.equal(result.success, true);
+  assert.equal(result.message, "Synced successfully");
+  assert.deepEqual(result.changes, { providers: 1 });
+  assert.equal(result.createdKey, "created-key-1");
+  assert.match(result.version, /^[a-f0-9]{64}$/);
   assert.equal(staleAfter.accessToken, "new-token");
   assert.equal(staleAfter.refreshToken, "new-refresh");
   assert.equal(staleAfter.expiresIn, 3600);

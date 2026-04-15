@@ -57,6 +57,39 @@ test("GLM import uses international coding endpoint when apiRegion is internatio
   }
 });
 
+test("GLMT import shares the GLM coding models endpoint and surfaces provider metadata correctly", async () => {
+  await resetStorage();
+  const connection = await providersDb.createProviderConnection({
+    provider: "glmt",
+    authType: "apikey",
+    name: "glmt-intl",
+    apiKey: "glmt-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.z.ai/api/coding/paas/v4/models");
+    assert.equal(init.headers.Authorization, "Bearer glmt-key");
+    return Response.json({ data: [{ id: "glm-5.1", name: "GLM 5.1" }] });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      provider: "glmt",
+      connectionId: connection.id,
+      models: [{ id: "glm-5.1", name: "GLM 5.1" }],
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("GLM import uses China coding endpoint when apiRegion is china", async () => {
   await resetStorage();
   const connection = await providersDb.createProviderConnection({

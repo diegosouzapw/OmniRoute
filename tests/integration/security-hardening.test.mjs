@@ -150,6 +150,15 @@ test("server-init.ts calls enforceSecrets", () => {
   assert.ok(content.includes("enforceSecrets"), "server-init.ts should call enforceSecrets");
 });
 
+test("instrumentation-node.ts validates runtime env after restoring secrets", () => {
+  const content = readIfExists("src/instrumentation-node.ts");
+  assert.ok(content, "src/instrumentation-node.ts should exist");
+  assert.ok(
+    content.includes("enforceWebRuntimeEnv"),
+    "instrumentation-node.ts should call enforceWebRuntimeEnv"
+  );
+});
+
 // ─── T06/T07 Regression Checks ───────────────────────
 
 test("callLogs.ts wires no-log and PII sanitization before persistence", () => {

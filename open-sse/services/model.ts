@@ -39,6 +39,22 @@ const PROVIDER_MODEL_ALIASES = {
   antigravity: {},
 };
 
+const CROSS_PROXY_MODEL_ALIASES = {
+  "gpt-oss:120b": "gpt-oss-120b",
+  "deepseek-v3.2-chat": "deepseek-v3.2",
+  "deepseek-v3-2": "deepseek-v3.2",
+  "qwen3-coder:480b": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+  "claude-opus-4.5": "claude-opus-4-5-20251101",
+  "anthropic/claude-opus-4.5": "claude-opus-4-5-20251101",
+};
+
+const CROSS_PROXY_MODEL_ALIASES_LOWER = Object.fromEntries(
+  Object.entries(CROSS_PROXY_MODEL_ALIASES).map(([alias, canonical]) => [
+    alias.toLowerCase(),
+    canonical,
+  ])
+);
+
 // Reverse index: modelId -> providerIds that expose this model
 const MODEL_TO_PROVIDERS = new Map();
 for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
@@ -53,12 +69,34 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
     }
   }
 }
+const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
 
 /**
  * Resolve provider alias to provider ID
  */
 export function resolveProviderAlias(aliasOrId) {
   return ALIAS_TO_PROVIDER_ID[aliasOrId] || aliasOrId;
+}
+
+function isCrossProxyModelCompatEnabled() {
+  const raw = process.env.MODEL_ALIAS_COMPAT_ENABLED;
+  return raw !== "false" && raw !== "0";
+}
+
+export function normalizeCrossProxyModelId(modelId) {
+  if (!modelId || typeof modelId !== "string" || !isCrossProxyModelCompatEnabled()) {
+    return { modelId, applied: false, original: null };
+  }
+
+  const normalized =
+    CROSS_PROXY_MODEL_ALIASES[modelId] || CROSS_PROXY_MODEL_ALIASES_LOWER[modelId.toLowerCase()];
+
+  if (!normalized || normalized === modelId) {
+    return { modelId, applied: false, original: null };
+  }
+
+  console.debug(`[MODEL] Cross-proxy alias applied: "${modelId}" → "${normalized}"`);
+  return { modelId: normalized, applied: true, original: modelId };
 }
 
 /**
@@ -69,6 +107,29 @@ function resolveProviderModelAlias(providerOrAlias, modelId) {
   const providerId = resolveProviderAlias(providerOrAlias);
   const aliases = PROVIDER_MODEL_ALIASES[providerId];
   return aliases?.[modelId] || modelId;
+}
+
+function hasKnownProviderModel(providerOrAlias, modelId) {
+  if (!providerOrAlias || !modelId) return false;
+
+  const providerId = resolveProviderAlias(providerOrAlias);
+  const providerAlias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
+  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS[providerId] || [];
+
+  if (models.some((entry) => entry?.id === modelId)) return true;
+
+  const canonicalModel = resolveProviderModelAlias(providerId, modelId);
+  return canonicalModel !== modelId && models.some((entry) => entry?.id === canonicalModel);
+}
+
+function shouldTreatAsExactModelId(modelStr) {
+  if (!modelStr || typeof modelStr !== "string" || !modelStr.includes("/")) return false;
+  if (!KNOWN_MODEL_IDS.has(modelStr)) return false;
+
+  const firstSlash = modelStr.indexOf("/");
+  const providerOrAlias = modelStr.slice(0, firstSlash).trim();
+  const providerScopedModel = modelStr.slice(firstSlash + 1).trim();
+  return !hasKnownProviderModel(providerOrAlias, providerScopedModel);
 }
 
 /**
@@ -126,6 +187,17 @@ export function parseModel(modelStr) {
   }
   cleanStr = cleanStr.trim();
 
+  // Normalize known cross-proxy provider/model dialects before deciding whether
+  // the slash belongs to a provider prefix or to the model ID itself.
+  if (cleanStr.includes("/")) {
+    cleanStr = normalizeCrossProxyModelId(cleanStr).modelId;
+  }
+
+  if (shouldTreatAsExactModelId(cleanStr)) {
+    console.debug(`[MODEL] Treating "${cleanStr}" as an exact model id`);
+    return { provider: null, model: cleanStr, isAlias: true, providerAlias: null, extendedContext };
+  }
+
   // Check if standard format: provider/model or alias/model
   if (cleanStr.includes("/")) {
     const firstSlash = cleanStr.indexOf("/");
@@ -144,88 +216,61 @@ export function parseModel(modelStr) {
  * Format: { "alias": "provider/model" }
  */
 export function resolveModelAliasFromMap(alias, aliases) {
+  const resolved = resolveModelAliasTarget(alias, aliases);
+  if (!resolved?.provider) return null;
+  return {
+    provider: resolved.provider,
+    model: resolved.model,
+  };
+}
+
+function resolveModelAliasTarget(alias, aliases) {
   if (!aliases) return null;
 
-  // Check if alias exists
   const resolved = aliases[alias];
   if (!resolved) return null;
 
-  // Resolved value is "provider/model" format
-  if (typeof resolved === "string" && resolved.includes("/")) {
-    const firstSlash = resolved.indexOf("/");
-    const providerOrAlias = resolved.slice(0, firstSlash);
-    return {
-      provider: resolveProviderAlias(providerOrAlias),
-      model: resolved.slice(firstSlash + 1),
-    };
+  if (typeof resolved === "string") {
+    return parseAliasTarget(resolved);
   }
 
-  // Or object { provider, model }
   if (typeof resolved === "object" && resolved.provider && resolved.model) {
+    const normalizedPair = normalizeCrossProxyModelId(
+      `${resolved.provider}/${resolved.model}`
+    ).modelId;
+    if (normalizedPair !== `${resolved.provider}/${resolved.model}`) {
+      return parseAliasTarget(normalizedPair);
+    }
+
     return {
       provider: resolveProviderAlias(resolved.provider),
-      model: resolved.model,
+      model: normalizeCrossProxyModelId(resolved.model).modelId,
     };
   }
 
   return null;
 }
 
-/**
- * Get full model info (parse or resolve)
- * @param {string} modelStr - Model string
- * @param {object|function} aliasesOrGetter - Aliases object or async function to get aliases
- */
-export async function getModelInfoCore(modelStr, aliasesOrGetter) {
-  const parsed = parseModel(modelStr);
-  const { extendedContext } = parsed;
+function parseAliasTarget(target) {
+  const normalizedTarget = normalizeCrossProxyModelId(target).modelId;
+  if (!normalizedTarget || typeof normalizedTarget !== "string") return null;
 
-  if (!parsed.isAlias) {
-    const canonicalModel = resolveProviderModelAlias(parsed.provider, parsed.model);
-    return {
-      provider: parsed.provider,
-      model: canonicalModel,
-      extendedContext,
-    };
-  }
-
-  // Get aliases (from object or function)
-  const aliases = typeof aliasesOrGetter === "function" ? await aliasesOrGetter() : aliasesOrGetter;
-
-  // Resolve exact alias
-  const resolved = resolveModelAliasFromMap(parsed.model, aliases);
-  if (resolved) {
-    const canonicalModel = resolveProviderModelAlias(resolved.provider, resolved.model);
-    return {
-      provider: resolved.provider,
-      model: canonicalModel,
-      extendedContext,
-    };
-  }
-
-  // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
-  if (aliases && typeof aliases === "object") {
-    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({ pattern, target }));
-    const wildcardMatch = resolveWildcardAlias(parsed.model, aliasEntries);
-    if (wildcardMatch) {
-      const target = wildcardMatch.target as string;
-      if (target.includes("/")) {
-        const firstSlash = target.indexOf("/");
-        const providerOrAlias = target.slice(0, firstSlash);
-        const targetModel = target.slice(firstSlash + 1);
-        const provider = resolveProviderAlias(providerOrAlias);
-        const canonicalModel = resolveProviderModelAlias(provider, targetModel);
-        return {
-          provider,
-          model: canonicalModel,
-          extendedContext,
-          wildcardPattern: wildcardMatch.pattern,
-        };
-      }
+  if (normalizedTarget.includes("/")) {
+    if (shouldTreatAsExactModelId(normalizedTarget)) {
+      return { model: normalizedTarget };
     }
+
+    const firstSlash = normalizedTarget.indexOf("/");
+    return {
+      provider: resolveProviderAlias(normalizedTarget.slice(0, firstSlash)),
+      model: normalizedTarget.slice(firstSlash + 1),
+    };
   }
 
-  const modelId = parsed.model;
+  return { model: normalizedTarget };
+}
+
+function resolveModelByProviderInference(modelId, extendedContext) {
   const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
 
   // Preserve historical behavior: OpenAI stays default when model exists there
@@ -277,4 +322,66 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
     model: modelId,
     extendedContext,
   };
+}
+
+/**
+ * Get full model info (parse or resolve)
+ * @param {string} modelStr - Model string
+ * @param {object|function} aliasesOrGetter - Aliases object or async function to get aliases
+ */
+export async function getModelInfoCore(modelStr, aliasesOrGetter) {
+  const parsed = parseModel(modelStr);
+  const { extendedContext } = parsed;
+
+  if (!parsed.isAlias) {
+    const normalizedModel = normalizeCrossProxyModelId(parsed.model).modelId;
+    const canonicalModel = resolveProviderModelAlias(parsed.provider, normalizedModel);
+    return {
+      provider: parsed.provider,
+      model: canonicalModel,
+      extendedContext,
+    };
+  }
+
+  // Get aliases (from object or function)
+  const aliases = typeof aliasesOrGetter === "function" ? await aliasesOrGetter() : aliasesOrGetter;
+
+  // Resolve exact alias
+  const resolved = resolveModelAliasTarget(parsed.model, aliases);
+  if (resolved?.provider) {
+    const canonicalModel = resolveProviderModelAlias(resolved.provider, resolved.model);
+    return {
+      provider: resolved.provider,
+      model: canonicalModel,
+      extendedContext,
+    };
+  }
+  if (resolved?.model) {
+    return resolveModelByProviderInference(resolved.model, extendedContext);
+  }
+
+  // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
+  if (aliases && typeof aliases === "object") {
+    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({ pattern, target }));
+    const wildcardMatch = resolveWildcardAlias(parsed.model, aliasEntries);
+    if (wildcardMatch) {
+      const target = wildcardMatch.target as string;
+      if (target.includes("/")) {
+        const firstSlash = target.indexOf("/");
+        const providerOrAlias = target.slice(0, firstSlash);
+        const targetModel = target.slice(firstSlash + 1);
+        const provider = resolveProviderAlias(providerOrAlias);
+        const canonicalModel = resolveProviderModelAlias(provider, targetModel);
+        return {
+          provider,
+          model: canonicalModel,
+          extendedContext,
+          wildcardPattern: wildcardMatch.pattern,
+        };
+      }
+    }
+  }
+
+  const normalizedModelId = normalizeCrossProxyModelId(parsed.model).modelId;
+  return resolveModelByProviderInference(normalizedModelId, extendedContext);
 }

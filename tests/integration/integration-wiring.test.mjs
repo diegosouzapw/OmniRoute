@@ -52,8 +52,21 @@ describe("Pipeline Wiring — server-init.ts", () => {
     assert.match(src, /enforceSecrets/);
   });
 
+  it("should enforce web runtime env before startup", () => {
+    assert.match(src, /enforceWebRuntimeEnv/);
+  });
+
   it("should log server.start audit event", () => {
     assert.match(src, /server\.start/);
+  });
+});
+
+describe("Pipeline Wiring — instrumentation-node.ts", () => {
+  const src = readProjectFile("src/instrumentation-node.ts");
+
+  it("should seed default model aliases during startup restore", () => {
+    assert.ok(src, "src/instrumentation-node.ts should exist");
+    assert.match(src, /seedDefaultModelAliases/);
   });
 });
 
@@ -103,6 +116,10 @@ describe("Pipeline Wiring — middleware proxy", () => {
 
   it("should enforce body size guard for API writes", () => {
     assert.match(src, /checkBodySize|getBodySizeLimit/);
+  });
+
+  it("should resolve JWT secret lazily at request time", () => {
+    assert.match(src, /function getJwtSecret/);
   });
 });
 

@@ -96,15 +96,12 @@ export function classifyProviderError(statusCode: number, responseBody: unknown)
   const accountDeactivated = isAccountDeactivated(bodyStr);
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
 
-  if (
-    creditsExhausted &&
-    (statusCode === 400 || statusCode === 402 || statusCode === 429 || statusCode === 403)
-  ) {
-    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
-  }
-
   if (statusCode === 429) {
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
+  }
+
+  if (creditsExhausted && (statusCode === 400 || statusCode === 402 || statusCode === 403)) {
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
   if (statusCode === 401) {

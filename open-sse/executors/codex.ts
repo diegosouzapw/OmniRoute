@@ -2,9 +2,10 @@ import {
   getCodexRequestDefaults,
   isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { refreshCodexToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 
@@ -365,6 +366,8 @@ export class CodexExecutor extends BaseExecutor {
   buildHeaders(credentials, stream = true) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
+    headers.Version = getCodexClientVersion();
+    setUserAgentHeader(headers, getCodexUserAgent());
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;

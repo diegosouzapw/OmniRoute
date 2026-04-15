@@ -14,6 +14,7 @@ import {
   formatRetryAfter,
   checkFallbackError,
   isModelLocked,
+  getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
 } from "@omniroute/open-sse/services/accountFallback.ts";
@@ -69,9 +70,17 @@ interface CredentialSelectionOptions {
   excludeConnectionIds?: string[] | null;
 }
 
+interface CooldownInspectionState {
+  connection: ProviderConnectionView;
+  connectionCooldownMs: number | null;
+  codexScopeCooldownMs: number | null;
+  retryableModelCooldownMs: number | null;
+}
+
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
+const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -311,6 +320,12 @@ function getEarliestFutureDate(candidates: Array<string | null>): string | null 
       .filter((entry) => entry.ms !== null)
       .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null
   );
+}
+
+function isRetryableModelLockoutReason(reason: unknown): boolean {
+  return typeof reason === "string" && reason.length > 0
+    ? !NON_RETRYABLE_MODEL_LOCKOUT_REASONS.has(reason)
+    : false;
 }
 
 function getConnectionQuotaHeadroomPercent(
@@ -673,6 +688,8 @@ export async function getProviderCredentials(
       const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
       const terminalStatus = isTerminalConnectionStatus(c);
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
+      const modelLocked =
+        Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
@@ -693,35 +710,91 @@ export async function getProviderCredentials(
             ? `  → ${c.id?.slice(0, 8)} | retained codex scope-limited account until ${scopeUntil} for combo live test`
             : `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`
         );
+      } else if (modelLocked) {
+        const lockout = getModelLockoutInfo(provider, c.id, requestedModel);
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained model lockout for ${requestedModel} (${lockout?.remainingMs || 0}ms remaining) for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | model-locked for ${requestedModel} (${lockout?.remainingMs || 0}ms remaining)`
+        );
       }
     });
 
     if (availableConnections.length === 0) {
+      const cooldownStates: CooldownInspectionState[] = connections.map((connection) => {
+        const connectionCooldownMs = parseFutureDateMs(connection.rateLimitedUntil);
+        const codexScopeCooldownMs =
+          provider === "codex"
+            ? parseFutureDateMs(
+                getCodexScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
+              )
+            : null;
+        const modelLockout = requestedModel
+          ? getModelLockoutInfo(provider, connection.id, requestedModel)
+          : null;
+        const retryableModelCooldownMs =
+          modelLockout &&
+          modelLockout.remainingMs > 0 &&
+          isRetryableModelLockoutReason(modelLockout.reason)
+            ? Date.now() + modelLockout.remainingMs
+            : null;
+
+        return {
+          connection,
+          connectionCooldownMs,
+          codexScopeCooldownMs,
+          retryableModelCooldownMs,
+        };
+      });
+
+      const cooldownCandidates = cooldownStates
+        .flatMap((state) => {
+          const candidates: Array<{ ms: number; connection: ProviderConnectionView }> = [];
+          if (state.connectionCooldownMs !== null) {
+            candidates.push({ ms: state.connectionCooldownMs, connection: state.connection });
+          }
+          if (state.codexScopeCooldownMs !== null) {
+            candidates.push({ ms: state.codexScopeCooldownMs, connection: state.connection });
+          }
+          if (state.retryableModelCooldownMs !== null) {
+            candidates.push({ ms: state.retryableModelCooldownMs, connection: state.connection });
+          }
+          return candidates;
+        })
+        .sort((a, b) => a.ms - b.ms);
+
+      const allBlockedByModelCooldown =
+        Boolean(requestedModel) &&
+        cooldownStates.length > 0 &&
+        cooldownStates.every((state) => {
+          const hasModelSpecificCooldown =
+            state.codexScopeCooldownMs !== null || state.retryableModelCooldownMs !== null;
+          return hasModelSpecificCooldown && state.connectionCooldownMs === null;
+        });
+
+      const earliestCandidate = cooldownCandidates[0];
       const earliest =
-        getEarliestRateLimitedUntil(connections) ||
-        (provider === "codex"
-          ? getEarliestCodexScopeRateLimitedUntil(connections, requestedModel)
-          : null);
+        earliestCandidate?.ms && Number.isFinite(earliestCandidate.ms)
+          ? new Date(earliestCandidate.ms).toISOString()
+          : null;
+
       if (earliest) {
-        // Find the connection with the earliest rateLimitedUntil to get its error info
-        const rateLimitedConns = connections.filter(
-          (c) => c.rateLimitedUntil && new Date(c.rateLimitedUntil).getTime() > Date.now()
-        );
-        const earliestConn = rateLimitedConns.sort(
-          (a, b) =>
-            new Date(a.rateLimitedUntil || 0).getTime() -
-            new Date(b.rateLimitedUntil || 0).getTime()
-        )[0];
+        const earliestConn = earliestCandidate?.connection;
         log.warn(
           "AUTH",
-          `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+          allBlockedByModelCooldown
+            ? `${provider} | all ${connections.length} active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            : `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
         );
         return {
           allRateLimited: true,
           retryAfter: earliest,
           retryAfterHuman: formatRetryAfter(earliest),
           lastError: earliestConn?.lastError || null,
-          lastErrorCode: earliestConn?.errorCode || null,
+          lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
+          cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
+          cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);

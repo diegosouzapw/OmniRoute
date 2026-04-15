@@ -35,6 +35,7 @@ const PROVIDER_CONFIG = {
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
   glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
+  glmt: { label: "GLM Thinking", color: "#2563EB" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
 };
 
@@ -290,7 +291,8 @@ export default function ProviderLimits() {
       claude: 5,
       kiro: 6,
       glm: 7,
-      "kimi-coding": 8,
+      glmt: 8,
+      "kimi-coding": 9,
     };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)

@@ -260,6 +260,7 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
   assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
   assert.ok(result.generationConfig.thinkingConfig.thinkingBudget > 0);
   assert.equal(result.tools[0].functionDeclarations[0].name, "weather");
+  assert.equal(result._toolNameMap.get("weather"), "ns:weather");
 
   const modelTurn = result.contents.find((content) => content.role === "model");
   assert.equal(modelTurn.parts[0].functionCall.name, "weather");
@@ -268,6 +269,74 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
   assert.equal(responseTurn.parts[0].functionResponse.name, "weather");
+});
+
+test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsupported schema fields", () => {
+  const longToolName =
+    "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [
+        { role: "user", content: "Read the file set" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_long_1",
+              type: "function",
+              function: { name: longToolName, arguments: '{"paths":["/tmp/a","/tmp/b"]}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_long_1",
+          content: '{"ok":true}',
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: longToolName,
+            parameters: {
+              type: "object",
+              $schema: "http://json-schema.org/draft-07/schema#",
+              examples: [{ paths: ["/tmp/a"] }],
+              properties: {
+                paths: {
+                  type: "array",
+                  items: { type: "string", "x-ui": "hidden" },
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
+    false
+  );
+
+  const sanitizedToolName = result.tools[0].functionDeclarations[0].name;
+  assert.ok(longToolName.length > 64);
+  assert.equal(sanitizedToolName.length, 64);
+  assert.match(sanitizedToolName, /_[a-f0-9]{8}$/);
+  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
+
+  const modelTurn = result.contents.find((content) => content.role === "model");
+  assert.equal(modelTurn.parts[0].functionCall.name, sanitizedToolName);
+
+  const toolTurn = result.contents.find(
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
+  );
+  assert.equal(toolTurn.parts[0].functionResponse.name, sanitizedToolName);
+  assert.equal(result.tools[0].functionDeclarations[0].parameters.$schema, undefined);
+  assert.equal(result.tools[0].functionDeclarations[0].parameters.examples, undefined);
+  assert.equal(
+    result.tools[0].functionDeclarations[0].parameters.properties.paths.items["x-ui"],
+    undefined
+  );
 });
 
 test("OpenAI -> Gemini request gives googleSearch precedence over function tools", () => {
@@ -414,4 +483,61 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
   assert.ok(toolTurn, "expected a Claude-bridged tool response turn");
   assert.equal(toolTurn.parts[0].functionResponse.id, "call_1");
   assert.equal(result.request.tools[0].functionDeclarations[0].name, "read_file");
+});
+
+test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves restore map", () => {
+  const longToolName =
+    "ns:mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle";
+  const result = openaiToAntigravityRequest(
+    "claude-3-7-sonnet",
+    {
+      messages: [
+        { role: "user", content: "Read a file" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_long_2",
+              type: "function",
+              function: { name: longToolName, arguments: '{"path":"/tmp/demo"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_long_2",
+          content: '{"ok":true}',
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: longToolName,
+            parameters: {
+              type: "object",
+              properties: { path: { type: "string", "x-ui": "hidden" } },
+              required: ["path"],
+            },
+          },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-claude-map" }
+  );
+
+  const sanitizedToolName = result.request.tools[0].functionDeclarations[0].name;
+  assert.equal(sanitizedToolName.length, 64);
+  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
+
+  const modelTurn = result.request.contents.find(
+    (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
+  );
+  assert.equal(modelTurn.parts[0].functionCall.name, sanitizedToolName);
+
+  const toolTurn = result.request.contents.find(
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
+  );
+  assert.equal(toolTurn.parts[0].functionResponse.name, sanitizedToolName);
 });

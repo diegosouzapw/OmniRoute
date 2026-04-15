@@ -38,6 +38,9 @@ const PUBLIC_API_ROUTES = [
   // Cloud routes — use Bearer API key auth internally
   "/api/cloud/",
 
+  // Dedicated sync bundle endpoint — uses its own sync token auth
+  "/api/sync/bundle",
+
   // OAuth callback routes — provider redirects back here
   "/api/oauth/",
 ];

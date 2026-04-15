@@ -62,6 +62,32 @@ test("openai-compatible validation accepts rate-limited /models responses", asyn
   assert.equal(calls[0].headers.Authorization, "Bearer sk-test");
 });
 
+test("openai-compatible validation retries transient /models failures before succeeding", async () => {
+  let attempts = 0;
+
+  globalThis.fetch = async (url, init = {}) => {
+    attempts += 1;
+    assert.equal(String(url), "https://api.example.com/v1/models");
+    assert.equal(init.headers.Authorization, "Bearer sk-test");
+
+    if (attempts === 1) {
+      throw new Error("temporary network issue");
+    }
+
+    return new Response(JSON.stringify({ data: [{ id: "demo-model" }] }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-retry",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.method, "models_endpoint");
+  assert.equal(attempts, 2);
+});
+
 test("openai-compatible validation forwards custom User-Agent", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -183,6 +209,7 @@ test("anthropic-compatible validation falls back to /messages and treats 400 as 
   assert.equal(result.valid, true);
   assert.equal(result.error, null);
   assert.deepEqual(calls, [
+    "https://api.example.com/v1/models",
     "https://api.example.com/v1/models",
     "https://api.example.com/v1/messages",
   ]);

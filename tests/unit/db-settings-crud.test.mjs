@@ -57,6 +57,8 @@ test("getSettings exposes defaults and updateSettings persists typed values", as
     requireLogin: false,
     cloudEnabled: true,
     stickyRoundRobinLimit: 7,
+    requestRetry: 5,
+    maxRetryIntervalSec: 12,
     label: "task-303",
   });
 
@@ -64,9 +66,13 @@ test("getSettings exposes defaults and updateSettings persists typed values", as
   assert.equal(defaults.requireLogin, true);
   assert.deepEqual(defaults.hiddenSidebarItems, []);
   assert.equal(defaults.idempotencyWindowMs, 5000);
+  assert.equal(defaults.requestRetry, 3);
+  assert.equal(defaults.maxRetryIntervalSec, 30);
   assert.equal(updated.requireLogin, false);
   assert.equal(updated.cloudEnabled, true);
   assert.equal(updated.stickyRoundRobinLimit, 7);
+  assert.equal(updated.requestRetry, 5);
+  assert.equal(updated.maxRetryIntervalSec, 12);
   assert.equal(updated.label, "task-303");
   assert.equal(await settingsDb.isCloudEnabled(), true);
 });

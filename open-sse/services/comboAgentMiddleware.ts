@@ -38,7 +38,7 @@ interface Message {
 // by combo.ts streaming around the <omniModel> tag (#531). Non-global so that
 // .exec() and .test() stay stateless; callers that need full replacement use
 // String.prototype.replace() which replaces all non-overlapping matches.
-const CACHE_TAG_PATTERN = /(?:\\n|\n)?<omniModel>([^<]+)<\/omniModel>(?:\\n|\n)?/;
+const CACHE_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r)*/;
 
 /**
  * Inject the model tag into the last assistant message (or append a new one).
@@ -60,10 +60,7 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   // #474: If no assistant message exists yet (first turn), append a synthetic one
   // so the tag is present when the client sends the next request with the response.
   if (lastAssistantIdx === -1) {
-    return [
-      ...cleaned,
-      { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` },
-    ];
+    return [...cleaned, { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` }];
   }
 
   const msg = cleaned[lastAssistantIdx];
@@ -73,10 +70,7 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   if (typeof msg.content !== "string") {
     // If the message has tool_calls but no string content, append a new assistant
     // message with the tag rather than silently failing.
-    return [
-      ...cleaned,
-      { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` },
-    ];
+    return [...cleaned, { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` }];
   }
 
   const tagged = [...cleaned];

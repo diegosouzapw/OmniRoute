@@ -16,6 +16,9 @@ const skillByIdRoute = await import("../../src/app/api/skills/[id]/route.ts");
 function clearSkillRegistry() {
   skillRegistry.registeredSkills?.clear?.();
   skillRegistry.versionCache?.clear?.();
+  if (typeof skillRegistry.invalidateCache === "function") {
+    skillRegistry.invalidateCache();
+  }
 }
 
 function resetStorage() {
@@ -65,14 +68,16 @@ test("skills route GET loads skills from the database and lists them", async () 
 
   clearSkillRegistry();
 
-  const response = await skillsRoute.GET();
+  const response = await skillsRoute.GET(
+    new Request("http://localhost/api/skills?page=1&limit=50")
+  );
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.skills));
-  assert.equal(body.skills.length, 1);
-  assert.equal(body.skills[0].id, created.id);
-  assert.equal(body.skills[0].name, "lookupWeather");
+  assert.ok(Array.isArray(body.data));
+  assert.equal(body.data.length, 1);
+  assert.equal(body.data[0].id, created.id);
+  assert.equal(body.data[0].name, "lookupWeather");
 });
 
 test("skills route GET returns 500 when the registry load fails", async () => {
@@ -82,7 +87,9 @@ test("skills route GET returns 500 when the registry load fails", async () => {
   };
 
   try {
-    const response = await skillsRoute.GET();
+    const response = await skillsRoute.GET(
+      new Request("http://localhost/api/skills?page=1&limit=50")
+    );
     const body = await response.json();
 
     assert.equal(response.status, 500);
@@ -163,11 +170,15 @@ test("skills by-id PUT updates enabled state, validates input, and surfaces pars
   const updatedBody = await updated.json();
   const invalidBody = await invalid.json();
   const malformedBody = await malformed.json();
-  const loadedSkill = skillRegistry.getSkill("lookupWeather@1.0.0");
+  const loadedSkillRow = core
+    .getDbInstance()
+    .prepare("SELECT enabled FROM skills WHERE id = ?")
+    .get(created.id);
+  const isEnabled = loadedSkillRow ? loadedSkillRow.enabled === 1 : false;
 
   assert.equal(updated.status, 200);
   assert.deepEqual(updatedBody, { success: true, enabled: true });
-  assert.equal(loadedSkill?.enabled, true);
+  assert.equal(isEnabled, true);
 
   assert.equal(invalid.status, 400);
   assert.match(invalidBody.message, /invalid/i);

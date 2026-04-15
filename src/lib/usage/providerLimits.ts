@@ -34,7 +34,7 @@ interface ProviderConnectionLike {
   isActive?: boolean;
 }
 
-const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set(["glm"]);
+const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set(["glm", "glmt"]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
 

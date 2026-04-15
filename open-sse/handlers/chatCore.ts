@@ -79,6 +79,7 @@ import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
+  updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
 import {
@@ -123,6 +124,7 @@ import {
   toMemoryRetrievalConfig,
 } from "@/lib/memory/settings";
 import { injectSkills } from "@/lib/skills/injection";
+import { skillRegistry } from "@/lib/skills/registry";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import {
   buildClaudeCodeCompatibleRequest,
@@ -912,6 +914,9 @@ export async function handleChatCore({
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
     : null;
 
+  // skillsEnabled is stored in memory settings but represents an independent feature flag
+  const skillsEnabled = memorySettings?.skillsEnabled ?? false;
+
   if (
     apiKeyInfo?.id &&
     memorySettings &&
@@ -941,7 +946,8 @@ export async function handleChatCore({
     }
   }
 
-  if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+  if (apiKeyInfo?.id && skillsEnabled) {
+    await skillRegistry.loadFromDatabase(apiKeyInfo.id);
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),
@@ -1035,10 +1041,9 @@ export async function handleChatCore({
 
       // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
       // runs later in BaseExecutor over the serialized string).
-      // Only thinking constraints and tool remapping are applied here; cache-control
-      // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
-      // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
-      // toward the 4-block cap and would strip legitimate client cache markers.
+      // Only thinking constraints and tool remapping are applied here. Cache-control
+      // helpers stay out of the runtime bridge path so auto mode remains passthrough:
+      // if the client sends cache_control we preserve it, otherwise we do not inject it.
       remapToolNamesInRequest(translatedBody);
       enforceThinkingTemperature(translatedBody);
       disableThinkingIfToolChoiceForced(translatedBody);
@@ -1319,6 +1324,7 @@ export async function handleChatCore({
       signal?: AbortSignal | null;
       log?: unknown;
       upstreamExtraHeaders?: Record<string, string> | null;
+      clientHeaders?: Record<string, string> | null;
     }) => {
       let result;
       try {
@@ -1414,6 +1420,7 @@ export async function handleChatCore({
             log,
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+            clientHeaders: clientRawRequest?.headers ?? null,
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1613,6 +1620,7 @@ export async function handleChatCore({
           log,
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
+          clientHeaders: clientRawRequest?.headers ?? null,
         });
 
         if (retryResult.response.ok) {
@@ -1686,23 +1694,24 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
+          const effectiveRetryAfterMs = retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "rate_limited",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              effectiveRetryAfterMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(effectiveRetryAfterMs / 1000)}s (connection stays active)`
             );
           } else {
-            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+            const rateLimitedUntil = new Date(Date.now() + effectiveRetryAfterMs).toISOString();
             await updateProviderConnection(connectionId, {
               rateLimitedUntil: rateLimitedUntil,
-              testStatus: "credits_exhausted",
+              testStatus: "unavailable",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
@@ -1804,6 +1813,7 @@ export async function handleChatCore({
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
+    updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
     // Before returning a model-unavailable error upstream, try sibling models
@@ -1971,6 +1981,7 @@ export async function handleChatCore({
               signal: streamController.signal,
               log,
               extendedContext,
+              clientHeaders: clientRawRequest?.headers ?? null,
             });
             if (fbResult.response.ok) {
               provider = fbDecision.provider;
@@ -2296,7 +2307,7 @@ export async function handleChatCore({
       }
     }
 
-    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+    if (apiKeyInfo?.id && skillsEnabled) {
       const skillSessionId = pipelineSessionId;
 
       translatedResponse = await handleToolCallExecution(

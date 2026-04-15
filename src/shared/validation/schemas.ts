@@ -91,6 +91,24 @@ function validateProviderSpecificData(
       path: ["requestDefaults", "serviceTier"],
     });
   }
+
+  // [Oracle CONDITIONAL] consoleApiKey는 bailian-coding-plan 전용 필드.
+  // 다른 프로바이더 공통 규약으로 재사용하지 않는다.
+  const consoleApiKey = data.consoleApiKey;
+  if (consoleApiKey !== undefined && consoleApiKey !== null && typeof consoleApiKey !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.consoleApiKey must be a string",
+      path: ["consoleApiKey"],
+    });
+  }
+  if (typeof consoleApiKey === "string" && consoleApiKey.length > 10000) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
+      path: ["consoleApiKey"],
+    });
+  }
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
@@ -121,6 +139,10 @@ export const createProviderSchema = z.object({
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+});
+
+export const createSyncTokenSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200),
 });
 
 // ──── Combo Schemas ────
@@ -281,6 +303,8 @@ export const updateSettingsSchema = z.object({
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  requestRetry: z.number().int().min(0).max(10).optional(),
+  maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -290,6 +314,7 @@ export const updateSettingsSchema = z.object({
   // Protocol toggles (default: disabled)
   mcpEnabled: z.boolean().optional(),
   a2aEnabled: z.boolean().optional(),
+  wsAuth: z.boolean().optional(),
 });
 
 // ──── Auth Schemas ────
@@ -940,7 +965,7 @@ export const oauthPollSchema = z.object({
 
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
-  machineId: z.string().trim().min(1, "Machine ID is required"),
+  machineId: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({

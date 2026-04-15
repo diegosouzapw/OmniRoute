@@ -15,3 +15,26 @@ for (const strategy of ROUTING_STRATEGIES) {
     assert.equal(parsed.fallbackStrategy, strategy.value);
   });
 }
+
+test("settings schemas accept cooldown-aware retry knobs", () => {
+  const payload = {
+    requestRetry: 3,
+    maxRetryIntervalSec: 30,
+  };
+
+  const routeParsed = settingsRouteSchema.parse(payload);
+  const sharedParsed = sharedSettingsSchema.parse(payload);
+
+  assert.equal(routeParsed.requestRetry, 3);
+  assert.equal(routeParsed.maxRetryIntervalSec, 30);
+  assert.equal(sharedParsed.requestRetry, 3);
+  assert.equal(sharedParsed.maxRetryIntervalSec, 30);
+});
+
+test("settings schemas accept wsAuth toggle", () => {
+  const routeParsed = settingsRouteSchema.parse({ wsAuth: true });
+  const sharedParsed = sharedSettingsSchema.parse({ wsAuth: false });
+
+  assert.equal(routeParsed.wsAuth, true);
+  assert.equal(sharedParsed.wsAuth, false);
+});

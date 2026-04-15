@@ -230,7 +230,7 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   ]);
   assert.deepEqual(result.tool_choice, { type: "function", name: "read_file" });
   assert.equal(result.temperature, 0.2);
-  assert.equal(result.max_tokens, 100);
+  assert.equal(result.max_output_tokens, 100);
   assert.equal(result.top_p, 0.9);
 });
 
@@ -310,4 +310,52 @@ test("Chat -> Responses filters orphan function_call_output items and leaves emp
   );
   assert.equal(result.input.filter((item) => item.type === "function_call_output").length, 1);
   assert.equal(result.input.find((item) => item.type === "function_call_output").call_id, "call_2");
+});
+
+test("Chat -> Responses maps max_completion_tokens to max_output_tokens", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      max_completion_tokens: 2048,
+    },
+    false,
+    null
+  );
+
+  assert.equal(result.max_output_tokens, 2048);
+  assert.equal(result.max_tokens, undefined);
+  assert.equal(result.max_completion_tokens, undefined);
+});
+
+test("Chat -> Responses maps legacy max_tokens to max_output_tokens when max_completion_tokens is absent", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 512,
+    },
+    false,
+    null
+  );
+
+  assert.equal(result.max_output_tokens, 512);
+  assert.equal(result.max_tokens, undefined);
+});
+
+test("Chat -> Responses prefers max_completion_tokens over max_tokens when both are present", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+      max_completion_tokens: 4096,
+    },
+    false,
+    null
+  );
+
+  assert.equal(result.max_output_tokens, 4096);
+  assert.equal(result.max_tokens, undefined);
+  assert.equal(result.max_completion_tokens, undefined);
 });

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { platform, arch } from "node:os";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
+const { antigravityUserAgent } = await import("../../open-sse/services/antigravityHeaders.ts");
 
 test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
   const antigravity = REGISTRY.antigravity;
@@ -10,10 +10,7 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
   assert.ok(
     antigravity.baseUrls.some((u) => u === "https://daily-cloudcode-pa.sandbox.googleapis.com")
   );
-  assert.match(
-    antigravity.headers["User-Agent"],
-    new RegExp(`^antigravity/1\\.107\\.0\\s+${platform()}\\/${arch()}$`)
-  );
+  assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 
 test("T22: github headers include updated editor/plugin versions and required fields", () => {

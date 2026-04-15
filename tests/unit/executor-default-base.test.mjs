@@ -226,14 +226,17 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
 
 test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compatible headers", () => {
   const glm = new DefaultExecutor("glm");
+  const glmt = new DefaultExecutor("glmt");
   const openai = new DefaultExecutor("openai");
   const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
 
   const glmHeaders = glm.buildHeaders({ accessToken: "glm-token" }, false);
+  const glmtHeaders = glmt.buildHeaders({ apiKey: "glmt-key" }, false);
   const openaiHeaders = openai.buildHeaders({ apiKey: "sk-openai" }, true);
   const anthropicHeaders = anthropicCompat.buildHeaders({ apiKey: "anth-key" }, true);
 
   assert.equal(glmHeaders["x-api-key"], "glm-token");
+  assert.equal(glmtHeaders["x-api-key"], "glmt-key");
   assert.equal(openaiHeaders.Authorization, "Bearer sk-openai");
   assert.equal(openaiHeaders.Accept, "text/event-stream");
   assert.equal(anthropicHeaders["x-api-key"], "anth-key");
@@ -339,6 +342,39 @@ test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for 
 
   assert.notEqual(result, body);
   assert.equal(result.tool_choice, "auto");
+});
+
+test("DefaultExecutor.transformRequest applies GLMT preset defaults without overriding explicit values", () => {
+  const executor = new DefaultExecutor("glmt");
+
+  const autoBody = {
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const autoResult = executor.transformRequest("glm-5.1", autoBody, true, {});
+
+  assert.notEqual(autoResult, autoBody);
+  assert.equal(autoResult.max_tokens, 65536);
+  assert.equal(autoResult.temperature, 0.2);
+  assert.deepEqual(autoResult.thinking, {
+    type: "enabled",
+    budget_tokens: 24576,
+  });
+
+  const explicitBody = {
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 4096,
+    temperature: 0.7,
+    thinking: { type: "enabled" },
+  };
+  const explicitResult = executor.transformRequest("glm-5.1", explicitBody, true, {});
+
+  assert.notEqual(explicitResult, explicitBody);
+  assert.equal(explicitResult.max_tokens, 4096);
+  assert.equal(explicitResult.temperature, 0.7);
+  assert.deepEqual(explicitResult.thinking, {
+    type: "enabled",
+    budget_tokens: 4095,
+  });
 });
 
 test("BaseExecutor helpers manage custom user agents and upstream extra headers", () => {

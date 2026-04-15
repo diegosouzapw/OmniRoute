@@ -405,14 +405,40 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     jsonResponse({ cloudaicompanionProject: { id: "gemini-project" } }),
     jsonResponse({ access_token: "anti-access", refresh_token: "anti-refresh", expires_in: 7200 }),
     jsonResponse({ email: "anti@example.com" }),
-    jsonResponse({
-      cloudaicompanionProject: { id: "anti-project" },
-      allowedTiers: [{ id: "tier-default", isDefault: true }],
-    }),
-    jsonResponse({
-      done: true,
-      response: { cloudaicompanionProject: { id: "anti-project-final" } },
-    }),
+    (_url, init = {}) => {
+      assert.equal(init.method, "POST");
+      assert.equal(init.headers.Authorization, "Bearer anti-access");
+      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+      assert.equal(
+        init.headers["X-Goog-Api-Client"],
+        "google-cloud-sdk vscode_cloudshelleditor/0.1"
+      );
+      assert.equal(
+        init.headers["Client-Metadata"],
+        JSON.stringify({
+          ideType: "IDE_UNSPECIFIED",
+          platform: "PLATFORM_UNSPECIFIED",
+          pluginType: "GEMINI",
+        })
+      );
+      return jsonResponse({
+        cloudaicompanionProject: { id: "anti-project" },
+        allowedTiers: [{ id: "tier-default", isDefault: true }],
+      });
+    },
+    (_url, init = {}) => {
+      assert.equal(init.method, "POST");
+      assert.equal(init.headers.Authorization, "Bearer anti-access");
+      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+      assert.equal(
+        init.headers["X-Goog-Api-Client"],
+        "google-cloud-sdk vscode_cloudshelleditor/0.1"
+      );
+      return jsonResponse({
+        done: true,
+        response: { cloudaicompanionProject: { id: "anti-project-final" } },
+      });
+    },
   ]);
 
   const geminiTokens = await PROVIDERS["gemini-cli"].exchangeToken(

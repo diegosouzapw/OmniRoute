@@ -186,12 +186,20 @@ async function sweep() {
 
     if (!connections || connections.length === 0) return;
 
-    for (const conn of connections) {
+    const staggerMs = parseInt(process.env.HEALTHCHECK_STAGGER_MS || "3000", 10);
+
+    for (let i = 0; i < connections.length; i++) {
+      const conn = connections[i];
       try {
         await checkConnection(conn);
       } catch (err) {
         // Per-connection isolation: one failure never blocks others
         logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
+      }
+
+      // Stagger delay between checks to prevent bursting (Issue #1220)
+      if (staggerMs > 0 && i < connections.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
       }
     }
   } catch (err) {
@@ -255,7 +263,10 @@ async function checkConnection(conn) {
   };
 
   const hideLogs = await shouldHideLogs();
-  const proxyConfig = await resolveProxyForConnection(conn.id);
+  // resolveProxyForConnection returns { proxy, level, levelId } — unwrap to pass the inner
+  // proxy config object (with .host) to getAccessToken. Passing the full wrapper causes
+  // [ProxyDispatcher] Context proxy host is required (#1187/#1218).
+  const proxyResult = await resolveProxyForConnection(conn.id);
   const result = await getAccessToken(
     conn.provider,
     credentials,
@@ -270,7 +281,7 @@ async function checkConnection(conn) {
         if (!hideLogs) console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || "");
       },
     },
-    proxyConfig
+    proxyResult?.proxy || null
   );
 
   const now = new Date().toISOString();

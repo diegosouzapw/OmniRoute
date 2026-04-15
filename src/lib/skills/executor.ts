@@ -3,6 +3,9 @@ import { SkillExecution, SkillStatus, SkillHandler } from "./types";
 import { getDbInstance } from "../db/core";
 import { getSettings } from "../db/settings";
 import { randomUUID } from "crypto";
+import { logger } from "../../../open-sse/utils/logger.js";
+
+const log = logger("SKILLS_EXECUTOR");
 
 class SkillExecutor {
   private static instance: SkillExecutor;
@@ -54,6 +57,8 @@ class SkillExecutor {
     const executionId = randomUUID();
     const startTime = Date.now();
 
+    log.info("skills.executor.start", { skillId: skill.id, skillName, apiKeyId: context.apiKeyId });
+
     try {
       db.prepare(
         `INSERT INTO skill_executions (id, skill_id, api_key_id, session_id, input, status, created_at)
@@ -92,6 +97,12 @@ class SkillExecutor {
       db.prepare(
         `UPDATE skill_executions SET output = ?, status = ?, error_message = ?, duration_ms = ? WHERE id = ?`
       ).run(output ? JSON.stringify(output) : null, status, errorMessage, durationMs, executionId);
+
+      log.info("skills.executor.complete", {
+        skillId: skill.id,
+        success: status === SkillStatus.SUCCESS,
+        durationMs,
+      });
 
       return {
         id: executionId,
@@ -145,15 +156,17 @@ class SkillExecutor {
     };
   }
 
-  listExecutions(apiKeyId?: string, limit: number = 50): SkillExecution[] {
+  listExecutions(apiKeyId?: string, limit: number = 50, offset: number = 0): SkillExecution[] {
     const db = getDbInstance();
     const rows = apiKeyId
       ? db
           .prepare(
-            "SELECT * FROM skill_executions WHERE api_key_id = ? ORDER BY created_at DESC LIMIT ?"
+            "SELECT * FROM skill_executions WHERE api_key_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
           )
-          .all(apiKeyId, limit)
-      : db.prepare("SELECT * FROM skill_executions ORDER BY created_at DESC LIMIT ?").all(limit);
+          .all(apiKeyId, limit, offset)
+      : db
+          .prepare("SELECT * FROM skill_executions ORDER BY created_at DESC LIMIT ? OFFSET ?")
+          .all(limit, offset);
 
     return (rows as any[]).map((row) => ({
       id: row.id,
@@ -167,6 +180,16 @@ class SkillExecutor {
       durationMs: row.duration_ms,
       createdAt: new Date(row.created_at),
     }));
+  }
+
+  countExecutions(apiKeyId?: string): number {
+    const db = getDbInstance();
+    const row = apiKeyId
+      ? (db
+          .prepare("SELECT COUNT(*) as count FROM skill_executions WHERE api_key_id = ?")
+          .get(apiKeyId) as any)
+      : (db.prepare("SELECT COUNT(*) as count FROM skill_executions").get() as any);
+    return row?.count ?? 0;
   }
 }
 

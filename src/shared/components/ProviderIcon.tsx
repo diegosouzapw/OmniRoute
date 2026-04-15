@@ -143,6 +143,7 @@ const KNOWN_PNGS = new Set([
   "gemini",
   "github",
   "glm",
+  "glmt",
   "groq",
   "iflow",
   "ironclaw",

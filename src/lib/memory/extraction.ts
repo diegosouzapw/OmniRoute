@@ -4,8 +4,11 @@
  * Stores extracted facts asynchronously (non-blocking).
  */
 
+import { logger } from "../../../open-sse/utils/logger.js";
 import { createMemory } from "./store";
 import { MemoryType } from "./types";
+
+const log = logger("MEMORY_EXTRACTION");
 
 // ─── Pattern Definitions ────────────────────────────────────────────────────
 
@@ -150,13 +153,16 @@ export function extractFactsFromText(text: string): ExtractedFact[] {
 export function extractFacts(response: string, apiKeyId: string, sessionId: string): void {
   if (!response || !apiKeyId || !sessionId) return;
 
+  log.info("memory.extraction.start", { apiKeyId });
+
   // Non-blocking: schedule after current event loop tick
   setImmediate(() => {
     const facts = extractFactsFromText(response);
     if (facts.length === 0) return;
 
-    // Store each fact, swallow errors to never block the response pipeline
     for (const fact of facts) {
+      log.debug("memory.extraction.fact_found", { key: fact.key, category: fact.category });
+
       createMemory({
         apiKeyId,
         sessionId,
@@ -170,11 +176,10 @@ export function extractFacts(response: string, apiKeyId: string, sessionId: stri
         },
         expiresAt: null,
       }).catch((err) => {
-        // Silent: extraction must never affect response delivery
-        if (process.env.NODE_ENV !== "test") {
-          console.warn("[memory:extraction] Failed to store fact:", err?.message);
-        }
+        log.error("memory.extraction.background.failed", { err: err?.message, apiKeyId });
       });
     }
+
+    log.info("memory.extraction.complete", { apiKeyId, factCount: facts.length });
   });
 }

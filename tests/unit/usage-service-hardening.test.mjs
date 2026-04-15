@@ -251,7 +251,11 @@ test("usage service covers Gemini CLI tier-label fallbacks and fetch error handl
 });
 
 test("usage service covers Antigravity quota parsing, exclusions and forbidden access", async () => {
-  globalThis.fetch = async (url) => {
+  const calls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+
     if (String(url).includes("loadCodeAssist")) {
       return new Response(
         JSON.stringify({
@@ -304,6 +308,20 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
   assert.equal(usage.quotas["gemini-open"].total, 0);
   assert.equal(usage.quotas["gemini-open"].remainingPercentage, 100);
+  const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
+  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+  assert.equal(
+    loadCodeAssistCall?.init.headers["X-Goog-Api-Client"],
+    "google-cloud-sdk vscode_cloudshelleditor/0.1"
+  );
+  assert.equal(
+    loadCodeAssistCall?.init.headers["Client-Metadata"],
+    JSON.stringify({
+      ideType: "IDE_UNSPECIFIED",
+      platform: "PLATFORM_UNSPECIFIED",
+      pluginType: "GEMINI",
+    })
+  );
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {
@@ -317,6 +335,59 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
     accessToken: "ag-forbidden",
   });
   assert.match(forbidden.message, /forbidden/i);
+});
+
+test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
+  const calls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+
+    if (String(url).includes("loadCodeAssist")) {
+      return new Response(
+        JSON.stringify({
+          allowedTiers: [{ id: "tier_business", isDefault: true }],
+          cloudaicompanionProject: "ag-project",
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (String(url).includes("daily-cloudcode-pa.googleapis.com")) {
+      return new Response("bad gateway", { status: 502 });
+    }
+
+    return new Response(
+      JSON.stringify({
+        models: {
+          "claude-sonnet-4-6": {
+            quotaInfo: {
+              remainingFraction: 0.5,
+              resetTime: new Date(Date.now() + 60_000).toISOString(),
+            },
+          },
+        },
+      }),
+      { status: 200 }
+    );
+  };
+
+  const usage = await usageService.getUsageForProvider({
+    provider: "antigravity",
+    accessToken: "ag-fallback",
+  });
+
+  const quotaCalls = calls.filter((call) => call.url.includes("fetchAvailableModels"));
+  assert.deepEqual(
+    quotaCalls.map((call) => call.url),
+    [
+      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+    ]
+  );
+  assert.match(quotaCalls[1].init.headers["User-Agent"], /^antigravity\//);
+  assert.equal(usage.plan, "Business");
+  assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
 });
 
 test("usage service covers Antigravity tier fallbacks and non-403 upstream failures", async () => {
@@ -689,7 +760,7 @@ test("usage service covers Codex auth failures, Kiro hard failures, Kimi no-quot
   assert.equal(qwenCatch.message, "Unable to fetch Qwen usage.");
 });
 
-test("usage service covers Qwen, Qoder and GLM branches", async () => {
+test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
   const qwenMissingUrl = await usageService.getUsageForProvider({
     provider: "qwen",
     accessToken: "qwen-token",
@@ -745,6 +816,15 @@ test("usage service covers Qwen, Qoder and GLM branches", async () => {
   assert.equal(glm.plan, "Pro");
   assert.equal(glm.quotas.session.used, 64);
   assert.equal(glm.quotas.session.remaining, 36);
+
+  const glmt = await usageService.getUsageForProvider({
+    provider: "glmt",
+    apiKey: "glm-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+  assert.equal(glmt.plan, "Pro");
+  assert.equal(glmt.quotas.session.used, 64);
+  assert.equal(glmt.quotas.session.remaining, 36);
 
   globalThis.fetch = async () => new Response("nope", { status: 401 });
   await assert.rejects(

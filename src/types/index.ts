@@ -5,7 +5,7 @@
  * Import from "@/types" in any file.
  */
 
-export type { ProviderConnection, ProviderNode } from "./provider";
+export type { ProviderConnection, ProviderNode, ModelCooldownErrorPayload } from "./provider";
 export type { ApiKey } from "./apiKey";
 export type { Combo, ComboStrategy, ComboNode } from "./combo";
 export type { UsageEntry, UsageStats, ProviderUsageStats, ModelUsageStats, CallLog } from "./usage";

@@ -11,15 +11,12 @@ test("PollinationsExecutor.buildUrl uses the free Pollinations endpoint", () => 
   );
 });
 
-test("PollinationsExecutor.buildHeaders omits auth when no key is present", () => {
+test("PollinationsExecutor.buildHeaders requires an API key", () => {
   const executor = new PollinationsExecutor();
-  assert.deepEqual(executor.buildHeaders({}, true), {
-    "Content-Type": "application/json",
-    Accept: "text/event-stream",
-  });
+  assert.throws(() => executor.buildHeaders({}, true), /Pollinations API key is required/);
 });
 
-test("PollinationsExecutor.buildHeaders supports optional API auth", () => {
+test("PollinationsExecutor.buildHeaders sends API auth for the Pollinations key-backed tier", () => {
   const executor = new PollinationsExecutor();
   assert.deepEqual(executor.buildHeaders({ apiKey: "poll-key" }, false), {
     "Content-Type": "application/json",

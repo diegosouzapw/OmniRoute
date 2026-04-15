@@ -13,9 +13,15 @@ const modelsDb = await import("../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 
 const originalFetch = globalThis.fetch;
+const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
+  if (originalAllowPrivateProviderUrls === undefined) {
+    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  } else {
+    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+  }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -86,6 +92,31 @@ test("provider models route rejects OpenAI-compatible providers without a base U
   });
 });
 
+test("provider models route blocks private OpenAI-compatible base URLs", async () => {
+  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+
+  const connection = await seedConnection("openai-compatible-private", {
+    apiKey: "sk-openai-compatible",
+    providerSpecificData: {
+      baseUrl: "http://127.0.0.1:11434/v1",
+    },
+  });
+
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
+
+  const response = await callRoute(connection.id);
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: "Blocked private or local provider URL",
+  });
+  assert.equal(called, false);
+});
+
 test("provider models route returns auth failures from OpenAI-compatible upstreams", async () => {
   const connection = await seedConnection("openai-compatible-auth", {
     apiKey: "sk-openai-compatible",
@@ -128,6 +159,38 @@ test("provider models route falls back after OpenAI-compatible endpoint probes a
   assert.equal(body.provider, "openai-compatible-fallback");
   assert.ok(Array.isArray(body.models));
   assert.ok(seenUrls.length >= 2);
+});
+
+test("provider models route retries transient OpenAI-compatible probe failures before succeeding", async () => {
+  const connection = await seedConnection("openai-compatible-retry", {
+    apiKey: "sk-openai-compatible",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com/v1",
+    },
+  });
+  const seenUrls = [];
+
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    if (seenUrls.length === 1) {
+      throw new Error("temporary upstream failure");
+    }
+
+    return Response.json({
+      data: [{ id: "demo-model", name: "Demo Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, [
+    "https://proxy.example.com/v1/models",
+    "https://proxy.example.com/v1/models",
+  ]);
+  assert.deepEqual(body.models, [{ id: "demo-model", name: "Demo Model" }]);
 });
 
 test("provider models route returns static catalog entries for providers with hardcoded models", async () => {
@@ -206,6 +269,63 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
     { id: "gemini-3-pro-preview", name: "gemini-3-pro-preview", owned_by: "google" },
     { id: "gemini-3-flash", name: "gemini-3-flash", owned_by: "google" },
   ]);
+});
+
+test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {
+  const connection = await seedConnection("antigravity", {
+    authType: "oauth",
+    accessToken: "ag-access",
+    apiKey: null,
+  });
+  const seenUrls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    seenUrls.push(String(url));
+    if (seenUrls.length === 1) {
+      return new Response("unavailable", { status: 503 });
+    }
+
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers.Authorization, "Bearer ag-access");
+    assert.match(init.headers["User-Agent"], /^antigravity\//);
+    return Response.json({
+      models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, [
+    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
+  ]);
+  assert.deepEqual(body.models, [{ id: "gemini-3-flash", name: "Gemini 3 Flash" }]);
+});
+
+test("provider models route falls back to the static Antigravity catalog when discovery fails", async () => {
+  const connection = await seedConnection("antigravity", {
+    authType: "oauth",
+    accessToken: "ag-access",
+    apiKey: null,
+  });
+  const seenUrls = [];
+
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    return new Response("down", { status: 502 });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /cached catalog/i);
+  assert.equal(seenUrls.length, 3);
+  assert.ok(body.models.some((model) => model.id === "gemini-3.1-pro-high"));
 });
 
 test("provider models route returns the local catalog for OAuth-backed Qwen connections", async () => {

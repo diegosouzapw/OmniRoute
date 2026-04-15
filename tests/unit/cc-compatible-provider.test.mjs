@@ -8,6 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-compat
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const compliance = await import("../../src/lib/compliance/index.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const {
@@ -26,6 +27,7 @@ const providerModelsRoute = await import("../../src/app/api/providers/[id]/model
 
 const originalFetch = globalThis.fetch;
 const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
+const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -40,6 +42,11 @@ test.afterEach(async () => {
   } else {
     process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
   }
+  if (originalAllowPrivateProviderUrls === undefined) {
+    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  } else {
+    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+  }
   await resetStorage();
 });
 
@@ -49,6 +56,11 @@ test.after(() => {
     delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
   } else {
     process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
+  }
+  if (originalAllowPrivateProviderUrls === undefined) {
+    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  } else {
+    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -109,6 +121,7 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.equal(payload.system[3].cache_control, undefined);
@@ -177,6 +190,7 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.deepEqual(payload.system.at(-1).cache_control, { type: "ephemeral", ttl: "5m" });
   assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content[0].cache_control, {
@@ -228,6 +242,7 @@ test("buildClaudeCodeCompatibleRequest does not supplement missing Claude cache 
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.messages[0].content[0].cache_control, undefined);
   assert.equal(payload.messages[1].content[0].cache_control, undefined);
   assert.equal(payload.messages[2].content[0].cache_control, undefined);
@@ -257,6 +272,7 @@ test("buildClaudeCodeCompatibleRequest keeps built-in system blocks untagged whe
     preserveCacheControl: true,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral" });
@@ -287,6 +303,7 @@ test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserv
     preserveCacheControl: false,
   });
 
+  assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.system[2].cache_control, undefined);
   assert.equal(payload.system[3].cache_control, undefined);
@@ -520,12 +537,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
   assert.equal(calls.length, 1);
   assert.equal(calls[0].headers.Accept, "text/event-stream");
   assert.equal(calls[0].body.stream, true);
-  assert.equal(
-    calls[0].body.messages.some((message) =>
-      message.content.some((block) => block.cache_control !== undefined)
-    ),
-    false
-  );
+  assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
 
   const payload = await result.response.json();
   assert.equal(payload.choices[0].message.content, "Hello from CC");
@@ -637,6 +649,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
+  assert.equal(calls[0].body.system[0].cache_control, undefined);
   assert.deepEqual(calls[0].body.system.at(-1).cache_control, {
     type: "ephemeral",
     ttl: "5m",
@@ -753,6 +766,45 @@ test("provider-nodes validate route rejects invalid JSON and schema errors", asy
   const invalidBodyPayload = await invalidBodyResponse.json();
   assert.equal(invalidBodyPayload.error.message, "Invalid request");
   assert.equal(invalidBodyPayload.error.details.length >= 1, true);
+});
+
+test("provider-nodes validate route blocks private provider hosts before fetch", async () => {
+  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
+
+  const response = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "http://127.0.0.1:11434/v1",
+        apiKey: "sk-private-test",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: "Blocked private or local provider URL",
+  });
+  assert.equal(called, false);
+  const auditEntries = compliance.getAuditLog({
+    action: "provider.validation.ssrf_blocked",
+    resourceType: "provider_validation",
+  });
+  assert.equal(auditEntries.length, 1);
+  assert.equal(auditEntries[0].target, "provider-node");
+  assert.equal(auditEntries[0].status, "blocked");
+  assert.deepEqual(auditEntries[0].metadata, {
+    route: "/api/provider-nodes/validate",
+    reason: "Blocked private or local provider URL",
+    baseUrl: "http://127.0.0.1:11434/v1",
+  });
 });
 
 test("provider-nodes validate route validates anthropic compatible providers against the models endpoint", async () => {
@@ -894,9 +946,9 @@ test("provider-nodes validate route covers default CC paths, null method, anthro
   );
   assert.equal(
     ccCalls[1].url,
-    `https://proxy.example.com${CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH}`
+    `https://proxy.example.com${CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH}`
   );
-  assert.equal(ccCalls[1].init.method, "POST");
+  assert.equal(ccCalls.length, 2);
 
   const anthropicCalls = [];
   globalThis.fetch = async (url, init = {}) => {

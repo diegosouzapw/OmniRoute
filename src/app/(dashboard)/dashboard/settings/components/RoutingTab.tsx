@@ -165,7 +165,7 @@ export default function RoutingTab() {
           <div>
             <h3 className="text-lg font-semibold">Client Cache Control</h3>
             <p className="text-sm text-text-muted">
-              Configure how client-side cache_control headers are handled
+              Configure whether OmniRoute preserves client-provided cache_control markers
             </p>
           </div>
         </div>
@@ -175,17 +175,17 @@ export default function RoutingTab() {
             {
               value: "auto",
               label: "Auto (Recommended)",
-              desc: "Preserve cache_control for native Claude-compatible flows with deterministic routing; CC-compatible bridges use OmniRoute-managed markers",
+              desc: "For deterministic Claude-compatible flows, preserve client-provided cache_control as-is. If the request has no cache_control, OmniRoute does not inject any bridge-owned markers for CC-compatible third-party proxy compatibility.",
             },
             {
               value: "always",
               label: "Always Preserve",
-              desc: "Always forward client cache_control headers to upstream providers",
+              desc: "Always forward client-provided cache_control headers to upstream providers as-is.",
             },
             {
               value: "never",
               label: "Never Preserve",
-              desc: "Always remove client cache_control headers, let OmniRoute manage caching",
+              desc: "Always remove client cache_control headers and let OmniRoute manage caching where native provider flows support it.",
             },
           ].map((option) => (
             <button

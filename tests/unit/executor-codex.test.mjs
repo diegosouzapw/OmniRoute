@@ -18,6 +18,31 @@ test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 
+async function withEnv(entries, fn) {
+  const previous = new Map();
+
+  for (const [key, value] of Object.entries(entries)) {
+    previous.set(key, process.env[key]);
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+
+  try {
+    return await fn();
+  } finally {
+    for (const [key, value] of previous.entries()) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
 test("Codex helper functions isolate rate-limit scopes and parse quota headers", () => {
   const quota = parseCodexQuotaHeaders(
     new Headers({
@@ -75,7 +100,37 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
+  assert.equal(standardHeaders.Version, "0.120.0");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
+});
+
+test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-Agent", async () => {
+  const executor = new CodexExecutor();
+
+  await withEnv(
+    {
+      CODEX_CLIENT_VERSION: "0.120.0-alpha.3",
+      CODEX_USER_AGENT: undefined,
+    },
+    () => {
+      const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
+      assert.equal(headers.Version, "0.120.0-alpha.3");
+      assert.equal(headers["User-Agent"], "codex-cli/0.120.0-alpha.3 (Windows 10.0.26100; x64)");
+    }
+  );
+
+  await withEnv(
+    {
+      CODEX_CLIENT_VERSION: "bad version value",
+      CODEX_USER_AGENT: "custom-codex/9.9.9",
+    },
+    () => {
+      const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
+      assert.equal(headers.Version, "0.120.0");
+      assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
+    }
+  );
 });
 
 test("CodexExecutor.transformRequest injects default instructions, clamps reasoning and strips unsupported fields", () => {

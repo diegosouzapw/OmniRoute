@@ -801,6 +801,11 @@ Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PR
 
 For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), OmniRoute also derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
 
+For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default
+`anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`,
+only forwards client-provided `cache_control` markers. If the request does not include
+`cache_control`, OmniRoute does not inject bridge-owned markers.
+
 Advanced overrides are available if you need finer control:
 
 | Variable                               | Default                                    | Purpose                                                            |
@@ -1326,18 +1331,28 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🆕 New — v3.6.x Highlights (Apr 2026)
 
-| Feature                           | What It Does                                                                                                                |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 🗑️ **Uninstall / Full Uninstall** | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal scripts for all install methods |
-| 🔧 **OAuth Env Repair**           | One-click "Repair env" action for OAuth providers restores missing environment variables and fixes broken auth state        |
-| 🔒 **Graceful Electron Shutdown** | Electron `before-quit` now shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop app close         |
-| 👁️ **Model Visibility Toggle**    | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages            |
-| 📧 **Email Privacy Masking**      | OAuth account emails masked in provider dashboard (`di*****@g****.com`), full address visible on hover                      |
-| 🔗 **Context Relay Strategy**     | Combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation     |
-| 🛡️ **Proxy Hardening**            | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs    |
-| ⚠️ **Node.js 24 Login Warning**   | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions             |
-| 📎 **Gemini PDF Attachments**     | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
-| 🔒 **CodeQL Security Hardening**  | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                |
+| Feature                            | What It Does                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌐 **V1 WebSocket Bridge**         | OpenAI-compatible WebSocket traffic upgraded and proxied via `/v1/ws` — full streaming over WS with session auth (API key or session cookie)      |
+| 🔑 **Sync Tokens & Config Bundle** | Issue/revoke sync tokens for config sync endpoints. Config bundles versioned with ETag for bandwidth-efficient polling                            |
+| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API        |
+| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                   |
+| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
+| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection |
+| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                     |
+| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                  |
+| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                    |
+| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
+| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
+| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
+| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
+| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
+| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
+| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
+| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                     |
+| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                         |
+| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                      |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -1418,24 +1433,28 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🛡️ Resilience, Security & Governance
 
-| Feature                             | What It Does                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                         |
-| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                 |
-| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                     |
-| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                           |
-| ⚡ **Request Idempotency**          | Duplicate protection window                                                            |
-| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**          |
-| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP** |
-| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                    |
-| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                             |
-| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                    |
-| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks          |
-| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures  |
-| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically   |
-| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                               |
-| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                 |
-| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                             |
+| Feature                             | What It Does                                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                          |
+| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                  |
+| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                      |
+| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                            |
+| ⚡ **Request Idempotency**          | Duplicate protection window                                                             |
+| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**           |
+| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**  |
+| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                     |
+| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                              |
+| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                     |
+| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks           |
+| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures   |
+| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically    |
+| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                                |
+| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                  |
+| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                              |
+| 🛡️ **Safe Outbound Fetch** 🆕       | Guarded fetch for provider calls — blocks private/local URLs, retries, SSRF protection  |
+| 🔄 **Cooldown-Aware Retries** 🆕    | Auto-retry chat on model cooldowns; configurable `requestRetry` / `maxRetryIntervalSec` |
+| 🔍 **Runtime Env Validation** 🆕    | Zod-based env schema validation at startup with actionable error messages               |
+| 📋 **Compliance Audit v2** 🆕       | Pagination, request context, auth events, provider CRUD, and SSRF-blocked logging       |
 
 ### 📊 Observability & Analytics
 
@@ -1450,6 +1469,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 📈 **Analytics Visualizations**  | Model/provider usage insights and trend views         |
 | 🧪 **Evaluation Framework**      | Golden set testing with configurable match strategies |
 | 📡 **Live Diagnostics** 🆕       | Semantic cache bypass for accurate combo live testing |
+| 🔐 **TPS Log Metric** 🆕         | Tokens Per Second badge in log details modal          |
 
 ### ☁️ Deployment & Platform
 
@@ -1469,6 +1489,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
 | 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
 | 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
+| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`              |
+| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support      |
 
 ### Feature Deep Dive
 

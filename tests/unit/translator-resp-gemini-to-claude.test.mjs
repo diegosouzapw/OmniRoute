@@ -61,7 +61,14 @@ test("Gemini -> Claude stream: thinking chunk closes text block and emits thinki
 });
 
 test("Gemini -> Claude stream: functionCall becomes tool_use and MAX_TOKENS maps to max_tokens", () => {
-  const state = {};
+  const state = {
+    toolNameMap: new Map([
+      [
+        "read_multiple_files_bundle_ab12cd34",
+        "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2",
+      ],
+    ]),
+  };
   const result = geminiToClaudeResponse(
     {
       responseId: "resp-3",
@@ -69,7 +76,14 @@ test("Gemini -> Claude stream: functionCall becomes tool_use and MAX_TOKENS maps
       candidates: [
         {
           content: {
-            parts: [{ functionCall: { name: "read_file", args: { path: "/tmp/a" } } }],
+            parts: [
+              {
+                functionCall: {
+                  name: "read_multiple_files_bundle_ab12cd34",
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
           },
           finishReason: "MAX_TOKENS",
         },
@@ -85,7 +99,10 @@ test("Gemini -> Claude stream: functionCall becomes tool_use and MAX_TOKENS maps
   );
 
   assert.equal(result[1].content_block.type, "tool_use");
-  assert.equal(result[1].content_block.name, "read_file");
+  assert.equal(
+    result[1].content_block.name,
+    "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2"
+  );
   assert.match(result[1].content_block.id, /^toolu_/);
   assert.equal(result[2].delta.partial_json, JSON.stringify({ path: "/tmp/a" }));
   assert.equal(result[3].type, "content_block_stop");
