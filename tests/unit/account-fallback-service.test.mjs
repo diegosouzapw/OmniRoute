@@ -16,8 +16,12 @@ const {
   applyErrorState,
   lockModelIfPerModelQuota,
   isModelLocked,
+  getModelLockoutInfo,
   hasPerModelQuota,
   getProviderProfile,
+  recordModelLockoutFailure,
+  clearModelLock,
+  shouldMarkAccountExhaustedFrom429,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -151,9 +155,11 @@ test("applyErrorState and selectAccount advance to the next account after an aut
 test("lockModelIfPerModelQuota only locks supported providers and real models", () => {
   const geminiConnectionId = `gemini-${Date.now()}`;
   const openAiConnectionId = `openai-${Date.now()}`;
+  const compatibleConnectionId = `compatible-${Date.now()}`;
 
   assert.equal(hasPerModelQuota("gemini"), true);
   assert.equal(hasPerModelQuota("openai"), false);
+  assert.equal(hasPerModelQuota("openai-compatible-sp-google", "gemini-3.1-pro-preview"), true);
 
   assert.equal(
     lockModelIfPerModelQuota(
@@ -178,9 +184,112 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
     false
   );
   assert.equal(isModelLocked("openai", openAiConnectionId, "gpt-5-mini"), false);
+
+  assert.equal(
+    lockModelIfPerModelQuota(
+      "openai-compatible-sp-google",
+      compatibleConnectionId,
+      "gemini-3.1-pro-preview",
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(
+    isModelLocked("openai-compatible-sp-google", compatibleConnectionId, "gemini-3.1-pro-preview"),
+    true
+  );
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
   assert.deepEqual(getProviderProfile("claude"), PROVIDER_PROFILES.oauth);
   assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
+});
+
+test("shouldMarkAccountExhaustedFrom429 skips compatible Gemini model cooldown poisoning", () => {
+  assert.equal(shouldMarkAccountExhaustedFrom429("gemini", "gemini-2.5-pro"), false);
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("openai-compatible-sp-google", "gemini-3.1-pro-preview"),
+    false
+  );
+  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
+});
+
+test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and reset window", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const profile = {
+      transientCooldown: 250,
+      rateLimitCooldown: 125,
+      maxBackoffLevel: 2,
+      circuitBreakerThreshold: 60,
+      circuitBreakerReset: 500,
+    };
+
+    const first = recordModelLockoutFailure(
+      "openai-compatible-sp-google",
+      "conn-compatible",
+      "gemini-3.1-pro-preview",
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    now += 50;
+    const second = recordModelLockoutFailure(
+      "openai-compatible-sp-google",
+      "conn-compatible",
+      "gemini-3.1-pro-preview",
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    now += 50;
+    const third = recordModelLockoutFailure(
+      "openai-compatible-sp-google",
+      "conn-compatible",
+      "gemini-3.1-pro-preview",
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+
+    const info = getModelLockoutInfo(
+      "openai-compatible-sp-google",
+      "conn-compatible",
+      "gemini-3.1-pro-preview"
+    );
+
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 125);
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 250);
+    assert.equal(third.failureCount, 3);
+    assert.equal(third.cooldownMs, 500);
+    assert.equal(info.failureCount, 3);
+
+    clearModelLock("openai-compatible-sp-google", "conn-compatible", "gemini-3.1-pro-preview");
+    now += 600;
+
+    const afterReset = recordModelLockoutFailure(
+      "openai-compatible-sp-google",
+      "conn-compatible",
+      "gemini-3.1-pro-preview",
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+
+    assert.equal(afterReset.failureCount, 1);
+    assert.equal(afterReset.cooldownMs, 125);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("openai-compatible-sp-google", "conn-compatible", "gemini-3.1-pro-preview");
+  }
 });

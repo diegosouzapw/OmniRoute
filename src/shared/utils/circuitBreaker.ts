@@ -274,7 +274,29 @@ export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions)
   if (!registry.has(name)) {
     registry.set(name, new CircuitBreaker(name, options));
   }
-  return registry.get(name)!;
+  const breaker = registry.get(name)!;
+  if (options) {
+    if (typeof options.failureThreshold === "number") {
+      breaker.failureThreshold = options.failureThreshold;
+    }
+    if (typeof options.resetTimeout === "number") {
+      breaker.resetTimeout = options.resetTimeout;
+    }
+    if (typeof options.halfOpenRequests === "number") {
+      breaker.halfOpenRequests = options.halfOpenRequests;
+      if (breaker.state === STATE.HALF_OPEN) {
+        breaker.halfOpenAllowed = Math.min(breaker.halfOpenAllowed, breaker.halfOpenRequests);
+      }
+    }
+    if (typeof options.onStateChange === "function") {
+      breaker.onStateChange = options.onStateChange;
+    }
+    if (typeof options.isFailure === "function") {
+      breaker.isFailure = options.isFailure;
+    }
+    breaker._persistToDb();
+  }
+  return breaker;
 }
 
 /**

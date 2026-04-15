@@ -81,7 +81,7 @@ test("resolveModelOrError rejects malformed model strings", async () => {
 test("checkPipelineGates blocks models in cooldown", async () => {
   setModelUnavailable("openai", "gpt-4o-mini", 60_000, "cooldown");
 
-  const response = checkPipelineGates("openai", "gpt-4o-mini");
+  const response = await checkPipelineGates("openai", "gpt-4o-mini");
   const json = await response.json();
 
   assert.equal(response.status, 503);
@@ -93,11 +93,31 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
   breaker.state = STATE.OPEN;
   breaker.lastFailureTime = Date.now();
 
-  const response = checkPipelineGates("openai", "gpt-4o-mini");
+  const response = await checkPipelineGates("openai", "gpt-4o-mini");
   const json = await response.json();
 
   assert.equal(response.status, 503);
   assert.match(json.error.message, /circuit breaker is open/i);
+});
+
+test("checkPipelineGates reapplies runtime breaker settings to existing breakers", async () => {
+  const breaker = getCircuitBreaker("openai", {
+    failureThreshold: 5,
+    resetTimeout: 30_000,
+  });
+  breaker.state = STATE.OPEN;
+  breaker.lastFailureTime = Date.now() - 6_000;
+
+  const response = await checkPipelineGates("openai", "gpt-4o-mini", {
+    providerProfile: {
+      circuitBreakerThreshold: 60,
+      circuitBreakerReset: 5_000,
+    },
+  });
+
+  assert.equal(response, null);
+  assert.equal(breaker.resetTimeout, 5_000);
+  assert.equal(breaker.failureThreshold, 60);
 });
 
 test("handleNoCredentials reports missing provider credentials and exhausted accounts", async () => {

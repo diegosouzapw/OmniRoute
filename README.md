@@ -324,8 +324,8 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 **How OmniRoute solves it:**
 
-- **Circuit Breaker per-model** — Auto-open/close with configurable thresholds and cooldown (Closed/Open/Half-Open), scoped per-model to avoid cascading blocks
-- **Exponential Backoff** — Progressive retry delays
+- **Settings-Driven Lock Hierarchy** — Provider profiles control per-account model lockouts, global model quarantine, and provider circuit breakers from one control surface
+- **Exponential Backoff** — Progressive retry delays for both account/model lockouts and higher-level quarantine
 - **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
 - **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
 - **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain

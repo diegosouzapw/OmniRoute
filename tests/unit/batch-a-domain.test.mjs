@@ -94,6 +94,71 @@ describe("modelAvailability", () => {
     assert.equal(afterReset.failureCount, 1);
     assert.equal(afterReset.cooldownMs, 120000);
   });
+
+  it("should use provider profile threshold, cooldowns, and reset window for global quarantine", () => {
+    const originalNow = Date.now;
+    let now = 10_000;
+    Date.now = () => now;
+
+    try {
+      const profile = {
+        transientCooldown: 200,
+        rateLimitCooldown: 100,
+        maxBackoffLevel: 2,
+        circuitBreakerThreshold: 3,
+        circuitBreakerReset: 500,
+      };
+
+      const first = markModelAsProblematic("openai", "gpt-4o-mini", {
+        status: 429,
+        reason: "HTTP 429",
+        profile,
+      });
+      const second = markModelAsProblematic("openai", "gpt-4o-mini", {
+        status: 429,
+        reason: "HTTP 429",
+        profile,
+      });
+
+      assert.equal(first.failureCount, 1);
+      assert.equal(first.cooldownMs, 100);
+      assert.equal(first.quarantined, false);
+      assert.equal(isModelAvailable("openai", "gpt-4o-mini"), true);
+
+      assert.equal(second.failureCount, 2);
+      assert.equal(second.cooldownMs, 200);
+      assert.equal(second.quarantined, false);
+      assert.equal(isModelAvailable("openai", "gpt-4o-mini"), true);
+
+      now += 10;
+      const third = markModelAsProblematic("openai", "gpt-4o-mini", {
+        status: 429,
+        reason: "HTTP 429",
+        profile,
+      });
+
+      assert.equal(third.failureCount, 3);
+      assert.equal(third.cooldownMs, 400);
+      assert.equal(third.quarantined, true);
+      assert.equal(isModelAvailable("openai", "gpt-4o-mini"), false);
+
+      now += 600;
+      assert.equal(isModelAvailable("openai", "gpt-4o-mini"), true);
+
+      const afterWindow = markModelAsProblematic("openai", "gpt-4o-mini", {
+        status: 429,
+        reason: "HTTP 429",
+        profile,
+      });
+
+      assert.equal(afterWindow.failureCount, 1);
+      assert.equal(afterWindow.cooldownMs, 100);
+      assert.equal(afterWindow.quarantined, false);
+    } finally {
+      Date.now = originalNow;
+      clearModelUnavailability("openai", "gpt-4o-mini");
+    }
+  });
 });
 
 // ──────────────── T-19: Cost Rules ────────────────
