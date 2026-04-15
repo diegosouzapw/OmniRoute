@@ -23,6 +23,7 @@ test("request log detail splits token badges into input and output groups", () =
         apiKeyName: "tools",
         apiKeyId: "29d9***7e37",
         comboName: "_Latest-Discounted",
+        cacheSource: "semantic",
         tokens: {
           in: 21818,
           out: 42,
@@ -37,6 +38,7 @@ test("request log detail splits token badges into input and output groups", () =
         apiKeyId: "29d9***7e37",
         comboName: "_Latest-Discounted",
         requestedModel: "openai-compatible-sp-openai/gpt-5.4",
+        cacheSource: "semantic",
         tokens: {
           in: 21818,
           out: 42,
@@ -66,6 +68,8 @@ test("request log detail splits token badges into input and output groups", () =
   assert.equal(inputLabelIndex < outputLabelIndex, true);
   assert.equal(outputLabelIndex < modelLabelIndex, true);
   assert.equal(modelLabelIndex < requestedModelLabelIndex, true);
+  assert.notEqual(html.indexOf(">Cache Source<"), -1);
+  assert.notEqual(html.indexOf(">Semantic (OmniRoute)<"), -1);
 
   assert.match(
     html,

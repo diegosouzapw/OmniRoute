@@ -173,6 +173,39 @@ async function resolveAccountName(connectionId: string | null | undefined) {
   return account;
 }
 
+async function resolveProviderPrefix(providerId: string): Promise<string | null> {
+  if (!providerId) return null;
+  try {
+    const { getProviderNodeById } = await import("@/lib/localDb");
+    const node = await getProviderNodeById(providerId);
+    if (node && typeof node.prefix === "string" && node.prefix.trim().length > 0) {
+      return node.prefix.trim();
+    }
+  } catch {
+    // Best-effort lookup only.
+  }
+  return null;
+}
+
+function isCompatibleProviderId(providerId: string | null): boolean {
+  if (!providerId) return false;
+  return (
+    providerId.startsWith("openai-compatible-") || providerId.startsWith("anthropic-compatible-")
+  );
+}
+
+function applyNodePrefix(
+  requestedModel: string | null,
+  provider: string | null,
+  nodePrefix: string | null
+): string | null {
+  if (!requestedModel || !provider || !nodePrefix) return requestedModel;
+  if (requestedModel.startsWith(provider + "/")) {
+    return nodePrefix + "/" + requestedModel.slice(provider.length + 1);
+  }
+  return requestedModel;
+}
+
 function buildArtifactRelativePath(timestamp: string, id: string) {
   const parsed = new Date(timestamp);
   const safeTimestamp = (
@@ -403,6 +436,14 @@ export async function saveCallLog(entry: any) {
 
     const account = await resolveAccountName(entry.connectionId || null);
 
+    const rawProvider: string = entry.provider || "-";
+    const rawRequestedModel: string | null = entry.requestedModel || null;
+    let resolvedRequestedModel = rawRequestedModel;
+    if (rawRequestedModel && isCompatibleProviderId(rawProvider)) {
+      const nodePrefix = await resolveProviderPrefix(rawProvider);
+      resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
+    }
+
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -410,8 +451,8 @@ export async function saveCallLog(entry: any) {
       path: entry.path || "/v1/chat/completions",
       status: entry.status || 0,
       model: entry.model || "-",
-      requestedModel: entry.requestedModel || null,
-      provider: entry.provider || "-",
+      requestedModel: resolvedRequestedModel,
+      provider: rawProvider,
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
@@ -429,6 +470,7 @@ export async function saveCallLog(entry: any) {
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
+      cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestBody: serializePayloadForStorage(protectedRequestBody, CALL_LOG_INLINE_BODY_LIMIT),
       responseBody: serializePayloadForStorage(protectedResponseBody, CALL_LOG_INLINE_BODY_LIMIT),
       error: toStoredErrorString(protectedError),
@@ -443,8 +485,8 @@ export async function saveCallLog(entry: any) {
         tokens_cache_read, tokens_cache_creation, tokens_reasoning,
         request_type, source_format,
         target_format, api_key_id, api_key_name, combo_name, combo_step_id,
-        combo_execution_key, request_body, response_body, error, artifact_relpath,
-        has_pipeline_details
+        combo_execution_key, cache_source, request_body, response_body, error,
+        artifact_relpath, has_pipeline_details
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -452,7 +494,7 @@ export async function saveCallLog(entry: any) {
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
         @requestType, @sourceFormat,
         @targetFormat, @apiKeyId, @apiKeyName, @comboName, @comboStepId,
-        @comboExecutionKey, @requestBody, @responseBody, @error, NULL, 0
+        @comboExecutionKey, @cacheSource, @requestBody, @responseBody, @error, NULL, 0
       )
     `
     ).run(logEntry);
@@ -513,50 +555,54 @@ if (shouldPersistToDisk) {
 
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
-  let sql = "SELECT * FROM call_logs";
+  let sql = `
+    SELECT cl.*,
+      (SELECT pn.prefix FROM provider_nodes pn WHERE pn.id = cl.provider LIMIT 1) AS provider_node_prefix
+    FROM call_logs cl
+  `;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
 
   if (filter.status) {
     if (filter.status === "error") {
-      conditions.push("(status >= 400 OR error IS NOT NULL)");
+      conditions.push("(cl.status >= 400 OR cl.error IS NOT NULL)");
     } else if (filter.status === "ok") {
-      conditions.push("status >= 200 AND status < 300");
+      conditions.push("cl.status >= 200 AND cl.status < 300");
     } else {
       const statusCode = parseInt(filter.status, 10);
       if (!Number.isNaN(statusCode)) {
-        conditions.push("status = @statusCode");
+        conditions.push("cl.status = @statusCode");
         params.statusCode = statusCode;
       }
     }
   }
 
   if (filter.model) {
-    conditions.push("(model LIKE @modelQ OR requested_model LIKE @modelQ)");
+    conditions.push("(cl.model LIKE @modelQ OR cl.requested_model LIKE @modelQ)");
     params.modelQ = `%${filter.model}%`;
   }
   if (filter.provider) {
-    conditions.push("provider LIKE @providerQ");
+    conditions.push("cl.provider LIKE @providerQ");
     params.providerQ = `%${filter.provider}%`;
   }
   if (filter.account) {
-    conditions.push("account LIKE @accountQ");
+    conditions.push("cl.account LIKE @accountQ");
     params.accountQ = `%${filter.account}%`;
   }
   if (filter.apiKey) {
-    conditions.push("(api_key_name LIKE @apiKeyQ OR api_key_id LIKE @apiKeyQ)");
+    conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
   if (filter.combo) {
-    conditions.push("combo_name IS NOT NULL");
+    conditions.push("cl.combo_name IS NOT NULL");
   }
   if (filter.search) {
     conditions.push(`(
-      model LIKE @searchQ OR path LIKE @searchQ OR account LIKE @searchQ OR
-      requested_model LIKE @searchQ OR provider LIKE @searchQ OR
-      api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
-      combo_name LIKE @searchQ OR CAST(status AS TEXT) LIKE @searchQ
-      OR combo_step_id LIKE @searchQ OR combo_execution_key LIKE @searchQ
+      cl.model LIKE @searchQ OR cl.path LIKE @searchQ OR cl.account LIKE @searchQ OR
+      cl.requested_model LIKE @searchQ OR cl.provider LIKE @searchQ OR
+      cl.api_key_name LIKE @searchQ OR cl.api_key_id LIKE @searchQ OR
+      cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
+      OR cl.combo_step_id LIKE @searchQ OR cl.combo_execution_key LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }
@@ -566,12 +612,14 @@ export async function getCallLogs(filter: any = {}) {
   }
 
   const limit = filter.limit || 200;
-  sql += ` ORDER BY timestamp DESC LIMIT ${limit}`;
+  sql += ` ORDER BY cl.timestamp DESC LIMIT ${limit}`;
 
   const rows = db.prepare(sql).all(params);
 
   return rows.map((row) => {
     const l = asRecord(row);
+    const provider = toStringOrNull(l.provider);
+    const nodePrefix = toStringOrNull(l.provider_node_prefix);
     return {
       id: toStringOrNull(l.id),
       timestamp: toStringOrNull(l.timestamp),
@@ -579,8 +627,8 @@ export async function getCallLogs(filter: any = {}) {
       path: toStringOrNull(l.path),
       status: toNumber(l.status),
       model: toStringOrNull(l.model),
-      requestedModel: toStringOrNull(l.requested_model),
-      provider: toStringOrNull(l.provider),
+      requestedModel: applyNodePrefix(toStringOrNull(l.requested_model), provider, nodePrefix),
+      provider,
       account: toStringOrNull(l.account),
       duration: toNumber(l.duration),
       tokens: {
@@ -598,6 +646,7 @@ export async function getCallLogs(filter: any = {}) {
       comboExecutionKey: toStringOrNull(l.combo_execution_key),
       apiKeyId: toStringOrNull(l.api_key_id),
       apiKeyName: toStringOrNull(l.api_key_name),
+      cacheSource: toStringOrNull(l.cache_source) || "upstream",
       hasRequestBody: typeof l.request_body === "string" && l.request_body.length > 0,
       hasResponseBody: typeof l.response_body === "string" && l.response_body.length > 0,
       hasPipelineDetails: toNumber(l.has_pipeline_details) === 1,
@@ -619,11 +668,19 @@ function buildLegacyPipelinePayloads(id: string) {
 
 export async function getCallLogById(id: string) {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM call_logs WHERE id = ?").get(id);
+  const row = db
+    .prepare(
+      `SELECT cl.*,
+        (SELECT pn.prefix FROM provider_nodes pn WHERE pn.id = cl.provider LIMIT 1) AS provider_node_prefix
+       FROM call_logs cl WHERE cl.id = ?`
+    )
+    .get(id);
   if (!row) return null;
 
   const entryRow = asRecord(row);
   const artifactRelPath = toStringOrNull(entryRow.artifact_relpath);
+  const entryProvider = toStringOrNull(entryRow.provider);
+  const entryNodePrefix = toStringOrNull(entryRow.provider_node_prefix);
   const entry = {
     id: toStringOrNull(entryRow.id),
     timestamp: toStringOrNull(entryRow.timestamp),
@@ -631,8 +688,12 @@ export async function getCallLogById(id: string) {
     path: toStringOrNull(entryRow.path),
     status: toNumber(entryRow.status),
     model: toStringOrNull(entryRow.model),
-    requestedModel: toStringOrNull(entryRow.requested_model),
-    provider: toStringOrNull(entryRow.provider),
+    requestedModel: applyNodePrefix(
+      toStringOrNull(entryRow.requested_model),
+      entryProvider,
+      entryNodePrefix
+    ),
+    provider: entryProvider,
     account: toStringOrNull(entryRow.account),
     connectionId: toStringOrNull(entryRow.connection_id),
     duration: toNumber(entryRow.duration),
@@ -651,6 +712,7 @@ export async function getCallLogById(id: string) {
     comboName: toStringOrNull(entryRow.combo_name),
     comboStepId: toStringOrNull(entryRow.combo_step_id),
     comboExecutionKey: toStringOrNull(entryRow.combo_execution_key),
+    cacheSource: toStringOrNull(entryRow.cache_source) || "upstream",
     requestBody: parseStoredPayload(entryRow.request_body),
     responseBody: parseStoredPayload(entryRow.response_body),
     error: toStringOrNull(entryRow.error),

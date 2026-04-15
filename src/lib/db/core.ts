@@ -173,6 +173,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
+    cache_source TEXT DEFAULT "upstream",
     request_type TEXT,
     source_format TEXT,
     target_format TEXT,
@@ -428,6 +429,10 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("tokens_reasoning")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
       console.log("[DB] Added call_logs.tokens_reasoning column");
+    }
+    if (!columnNames.has("cache_source")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN cache_source TEXT DEFAULT 'upstream'");
+      console.log("[DB] Added call_logs.cache_source column");
     }
     if (!columnNames.has("combo_step_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
@@ -692,6 +697,12 @@ export function getDbInstance(): SqliteDatabase {
     db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
       "021",
       "combo_call_log_targets"
+    );
+  }
+  if (hasColumn(db, "call_logs", "cache_source")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "022",
+      "call_logs_cache_source"
     );
   }
   runMigrations(db);
