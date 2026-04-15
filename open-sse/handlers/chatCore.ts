@@ -993,58 +993,74 @@ export async function handleChatCore({
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
     } else if (isClaudeCodeCompatible) {
-      let normalizedForCc = { ...body };
-
-      // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
-      // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
-      if (sourceFormat !== FORMATS.OPENAI) {
-        const normalizeToolCallId = getModelNormalizeToolCallId(
-          provider || "",
-          model || "",
-          sourceFormat
-        );
-        const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
-          provider || "",
-          model || "",
-          sourceFormat
-        );
-        normalizedForCc = translateRequest(
-          sourceFormat,
-          FORMATS.OPENAI,
-          model,
-          { ...body },
-          stream,
-          credentials,
-          provider,
-          reqLogger,
-          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
-        );
-      }
-
       ccSessionId = resolveClaudeCodeCompatibleSessionId(clientRawRequest?.headers);
-      translatedBody = buildClaudeCodeCompatibleRequest({
-        sourceBody: body,
-        normalizedBody: normalizedForCc,
-        claudeBody: sourceFormat === FORMATS.CLAUDE ? body : null,
-        model,
-        stream: upstreamStream,
-        sessionId: ccSessionId,
-        cwd: process.cwd(),
-        now: new Date(),
-        preserveCacheControl,
-      });
 
-      // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
-      // runs later in BaseExecutor over the serialized string).
-      // Only thinking constraints and tool remapping are applied here; cache-control
-      // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
-      // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
-      // toward the 4-block cap and would strip legitimate client cache markers.
-      remapToolNamesInRequest(translatedBody);
-      enforceThinkingTemperature(translatedBody);
-      disableThinkingIfToolChoiceForced(translatedBody);
+      if (isClaudePassthrough) {
+        translatedBody = { ...body };
+        translatedBody._disableToolPrefix = true;
 
-      log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
+        if (Array.isArray(translatedBody.messages)) {
+          for (const msg of translatedBody.messages) {
+            if (Array.isArray(msg.content)) {
+              msg.content = stripEmptyTextBlocks(msg.content);
+            }
+          }
+        }
+
+        log?.debug?.("FORMAT", "claude passthrough (CC-compatible provider, no bridge)");
+      } else {
+        let normalizedForCc = { ...body };
+
+        // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
+        // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
+        if (sourceFormat !== FORMATS.OPENAI) {
+          const normalizeToolCallId = getModelNormalizeToolCallId(
+            provider || "",
+            model || "",
+            sourceFormat
+          );
+          const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+            provider || "",
+            model || "",
+            sourceFormat
+          );
+          normalizedForCc = translateRequest(
+            sourceFormat,
+            FORMATS.OPENAI,
+            model,
+            { ...body },
+            stream,
+            credentials,
+            provider,
+            reqLogger,
+            { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+          );
+        }
+
+        translatedBody = buildClaudeCodeCompatibleRequest({
+          sourceBody: body,
+          normalizedBody: normalizedForCc,
+          claudeBody: sourceFormat === FORMATS.CLAUDE ? body : null,
+          model,
+          stream: upstreamStream,
+          sessionId: ccSessionId,
+          cwd: process.cwd(),
+          now: new Date(),
+          preserveCacheControl,
+        });
+
+        // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
+        // runs later in BaseExecutor over the serialized string).
+        // Only thinking constraints and tool remapping are applied here; cache-control
+        // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
+        // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
+        // toward the 4-block cap and would strip legitimate client cache markers.
+        remapToolNamesInRequest(translatedBody);
+        enforceThinkingTemperature(translatedBody);
+        disableThinkingIfToolChoiceForced(translatedBody);
+
+        log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
+      }
     } else if (isClaudePassthrough) {
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
@@ -1972,7 +1988,7 @@ export async function handleChatCore({
       }
 
       if (!emergencyFallbackServed) {
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(statusCode, errMsg);
       }
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
