@@ -761,17 +761,17 @@ test("markAccountUnavailable applies a model-only lockout for Gemini 429 respons
   assert.equal(Number(updated.errorCode), 429);
 });
 
-test("markAccountUnavailable applies a model-only lockout for compatible Gemini 429 responses", async () => {
-  const connection = await seedConnection("openai-compatible-sp-google", {
-    name: "compatible-gemini-model-limit",
+test("markAccountUnavailable applies a model-only lockout for compatible provider 429 responses", async () => {
+  const connection = await seedConnection("openai-compatible-custom-node", {
+    name: "compatible-model-limit",
   });
 
   const result = await auth.markAccountUnavailable(
     connection.id,
     429,
-    "The upstream Google service exhausted its capacity",
-    "openai-compatible-sp-google",
-    "gemini-3.1-pro-preview"
+    "The upstream compatible service exhausted its capacity",
+    "openai-compatible-custom-node",
+    "custom-model-a"
   );
   await flushWrites();
   const updated = await providersDb.getProviderConnectionById(connection.id);

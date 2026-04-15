@@ -109,16 +109,6 @@ function isCompatibleProvider(provider: string | null | undefined): boolean {
   );
 }
 
-function isGeminiFamilyModel(model: string | null | undefined): boolean {
-  if (typeof model !== "string") return false;
-  const normalized = model.trim().toLowerCase();
-  return (
-    normalized.startsWith("gemini") ||
-    normalized.startsWith("models/gemini") ||
-    normalized.includes("/gemini")
-  );
-}
-
 function mergeProviderProfile(fallback: ProviderProfile, overrides: unknown): ProviderProfile {
   const record = asRecord(overrides);
   return {
@@ -337,17 +327,18 @@ export function clearModelLock(provider, connectionId, model) {
 
 /**
  * Whether a provider should use per-model lockouts instead of connection-wide cooldowns.
- * Gemini AI Studio, Gemini exposed through compatible providers, and passthrough providers
- * should avoid connection-wide cooldowns when only one model is rate-limited.
+ * Compatible and passthrough providers multiplex multiple upstream models behind one
+ * connection, so transient 404/429 responses should stay model-scoped instead of
+ * poisoning the whole connection.
  */
 export function hasPerModelQuota(
   provider: string | null | undefined,
-  model: string | null | undefined = null
+  _model: string | null | undefined = null
 ): boolean {
   if (!provider) return false;
   if (provider === "gemini") return true;
   if (getPassthroughProviders().has(provider)) return true;
-  if (isCompatibleProvider(provider) && isGeminiFamilyModel(model)) return true;
+  if (isCompatibleProvider(provider)) return true;
   return false;
 }
 

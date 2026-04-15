@@ -156,10 +156,12 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
   const geminiConnectionId = `gemini-${Date.now()}`;
   const openAiConnectionId = `openai-${Date.now()}`;
   const compatibleConnectionId = `compatible-${Date.now()}`;
+  const compatibleProvider = "openai-compatible-custom-node";
+  const compatibleModel = "custom-model-a";
 
   assert.equal(hasPerModelQuota("gemini"), true);
   assert.equal(hasPerModelQuota("openai"), false);
-  assert.equal(hasPerModelQuota("openai-compatible-sp-google", "gemini-3.1-pro-preview"), true);
+  assert.equal(hasPerModelQuota(compatibleProvider, compatibleModel), true);
 
   assert.equal(
     lockModelIfPerModelQuota(
@@ -187,18 +189,15 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
 
   assert.equal(
     lockModelIfPerModelQuota(
-      "openai-compatible-sp-google",
+      compatibleProvider,
       compatibleConnectionId,
-      "gemini-3.1-pro-preview",
+      compatibleModel,
       RateLimitReason.RATE_LIMIT_EXCEEDED,
       30_000
     ),
     true
   );
-  assert.equal(
-    isModelLocked("openai-compatible-sp-google", compatibleConnectionId, "gemini-3.1-pro-preview"),
-    true
-  );
+  assert.equal(isModelLocked(compatibleProvider, compatibleConnectionId, compatibleModel), true);
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
@@ -206,10 +205,10 @@ test("getProviderProfile differentiates oauth and api-key providers", () => {
   assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
 });
 
-test("shouldMarkAccountExhaustedFrom429 skips compatible Gemini model cooldown poisoning", () => {
+test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatible providers", () => {
   assert.equal(shouldMarkAccountExhaustedFrom429("gemini", "gemini-2.5-pro"), false);
   assert.equal(
-    shouldMarkAccountExhaustedFrom429("openai-compatible-sp-google", "gemini-3.1-pro-preview"),
+    shouldMarkAccountExhaustedFrom429("openai-compatible-custom-node", "any-model"),
     false
   );
   assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
@@ -221,6 +220,8 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
   Date.now = () => now;
 
   try {
+    const compatibleProvider = "openai-compatible-custom-node";
+    const compatibleModel = "custom-model-a";
     const profile = {
       transientCooldown: 250,
       rateLimitCooldown: 125,
@@ -230,9 +231,9 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     };
 
     const first = recordModelLockoutFailure(
-      "openai-compatible-sp-google",
+      compatibleProvider,
       "conn-compatible",
-      "gemini-3.1-pro-preview",
+      compatibleModel,
       "rate_limited",
       429,
       0,
@@ -240,9 +241,9 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     );
     now += 50;
     const second = recordModelLockoutFailure(
-      "openai-compatible-sp-google",
+      compatibleProvider,
       "conn-compatible",
-      "gemini-3.1-pro-preview",
+      compatibleModel,
       "rate_limited",
       429,
       0,
@@ -250,20 +251,16 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     );
     now += 50;
     const third = recordModelLockoutFailure(
-      "openai-compatible-sp-google",
+      compatibleProvider,
       "conn-compatible",
-      "gemini-3.1-pro-preview",
+      compatibleModel,
       "rate_limited",
       429,
       0,
       profile
     );
 
-    const info = getModelLockoutInfo(
-      "openai-compatible-sp-google",
-      "conn-compatible",
-      "gemini-3.1-pro-preview"
-    );
+    const info = getModelLockoutInfo(compatibleProvider, "conn-compatible", compatibleModel);
 
     assert.equal(first.failureCount, 1);
     assert.equal(first.cooldownMs, 125);
@@ -273,13 +270,13 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     assert.equal(third.cooldownMs, 500);
     assert.equal(info.failureCount, 3);
 
-    clearModelLock("openai-compatible-sp-google", "conn-compatible", "gemini-3.1-pro-preview");
+    clearModelLock(compatibleProvider, "conn-compatible", compatibleModel);
     now += 600;
 
     const afterReset = recordModelLockoutFailure(
-      "openai-compatible-sp-google",
+      compatibleProvider,
       "conn-compatible",
-      "gemini-3.1-pro-preview",
+      compatibleModel,
       "rate_limited",
       429,
       0,
@@ -290,6 +287,6 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     assert.equal(afterReset.cooldownMs, 125);
   } finally {
     Date.now = originalNow;
-    clearModelLock("openai-compatible-sp-google", "conn-compatible", "gemini-3.1-pro-preview");
+    clearModelLock("openai-compatible-custom-node", "conn-compatible", "custom-model-a");
   }
 });
