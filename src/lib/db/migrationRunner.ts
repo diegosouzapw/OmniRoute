@@ -205,6 +205,7 @@ export function runMigrations(db: Database.Database): number {
 
   // ── Safety Check 2: Mass-migration detection (abort if existing DB + many migrations) ──
   if (
+    process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
     MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
     applied.size > 0 &&
     pending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
