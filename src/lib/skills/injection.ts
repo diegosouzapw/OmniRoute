@@ -1,6 +1,6 @@
 import { skillRegistry } from "./registry";
 import { Skill } from "./types";
-import { logger } from "../../../open-sse/utils/logger.js";
+import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INJECTION");
 

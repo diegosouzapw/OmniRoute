@@ -4,7 +4,7 @@
 
 import { getDbInstance } from "../db/core";
 import { Memory, MemoryType } from "./types";
-import { logger } from "../../../open-sse/utils/logger.js";
+import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("MEMORY_STORE");
 

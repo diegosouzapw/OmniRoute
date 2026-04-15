@@ -5,7 +5,7 @@
 
 import { createMemory, listMemories, deleteMemory } from "./store";
 import { MemoryType } from "./types";
-import { logger } from "../../../open-sse/utils/logger.js";
+import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("MEMORY_VERIFY");
 

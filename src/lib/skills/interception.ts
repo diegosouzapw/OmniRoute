@@ -1,6 +1,6 @@
 import { skillExecutor } from "./executor";
 import { detectProvider } from "./injection";
-import { logger } from "../../../open-sse/utils/logger.js";
+import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INTERCEPTION");
 

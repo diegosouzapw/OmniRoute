@@ -4,7 +4,7 @@
  * Stores extracted facts asynchronously (non-blocking).
  */
 
-import { logger } from "../../../open-sse/utils/logger.js";
+import { logger } from "../../../open-sse/utils/logger.ts";
 import { createMemory } from "./store";
 import { MemoryType } from "./types";
 
