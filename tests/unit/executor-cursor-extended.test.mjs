@@ -123,12 +123,11 @@ test("buildCursorHeaders utility stays aligned with Cursor Composer 2 versioned 
   assert.equal(headers["x-ghost-mode"], "false");
 });
 
-test("CursorExecutor.buildHeaders requires a machine ID", () => {
+test("CursorExecutor.buildHeaders derives machineId when not provided", () => {
   const executor = new CursorExecutor();
-  assert.throws(
-    () => executor.buildHeaders({ accessToken: "real-token", providerSpecificData: {} }),
-    /Machine ID is required/
-  );
+  const headers = executor.buildHeaders({ accessToken: "real-token", providerSpecificData: {} });
+  assert.ok(headers["x-cursor-checksum"], "should have a checksum header");
+  assert.ok(headers["x-client-key"], "should have a client key header");
 });
 
 test("CursorExecutor.transformRequest produces a framed protobuf payload", () => {

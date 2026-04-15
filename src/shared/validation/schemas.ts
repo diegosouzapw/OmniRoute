@@ -965,7 +965,7 @@ export const oauthPollSchema = z.object({
 
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
-  machineId: z.string().trim().min(1, "Machine ID is required"),
+  machineId: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({
