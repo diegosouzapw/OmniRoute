@@ -51,13 +51,12 @@ import {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getUpstreamProxyConfig,
-  getCachedSettings,
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
+import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import {
   shouldPreserveCacheControl,
   providerSupportsCaching,
-  type CacheControlMode,
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 
@@ -79,7 +78,6 @@ import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
-  updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
 import {
@@ -124,18 +122,12 @@ import {
   toMemoryRetrievalConfig,
 } from "@/lib/memory/settings";
 import { injectSkills } from "@/lib/skills/injection";
-import { skillRegistry } from "@/lib/skills/registry";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
-import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
-import {
-  enforceThinkingTemperature,
-  disableThinkingIfToolChoiceForced,
-} from "../services/claudeCodeConstraints.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -486,8 +478,6 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
-  comboStepId = null,
-  comboExecutionKey = null,
   disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
@@ -755,8 +745,6 @@ export async function handleChatCore({
       sourceFormat,
       targetFormat,
       comboName,
-      comboStepId,
-      comboExecutionKey,
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
@@ -819,20 +807,12 @@ export async function handleChatCore({
     delete b.disable_stream;
     delete b.disable_streaming;
     delete b.streaming;
-    delete b.prompt_cache_retention;
   }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
-  const runtimeSettings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
-  const semanticCacheEnabled = runtimeSettings.semanticCacheEnabled !== false;
-  const cacheControlMode =
-    runtimeSettings.alwaysPreserveClientCache === "always" ||
-    runtimeSettings.alwaysPreserveClientCache === "never"
-      ? (runtimeSettings.alwaysPreserveClientCache as CacheControlMode)
-      : "auto";
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
-  if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
+  if (isCacheable(body, clientRawRequest?.headers)) {
     const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
     const cached = getCachedResponse(signature);
     if (cached) {
@@ -914,9 +894,6 @@ export async function handleChatCore({
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
     : null;
 
-  // skillsEnabled is stored in memory settings but represents an independent feature flag
-  const skillsEnabled = memorySettings?.skillsEnabled ?? false;
-
   if (
     apiKeyInfo?.id &&
     memorySettings &&
@@ -946,8 +923,7 @@ export async function handleChatCore({
     }
   }
 
-  if (apiKeyInfo?.id && skillsEnabled) {
-    await skillRegistry.loadFromDatabase(apiKeyInfo.id);
+  if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),
@@ -968,13 +944,12 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
-  // CC-compatible providers are most reliable when OmniRoute always requests SSE
-  // upstream. If the client asked for JSON, chatCore will still collect the SSE
-  // response and return a non-streaming payload after the stream finishes.
-  const upstreamStream = isClaudeCodeCompatible ? true : stream;
+  const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
+  // Fetch settings from DB to get user preference
+  const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
   const preserveCacheControl = shouldPreserveCacheControl({
     userAgent,
     isCombo,
@@ -998,10 +973,8 @@ export async function handleChatCore({
     } else if (isClaudeCodeCompatible) {
       let normalizedForCc = { ...body };
 
-      // CC-compatible relays are optimized for gateway compatibility, not for
-      // lossless request preservation. Normalize through an OpenAI-like view,
-      // then rebuild a Claude Code-shaped payload that is more likely to pass
-      // upstream client fingerprint checks than a field-for-field passthrough.
+      // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
+      // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
       if (sourceFormat !== FORMATS.OPENAI) {
         const normalizeToolCallId = getModelNormalizeToolCallId(
           provider || "",
@@ -1038,16 +1011,6 @@ export async function handleChatCore({
         now: new Date(),
         preserveCacheControl,
       });
-
-      // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
-      // runs later in BaseExecutor over the serialized string).
-      // Only thinking constraints and tool remapping are applied here. Cache-control
-      // helpers stay out of the runtime bridge path so auto mode remains passthrough:
-      // if the client sends cache_control we preserve it, otherwise we do not inject it.
-      remapToolNamesInRequest(translatedBody);
-      enforceThinkingTemperature(translatedBody);
-      disableThinkingIfToolChoiceForced(translatedBody);
-
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
@@ -1324,7 +1287,6 @@ export async function handleChatCore({
       signal?: AbortSignal | null;
       log?: unknown;
       upstreamExtraHeaders?: Record<string, string> | null;
-      clientHeaders?: Record<string, string> | null;
     }) => {
       let result;
       try {
@@ -1420,7 +1382,6 @@ export async function handleChatCore({
             log,
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-            clientHeaders: clientRawRequest?.headers ?? null,
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1620,7 +1581,6 @@ export async function handleChatCore({
           log,
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
-          clientHeaders: clientRawRequest?.headers ?? null,
         });
 
         if (retryResult.response.ok) {
@@ -1694,24 +1654,23 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
-          const effectiveRetryAfterMs = retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "rate_limited",
-              effectiveRetryAfterMs
+              retryAfterMs || COOLDOWN_MS.rateLimit
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(effectiveRetryAfterMs / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
             );
           } else {
-            const rateLimitedUntil = new Date(Date.now() + effectiveRetryAfterMs).toISOString();
+            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
             await updateProviderConnection(connectionId, {
               rateLimitedUntil: rateLimitedUntil,
-              testStatus: "unavailable",
+              testStatus: "credits_exhausted",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
@@ -1813,7 +1772,6 @@ export async function handleChatCore({
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
-    updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
     // Before returning a model-unavailable error upstream, try sibling models
@@ -1981,7 +1939,6 @@ export async function handleChatCore({
               signal: streamController.signal,
               log,
               extendedContext,
-              clientHeaders: clientRawRequest?.headers ?? null,
             });
             if (fbResult.response.ok) {
               provider = fbDecision.provider;
@@ -2022,7 +1979,6 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
-    let responseFormatForTranslation = targetFormat;
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
@@ -2030,19 +1986,10 @@ export async function handleChatCore({
 
     if (looksLikeSSE) {
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
-      const looksLikeResponsesSSE =
-        targetFormat === FORMATS.OPENAI_RESPONSES ||
-        provider === "codex" ||
-        /(^|\n)\s*(?:event:\s*response\.|data:\s*\{.*"type"\s*:\s*"response\.)/m.test(rawBody);
-      responseFormatForTranslation = looksLikeResponsesSSE
-        ? FORMATS.OPENAI_RESPONSES
-        : targetFormat === FORMATS.CLAUDE
-          ? FORMATS.CLAUDE
-          : FORMATS.OPENAI;
       const parsedFromSSE =
-        responseFormatForTranslation === FORMATS.OPENAI_RESPONSES
+        targetFormat === FORMATS.OPENAI_RESPONSES
           ? parseSSEToResponsesOutput(rawBody, model)
-          : responseFormatForTranslation === FORMATS.CLAUDE
+          : targetFormat === FORMATS.CLAUDE
             ? parseSSEToClaudeResponse(rawBody, model)
             : parseSSEToOpenAIResponse(rawBody, model);
 
@@ -2070,31 +2017,21 @@ export async function handleChatCore({
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
       } catch {
-        const isHtmlResponse =
-          rawBody && typeof rawBody === "string" && /^\s*(?:\s|<!|<[a-zA-Z]|<\?xml)/.test(rawBody);
         appendRequestLog({
           model,
           provider,
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-
-        const invalidJsonMessage = isHtmlResponse
-          ? "Provider returned HTML error page instead of JSON - check credentials and endpoint"
-          : "Invalid JSON response from provider";
+        const invalidJsonMessage = "Invalid JSON response from provider";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidJsonMessage,
           providerRequest: finalBody || translatedBody,
-          providerResponse: isHtmlResponse
-            ? { _raw: rawBody?.slice(0, 500) }
-            : normalizedProviderPayload,
+          providerResponse: normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
         });
-        persistFailureUsage(
-          HTTP_STATUS.BAD_GATEWAY,
-          isHtmlResponse ? "html_error_response" : "invalid_json_payload"
-        );
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }
@@ -2234,10 +2171,10 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(responseFormatForTranslation, clientResponseFormat)
+    let translatedResponse = needsTranslation(targetFormat, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
-          responseFormatForTranslation,
+          targetFormat,
           clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )
@@ -2307,7 +2244,7 @@ export async function handleChatCore({
       }
     }
 
-    if (apiKeyInfo?.id && skillsEnabled) {
+    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
       const skillSessionId = pipelineSessionId;
 
       translatedResponse = await handleToolCallExecution(
@@ -2322,7 +2259,7 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
+    if (isCacheable(body, clientRawRequest?.headers)) {
       const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);
