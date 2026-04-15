@@ -761,7 +761,10 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
   }
 
   // Reasoning events — emit as reasoning_content in Chat format
-  if (eventType === "response.reasoning_summary_text.delta") {
+  if (
+    eventType === "response.reasoning_content_text.delta" ||
+    eventType === "response.reasoning_text.delta"
+  ) {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
     return {
@@ -773,6 +776,25 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
         {
           index: 0,
           delta: { reasoning_content: reasoningDelta },
+          finish_reason: null,
+        },
+      ],
+    };
+  }
+
+  // Handle true reasoning summary ("Thought for 15s")
+  if (eventType === "response.reasoning_summary_text.delta") {
+    const reasoningDelta = data.delta || "";
+    if (!reasoningDelta) return null;
+    return {
+      id: state.chatId,
+      object: "chat.completion.chunk",
+      created: state.created,
+      model: state.model || "gpt-4",
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning: { summary: reasoningDelta } },
           finish_reason: null,
         },
       ],

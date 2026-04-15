@@ -44,6 +44,12 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   // Non-standard schema fields (not recognized by Gemini API)
   "deprecated",
   "optional",
+  // VS Code / JSON Language Service extensions injected by GitHub Copilot tools (#1175)
+  "enumDescriptions",
+  "markdownDescription",
+  "markdownEnumDescriptions",
+  "enumItemLabels",
+  "tags",
   // UI/Styling properties (from Cursor tools - NOT JSON Schema standard)
   "cornerRadius",
   "fillColor",

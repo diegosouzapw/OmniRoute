@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import PropTypes from "prop-types";
+import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -26,10 +27,12 @@ export default function ModelSelectModal({
   onSelect,
   selectedModel,
   activeProviders = [],
-  title = "Select Model",
+  title,
   modelAliases = {},
   addedModelValues = [],
 }) {
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("selectModel");
   const [searchQuery, setSearchQuery] = useState("");
   const [combos, setCombos] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
@@ -278,7 +281,7 @@ export default function ModelSelectModal({
         onClose();
         setSearchQuery("");
       }}
-      title={title}
+      title={resolvedTitle}
       size="md"
       className="p-4!"
     >
@@ -290,7 +293,7 @@ export default function ModelSelectModal({
           </span>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder={t("search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 bg-surface border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -305,7 +308,7 @@ export default function ModelSelectModal({
           <div>
             <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 bg-surface py-0.5">
               <span className="material-symbols-outlined text-primary text-[14px]">layers</span>
-              <span className="text-xs font-medium text-primary">Combos</span>
+              <span className="text-xs font-medium text-primary">{t("combos")}</span>
               <span className="text-[10px] text-text-muted">({filteredCombos.length})</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -376,7 +379,7 @@ export default function ModelSelectModal({
         {Object.keys(filteredGroups).length === 0 && filteredCombos.length === 0 && (
           <div className="text-center py-4 text-text-muted">
             <span className="material-symbols-outlined text-2xl mb-1 block">search_off</span>
-            <p className="text-xs">No models found</p>
+            <p className="text-xs">{t("noModelsFound")}</p>
           </div>
         )}
       </div>

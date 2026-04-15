@@ -1,10 +1,5 @@
-import {
-  getProviderConnections,
-  getModelAliases,
-  getCombos,
-  getApiKeys,
-  updateProviderConnection,
-} from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
@@ -47,11 +42,10 @@ export async function syncToCloud(machineId, createdKey = null) {
     return { error: "NEXT_PUBLIC_CLOUD_URL is not configured" };
   }
 
-  // Get current data from db
-  const providers = await getProviderConnections();
-  const modelAliases = await getModelAliases();
-  const combos = await getCombos();
-  const apiKeys = await getApiKeys();
+  // Keep legacy field names for upstream compatibility, but derive them
+  // from a canonical sync bundle with deterministic version hashing.
+  const { version, bundle } = await buildConfigSyncEnvelope();
+  const legacyPayload = toLegacyCloudSyncPayload(bundle);
 
   let response;
   try {
@@ -60,10 +54,8 @@ export async function syncToCloud(machineId, createdKey = null) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        providers,
-        modelAliases,
-        combos,
-        apiKeys,
+        ...legacyPayload,
+        version,
       }),
     });
   } catch (error) {
@@ -89,6 +81,7 @@ export async function syncToCloud(machineId, createdKey = null) {
     success: true,
     message: "Synced successfully",
     changes: result.changes,
+    version,
   };
 
   if (createdKey) {

@@ -23,9 +23,6 @@ const PUBLIC_API_ROUTES = [
   "/api/auth/logout",
   "/api/auth/status",
 
-  // Settings check — used by login page / onboarding
-  "/api/settings/require-login",
-
   // Init — first-run setup
   "/api/init",
 
@@ -38,8 +35,15 @@ const PUBLIC_API_ROUTES = [
   // Cloud routes — use Bearer API key auth internally
   "/api/cloud/",
 
+  // Dedicated sync bundle endpoint — uses its own sync token auth
+  "/api/sync/bundle",
+
   // OAuth callback routes — provider redirects back here
   "/api/oauth/",
+];
+const PUBLIC_READONLY_API_ROUTES = [
+  // Settings check — used by login page / onboarding
+  "/api/settings/require-login",
 ];
 
 // ──────────────── Auth Verification ────────────────
@@ -132,8 +136,16 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
 /**
  * Check if a route is in the public (no-auth) allowlist.
  */
-export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route));
+export function isPublicRoute(pathname: string, method = "GET"): boolean {
+  if (PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route))) {
+    return true;
+  }
+
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    return false;
+  }
+
+  return PUBLIC_READONLY_API_ROUTES.some((route) => pathname.startsWith(route));
 }
 
 /**

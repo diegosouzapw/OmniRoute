@@ -32,31 +32,32 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
 The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
 Current list (v3.0.0-rc.16):
 
-| Tool             | ID            | Command      | Setup Mode | Install Method |
-| ---------------- | ------------- | ------------ | ---------- | -------------- |
-| **Claude Code**  | `claude`      | `claude`     | env        | npm            |
-| **OpenAI Codex** | `codex`       | `codex`      | custom     | npm            |
-| **Factory Droid**| `droid`       | `droid`      | custom     | bundled/CLI    |
-| **OpenClaw**     | `openclaw`    | `openclaw`   | custom     | bundled/CLI    |
-| **Cursor**       | `cursor`      | app          | guide      | desktop app    |
-| **Cline**        | `cline`       | `cline`      | custom     | npm            |
-| **Kilo Code**    | `kilo`        | `kilocode`   | custom     | npm            |
-| **Continue**     | `continue`    | extension    | guide      | VS Code        |
-| **Antigravity**  | `antigravity` | internal     | mitm       | OmniRoute      |
-| **GitHub Copilot**| `copilot`    | extension    | custom     | VS Code        |
-| **OpenCode**     | `opencode`    | `opencode`   | guide      | npm            |
-| **Kiro AI**      | `kiro`        | app/cli      | mitm       | desktop/CLI    |
+| Tool               | ID            | Command    | Setup Mode | Install Method |
+| ------------------ | ------------- | ---------- | ---------- | -------------- |
+| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
+| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
+| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
+| **Cline**          | `cline`       | `cline`    | custom     | npm            |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
+| **Continue**       | `continue`    | extension  | guide      | VS Code        |
+| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
+| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
 
 ### CLI fingerprint sync (Agents + Settings)
 
 `/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
 This keeps provider IDs aligned with CLI cards and legacy IDs.
 
-| CLI ID | Fingerprint Provider ID |
-| ------ | ----------------------- |
-| `kilo` | `kilocode`              |
-| `copilot` | `github`             |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID |
+| CLI ID                                                                                               | Fingerprint Provider ID |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
 
 Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
@@ -253,6 +254,55 @@ kiro-cli status
 
 ---
 
+### Qwen Code (Alibaba)
+
+Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+
+**Option 1: Environment variables (`~/.qwen/.env`)**
+
+```bash
+mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
+OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_MODEL="auto"
+EOF
+```
+
+**Option 2: `settings.json` with model providers**
+
+```json
+// ~/.qwen/settings.json
+{
+  "env": {
+    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+  },
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "omniroute-default",
+        "name": "OmniRoute (Auto)",
+        "envKey": "OPENAI_API_KEY",
+        "baseUrl": "http://localhost:20128/v1"
+      }
+    ]
+  }
+}
+```
+
+**Option 3: Inline CLI flags**
+
+```bash
+OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_MODEL="auto" \
+qwen
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain.
+
+**Test:** `qwen "say hello"`
+
 ### Cursor (Desktop App)
 
 > **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
@@ -322,7 +372,7 @@ They run as internal routes and use OmniRoute's model routing automatically.
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash

@@ -314,10 +314,22 @@ if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
   console.log("  ✅ @swc/helpers included in standalone build.");
 }
 
-// ── Step 10.6: Remove large binaries from standalone build ──
+// ── Step 10.6: Remove large binaries & unneeded traces from standalone build ──
 // These directories contain platform-native binaries (.node, .asar) that
-// trigger Z_DATA_ERROR during npm pack. They are not needed in the npm package.
-const binaryDirsToRemove = ["vscode-extension", "electron", "logs"];
+// trigger Z_DATA_ERROR during npm pack, or are huge trace outputs (_references).
+// They are not needed in the npm package.
+const binaryDirsToRemove = [
+  "vscode-extension",
+  "electron",
+  "logs",
+  "coverage",
+  "_references",
+  "_mono_repo",
+  "_tasks",
+  "_ideia",
+  "tests",
+  "docs",
+];
 for (const dir of binaryDirsToRemove) {
   const targetDir = join(APP_DIR, dir);
   if (existsSync(targetDir)) {

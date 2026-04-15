@@ -44,13 +44,13 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
-node --import tsx/esm --test tests/unit/plan3-p0.test.mjs
-node --import tsx/esm --test tests/unit/fixes-p1.test.mjs
-node --import tsx/esm --test tests/unit/security-fase01.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
+node --import tsx/esm --test tests/unit/plan3-p0.test.ts
+node --import tsx/esm --test tests/unit/fixes-p1.test.ts
+node --import tsx/esm --test tests/unit/security-fase01.test.ts
 
 # Integration tests
-node --import tsx/esm --test tests/integration/*.test.mjs
+node --import tsx/esm --test tests/integration/*.test.ts
 
 # Vitest (MCP server, autoCombo)
 npm run test:vitest

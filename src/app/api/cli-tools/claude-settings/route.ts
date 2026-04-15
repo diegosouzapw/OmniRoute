@@ -95,17 +95,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: writeGuard }, { status: 403 });
     }
 
+    // (#523/#526) Extract keyId BEFORE validation — Zod strips unknown fields!
+    // The /api/keys list endpoint returns masked key strings — sending those to
+    // disk would save an unusable half-hidden token. Resolving by ID guarantees
+    // we always write the full key value to the config file.
+    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+
     const validation = validateBody(cliSettingsEnvSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { env } = validation.data;
 
-    // (#523/#526) If a keyId was provided, resolve the real API key from DB.
-    // The /api/keys list endpoint returns masked key strings — sending those to
-    // disk would save an unusable half-hidden token. Resolving by ID guarantees
-    // we always write the full key value to the config file.
-    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+    // Resolve the real API key from DB by ID
     if (keyId) {
       try {
         const keyRecord = await getApiKeyById(keyId);

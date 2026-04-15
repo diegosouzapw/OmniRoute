@@ -165,7 +165,7 @@ body:
       description: "Which commands or tests should prove this bug is fixed?"
       placeholder: |
         Example:
-        - node --import tsx/esm --test tests/unit/my-file.test.mjs
+        - node --import tsx/esm --test tests/unit/my-file.test.ts
         - npm run test:coverage
     validations:
       required: false

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /**
  * EmptyState — FASE-07 UX
  *
@@ -26,11 +28,13 @@ interface EmptyStateProps {
 
 export default function EmptyState({
   icon = "📭",
-  title = "Nothing here yet",
+  title,
   description = "",
   actionLabel = "",
   onAction = null,
 }: EmptyStateProps) {
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("nothingHere");
   return (
     <div
       style={{
@@ -64,7 +68,7 @@ export default function EmptyState({
           margin: 0,
         }}
       >
-        {title}
+        {resolvedTitle}
       </h3>
       {description && (
         <p

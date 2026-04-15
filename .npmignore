@@ -72,3 +72,7 @@ vscode-extension/
 
 # Root-level underscore-prefixed directories (private/draft — never publish)
 /_*/
+app/_*/
+app/coverage/
+app/logs/
+app/tests/

@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
+import {
+  getProviderAuditTarget,
+  summarizeProviderConnectionForAudit,
+} from "@/lib/compliance/providerAudit";
 import {
   getProviderConnections,
   createProviderConnection,
@@ -30,6 +35,12 @@ export async function GET() {
       accessToken: undefined,
       refreshToken: undefined,
       idToken: undefined,
+      providerSpecificData: c.providerSpecificData
+        ? {
+            ...c.providerSpecificData,
+            consoleApiKey: undefined,
+          }
+        : undefined,
     }));
 
     return NextResponse.json({ connections: safeConnections });
@@ -41,6 +52,8 @@ export async function GET() {
 
 // POST /api/providers - Create new connection (API Key only, OAuth via separate flow)
 export async function POST(request: Request) {
+  const auditContext = getAuditRequestContext(request);
+
   try {
     const body = await request.json();
 
@@ -153,9 +166,26 @@ export async function POST(request: Request) {
     // Hide sensitive fields
     const result: Record<string, any> = { ...newConnection };
     delete result.apiKey;
+    if (result.providerSpecificData) {
+      delete result.providerSpecificData.consoleApiKey;
+    }
 
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
+
+    logAuditEvent({
+      action: "provider.credentials.created",
+      actor: "admin",
+      target: getProviderAuditTarget(newConnection),
+      resourceType: "provider_credentials",
+      status: "success",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: {
+        provider: provider,
+        connection: summarizeProviderConnectionForAudit(newConnection),
+      },
+    });
 
     return NextResponse.json({ connection: result }, { status: 201 });
   } catch (error) {

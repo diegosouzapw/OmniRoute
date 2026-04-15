@@ -45,10 +45,13 @@ export async function getSettings() {
   const settings: Record<string, unknown> = {
     cloudEnabled: false,
     stickyRoundRobinLimit: 3,
+    requestRetry: 3,
+    maxRetryIntervalSec: 30,
     requireLogin: true,
     hiddenSidebarItems: [],
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
+    wsAuth: false,
   };
   for (const row of rows) {
     const record = toRecord(row);

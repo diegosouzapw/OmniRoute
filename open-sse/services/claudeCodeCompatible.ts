@@ -9,17 +9,26 @@ import {
   enforceThinkingTemperature,
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
-  ensureCacheControlOnLastUserMessage,
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 
+/**
+ * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
+ * traffic which looks like the official Claude Code client, often because those
+ * gateways resell the same models at materially lower prices than the direct API.
+ *
+ * This bridge is intentionally compatibility-first, not lossless. We normalize
+ * requests into the smallest Claude Code-shaped surface that consistently passes
+ * provider-side client checks, instead of trying to preserve every original
+ * field one-to-one.
+ */
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,fast-mode-2025-04-01,redact-thinking-2025-06-20,token-efficient-tools-2025-02-19";
+  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
 export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
 export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
 /**
@@ -112,6 +121,9 @@ export function buildClaudeCodeCompatibleHeaders(
   stream = false,
   sessionId?: string | null
 ): Record<string, string> {
+  // These headers intentionally mirror Claude Code's wire image closely.
+  // For CC-compatible relays, passing the upstream's client-gating checks is
+  // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
     Accept: stream ? "text/event-stream" : "application/json",
@@ -259,11 +271,10 @@ export function buildClaudeCodeCompatibleRequest({
  * 2. Remap tool names to TitleCase
  * 3. Enforce thinking temperature constraint (temp=1)
  * 4. Disable thinking when tool_choice forces a specific tool
- * 5. Enforce 4-block cache_control limit
- * 6. Auto-inject cache_control on last user message
- * 7. Obfuscate sensitive words in user messages
- * 8. Serialize with CCH placeholder
- * 9. Sign body with xxHash64 CCH attestation
+ * 5. Enforce 4-block cache_control limit when markers are already present
+ * 6. Obfuscate sensitive words in user messages
+ * 7. Serialize with CCH placeholder
+ * 8. Sign body with xxHash64 CCH attestation
  *
  * Returns { bodyString, headers } ready to send upstream.
  */
@@ -282,19 +293,18 @@ export async function buildAndSignClaudeCodeRequest(
   enforceThinkingTemperature(body);
   disableThinkingIfToolChoiceForced(body);
 
-  // Step 5-6: Cache control
+  // Step 5: Cache control
   enforceCacheControlLimit(body);
-  ensureCacheControlOnLastUserMessage(body);
 
-  // Step 7: Obfuscation (optional, per-provider setting)
+  // Step 6: Obfuscation (optional, per-provider setting)
   if (enableObfuscation) {
     obfuscateInBody(body);
   }
 
-  // Step 8: Serialize with CCH placeholder
+  // Step 7: Serialize with CCH placeholder
   const serialized = JSON.stringify(body);
 
-  // Step 9: Sign with xxHash64
+  // Step 8: Sign with xxHash64
   const bodyString = await signRequestBody(serialized);
 
   // Build headers
@@ -498,7 +508,6 @@ function buildClaudeCodeCompatibleSystemBlocks({
     {
       type: "text",
       text: billingHeader,
-      cache_control: { type: "ephemeral" },
     },
     {
       type: "text",

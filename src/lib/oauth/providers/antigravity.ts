@@ -1,4 +1,8 @@
 import { ANTIGRAVITY_CONFIG } from "../constants/oauth";
+import {
+  getAntigravityHeaders,
+  getAntigravityLoadCodeAssistMetadata,
+} from "@omniroute/open-sse/services/antigravityHeaders.ts";
 
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
@@ -44,18 +48,8 @@ export const antigravity = {
     return await response.json();
   },
   postExchange: async (tokens) => {
-    const headers = {
-      Authorization: `Bearer ${tokens.access_token}`,
-      "Content-Type": "application/json",
-      "User-Agent": ANTIGRAVITY_CONFIG.loadCodeAssistUserAgent,
-      "X-Goog-Api-Client": ANTIGRAVITY_CONFIG.loadCodeAssistApiClient,
-      "Client-Metadata": ANTIGRAVITY_CONFIG.loadCodeAssistClientMetadata,
-    };
-    const metadata = {
-      ideType: "IDE_UNSPECIFIED",
-      platform: "PLATFORM_UNSPECIFIED",
-      pluginType: "GEMINI",
-    };
+    const headers = getAntigravityHeaders("loadCodeAssist", tokens.access_token);
+    const metadata = getAntigravityLoadCodeAssistMetadata();
 
     const userInfoRes = await fetch(`${ANTIGRAVITY_CONFIG.userInfoUrl}?alt=json`, {
       headers: { Authorization: `Bearer ${tokens.access_token}` },

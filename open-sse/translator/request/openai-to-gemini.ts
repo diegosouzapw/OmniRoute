@@ -25,7 +25,7 @@ import {
   generateSessionId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
-import { buildGeminiTools } from "../helpers/geminiToolsSanitizer.ts";
+import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
@@ -60,6 +60,7 @@ type GeminiRequest = {
     googleSearch?: Record<string, unknown>;
   }>;
   cachedContent?: string;
+  _toolNameMap?: Map<string, string>;
 };
 
 type CloudCodeEnvelope = {
@@ -82,25 +83,34 @@ type CloudCodeEnvelope = {
       functionCallingConfig: { mode: string };
     };
   };
+  _toolNameMap?: Map<string, string>;
 };
 
-function normalizeAntigravityToolName(name: unknown) {
-  if (typeof name !== "string") return name;
-  const trimmed = name.trim();
-  if (!trimmed) return trimmed;
+type GeminiToolNameOptions = {
+  stripNamespace?: boolean;
+};
 
-  const namespaceIndex = trimmed.indexOf(":");
-  return namespaceIndex >= 0 ? trimmed.slice(namespaceIndex + 1) : trimmed;
+function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, string> | null {
+  const changedEntries = [...toolNameMap.entries()].filter(
+    ([sanitizedName, originalName]) => sanitizedName !== originalName
+  );
+  return changedEntries.length > 0 ? new Map(changedEntries) : null;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
-function openaiToGeminiBase(model, body, stream) {
+function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolNameOptions = {}) {
   const result: GeminiRequest = {
     model: model,
     contents: [],
     generationConfig: {},
     safetySettings: body.safetySettings || DEFAULT_SAFETY_SETTINGS,
   };
+  const toolNameMap = new Map<string, string>();
+  const sanitizeToolName = (name: string) =>
+    sanitizeGeminiToolName(name, {
+      ...toolNameOptions,
+      toolNameMap,
+    });
 
   // Preserve cachedContent if provided by client (for explicit Gemini caching)
   if (body.cachedContent) {
@@ -223,7 +233,7 @@ function openaiToGeminiBase(model, body, stream) {
               ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
               functionCall: {
                 id: tc.id,
-                name: tc.function.name,
+                name: sanitizeToolName(tc.function.name),
                 args: args,
               },
             });
@@ -255,6 +265,7 @@ function openaiToGeminiBase(model, body, stream) {
                   name = fid;
                 }
               }
+              name = sanitizeToolName(name);
 
               let resp = toolResponses[fid];
               let parsedResp = tryParseJSON(resp);
@@ -284,7 +295,10 @@ function openaiToGeminiBase(model, body, stream) {
   }
 
   // Convert tools
-  const geminiTools = buildGeminiTools(body.tools);
+  const geminiTools = buildGeminiTools(body.tools, {
+    ...toolNameOptions,
+    toolNameMap,
+  });
   if (geminiTools) {
     result.tools = geminiTools;
   }
@@ -305,6 +319,11 @@ function openaiToGeminiBase(model, body, stream) {
     }
   }
 
+  const changedToolNameMap = buildChangedToolNameMap(toolNameMap);
+  if (changedToolNameMap) {
+    result._toolNameMap = changedToolNameMap;
+  }
+
   return result;
 }
 
@@ -315,8 +334,7 @@ export function openaiToGeminiRequest(model, body, stream) {
 
 // OpenAI -> Gemini CLI (Cloud Code Assist)
 export function openaiToGeminiCLIRequest(model, body, stream) {
-  const gemini = openaiToGeminiBase(model, body, stream);
-  const isClaude = model.toLowerCase().includes("claude");
+  const gemini = openaiToGeminiBase(model, body, stream, { stripNamespace: true });
 
   // Add thinking config for CLI
   if (body.reasoning_effort) {
@@ -338,37 +356,6 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,
     };
-  }
-
-  // Clean schema for tools
-  if (gemini.tools?.[0]?.functionDeclarations) {
-    for (const fn of gemini.tools[0].functionDeclarations) {
-      fn.name = normalizeAntigravityToolName(fn.name);
-      if (fn.parameters) {
-        const cleanedSchema = cleanJSONSchemaForAntigravity(fn.parameters);
-        fn.parameters = cleanedSchema;
-        // if (isClaude) {
-        //   fn.parameters = cleanedSchema;
-        // } else {
-        //   fn.parametersJsonSchema = cleanedSchema;
-        //   delete fn.parameters;
-        // }
-      }
-    }
-  }
-
-  if (Array.isArray(gemini.contents)) {
-    for (const content of gemini.contents) {
-      if (!Array.isArray(content.parts)) continue;
-      for (const part of content.parts) {
-        if (part.functionCall?.name) {
-          part.functionCall.name = normalizeAntigravityToolName(part.functionCall.name);
-        }
-        if (part.functionResponse?.name) {
-          part.functionResponse.name = normalizeAntigravityToolName(part.functionResponse.name);
-        }
-      }
-    }
   }
 
   return gemini;
@@ -404,6 +391,9 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
       tools: geminiCLI.tools,
     },
   };
+  if (geminiCLI._toolNameMap instanceof Map && geminiCLI._toolNameMap.size > 0) {
+    envelope._toolNameMap = geminiCLI._toolNameMap;
+  }
 
   // Antigravity specific fields
   if (isAntigravity) {
@@ -432,6 +422,12 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 }
 
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
+  const toolNameMap = new Map<string, string>();
+  const sanitizeToolName = (name: string) =>
+    sanitizeGeminiToolName(name, {
+      stripNamespace: true,
+      toolNameMap,
+    });
   let projectId = credentials?.projectId;
 
   if (!projectId) {
@@ -460,6 +456,18 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     },
   };
 
+  const toolUseNames: Record<string, string> = {};
+  if (claudeRequest.messages && Array.isArray(claudeRequest.messages)) {
+    for (const msg of claudeRequest.messages) {
+      if (!Array.isArray(msg.content)) continue;
+      for (const block of msg.content) {
+        if (block.type === "tool_use" && block.id && typeof block.name === "string") {
+          toolUseNames[block.id] = sanitizeToolName(block.name);
+        }
+      }
+    }
+  }
+
   // Convert Claude messages to Gemini contents
   if (claudeRequest.messages && Array.isArray(claudeRequest.messages)) {
     for (const msg of claudeRequest.messages) {
@@ -480,7 +488,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
             parts.push({
               functionCall: {
                 id: block.id,
-                name: block.name,
+                name: sanitizeToolName(block.name),
                 args: block.input || {},
               },
             });
@@ -494,7 +502,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
             parts.push({
               functionResponse: {
                 id: block.tool_use_id,
-                name: "unknown",
+                name: toolUseNames[block.tool_use_id] || "unknown",
                 response: { result: tryParseJSON(content) || content },
               },
             });
@@ -515,7 +523,10 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
 
   // Convert Claude tools to Gemini functionDeclarations
   if (claudeRequest.tools && Array.isArray(claudeRequest.tools)) {
-    const geminiTools = buildGeminiTools(claudeRequest.tools);
+    const geminiTools = buildGeminiTools(claudeRequest.tools, {
+      stripNamespace: true,
+      toolNameMap,
+    });
     if (geminiTools) {
       envelope.request.tools = geminiTools;
       envelope.request.toolConfig = {
@@ -539,6 +550,11 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
   }
 
   envelope.request.systemInstruction = { role: "user", parts: systemParts };
+
+  const changedToolNameMap = buildChangedToolNameMap(toolNameMap);
+  if (changedToolNameMap) {
+    envelope._toolNameMap = changedToolNameMap;
+  }
 
   return envelope;
 }

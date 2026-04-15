@@ -598,55 +598,72 @@ export function clearModelsDevCapabilities(): void {
 export async function syncModelsDev(opts?: {
   dryRun?: boolean;
   syncCapabilities?: boolean;
+  maxRetries?: number;
 }): Promise<SyncResult> {
   const dryRun = opts?.dryRun ?? false;
   const syncCapabilities = opts?.syncCapabilities ?? true;
+  const maxRetries = opts?.maxRetries ?? 3;
 
-  try {
-    const raw = await fetchModelsDev();
-    const pricing = transformModelsDevToPricing(raw);
-    const capabilities = syncCapabilities ? transformModelsDevToCapabilities(raw) : {};
+  let lastError: Error | null = null;
 
-    const modelCount = Object.values(pricing).reduce(
-      (sum, models) => sum + Object.keys(models).length,
-      0
-    );
-    const providerCount = Object.keys(pricing).length;
-    const capabilityCount = syncCapabilities
-      ? Object.values(capabilities).reduce((sum, models) => sum + Object.keys(models).length, 0)
-      : 0;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const raw = await fetchModelsDev();
+      const pricing = transformModelsDevToPricing(raw);
+      const capabilities = syncCapabilities ? transformModelsDevToCapabilities(raw) : {};
 
-    if (!dryRun) {
-      saveModelsDevPricing(pricing);
-      if (syncCapabilities) {
-        ensureCapabilitiesTable();
-        saveModelsDevCapabilities(capabilities);
+      const modelCount = Object.values(pricing).reduce(
+        (sum, models) => sum + Object.keys(models).length,
+        0
+      );
+      const providerCount = Object.keys(pricing).length;
+      const capabilityCount = syncCapabilities
+        ? Object.values(capabilities).reduce((sum, models) => sum + Object.keys(models).length, 0)
+        : 0;
+
+      if (!dryRun) {
+        saveModelsDevPricing(pricing);
+        if (syncCapabilities) {
+          ensureCapabilitiesTable();
+          saveModelsDevCapabilities(capabilities);
+        }
+        lastSyncTime = new Date().toISOString();
+        lastSyncModelCount = modelCount;
+        lastSyncCapabilityCount = capabilityCount;
       }
-      lastSyncTime = new Date().toISOString();
-      lastSyncModelCount = modelCount;
-      lastSyncCapabilityCount = capabilityCount;
-    }
 
-    return {
-      success: true,
-      modelCount,
-      providerCount,
-      capabilityCount,
-      dryRun,
-      ...(dryRun ? { data: { pricing, capabilities } } : {}),
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn("[MODELS_DEV] Sync failed:", message);
-    return {
-      success: false,
-      modelCount: 0,
-      providerCount: 0,
-      capabilityCount: 0,
-      dryRun,
-      error: message,
-    };
+      return {
+        success: true,
+        modelCount,
+        providerCount,
+        capabilityCount,
+        dryRun,
+        ...(dryRun ? { data: { pricing, capabilities } } : {}),
+      };
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+
+      if (attempt < maxRetries) {
+        const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+        console.warn(
+          `[MODELS_DEV] Sync attempt ${attempt + 1} failed, retrying in ${delayMs}ms:`,
+          lastError.message
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
+
+  const message = lastError?.message || "Unknown error";
+  console.warn(`[MODELS_DEV] Sync failed after ${maxRetries + 1} attempts:`, message);
+  return {
+    success: false,
+    modelCount: 0,
+    providerCount: 0,
+    capabilityCount: 0,
+    dryRun,
+    error: message,
+  };
 }
 
 // ─── Periodic sync ───────────────────────────────────────

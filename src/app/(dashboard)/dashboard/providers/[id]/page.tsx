@@ -986,7 +986,16 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // For Gemini: always use synced API models (empty if no keys added yet)
-  const models = providerId === "gemini" ? syncedAvailableModels : registryModels;
+  // For other providers: merge registry models with custom/imported models (deduped)
+  const models = useMemo(() => {
+    if (providerId === "gemini") return syncedAvailableModels;
+    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return registryModels;
+    const registryIds = new Set(registryModels.map((m) => m.id));
+    const customExtras = modelMeta.customModels
+      .filter((cm: any) => cm.id && !registryIds.has(cm.id))
+      .map((cm: any) => ({ id: cm.id, name: cm.name || cm.id }));
+    return [...registryModels, ...customExtras];
+  }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
@@ -2850,8 +2859,8 @@ export default function ProviderDetailPage() {
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
           {renderModelsSection()}
 
-          {/* Custom Models — available for providers without managed available-model metadata */}
-          {!isManagedAvailableModelsProvider && providerId !== "gemini" && (
+          {/* Custom Models — available for all providers */}
+          {!isManagedAvailableModelsProvider && (
             <CustomModelsSection
               providerId={providerId}
               providerAlias={providerDisplayAlias}
@@ -5059,6 +5068,7 @@ ConnectionRow.propTypes = {
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "bailian-coding-plan",
+  "xiaomi-mimo",
   "heroku",
   "databricks",
   "snowflake",
@@ -5066,6 +5076,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+  "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
 };
 
 function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -5076,6 +5087,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
+    case "xiaomi-mimo":
+      return "Optional: Xiaomi MiMo token-plan base URL. Examples: https://token-plan-ams.xiaomimimo.com/v1, https://token-plan-sgp.xiaomimimo.com/v1, https://token-plan-cn.xiaomimimo.com/v1. The app will append /chat/completions.";
     case "heroku":
       return "Required: paste the Heroku Inference base URL. The app will append /v1/chat/completions.";
     case "databricks":
@@ -5090,6 +5103,7 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
+    case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
     case "heroku":
       return "https://us.inference.heroku.com";
@@ -5117,7 +5131,7 @@ function AddApiKeyModal({
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex";
   const defaultRegion = "us-central1";
-  const isGlm = provider === "glm";
+  const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
 
@@ -5131,6 +5145,7 @@ function AddApiKeyModal({
     validationModelId: "",
     customUserAgent: "",
     accountId: "",
+    consoleApiKey: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5210,6 +5225,9 @@ function AddApiKeyModal({
       const providerSpecificData: Record<string, unknown> = {};
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
+      }
+      if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
+        providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
@@ -5334,6 +5352,16 @@ function AddApiKeyModal({
               placeholder="my-app/1.0"
               hint="Optional override sent upstream as the User-Agent header for this connection"
             />
+            {provider === "bailian-coding-plan" && (
+              <Input
+                label="Console API Key (Oracle)"
+                value={formData.consoleApiKey}
+                onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                placeholder="Alibaba Console API Key"
+                hint="Required for quota fetching. Do not share."
+                type="password"
+              />
+            )}
           </div>
         )}
         <Input
@@ -5457,6 +5485,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexReasoningEffort: "medium",
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
+    consoleApiKey: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5473,7 +5502,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(connection?.provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex";
-  const isGlm = connection?.provider === "glm";
+  const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
   const defaultRegion = "us-central1";
@@ -5490,6 +5519,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
+      const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
+      const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5505,6 +5536,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
+        consoleApiKey: existingConsoleApiKey,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5637,6 +5669,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tag: formData.tag.trim() || undefined,
           customUserAgent: formData.customUserAgent.trim(),
         };
+        if (connection.provider === "bailian-coding-plan") {
+          if (formData.consoleApiKey.trim()) {
+            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
+          } else {
+            updates.providerSpecificData.consoleApiKey = undefined;
+          }
+        }
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
         }
@@ -5824,6 +5863,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
                 />
+                {connection.provider === "bailian-coding-plan" && (
+                  <Input
+                    label="Console API Key (Oracle)"
+                    value={formData.consoleApiKey}
+                    onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                    placeholder="Alibaba Console API Key"
+                    hint="Required for quota fetching. Do not share."
+                    type="password"
+                  />
+                )}
               </div>
             )}
             <Input

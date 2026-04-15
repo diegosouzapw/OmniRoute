@@ -343,9 +343,9 @@ The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
 
 When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
 
-| Command | Action |
-| --- | --- |
-| `npm run uninstall` | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`. |
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
 | `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
 > Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
@@ -759,10 +759,11 @@ Configure via **Dashboard → Settings → Resilience**.
 OmniRoute implements provider-level resilience with four components:
 
 1. **Provider Profiles** — Per-provider configuration for:
-   - Failure threshold (how many failures before opening)
-   - Cooldown duration
-   - Rate limit detection sensitivity
-   - Exponential backoff parameters
+   - **Transient Cooldown** — Base cooldown for transient upstream failures
+   - **Rate Limit Cooldown** — Base cooldown for `429`-driven lockouts
+   - **Max Backoff Level** — Maximum exponential backoff level for repeated failures
+   - **CB Threshold** — Failure count before model quarantine / provider circuit breaker escalates
+   - **CB Reset Time** — Failure counting window and breaker reset timer
 
 2. **Editable Rate Limits** — System-level defaults configurable in the dashboard:
    - **Requests Per Minute (RPM)** — Maximum requests per minute per account
@@ -770,14 +771,18 @@ OmniRoute implements provider-level resilience with four components:
    - **Max Concurrent Requests** — Maximum simultaneous requests per account
    - Click **Edit** to modify, then **Save** or **Cancel**. Values persist via the resilience API.
 
-3. **Circuit Breaker** — Tracks failures per provider and automatically opens the circuit when a threshold is reached:
+3. **Circuit Breaker** — Tracks failures per provider and automatically opens the circuit when the configured threshold is reached:
    - **CLOSED** (Healthy) — Requests flow normally
    - **OPEN** — Provider is temporarily blocked after repeated failures
    - **HALF_OPEN** — Testing if provider has recovered
 
+   The same provider profile also drives model-scoped lockouts:
+   - Account/model lockouts react immediately to authoritative `429` / `404` signals and use the configured cooldown + backoff values
+   - Global provider/model quarantine only activates after repeated exhaustion hits the configured **CB Threshold** within **CB Reset Time**
+
 4. **Policies & Locked Identifiers** — Shows circuit breaker status and locked identifiers with force-unlock capability.
 
-5. **Rate Limit Auto-Detection** — Monitors `429` and `Retry-After` headers to proactively avoid hitting provider rate limits.
+5. **Rate Limit Auto-Detection** — Monitors `429` and `Retry-After` headers to proactively avoid hitting provider rate limits. When an upstream provider returns an explicit wait window, that authoritative `Retry-After` value overrides the base cooldown from the provider profile.
 
 **Pro Tip:** Use **Reset All** button to clear all circuit breakers and cooldowns when a provider recovers from an outage.
 

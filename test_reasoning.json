@@ -1,0 +1,6 @@
+{
+  "type": "response.reasoning_content_text.delta",
+  "delta": "thinking text",
+  "item_id": "rs_123",
+  "output_index": 0
+}

@@ -2,7 +2,9 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { GITHUB_CONFIG, GEMINI_CONFIG, ANTIGRAVITY_CONFIG } from "@/lib/oauth/constants/oauth";
+import { GITHUB_CONFIG, GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
+import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityFetchAvailableModelsUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityRemainingCredits } from "@omniroute/open-sse/executors/antigravity.ts";
 
 /**
@@ -151,28 +153,42 @@ async function getGeminiUsage(accessToken) {
  * Credit balance (GOOGLE_ONE_AI) is read from the executor's in-memory cache,
  * which is populated automatically after each successful credit-injected SSE call.
  */
-async function getAntigravityUsage(accessToken: string, providerSpecificData: Record<string, unknown> = {}) {
+async function getAntigravityUsage(
+  accessToken: string,
+  providerSpecificData: Record<string, unknown> = {}
+) {
   try {
     // Derive accountId (same key used in AntigravityExecutor.execute)
     const accountId: string =
-      (providerSpecificData?.email as string) ||
-      (providerSpecificData?.sub as string) ||
-      "unknown";
+      (providerSpecificData?.email as string) || (providerSpecificData?.sub as string) || "unknown";
 
     // Read cached credit balance from executor module (populated from SSE remainingCredits)
     const creditBalance = getAntigravityRemainingCredits(accountId);
 
     // fetchAvailableModels — resolves project from token, no projectId needed
-    const res = await fetch(ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/1.11.3 Darwin/arm64",
-      },
-      body: JSON.stringify({}),
-      signal: AbortSignal.timeout(15_000),
-    });
+    let res: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (const endpoint of getAntigravityFetchAvailableModelsUrls()) {
+      try {
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
+          body: JSON.stringify({}),
+          signal: AbortSignal.timeout(15_000),
+        });
+
+        if (res.ok || res.status === 401 || res.status === 403) {
+          break;
+        }
+      } catch (error) {
+        lastError = error as Error;
+      }
+    }
+
+    if (!res) {
+      throw lastError || new Error("Antigravity API unavailable");
+    }
 
     if (!res.ok) {
       return {
@@ -198,7 +214,10 @@ async function getAntigravityUsage(accessToken: string, providerSpecificData: Re
     // Walk quota-based models (those with remainingFraction in quotaInfo)
     let quotaModelsTotal = 0;
     let quotaModelsAvailable = 0;
-    const modelQuotas: Record<string, { remaining: number; resetAt: string | null; limited: boolean }> = {};
+    const modelQuotas: Record<
+      string,
+      { remaining: number; resetAt: string | null; limited: boolean }
+    > = {};
 
     for (const [modelId, rawInfo] of Object.entries(models)) {
       const info = rawInfo as Record<string, unknown>;
@@ -206,7 +225,8 @@ async function getAntigravityUsage(accessToken: string, providerSpecificData: Re
       const quotaInfo = (info.quotaInfo as Record<string, unknown>) ?? {};
 
       if ("remainingFraction" in quotaInfo) {
-        const fraction = typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
+        const fraction =
+          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
         const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
         modelQuotas[modelId] = {
           remaining: Math.round(fraction * 100),

@@ -74,6 +74,8 @@ export async function registerNodejs(): Promise<void> {
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
   await ensureSecrets();
+  const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
+  enforceWebRuntimeEnv();
 
   // Trigger request-log layout migration during startup, before any request hits usageDb.
   await import("@/lib/usage/migrations");
@@ -105,11 +107,15 @@ export async function registerNodejs(): Promise<void> {
   }
 
   try {
-    const [{ setCustomAliases }, { migrateCodexConnectionDefaultsFromLegacySettings }] =
-      await Promise.all([
-        import("@omniroute/open-sse/services/modelDeprecation.ts"),
-        import("@/lib/providers/codexConnectionDefaults"),
-      ]);
+    const [
+      { setCustomAliases },
+      { migrateCodexConnectionDefaultsFromLegacySettings },
+      { seedDefaultModelAliases },
+    ] = await Promise.all([
+      import("@omniroute/open-sse/services/modelDeprecation.ts"),
+      import("@/lib/providers/codexConnectionDefaults"),
+      import("@/lib/modelAliasSeed"),
+    ]);
     const settings = await getSettings();
 
     if (settings.modelAliases) {
@@ -124,6 +130,11 @@ export async function registerNodejs(): Promise<void> {
         );
       }
     }
+
+    const seededModelAliases = await seedDefaultModelAliases();
+    console.log(
+      `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
+    );
 
     if (settings.backgroundDegradation) {
       try {

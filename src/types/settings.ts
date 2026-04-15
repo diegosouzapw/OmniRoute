@@ -15,6 +15,8 @@ export interface Settings {
     | "cost-optimized"
     | "strict-random";
   stickyRoundRobinLimit: number;
+  requestRetry: number;
+  maxRetryIntervalSec: number;
   jwtSecret?: string;
   hideHealthCheckLogs?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];

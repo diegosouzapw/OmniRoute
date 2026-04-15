@@ -54,7 +54,7 @@ export default function ComboDefaultsTab() {
   const numericSettings = [
     { key: "maxRetries", label: t("maxRetriesLabel"), min: 0, max: 5 },
     { key: "retryDelayMs", label: t("retryDelayLabel"), min: 500, max: 10000, step: 500 },
-    { key: "timeoutMs", label: t("timeoutLabel"), min: 5000, max: 300000, step: 5000 },
+    { key: "timeoutMs", label: t("timeoutLabel"), min: 5000, step: 5000 },
     { key: "maxComboDepth", label: t("maxNestingDepth"), min: 1, max: 10 },
   ];
 
@@ -439,7 +439,6 @@ export default function ComboDefaultsTab() {
               <Input
                 type="number"
                 min="5000"
-                max="300000"
                 step="5000"
                 value={config.timeoutMs ?? 120000}
                 onChange={(e) =>

@@ -7,6 +7,16 @@
  */
 
 import { platform, arch } from "os";
+import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
+import { getCodexDefaultHeaders } from "./codexClient.ts";
+import {
+  GLMT_REQUEST_DEFAULTS,
+  GLMT_TIMEOUT_MS,
+  GLM_SHARED_HEADERS,
+  GLM_SHARED_MODELS,
+} from "./glmProvider.ts";
+import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -63,11 +73,13 @@ export interface RegistryEntry {
   authPrefix?: string;
   headers?: Record<string, string>;
   extraHeaders?: Record<string, string>;
+  requestDefaults?: ProviderRequestDefaults;
   oauth?: RegistryOAuth;
   models: RegistryModel[];
   modelsUrl?: string;
   chatPath?: string;
   clientVersion?: string;
+  timeoutMs?: number;
   passthroughModels?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
@@ -79,6 +91,7 @@ interface LegacyProvider {
   baseUrls?: string[];
   responsesBaseUrl?: string;
   headers?: Record<string, string>;
+  requestDefaults?: ProviderRequestDefaults;
   clientId?: string;
   clientSecret?: string;
   tokenUrl?: string;
@@ -86,6 +99,7 @@ interface LegacyProvider {
   authUrl?: string;
   chatPath?: string;
   clientVersion?: string;
+  timeoutMs?: number;
 }
 
 const KIMI_CODING_SHARED = {
@@ -185,7 +199,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels(["MiMo-7B-RL", "MiMo-7B-SFT"]),
+  "xiaomi-mimo": buildModels(["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -259,7 +273,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
       tokenUrl: "https://console.anthropic.com/v1/oauth/token",
     },
     models: [
@@ -286,9 +300,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
       clientSecretEnv: "GEMINI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [],
     // Models are populated from Google's API via sync-models (per API key).
@@ -310,9 +324,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
       clientSecretEnv: "GEMINI_CLI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [
       { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
@@ -335,14 +349,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 400000,
-    headers: {
-      Version: "0.92.0",
-      "Openai-Beta": "responses=experimental",
-      "User-Agent": "codex-cli/0.92.0 (Windows 10.0.26100; x64)",
-    },
+    headers: getCodexDefaultHeaders(),
     oauth: {
       clientIdEnv: "CODEX_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "app_EMoamEEZ73f0CkXaXp7hrann",
       clientSecretEnv: "CODEX_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "",
       tokenUrl: "https://auth.openai.com/oauth/token",
@@ -393,7 +403,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     oauth: {
       clientIdEnv: "QWEN_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "f0304373b74a44d2b584a3fb70ca9e56",
       tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
       authUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
     },
@@ -445,11 +455,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: undefined,
     format: "antigravity",
     executor: "antigravity",
-    baseUrls: [
-      "https://daily-cloudcode-pa.googleapis.com",
-      "https://daily-cloudcode-pa.sandbox.googleapis.com",
-      "https://cloudcode-pa.googleapis.com",
-    ],
+    baseUrls: [...ANTIGRAVITY_BASE_URLS],
     urlBuilder: (base, model, stream) => {
       const path = stream
         ? "/v1internal:streamGenerateContent?alt=sse"
@@ -459,13 +465,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     headers: {
-      "User-Agent": `antigravity/1.107.0 ${platform()}/${arch()}`,
+      "User-Agent": antigravityUserAgent(),
     },
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
       clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "",
+      clientSecretDefault: "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",
     },
     models: [
       { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
@@ -706,22 +712,24 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     urlSuffix: "?beta=true",
     authType: "apikey",
     authHeader: "x-api-key",
-    headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
-    },
-    models: [
-      { id: "glm-5.1", name: "GLM 5.1", contextLength: 204800 },
-      { id: "glm-5", name: "GLM 5" },
-      { id: "glm-5-turbo", name: "GLM 5 Turbo" },
-      { id: "glm-4.7-flash", name: "GLM 4.7 Flash" },
-      { id: "glm-4.7", name: "GLM 4.7" },
-      { id: "glm-4.6v", name: "GLM 4.6V (Vision)", contextLength: 128000 },
-      { id: "glm-4.6", name: "GLM 4.6" },
-      { id: "glm-4.5v", name: "GLM 4.5V (Vision)", contextLength: 16000 },
-      { id: "glm-4.5", name: "GLM 4.5", contextLength: 128000 },
-      { id: "glm-4.5-air", name: "GLM 4.5 Air", contextLength: 128000 },
-    ],
+    headers: GLM_SHARED_HEADERS,
+    models: [...GLM_SHARED_MODELS],
+  },
+
+  glmt: {
+    id: "glmt",
+    alias: "glmt",
+    format: "claude",
+    executor: "default",
+    baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+    defaultContextLength: 200000,
+    urlSuffix: "?beta=true",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    headers: GLM_SHARED_HEADERS,
+    requestDefaults: GLMT_REQUEST_DEFAULTS,
+    timeoutMs: GLMT_TIMEOUT_MS,
+    models: [...GLM_SHARED_MODELS],
   },
 
   "bailian-coding-plan": {
@@ -793,7 +801,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     oauth: {
       clientIdEnv: "KIMI_CODING_OAUTH_CLIENT_ID",
-      clientIdDefault: "",
+      clientIdDefault: "17e5f671-d194-4dfb-9706-5516cb48c098",
       tokenUrl: "https://auth.kimi.com/api/oauth/token",
       refreshUrl: "https://auth.kimi.com/api/oauth/token",
       authUrl: "https://auth.kimi.com/api/oauth/device_authorization",
@@ -1065,6 +1073,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "sonar-pro", name: "Sonar Pro" },
       { id: "sonar", name: "Sonar" },
+    ],
+  },
+
+  "perplexity-web": {
+    id: "perplexity-web",
+    alias: "pplx-web",
+    format: "openai",
+    executor: "perplexity-web",
+    baseUrl: "https://www.perplexity.ai/rest/sse/perplexity_ask",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "pplx-auto", name: "Perplexity Auto (Free)" },
+      { id: "pplx-sonar", name: "Perplexity Sonar" },
+      { id: "pplx-gpt", name: "GPT-5.4 (via Perplexity)" },
+      { id: "pplx-gemini", name: "Gemini 3.1 Pro (via Perplexity)" },
+      { id: "pplx-sonnet", name: "Claude Sonnet 4.6 (via Perplexity)" },
+      { id: "pplx-opus", name: "Claude Opus 4.6 (via Perplexity)" },
+      { id: "pplx-nemotron", name: "Nemotron 3 Super (via Perplexity)" },
     ],
   },
 
@@ -1387,17 +1414,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "pol",
     format: "openai",
     executor: "pollinations",
-    // No API key required for basic use. Proxy to GPT-5, Claude, Gemini, DeepSeek, Llama 4.
+    // API key required. Free Spore tier currently grants 0.01 pollen/hour.
     baseUrl: "https://text.pollinations.ai/openai/chat/completions",
-    authType: "apikey", // Optional — works without one too
+    authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "openai", name: "GPT-5 via Pollinations (🆓)" },
-      { id: "claude", name: "Claude via Pollinations (🆓)" },
-      { id: "gemini", name: "Gemini via Pollinations (🆓)" },
-      { id: "deepseek", name: "DeepSeek V3 via Pollinations (🆓)" },
-      { id: "llama", name: "Llama 4 via Pollinations (🆓)" },
-      { id: "mistral", name: "Mistral via Pollinations (🆓)" },
+      { id: "openai", name: "GPT-5 via Pollinations (Spore)" },
+      { id: "claude", name: "Claude via Pollinations (Spore)" },
+      { id: "gemini", name: "Gemini via Pollinations (Spore)" },
+      { id: "deepseek", name: "DeepSeek V3 via Pollinations (Spore)" },
+      { id: "llama", name: "Llama 4 via Pollinations (Spore)" },
+      { id: "mistral", name: "Mistral via Pollinations (Spore)" },
     ],
   },
 
@@ -1804,7 +1831,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "mimo",
     format: "openai",
     executor: "default",
-    baseUrl: "https://api.xiaomi.com/v1/chat/completions",
+    baseUrl: "https://token-plan-sgp.xiaomimimo.com/v1",
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],
@@ -1891,6 +1918,12 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     }
     if (entry.responsesBaseUrl) {
       p.responsesBaseUrl = entry.responsesBaseUrl;
+    }
+    if (entry.requestDefaults) {
+      p.requestDefaults = entry.requestDefaults;
+    }
+    if (typeof entry.timeoutMs === "number") {
+      p.timeoutMs = entry.timeoutMs;
     }
 
     // Headers

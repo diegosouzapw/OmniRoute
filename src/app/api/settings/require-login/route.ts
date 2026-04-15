@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
 import bcrypt from "bcryptjs";
+import { getSettings, updateSettings } from "@/lib/localDb";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -9,6 +10,14 @@ function getNodeCompatibility() {
   const nodeVersion = process.version;
   const major = parseInt(nodeVersion.replace("v", "").split(".")[0], 10);
   return { nodeVersion, nodeCompatible: major >= 18 && major < 24 };
+}
+
+function hasConfiguredPassword(settings: Record<string, unknown>) {
+  return Boolean(settings.password) || Boolean(process.env.INITIAL_PASSWORD);
+}
+
+function isBootstrapSecurityWindow(settings: Record<string, unknown>) {
+  return settings.setupComplete !== true && !hasConfiguredPassword(settings);
 }
 
 export async function GET() {
@@ -30,9 +39,14 @@ export async function GET() {
 
 /**
  * POST /api/settings/require-login — Set password and/or toggle requireLogin.
- * Used by the onboarding wizard security step.
+ * Unauthenticated writes are only allowed during the initial bootstrap window.
  */
 export async function POST(request: Request) {
+  const settings = await getSettings();
+  if (!isBootstrapSecurityWindow(settings) && !(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let rawBody;
   try {
     rawBody = await request.json();

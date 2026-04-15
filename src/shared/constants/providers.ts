@@ -83,6 +83,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "GL",
     website: "https://open.bigmodel.cn",
   },
+  glmt: {
+    id: "glmt",
+    alias: "glmt",
+    name: "GLM Thinking",
+    icon: "psychology",
+    color: "#1D4ED8",
+    textIcon: "GT",
+    website: "https://open.bigmodel.cn",
+    apiHint: "Preset GLM profile with higher token budget, thinking enabled, and longer timeout.",
+  },
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
@@ -231,6 +241,16 @@ export const APIKEY_PROVIDERS = {
     color: "#20808D",
     textIcon: "PP",
     website: "https://www.perplexity.ai",
+  },
+  "perplexity-web": {
+    id: "perplexity-web",
+    alias: "pplx-web",
+    name: "Perplexity Web (Session)",
+    icon: "search",
+    color: "#20808D",
+    textIcon: "PW",
+    website: "https://www.perplexity.ai",
+    authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
   },
   together: {
     id: "together",
@@ -548,9 +568,8 @@ export const APIKEY_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "PO",
     website: "https://pollinations.ai",
-    hasFree: true,
-    freeNote:
-      "No API key needed — access GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 free (1 req/15s)",
+    hasFree: false,
+    freeNote: "API key required. Spore tier: ~0.01 pollen/hour ($0.01/hr).",
   },
   puter: {
     id: "puter",
@@ -1025,6 +1044,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "claude",
   "kimi-coding",
   "glm",
+  "glmt",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

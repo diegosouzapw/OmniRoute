@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getSettings } from "@/lib/localDb";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
@@ -10,12 +11,32 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 if (!process.env.JWT_SECRET) {
   console.error("[SECURITY] FATAL: JWT_SECRET is not set. Login authentication is disabled.");
 }
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
+
+function getJwtSecret(): Uint8Array {
+  return new TextEncoder().encode(process.env.JWT_SECRET || "");
+}
+
+// Test seam for cookie store injection without affecting runtime behavior.
+export const authRouteInternals = {
+  getCookieStore: cookies,
+};
 
 export async function POST(request) {
+  const auditContext = getAuditRequestContext(request);
+
   try {
     // Fail-fast if JWT_SECRET is not configured
     if (!process.env.JWT_SECRET) {
+      logAuditEvent({
+        action: "auth.login.misconfigured",
+        actor: "system",
+        target: "dashboard-auth",
+        resourceType: "auth_session",
+        status: "failed",
+        ipAddress: auditContext.ipAddress || undefined,
+        requestId: auditContext.requestId,
+        metadata: { reason: "missing_jwt_secret" },
+      });
       return NextResponse.json(
         { error: "Server misconfigured: JWT_SECRET not set. Contact administrator." },
         { status: 500 }
@@ -43,6 +64,16 @@ export async function POST(request) {
     } else {
       // SECURITY: No default password — must be set via env or onboarding
       if (!process.env.INITIAL_PASSWORD) {
+        logAuditEvent({
+          action: "auth.login.setup_required",
+          actor: "anonymous",
+          target: "dashboard-auth",
+          resourceType: "auth_session",
+          status: "failed",
+          ipAddress: auditContext.ipAddress || undefined,
+          requestId: auditContext.requestId,
+          metadata: { reason: "missing_initial_password" },
+        });
         return NextResponse.json(
           { error: "No password configured. Complete onboarding first.", needsSetup: true },
           { status: 403 }
@@ -62,9 +93,9 @@ export async function POST(request) {
       const token = await new SignJWT({ authenticated: true })
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("30d")
-        .sign(SECRET);
+        .sign(getJwtSecret());
 
-      const cookieStore = await cookies();
+      const cookieStore = await authRouteInternals.getCookieStore();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
         secure: useSecureCookie,
@@ -72,12 +103,48 @@ export async function POST(request) {
         path: "/",
       });
 
+      logAuditEvent({
+        action: "auth.login.success",
+        actor: "admin",
+        target: "dashboard-auth",
+        resourceType: "auth_session",
+        status: "success",
+        ipAddress: auditContext.ipAddress || undefined,
+        requestId: auditContext.requestId,
+        metadata: {
+          hasStoredPassword: Boolean(storedHash),
+          secureCookie: useSecureCookie,
+        },
+      });
+
       return NextResponse.json({ success: true });
     }
 
+    logAuditEvent({
+      action: "auth.login.failed",
+      actor: "anonymous",
+      target: "dashboard-auth",
+      resourceType: "auth_session",
+      status: "failed",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: { reason: "invalid_password" },
+    });
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   } catch (error) {
     console.error("[AUTH] Login failed:", error);
+    logAuditEvent({
+      action: "auth.login.error",
+      actor: "system",
+      target: "dashboard-auth",
+      resourceType: "auth_session",
+      status: "failed",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: {
+        message: error instanceof Error ? error.message : "unknown_error",
+      },
+    });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

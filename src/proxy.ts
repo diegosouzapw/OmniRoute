@@ -4,27 +4,39 @@ import { generateRequestId } from "./shared/utils/requestId";
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
 const E2E_MODE = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const PUBLIC_API_ROUTES = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/status",
-  "/api/settings/require-login",
   "/api/init",
   "/api/monitoring/health",
   "/api/v1/",
   "/api/cloud/",
+  "/api/sync/bundle",
   "/api/oauth/",
 ];
+const PUBLIC_READONLY_API_ROUTES = ["/api/settings/require-login"];
 
 let apiAuthModulePromise: Promise<typeof import("./shared/utils/apiAuth")> | null = null;
 let settingsModulePromise: Promise<typeof import("./lib/db/settings")> | null = null;
 let modelSyncModulePromise: Promise<typeof import("./shared/services/modelSyncScheduler")> | null =
   null;
 
-function isPublicApiRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route));
+function isPublicApiRoute(pathname: string, method = "GET"): boolean {
+  if (PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route))) {
+    return true;
+  }
+
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    return false;
+  }
+
+  return PUBLIC_READONLY_API_ROUTES.some((route) => pathname.startsWith(route));
+}
+
+function getJwtSecret(): Uint8Array {
+  return new TextEncoder().encode(process.env.JWT_SECRET || "");
 }
 
 async function getApiAuthModule() {
@@ -88,7 +100,7 @@ export async function proxy(request: any) {
   // ──────────────── Protect Management API Routes ────────────────
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
     // Allow public routes (login, logout, health, etc.)
-    if (isPublicApiRoute(pathname)) {
+    if (isPublicApiRoute(pathname, request.method)) {
       return response;
     }
 
@@ -157,7 +169,7 @@ export async function proxy(request: any) {
 
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, SECRET);
+        const { payload } = await jwtVerify(token, getJwtSecret());
 
         // Auto-refresh: if token expires within 7 days, issue a fresh 30-day token
         const exp = payload.exp as number;
@@ -168,7 +180,7 @@ export async function proxy(request: any) {
             const freshToken = await new SignJWT({ authenticated: true })
               .setProtectedHeader({ alg: "HS256" })
               .setExpirationTime("30d")
-              .sign(SECRET);
+              .sign(getJwtSecret());
 
             // Detect secure context
             const fwdProto = (request.headers.get("x-forwarded-proto") || "")

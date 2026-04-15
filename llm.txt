@@ -8,7 +8,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.6.4
+**Current version:** 3.6.6
 
 ## Tech Stack
 
@@ -279,7 +279,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 └── .env.example                  # Environment variable template
 ```
 
-## Key Features (v3.6.4)
+## Key Features (v3.6.6)
 
 ### Core Proxy
 - **60+ AI providers** with automatic format translation
@@ -302,6 +302,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **122 unit test files** with comprehensive coverage (55% statements/lines/functions, 60% branches)
 
 ### Security
+- **Data Loss Prevention**: SQLite migration safety bounds abort startup on dangerous massive schema overrides. Pre-migration `VACUUM INTO` backups isolate rollback snapshots.
 - **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
 - **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
 - **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`

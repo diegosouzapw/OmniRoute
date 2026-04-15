@@ -105,7 +105,8 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          const fcName = part.functionCall.name;
+          const rawToolName = part.functionCall.name;
+          const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
           const fcArgs = part.functionCall.args || {};
           const toolCallIndex = state.functionIndex++;
 
@@ -162,7 +163,8 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Function call
       if (part.functionCall) {
-        const fcName = part.functionCall.name;
+        const rawToolName = part.functionCall.name;
+        const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
         const fcArgs = part.functionCall.args || {};
         const toolCallIndex = state.functionIndex++;
 

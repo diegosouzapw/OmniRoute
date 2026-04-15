@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getProviderNodeById } from "@/models";
 import {
   isClaudeCodeCompatibleProvider,
@@ -11,8 +12,19 @@ import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
+function sanitizeAuditUrl(url: string | null | undefined) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`.replace(/\/$/, "") || parsed.origin;
+  } catch {
+    return String(url);
+  }
+}
+
 // POST /api/providers/validate - Validate API key with provider
 export async function POST(request) {
+  const auditContext = getAuditRequestContext(request);
   let rawBody;
   try {
     rawBody = await request.json();
@@ -84,6 +96,30 @@ export async function POST(request) {
 
     if (result.unsupported) {
       return NextResponse.json({ error: "Provider validation not supported" }, { status: 400 });
+    }
+
+    if (!result.valid && typeof result.statusCode === "number") {
+      if (result.securityBlocked) {
+        logAuditEvent({
+          action: "provider.validation.ssrf_blocked",
+          actor: "admin",
+          target: provider,
+          resourceType: "provider_validation",
+          status: "blocked",
+          ipAddress: auditContext.ipAddress || undefined,
+          requestId: auditContext.requestId,
+          metadata: {
+            provider,
+            route: "/api/providers/validate",
+            reason: result.error || "Blocked provider validation target",
+            baseUrl: sanitizeAuditUrl(bodyBaseUrl || providerSpecificData?.baseUrl),
+          },
+        });
+      }
+      return NextResponse.json(
+        { error: result.error || "Validation failed" },
+        { status: result.statusCode }
+      );
     }
 
     return NextResponse.json({

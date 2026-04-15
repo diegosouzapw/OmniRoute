@@ -7,13 +7,27 @@ import {
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
 import { getModelIsHidden, resolveProxyForProvider } from "@/lib/localDb";
+import {
+  SAFE_OUTBOUND_FETCH_PRESETS,
+  getSafeOutboundFetchErrorStatus,
+  safeOutboundFetch,
+} from "@/shared/network/safeOutboundFetch";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function toNonEmptyString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function getProviderBaseUrl(providerSpecificData: unknown): string | null {
@@ -22,14 +36,45 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
 }
 
-const GLM_MODELS_URLS = {
-  international: "https://api.z.ai/api/coding/paas/v4/models",
-  china: "https://open.bigmodel.cn/api/coding/paas/v4/models",
-} as const;
+function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; name: string }> {
+  const payload = asRecord(data).models;
 
-function getGlmApiRegion(providerSpecificData: unknown): keyof typeof GLM_MODELS_URLS {
-  const data = asRecord(providerSpecificData);
-  return data.apiRegion === "china" ? "china" : "international";
+  if (Array.isArray(payload)) {
+    return payload
+      .map((value) => {
+        const item = asRecord(value);
+        const id =
+          typeof item.id === "string"
+            ? item.id
+            : typeof item.name === "string"
+              ? item.name
+              : typeof item.model === "string"
+                ? item.model
+                : "";
+        const name =
+          typeof item.displayName === "string"
+            ? item.displayName
+            : typeof item.name === "string"
+              ? item.name
+              : id;
+        return id ? { id, name } : null;
+      })
+      .filter((value): value is { id: string; name: string } => Boolean(value));
+  }
+
+  const modelsById = asRecord(payload);
+  return Object.entries(modelsById)
+    .map(([id, value]) => {
+      const item = asRecord(value);
+      const name =
+        typeof item.displayName === "string"
+          ? item.displayName
+          : typeof item.name === "string"
+            ? item.name
+            : id;
+      return id ? { id, name } : null;
+    })
+    .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
 type ProviderModelsConfigEntry = {
@@ -190,9 +235,9 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     parseResponse: (data) => data.data || [],
   },
   antigravity: {
-    url: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
+    url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAntigravityHeaders("models"),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},
@@ -444,16 +489,16 @@ export async function GET(
 
       for (const modelsUrl of uniqueEndpoints) {
         try {
-          const response = await runWithProxyContext(proxy, () =>
-            fetch(modelsUrl, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
-              },
-              signal: AbortSignal.timeout(5000), // Quick timeout for fallbacks
-            })
-          );
+          const response = await safeOutboundFetch(modelsUrl, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsProbe,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+          });
 
           if (response.ok) {
             const data = await response.json();
@@ -467,6 +512,10 @@ export async function GET(
           }
         } catch (err: any) {
           if (err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+          const status = getSafeOutboundFetchErrorStatus(err);
+          if (status) {
+            throw err;
+          }
         }
       }
 
@@ -513,20 +562,20 @@ export async function GET(
       });
     }
 
-    if (provider === "glm") {
-      const region = getGlmApiRegion(connection.providerSpecificData);
-      const url = GLM_MODELS_URLS[region];
+    if (provider === "glm" || provider === "glmt") {
+      const url = getGlmModelsUrl(connection.providerSpecificData);
       const token = apiKey || accessToken;
 
-      const response = await runWithProxyContext(proxy, () =>
-        fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        })
-      );
+      const response = await safeOutboundFetch(url, {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+        guard: getProviderOutboundGuard(),
+        proxyConfig: proxy,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
 
       if (!response.ok) {
         return NextResponse.json(
@@ -562,16 +611,19 @@ export async function GET(
       }
 
       try {
-        const quotaRes = await runWithProxyContext(proxy, () =>
-          fetch("https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota", {
+        const quotaRes = await safeOutboundFetch(
+          "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
+          {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
             method: "POST",
             headers: {
               Authorization: `Bearer ${accessToken}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ project: projectId }),
-            signal: AbortSignal.timeout(10000),
-          })
+          }
         );
 
         if (!quotaRes.ok) {
@@ -602,6 +654,63 @@ export async function GET(
       }
     }
 
+    if (provider === "antigravity") {
+      const staticModels = STATIC_MODEL_PROVIDERS.antigravity();
+      const discoveryUrls = getAntigravityModelsDiscoveryUrls();
+
+      if (!accessToken) {
+        return buildResponse({
+          provider,
+          connectionId,
+          models: staticModels,
+          source: "local_catalog",
+          warning: "OAuth token unavailable — using cached catalog",
+        });
+      }
+
+      for (const discoveryUrl of discoveryUrls) {
+        try {
+          const response = await safeOutboundFetch(discoveryUrl, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "POST",
+            headers: getAntigravityHeaders("models", accessToken),
+            body: JSON.stringify({}),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(
+              `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+            );
+            continue;
+          }
+
+          const remoteModels = normalizeAntigravityModelsResponse(await response.json());
+          if (remoteModels.length > 0) {
+            return buildResponse({
+              provider,
+              connectionId,
+              models: remoteModels,
+              source: "api",
+            });
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
+        }
+      }
+
+      return buildResponse({
+        provider,
+        connectionId,
+        models: staticModels,
+        source: "local_catalog",
+        warning: "API unavailable — using cached catalog",
+      });
+    }
+
     if (isAnthropicCompatibleProvider(provider)) {
       if (isClaudeCodeCompatibleProvider(provider)) {
         return NextResponse.json(
@@ -623,19 +732,23 @@ export async function GET(
         baseUrl = baseUrl.slice(0, -9);
       }
 
-      const url = `${baseUrl}/models`;
+      // Use modelsPath from provider node if available, otherwise default to /models
+      const psd = asRecord(connection.providerSpecificData);
+      const modelsPath = toNonEmptyString(psd.modelsPath) || "/models";
+      const url = `${baseUrl}${modelsPath}`;
       const token = accessToken || apiKey;
-      const response = await runWithProxyContext(proxy, () =>
-        fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { "x-api-key": apiKey } : {}),
-            "anthropic-version": "2023-06-01",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        })
-      );
+      const response = await safeOutboundFetch(url, {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+        guard: getProviderOutboundGuard(),
+        proxyConfig: proxy,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
+          "anthropic-version": "2023-06-01",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -751,12 +864,12 @@ export async function GET(
 
     while (pageUrl && pageCount < MAX_PAGES) {
       pageCount++;
-      const response = await runWithProxyContext(proxy, () =>
-        fetch(pageUrl, {
-          ...fetchOptions,
-          signal: AbortSignal.timeout(15_000),
-        })
-      );
+      const response = await safeOutboundFetch(pageUrl, {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
+        guard: getProviderOutboundGuard(),
+        proxyConfig: proxy,
+        ...fetchOptions,
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -796,6 +909,11 @@ export async function GET(
       models: allModels,
     });
   } catch (error) {
+    const status = getSafeOutboundFetchErrorStatus(error);
+    if (status) {
+      const message = error instanceof Error ? error.message : "Failed to fetch models";
+      return NextResponse.json({ error: message }, { status });
+    }
     console.log("Error fetching provider models:", error);
     return NextResponse.json({ error: "Failed to fetch models" }, { status: 500 });
   }

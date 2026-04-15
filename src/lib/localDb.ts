@@ -236,6 +236,15 @@ export {
 } from "./db/versionManager";
 
 export {
+  listSyncTokens,
+  getSyncTokenById,
+  getSyncTokenByHash,
+  createSyncTokenRecord,
+  revokeSyncToken,
+  touchSyncTokenLastUsed,
+} from "./db/syncTokens";
+
+export {
   getUpstreamProxyConfigs,
   getUpstreamProxyConfig,
   upsertUpstreamProxyConfig,
