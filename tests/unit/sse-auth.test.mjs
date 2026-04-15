@@ -715,7 +715,19 @@ test("getProviderCredentials exposes copilotToken when present in providerSpecif
   assert.equal(selected.copilotToken, "copilot-token-value");
 });
 
-test("markAccountUnavailable performs a model-only lockout for local 404 responses", async () => {
+test("markAccountUnavailable uses configured cooldowns for local 404 model lockouts", async () => {
+  await settingsDb.updateSettings({
+    providerProfiles: {
+      apikey: {
+        transientCooldown: 250,
+        rateLimitCooldown: 125,
+        maxBackoffLevel: 3,
+        circuitBreakerThreshold: 60,
+        circuitBreakerReset: 5000,
+      },
+    },
+  });
+
   const connection = await seedConnection("openai", {
     name: "local-openai",
     providerSpecificData: {
@@ -733,9 +745,11 @@ test("markAccountUnavailable performs a model-only lockout for local 404 respons
   const updated = await providersDb.getProviderConnectionById(connection.id);
 
   assert.equal(result.shouldFallback, true);
-  assert.ok(result.cooldownMs > 0);
+  assert.equal(result.cooldownMs, 250);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
+  assert.equal(updated.lastErrorType, "not_found");
+  assert.equal(Number(updated.errorCode), 404);
 });
 
 test("markAccountUnavailable applies a model-only lockout for Gemini 429 responses", async () => {

@@ -1147,21 +1147,34 @@ export async function markAccountUnavailable(
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── 404 model-only lockout: connection stays active ──
-    // For local providers (detected by URL) and cloud providers with passthrough models
-    // (like Antigravity), a 404 means the specific model doesn't exist or isn't available
-    // for this account — it should NOT lock out the entire connection.
+    // For local providers (detected by URL), a 404 means the specific model
+    // doesn't exist or isn't available for this account — it should NOT lock
+    // out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
       | string
       | undefined;
 
     if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
-      const localCooldown = COOLDOWN_MS.notFoundLocal;
-      lockModel(provider, connectionId, model, "not_found", localCooldown);
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "not_found",
+        status,
+        COOLDOWN_MS.notFoundLocal,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "not_found",
+        lastError: `Model ${model} not_found`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
       log.info(
         "AUTH",
-        `Model-only lockout for ${model} — 404 lockout ${localCooldown / 1000}s (connection stays active)`
+        `Model-only lockout for ${provider}:${model} — 404 not_found ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
       );
-      return { shouldFallback: true, cooldownMs: localCooldown };
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);
