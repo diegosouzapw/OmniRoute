@@ -986,7 +986,16 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // For Gemini: always use synced API models (empty if no keys added yet)
-  const models = providerId === "gemini" ? syncedAvailableModels : registryModels;
+  // For other providers: merge registry models with custom/imported models (deduped)
+  const models = useMemo(() => {
+    if (providerId === "gemini") return syncedAvailableModels;
+    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return registryModels;
+    const registryIds = new Set(registryModels.map((m) => m.id));
+    const customExtras = modelMeta.customModels
+      .filter((cm: any) => cm.id && !registryIds.has(cm.id))
+      .map((cm: any) => ({ id: cm.id, name: cm.name || cm.id }));
+    return [...registryModels, ...customExtras];
+  }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
