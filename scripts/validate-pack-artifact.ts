@@ -7,8 +7,10 @@ import { fileURLToPath } from "node:url";
 import {
   PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
   PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+  PACK_ARTIFACT_REQUIRED_PATHS,
+  findMissingArtifactPaths,
   findUnexpectedArtifactPaths,
-} from "./pack-artifact-policy.js";
+} from "./pack-artifact-policy.ts";
 
 const __filename: string = fileURLToPath(import.meta.url);
 const __dirname: string = dirname(__filename);
@@ -52,13 +54,14 @@ function formatBytes(bytes: number): string {
 try {
   const packReport = runPackDryRun();
   const artifactPaths: string[] = packReport.files.map((file: any) => file.path);
-  const appArtifactPaths: string[] = artifactPaths.filter((filePath: string) =>
-    filePath.startsWith("app/")
-  );
-  const unexpectedPaths: string[] = findUnexpectedArtifactPaths(appArtifactPaths, {
+  const unexpectedPaths: string[] = findUnexpectedArtifactPaths(artifactPaths, {
     exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
     prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
   });
+  const missingRequiredPaths: string[] = findMissingArtifactPaths(
+    artifactPaths,
+    PACK_ARTIFACT_REQUIRED_PATHS
+  );
 
   console.log("📦 npm pack artifact summary");
   console.log(`   File:          ${packReport.filename}`);
@@ -67,10 +70,20 @@ try {
   console.log(`   Unpacked size: ${formatBytes(packReport.unpackedSize)}`);
 
   if (unexpectedPaths.length > 0) {
-    console.error("\n❌ Unexpected files were found in the staged app/ publish artifact:");
+    console.error("\n❌ Unexpected files were found in the npm publish artifact:");
     for (const unexpectedPath of unexpectedPaths) {
       console.error(`   - ${unexpectedPath}`);
     }
+  }
+
+  if (missingRequiredPaths.length > 0) {
+    console.error("\n❌ Required runtime files are missing from the npm publish artifact:");
+    for (const missingPath of missingRequiredPaths) {
+      console.error(`   - ${missingPath}`);
+    }
+  }
+
+  if (unexpectedPaths.length > 0 || missingRequiredPaths.length > 0) {
     process.exit(1);
   }
 

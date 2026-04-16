@@ -28,7 +28,7 @@ import {
   APP_STAGING_ALLOWED_PATH_PREFIXES,
   APP_STAGING_REMOVAL_PATHS,
   findUnexpectedArtifactPaths,
-} from "./pack-artifact-policy.js";
+} from "./pack-artifact-policy.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

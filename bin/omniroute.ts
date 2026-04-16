@@ -21,7 +21,7 @@ import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
 import {
   getNodeRuntimeSupport,
   getNodeRuntimeWarning,
-} from "../src/shared/utils/nodeRuntimeSupport.js";
+} from "../src/shared/utils/nodeRuntimeSupport.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

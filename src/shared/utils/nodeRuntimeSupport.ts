@@ -16,17 +16,32 @@ export const RECOMMENDED_NODE_VERSION = "22.22.2";
 export const SUPPORTED_NODE_RANGE = ">=20.20.2 <21 || >=22.22.2 <23";
 export const SUPPORTED_NODE_DISPLAY = "Node.js 20.20.2+ (20.x LTS) or 22.22.2+ (22.x LTS)";
 
-/**
- * @param {{ major: number, minor: number, patch: number }} version
- */
-function formatVersion(version) {
+export interface NodeVersionInfo {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+export interface ParsedNodeVersion extends NodeVersionInfo {
+  raw: string;
+  normalized: string;
+}
+
+export interface NodeRuntimeSupport {
+  nodeVersion: string;
+  nodeCompatible: boolean;
+  reason: string;
+  supportedRange: string;
+  supportedDisplay: string;
+  recommendedVersion: string;
+  minimumSecureVersion: string | null;
+}
+
+function formatVersion(version: NodeVersionInfo): string {
   return `${version.major}.${version.minor}.${version.patch}`;
 }
 
-/**
- * @param {string} [version]
- */
-export function parseNodeVersion(version = process.versions.node) {
+export function parseNodeVersion(version: string = process.versions.node): ParsedNodeVersion {
   const rawInput = String(version || process.versions.node || "0.0.0").trim();
   const normalized = rawInput.replace(/^v/i, "");
   const parts = normalized.split(".");
@@ -43,27 +58,17 @@ export function parseNodeVersion(version = process.versions.node) {
   };
 }
 
-/**
- * @param {{ major: number, minor: number, patch: number }} a
- * @param {{ major: number, minor: number, patch: number }} b
- */
-export function compareNodeVersions(a, b) {
+export function compareNodeVersions(a: NodeVersionInfo, b: NodeVersionInfo): number {
   if (a.major !== b.major) return a.major - b.major;
   if (a.minor !== b.minor) return a.minor - b.minor;
   return a.patch - b.patch;
 }
 
-/**
- * @param {number} major
- */
-export function getSecureFloorForMajor(major) {
+export function getSecureFloorForMajor(major: number): NodeVersionInfo | null {
   return SECURE_NODE_LINES.find((line) => line.major === major) || null;
 }
 
-/**
- * @param {string} [version]
- */
-export function getNodeRuntimeSupport(version = process.versions.node) {
+export function getNodeRuntimeSupport(version: string = process.versions.node): NodeRuntimeSupport {
   const parsed = parseNodeVersion(version);
   const secureFloor = getSecureFloorForMajor(parsed.major);
   const nodeCompatible = secureFloor ? compareNodeVersions(parsed, secureFloor) >= 0 : false;
@@ -88,10 +93,7 @@ export function getNodeRuntimeSupport(version = process.versions.node) {
   };
 }
 
-/**
- * @param {string} [version]
- */
-export function getNodeRuntimeWarning(version = process.versions.node) {
+export function getNodeRuntimeWarning(version: string = process.versions.node): string | null {
   const support = getNodeRuntimeSupport(version);
   if (support.nodeCompatible) return null;
 

@@ -3,7 +3,7 @@
 import {
   getNodeRuntimeSupport,
   getNodeRuntimeWarning,
-} from "../src/shared/utils/nodeRuntimeSupport.js";
+} from "../src/shared/utils/nodeRuntimeSupport.ts";
 
 const support = getNodeRuntimeSupport();
 
