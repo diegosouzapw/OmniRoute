@@ -22,6 +22,8 @@ export default function SystemStorageTab() {
   const [clearCacheStatus, setClearCacheStatus] = useState({ type: "", message: "" });
   const [purgeLogsLoading, setPurgeLogsLoading] = useState(false);
   const [purgeLogsStatus, setPurgeLogsStatus] = useState({ type: "", message: "" });
+  const [cleanupBackupsLoading, setCleanupBackupsLoading] = useState(false);
+  const [cleanupBackupsStatus, setCleanupBackupsStatus] = useState({ type: "", message: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const locale = useLocale();
@@ -39,7 +41,16 @@ export default function SystemStorageTab() {
       callLogs: 100000,
       proxyLogs: 100000,
     },
+    backupCount: 0,
+    backupRetention: {
+      maxFiles: 20,
+      days: 0,
+    },
     lastBackupAt: null,
+  });
+  const [backupCleanupOptions, setBackupCleanupOptions] = useState({
+    keepLatest: 20,
+    retentionDays: 0,
   });
 
   const loadBackups = async () => {
@@ -61,8 +72,42 @@ export default function SystemStorageTab() {
       if (!res.ok) return;
       const data = await res.json();
       setStorageHealth((prev) => ({ ...prev, ...data }));
+      setBackupCleanupOptions({
+        keepLatest: data.backupRetention?.maxFiles || 20,
+        retentionDays: data.backupRetention?.days || 0,
+      });
     } catch (err) {
       console.error("Failed to fetch storage health:", err);
+    }
+  };
+
+  const handleCleanupBackups = async () => {
+    setCleanupBackupsLoading(true);
+    setCleanupBackupsStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/db-backups", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(backupCleanupOptions),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCleanupBackupsStatus({
+          type: "success",
+          message: `Deleted ${data.deletedBackupFamilies} backup set(s) and ${data.deletedFiles} file(s).`,
+        });
+        await loadStorageHealth();
+        if (backupsExpanded) await loadBackups();
+      } else {
+        setCleanupBackupsStatus({
+          type: "error",
+          message: data.error || "Failed to clean database backups",
+        });
+      }
+    } catch {
+      setCleanupBackupsStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setCleanupBackupsLoading(false);
     }
   };
 
@@ -393,6 +438,95 @@ export default function SystemStorageTab() {
             </Badge>
           </div>
         </div>
+      </div>
+
+      <div className="p-3 rounded-lg bg-bg border border-border mb-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+          <div>
+            <p className="text-sm font-medium text-text-main">Database backup retention</p>
+            <p className="text-xs text-text-muted">
+              Automatic SQLite backups are stored in <code>db_backups</code>. Configure how many
+              snapshots to keep and optionally delete backups older than N days.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="default" size="sm">
+              {storageHealth.backupCount || 0} backups
+            </Badge>
+            <Badge variant="default" size="sm">
+              Max {storageHealth.backupRetention.maxFiles}
+            </Badge>
+            <Badge variant="default" size="sm">
+              {storageHealth.backupRetention.days > 0
+                ? `${storageHealth.backupRetention.days}d retention`
+                : "Age retention off"}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-xs text-text-muted">
+            Keep latest backups
+            <input
+              type="number"
+              min={1}
+              max={200}
+              value={backupCleanupOptions.keepLatest}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value || "1", 10);
+                setBackupCleanupOptions((prev) => ({
+                  ...prev,
+                  keepLatest: Number.isFinite(parsed) ? Math.max(1, parsed) : 1,
+                }));
+              }}
+              className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-text-muted">
+            Delete older than days
+            <input
+              type="number"
+              min={0}
+              max={3650}
+              value={backupCleanupOptions.retentionDays}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value || "0", 10);
+                setBackupCleanupOptions((prev) => ({
+                  ...prev,
+                  retentionDays: Number.isFinite(parsed) ? Math.max(0, parsed) : 0,
+                }));
+              }}
+              className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
+            />
+          </label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCleanupBackups}
+            loading={cleanupBackupsLoading}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              auto_delete
+            </span>
+            Clean old backups
+          </Button>
+        </div>
+        {cleanupBackupsStatus.message && (
+          <div
+            className={`mt-3 p-3 rounded-lg text-sm ${
+              cleanupBackupsStatus.type === "success"
+                ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                : "bg-red-500/10 text-red-500 border border-red-500/20"
+            }`}
+            role="alert"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                {cleanupBackupsStatus.type === "success" ? "check_circle" : "error"}
+              </span>
+              {cleanupBackupsStatus.message}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Export / Import */}
