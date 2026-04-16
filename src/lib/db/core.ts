@@ -771,6 +771,54 @@ export function getDbInstance(): SqliteDatabase {
   }
   const jsonDbFile = JSON_DB_FILE;
 
+  // ── key_value Preservation Guard (#1332) ──
+  // Before any potential DB file rename/recreation, read all key_value data
+  // so it can be restored if the DB is recreated from scratch (e.g., schema
+  // mismatch, probe failure, or npm update wiping the file).
+  const SKIP_PRESERVE_NAMESPACES = new Set([
+    "syncedAvailableModels",
+    "providerLimitsCache",
+    "lkgp",
+  ]);
+  const KEY_VALUE_PRESERVE_LIMIT = 10_000;
+  let preservedKeyValue: Array<{ namespace: string; key: string; value: string }> = [];
+
+  if (!isCloud && SQLITE_FILE && fs.existsSync(sqliteFile)) {
+    try {
+      const kvProbe = new Database(sqliteFile, { readonly: true });
+      try {
+        const hasKv = kvProbe
+          .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='key_value'")
+          .get();
+        if (hasKv) {
+          preservedKeyValue = kvProbe
+            .prepare("SELECT namespace, key, value FROM key_value")
+            .all() as Array<{ namespace: string; key: string; value: string }>;
+          if (preservedKeyValue.length > KEY_VALUE_PRESERVE_LIMIT) {
+            console.warn(
+              `[DB] key_value has ${preservedKeyValue.length} rows (limit ${KEY_VALUE_PRESERVE_LIMIT}), skipping preservation`
+            );
+            preservedKeyValue = [];
+          } else {
+            preservedKeyValue = preservedKeyValue.filter(
+              (row) => !SKIP_PRESERVE_NAMESPACES.has(row.namespace)
+            );
+            if (preservedKeyValue.length > 0) {
+              console.log(
+                `[DB] Preserved ${preservedKeyValue.length} key_value entries before potential recreation`
+              );
+            }
+          }
+        }
+      } finally {
+        kvProbe.close();
+      }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn(`[DB] Could not preserve key_value: ${message}`);
+    }
+  }
+
   // Detect and handle old schema format — preserve data when possible (#146)
   // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
@@ -941,6 +989,23 @@ export function getDbInstance(): SqliteDatabase {
   // Auto-migrate from db.json if exists
   if (jsonDbFile && fs.existsSync(jsonDbFile)) {
     migrateFromJson(db, jsonDbFile);
+  }
+
+  // ── key_value Restoration (#1332) ──
+  // Restore preserved key_value data that was read before potential DB recreation.
+  // Uses INSERT OR IGNORE so fresh defaults seeded by migrations are not overwritten.
+  if (preservedKeyValue.length > 0) {
+    const insertKv = db.prepare(
+      "INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
+    );
+    const restoreKv = db.transaction(() => {
+      for (const row of preservedKeyValue) {
+        insertKv.run(row.namespace, row.key, row.value);
+      }
+    });
+    restoreKv();
+    console.log(`[DB] Restored ${preservedKeyValue.length} preserved key_value entries`);
+    preservedKeyValue = [];
   }
 
   // Store schema version
