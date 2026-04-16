@@ -20,6 +20,7 @@
 
 x-common: &common
   restart: unless-stopped
+  stop_grace_period: 40s
   env_file: .env
   environment:
     - DATA_DIR=/app/data # Must match the volume mount below

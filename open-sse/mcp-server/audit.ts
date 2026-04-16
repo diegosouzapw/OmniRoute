@@ -18,6 +18,9 @@ interface StatementLike<TRow = unknown> {
 
 interface AuditDatabase {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
+  pragma: (sql: string) => unknown;
+  close: () => void;
+  open?: boolean;
 }
 
 interface AuditStatsRow {
@@ -169,6 +172,33 @@ async function getDb(): Promise<AuditDatabase | null> {
     console.error("[MCP Audit] Failed to connect to database:", message);
     return null;
   }
+}
+
+export function closeAuditDb(): boolean {
+  if (!db) return false;
+
+  const database = db;
+  db = null;
+
+  try {
+    try {
+      if (database.open !== false) {
+        database.pragma("wal_checkpoint(TRUNCATE)");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn("[MCP Audit] WAL checkpoint failed during close:", message);
+    }
+  } finally {
+    try {
+      database.close();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn("[MCP Audit] Failed to close database:", message);
+    }
+  }
+
+  return true;
 }
 
 // ============ Audit Logger ============
