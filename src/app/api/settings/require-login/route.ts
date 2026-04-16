@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.js";
+import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 

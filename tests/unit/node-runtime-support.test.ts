@@ -6,7 +6,7 @@ import {
   getNodeRuntimeSupport,
   getNodeRuntimeWarning,
   parseNodeVersion,
-} from "../../src/shared/utils/nodeRuntimeSupport.js";
+} from "../../src/shared/utils/nodeRuntimeSupport.ts";
 
 test("parseNodeVersion normalizes v-prefixed versions", () => {
   assert.deepEqual(parseNodeVersion("v22.22.2"), {
