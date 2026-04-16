@@ -1236,7 +1236,9 @@ export async function handleChatCore({
               function: {
                 name: t.name,
                 ...(t.description !== undefined ? { description: t.description } : {}),
-                ...(t.parameters !== undefined ? { parameters: t.parameters } : {}),
+                ...(t.parameters !== undefined || t.input_schema !== undefined
+                  ? { parameters: t.parameters ?? t.input_schema ?? {} }
+                  : {}),
                 ...(t.strict !== undefined ? { strict: t.strict } : {}),
               },
             };

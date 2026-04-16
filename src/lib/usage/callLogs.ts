@@ -557,8 +557,9 @@ export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      (SELECT pn.prefix FROM provider_nodes pn WHERE pn.id = cl.provider LIMIT 1) AS provider_node_prefix
+      pn.prefix AS provider_node_prefix
     FROM call_logs cl
+    LEFT JOIN provider_nodes pn ON pn.id = cl.provider
   `;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
@@ -671,8 +672,10 @@ export async function getCallLogById(id: string) {
   const row = db
     .prepare(
       `SELECT cl.*,
-        (SELECT pn.prefix FROM provider_nodes pn WHERE pn.id = cl.provider LIMIT 1) AS provider_node_prefix
-       FROM call_logs cl WHERE cl.id = ?`
+        pn.prefix AS provider_node_prefix
+       FROM call_logs cl
+       LEFT JOIN provider_nodes pn ON pn.id = cl.provider
+       WHERE cl.id = ?`
     )
     .get(id);
   if (!row) return null;

@@ -139,6 +139,9 @@ function stringifyForSignature(value: unknown): string {
  * Supports both Chat Completions `messages[]` and Responses API `input[]`.
  */
 function normalizeConversation(conversation: unknown) {
+  if (typeof conversation === "string") {
+    return [{ role: "user", content: conversation }];
+  }
   if (!Array.isArray(conversation)) return [];
 
   return conversation.map((item: Record<string, unknown>) => ({
