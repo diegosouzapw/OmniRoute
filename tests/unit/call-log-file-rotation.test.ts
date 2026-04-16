@@ -13,11 +13,44 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.CALL_LOG_RETENTION_DAYS = "7";
 process.env.CALL_LOG_MAX_ENTRIES = "2";
 
+const core = await import("../../src/lib/db/core.ts");
 const { rotateCallLogs, cleanupOverflowCallLogFiles } =
   await import("../../src/lib/usage/callLogs.ts");
-const { CALL_LOGS_DIR } = await import("../../src/lib/usage/migrations.ts");
+const { CALL_LOGS_DIR } = await import("../../src/lib/usage/callLogArtifacts.ts");
+
+function insertCallLog(row) {
+  const db = core.getDbInstance();
+  db.prepare(
+    `
+    INSERT INTO call_logs (
+      id, timestamp, method, path, status, model, provider, account, detail_state, artifact_relpath,
+      has_request_body
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `
+  ).run(
+    row.id,
+    row.timestamp,
+    row.method || "POST",
+    row.path || "/v1/chat/completions",
+    row.status || 200,
+    row.model || "openai/gpt-4.1",
+    row.provider || "openai",
+    row.account || "acct",
+    row.detail_state || "ready",
+    row.artifact_relpath || null,
+    row.has_request_body || 1
+  );
+}
+
+test.beforeEach(() => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+});
 
 test.after(() => {
+  core.resetDbInstance();
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {
@@ -44,34 +77,79 @@ test("call log file rotation honors both retention days and file count", () => {
   fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
   fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
 
-  const oldDir = path.join(CALL_LOGS_DIR, "2026-03-01");
-  const activeDir = path.join(CALL_LOGS_DIR, "2026-03-31");
-  fs.mkdirSync(oldDir, { recursive: true });
-  fs.mkdirSync(activeDir, { recursive: true });
+  const oldRelPath = "2026-03-01/080000_old_200.json";
+  const keepARelPath = "2026-04-12/090000_keep-a_200.json";
+  const keepBRelPath = "2026-04-13/091000_keep-b_200.json";
+  const keepCRelPath = "2026-04-14/092000_keep-c_200.json";
 
-  const oldFile = path.join(oldDir, "080000_old_200.json");
-  const keepA = path.join(activeDir, "090000_keep-a_200.json");
-  const keepB = path.join(activeDir, "091000_keep-b_200.json");
-  const keepC = path.join(activeDir, "092000_keep-c_200.json");
-
-  for (const file of [oldFile, keepA, keepB, keepC]) {
-    fs.writeFileSync(file, JSON.stringify({ file }), "utf8");
+  for (const relativePath of [oldRelPath, keepARelPath, keepBRelPath, keepCRelPath]) {
+    const absolutePath = path.join(CALL_LOGS_DIR, relativePath);
+    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    fs.writeFileSync(absolutePath, JSON.stringify({ relativePath }), "utf8");
   }
+
+  insertCallLog({
+    id: "old-log",
+    timestamp: "2026-03-01T08:00:00.000Z",
+    artifact_relpath: oldRelPath,
+  });
+  insertCallLog({
+    id: "keep-a",
+    timestamp: "2026-04-12T09:00:00.000Z",
+    artifact_relpath: keepARelPath,
+  });
+  insertCallLog({
+    id: "keep-b",
+    timestamp: "2026-04-13T09:10:00.000Z",
+    artifact_relpath: keepBRelPath,
+  });
+  insertCallLog({
+    id: "keep-c",
+    timestamp: "2026-04-14T09:20:00.000Z",
+    artifact_relpath: keepCRelPath,
+  });
 
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000;
-  fs.utimesSync(oldFile, new Date(now - 10 * oneDay), new Date(now - 10 * oneDay));
-  fs.utimesSync(oldDir, new Date(now - 10 * oneDay), new Date(now - 10 * oneDay));
-  fs.utimesSync(keepA, new Date(now - 3 * oneDay), new Date(now - 3 * oneDay));
-  fs.utimesSync(keepB, new Date(now - 2 * oneDay), new Date(now - 2 * oneDay));
-  fs.utimesSync(keepC, new Date(now - oneDay), new Date(now - oneDay));
+  fs.utimesSync(
+    path.join(CALL_LOGS_DIR, oldRelPath),
+    new Date(now - 10 * oneDay),
+    new Date(now - 10 * oneDay)
+  );
+  fs.utimesSync(
+    path.join(CALL_LOGS_DIR, keepARelPath),
+    new Date(now - 3 * oneDay),
+    new Date(now - 3 * oneDay)
+  );
+  fs.utimesSync(
+    path.join(CALL_LOGS_DIR, keepBRelPath),
+    new Date(now - 2 * oneDay),
+    new Date(now - 2 * oneDay)
+  );
+  fs.utimesSync(
+    path.join(CALL_LOGS_DIR, keepCRelPath),
+    new Date(now - oneDay),
+    new Date(now - oneDay)
+  );
 
   rotateCallLogs();
 
-  assert.equal(fs.existsSync(oldDir), false);
-  assert.equal(fs.existsSync(keepA), false);
-  assert.equal(fs.existsSync(keepB), true);
-  assert.equal(fs.existsSync(keepC), true);
+  const db = core.getDbInstance();
+  assert.equal(
+    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("old-log").cnt,
+    0
+  );
+  assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, oldRelPath)), false);
+
+  const keepARow = db
+    .prepare("SELECT detail_state, artifact_relpath FROM call_logs WHERE id = ?")
+    .get("keep-a");
+  assert.equal(keepARow.detail_state, "missing");
+  assert.equal(keepARow.artifact_relpath, null);
+  assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepARelPath)), false);
+
+  assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepBRelPath)), true);
+  assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepCRelPath)), true);
 });
 
 test("rotateCallLogs swallows filesystem errors during cleanup", () => {
@@ -166,10 +244,23 @@ test("cleanupOverflowCallLogFiles ignores rmSync failures for old artifacts", ()
   const dayDir = path.join(CALL_LOGS_DIR, "2026-04-02");
   fs.mkdirSync(dayDir, { recursive: true });
 
-  const newerFile = path.join(dayDir, "110000_keep.json");
-  const olderFile = path.join(dayDir, "100000_remove.json");
+  const newerRelPath = "2026-04-02/110000_keep.json";
+  const olderRelPath = "2026-04-02/100000_remove.json";
+  const newerFile = path.join(CALL_LOGS_DIR, newerRelPath);
+  const olderFile = path.join(CALL_LOGS_DIR, olderRelPath);
   fs.writeFileSync(newerFile, "{}");
   fs.writeFileSync(olderFile, "{}");
+
+  insertCallLog({
+    id: "keep",
+    timestamp: "2026-04-02T11:00:00.000Z",
+    artifact_relpath: newerRelPath,
+  });
+  insertCallLog({
+    id: "remove",
+    timestamp: "2026-04-02T10:00:00.000Z",
+    artifact_relpath: olderRelPath,
+  });
 
   const now = Date.now();
   fs.utimesSync(newerFile, new Date(now), new Date(now));

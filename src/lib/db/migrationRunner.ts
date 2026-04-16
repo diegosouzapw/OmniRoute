@@ -50,6 +50,15 @@ const MIGRATIONS_DIR = resolveMigrationsDir();
  */
 const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 5;
 
+const RENAMED_MIGRATION_COMPATIBILITY = [
+  {
+    fromVersion: "022",
+    fromName: "call_logs_summary_storage",
+    toVersion: "025",
+    toName: "call_logs_summary_storage",
+  },
+] as const;
+
 /**
  * Ensure the schema_migrations tracking table exists.
  */
@@ -133,6 +142,68 @@ function detectNameMismatches(
   return mismatches;
 }
 
+function reconcileRenumberedMigrations(
+  db: Database.Database,
+  files: Array<{ version: string; name: string; path: string }>
+): boolean {
+  let repaired = false;
+
+  for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
+    const hasTargetFile = files.some(
+      (file) =>
+        file.version === compatibility.toVersion && file.name === compatibility.toName
+    );
+    const hasSourceFile = files.some(
+      (file) =>
+        file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+    );
+
+    if (!hasTargetFile || !hasSourceFile) {
+      continue;
+    }
+
+    const legacyRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get(compatibility.fromVersion, compatibility.fromName) as
+      | { version: string; name: string }
+      | undefined;
+    if (!legacyRow) {
+      continue;
+    }
+
+    const targetRow = db
+      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+      .get(compatibility.toVersion) as { version: string } | undefined;
+
+    const applyRepair = db.transaction(() => {
+      if (targetRow) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          compatibility.fromVersion,
+          compatibility.fromName
+        );
+      } else {
+        db.prepare(
+          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
+        ).run(
+          compatibility.toVersion,
+          compatibility.toName,
+          compatibility.fromVersion,
+          compatibility.fromName
+        );
+      }
+    });
+
+    applyRepair();
+    repaired = true;
+    console.warn(
+      `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
+        `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
+    );
+  }
+
+  return repaired;
+}
+
 /**
  * Create a pre-migration backup of the SQLite database using VACUUM INTO.
  * Returns the backup path on success, null on failure.
@@ -174,6 +245,7 @@ export function runMigrations(db: Database.Database): number {
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
+  reconcileRenumberedMigrations(db, files);
   const applied = getAppliedVersions(db);
   const appliedRecords = getAppliedRecords(db);
 

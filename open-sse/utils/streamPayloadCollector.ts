@@ -344,6 +344,10 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
         input: unknown;
         inputJson: string;
       };
+  type ClaudeContentBlock =
+    | { type: "text"; text: string }
+    | { type: "thinking"; thinking: string; signature?: string }
+    | { type: "tool_use"; id: string; name: string; input: unknown };
 
   const blocks = new Map<number, ClaudeBlock>();
   const usage: JsonRecord = {};
@@ -456,7 +460,7 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
 
   const content = [...blocks.values()]
     .sort((a, b) => a.index - b.index)
-    .flatMap((block) => {
+    .flatMap<ClaudeContentBlock>((block) => {
       if (block.type === "text") {
         return block.text
           ? [

@@ -18,6 +18,7 @@ import {
   getProxyLogsTableMaxRows,
 } from "../logEnv";
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
+import { deleteCallLogsBefore, trimCallLogsToMaxRows } from "../usage/callLogs";
 
 /** @returns {import("better-sqlite3").Database | null} */
 function getDb() {
@@ -539,8 +540,8 @@ export function cleanupExpiredLogs() {
   }
 
   try {
-    const r2 = db.prepare("DELETE FROM call_logs WHERE timestamp < ?").run(callCutoff);
-    deletedCallLogs = r2.changes;
+    const r2 = deleteCallLogsBefore(callCutoff);
+    deletedCallLogs = r2.deletedRows;
   } catch {
     /* table may not exist */
   }
@@ -577,22 +578,8 @@ export function cleanupExpiredLogs() {
   const BATCH_SIZE = 5000;
   if (callLogsMaxRows > 0) {
     try {
-      let currentCount = db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get() as {
-        cnt: number;
-      };
-      while (currentCount.cnt > callLogsMaxRows) {
-        const toDelete = Math.min(currentCount.cnt - callLogsMaxRows, BATCH_SIZE);
-        const trimmed = db
-          .prepare(
-            `DELETE FROM call_logs WHERE id IN (
-              SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
-            )`
-          )
-          .run(toDelete);
-        trimmedCallLogs += trimmed.changes;
-        currentCount.cnt -= trimmed.changes;
-        if (trimmed.changes === 0) break;
-      }
+      const trimmed = trimCallLogsToMaxRows(callLogsMaxRows);
+      trimmedCallLogs = trimmed.deletedRows;
     } catch {
       /* best effort */
     }
