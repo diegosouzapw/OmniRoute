@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
+import { CALL_LOGS_DIR } from "@/lib/usage/callLogArtifacts";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { execSync } from "node:child_process";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
 
       // 1. Export database using native backup API
       const dbBackupPath = path.join(tempDir, "storage.sqlite");
-      db.backup(dbBackupPath);
+      await db.backup(dbBackupPath);
 
       // 2. Export settings as JSON
       const settings: Record<string, string> = {};
@@ -89,7 +91,12 @@ export async function GET(request: NextRequest) {
       }
       fs.writeFileSync(path.join(tempDir, "api-keys.json"), JSON.stringify(apiKeys, null, 2));
 
-      // 6. Export metadata
+      // 6. Export call log artifacts directory
+      if (CALL_LOGS_DIR && fs.existsSync(CALL_LOGS_DIR)) {
+        fs.cpSync(CALL_LOGS_DIR, path.join(tempDir, "call_logs"), { recursive: true });
+      }
+
+      // 7. Export metadata
       const metadata = {
         exportedAt: new Date().toISOString(),
         version: process.env.npm_package_version || "unknown",
@@ -100,13 +107,13 @@ export async function GET(request: NextRequest) {
           "combos.json - Combo configurations",
           "providers.json - Provider connections (no credentials)",
           "api-keys.json - API key metadata (masked)",
+          "call_logs/ - Detailed call log artifacts",
         ],
       };
       fs.writeFileSync(path.join(tempDir, "metadata.json"), JSON.stringify(metadata, null, 2));
 
       // Create ZIP using tar (available on all Linux/macOS, and the archiver npm package is not installed)
       // We'll use Node.js built-in zlib to create a simple tar.gz instead
-      const { execSync } = require("node:child_process");
       const tarPath = zipPath.replace(".zip", ".tar.gz");
       execSync(`tar -czf "${tarPath}" -C "${path.dirname(tempDir)}" "${path.basename(tempDir)}"`, {
         timeout: 30000,

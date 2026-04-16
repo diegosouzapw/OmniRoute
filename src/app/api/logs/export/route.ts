@@ -1,4 +1,5 @@
 import { getDbInstance } from "@/lib/db/core";
+import { exportCallLogsSince } from "@/lib/usage/callLogs";
 
 /**
  * GET /api/logs/export — export logs as JSON
@@ -19,10 +20,7 @@ export async function GET(request: Request) {
 
     if (logType === "call-logs" || logType === "request-logs") {
       tableName = "call_logs";
-      const stmt = db.prepare(
-        "SELECT * FROM call_logs WHERE timestamp >= @since ORDER BY timestamp DESC"
-      );
-      rows = stmt.all({ since });
+      rows = await exportCallLogsSince(since);
     } else if (logType === "proxy-logs") {
       tableName = "proxy_logs";
       const stmt = db.prepare(
