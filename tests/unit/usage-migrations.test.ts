@@ -225,7 +225,7 @@ test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks
   ]);
 });
 
-test("migrateUsageJsonToSqlite migrates call logs, serializes payloads, and ignores duplicate ids", () => {
+test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores duplicate ids", () => {
   writeJson(CALL_LOGS_JSON_FILE, {
     logs: [
       {
@@ -271,7 +271,7 @@ test("migrateUsageJsonToSqlite migrates call logs, serializes payloads, and igno
     .prepare(
       `
         SELECT id, method, path, status, provider, account, connection_id,
-               request_body, response_body, error
+               detail_state, artifact_relpath, has_request_body, has_response_body, error_summary
         FROM call_logs
         ORDER BY timestamp ASC
       `
@@ -287,10 +287,13 @@ test("migrateUsageJsonToSqlite migrates call logs, serializes payloads, and igno
     provider: "openai",
     account: "acct-a",
     connection_id: "conn-a",
-    request_body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }),
-    response_body: JSON.stringify({ id: "resp-1" }),
-    error: "bad upstream",
+    detail_state: "ready",
+    artifact_relpath: rows[0].artifact_relpath,
+    has_request_body: 1,
+    has_response_body: 1,
+    error_summary: "bad upstream",
   });
+  assert.equal(typeof rows[0].artifact_relpath, "string");
   assert.equal(rows[1].id.length > 0, true);
   assert.equal(rows[1].method, "POST");
   assert.equal(rows[1].path, null);
@@ -298,9 +301,22 @@ test("migrateUsageJsonToSqlite migrates call logs, serializes payloads, and igno
   assert.equal(rows[1].provider, null);
   assert.equal(rows[1].account, null);
   assert.equal(rows[1].connection_id, null);
-  assert.deepEqual(JSON.parse(rows[1].request_body), { foo: "bar" });
-  assert.equal(rows[1].response_body, null);
-  assert.equal(rows[1].error, null);
+  assert.equal(rows[1].detail_state, "ready");
+  assert.equal(rows[1].has_request_body, 1);
+  assert.equal(rows[1].has_response_body, 0);
+  assert.equal(rows[1].error_summary, null);
+
+  const firstArtifact = JSON.parse(
+    fs.readFileSync(path.join(TEST_DATA_DIR, "call_logs", rows[0].artifact_relpath), "utf8")
+  );
+  assert.deepEqual(firstArtifact.requestBody, { messages: [{ role: "user", content: "hi" }] });
+  assert.deepEqual(firstArtifact.responseBody, { id: "resp-1" });
+
+  const secondArtifact = JSON.parse(
+    fs.readFileSync(path.join(TEST_DATA_DIR, "call_logs", rows[1].artifact_relpath), "utf8")
+  );
+  assert.deepEqual(secondArtifact.requestBody, { foo: "bar" });
+  assert.equal(secondArtifact.responseBody, null);
 });
 
 test("migrateUsageJsonToSqlite renames empty JSON payloads without inserting rows", () => {

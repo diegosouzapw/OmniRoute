@@ -109,6 +109,12 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     : [];
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
+  const detailIssue =
+    detail?.detailState === "missing"
+      ? "Detailed payload artifact is no longer available for this log entry."
+      : detail?.detailState === "corrupt"
+        ? "Detailed payload artifact could not be parsed."
+        : null;
   const tokenStats = {
     totalIn: detail?.tokens?.in ?? log.tokens?.in ?? 0,
     totalOut: detail?.tokens?.out ?? log.tokens?.out ?? 0,
@@ -304,6 +310,15 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
               <div className="text-sm text-red-600 dark:text-red-300 font-mono">
                 {detail?.error || log.error}
               </div>
+            </div>
+          )}
+
+          {detailIssue && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 font-bold">
+                Detail Status
+              </div>
+              <div className="text-sm text-amber-700 dark:text-amber-200">{detailIssue}</div>
             </div>
           )}
 

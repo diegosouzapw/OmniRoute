@@ -33,7 +33,7 @@ export async function GET(req: Request) {
         `SELECT
           COUNT(*) as total,
           COALESCE(SUM(CASE WHEN timestamp >= ? THEN 1 ELSE 0 END), 0) as today,
-          COALESCE(SUM(CASE WHEN status >= 400 OR error IS NOT NULL THEN 1 ELSE 0 END), 0) as errors,
+          COALESCE(SUM(CASE WHEN status >= 400 OR error_summary IS NOT NULL THEN 1 ELSE 0 END), 0) as errors,
           AVG(CASE WHEN duration > 0 THEN duration END) as avg_duration,
           COALESCE(SUM(CASE WHEN duration > 0 AND duration < 5 THEN 1 ELSE 0 END), 0) as cached
          FROM call_logs
