@@ -209,6 +209,58 @@ test("chatCore sanitization preserves max_output_tokens for openai-responses tar
 
   // max_output_tokens should survive sanitization for Responses targets
   assert.equal("max_tokens" in call.body, false, "max_tokens must not be injected for Responses targets");
+
+  // Reverse normalization: max_tokens → max_output_tokens for Responses targets
+  const fromMaxTokens = await invokeChatCore({
+    endpoint: "/v1/responses",
+    body: {
+      model: "gpt-5.4",
+      max_tokens: 2048,
+      input: [{ role: "user", content: "hello" }],
+    },
+    responseFactory: () =>
+      new Response(
+        JSON.stringify({
+          id: "resp_test2",
+          object: "response",
+          status: "completed",
+          model: "gpt-5.4",
+          output: [
+            { type: "message", role: "assistant", content: [{ type: "output_text", text: "ok" }] },
+          ],
+          usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      ),
+  });
+
+  assert.equal("max_tokens" in fromMaxTokens.call.body, false, "max_tokens should be converted to max_output_tokens");
+
+  // Reverse normalization: max_completion_tokens → max_output_tokens for Responses targets
+  const fromMaxCompletion = await invokeChatCore({
+    endpoint: "/v1/responses",
+    body: {
+      model: "gpt-5.4",
+      max_completion_tokens: 8192,
+      input: [{ role: "user", content: "hello" }],
+    },
+    responseFactory: () =>
+      new Response(
+        JSON.stringify({
+          id: "resp_test3",
+          object: "response",
+          status: "completed",
+          model: "gpt-5.4",
+          output: [
+            { type: "message", role: "assistant", content: [{ type: "output_text", text: "ok" }] },
+          ],
+          usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      ),
+  });
+
+  assert.equal("max_completion_tokens" in fromMaxCompletion.call.body, false, "max_completion_tokens should be converted to max_output_tokens");
 });
 
 test("chatCore sanitization strips empty message names and filters empty tool names", async () => {
