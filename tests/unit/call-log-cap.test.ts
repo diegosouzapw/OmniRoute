@@ -25,14 +25,14 @@ function insertCallLog(row) {
     `
     INSERT INTO call_logs (
       id, timestamp, method, path, status, model, requested_model, provider, account,
-      connection_id, duration, tokens_in, tokens_out, source_format, target_format,
+      connection_id, duration, tokens_in, tokens_out, cache_source, source_format, target_format,
       api_key_id, api_key_name, combo_name, combo_step_id, combo_execution_key,
       error_summary, detail_state, artifact_relpath, artifact_size_bytes, artifact_sha256,
       has_request_body, has_response_body, has_pipeline_details, request_summary
     )
     VALUES (
       @id, @timestamp, @method, @path, @status, @model, @requested_model, @provider, @account,
-      @connection_id, @duration, @tokens_in, @tokens_out, @source_format, @target_format,
+      @connection_id, @duration, @tokens_in, @tokens_out, @cache_source, @source_format, @target_format,
       @api_key_id, @api_key_name, @combo_name, @combo_step_id, @combo_execution_key,
       @error_summary, @detail_state, @artifact_relpath, @artifact_size_bytes, @artifact_sha256,
       @has_request_body, @has_response_body, @has_pipeline_details, @request_summary
@@ -44,6 +44,7 @@ function insertCallLog(row) {
     duration: 0,
     tokens_in: 0,
     tokens_out: 0,
+    cache_source: "upstream",
     source_format: null,
     target_format: null,
     api_key_id: null,
@@ -87,6 +88,7 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
     model: "openai/gpt-4.1",
     requestedModel: "openai/gpt-5",
     provider: "openai",
+    cacheSource: "semantic",
     duration: 42,
     comboName: "combo-a",
     comboStepId: "step-openai-a",
@@ -110,6 +112,7 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
 
   const detail = await callLogs.getCallLogById(logId);
   assert.equal(detail?.requestedModel, "openai/gpt-5");
+  assert.equal(detail?.cacheSource, "semantic");
   assert.equal(detail?.comboName, "combo-a");
   assert.equal(detail?.comboStepId, "step-openai-a");
   assert.equal(detail?.comboExecutionKey, "combo-a:0:step-openai-a");
@@ -134,12 +137,13 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   const summaryRow = db
     .prepare(
       `
-      SELECT detail_state, artifact_relpath, has_request_body, has_response_body, has_pipeline_details
+      SELECT detail_state, artifact_relpath, cache_source, has_request_body, has_response_body, has_pipeline_details
       FROM call_logs WHERE id = ?
     `
     )
     .get(logId);
   assert.equal(summaryRow.detail_state, "ready");
+  assert.equal(summaryRow.cache_source, "semantic");
   assert.equal(summaryRow.has_request_body, 1);
   assert.equal(summaryRow.has_response_body, 1);
   assert.equal(summaryRow.has_pipeline_details, 1);

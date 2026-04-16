@@ -1,7 +1,9 @@
 /**
  * Semantic Cache — Phase 9.1
  *
- * Caches non-streaming LLM responses (temperature=0) to reduce cost and latency.
+ * Caches LLM responses (temperature=0) to reduce cost and latency.
+ * Supports both streaming and non-streaming requests: streaming responses
+ * are cached after assembly; cache hits always return JSON.
  * Two-tier: in-memory LRU (fast) + SQLite (persistent across restarts).
  *
  * Cache key = SHA-256(model + normalized messages + temperature + top_p)
@@ -113,25 +115,38 @@ function getMemoryCache() {
  * @param {number} topP
  * @returns {string} hex signature
  */
-export function generateSignature(model, messages, temperature = 0, topP = 1) {
+export function generateSignature(model, conversation, temperature = 0, topP = 1) {
   const payload = JSON.stringify({
     model,
-    messages: normalizeMessages(messages),
+    messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
   });
   return crypto.createHash("sha256").update(payload).digest("hex");
 }
 
+function stringifyForSignature(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 /**
- * Normalize messages for consistent hashing.
- * Strips metadata, keeps only role + content.
+ * Normalize conversation items for consistent hashing.
+ * Supports both Chat Completions `messages[]` and Responses API `input[]`.
  */
-function normalizeMessages(messages) {
-  if (!Array.isArray(messages)) return [];
-  return messages.map((m) => ({
-    role: m.role || "user",
-    content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+function normalizeConversation(conversation: unknown) {
+  if (typeof conversation === "string") {
+    return [{ role: "user", content: conversation }];
+  }
+  if (!Array.isArray(conversation)) return [];
+
+  return conversation.map((item: Record<string, unknown>) => ({
+    role: typeof item?.role === "string" && item.role.trim().length > 0 ? item.role : "user",
+    content: stringifyForSignature(item?.content),
   }));
 }
 
@@ -379,8 +394,9 @@ export function getCacheStats() {
 }
 
 /**
- * Check if a request is cacheable.
+ * Check if a request is cacheable for read (pre-request lookup).
  * Only non-streaming, deterministic (temperature=0) requests.
+ * @deprecated Use isCacheableForRead instead.
  */
 export function isCacheable(body, headers) {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
@@ -388,5 +404,32 @@ export function isCacheable(body, headers) {
   }
   if (body.stream !== false) return false;
   if ((body.temperature ?? 0) !== 0) return false;
+  return true;
+}
+
+/**
+ * Check if a cached response can be served for this request.
+ * Works for both streaming and non-streaming requests (cache hit returns JSON).
+ * Omitted temperature defaults to 0 for read (matching existing cache entries).
+ */
+export function isCacheableForRead(body, headers) {
+  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+    return false;
+  }
+  if ((body.temperature ?? 0) !== 0) return false;
+  return true;
+}
+
+/**
+ * Check if a response should be stored in cache after completion.
+ * Works for both streaming and non-streaming responses.
+ * Requires explicit `temperature: 0` — omitted temperature is NOT cacheable
+ * because the provider default may be non-deterministic.
+ */
+export function isCacheableForWrite(body, headers) {
+  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+    return false;
+  }
+  if (body.temperature !== 0) return false;
   return true;
 }

@@ -225,7 +225,7 @@ export const CURSOR_CONFIG = {
   agentEndpoint: "https://agent.api5.cursor.sh", // Privacy mode
   agentNonPrivacyEndpoint: "https://agentn.api5.cursor.sh", // Non-privacy mode
   // Client metadata
-  clientVersion: "3.1.0",
+  clientVersion: "3.1.15",
   clientType: "ide",
   // Token storage locations (for user reference)
   tokenStoragePaths: {

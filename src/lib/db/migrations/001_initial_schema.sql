@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS call_logs (
   tokens_cache_read INTEGER DEFAULT NULL,
   tokens_cache_creation INTEGER DEFAULT NULL,
   tokens_reasoning INTEGER DEFAULT NULL,
+  cache_source TEXT DEFAULT 'upstream',
   request_type TEXT,
   source_format TEXT,
   target_format TEXT,

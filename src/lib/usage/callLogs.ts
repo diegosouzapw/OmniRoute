@@ -53,6 +53,7 @@ type CallLogSummaryRow = {
   tokens_cache_read: number | null;
   tokens_cache_creation: number | null;
   tokens_reasoning: number | null;
+  cache_source: string | null;
   request_type: string | null;
   source_format: string | null;
   target_format: string | null;
@@ -70,6 +71,7 @@ type CallLogSummaryRow = {
   has_response_body: number | null;
   has_pipeline_details: number | null;
   request_summary: string | null;
+  provider_node_prefix?: string | null;
 };
 
 type LegacyInlineRow = {
@@ -234,6 +236,38 @@ async function resolveAccountName(connectionId: string | null | undefined) {
   return account;
 }
 
+async function resolveProviderPrefix(providerId: string): Promise<string | null> {
+  if (!providerId) return null;
+  try {
+    const { getProviderNodeById } = await import("@/lib/localDb");
+    const node = await getProviderNodeById(providerId);
+    if (node && typeof node.prefix === "string" && node.prefix.trim().length > 0) {
+      return node.prefix.trim();
+    }
+  } catch {
+    // Best-effort lookup only.
+  }
+  return null;
+}
+
+function isCompatibleProviderId(providerId: string | null): boolean {
+  if (!providerId) return false;
+  return (
+    providerId.startsWith("openai-compatible-") || providerId.startsWith("anthropic-compatible-")
+  );
+}
+
+function applyNodePrefix(
+  requestedModel: string | null,
+  provider: string | null,
+  nodePrefix: string | null
+): string | null {
+  if (!requestedModel || !provider || !nodePrefix) return requestedModel;
+  if (requestedModel.startsWith(provider + "/")) {
+    return nodePrefix + "/" + requestedModel.slice(provider.length + 1);
+  }
+  return requestedModel;
+}
 function buildArtifact(
   logEntry: {
     id: string;
@@ -492,6 +526,8 @@ export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
 
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
+  const provider = row.provider;
+  const nodePrefix = row.provider_node_prefix ?? null;
   return {
     id: row.id,
     timestamp: row.timestamp,
@@ -499,8 +535,8 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     path: row.path,
     status: toNumber(row.status),
     model: row.model,
-    requestedModel: row.requested_model,
-    provider: row.provider,
+    requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
+    provider,
     account: row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
@@ -511,6 +547,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       cacheWrite: row.tokens_cache_creation != null ? toNumber(row.tokens_cache_creation) : null,
       reasoning: row.tokens_reasoning != null ? toNumber(row.tokens_reasoning) : null,
     },
+    cacheSource: row.cache_source || "upstream",
     requestType: row.request_type,
     sourceFormat: row.source_format,
     targetFormat: row.target_format,
@@ -574,6 +611,13 @@ export async function saveCallLog(entry: any) {
     const protectedError = sanitizeErrorForLog(entry.error);
 
     const account = await resolveAccountName(entry.connectionId || null);
+    const rawProvider: string = entry.provider || "-";
+    const rawRequestedModel: string | null = entry.requestedModel || null;
+    let resolvedRequestedModel = rawRequestedModel;
+    if (rawRequestedModel && isCompatibleProviderId(rawProvider)) {
+      const nodePrefix = await resolveProviderPrefix(rawProvider);
+      resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
+    }
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -581,8 +625,8 @@ export async function saveCallLog(entry: any) {
       path: entry.path || "/v1/chat/completions",
       status: entry.status || 0,
       model: entry.model || "-",
-      requestedModel: entry.requestedModel || null,
-      provider: entry.provider || "-",
+      requestedModel: resolvedRequestedModel,
+      provider: rawProvider,
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
@@ -591,6 +635,7 @@ export async function saveCallLog(entry: any) {
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
       tokensReasoning: getReasoningTokensOrNull(entry.tokens),
+      cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
@@ -643,7 +688,7 @@ export async function saveCallLog(entry: any) {
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        request_type, source_format, target_format, api_key_id, api_key_name,
+        cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary
@@ -652,7 +697,7 @@ export async function saveCallLog(entry: any) {
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
-        @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
+        @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary
@@ -703,51 +748,56 @@ if (shouldPersistToDisk) {
 
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
-  let sql = "SELECT * FROM call_logs";
+  let sql = `
+    SELECT cl.*,
+      pn.prefix AS provider_node_prefix
+    FROM call_logs cl
+    LEFT JOIN provider_nodes pn ON pn.id = cl.provider
+  `;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
 
   if (filter.status) {
     if (filter.status === "error") {
-      conditions.push("(status >= 400 OR error_summary IS NOT NULL)");
+      conditions.push("(cl.status >= 400 OR cl.error_summary IS NOT NULL)");
     } else if (filter.status === "ok") {
-      conditions.push("status >= 200 AND status < 300");
+      conditions.push("cl.status >= 200 AND cl.status < 300");
     } else {
       const statusCode = parseInt(filter.status, 10);
       if (!Number.isNaN(statusCode)) {
-        conditions.push("status = @statusCode");
+        conditions.push("cl.status = @statusCode");
         params.statusCode = statusCode;
       }
     }
   }
 
   if (filter.model) {
-    conditions.push("(model LIKE @modelQ OR requested_model LIKE @modelQ)");
+    conditions.push("(cl.model LIKE @modelQ OR cl.requested_model LIKE @modelQ)");
     params.modelQ = `%${filter.model}%`;
   }
   if (filter.provider) {
-    conditions.push("provider LIKE @providerQ");
+    conditions.push("cl.provider LIKE @providerQ");
     params.providerQ = `%${filter.provider}%`;
   }
   if (filter.account) {
-    conditions.push("account LIKE @accountQ");
+    conditions.push("cl.account LIKE @accountQ");
     params.accountQ = `%${filter.account}%`;
   }
   if (filter.apiKey) {
-    conditions.push("(api_key_name LIKE @apiKeyQ OR api_key_id LIKE @apiKeyQ)");
+    conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
   if (filter.combo) {
-    conditions.push("combo_name IS NOT NULL");
+    conditions.push("cl.combo_name IS NOT NULL");
   }
   if (filter.search) {
     conditions.push(`(
-      model LIKE @searchQ OR path LIKE @searchQ OR account LIKE @searchQ OR
-      requested_model LIKE @searchQ OR provider LIKE @searchQ OR
-      api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
-      combo_name LIKE @searchQ OR CAST(status AS TEXT) LIKE @searchQ OR
-      combo_step_id LIKE @searchQ OR combo_execution_key LIKE @searchQ OR
-      error_summary LIKE @searchQ
+      cl.model LIKE @searchQ OR cl.path LIKE @searchQ OR cl.account LIKE @searchQ OR
+      cl.requested_model LIKE @searchQ OR cl.provider LIKE @searchQ OR
+      cl.api_key_name LIKE @searchQ OR cl.api_key_id LIKE @searchQ OR
+      cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
+      OR cl.combo_step_id LIKE @searchQ OR cl.combo_execution_key LIKE @searchQ
+      OR cl.error_summary LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }
@@ -757,7 +807,7 @@ export async function getCallLogs(filter: any = {}) {
   }
 
   const limit = filter.limit || 200;
-  sql += ` ORDER BY timestamp DESC LIMIT ${limit}`;
+  sql += ` ORDER BY cl.timestamp DESC LIMIT ${limit}`;
 
   const rows = db.prepare(sql).all(params) as CallLogSummaryRow[];
   return rows.map(mapSummaryRow);
@@ -765,7 +815,15 @@ export async function getCallLogs(filter: any = {}) {
 
 export async function getCallLogById(id: string) {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM call_logs WHERE id = ?").get(id) as
+  const row = db
+    .prepare(
+      `SELECT cl.*,
+        pn.prefix AS provider_node_prefix
+       FROM call_logs cl
+       LEFT JOIN provider_nodes pn ON pn.id = cl.provider
+       WHERE cl.id = ?`
+    )
+    .get(id) as
     | CallLogSummaryRow
     | undefined;
   if (!row) return null;

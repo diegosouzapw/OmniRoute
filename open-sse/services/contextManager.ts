@@ -107,7 +107,8 @@ export function compressContext(
   }
 
   const provider = options.provider || "default";
-  const maxTokens = options.maxTokens || getTokenLimit(provider, body.model || options.model);
+  const maxTokens =
+    options.maxTokens || getTokenLimit(provider, (body.model as string) || options.model || null);
   const reserveTokens = options.reserveTokens || 16000; // Reserve for response
   const targetTokens = maxTokens - reserveTokens;
 

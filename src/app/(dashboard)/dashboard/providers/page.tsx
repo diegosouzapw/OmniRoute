@@ -14,7 +14,13 @@ import {
   Select,
   Toggle,
 } from "@/shared/components";
-import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
+import {
+  OAUTH_PROVIDERS,
+  APIKEY_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
+  SEARCH_PROVIDERS,
+  AUDIO_ONLY_PROVIDERS,
+} from "@/shared/constants/config";
 import {
   FREE_PROVIDERS,
   isAnthropicCompatibleProvider,
@@ -401,6 +407,21 @@ export default function ProvidersPage() {
     showConfiguredOnly
   );
 
+  const webCookieProviderEntries = filterConfiguredProviderEntries(
+    buildProviderEntries(WEB_COOKIE_PROVIDERS, "apikey", "apikey", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const searchProviderEntries = filterConfiguredProviderEntries(
+    buildProviderEntries(SEARCH_PROVIDERS, "apikey", "apikey", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const audioProviderEntries = filterConfiguredProviderEntries(
+    buildProviderEntries(AUDIO_ONLY_PROVIDERS, "apikey", "apikey", getProviderStats),
+    showConfiguredOnly
+  );
+
   const compatibleProviderEntries = filterConfiguredProviderEntries(
     [
       ...compatibleProviders.map((provider) => ({
@@ -593,6 +614,127 @@ export default function ProvidersPage() {
           )}
         </div>
       </div>
+
+      {/* Web / Cookie Providers */}
+      {webCookieProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              Web / Cookie Providers{" "}
+              <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("apikey")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "apikey"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "apikey" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "apikey" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {webCookieProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Search Providers */}
+      {searchProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              Search Providers <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("apikey")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "apikey"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "apikey" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "apikey" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {searchProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Audio Only Providers */}
+      {audioProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              Audio Providers <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("apikey")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "apikey"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "apikey" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "apikey" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {audioProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
 
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
@@ -1007,6 +1149,10 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
     { value: "responses", label: t("responsesApi") },
+    { value: "embeddings", label: t("embeddings") },
+    { value: "audio-transcriptions", label: t("audioTranscriptions") },
+    { value: "audio-speech", label: t("audioSpeech") },
+    { value: "images-generations", label: t("imagesGenerations") },
   ];
 
   useEffect(() => {

@@ -37,15 +37,38 @@ export function getOpenAICompatibleType(provider, providerSpecificData = null) {
     typeof providerSpecificData.apiType === "string"
       ? providerSpecificData.apiType
       : null;
-  if (configuredType === "responses" || configuredType === "chat") {
+  if (
+    configuredType === "responses" ||
+    configuredType === "chat" ||
+    configuredType === "embeddings" ||
+    configuredType === "audio-transcriptions" ||
+    configuredType === "audio-speech" ||
+    configuredType === "images-generations"
+  ) {
     return configuredType;
   }
-  return provider.includes("responses") ? "responses" : "chat";
+  if (provider.includes("responses")) return "responses";
+  if (provider.includes("embeddings")) return "embeddings";
+  if (provider.includes("audio-transcriptions")) return "audio-transcriptions";
+  if (provider.includes("audio-speech")) return "audio-speech";
+  if (provider.includes("images-generations")) return "images-generations";
+  return "chat";
 }
 
 function buildOpenAICompatibleUrl(baseUrl, apiType) {
   const normalized = baseUrl.replace(/\/$/, "");
-  const path = apiType === "responses" ? "/responses" : "/chat/completions";
+  let path = "/chat/completions";
+  if (apiType === "responses") {
+    path = "/responses";
+  } else if (apiType === "embeddings") {
+    path = "/embeddings";
+  } else if (apiType === "audio-transcriptions") {
+    path = "/audio/transcriptions";
+  } else if (apiType === "audio-speech") {
+    path = "/audio/speech";
+  } else if (apiType === "images-generations") {
+    path = "/images/generations";
+  }
   return `${normalized}${path}`;
 }
 

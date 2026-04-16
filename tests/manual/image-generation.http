@@ -1,0 +1,53 @@
+###
+# @name Omniroute - Generate Image
+POST {{omniroute-address}}/v1/images/generations
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "prompt": "Happy red kitten",
+  "model": "pol/zimage",
+  "n": 1,
+  "size": "1024x1024",
+  "quality": "medium",
+  "response_format": "b64_json",
+  "user": "",
+  "image": ""
+}
+
+###
+
+# @name Omniroute - Generate Image - Custom OpenAI compatible endpoint
+POST {{omniroute-address}}/v1/images/generations
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "prompt": "Happy red kitten",
+  "model": "pollen/zimage",
+  "n": 1,
+  "size": "1024x1024",
+  "quality": "medium",
+  "response_format": "b64_json",
+  "user": "",
+  "image": ""
+}
+
+###
+# @name Pollinations - Generate Image
+POST https://gen.pollinations.ai/v1/images/generations
+Authorization: Bearer {{POLLINATIONS_API_KEY}}
+Content-Type: application/json
+
+{
+  "prompt": "Happy red kitten",
+  "model": "zimage",
+  "n": 1,
+  "size": "1024x1024",
+  "quality": "medium",
+  "response_format": "b64_json",
+  "user": "",
+  "image": ""
+}
+
+###

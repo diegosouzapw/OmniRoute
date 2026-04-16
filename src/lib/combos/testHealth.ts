@@ -118,7 +118,14 @@ function buildComboTestPrompt() {
   return `Calculate ${left}+${right}, and reply with the result only.`;
 }
 
-export function buildComboTestRequestBody(modelStr: string) {
+export function buildComboTestRequestBody(modelStr: string, isEmbedding: boolean = false) {
+  if (isEmbedding) {
+    return {
+      model: modelStr,
+      input: "Hello World",
+    };
+  }
+
   return {
     model: modelStr,
     // Randomize the arithmetic prompt so upstream providers are less likely to
@@ -136,6 +143,10 @@ export function extractComboTestResponseText(responseBody: unknown): string {
 
   if (typeof body.output_text === "string" && body.output_text.trim()) {
     return body.output_text.trim();
+  }
+
+  if (Array.isArray(body.data) && body.data[0]?.embedding) {
+    return "[Embedding generated successfully]";
   }
 
   if (Array.isArray(body.choices)) {

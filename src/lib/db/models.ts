@@ -343,7 +343,13 @@ export async function addCustomModel(
   modelId: string,
   modelName?: string,
   source = "manual",
-  apiFormat: "chat-completions" | "responses" = "chat-completions",
+  apiFormat:
+    | "chat-completions"
+    | "responses"
+    | "embeddings"
+    | "audio-transcriptions"
+    | "audio-speech"
+    | "images-generations" = "chat-completions",
   supportedEndpoints: string[] = ["chat"]
 ) {
   const db = getDbInstance();

@@ -179,6 +179,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
+    cache_source TEXT DEFAULT "upstream",
     request_type TEXT,
     source_format TEXT,
     target_format TEXT,
@@ -438,6 +439,10 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("tokens_reasoning")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
       console.log("[DB] Added call_logs.tokens_reasoning column");
+    }
+    if (!columnNames.has("cache_source")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN cache_source TEXT DEFAULT 'upstream'");
+      console.log("[DB] Added call_logs.cache_source column");
     }
     if (!columnNames.has("combo_step_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
@@ -889,6 +894,31 @@ export function getDbInstance(): SqliteDatabase {
     db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
       "021",
       "combo_call_log_targets"
+    );
+  }
+  const hasCacheSource = hasColumn(db, "call_logs", "cache_source");
+  if (hasCacheSource) {
+    const cacheSourceLegacy = db
+      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get("022", "call_logs_cache_source") as { version?: string } | undefined;
+    if (cacheSourceLegacy) {
+      const cacheSourceCurrent = db
+        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+        .get("026") as { version?: string } | undefined;
+      if (cacheSourceCurrent) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          "022",
+          "call_logs_cache_source"
+        );
+      } else {
+        db.prepare(
+          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
+        ).run("026", "call_logs_cache_source", "022", "call_logs_cache_source");
+      }
+    }
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "026",
+      "call_logs_cache_source"
     );
   }
   if (

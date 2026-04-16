@@ -125,6 +125,14 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
 
   const formatTokenValue = (value) => (value != null ? value.toLocaleString() : "N/A");
 
+  const cacheSource = detail?.cacheSource || log.cacheSource || "upstream";
+  const cacheSourceLabel =
+    cacheSource === "semantic" ? "Semantic (OmniRoute)" : "Upstream (Provider)";
+  const cacheSourceClassName =
+    cacheSource === "semantic"
+      ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+      : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
@@ -243,6 +251,16 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
                 style={{ backgroundColor: protocol.bg, color: protocol.text }}
               >
                 {protocol.label}
+              </span>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Cache Source
+              </div>
+              <span
+                className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border ${cacheSourceClassName}`}
+              >
+                {cacheSourceLabel}
               </span>
             </div>
             <div>

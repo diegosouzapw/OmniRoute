@@ -515,7 +515,7 @@ async function handleSingleModelChat(
   let requestRetryLastCooldownMs = 0;
 
   requestAttemptLoop: while (true) {
-    let excludeConnectionId = null;
+    const excludedConnectionIds = new Set<string>();
     let lastError = requestRetryLastError;
     let lastStatus = requestRetryLastStatus;
     let lastCooldownMs = requestRetryLastCooldownMs;
@@ -523,10 +523,11 @@ async function handleSingleModelChat(
     while (true) {
       const credentials = await getProviderCredentialsWithQuotaPreflight(
         provider,
-        excludeConnectionId,
+        null,
         apiKeyInfo?.allowedConnections ?? null,
         model,
         {
+          excludeConnectionIds: Array.from(excludedConnectionIds),
           ...(forceLiveComboTest
             ? {
                 allowSuppressedConnections: true,
@@ -594,7 +595,7 @@ async function handleSingleModelChat(
 
         return handleNoCredentials(
           credentials,
-          excludeConnectionId,
+          excludedConnectionIds.size > 0 ? Array.from(excludedConnectionIds)[0] : null,
           provider,
           model,
           lastError,
@@ -804,7 +805,7 @@ async function handleSingleModelChat(
           requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
-        excludeConnectionId = credentials.connectionId;
+        excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;
         lastStatus = result.status;
         requestRetryLastError = result.error;

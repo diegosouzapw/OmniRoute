@@ -1004,6 +1004,50 @@ export default function ProviderDetailPage() {
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
 
+  const getApiLabel = () => {
+    if (isAnthropicProtocolCompatible) return t("messagesApi");
+    const type = providerNode?.apiType;
+    switch (type) {
+      case "responses":
+        return t("responsesApi");
+      case "embeddings":
+        return t("embeddings");
+      case "audio-transcriptions":
+        return t("audioTranscriptions");
+      case "audio-speech":
+        return t("audioSpeech");
+      case "images-generations":
+        return t("imagesGenerations");
+      default:
+        return t("chatCompletions");
+    }
+  };
+
+  const getApiDefaultPath = () => {
+    if (isCcCompatible) return CC_COMPATIBLE_DEFAULT_CHAT_PATH;
+    if (isAnthropicCompatible) return "/messages";
+    const type = providerNode?.apiType;
+    switch (type) {
+      case "responses":
+        return "/responses";
+      case "embeddings":
+        return "/embeddings";
+      case "audio-transcriptions":
+        return "/audio/transcriptions";
+      case "audio-speech":
+        return "/audio/speech";
+      case "images-generations":
+        return "/images/generations";
+      default:
+        return "/chat/completions";
+    }
+  };
+
+  const getApiPath = () => {
+    const defaultPath = getApiDefaultPath();
+    return (providerNode?.chatPath || defaultPath).replace(/^\//, "");
+  };
+
   // Define callbacks BEFORE the useEffect that uses them
   const fetchAliases = useCallback(async () => {
     try {
@@ -2495,19 +2539,7 @@ export default function ProviderDetailPage() {
                     : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
-                {isAnthropicProtocolCompatible
-                  ? t("messagesApi")
-                  : providerNode.apiType === "responses"
-                    ? t("responsesApi")
-                    : t("chatCompletions")}{" "}
-                · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
-                {isCcCompatible
-                  ? (providerNode.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH).replace(/^\//, "")
-                  : isAnthropicCompatible
-                    ? (providerNode.chatPath || "/messages").replace(/^\//, "")
-                    : providerNode.apiType === "responses"
-                      ? (providerNode.chatPath || "/responses").replace(/^\//, "")
-                      : (providerNode.chatPath || "/chat/completions").replace(/^\//, "")}
+                {getApiLabel()} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath()}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -3845,8 +3877,12 @@ function CustomModelsSection({
               onChange={(e) => setNewApiFormat(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
             >
-              <option value="chat-completions">Chat Completions</option>
-              <option value="responses">Responses API</option>
+              <option value="chat-completions">{t("chatCompletions")}</option>
+              <option value="responses">{t("responsesApi")}</option>
+              <option value="embeddings">{t("embeddings")}</option>
+              <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
+              <option value="audio-speech">{t("audioSpeech")}</option>
+              <option value="images-generations">{t("imagesGenerations")}</option>
             </select>
           </div>
           <div className="flex-1">
@@ -3972,8 +4008,12 @@ function CustomModelsSection({
                             onChange={(e) => setEditingApiFormat(e.target.value)}
                             className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
                           >
-                            <option value="chat-completions">Chat Completions</option>
-                            <option value="responses">Responses API</option>
+                            <option value="chat-completions">{t("chatCompletions")}</option>
+                            <option value="responses">{t("responsesApi")}</option>
+                            <option value="embeddings">{t("embeddings")}</option>
+                            <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
+                            <option value="audio-speech">{t("audioSpeech")}</option>
+                            <option value="images-generations">{t("imagesGenerations")}</option>
                           </select>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
@@ -6092,6 +6132,10 @@ function EditCompatibleNodeModal({
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
     { value: "responses", label: t("responsesApi") },
+    { value: "embeddings", label: t("embeddings") },
+    { value: "audio-transcriptions", label: t("audioTranscriptions") },
+    { value: "audio-speech", label: t("audioSpeech") },
+    { value: "images-generations", label: t("imagesGenerations") },
   ];
 
   const handleSubmit = async () => {

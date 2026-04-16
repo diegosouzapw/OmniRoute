@@ -401,7 +401,7 @@ export function createResponsesApiTransformStream(logger = null) {
           if (content) {
             // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
             if (!state.msgTextBuf[idx]) {
-              content = content.replace(/^\n+/, "");
+              content = content.trimStart();
             }
 
             if (!content) continue;
