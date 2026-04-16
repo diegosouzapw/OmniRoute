@@ -45,6 +45,7 @@ test("T34: max output tokens are capped by model spec", () => {
   assert.equal(capMaxOutputTokens("gemini-3-flash", 131072), 65536);
   assert.equal(capMaxOutputTokens("gemini-3-flash"), 65536);
   assert.equal(capMaxOutputTokens("gemini-3.1-pro-high", 131072), 65535);
+  assert.equal(capMaxOutputTokens("claude-opus-4-7", 200000), 128000);
 });
 
 test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup", () => {
@@ -53,6 +54,8 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(getModelSpec("gemini-3-flash-preview").maxOutputTokens, 65536);
   assert.equal(getModelSpec("gemini-3.1-pro-preview").maxOutputTokens, 65535);
   assert.equal(getModelSpec("gemini-3.1-pro-preview-customtools").maxOutputTokens, 65535);
+  assert.equal(getModelSpec("claude-opus-4-7").contextWindow, 1000000);
+  assert.equal(getModelSpec("claude-opus-4.7").maxOutputTokens, 128000);
   assert.equal(resolveModelAlias("gemini-3-pro-low"), "gemini-3.1-pro-low");
   assert.equal(resolveModelAlias("gemini-3.1-pro-preview"), "gemini-3.1-pro-high");
   assert.equal(resolveModelAlias("gemini-3.1-pro-preview-customtools"), "gemini-3.1-pro-high");

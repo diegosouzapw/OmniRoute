@@ -124,6 +124,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
   ],
   claude: () => [
+    { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
     { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },

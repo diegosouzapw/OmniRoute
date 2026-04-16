@@ -121,6 +121,13 @@ export const DEFAULT_PRICING = {
 
   // Claude Code (cc)
   cc: {
+    "claude-opus-4-7": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 25.0,
+      cache_creation: 5.0,
+    },
     "claude-opus-4-6": {
       input: 5.0,
       output: 25.0,

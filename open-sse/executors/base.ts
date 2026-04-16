@@ -390,6 +390,7 @@ export class BaseExecutor {
       // Only supported for specific Claude models per Anthropic docs
       if (extendedContext) {
         const EXTENDED_CONTEXT_MODELS = [
+          "claude-opus-4-7",
           "claude-opus-4-6",
           "claude-sonnet-4-6",
           "claude-sonnet-4-5",

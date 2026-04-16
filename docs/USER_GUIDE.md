@@ -55,7 +55,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ```
 Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
+  1. cc/claude-opus-4-7        (use subscription fully)
   2. glm/glm-4.7               (cheap backup when quota out)
   3. if/kimi-k2-thinking       (free emergency fallback)
 
@@ -83,7 +83,7 @@ Quality: Production-ready models
 
 ```
 Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
+  1. cc/claude-opus-4-7        (best quality)
   2. cx/gpt-5.2-codex          (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
@@ -121,7 +121,7 @@ Dashboard → Providers → Connect Claude Code
 → 5-hour + weekly quota tracking
 
 Models:
-  cc/claude-opus-4-6
+  cc/claude-opus-4-7
   cc/claude-sonnet-4-5-20250929
   cc/claude-haiku-4-5-20251001
 ```
@@ -230,7 +230,7 @@ Dashboard → Combos → Create New
 
 Name: premium-coding
 Models:
-  1. cc/claude-opus-4-6 (Subscription primary)
+  1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
   3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
 
@@ -259,7 +259,7 @@ Cost: $0 forever!
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
   OpenAI API Key: [from omniroute dashboard]
-  Model: cc/claude-opus-4-6
+  Model: cc/claude-opus-4-7
 ```
 
 ### Claude Code
@@ -313,7 +313,7 @@ Edit `~/.openclaw/openclaw.json`:
 Provider: OpenAI Compatible
 Base URL: http://localhost:20128/v1
 API Key: [from dashboard]
-Model: cc/claude-opus-4-6
+Model: cc/claude-opus-4-7
 ```
 
 ---
@@ -552,7 +552,7 @@ For the full environment variable reference, see the [README](../README.md).
 <details>
 <summary><b>View all available models</b></summary>
 
-**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
 **Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
 
@@ -745,7 +745,7 @@ Define global fallback chains that apply across all requests:
 
 ```
 Chain: production-fallback
-  1. cc/claude-opus-4-6
+  1. cc/claude-opus-4-7
   2. gh/gpt-5.1-codex
   3. glm/glm-4.7
 ```

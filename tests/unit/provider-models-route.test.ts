@@ -356,6 +356,7 @@ test("provider models route filters hidden models from the static Claude catalog
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "claude");
+  assert.ok(body.models.some((model) => model.id === "claude-opus-4-7"));
   assert.equal(
     body.models.some((model) => model.id === "claude-sonnet-4-6"),
     false

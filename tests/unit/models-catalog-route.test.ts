@@ -542,6 +542,7 @@ test("v1 models catalog adds managed fallback models for Claude-compatible provi
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
+  assert.ok(ids.has("ccdemo/claude-opus-4-7"));
   assert.ok(ids.has("ccdemo/claude-opus-4-6"));
   assert.equal(ids.has("ccdemo/claude-sonnet-4-6"), false);
 });
