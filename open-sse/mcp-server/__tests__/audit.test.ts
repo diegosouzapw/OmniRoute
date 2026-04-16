@@ -24,6 +24,7 @@ describe("MCP audit shutdown", () => {
 
   beforeEach(() => {
     vi.resetModules();
+    globalThis.__omnirouteMcpAuditDb = undefined;
     dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mcp-audit-"));
     dbFile = path.join(dataDir, "storage.sqlite");
     fs.writeFileSync(dbFile, "");
@@ -32,6 +33,7 @@ describe("MCP audit shutdown", () => {
 
   afterEach(() => {
     delete process.env.DATA_DIR;
+    globalThis.__omnirouteMcpAuditDb = undefined;
     vi.restoreAllMocks();
   });
 
