@@ -184,6 +184,15 @@ export class CircuitBreaker {
   }
 
   /**
+   * Get remaining wait time before the breaker allows execution again.
+   * @returns {number}
+   */
+  getRetryAfterMs() {
+    if (this.state === STATE.CLOSED) return 0;
+    return this._timeUntilReset();
+  }
+
+  /**
    * Force reset the circuit breaker to CLOSED state.
    */
   reset() {

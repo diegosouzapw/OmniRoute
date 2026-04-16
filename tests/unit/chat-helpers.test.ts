@@ -18,7 +18,7 @@ const {
   safeLogEvents,
   withSessionHeader,
 } = await import("../../src/sse/handlers/chatHelpers.ts");
-const { setModelUnavailable, resetAllAvailability } =
+const { getModelCooldownInfo, setModelUnavailable, resetAllAvailability } =
   await import("../../src/domain/modelAvailability.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, CircuitBreakerOpenError, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
@@ -93,13 +93,18 @@ test("resolveModelOrError rejects malformed model strings", async () => {
 });
 
 test("checkPipelineGates blocks models in cooldown", async () => {
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "cooldown");
+  setModelUnavailable("openai", "gpt-4o-mini", 12_000, "cooldown");
 
   const response = await checkPipelineGates("openai", "gpt-4o-mini");
   const json = await response.json();
+  const cooldownInfo = getModelCooldownInfo("openai", "gpt-4o-mini");
+  const retryAfter = Number(response.headers.get("Retry-After"));
 
   assert.equal(response.status, 503);
-  assert.equal(Number(response.headers.get("Retry-After")), 30);
+  assert.ok(cooldownInfo);
+  assert.ok(retryAfter >= 1);
+  assert.ok(retryAfter <= 12);
+  assert.ok(retryAfter >= Math.ceil((cooldownInfo?.remainingMs || 0) / 1000) - 1);
   assert.match(json.error.message, /temporarily unavailable/i);
 });
 
@@ -107,11 +112,20 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
   const breaker = getCircuitBreaker("openai");
   breaker.state = STATE.OPEN;
   breaker.lastFailureTime = Date.now();
+  breaker.resetTimeout = 5_000;
 
-  const response = await checkPipelineGates("openai", "gpt-4o-mini");
+  const response = await checkPipelineGates("openai", "gpt-4o-mini", {
+    providerProfile: {
+      circuitBreakerThreshold: 5,
+      circuitBreakerReset: 5_000,
+    },
+  });
   const json = await response.json();
+  const retryAfter = Number(response.headers.get("Retry-After"));
 
   assert.equal(response.status, 503);
+  assert.ok(retryAfter >= 4);
+  assert.ok(retryAfter <= 5);
   assert.match(json.error.message, /circuit breaker is open/i);
 });
 
