@@ -1855,7 +1855,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "mimo",
     format: "openai",
     executor: "default",
-    baseUrl: "https://token-plan-sgp.xiaomimimo.com/v1",
+    baseUrl: "https://api.xiaomimimo.com/v1",
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],

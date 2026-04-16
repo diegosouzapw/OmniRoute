@@ -1325,7 +1325,14 @@ export async function handleChatCore({
   delete translatedBody._disableToolPrefix;
 
   // Update model in body — use resolved alias so the provider gets the correct model ID (#472)
-  translatedBody.model = effectiveModel;
+  // Strip provider/alias prefix if it exactly matches the routing prefix so upstream receives the raw model name (#1261)
+  let finalModelToUpstream = effectiveModel;
+  if (finalModelToUpstream.startsWith(`${provider}/`)) {
+    finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
+  } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
+    finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+  }
+  translatedBody.model = finalModelToUpstream;
 
   // Strip unsupported parameters for reasoning models (o1, o3, etc.)
   const unsupported = getUnsupportedParams(provider, model);
