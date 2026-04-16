@@ -62,10 +62,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     // Only validate apiType for OpenAI Compatible nodes
-    if (
-      node.type === "openai-compatible" &&
-      (!apiType || !["chat", "responses"].includes(apiType))
-    ) {
+    const validApiTypes = [
+      "chat",
+      "responses",
+      "embeddings",
+      "audio-transcriptions",
+      "audio-speech",
+      "images-generations",
+    ];
+    if (node.type === "openai-compatible" && (!apiType || !validApiTypes.includes(apiType))) {
       return NextResponse.json({ error: "Invalid OpenAI compatible API type" }, { status: 400 });
     }
 

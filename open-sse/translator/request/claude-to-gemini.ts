@@ -6,7 +6,7 @@ import {
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
-import { buildGeminiTools } from "../helpers/geminiToolsSanitizer.ts";
+import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -14,6 +14,11 @@ import { buildGeminiTools } from "../helpers/geminiToolsSanitizer.ts";
  * skipping the OpenAI hub intermediate step.
  */
 export function claudeToGeminiRequest(model, body, stream) {
+  const toolNameMap = new Map<string, string>();
+  const sanitizeToolName = (name: string) =>
+    sanitizeGeminiToolName(name, {
+      toolNameMap,
+    });
   const result: {
     model: string;
     contents: Array<Record<string, unknown>>;
@@ -21,6 +26,7 @@ export function claudeToGeminiRequest(model, body, stream) {
     safetySettings: unknown;
     systemInstruction?: { role: string; parts: Array<{ text: string }> };
     tools?: Array<{ functionDeclarations: Array<Record<string, unknown>> }>;
+    _toolNameMap?: Map<string, string>;
   } = {
     model: model,
     contents: [],
@@ -65,7 +71,7 @@ export function claudeToGeminiRequest(model, body, stream) {
       if (msg.role === "assistant" && Array.isArray(msg.content)) {
         for (const block of msg.content) {
           if (block.type === "tool_use" && block.id && block.name) {
-            toolUseNames[block.id] = block.name;
+            toolUseNames[block.id] = sanitizeToolName(block.name);
           }
         }
       }
@@ -96,7 +102,7 @@ export function claudeToGeminiRequest(model, body, stream) {
               parts.push({
                 functionCall: {
                   id: block.id,
-                  name: block.name,
+                  name: sanitizeToolName(block.name),
                   args: block.input || {},
                 },
               });
@@ -169,7 +175,9 @@ export function claudeToGeminiRequest(model, body, stream) {
   }
 
   // ── Convert tools ──────────────────────────────────────────────
-  const geminiTools = buildGeminiTools(body.tools);
+  const geminiTools = buildGeminiTools(body.tools, {
+    toolNameMap,
+  });
   if (geminiTools) {
     result.tools = geminiTools;
   }
@@ -180,6 +188,15 @@ export function claudeToGeminiRequest(model, body, stream) {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,
     };
+  }
+
+  const changedToolNameMap = new Map(
+    [...toolNameMap.entries()].filter(
+      ([sanitizedName, originalName]) => sanitizedName !== originalName
+    )
+  );
+  if (changedToolNameMap.size > 0) {
+    result._toolNameMap = changedToolNameMap;
   }
 
   return result;

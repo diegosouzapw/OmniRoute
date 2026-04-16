@@ -150,6 +150,26 @@ export const IMAGE_PROVIDERS = {
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "256x256", "512x512"],
   },
+
+  pollinations: {
+    id: "pollinations",
+    alias: "pol",
+    baseUrl: "https://gen.pollinations.ai/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "flux", name: "Flux Schnell" },
+      { id: "zimage", name: "Z-Image Turbo" },
+      { id: "klein", name: "FLUX.2 Klein 4B" },
+      { id: "gptimage", name: "GPT Image 1 Mini" },
+      { id: "qwen-image", name: "Qwen Image Plus" },
+      { id: "wan-image", name: "Wan 2.7 Image" },
+      { id: "kontext", name: "FLUX.1 Kontext" },
+      { id: "gptimage-large", name: "GPT Image 1.5" },
+    ],
+    supportedSizes: ["1024x1024", "512x512"],
+  },
 };
 
 /**
@@ -170,6 +190,10 @@ export function parseImageModel(modelStr) {
   for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {
       return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+    }
+    // Check alias if available
+    if (config.alias && modelStr.startsWith(config.alias + "/")) {
+      return { provider: providerId, model: modelStr.slice(config.alias.length + 1) };
     }
   }
 

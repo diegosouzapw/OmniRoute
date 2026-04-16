@@ -3195,7 +3195,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       <input
                         type="number"
                         min="1000"
-                        max="600000"
                         step="1000"
                         value={config.timeoutMs ?? ""}
                         placeholder="120000"

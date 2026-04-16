@@ -18,7 +18,7 @@ const MAX_TASK_PROGRESS_LENGTH = 1200;
 const MAX_DECISIONS = 8;
 const MAX_ENTITIES = 10;
 const DEFAULT_TTL_MS = 5 * 60 * 60 * 1000;
-const OMNI_MODEL_TAG_PATTERN = /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g;
+const OMNI_MODEL_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g;
 const inflightHandoffGenerations = new Set<string>();
 
 const HANDOFF_PROMPT_TEMPLATE = `You are a context summarizer. Analyze the conversation below and generate a structured handoff summary.

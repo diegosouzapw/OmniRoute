@@ -10,13 +10,22 @@ declare namespace NodeJS {
     JWT_SECRET?: string;
     INITIAL_PASSWORD?: string;
     AUTH_COOKIE_SECURE?: string;
+    API_KEY_SECRET?: string;
+    CLOUD_URL?: string;
+    BASE_URL?: string;
+    NEXT_PUBLIC_BASE_URL?: string;
     PROMPT_CACHE_MAX_SIZE?: string;
     PROMPT_CACHE_TTL_MS?: string;
     NEXT_PUBLIC_CLOUD_URL?: string;
     API_PORT?: string;
+    PORT?: string;
     API_HOST?: string;
     DASHBOARD_PORT?: string;
+    OMNIROUTE_BASE_URL?: string;
+    OMNIROUTE_DISABLE_BACKGROUND_SERVICES?: string;
     OMNIROUTE_PORT?: string;
+    PRICING_SYNC_ENABLED?: string;
+    REQUIRE_API_KEY?: string;
     NODE_ENV?: "development" | "production" | "test";
   }
 }

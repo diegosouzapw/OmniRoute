@@ -9,10 +9,29 @@ import os from "node:os";
  * Based on CLIProxyAPI's misc/header_utils.go.
  */
 
+type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
+
 const ANTIGRAVITY_VERSION = "1.21.9";
 const GEMINI_CLI_VERSION = "0.31.0";
 const GEMINI_SDK_VERSION = "1.41.0";
 const NODE_VERSION = "v22.19.0";
+const LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/9.15.1";
+const LOAD_CODE_ASSIST_API_CLIENT = "google-cloud-sdk vscode_cloudshelleditor/0.1";
+const LOAD_CODE_ASSIST_METADATA = Object.freeze({
+  ideType: "IDE_UNSPECIFIED",
+  platform: "PLATFORM_UNSPECIFIED",
+  pluginType: "GEMINI",
+});
+
+function withOptionalBearerAuth(
+  headers: Record<string, string>,
+  accessToken?: string | null
+): Record<string, string> {
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return headers;
+}
 
 function getPlatform(): string {
   const p = os.platform();
@@ -52,6 +71,43 @@ export function antigravityUserAgent(): string {
   return `antigravity/${ANTIGRAVITY_VERSION} darwin/arm64`;
 }
 
+export function getAntigravityLoadCodeAssistMetadata(): Record<string, string> {
+  return { ...LOAD_CODE_ASSIST_METADATA };
+}
+
+export function getAntigravityLoadCodeAssistClientMetadata(): string {
+  return JSON.stringify(LOAD_CODE_ASSIST_METADATA);
+}
+
+export function getAntigravityHeaders(
+  profile: AntigravityHeaderProfile,
+  accessToken?: string | null
+): Record<string, string> {
+  switch (profile) {
+    case "loadCodeAssist":
+      return withOptionalBearerAuth(
+        {
+          "Content-Type": "application/json",
+          "User-Agent": LOAD_CODE_ASSIST_USER_AGENT,
+          "X-Goog-Api-Client": LOAD_CODE_ASSIST_API_CLIENT,
+          "Client-Metadata": getAntigravityLoadCodeAssistClientMetadata(),
+        },
+        accessToken
+      );
+    case "fetchAvailableModels":
+    case "models":
+      return withOptionalBearerAuth(
+        {
+          "Content-Type": "application/json",
+          "User-Agent": antigravityUserAgent(),
+        },
+        accessToken
+      );
+    default:
+      return withOptionalBearerAuth({ "Content-Type": "application/json" }, accessToken);
+  }
+}
+
 /**
  * Gemini CLI User-Agent: "GeminiCLI/VERSION/MODEL (OS; ARCH)"
  * Example: "GeminiCLI/0.31.0/gemini-3-flash (darwin; arm64)"
@@ -68,4 +124,10 @@ export function googApiClientHeader(): string {
   return `google-genai-sdk/${GEMINI_SDK_VERSION} gl-node/${NODE_VERSION}`;
 }
 
-export { ANTIGRAVITY_VERSION, GEMINI_CLI_VERSION, GEMINI_SDK_VERSION };
+export {
+  ANTIGRAVITY_VERSION,
+  GEMINI_CLI_VERSION,
+  GEMINI_SDK_VERSION,
+  LOAD_CODE_ASSIST_USER_AGENT as ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
+  LOAD_CODE_ASSIST_API_CLIENT as ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
+};

@@ -7,6 +7,11 @@
  * Naming convention: `NNN_description.sql` (e.g., `001_initial_schema.sql`)
  *
  * All migrations run within a single transaction — all-or-nothing per file.
+ *
+ * Safety features:
+ * - Pre-migration backup before applying any pending migrations
+ * - Mass-migration detection (abort if too many pending on existing DB)
+ * - Migration name mismatch warning (detects renumbering issues)
  */
 
 import fs from "fs";
@@ -34,6 +39,25 @@ function resolveMigrationsDir(): string {
 }
 
 const MIGRATIONS_DIR = resolveMigrationsDir();
+
+/**
+ * Maximum number of migrations allowed to run in a single startup on an
+ * existing database. If more migrations are pending than this threshold,
+ * it likely means the migration tracking table was accidentally wiped,
+ * and running all migrations from scratch could cause data loss.
+ *
+ * Set to 0 to disable this safety check.
+ */
+const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 5;
+
+const RENAMED_MIGRATION_COMPATIBILITY = [
+  {
+    fromVersion: "022",
+    fromName: "call_logs_summary_storage",
+    toVersion: "025",
+    toName: "call_logs_summary_storage",
+  },
+] as const;
 
 /**
  * Ensure the schema_migrations tracking table exists.
@@ -81,19 +105,209 @@ function getAppliedVersions(db: Database.Database): Set<string> {
 }
 
 /**
+ * Get applied migration records (version + name) for mismatch detection.
+ */
+function getAppliedRecords(db: Database.Database): Array<{ version: string; name: string }> {
+  return db
+    .prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version")
+    .all() as Array<{
+    version: string;
+    name: string;
+  }>;
+}
+
+/**
+ * Detect migration name mismatches — when a migration version number
+ * has been reused/renumbered with a different name. This is a strong signal
+ * that the migration tracking is corrupted or migrations were renumbered.
+ */
+function detectNameMismatches(
+  appliedRecords: Array<{ version: string; name: string }>,
+  files: Array<{ version: string; name: string; path: string }>
+): Array<{ version: string; appliedName: string; diskName: string }> {
+  const appliedByName = new Map(appliedRecords.map((r) => [r.version, r.name]));
+  const mismatches: Array<{ version: string; appliedName: string; diskName: string }> = [];
+
+  for (const file of files) {
+    const appliedName = appliedByName.get(file.version);
+    if (appliedName && appliedName !== file.name) {
+      mismatches.push({
+        version: file.version,
+        appliedName,
+        diskName: file.name,
+      });
+    }
+  }
+
+  return mismatches;
+}
+
+function reconcileRenumberedMigrations(
+  db: Database.Database,
+  files: Array<{ version: string; name: string; path: string }>
+): boolean {
+  let repaired = false;
+
+  for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
+    const hasTargetFile = files.some(
+      (file) =>
+        file.version === compatibility.toVersion && file.name === compatibility.toName
+    );
+    const hasSourceFile = files.some(
+      (file) =>
+        file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+    );
+
+    if (!hasTargetFile || !hasSourceFile) {
+      continue;
+    }
+
+    const legacyRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get(compatibility.fromVersion, compatibility.fromName) as
+      | { version: string; name: string }
+      | undefined;
+    if (!legacyRow) {
+      continue;
+    }
+
+    const targetRow = db
+      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+      .get(compatibility.toVersion) as { version: string } | undefined;
+
+    const applyRepair = db.transaction(() => {
+      if (targetRow) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          compatibility.fromVersion,
+          compatibility.fromName
+        );
+      } else {
+        db.prepare(
+          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
+        ).run(
+          compatibility.toVersion,
+          compatibility.toName,
+          compatibility.fromVersion,
+          compatibility.fromName
+        );
+      }
+    });
+
+    applyRepair();
+    repaired = true;
+    console.warn(
+      `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
+        `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
+    );
+  }
+
+  return repaired;
+}
+
+/**
+ * Create a pre-migration backup of the SQLite database using VACUUM INTO.
+ * Returns the backup path on success, null on failure.
+ */
+function createPreMigrationBackup(db: Database.Database): string | null {
+  try {
+    const sqliteFile = db.name;
+    if (!sqliteFile || sqliteFile === ":memory:") return null;
+
+    const backupDir = path.join(path.dirname(sqliteFile), "db_backups");
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupPath = path.join(backupDir, `db_${timestamp}_pre-migration.sqlite`);
+    const escapedBackupPath = backupPath.replace(/'/g, "''");
+
+    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
+    console.log(`[Migration] Pre-migration backup created: ${backupPath}`);
+    return backupPath;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[Migration] Failed to create pre-migration backup: ${message}`);
+    return null;
+  }
+}
+
+/**
  * Run all pending migrations in order.
  * Returns the number of migrations applied.
+ *
+ * Includes safety checks:
+ * 1. Detects migration name mismatches (renumbering) and warns
+ * 2. Aborts if too many pending migrations on an existing DB (likely wipe)
+ * 3. Creates automatic backup before running any migrations
  */
 export function runMigrations(db: Database.Database): number {
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
+  reconcileRenumberedMigrations(db, files);
   const applied = getAppliedVersions(db);
+  const appliedRecords = getAppliedRecords(db);
+
+  // ── Safety Check 1: Detect migration name mismatches (renumbering) ──
+  const mismatches = detectNameMismatches(appliedRecords, files);
+  if (mismatches.length > 0) {
+    console.error(
+      `[Migration] ⚠️  CRITICAL: ${mismatches.length} migration version(s) have been renumbered!`
+    );
+    for (const m of mismatches) {
+      console.error(
+        `  Version ${m.version}: applied as "${m.appliedName}" but disk has "${m.diskName}"`
+      );
+    }
+    console.error(
+      `[Migration] This indicates migrations were renumbered between releases, ` +
+        `which can cause the migration runner to skip or re-run migrations incorrectly.`
+    );
+    console.error(
+      `[Migration] The version-only tracking will skip these (version already applied), ` +
+        `but please report this to the OmniRoute maintainers.`
+    );
+  }
+
+  const pending = files.filter((f) => !applied.has(f.version));
+  if (pending.length === 0) {
+    return 0; // Nothing to do
+  }
+
+  // ── Safety Check 2: Mass-migration detection (abort if existing DB + many migrations) ──
+  // Skip in test environments where fresh DBs legitimately have many pending migrations.
+  const isTestEnvironment =
+    process.env.NODE_ENV === "test" ||
+    process.env.VITEST !== undefined ||
+    (typeof process.argv !== "undefined" && process.argv.some((arg) => arg.includes("test")));
+
+  if (
+    !isTestEnvironment &&
+    process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
+    MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
+    applied.size > 0 &&
+    pending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
+  ) {
+    const msg =
+      `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
+      `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
+      `This usually means the migration tracking table was accidentally wiped. ` +
+      `Running all migrations from scratch will cause data loss or schema errors.`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+
+  // ── Safety Check 3: Pre-migration backup ──
+  // Skip backup if it's a completely fresh database (0 applied and all pending)
+  // or if running in tests (where AUTO_BACKUP might be disabled)
+  if (applied.size > 0 && process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true") {
+    createPreMigrationBackup(db);
+  }
+
   let count = 0;
 
-  for (const migration of files) {
-    if (applied.has(migration.version)) continue;
-
+  for (const migration of pending) {
     const sql = fs.readFileSync(migration.path, "utf-8");
 
     const applyMigration = db.transaction(() => {

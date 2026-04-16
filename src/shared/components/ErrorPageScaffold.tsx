@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface PageAction {
   href: string;
@@ -11,8 +12,8 @@ interface ErrorPageScaffoldProps {
   description: string;
   icon?: string;
   suggestions?: string[];
-  primaryAction?: PageAction;
-  secondaryAction?: PageAction;
+  primaryAction?: PageAction | null;
+  secondaryAction?: PageAction | null;
 }
 
 export default function ErrorPageScaffold({
@@ -21,9 +22,13 @@ export default function ErrorPageScaffold({
   description,
   icon = "error",
   suggestions = [],
-  primaryAction = { href: "/dashboard", label: "Go to Dashboard" },
-  secondaryAction = { href: "/status", label: "Check System Status" },
+  primaryAction,
+  secondaryAction,
 }: ErrorPageScaffoldProps) {
+  const t = useTranslations("common");
+  const resolvedPrimary = primaryAction ?? { href: "/dashboard", label: t("goToDashboard") };
+  const resolvedSecondary = secondaryAction ?? { href: "/status", label: t("checkSystemStatus") };
+
   return (
     <main
       className="min-h-screen bg-bg text-text-main flex items-center justify-center px-6 py-12"
@@ -68,16 +73,16 @@ export default function ErrorPageScaffold({
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Link
-            href={primaryAction.href}
+            href={resolvedPrimary.href}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-white text-sm font-semibold bg-gradient-to-br from-primary to-primary-hover hover:shadow-elevated transition-all duration-200 motion-reduce:transition-none"
           >
-            {primaryAction.label}
+            {resolvedPrimary.label}
           </Link>
           <Link
-            href={secondaryAction.href}
+            href={resolvedSecondary.href}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-sm font-semibold border border-border hover:bg-bg-alt transition-colors duration-200 motion-reduce:transition-none"
           >
-            {secondaryAction.label}
+            {resolvedSecondary.label}
           </Link>
         </div>
       </section>

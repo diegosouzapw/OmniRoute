@@ -35,6 +35,19 @@ function getConnectionLogLabel(conn: { name?: string; email?: string; id?: strin
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
 }
 
+export function extractResolvedProxyConfig(resolvedProxy: unknown) {
+  if (
+    resolvedProxy &&
+    typeof resolvedProxy === "object" &&
+    !Array.isArray(resolvedProxy) &&
+    "proxy" in resolvedProxy
+  ) {
+    return (resolvedProxy as { proxy?: unknown }).proxy ?? null;
+  }
+
+  return resolvedProxy ?? null;
+}
+
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
   const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
@@ -186,12 +199,20 @@ async function sweep() {
 
     if (!connections || connections.length === 0) return;
 
-    for (const conn of connections) {
+    const staggerMs = parseInt(process.env.HEALTHCHECK_STAGGER_MS || "3000", 10);
+
+    for (let i = 0; i < connections.length; i++) {
+      const conn = connections[i];
       try {
         await checkConnection(conn);
       } catch (err) {
         // Per-connection isolation: one failure never blocks others
         logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
+      }
+
+      // Stagger delay between checks to prevent bursting (Issue #1220)
+      if (staggerMs > 0 && i < connections.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
       }
     }
   } catch (err) {
@@ -202,7 +223,7 @@ async function sweep() {
 /**
  * Check a single connection and refresh if due.
  */
-async function checkConnection(conn) {
+export async function checkConnection(conn) {
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
@@ -255,7 +276,8 @@ async function checkConnection(conn) {
   };
 
   const hideLogs = await shouldHideLogs();
-  const proxyConfig = await resolveProxyForConnection(conn.id);
+  const proxyResolution = await resolveProxyForConnection(conn.id);
+  const proxyConfig = extractResolvedProxyConfig(proxyResolution);
   const result = await getAccessToken(
     conn.provider,
     credentials,

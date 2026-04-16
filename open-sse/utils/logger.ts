@@ -23,9 +23,32 @@
  */
 import { getAppLogFormat, getAppLogLevel } from "../../src/lib/logEnv";
 
-const LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
+const LEVELS = { debug: 0, info: 1, warn: 2, error: 3 } as const;
 
-const currentLevel = LEVELS[getAppLogLevel("info").toLowerCase()] ?? LEVELS.info;
+type LogLevel = keyof typeof LEVELS;
+type LogMetadata = Record<string, unknown>;
+type ConsoleFn = (...data: unknown[]) => void;
+
+type TaggedLogger = {
+  debug: (message: string, meta?: LogMetadata | null) => void;
+  info: (message: string, meta?: LogMetadata | null) => void;
+  warn: (message: string, meta?: LogMetadata | null) => void;
+  error: (message: string, meta?: LogMetadata | null) => void;
+};
+
+type RequestScopedLogger = {
+  debug: (tag: string, msg: string, data?: LogMetadata | null) => void;
+  info: (tag: string, msg: string, data?: LogMetadata | null) => void;
+  warn: (tag: string, msg: string, data?: LogMetadata | null) => void;
+  error: (tag: string, msg: string, data?: LogMetadata | null) => void;
+};
+
+function isLogLevel(value: string): value is LogLevel {
+  return Object.prototype.hasOwnProperty.call(LEVELS, value);
+}
+
+const configuredLevel = getAppLogLevel("info").toLowerCase();
+const currentLevel = isLogLevel(configuredLevel) ? LEVELS[configuredLevel] : LEVELS.info;
 
 const jsonFormat = getAppLogFormat("text") === "json";
 
@@ -46,7 +69,7 @@ export function generateRequestId() {
  * @param {string} key
  * @returns {string}
  */
-export function maskKey(key) {
+export function maskKey(key: string | null | undefined): string {
   if (!key || key.length < 12) return "(redacted)";
   return `${key.slice(0, 6)}...${key.slice(-4)}`;
 }
@@ -56,7 +79,7 @@ export function maskKey(key) {
  * @param {string} level
  * @returns {Function}
  */
-function getConsoleFn(level) {
+function getConsoleFn(level: LogLevel): ConsoleFn {
   switch (level) {
     case "debug":
       return console.debug;
@@ -75,9 +98,9 @@ function getConsoleFn(level) {
  * @param {object} [meta] - Optional metadata
  * @returns {string} Formatted metadata string or empty string
  */
-function formatMeta(meta) {
+function formatMeta(meta?: LogMetadata | null): string {
   if (!meta || typeof meta !== "object") return "";
-  const cleaned = {};
+  const cleaned: LogMetadata = {};
   for (const [k, v] of Object.entries(meta)) {
     if (v !== undefined && v !== null) cleaned[k] = v;
   }
@@ -89,8 +112,8 @@ function formatMeta(meta) {
  * @param {string} tag - Log category tag (e.g. "CHAT", "AUTH", "STREAM")
  * @returns {{ debug: Function, info: Function, warn: Function, error: Function }}
  */
-export function logger(tag) {
-  const emit = (level, message, meta) => {
+export function logger(tag: string): TaggedLogger {
+  const emit = (level: LogLevel, message: string, meta?: LogMetadata | null): void => {
     if (LEVELS[level] < currentLevel) return;
     const consoleFn = getConsoleFn(level);
 
@@ -125,8 +148,8 @@ export function logger(tag) {
  * @param {string} [requestId] - Unique request ID for correlation
  * @returns {{ debug, info, warn, error }}
  */
-export function createLogger(requestId = null) {
-  const emit = (level, tag, message, data) => {
+export function createLogger(requestId: string | null = null): RequestScopedLogger {
+  const emit = (level: LogLevel, tag: string, message: string, data?: LogMetadata | null): void => {
     if (LEVELS[level] < currentLevel) return;
     const consoleFn = getConsoleFn(level);
 

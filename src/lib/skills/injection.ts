@@ -1,5 +1,8 @@
 import { skillRegistry } from "./registry";
 import { Skill } from "./types";
+import { logger } from "../../../open-sse/utils/logger.ts";
+
+const log = logger("SKILLS_INJECTION");
 
 interface OpenAITool {
   type: string;
@@ -59,8 +62,18 @@ export function injectSkills(options: InjectionOptions): unknown[] {
   const skills = skillRegistry.list(options.apiKeyId).filter((s) => s.enabled);
 
   if (skills.length === 0) {
+    log.info("skills.injection.skipped", {
+      apiKeyId: options.apiKeyId,
+      reason: "no_enabled_skills",
+    });
     return options.existingTools || [];
   }
+
+  log.info("skills.injection.injected", {
+    apiKeyId: options.apiKeyId,
+    provider: options.provider,
+    skillCount: skills.length,
+  });
 
   const injectedTools = skills.map((skill) => {
     switch (options.provider) {

@@ -36,9 +36,26 @@ function getKey(): Buffer | null {
   const secret = process.env.STORAGE_ENCRYPTION_KEY;
   if (!secret) return null;
 
+  if (typeof secret !== "string" || secret.trim().length === 0) {
+    console.error(
+      "[Encryption] STORAGE_ENCRYPTION_KEY is set but empty or invalid. " +
+        "Generate a valid key with: openssl rand -base64 32"
+    );
+    return null;
+  }
+
   // Fixed salt derived from app name — deterministic so same key always produces same derived key
   const salt = "omniroute-field-encryption-v1";
-  _derivedKey = scryptSync(secret, salt, KEY_LENGTH);
+  try {
+    _derivedKey = scryptSync(secret, salt, KEY_LENGTH);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[Encryption] Failed to derive key from STORAGE_ENCRYPTION_KEY: ${message}. ` +
+        `Generate a valid key with: openssl rand -base64 32`
+    );
+    return null;
+  }
   return _derivedKey;
 }
 
@@ -60,14 +77,23 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
   // Already encrypted — don't double-encrypt
   if (plaintext.startsWith(PREFIX)) return plaintext;
 
-  const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
+  try {
+    const iv = randomBytes(IV_LENGTH);
+    const cipher = createCipheriv(ALGORITHM, key, iv);
 
-  let encrypted = cipher.update(plaintext, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  const authTag = cipher.getAuthTag().toString("hex");
+    let encrypted = cipher.update(plaintext, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    const authTag = cipher.getAuthTag().toString("hex");
 
-  return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
+    return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[Encryption] Encryption failed: ${message}. ` +
+        `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
+    );
+    return plaintext; // fallback to plaintext rather than crashing
+  }
 }
 
 /**
@@ -140,4 +166,38 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
     refreshToken: decrypt(row.refreshToken),
     idToken: decrypt(row.idToken),
   };
+}
+
+/**
+ * Validate encryption configuration at startup.
+ * Returns { valid: true } or { valid: false, error: string } with actionable guidance.
+ */
+export function validateEncryptionConfig(): { valid: boolean; error?: string } {
+  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+
+  // No key set — passthrough mode is fine
+  if (!secret) return { valid: true };
+
+  if (typeof secret !== "string" || secret.trim().length === 0) {
+    return {
+      valid: false,
+      error:
+        "STORAGE_ENCRYPTION_KEY is set but empty. " +
+        "Either remove it (passthrough mode) or set a valid key: openssl rand -base64 32",
+    };
+  }
+
+  // Try deriving a key to verify it works
+  try {
+    scryptSync(secret, "omniroute-field-encryption-v1", KEY_LENGTH);
+    return { valid: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      valid: false,
+      error:
+        `STORAGE_ENCRYPTION_KEY is invalid (${message}). ` +
+        `Generate a valid key with: openssl rand -base64 32`,
+    };
+  }
 }

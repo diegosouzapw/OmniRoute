@@ -986,7 +986,16 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // For Gemini: always use synced API models (empty if no keys added yet)
-  const models = providerId === "gemini" ? syncedAvailableModels : registryModels;
+  // For other providers: merge registry models with custom/imported models (deduped)
+  const models = useMemo(() => {
+    if (providerId === "gemini") return syncedAvailableModels;
+    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return registryModels;
+    const registryIds = new Set(registryModels.map((m) => m.id));
+    const customExtras = modelMeta.customModels
+      .filter((cm: any) => cm.id && !registryIds.has(cm.id))
+      .map((cm: any) => ({ id: cm.id, name: cm.name || cm.id }));
+    return [...registryModels, ...customExtras];
+  }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
@@ -994,6 +1003,50 @@ export default function ProviderDetailPage() {
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
+
+  const getApiLabel = () => {
+    if (isAnthropicProtocolCompatible) return t("messagesApi");
+    const type = providerNode?.apiType;
+    switch (type) {
+      case "responses":
+        return t("responsesApi");
+      case "embeddings":
+        return t("embeddings");
+      case "audio-transcriptions":
+        return t("audioTranscriptions");
+      case "audio-speech":
+        return t("audioSpeech");
+      case "images-generations":
+        return t("imagesGenerations");
+      default:
+        return t("chatCompletions");
+    }
+  };
+
+  const getApiDefaultPath = () => {
+    if (isCcCompatible) return CC_COMPATIBLE_DEFAULT_CHAT_PATH;
+    if (isAnthropicCompatible) return "/messages";
+    const type = providerNode?.apiType;
+    switch (type) {
+      case "responses":
+        return "/responses";
+      case "embeddings":
+        return "/embeddings";
+      case "audio-transcriptions":
+        return "/audio/transcriptions";
+      case "audio-speech":
+        return "/audio/speech";
+      case "images-generations":
+        return "/images/generations";
+      default:
+        return "/chat/completions";
+    }
+  };
+
+  const getApiPath = () => {
+    const defaultPath = getApiDefaultPath();
+    return (providerNode?.chatPath || defaultPath).replace(/^\//, "");
+  };
 
   // Define callbacks BEFORE the useEffect that uses them
   const fetchAliases = useCallback(async () => {
@@ -2486,19 +2539,7 @@ export default function ProviderDetailPage() {
                     : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
-                {isAnthropicProtocolCompatible
-                  ? t("messagesApi")
-                  : providerNode.apiType === "responses"
-                    ? t("responsesApi")
-                    : t("chatCompletions")}{" "}
-                · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
-                {isCcCompatible
-                  ? (providerNode.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH).replace(/^\//, "")
-                  : isAnthropicCompatible
-                    ? (providerNode.chatPath || "/messages").replace(/^\//, "")
-                    : providerNode.apiType === "responses"
-                      ? (providerNode.chatPath || "/responses").replace(/^\//, "")
-                      : (providerNode.chatPath || "/chat/completions").replace(/^\//, "")}
+                {getApiLabel()} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath()}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -2850,8 +2891,8 @@ export default function ProviderDetailPage() {
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
           {renderModelsSection()}
 
-          {/* Custom Models — available for providers without managed available-model metadata */}
-          {!isManagedAvailableModelsProvider && providerId !== "gemini" && (
+          {/* Custom Models — available for all providers */}
+          {!isManagedAvailableModelsProvider && (
             <CustomModelsSection
               providerId={providerId}
               providerAlias={providerDisplayAlias}
@@ -3836,8 +3877,12 @@ function CustomModelsSection({
               onChange={(e) => setNewApiFormat(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
             >
-              <option value="chat-completions">Chat Completions</option>
-              <option value="responses">Responses API</option>
+              <option value="chat-completions">{t("chatCompletions")}</option>
+              <option value="responses">{t("responsesApi")}</option>
+              <option value="embeddings">{t("embeddings")}</option>
+              <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
+              <option value="audio-speech">{t("audioSpeech")}</option>
+              <option value="images-generations">{t("imagesGenerations")}</option>
             </select>
           </div>
           <div className="flex-1">
@@ -3963,8 +4008,12 @@ function CustomModelsSection({
                             onChange={(e) => setEditingApiFormat(e.target.value)}
                             className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
                           >
-                            <option value="chat-completions">Chat Completions</option>
-                            <option value="responses">Responses API</option>
+                            <option value="chat-completions">{t("chatCompletions")}</option>
+                            <option value="responses">{t("responsesApi")}</option>
+                            <option value="embeddings">{t("embeddings")}</option>
+                            <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
+                            <option value="audio-speech">{t("audioSpeech")}</option>
+                            <option value="images-generations">{t("imagesGenerations")}</option>
                           </select>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
@@ -5059,6 +5108,7 @@ ConnectionRow.propTypes = {
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "bailian-coding-plan",
+  "xiaomi-mimo",
   "heroku",
   "databricks",
   "snowflake",
@@ -5066,6 +5116,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+  "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
 };
 
 function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -5076,6 +5127,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
+    case "xiaomi-mimo":
+      return "Optional: Xiaomi MiMo token-plan base URL. Examples: https://token-plan-ams.xiaomimimo.com/v1, https://token-plan-sgp.xiaomimimo.com/v1, https://token-plan-cn.xiaomimimo.com/v1. The app will append /chat/completions.";
     case "heroku":
       return "Required: paste the Heroku Inference base URL. The app will append /v1/chat/completions.";
     case "databricks":
@@ -5090,6 +5143,7 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
     case "bailian-coding-plan":
+    case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
     case "heroku":
       return "https://us.inference.heroku.com";
@@ -5117,7 +5171,7 @@ function AddApiKeyModal({
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex";
   const defaultRegion = "us-central1";
-  const isGlm = provider === "glm";
+  const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
 
@@ -5131,6 +5185,7 @@ function AddApiKeyModal({
     validationModelId: "",
     customUserAgent: "",
     accountId: "",
+    consoleApiKey: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5210,6 +5265,9 @@ function AddApiKeyModal({
       const providerSpecificData: Record<string, unknown> = {};
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
+      }
+      if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
+        providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
@@ -5334,6 +5392,16 @@ function AddApiKeyModal({
               placeholder="my-app/1.0"
               hint="Optional override sent upstream as the User-Agent header for this connection"
             />
+            {provider === "bailian-coding-plan" && (
+              <Input
+                label="Console API Key (Oracle)"
+                value={formData.consoleApiKey}
+                onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                placeholder="Alibaba Console API Key"
+                hint="Required for quota fetching. Do not share."
+                type="password"
+              />
+            )}
           </div>
         )}
         <Input
@@ -5457,6 +5525,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexReasoningEffort: "medium",
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
+    consoleApiKey: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5473,7 +5542,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(connection?.provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex";
-  const isGlm = connection?.provider === "glm";
+  const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
   const defaultRegion = "us-central1";
@@ -5490,6 +5559,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
+      const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
+      const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5505,6 +5576,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
+        consoleApiKey: existingConsoleApiKey,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5637,6 +5709,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tag: formData.tag.trim() || undefined,
           customUserAgent: formData.customUserAgent.trim(),
         };
+        if (connection.provider === "bailian-coding-plan") {
+          if (formData.consoleApiKey.trim()) {
+            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
+          } else {
+            updates.providerSpecificData.consoleApiKey = undefined;
+          }
+        }
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
         }
@@ -5824,6 +5903,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
                 />
+                {connection.provider === "bailian-coding-plan" && (
+                  <Input
+                    label="Console API Key (Oracle)"
+                    value={formData.consoleApiKey}
+                    onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                    placeholder="Alibaba Console API Key"
+                    hint="Required for quota fetching. Do not share."
+                    type="password"
+                  />
+                )}
               </div>
             )}
             <Input
@@ -6043,6 +6132,10 @@ function EditCompatibleNodeModal({
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
     { value: "responses", label: t("responsesApi") },
+    { value: "embeddings", label: t("embeddings") },
+    { value: "audio-transcriptions", label: t("audioTranscriptions") },
+    { value: "audio-speech", label: t("audioSpeech") },
+    { value: "images-generations", label: t("imagesGenerations") },
   ];
 
   const handleSubmit = async () => {

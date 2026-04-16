@@ -120,9 +120,10 @@ export async function POST(request) {
     const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
     dynamicProviders = (Array.isArray(nodes) ? nodes : [])
       .filter((n) => {
-        // provider_nodes apiType is "chat" or "responses" (not "embeddings") — local OpenAI-compatible
+        // provider_nodes apiType is "chat", "responses" or "embeddings" — local OpenAI-compatible
         // backends expose /embeddings under the same base URL as chat, so we build the URL as baseUrl + /embeddings.
-        if (n.apiType !== "chat" && n.apiType !== "responses") return false;
+        const validTypes = ["chat", "responses", "embeddings"];
+        if (!validTypes.includes(n.apiType || "")) return false;
         try {
           const hostname = new URL(n.baseUrl).hostname;
           // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
@@ -170,7 +171,9 @@ export async function POST(request) {
       const allNodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
       const matchingNode = (Array.isArray(allNodes) ? allNodes : []).find(
         (n) =>
-          n.prefix === provider && (n.apiType === "chat" || n.apiType === "responses") && n.baseUrl
+          n.prefix === provider &&
+          (n.apiType === "chat" || n.apiType === "responses" || n.apiType === "embeddings") &&
+          n.baseUrl
       );
       if (matchingNode) {
         const baseUrl = String(matchingNode.baseUrl).replace(/\/+$/, "");

@@ -4,7 +4,11 @@
  * strict-random, auto, fill-first, p2c, lkgp, context-optimized, and context-relay strategies
  */
 
-import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
+import {
+  checkFallbackError,
+  formatRetryAfter,
+  getRuntimeProviderProfile,
+} from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
@@ -19,7 +23,13 @@ import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
-import { calculateFactors, calculateScore, DEFAULT_WEIGHTS } from "./autoCombo/scoring.ts";
+import {
+  calculateFactors,
+  calculateScore,
+  DEFAULT_WEIGHTS,
+  type ProviderCandidate,
+  type ScoringWeights,
+} from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
@@ -44,6 +54,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 ];
 
 const MAX_COMBO_DEPTH = 3;
+const MAX_FALLBACK_WAIT_MS = 5000;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -472,7 +483,7 @@ export function resolveNestedComboModels(combo, allCombos, visited = new Set(), 
   return resolved;
 }
 
-function selectWeightedTarget(targets: Array<{ weight: number }>) {
+function selectWeightedTarget<T extends { weight?: number }>(targets: T[]) {
   if (targets.length === 0) return null;
 
   const totalWeight = targets.reduce((sum, target) => sum + (target.weight || 0), 0);
@@ -489,8 +500,8 @@ function selectWeightedTarget(targets: Array<{ weight: number }>) {
   return targets[targets.length - 1];
 }
 
-function orderTargetsForWeightedFallback(
-  targets: Array<{ executionKey: string; weight: number }>,
+function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(
+  targets: T[],
   selectedExecutionKey: string,
   preserveExistingOrder = false
 ) {
@@ -499,7 +510,7 @@ function orderTargetsForWeightedFallback(
   if (!preserveExistingOrder) {
     rest.sort((a, b) => b.weight - a.weight);
   }
-  return [selected, ...rest].filter(Boolean);
+  return [selected, ...rest].filter(Boolean) as T[];
 }
 
 // shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
@@ -862,15 +873,28 @@ function resolveWeightedTargets(combo, allCombos) {
   };
 }
 
-function scoreAutoTargets(targets, candidates, taskType, weights) {
+function scoreAutoTargets(
+  targets: ResolvedComboTarget[],
+  candidates: ProviderCandidate[],
+  taskType: string | null,
+  weights: ScoringWeights
+) {
   const candidateByExecutionKey = new Map(
-    candidates.map((candidate) => [candidate.executionKey, candidate])
+    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
+      candidate.executionKey,
+      candidate,
+    ])
   );
   return targets
     .map((target) => {
       const candidate = candidateByExecutionKey.get(target.executionKey);
       if (!candidate) return null;
-      const factors = calculateFactors(candidate, candidates, taskType, getTaskFitness);
+      const factors = calculateFactors(
+        candidate as ProviderCandidate,
+        candidates,
+        taskType,
+        getTaskFitness
+      );
       return {
         target,
         score: calculateScore(factors, weights),
@@ -1043,7 +1067,7 @@ export async function handleComboChat({
             if (text) {
               if (text.includes("<omniModel>")) {
                 const cleaned = text.replace(
-                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
@@ -1057,7 +1081,7 @@ export async function handleComboChat({
             if (tail) {
               if (tail.includes("<omniModel>")) {
                 const cleaned = tail.replace(
-                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
@@ -1265,6 +1289,11 @@ export async function handleComboChat({
             "COMBO",
             `[LKGP] Prioritizing last known good provider ${lkgpProvider} for combo "${combo.name}"`
           );
+        } else if (lkgpIndex === 0) {
+          log.debug(
+            "COMBO",
+            `[LKGP] Last known good provider ${lkgpProvider} already first for combo "${combo.name}"`
+          );
         }
       }
     } catch (err) {
@@ -1312,7 +1341,7 @@ export async function handleComboChat({
     const target = orderedTargets[i];
     const modelStr = target.modelStr;
     const provider = target.provider;
-    const profile = getProviderProfile(provider);
+    const profile = await getRuntimeProviderProfile(provider);
     const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const breaker = getCircuitBreaker(breakerKey, {
       failureThreshold: profile.circuitBreakerThreshold,
@@ -1489,7 +1518,8 @@ export async function handleComboChat({
         0,
         null,
         provider,
-        result.headers
+        result.headers,
+        profile
       );
       const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
@@ -1538,9 +1568,13 @@ export async function handleComboChat({
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-      if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
-        log.info("COMBO", `Waiting ${cooldownMs}ms before fallback to next model`);
-        await new Promise((r) => setTimeout(r, cooldownMs));
+      const fallbackWaitMs =
+        retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+          ? Math.min(cooldownMs, retryDelayMs)
+          : 0;
+      if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+        log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+        await new Promise((r) => setTimeout(r, fallbackWaitMs));
       }
 
       break; // Move to next model
@@ -1648,7 +1682,7 @@ async function handleRoundRobinCombo({
     const target = orderedTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
-    const profile = getProviderProfile(provider);
+    const profile = await getRuntimeProviderProfile(provider);
     const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
     const breaker = getCircuitBreaker(breakerKey, {
@@ -1803,7 +1837,8 @@ async function handleRoundRobinCombo({
           0,
           null,
           provider,
-          result.headers
+          result.headers,
+          profile
         );
         const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
@@ -1857,9 +1892,13 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
-        if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
-          log.info("COMBO-RR", `Waiting ${cooldownMs}ms before fallback to next model`);
-          await new Promise((r) => setTimeout(r, cooldownMs));
+        const fallbackWaitMs =
+          retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+            ? Math.min(cooldownMs, retryDelayMs)
+            : 0;
+        if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+          log.info("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          await new Promise((r) => setTimeout(r, fallbackWaitMs));
         }
 
         break;

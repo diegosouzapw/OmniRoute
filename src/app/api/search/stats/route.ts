@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     const recentRows = db
       .prepare(
         `
-        SELECT request_body, provider, timestamp
+        SELECT request_summary, provider, timestamp
         FROM call_logs
         WHERE request_type = 'search'
         ORDER BY timestamp DESC
@@ -55,12 +55,11 @@ export async function GET(request: Request) {
       let query = "";
       let filters = {};
       try {
-        const body = JSON.parse(row.request_body);
-        query = body.query || "";
-        const { query: _q, provider: _p, ...rest } = body;
-        filters = rest;
+        const summary = JSON.parse(row.request_summary);
+        query = summary.query || "";
+        filters = summary.filters || {};
       } catch {
-        // Unparseable request_body
+        // Unparseable request_summary
       }
       return {
         query,

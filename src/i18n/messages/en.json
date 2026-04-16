@@ -23,6 +23,7 @@
     "active": "Active",
     "inactive": "Inactive",
     "noData": "No data available",
+    "nothingHere": "Nothing here yet",
     "configure": "Configure",
     "manage": "Manage",
     "name": "Name",
@@ -136,7 +137,9 @@
     "Failed to save pricing": "Failed to save pricing",
     "Failed to reset pricing": "Failed to reset pricing",
     "apikey": "API Key",
-    "http": "HTTP"
+    "http": "HTTP",
+    "goToDashboard": "Go to Dashboard",
+    "checkSystemStatus": "Check System Status"
   },
   "sidebar": {
     "home": "Home",
@@ -639,6 +642,7 @@
       "continue": "Use when running Continue in IDEs and you need portable JSON-based provider configuration.",
       "opencode": "Use when you prefer terminal-native agent runs and scripted automation via OpenCode.",
       "kiro": "Use when integrating Kiro and controlling model routing centrally from OmniRoute.",
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
     },
@@ -655,7 +659,8 @@
       "opencode": "OpenCode AI coding agent (Terminal)",
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
-      "copilot": "GitHub Copilot AI Assistant"
+      "copilot": "GitHub Copilot AI Assistant",
+      "qwen": "Alibaba Qwen Code CLI"
     },
     "guides": {
       "cursor": {
@@ -1062,7 +1067,42 @@
     "wizardStep3Title": "Choose Strategy",
     "wizardStep3Desc": "Pick how requests are distributed across your models - 13 strategies available",
     "wizardStep4Title": "Review & Save",
-    "wizardStep4Desc": "Review your configuration and activate the combo"
+    "wizardStep4Desc": "Review your configuration and activate the combo",
+    "emailVisibilityStateOn": "On",
+    "emailVisibilityStateOff": "Off",
+    "reorderHandle": "Drag to reorder",
+    "failedReorder": "Failed to reorder models",
+    "builderFlowTitle": "Combo Builder Flow",
+    "builderStageVisited": "Stage completed",
+    "builderStageCurrent": "Current stage",
+    "builderStagePending": "Pending",
+    "builderStageLocked": "Locked — complete previous stage first",
+    "builderTitle": "Build a Combo",
+    "builderBrowseCatalog": "Browse catalog",
+    "builderProvider": "Provider",
+    "builderLoadingProviders": "Loading providers...",
+    "builderSelectProvider": "Select provider",
+    "builderModel": "Model",
+    "builderSelectModel": "Select model",
+    "builderProviderFirst": "Pick provider first",
+    "builderAccount": "Account",
+    "builderPreview": "Preview",
+    "builderAddStep": "Add step",
+    "builderComboRef": "Combo Ref",
+    "builderAddComboRef": "Add combo reference",
+    "builderComboRefStep": "Add combo reference",
+    "builderPinnedAccount": "Pinned Account",
+    "builderLegacyEntry": "Legacy entry",
+    "reviewName": "Name",
+    "reviewStrategy": "Strategy",
+    "reviewSteps": "Steps",
+    "reviewAccounts": "Accounts",
+    "reviewProviders": "Providers",
+    "reviewComboRefs": "Combo References",
+    "reviewAdvanced": "Advanced Settings",
+    "reviewAgentFlags": "Agent Flags",
+    "reviewSequence": "Model Sequence",
+    "reviewNoSteps": "No steps configured"
   },
   "costs": {
     "title": "Costs",
@@ -1357,6 +1397,7 @@
     "content": "Content",
     "created": "Created",
     "actions": "Actions",
+    "delete": "Delete",
     "factual": "Factual",
     "episodic": "Episodic",
     "procedural": "Procedural",
@@ -1663,6 +1704,10 @@
     "openaiCompatibleDetails": "OpenAI Compatible Details",
     "messagesApi": "Messages API",
     "responsesApi": "Responses API",
+    "embeddings": "Embeddings",
+    "audioTranscriptions": "Audio Transcriptions",
+    "audioSpeech": "Audio Speech",
+    "imagesGenerations": "Images Generations",
     "chatCompletions": "Chat Completions",
     "importingModels": "Importing...",
     "importFromModels": "Import from /models",
@@ -2815,9 +2860,9 @@
     "waitingForQoderAuthorization": "Waiting for Qoder authorization...",
     "exchangingCodeForTokens": "Exchanging code for tokens...",
     "nodeIncompatibleTitle": "Incompatible Node.js Version",
-    "nodeIncompatibleDesc": "You are running Node.js {version}, which is not compatible with OmniRoute. The native SQLite module (better-sqlite3) requires Node.js 18–22 LTS.",
-    "nodeIncompatibleFixLabel": "Fix: install Node.js 22 LTS",
-    "nodeIncompatibleHint": "OmniRoute requires Node.js ≥18 and <24. Node 22 LTS is recommended for stability."
+    "nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
+    "nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
+    "nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS) or 22.22.2+ (22.x LTS). Node 22 LTS is recommended."
   },
   "landing": {
     "brandName": "OmniRoute",

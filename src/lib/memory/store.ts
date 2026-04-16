@@ -4,6 +4,9 @@
 
 import { getDbInstance } from "../db/core";
 import { Memory, MemoryType } from "./types";
+import { logger } from "../../../open-sse/utils/logger.ts";
+
+const log = logger("MEMORY_STORE");
 
 interface CacheEntry<T> {
   value: T;
@@ -119,6 +122,8 @@ export async function createMemory(
   evictIfNeeded(_memoryCache);
   _memoryCache.set(id, { value: createdMemory, timestamp: Date.now() });
 
+  log.info("memory.stored", { apiKeyId: memory.apiKeyId, type: memory.type, id });
+
   return createdMemory;
 }
 
@@ -228,63 +233,96 @@ export async function deleteMemory(id: string): Promise<boolean> {
   // Invalidate cache for this memory
   invalidateMemoryCache(id);
 
+  log.info("memory.deleted", { id });
+
   return true;
 }
 
 /**
- * List memories with optional filtering
+ * List memories with optional filtering and pagination
  */
 export async function listMemories(filters: {
   apiKeyId?: string;
   type?: MemoryType;
   sessionId?: string;
+  query?: string;
   limit?: number;
   offset?: number;
-}): Promise<Memory[]> {
+  page?: number;
+}): Promise<{ data: Memory[]; total: number; byType: Record<string, number> }> {
   const db = getDbInstance();
 
-  // Build dynamic query
-  let query = "SELECT * FROM memories";
-  const params: unknown[] = [];
+  // Build dynamic query conditions
   const whereClauses: string[] = [];
+  const whereParams: unknown[] = [];
 
   if (filters.apiKeyId) {
     whereClauses.push("api_key_id = ?");
-    params.push(filters.apiKeyId);
+    whereParams.push(filters.apiKeyId);
   }
 
   if (filters.type) {
     whereClauses.push("type = ?");
-    params.push(filters.type);
+    whereParams.push(filters.type);
   }
 
   if (filters.sessionId) {
     whereClauses.push("session_id = ?");
-    params.push(filters.sessionId);
+    whereParams.push(filters.sessionId);
   }
 
+  if (typeof filters.query === "string" && filters.query.trim().length > 0) {
+    const likeQuery = `%${filters.query.trim().toLowerCase()}%`;
+    whereClauses.push("(LOWER(content) LIKE ? OR LOWER(key) LIKE ?)");
+    whereParams.push(likeQuery, likeQuery);
+  }
+
+  // Run COUNT query + byType aggregation in a single query
+  let countQuery = "SELECT COUNT(*) as total FROM memories";
+  if (whereClauses.length > 0) {
+    countQuery += " WHERE " + whereClauses.join(" AND ");
+  }
+  const countStmt = db.prepare(countQuery);
+  const countRow = countStmt.get(...whereParams) as { total: number };
+  const total = countRow.total;
+
+  // Build byType aggregation (counts ALL matching rows, not just the page)
+  let byTypeQuery = "SELECT type, COUNT(*) as count FROM memories";
+  const byTypeParams: unknown[] = [...whereParams];
+  if (whereClauses.length > 0) {
+    byTypeQuery += " WHERE " + whereClauses.join(" AND ");
+  }
+  byTypeQuery += " GROUP BY type";
+  const byTypeStmt = db.prepare(byTypeQuery);
+  const byTypeRows = byTypeStmt.all(...byTypeParams) as { type: string; count: number }[];
+  const byType = Object.fromEntries(byTypeRows.map((r) => [r.type, r.count])) as Record<
+    string,
+    number
+  >;
+
+  // Calculate effective limit and offset
+  const effectiveLimit = filters.limit ?? 50;
+  const effectivePage = filters.page ?? 1;
+  const effectiveOffset = filters.offset ?? (effectivePage - 1) * effectiveLimit;
+
+  // Build SELECT query with pagination
+  let query = "SELECT * FROM memories";
   if (whereClauses.length > 0) {
     query += " WHERE " + whereClauses.join(" AND ");
   }
 
   // Add ordering and pagination
-  query += " ORDER BY created_at DESC";
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
 
-  if (filters.limit !== undefined) {
-    query += " LIMIT ?";
-    params.push(filters.limit);
-  }
-
-  if (filters.offset !== undefined) {
-    if (filters.limit === undefined) {
-      query += " LIMIT -1";
-    }
-    query += " OFFSET ?";
-    params.push(filters.offset);
-  }
+  // Build params for SELECT query (WHERE params + pagination params)
+  const params = [...whereParams, effectiveLimit, effectiveOffset];
 
   const stmt = db.prepare(query);
   const rows = stmt.all(...params);
 
-  return (rows as MemoryRow[]).map(rowToMemory);
+  return {
+    data: (rows as MemoryRow[]).map(rowToMemory),
+    total,
+    byType,
+  };
 }

@@ -14,6 +14,13 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+import {
+  SAFE_OUTBOUND_FETCH_PRESETS,
+  SafeOutboundFetchError,
+  getSafeOutboundFetchErrorStatus,
+  safeOutboundFetch,
+} from "@/shared/network/safeOutboundFetch";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
@@ -145,6 +152,38 @@ function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
   );
 }
 
+async function validationRead(url: string, init: RequestInit) {
+  return safeOutboundFetch(url, {
+    ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+    guard: getProviderOutboundGuard(),
+    ...init,
+  });
+}
+
+async function validationWrite(url: string, init: RequestInit) {
+  return safeOutboundFetch(url, {
+    ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
+    guard: getProviderOutboundGuard(),
+    ...init,
+  });
+}
+
+function toValidationErrorResult(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "Validation failed");
+  const statusCode = getSafeOutboundFetchErrorStatus(error);
+
+  return {
+    valid: false,
+    error: message || "Validation failed",
+    unsupported: false,
+    ...(statusCode ? { statusCode } : {}),
+    ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
+      ? { timeout: true }
+      : {}),
+    ...(statusCode === 400 ? { securityBlocked: true } : {}),
+  };
+}
+
 async function validateOpenAILikeProvider({
   provider,
   apiKey,
@@ -162,7 +201,7 @@ async function validateOpenAILikeProvider({
     return { valid: false, error: "Invalid models endpoint" };
   }
 
-  const modelsRes = await fetch(modelsUrl, {
+  const modelsRes = await validationRead(modelsUrl, {
     method: "GET",
     headers: buildBearerHeaders(apiKey, providerSpecificData),
   });
@@ -188,7 +227,7 @@ async function validateOpenAILikeProvider({
     max_tokens: 1,
   };
 
-  const chatRes = await fetch(chatUrl, {
+  const chatRes = await validationWrite(chatUrl, {
     method: "POST",
     headers: buildBearerHeaders(apiKey, providerSpecificData),
     body: JSON.stringify(testBody),
@@ -216,7 +255,7 @@ async function validateOpenAILikeProvider({
 
 async function validateDirectChatProvider({ url, headers, body, providerSpecificData = {} }: any) {
   try {
-    const response = await fetch(url, {
+    const response = await validationWrite(url, {
       method: "POST",
       headers: applyCustomUserAgent(headers, providerSpecificData),
       body: JSON.stringify(body),
@@ -241,7 +280,7 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
 
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -275,7 +314,7 @@ async function validateAnthropicLikeProvider({
   const testModelId =
     providerSpecificData?.validationModelId || modelId || "claude-3-5-sonnet-20241022";
 
-  const response = await fetch(baseUrl, {
+  const response = await validationWrite(baseUrl, {
     method: "POST",
     headers: requestHeaders,
     body: JSON.stringify({
@@ -313,7 +352,7 @@ async function validateGeminiLikeProvider({
   }
   applyCustomUserAgent(headers, providerSpecificData);
 
-  const response = await fetch(baseUrl, { method: "GET", headers });
+  const response = await validationRead(baseUrl, { method: "GET", headers });
 
   if (response.ok) {
     return { valid: true, error: null };
@@ -371,7 +410,7 @@ async function validateGeminiLikeProvider({
 
 async function validateDeepgramProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
-    const response = await fetch("https://api.deepgram.com/v1/auth/token", {
+    const response = await validationRead("https://api.deepgram.com/v1/auth/token", {
       method: "GET",
       headers: applyCustomUserAgent({ Authorization: `Token ${apiKey}` }, providerSpecificData),
     });
@@ -381,13 +420,13 @@ async function validateDeepgramProvider({ apiKey, providerSpecificData = {} }: a
     }
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
 async function validateAssemblyAIProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
-    const response = await fetch("https://api.assemblyai.com/v2/transcript?limit=1", {
+    const response = await validationRead("https://api.assemblyai.com/v2/transcript?limit=1", {
       method: "GET",
       headers: applyCustomUserAgent(
         {
@@ -403,7 +442,7 @@ async function validateAssemblyAIProvider({ apiKey, providerSpecificData = {} }:
     }
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -411,34 +450,37 @@ async function validateNanoBananaProvider({ apiKey, providerSpecificData = {} }:
   try {
     // NanoBanana doesn't expose a lightweight validation endpoint,
     // so we send a minimal generate request that will succeed or fail on auth.
-    const response = await fetch("https://api.nanobananaapi.ai/api/v1/nanobanana/generate", {
-      method: "POST",
-      headers: applyCustomUserAgent(
-        {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        providerSpecificData
-      ),
-      body: JSON.stringify({
-        prompt: "test",
-        model: "nanobanana-flash",
-      }),
-    });
+    const response = await validationWrite(
+      "https://api.nanobananaapi.ai/api/v1/nanobanana/generate",
+      {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          prompt: "test",
+          model: "nanobanana-flash",
+        }),
+      }
+    );
     // Auth errors → 401/403; anything else (even 400 bad request) means auth passed
     if (response.status === 401 || response.status === 403) {
       return { valid: false, error: "Invalid API key" };
     }
     return { valid: true, error: null };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
 async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     // Lightweight auth check endpoint
-    const response = await fetch("https://api.elevenlabs.io/v1/voices", {
+    const response = await validationRead("https://api.elevenlabs.io/v1/voices", {
       method: "GET",
       headers: applyCustomUserAgent(
         {
@@ -456,7 +498,7 @@ async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }:
 
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -464,7 +506,7 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
   try {
     // Inworld TTS lacks a simple key-introspection endpoint.
     // Send a minimal synth request and treat non-auth 4xx as auth-pass.
-    const response = await fetch("https://api.inworld.ai/tts/v1/voice", {
+    const response = await validationWrite("https://api.inworld.ai/tts/v1/voice", {
       method: "POST",
       headers: applyCustomUserAgent(
         {
@@ -487,7 +529,7 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -503,7 +545,7 @@ async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData 
     // It does NOT expose /v1/models — use messages probe directly
     const messagesUrl = `${baseUrl}/messages`;
 
-    const response = await fetch(messagesUrl, {
+    const response = await validationWrite(messagesUrl, {
       method: "POST",
       headers: applyCustomUserAgent(
         {
@@ -536,7 +578,7 @@ async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData 
 
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -612,7 +654,7 @@ async function validateGigachatProvider({ apiKey, providerSpecificData = {} }: a
     if (String(error?.message || "").match(/\b(401|403)\b/)) {
       return { valid: false, error: "Invalid API key" };
     }
-    return { valid: false, error: error.message || "Validation failed" };
+    return toValidationErrorResult(error);
   }
 
   return validateDirectChatProvider({
@@ -645,7 +687,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   // Step 1: Try GET /models
   let modelsReachable = false;
   try {
-    const modelsRes = await fetch(`${baseUrl}/models`, {
+    const modelsRes = await validationRead(`${baseUrl}/models`, {
       method: "GET",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
     });
@@ -690,7 +732,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   const testModelId = validationModelId;
 
   try {
-    const chatRes = await fetch(chatUrl, {
+    const chatRes = await validationWrite(chatUrl, {
       method: "POST",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
       body: JSON.stringify({
@@ -752,10 +794,9 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   }
 
   try {
-    const pingRes = await fetch(baseUrl, {
+    const pingRes = await validationRead(baseUrl, {
       method: "GET",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
-      signal: AbortSignal.timeout(5000),
     });
 
     // If the server responds at all (even with an error page), it's reachable
@@ -765,7 +806,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
 
     return { valid: false, error: `Provider unavailable (${pingRes.status})` };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Connection failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -787,7 +828,7 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
 
   // Step 1: Try GET /models
   try {
-    const modelsRes = await fetch(
+    const modelsRes = await validationRead(
       joinBaseUrlAndPath(baseUrl, providerSpecificData?.modelsPath || "/models"),
       {
         method: "GET",
@@ -809,7 +850,7 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
   // Step 2: Fallback — try a minimal messages request
   const testModelId = providerSpecificData?.validationModelId || "claude-3-5-sonnet-20241022";
   try {
-    const messagesRes = await fetch(
+    const messagesRes = await validationWrite(
       joinBaseUrlAndPath(baseUrl, providerSpecificData?.chatPath || "/messages"),
       {
         method: "POST",
@@ -829,7 +870,7 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
     // Any other response (200, 400, 422, etc.) means auth passed
     return { valid: true, error: null };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Connection failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -850,7 +891,7 @@ export async function validateClaudeCodeCompatibleProvider({
   );
 
   try {
-    const modelsRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, modelsPath), {
+    const modelsRes = await validationRead(joinClaudeCodeCompatibleUrl(baseUrl, modelsPath), {
       method: "GET",
       headers: defaultHeaders,
     });
@@ -872,7 +913,7 @@ export async function validateClaudeCodeCompatibleProvider({
   const sessionId = JSON.parse(payload.metadata.user_id).session_id;
 
   try {
-    const messagesRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
+    const messagesRes = await validationWrite(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
       method: "POST",
       headers: applyCustomUserAgent(
         buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId),
@@ -909,7 +950,7 @@ export async function validateClaudeCodeCompatibleProvider({
       method: "cc_bridge_request",
     };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Connection failed" };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -921,7 +962,11 @@ async function validateSearchProvider(
   providerSpecificData: any = {}
 ): Promise<{ valid: boolean; error: string | null; unsupported: false }> {
   try {
-    const response = await fetch(url, withCustomUserAgent(init, providerSpecificData));
+    const response = await safeOutboundFetch(url, {
+      ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
+      guard: getProviderOutboundGuard(),
+      ...withCustomUserAgent(init, providerSpecificData),
+    });
     if (response.ok) return { valid: true, error: null, unsupported: false };
     if (response.status === 401 || response.status === 403) {
       return { valid: false, error: "Invalid API key", unsupported: false };
@@ -934,7 +979,7 @@ async function validateSearchProvider(
     }
     return { valid: false, error: `Validation failed: ${response.status}`, unsupported: false };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed", unsupported: false };
+    return toValidationErrorResult(error);
   }
 }
 
@@ -992,7 +1037,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     try {
       return await validateOpenAICompatibleProvider({ apiKey, providerSpecificData });
     } catch (error: any) {
-      return { valid: false, error: error.message || "Validation failed", unsupported: false };
+      return toValidationErrorResult(error);
     }
   }
 
@@ -1003,7 +1048,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       }
       return await validateAnthropicCompatibleProvider({ apiKey, providerSpecificData });
     } catch (error: any) {
-      return { valid: false, error: error.message || "Validation failed", unsupported: false };
+      return toValidationErrorResult(error);
     }
   }
 
@@ -1036,7 +1081,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
     longcat: async ({ apiKey, providerSpecificData }: any) => {
       try {
-        const res = await fetch("https://api.longcat.chat/openai/v1/chat/completions", {
+        const res = await validationWrite("https://api.longcat.chat/openai/v1/chat/completions", {
           method: "POST",
           headers: buildBearerHeaders(apiKey, providerSpecificData),
           body: JSON.stringify({
@@ -1051,7 +1096,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         // Any non-auth response (200, 400, 422) means auth passed
         return { valid: true, error: null };
       } catch (error: any) {
-        return { valid: false, error: error.message || "Connection failed" };
+        return toValidationErrorResult(error);
       }
     },
     // Search providers — use factored validator
@@ -1070,7 +1115,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
     } catch (error: any) {
-      return { valid: false, error: error.message || "Validation failed", unsupported: false };
+      return toValidationErrorResult(error);
     }
   }
 
@@ -1131,6 +1176,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
     return { valid: false, error: "Provider validation not supported", unsupported: true };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed", unsupported: false };
+    return toValidationErrorResult(error);
   }
 }

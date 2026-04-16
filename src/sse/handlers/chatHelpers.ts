@@ -11,7 +11,11 @@ import {
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  modelCooldownResponse,
+  unavailableResponse,
+} from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
   runWithProxyContext,
@@ -20,9 +24,10 @@ import {
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
-import { isModelAvailable } from "../../domain/modelAvailability";
+import { getModelCooldownInfo, isModelAvailable } from "../../domain/modelAvailability";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
+import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 
 export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
@@ -61,13 +66,17 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
   return { provider, model, sourceFormat, targetFormat, extendedContext };
 }
 
-export function checkPipelineGates(
+export async function checkPipelineGates(
   provider: string,
   model: string,
   options: {
     ignoreCircuitBreaker?: boolean;
     ignoreModelCooldown?: boolean;
     bypassReason?: string;
+    providerProfile?: {
+      circuitBreakerThreshold?: number;
+      circuitBreakerReset?: number;
+    } | null;
   } = {}
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
@@ -75,28 +84,35 @@ export function checkPipelineGates(
   if (!modelAvailable && options.ignoreModelCooldown) {
     log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed (${bypassReason})`);
   } else if (!modelAvailable) {
+    const cooldownInfo = getModelCooldownInfo(provider, model);
+    const retryAfterSec = cooldownInfo
+      ? Math.max(Math.ceil(cooldownInfo.remainingMs / 1000), 1)
+      : 1;
     log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
     return unavailableResponse(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       `Model ${provider}/${model} is temporarily unavailable (cooldown)`,
-      30
+      retryAfterSec
     );
   }
 
+  const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: 5,
-    resetTimeout: 30000,
+    failureThreshold: providerProfile.circuitBreakerThreshold,
+    resetTimeout: providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
   if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
     log.info("CIRCUIT", `Bypassing OPEN circuit breaker for ${provider} (${bypassReason})`);
   } else if (!breaker.canExecute()) {
+    const retryAfterMs = breaker.getRetryAfterMs();
+    const retryAfterSec = Math.max(Math.ceil(retryAfterMs / 1000), 1);
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
     return unavailableResponse(
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       `Provider ${provider} circuit breaker is open`,
-      30
+      retryAfterSec
     );
   }
 
@@ -220,6 +236,24 @@ export function handleNoCredentials(
     const errorMsg = lastError || credentials.lastError || "Unavailable";
     const status =
       lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
+    const cooldownModel =
+      typeof credentials.cooldownModel === "string" && credentials.cooldownModel.trim().length > 0
+        ? credentials.cooldownModel.trim()
+        : model;
+
+    if (credentials.cooldownScope === "model" && Number(status) === HTTP_STATUS.RATE_LIMITED) {
+      log.warn(
+        "CHAT",
+        `[${provider}/${cooldownModel}] all credentials cooling down${
+          credentials.retryAfterHuman ? ` (${credentials.retryAfterHuman})` : ""
+        }`
+      );
+      return modelCooldownResponse({
+        model: cooldownModel,
+        retryAfter: credentials.retryAfter,
+      });
+    }
+
     log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);
     return unavailableResponse(
       status,
@@ -227,6 +261,14 @@ export function handleNoCredentials(
       credentials.retryAfter,
       credentials.retryAfterHuman
     );
+  }
+  if (lastError && lastStatus) {
+    log.warn("CHAT", "Preserving last upstream error after credential exhaustion", {
+      provider,
+      model,
+      lastStatus,
+    });
+    return errorResponse(lastStatus, lastError);
   }
   if (!excludeConnectionId) {
     log.error("AUTH", `No credentials for provider: ${provider}`);

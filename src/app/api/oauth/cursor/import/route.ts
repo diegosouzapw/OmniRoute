@@ -45,7 +45,7 @@ export async function POST(request: any) {
 
     // Validate token by making API call (through proxy if configured)
     const tokenData = await runWithProxyContext(proxy, () =>
-      cursorService.validateImportToken(accessToken.trim(), machineId.trim())
+      cursorService.validateImportToken(accessToken.trim(), machineId?.trim())
     );
 
     // Try to extract user info from token

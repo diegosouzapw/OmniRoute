@@ -100,7 +100,10 @@ export default function ClaudeToolCard({
       // Restore selected key from file: match token stored in file against known keys
       const tokenFromFile = env.ANTHROPIC_AUTH_TOKEN;
       if (tokenFromFile) {
-        const matchedKey = apiKeys?.find((k) => k.key === tokenFromFile);
+        // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
+        // Mask the token from file to compare against the masked list.
+        const maskedToken = tokenFromFile.slice(0, 8) + "****" + tokenFromFile.slice(-4);
+        const matchedKey = apiKeys?.find((k) => k.key === maskedToken);
         if (matchedKey) setSelectedApiKey(matchedKey.id);
       }
     }
@@ -439,13 +442,6 @@ export default function ClaudeToolCard({
                     <span className="material-symbols-outlined text-text-muted text-[14px]">
                       arrow_forward
                     </span>
-                    <input
-                      type="text"
-                      value={modelMappings[model.alias] || ""}
-                      onChange={(e) => onModelMappingChange(model.alias, e.target.value)}
-                      placeholder={t("providerModelPlaceholder")}
-                      className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    />
                     <button
                       onClick={() => openModelSelector(model.alias)}
                       disabled={!hasActiveProviders}
@@ -453,6 +449,13 @@ export default function ClaudeToolCard({
                     >
                       {t("selectModel")}
                     </button>
+                    <input
+                      type="text"
+                      value={modelMappings[model.alias] || ""}
+                      onChange={(e) => onModelMappingChange(model.alias, e.target.value)}
+                      placeholder={t("providerModelPlaceholder")}
+                      className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    />
                     {modelMappings[model.alias] && (
                       <button
                         onClick={() => onModelMappingChange(model.alias, "")}

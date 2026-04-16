@@ -8,16 +8,16 @@ Common problems and solutions for OmniRoute.
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                                                  |
-| ----------------------------- | ----------------------------------------------------------------------------------------- |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                   |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                        |
-| No logs written to disk       | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                         |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                           |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)                              |
-| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below      |
+| Problem                                             | Solution                                                                                                                                                 |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First login not working                             | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                                                                                  |
+| Dashboard opens on wrong port                       | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                       |
+| No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                        |
+| EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                          |
+| Routing strategy not saving                         | Update to v1.4.11+ (Zod schema fix for settings persistence)                                                                                             |
+| Login crash / blank page                            | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below                                                                     |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
-| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+| Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
 
 ---
 
@@ -27,26 +27,29 @@ Common problems and solutions for OmniRoute.
 
 ### Login page crashes or shows "Module self-registration" error
 
-**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+**Cause:** You are running a Node.js version outside OmniRoute's approved secure runtime floor. Two cases matter:
+
+1. **Node.js 24+**: `better-sqlite3` is not supported here and startup can fail hard.
+2. **Older Node 20/22 patch levels**: the runtime may start, but it falls below the patched security floor OmniRoute now requires.
 
 **Symptoms:**
 
 - Login page shows a blank screen or a server error
 - Console shows `Error: Module did not self-register` or similar native binding errors
-- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+- The login page shows an **orange warning banner** with your Node version if the runtime is outside the supported secure policy
 
 **Fix:**
 
-1. Install Node.js 22 LTS (recommended):
+1. Install a patched Node.js 22 LTS release (recommended):
    ```bash
-   nvm install 22
-   nvm use 22
+   nvm install 22.22.2
+   nvm use 22.22.2
    ```
-2. Verify your version: `node --version` should show `v22.x.x`
+2. Verify your version: `node --version` should show `v22.22.2` or newer on the 22.x LTS line
 3. Reinstall OmniRoute: `npm install -g omniroute`
 4. Restart: `omniroute`
 
-> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+> **Supported secure versions:** `>=20.20.2 <21` or `>=22.22.2 <23`. Node.js 24+ is **not supported**.
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
@@ -72,7 +75,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range remains **Node.js 18, 20, or 22 LTS** (`engines` field in `package.json`). If you are on Node.js 24, the rebuild may silence this specific startup error but other issues can still occur — downgrading to Node.js 22 LTS remains the recommended path.
+> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported secure range is now **`>=20.20.2 <21` or `>=22.22.2 <23`** (`engines` field in `package.json`). If you are on Node.js 24, the rebuild may silence this specific startup error but other issues can still occur — moving to a patched Node.js 22 LTS release remains the recommended path.
 
 ---
 

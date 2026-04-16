@@ -137,7 +137,7 @@ export async function POST(request: Request) {
     const dispatcher = createProxyDispatcher(proxyUrl);
 
     try {
-      const result = await undiciRequest("https://api.ipify.org?format=json", {
+      const result = await undiciRequest("https://api64.ipify.org?format=json", {
         method: "GET",
         dispatcher,
         signal: controller.signal,

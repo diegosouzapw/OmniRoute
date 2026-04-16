@@ -1,6 +1,7 @@
 "use client";
 
 import type { HTMLAttributes } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 type SpinnerSize = "sm" | "md" | "lg" | "xl";
@@ -37,15 +38,17 @@ interface LoadingProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 // Spinner loading
-export function Spinner({ size = "md", className, label = "Loading" }: SpinnerProps) {
+export function Spinner({ size = "md", className, label }: SpinnerProps) {
+  const t = useTranslations("common");
+  const ariaLabel = label ?? t("loading");
   return (
     <span
       role="status"
       aria-live="polite"
-      aria-label={label}
+      aria-label={ariaLabel}
       className={cn("inline-flex", className)}
     >
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{ariaLabel}</span>
       <span
         aria-hidden="true"
         className={cn(
@@ -60,7 +63,8 @@ export function Spinner({ size = "md", className, label = "Loading" }: SpinnerPr
 }
 
 // Full page loading
-export function PageLoading({ message = "Loading...", className }: PageLoadingProps) {
+export function PageLoading({ message, className }: PageLoadingProps) {
+  const t = useTranslations("common");
   return (
     <div
       className={cn(
@@ -72,7 +76,7 @@ export function PageLoading({ message = "Loading...", className }: PageLoadingPr
       aria-busy="true"
     >
       <Spinner size="xl" />
-      <p className="mt-4 text-text-muted text-center">{message}</p>
+      <p className="mt-4 text-text-muted text-center">{message ?? t("loading")}</p>
     </div>
   );
 }

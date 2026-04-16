@@ -272,11 +272,13 @@ export function translateNonStreamingResponse(
 
                   if (partObj.functionCall) {
                     const fn = toRecord(partObj.functionCall);
+                    const rawName = toString(fn.name);
+                    const restoredName = toolNameMap?.get(rawName) ?? rawName;
                     toolCalls.push({
-                      id: `call_${toString(fn.name, "unknown")}_${Date.now()}_${toolCalls.length}`,
+                      id: `call_${toString(restoredName, "unknown")}_${Date.now()}_${toolCalls.length}`,
                       type: "function",
                       function: {
-                        name: toString(fn.name),
+                        name: restoredName,
                         arguments: JSON.stringify(fn.args || {}),
                       },
                     });

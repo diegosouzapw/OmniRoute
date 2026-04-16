@@ -80,6 +80,8 @@ export function geminiToClaudeResponse(chunk, state) {
           state.openTextBlockIdx = null;
         }
         const fc = part.functionCall;
+        const rawToolName = fc.name;
+        const restoredToolName = state.toolNameMap?.get(rawToolName) || rawToolName;
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
 
@@ -89,7 +91,7 @@ export function geminiToClaudeResponse(chunk, state) {
           content_block: {
             type: "tool_use",
             id: toolId,
-            name: fc.name,
+            name: restoredToolName,
             input: {},
           },
         });

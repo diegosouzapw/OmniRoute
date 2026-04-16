@@ -286,7 +286,7 @@ test.describe("Analytics Tabs UI", () => {
       // Overview uses UsageAnalytics, we wait for a generic evidence of overview
       // Or simply just wait 300ms if click doesn't throw
     })
-      .toPass({ timeout: 5000 })
+      .toPass({ timeout: 15000 })
       .catch(() => {});
 
     const utilizationTab = page

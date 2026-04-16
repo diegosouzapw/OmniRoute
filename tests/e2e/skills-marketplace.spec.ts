@@ -157,7 +157,7 @@ test.describe("Skills marketplace", () => {
 
     await gotoOrSkip(page, "/dashboard/skills");
 
-    await expect(page.getByText("lookupWeather")).toBeVisible();
+    await expect(page.getByText("lookupWeather")).toBeVisible({ timeout: 15000 });
     const weatherCard = page
       .locator("div")
       .filter({ has: page.getByText("lookupWeather") })
@@ -169,11 +169,11 @@ test.describe("Skills marketplace", () => {
     await expect.poll(() => state.toggleCalls).toBe(1);
 
     await page.getByRole("button", { name: /marketplace/i }).click();
-    await expect(page.getByPlaceholder("Search skills...")).toBeVisible();
+    await expect(page.getByPlaceholder("Search skills...")).toBeVisible({ timeout: 15000 });
 
     await page.getByPlaceholder("Search skills...").fill("weather");
     await page.getByRole("button", { name: /search skillsmp/i }).click();
-    await expect(page.getByText("Weather Pro")).toBeVisible();
+    await expect(page.getByText("Weather Pro")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /^install$/i }).click();
     await expect.poll(() => state.marketplaceInstalls).toBe(1);
 

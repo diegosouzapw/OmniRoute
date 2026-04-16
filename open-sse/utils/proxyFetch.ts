@@ -78,11 +78,27 @@ function noProxyMatch(targetUrl) {
     if (patternPort && patternPort !== port) return false;
 
     if (!patternHost) return false;
+
+    // Support wildcard matching (e.g. 192.168.* or *.local)
+    if (patternHost.includes("*")) {
+      const regexStr = "^" + patternHost.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+      if (new RegExp(regexStr).test(hostname)) return true;
+    }
+
     if (patternHost.startsWith(".")) {
       return hostname.endsWith(patternHost) || hostname === patternHost.slice(1);
     }
     return hostname === patternHost || hostname.endsWith(`.${patternHost}`);
   });
+}
+
+function isLocalAddress(hostname: string): boolean {
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
+  if (hostname.startsWith("192.168.")) return true;
+  if (hostname.startsWith("10.")) return true;
+  if (hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\./)) return true;
+  if (hostname.endsWith(".local") || hostname.endsWith(".lan")) return true;
+  return false;
 }
 
 function resolveEnvProxyUrl(targetUrl) {
@@ -111,6 +127,18 @@ function resolveEnvProxyUrl(targetUrl) {
 }
 
 function resolveProxyForRequest(targetUrl) {
+  let target;
+  try {
+    target = new URL(targetUrl);
+  } catch {
+    target = null;
+  }
+
+  // Always bypass proxy for local/LAN addresses
+  if (target && isLocalAddress(target.hostname.toLowerCase())) {
+    return { source: "direct", proxyUrl: null };
+  }
+
   const contextProxy = proxyContext.getStore();
   if (contextProxy) {
     return { source: "context", proxyUrl: proxyConfigToUrl(contextProxy) };

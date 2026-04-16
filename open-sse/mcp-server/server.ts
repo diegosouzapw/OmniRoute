@@ -138,7 +138,8 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
     ...((options.headers as Record<string, string>) || {}),
   };
 
-  const response = await fetch(url, { ...options, headers, signal: AbortSignal.timeout(10000) });
+  const signal = options.signal || AbortSignal.timeout(10000);
+  const response = await fetch(url, { ...options, headers, signal });
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Unknown error");
@@ -538,6 +539,7 @@ async function handleWebSearch(args: {
     const result = await omniRouteFetch("/v1/search", {
       method: "POST",
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60000),
     });
     await logToolCall("omniroute_web_search", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };

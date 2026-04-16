@@ -10,37 +10,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
-
-// ──────────────── Public Routes (No Auth Required) ────────────────
-
-/**
- * Routes that are ALWAYS accessible without authentication.
- * Pattern matching: startsWith check against the pathname.
- */
-const PUBLIC_API_ROUTES = [
-  // Auth flow — must be accessible to unauthenticated users
-  "/api/auth/login",
-  "/api/auth/logout",
-  "/api/auth/status",
-
-  // Settings check — used by login page / onboarding
-  "/api/settings/require-login",
-
-  // Init — first-run setup
-  "/api/init",
-
-  // Health monitoring — probes must work without auth
-  "/api/monitoring/health",
-
-  // LLM proxy routes — use their own API key auth in the SSE layer
-  "/api/v1/",
-
-  // Cloud routes — use Bearer API key auth internally
-  "/api/cloud/",
-
-  // OAuth callback routes — provider redirects back here
-  "/api/oauth/",
-];
+import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 
 // ──────────────── Auth Verification ────────────────
 
@@ -132,8 +102,8 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
 /**
  * Check if a route is in the public (no-auth) allowlist.
  */
-export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route));
+export function isPublicRoute(pathname: string, method = "GET"): boolean {
+  return isPublicApiRoute(pathname, method);
 }
 
 /**

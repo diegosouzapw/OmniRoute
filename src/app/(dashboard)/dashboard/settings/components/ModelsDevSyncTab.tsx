@@ -32,6 +32,7 @@ export default function ModelsDevSyncTab() {
   const [saving, setSaving] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [intervalHours, setIntervalHours] = useState(24);
+  const [draftIntervalHours, setDraftIntervalHours] = useState(24);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
     null
   );
@@ -55,7 +56,9 @@ export default function ModelsDevSyncTab() {
         if (settingsData) {
           setEnabled(settingsData.modelsDevSyncEnabled === true);
           const intervalMs = settingsData.modelsDevSyncInterval || 86400000;
-          setIntervalHours(Math.round(intervalMs / 3600000));
+          const hours = Math.round(intervalMs / 3600000);
+          setIntervalHours(hours);
+          setDraftIntervalHours(hours);
         }
       })
       .catch((err) => {
@@ -123,6 +126,7 @@ export default function ModelsDevSyncTab() {
   const updateInterval = async (hours: number) => {
     const oldInterval = intervalHours;
     setIntervalHours(hours);
+    setDraftIntervalHours(hours);
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
@@ -131,12 +135,14 @@ export default function ModelsDevSyncTab() {
       });
       if (!res.ok) {
         setIntervalHours(oldInterval);
+        setDraftIntervalHours(oldInterval);
         setFeedback({ type: "error", message: t("enableSyncError") || "Failed to update" });
       } else {
         setFeedback({ type: "success", message: "Interval updated" });
       }
     } catch {
       setIntervalHours(oldInterval);
+      setDraftIntervalHours(oldInterval);
       setFeedback({ type: "error", message: "Network error" });
     } finally {
       setTimeout(() => setFeedback(null), 3000);
@@ -231,15 +237,19 @@ export default function ModelsDevSyncTab() {
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30 mb-4">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium">{t("modelsDevInterval")}</p>
-              <span className="text-sm font-mono tabular-nums text-blue-400">{intervalHours}h</span>
+              <span className="text-sm font-mono tabular-nums text-blue-400">
+                {draftIntervalHours}h
+              </span>
             </div>
             <input
               type="range"
               min="1"
               max="168"
               step="1"
-              value={intervalHours}
-              onChange={(e) => updateInterval(parseInt(e.target.value))}
+              value={draftIntervalHours}
+              onChange={(e) => setDraftIntervalHours(parseInt(e.target.value))}
+              onMouseUp={(e) => updateInterval(parseInt((e.target as HTMLInputElement).value))}
+              onBlur={(e) => updateInterval(parseInt(e.target.value))}
               className="w-full accent-blue-500"
             />
             <div className="flex justify-between text-xs text-text-muted mt-1">

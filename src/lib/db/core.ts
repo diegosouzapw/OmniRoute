@@ -10,6 +10,12 @@ import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
+import { parseStoredPayload } from "../logPayloads";
+import {
+  buildArtifactRelativePath,
+  writeCallArtifact,
+  type CallLogArtifact,
+} from "../usage/callLogArtifacts";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -173,6 +179,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
+    cache_source TEXT DEFAULT "upstream",
     request_type TEXT,
     source_format TEXT,
     target_format TEXT,
@@ -181,11 +188,15 @@ const SCHEMA_SQL = `
     combo_name TEXT,
     combo_step_id TEXT,
     combo_execution_key TEXT,
-    request_body TEXT,
-    response_body TEXT,
-    error TEXT,
+    error_summary TEXT,
+    detail_state TEXT DEFAULT 'none',
     artifact_relpath TEXT,
-    has_pipeline_details INTEGER DEFAULT 0
+    artifact_size_bytes INTEGER DEFAULT NULL,
+    artifact_sha256 TEXT DEFAULT NULL,
+    has_request_body INTEGER DEFAULT 0,
+    has_response_body INTEGER DEFAULT 0,
+    has_pipeline_details INTEGER DEFAULT 0,
+    request_summary TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
@@ -429,6 +440,10 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
       console.log("[DB] Added call_logs.tokens_reasoning column");
     }
+    if (!columnNames.has("cache_source")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN cache_source TEXT DEFAULT 'upstream'");
+      console.log("[DB] Added call_logs.cache_source column");
+    }
     if (!columnNames.has("combo_step_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.combo_step_id column");
@@ -436,6 +451,34 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("combo_execution_key")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_execution_key TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.combo_execution_key column");
+    }
+    if (!columnNames.has("error_summary")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN error_summary TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.error_summary column");
+    }
+    if (!columnNames.has("detail_state")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN detail_state TEXT DEFAULT 'none'");
+      console.log("[DB] Added call_logs.detail_state column");
+    }
+    if (!columnNames.has("artifact_size_bytes")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN artifact_size_bytes INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.artifact_size_bytes column");
+    }
+    if (!columnNames.has("artifact_sha256")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN artifact_sha256 TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.artifact_sha256 column");
+    }
+    if (!columnNames.has("has_request_body")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN has_request_body INTEGER DEFAULT 0");
+      console.log("[DB] Added call_logs.has_request_body column");
+    }
+    if (!columnNames.has("has_response_body")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN has_response_body INTEGER DEFAULT 0");
+      console.log("[DB] Added call_logs.has_response_body column");
+    }
+    if (!columnNames.has("request_summary")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.request_summary column");
     }
 
     db.exec(
@@ -454,6 +497,165 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
 function hasColumn(db: SqliteDatabase, tableName: string, columnName: string): boolean {
   const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
   return rows.some((row) => row.name === columnName);
+}
+
+function hasTable(db: SqliteDatabase, tableName: string): boolean {
+  return Boolean(
+    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName)
+  );
+}
+
+function parseLegacyError(value: unknown): unknown {
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function offloadLegacyCallLogDetails(db: SqliteDatabase) {
+  if (!hasTable(db, "call_logs_v1_legacy")) return;
+
+  type LegacyCallLogRow = {
+    id: string;
+    timestamp: string | null;
+    method: string | null;
+    path: string | null;
+    status: number | null;
+    model: string | null;
+    requested_model: string | null;
+    provider: string | null;
+    account: string | null;
+    connection_id: string | null;
+    duration: number | null;
+    tokens_in: number | null;
+    tokens_out: number | null;
+    tokens_cache_read: number | null;
+    tokens_cache_creation: number | null;
+    tokens_reasoning: number | null;
+    request_type: string | null;
+    source_format: string | null;
+    target_format: string | null;
+    api_key_id: string | null;
+    api_key_name: string | null;
+    combo_name: string | null;
+    combo_step_id: string | null;
+    combo_execution_key: string | null;
+    request_body: string | null;
+    response_body: string | null;
+    error: string | null;
+  };
+
+  const pendingRows = db
+    .prepare(
+      `
+      SELECT legacy.*
+      FROM call_logs_v1_legacy AS legacy
+      JOIN call_logs AS current ON current.id = legacy.id
+      WHERE current.detail_state = 'legacy-inline'
+      ORDER BY legacy.timestamp ASC
+    `
+    )
+    .all() as LegacyCallLogRow[];
+
+  if (pendingRows.length === 0) {
+    db.exec("DROP TABLE IF EXISTS call_logs_v1_legacy");
+    return;
+  }
+
+  const updateStmt = db.prepare(`
+    UPDATE call_logs
+    SET artifact_relpath = @artifactRelPath,
+        artifact_size_bytes = @artifactSizeBytes,
+        artifact_sha256 = @artifactSha256,
+        detail_state = 'ready'
+    WHERE id = @id
+  `);
+  const markMissingStmt = db.prepare(`
+    UPDATE call_logs
+    SET detail_state = 'missing',
+        artifact_relpath = NULL,
+        artifact_size_bytes = NULL,
+        artifact_sha256 = NULL
+    WHERE id = ?
+  `);
+
+  let failed = 0;
+  const tx = db.transaction(() => {
+    for (const row of pendingRows) {
+      const artifact: CallLogArtifact = {
+        schemaVersion: 4,
+        summary: {
+          id: row.id,
+          timestamp: row.timestamp || new Date().toISOString(),
+          method: row.method || "POST",
+          path: row.path || "/v1/chat/completions",
+          status: row.status || 0,
+          model: row.model || "-",
+          requestedModel: row.requested_model || null,
+          provider: row.provider || "-",
+          account: row.account || "-",
+          connectionId: row.connection_id || null,
+          duration: row.duration || 0,
+          tokens: {
+            in: row.tokens_in || 0,
+            out: row.tokens_out || 0,
+            cacheRead: row.tokens_cache_read ?? null,
+            cacheWrite: row.tokens_cache_creation ?? null,
+            reasoning: row.tokens_reasoning ?? null,
+          },
+          requestType: row.request_type || null,
+          sourceFormat: row.source_format || null,
+          targetFormat: row.target_format || null,
+          apiKeyId: row.api_key_id || null,
+          apiKeyName: row.api_key_name || null,
+          comboName: row.combo_name || null,
+          comboStepId: row.combo_step_id || null,
+          comboExecutionKey: row.combo_execution_key || null,
+        },
+        requestBody: parseStoredPayload(row.request_body),
+        responseBody: parseStoredPayload(row.response_body),
+        error: parseLegacyError(row.error),
+      };
+
+      const artifactResult = writeCallArtifact(
+        artifact,
+        buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
+      );
+      if (!artifactResult) {
+        failed++;
+        markMissingStmt.run(row.id);
+        continue;
+      }
+
+      updateStmt.run({
+        id: row.id,
+        artifactRelPath: artifactResult.relPath,
+        artifactSizeBytes: artifactResult.sizeBytes,
+        artifactSha256: artifactResult.sha256,
+      });
+    }
+  });
+
+  tx();
+
+  if (failed > 0) {
+    console.warn(
+      `[DB] Kept call_logs_v1_legacy after partial call log offload (${failed} failed row(s)).`
+    );
+    return;
+  }
+
+  db.exec("DROP TABLE IF EXISTS call_logs_v1_legacy");
+  try {
+    db.pragma("wal_checkpoint(TRUNCATE)");
+    db.exec("VACUUM");
+    console.log(`[DB] Offloaded ${pendingRows.length} legacy call log detail row(s) to artifacts.`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Legacy call log compaction finished without VACUUM:", message);
+  }
 }
 
 function isAutomatedTestProcess(): boolean {
@@ -694,7 +896,47 @@ export function getDbInstance(): SqliteDatabase {
       "combo_call_log_targets"
     );
   }
+  const hasCacheSource = hasColumn(db, "call_logs", "cache_source");
+  if (hasCacheSource) {
+    const cacheSourceLegacy = db
+      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get("022", "call_logs_cache_source") as { version?: string } | undefined;
+    if (cacheSourceLegacy) {
+      const cacheSourceCurrent = db
+        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+        .get("026") as { version?: string } | undefined;
+      if (cacheSourceCurrent) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          "022",
+          "call_logs_cache_source"
+        );
+      } else {
+        db.prepare(
+          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
+        ).run("026", "call_logs_cache_source", "022", "call_logs_cache_source");
+      }
+    }
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "026",
+      "call_logs_cache_source"
+    );
+  }
+  if (
+    hasColumn(db, "call_logs", "detail_state") &&
+    hasColumn(db, "call_logs", "request_summary") &&
+    hasColumn(db, "call_logs", "has_request_body") &&
+    hasColumn(db, "call_logs", "has_response_body") &&
+    !hasColumn(db, "call_logs", "request_body") &&
+    !hasColumn(db, "call_logs", "response_body") &&
+    !hasColumn(db, "call_logs", "error")
+  ) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "025",
+      "call_logs_summary_storage"
+    );
+  }
   runMigrations(db);
+  offloadLegacyCallLogDetails(db);
 
   // Auto-migrate from db.json if exists
   if (jsonDbFile && fs.existsSync(jsonDbFile)) {

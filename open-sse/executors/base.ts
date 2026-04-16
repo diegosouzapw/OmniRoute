@@ -2,6 +2,7 @@ import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 
 /**
@@ -33,6 +34,8 @@ export type ProviderConfig = {
   refreshUrl?: string;
   authUrl?: string;
   headers?: Record<string, string>;
+  requestDefaults?: ProviderRequestDefaults;
+  timeoutMs?: number;
 };
 
 export type ProviderCredentials = {
@@ -62,6 +65,16 @@ export type ExecuteInput = {
   extendedContext?: boolean;
   /** Merged after auth + CLI fingerprint headers (values override same-named defaults). */
   upstreamExtraHeaders?: Record<string, string> | null;
+  /** Original client request headers (read-only). Executors may forward select headers upstream. */
+  clientHeaders?: Record<string, string> | null;
+};
+
+export type CountTokensInput = {
+  body: Record<string, unknown>;
+  credentials: ProviderCredentials;
+  log?: ExecutorLog | null;
+  model: string;
+  signal?: AbortSignal | null;
 };
 
 /** Apply model-level extra upstream headers (e.g. Authentication, X-Custom-Auth). */
@@ -109,19 +122,23 @@ export function applyConfiguredUserAgent(
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
-  const abortBoth = () => {
+  const abortFrom = (source: AbortSignal) => {
     if (!controller.signal.aborted) {
-      controller.abort();
+      controller.abort(source.reason);
     }
   };
 
-  if (primary.aborted || secondary.aborted) {
-    abortBoth();
+  if (primary.aborted) {
+    abortFrom(primary);
+    return controller.signal;
+  }
+  if (secondary.aborted) {
+    abortFrom(secondary);
     return controller.signal;
   }
 
-  primary.addEventListener("abort", abortBoth, { once: true });
-  secondary.addEventListener("abort", abortBoth, { once: true });
+  primary.addEventListener("abort", () => abortFrom(primary), { once: true });
+  secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
   return controller.signal;
 }
 
@@ -149,6 +166,14 @@ export class BaseExecutor {
 
   getFallbackCount() {
     return this.getBaseUrls().length || 1;
+  }
+
+  getTimeoutMs() {
+    const configured = this.config?.timeoutMs;
+    if (typeof configured !== "number" || !Number.isFinite(configured)) {
+      return FETCH_TIMEOUT_MS;
+    }
+    return Math.max(1, Math.floor(configured));
   }
 
   buildUrl(
@@ -231,6 +256,9 @@ export class BaseExecutor {
 
   // Intra-URL retry config: retry same URL before falling back to next node
   static readonly RETRY_CONFIG = { maxAttempts: 2, delayMs: 2000 };
+  // Timeout for receiving the initial upstream response headers. Once the response
+  // starts streaming, STREAM_IDLE_TIMEOUT_MS / Undici bodyTimeout handle stalls.
+  static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
   async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
@@ -247,6 +275,76 @@ export class BaseExecutor {
 
   parseError(response: Response, bodyText: string) {
     return { status: response.status, message: bodyText || `HTTP ${response.status}` };
+  }
+
+  buildCountTokensUrl(model: string, credentials: ProviderCredentials | null = null) {
+    void model;
+    void credentials;
+    const baseUrl = this.buildUrl(model, false, 0, credentials);
+    if (typeof baseUrl !== "string" || baseUrl.length === 0) return null;
+    if (this.config?.format !== "claude" || !baseUrl.includes("/messages")) return null;
+
+    const [path, query = ""] = baseUrl.split("?");
+    const normalizedPath = path.endsWith("/messages")
+      ? `${path}/count_tokens`
+      : `${path}/count_tokens`;
+    return query ? `${normalizedPath}?${query}` : normalizedPath;
+  }
+
+  async countTokens({ model, body, credentials, signal, log }: CountTokensInput) {
+    const url = this.buildCountTokensUrl(model, credentials);
+    if (!url) return null;
+
+    const headers = this.buildHeaders(credentials, false);
+    const requestBody =
+      body && typeof body === "object"
+        ? {
+            ...body,
+            model,
+          }
+        : { model };
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let activeSignal = signal || null;
+    let controller: AbortController | null = null;
+    const timeoutMs = this.getTimeoutMs();
+
+    if (!activeSignal) {
+      controller = new AbortController();
+      timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
+      activeSignal = controller.signal;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody),
+        signal: activeSignal || undefined,
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        const parsedError = this.parseError(response, text);
+        throw new Error(parsedError.message);
+      }
+
+      const parsed = text ? JSON.parse(text) : {};
+      const inputTokens = Number(parsed?.input_tokens);
+      if (!Number.isFinite(inputTokens)) {
+        throw new Error("Provider count_tokens response missing input_tokens");
+      }
+
+      return { input_tokens: inputTokens, provider: this.provider, source: "provider" };
+    } catch (error) {
+      log?.debug?.(
+        "COUNT_TOKENS",
+        `${this.provider}/${model} real count unavailable: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return null;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
   }
 
   async execute({
@@ -313,12 +411,26 @@ export class BaseExecutor {
       const transformedBody = await this.transformRequest(model, body, stream, activeCredentials);
 
       try {
-        // Apply timeout to all requests. Non-streaming requests need this to prevent
-        // stalled connections. Streaming requests also need it for the initial fetch() call
-        // to prevent hanging on unresponsive providers (e.g. 300s TCP default timeout — #769).
-        // Stream idle detection (STREAM_IDLE_TIMEOUT_MS) handles stalls after data starts flowing.
-        const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
-        const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
+        // Only enforce the timeout while waiting for the initial fetch() response.
+        // Once headers arrive, active streams must not be cut off by total elapsed time;
+        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
+        const fetchStartTimeoutMs = this.getTimeoutMs();
+        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        if (timeoutController) {
+          timeoutId = setTimeout(() => {
+            const timeoutError = new Error(
+              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
+            );
+            timeoutError.name = "TimeoutError";
+            timeoutController.abort(timeoutError);
+          }, fetchStartTimeoutMs);
+        }
+        const timeoutSignal = timeoutController?.signal ?? null;
+        const combinedSignal =
+          signal && timeoutSignal
+            ? mergeAbortSignals(signal, timeoutSignal)
+            : signal || timeoutSignal;
 
         // Apply CLI fingerprint ordering if enabled for this provider
         let finalHeaders = headers;
@@ -346,7 +458,15 @@ export class BaseExecutor {
         };
         if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        const response = await fetch(url, fetchOptions);
+        let response;
+        try {
+          response = await fetch(url, fetchOptions);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+        }
 
         // Intra-URL retry: if 429 and we haven't exhausted per-URL retries, wait and retry the same URL
         if (
@@ -375,7 +495,7 @@ export class BaseExecutor {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));
         if (err.name === "TimeoutError") {
-          log?.warn?.("TIMEOUT", `Fetch timeout after ${FETCH_TIMEOUT_MS}ms on ${url}`);
+          log?.warn?.("TIMEOUT", `Fetch timeout after ${this.getTimeoutMs()}ms on ${url}`);
         }
         lastError = err;
         if (urlIndex + 1 < fallbackCount) {

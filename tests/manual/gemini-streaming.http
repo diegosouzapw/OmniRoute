@@ -1,0 +1,85 @@
+###
+# @name OpenAI Response - Test streaming response
+POST {{omniroute-address}}/v1/responses
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: text/event-stream
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "stream": true,
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test streaming response
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:streamGenerateContent?alt=sse
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: text/event-stream
+
+{
+  "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name OpenAI Response - Test non-streaming response
+POST {{omniroute-address}}/v1/responses
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "stream": false,
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Ansver 11+212 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test non-streaming response
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}

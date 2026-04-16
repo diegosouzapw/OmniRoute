@@ -23,6 +23,24 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(entry?.headers?.["Anthropic-Version"]).toBe("2023-06-01");
   });
 
+  it("registers GLMT as an explicit high-budget preset over the GLM transport", () => {
+    const entry = getRegistryEntry("glmt");
+
+    expect(entry).toBeDefined();
+    expect(entry?.id).toBe("glmt");
+    expect(entry?.alias).toBe("glmt");
+    expect(entry?.format).toBe("claude");
+    expect(entry?.baseUrl).toBe("https://api.z.ai/api/anthropic/v1/messages");
+    expect(entry?.authType).toBe("apikey");
+    expect(entry?.authHeader).toBe("x-api-key");
+    expect(entry?.requestDefaults).toEqual({
+      maxTokens: 65536,
+      temperature: 0.2,
+      thinkingBudgetTokens: 24576,
+    });
+    expect(entry?.timeoutMs).toBe(900000);
+  });
+
   it("exposes the same GLM model inventory through registry-derived model helpers", () => {
     const byProviderId = getModelsByProviderId("glm");
     const byAlias = getProviderModels("glm");

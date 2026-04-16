@@ -169,3 +169,4 @@ docs/superpowers/
 
 # GitNexus local index
 .gitnexus
+.worktrees

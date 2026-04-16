@@ -52,43 +52,62 @@ function validateProviderSpecificData(
   }
 
   const requestDefaults = data.requestDefaults;
-  if (requestDefaults === undefined) return;
-  if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "providerSpecificData.requestDefaults must be an object",
-      path: ["requestDefaults"],
-    });
-    return;
+  if (requestDefaults !== undefined) {
+    if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.requestDefaults must be an object",
+        path: ["requestDefaults"],
+      });
+    } else {
+      const requestDefaultsRecord = requestDefaults as Record<string, unknown>;
+      const reasoningEffort = requestDefaultsRecord.reasoningEffort;
+      if (
+        reasoningEffort !== undefined &&
+        reasoningEffort !== null &&
+        (typeof reasoningEffort !== "string" ||
+          !CODEX_REASONING_EFFORT_VALUES.has(reasoningEffort.trim().toLowerCase()))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
+          path: ["requestDefaults", "reasoningEffort"],
+        });
+      }
+
+      const serviceTier = requestDefaultsRecord.serviceTier;
+      if (
+        serviceTier !== undefined &&
+        serviceTier !== null &&
+        (typeof serviceTier !== "string" ||
+          !REQUEST_DEFAULT_SERVICE_TIER_VALUES.has(serviceTier.trim().toLowerCase()))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+          path: ["requestDefaults", "serviceTier"],
+        });
+      }
+    }
   }
 
-  const requestDefaultsRecord = requestDefaults as Record<string, unknown>;
-  const reasoningEffort = requestDefaultsRecord.reasoningEffort;
-  if (
-    reasoningEffort !== undefined &&
-    reasoningEffort !== null &&
-    (typeof reasoningEffort !== "string" ||
-      !CODEX_REASONING_EFFORT_VALUES.has(reasoningEffort.trim().toLowerCase()))
-  ) {
+  // [Oracle CONDITIONAL] consoleApiKey는 bailian-coding-plan 전용 필드.
+  // 다른 프로바이더 공통 규약으로 재사용하지 않는다.
+  const consoleApiKey = data.consoleApiKey;
+  if (consoleApiKey !== undefined && consoleApiKey !== null && typeof consoleApiKey !== "string") {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message:
-        "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
-      path: ["requestDefaults", "reasoningEffort"],
+      message: "providerSpecificData.consoleApiKey must be a string",
+      path: ["consoleApiKey"],
     });
   }
-
-  const serviceTier = requestDefaultsRecord.serviceTier;
-  if (
-    serviceTier !== undefined &&
-    serviceTier !== null &&
-    (typeof serviceTier !== "string" ||
-      !REQUEST_DEFAULT_SERVICE_TIER_VALUES.has(serviceTier.trim().toLowerCase()))
-  ) {
+  if (typeof consoleApiKey === "string" && consoleApiKey.length > 10000) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
-      path: ["requestDefaults", "serviceTier"],
+      message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
+      path: ["consoleApiKey"],
     });
   }
 }
@@ -121,6 +140,10 @@ export const createProviderSchema = z.object({
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+});
+
+export const createSyncTokenSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200),
 });
 
 // ──── Combo Schemas ────
@@ -204,7 +227,7 @@ const comboRuntimeConfigSchema = z
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
-    timeoutMs: z.coerce.number().int().min(1000).max(600000).optional(),
+    timeoutMs: z.coerce.number().int().min(1000).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
@@ -281,6 +304,8 @@ export const updateSettingsSchema = z.object({
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  requestRetry: z.number().int().min(0).max(10).optional(),
+  maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -290,12 +315,18 @@ export const updateSettingsSchema = z.object({
   // Protocol toggles (default: disabled)
   mcpEnabled: z.boolean().optional(),
   a2aEnabled: z.boolean().optional(),
+  wsAuth: z.boolean().optional(),
 });
 
 // ──── Auth Schemas ────
 
 export const loginSchema = z.object({
   password: z.string().min(1, "Password is required").max(200),
+});
+
+export const dbBackupCleanupSchema = z.object({
+  keepLatest: z.number().int().min(1).max(200).optional(),
+  retentionDays: z.number().int().min(0).max(3650).optional(),
 });
 
 // ──── API Route Payload Schemas (T06) ────
@@ -490,8 +521,8 @@ export const providerModelMutationSchema = z.object({
   modelId: z.string().trim().min(1, "modelId is required").max(240),
   modelName: z.string().trim().max(240).optional(),
   source: z.string().trim().max(80).optional(),
-  apiFormat: z.enum(["chat-completions", "responses"]).default("chat-completions"),
-  supportedEndpoints: z.array(z.enum(["chat", "embeddings", "images", "audio"])).default(["chat"]),
+  apiFormat: z.enum(["chat-completions", "responses", "embeddings", "audio-transcriptions", "audio-speech", "images-generations"]).default("chat-completions"),
+  supportedEndpoints: z.array(z.enum(["chat", "embeddings", "images", "audio", "audio-transcriptions", "audio-speech", "images-generations"])).default(["chat"]),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -940,7 +971,7 @@ export const oauthPollSchema = z.object({
 
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
-  machineId: z.string().trim().min(1, "Machine ID is required"),
+  machineId: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({
@@ -1098,7 +1129,7 @@ export const createProviderNodeSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
     prefix: z.string().trim().min(1, "Prefix is required"),
-    apiType: z.enum(["chat", "responses"]).optional(),
+    apiType: z.enum(["chat", "responses", "embeddings", "audio-transcriptions", "audio-speech", "images-generations"]).optional(),
     baseUrl: z.string().trim().min(1).optional(),
     type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
     compatMode: z.enum(["cc"]).optional(),
@@ -1119,7 +1150,7 @@ export const createProviderNodeSchema = z
 export const updateProviderNodeSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   prefix: z.string().trim().min(1, "Prefix is required"),
-  apiType: z.enum(["chat", "responses"]).optional(),
+  apiType: z.enum(["chat", "responses", "embeddings", "audio-transcriptions", "audio-speech", "images-generations"]).optional(),
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
@@ -1291,6 +1322,9 @@ export const cliModelConfigSchema = z.object({
   baseUrl: z.string().trim().min(1, "baseUrl and model are required"),
   apiKey: z.string().optional(),
   model: z.string().trim().min(1, "baseUrl and model are required"),
+  reasoningEffort: z.enum(["none", "low", "medium", "high"]).optional(),
+  wireApi: z.enum(["chat", "responses"]).optional(),
+  modelMappings: z.record(z.string().trim().min(1), z.string().trim().min(1)).optional(),
 });
 
 export const codexProfileNameSchema = z.object({

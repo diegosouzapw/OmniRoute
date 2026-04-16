@@ -109,6 +109,12 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     : [];
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
+  const detailIssue =
+    detail?.detailState === "missing"
+      ? "Detailed payload artifact is no longer available for this log entry."
+      : detail?.detailState === "corrupt"
+        ? "Detailed payload artifact could not be parsed."
+        : null;
   const tokenStats = {
     totalIn: detail?.tokens?.in ?? log.tokens?.in ?? 0,
     totalOut: detail?.tokens?.out ?? log.tokens?.out ?? 0,
@@ -118,6 +124,14 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
   };
 
   const formatTokenValue = (value) => (value != null ? value.toLocaleString() : "N/A");
+
+  const cacheSource = detail?.cacheSource || log.cacheSource || "upstream";
+  const cacheSourceLabel =
+    cacheSource === "semantic" ? "Semantic (OmniRoute)" : "Upstream (Provider)";
+  const cacheSourceClassName =
+    cacheSource === "semantic"
+      ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+      : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
 
   return (
     <div
@@ -241,6 +255,16 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Cache Source
+              </div>
+              <span
+                className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border ${cacheSourceClassName}`}
+              >
+                {cacheSourceLabel}
+              </span>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                 Account
               </div>
               <div className="text-sm font-medium">{detail?.account || log.account || "-"}</div>
@@ -286,6 +310,15 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
               <div className="text-sm text-red-600 dark:text-red-300 font-mono">
                 {detail?.error || log.error}
               </div>
+            </div>
+          )}
+
+          {detailIssue && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 font-bold">
+                Detail Status
+              </div>
+              <div className="text-sm text-amber-700 dark:text-amber-200">{detailIssue}</div>
             </div>
           )}
 

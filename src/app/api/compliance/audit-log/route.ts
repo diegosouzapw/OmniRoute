@@ -1,17 +1,42 @@
 import { NextResponse } from "next/server";
-import { getAuditLog, logAuditEvent } from "@/lib/compliance/index";
+import { countAuditLog, getAuditLog } from "@/lib/compliance/index";
+
+function parsePagination(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get("action") || undefined;
-    const actor = searchParams.get("actor") || undefined;
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const filters = {
+      action: searchParams.get("action") || undefined,
+      actor: searchParams.get("actor") || undefined,
+      target: searchParams.get("target") || undefined,
+      resourceType:
+        searchParams.get("resourceType") || searchParams.get("resource_type") || undefined,
+      status: searchParams.get("status") || undefined,
+      requestId: searchParams.get("requestId") || searchParams.get("request_id") || undefined,
+      from: searchParams.get("from") || searchParams.get("since") || undefined,
+      to: searchParams.get("to") || searchParams.get("until") || undefined,
+      limit: parsePagination(searchParams.get("limit"), 50, 1, 500),
+      offset: parsePagination(searchParams.get("offset"), 0, 0, 10_000),
+    };
 
-    const logs = getAuditLog({ action, actor, limit, offset });
-    return NextResponse.json(logs);
+    const logs = getAuditLog(filters);
+    const total = countAuditLog(filters);
+    return NextResponse.json(logs, {
+      headers: {
+        "x-total-count": String(total),
+        "x-page-limit": String(filters.limit),
+        "x-page-offset": String(filters.offset),
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch audit log" },
+      { status: 500 }
+    );
   }
 }

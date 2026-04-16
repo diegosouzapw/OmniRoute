@@ -126,10 +126,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
       ? mergeAbortSignals(input.signal, timeoutSignal)
       : timeoutSignal;
 
-    input.log?.info?.(
-      "CPA",
-      `CLIProxyAPI → ${url} (model: ${input.model})`
-    );
+    input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model})`);
 
     const response = await fetch(url, {
       method: "POST",

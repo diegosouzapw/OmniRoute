@@ -3,7 +3,15 @@
  */
 
 import { PROVIDERS } from "../config/constants.ts";
+import { getAntigravityFetchAvailableModelsUrls } from "../config/antigravityUpstream.ts";
+import { getGlmQuotaUrl } from "../config/glmProvider.ts";
 import { safePercentage } from "@/shared/utils/formatting";
+import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
+import {
+  antigravityUserAgent,
+  getAntigravityHeaders,
+  getAntigravityLoadCodeAssistMetadata,
+} from "./antigravityHeaders.ts";
 
 // GitHub API config
 const GITHUB_CONFIG = {
@@ -13,7 +21,7 @@ const GITHUB_CONFIG = {
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
-  quotaApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+  quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
   loadProjectApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
@@ -22,7 +30,9 @@ const ANTIGRAVITY_CONFIG = {
   get clientSecret() {
     return PROVIDERS.antigravity.clientSecret;
   },
-  userAgent: "antigravity/1.11.3 Darwin/arm64",
+  get userAgent() {
+    return antigravityUserAgent();
+  },
 };
 
 // Codex (OpenAI) API config
@@ -108,18 +118,8 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
-// GLM (Z.AI) quota API config
-const GLM_QUOTA_URLS: Record<string, string> = {
-  international: "https://api.z.ai/api/monitor/usage/quota/limit",
-  china: "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
-};
-
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
-  const region =
-    typeof providerSpecificData?.apiRegion === "string"
-      ? providerSpecificData.apiRegion
-      : "international";
-  const quotaUrl = GLM_QUOTA_URLS[region] || GLM_QUOTA_URLS.international;
+  const quotaUrl = getGlmQuotaUrl(providerSpecificData);
 
   const res = await fetch(quotaUrl, {
     headers: {
@@ -165,12 +165,50 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 }
 
 /**
+ * Bailian (Alibaba Coding Plan) Usage
+ * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
+ */
+async function getBailianCodingPlanUsage(
+  connectionId: string,
+  apiKey: string,
+  providerSpecificData?: Record<string, unknown>
+) {
+  try {
+    const connection = { apiKey, providerSpecificData };
+    const quota = await fetchBailianQuota(connectionId, connection);
+
+    if (!quota) {
+      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+    }
+
+    const bailianQuota = quota as BailianTripleWindowQuota;
+    const used = bailianQuota.used;
+    const total = bailianQuota.total;
+    const remaining = Math.max(0, total - used);
+    const remainingPercentage = Math.round(remaining);
+
+    return {
+      plan: "Alibaba Coding Plan",
+      used,
+      total,
+      remaining,
+      remainingPercentage,
+      resetAt: bailianQuota.resetAt,
+      unlimited: false,
+      displayName: "Alibaba Coding Plan",
+    };
+  } catch (error) {
+    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
 export async function getUsageForProvider(connection) {
-  const { provider, accessToken, apiKey, providerSpecificData, projectId } = connection;
+  const { id, provider, accessToken, apiKey, providerSpecificData, projectId } = connection;
 
   switch (provider) {
     case "github":
@@ -192,9 +230,12 @@ export async function getUsageForProvider(connection) {
     case "qoder":
       return await getIflowUsage(accessToken);
     case "glm":
+    case "glmt":
       return await getGlmUsage(apiKey, providerSpecificData);
     case "cursor":
       return await getCursorUsage(accessToken);
+    case "bailian-coding-plan":
+      return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -852,16 +893,29 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
     const projectId = subscriptionInfo?.cloudaicompanionProject || null;
 
     // Fetch model list with quota info from fetchAvailableModels
-    const response = await fetch(ANTIGRAVITY_CONFIG.quotaApiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "User-Agent": ANTIGRAVITY_CONFIG.userAgent,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(projectId ? { project: projectId } : {}),
-      signal: AbortSignal.timeout(10000),
-    });
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (const quotaApiUrl of ANTIGRAVITY_CONFIG.quotaApiUrls) {
+      try {
+        response = await fetch(quotaApiUrl, {
+          method: "POST",
+          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
+          body: JSON.stringify(projectId ? { project: projectId } : {}),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.ok || response.status === 401 || response.status === 403) {
+          break;
+        }
+      } catch (error) {
+        lastError = error as Error;
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Antigravity API unavailable");
+    }
 
     if (response.status === 403) {
       return { message: "Antigravity access forbidden. Check subscription." };
@@ -966,24 +1020,8 @@ async function getAntigravitySubscriptionInfo(accessToken) {
   try {
     const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "User-Agent": "google-api-nodejs-client/9.15.1",
-        "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
-        "Client-Metadata": JSON.stringify({
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        }),
-      },
-      body: JSON.stringify({
-        metadata: {
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        },
-      }),
+      headers: getAntigravityHeaders("loadCodeAssist", accessToken),
+      body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
     });
 
     if (!response.ok) return null;

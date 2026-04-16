@@ -2,9 +2,10 @@ import {
   getCodexRequestDefaults,
   isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { refreshCodexToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 
@@ -365,6 +366,8 @@ export class CodexExecutor extends BaseExecutor {
   buildHeaders(credentials, stream = true) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
+    headers.Version = getCodexClientVersion();
+    setUserAgentHeader(headers, getCodexUserAgent());
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;
@@ -507,6 +510,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.n;
     delete body.seed;
     delete body.max_tokens;
+    delete body.max_output_tokens; // Responses API translator maps max_tokens -> max_output_tokens, but Codex rejects it
     delete body.user; // Cursor sends this but Codex doesn't support it
     delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
     delete body.metadata; // Cursor sends this but Codex doesn't support it

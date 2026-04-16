@@ -6,7 +6,9 @@ const upstreamTimeouts = getUpstreamTimeoutConfig(process.env, (message) => {
   console.warn(`[open-sse] ${message}`);
 });
 
-// Timeout for non-streaming fetch requests (ms). Prevents stalled connections.
+// Timeout for receiving the initial upstream response (ms).
+// After headers arrive, active SSE streams are governed by STREAM_IDLE_TIMEOUT_MS
+// and Undici's bodyTimeout instead of this one-shot startup timer.
 export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 
 // Idle timeout for SSE streams (ms). Closes stream if no data for this duration.

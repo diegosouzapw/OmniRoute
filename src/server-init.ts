@@ -1,5 +1,6 @@
 // Server startup script
 import initializeCloudSync from "./shared/services/initializeCloudSync";
+import { enforceWebRuntimeEnv } from "./lib/env/runtimeEnv";
 import { enforceSecrets } from "./shared/utils/secretsValidator";
 import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/compliance/index";
 import { initConsoleInterceptor } from "./lib/consoleInterceptor";
@@ -13,6 +14,7 @@ async function startServer() {
 
   // FASE-01: Validate required secrets before anything else (fail-fast)
   enforceSecrets();
+  enforceWebRuntimeEnv();
 
   // Compliance: Initialize audit_log table
   try {
@@ -47,7 +49,14 @@ async function startServer() {
     console.log("Server started with cloud sync initialized");
 
     // Log server start event to audit log
-    logAuditEvent({ action: "server.start", details: { timestamp: new Date().toISOString() } });
+    logAuditEvent({
+      action: "server.start",
+      actor: "system",
+      target: "server-runtime",
+      resourceType: "maintenance",
+      status: "success",
+      details: { timestamp: new Date().toISOString() },
+    });
   } catch (error) {
     console.error("[FATAL] Error initializing cloud sync:", error);
     process.exit(1);

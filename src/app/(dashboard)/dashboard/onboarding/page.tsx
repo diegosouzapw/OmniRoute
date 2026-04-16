@@ -113,6 +113,16 @@ export default function OnboardingWizard() {
         setErrorMessage(data.error || t("failedSetPassword"));
         return;
       }
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (!loginRes.ok) {
+        const data = await loginRes.json().catch(() => ({}));
+        setErrorMessage(data.error || t("connectionError"));
+        return;
+      }
       handleNext();
     } catch {
       setErrorMessage(t("connectionError"));

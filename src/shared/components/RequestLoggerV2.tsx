@@ -28,6 +28,7 @@ const STATUS_FILTERS = [
 // Column definitions for visibility toggles
 const COLUMNS = [
   { key: "status", label: "Status" },
+  { key: "cacheSource", label: "Cache Source" },
   { key: "model", label: "Model" },
   { key: "requestedModel", label: "Requested" },
   { key: "provider", label: "Provider" },
@@ -36,6 +37,7 @@ const COLUMNS = [
   { key: "apiKey", label: "API Key" },
   { key: "combo", label: "Combo" },
   { key: "tokens", label: "Tokens" },
+  { key: "tps", label: "TPS" },
   { key: "duration", label: "Duration" },
   { key: "time", label: "Time" },
 ];
@@ -77,6 +79,36 @@ function getProviderDisplayLabel(provider: string, providerNodes?: any[]): strin
 
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
+}
+
+function getLogTps(log): number {
+  const tokensOut = log?.tokens?.out || 0;
+  const durationMs = log?.duration || 0;
+  if (tokensOut <= 0 || durationMs <= 0) return 0;
+  return tokensOut / (durationMs / 1000);
+}
+
+function formatTps(tps: number): string {
+  if (tps <= 0) return "—";
+  if (tps >= 100) return Math.round(tps).toLocaleString();
+  return tps.toFixed(1);
+}
+
+function getCacheSourceMeta(cacheSource: unknown) {
+  if (cacheSource === "semantic") {
+    return {
+      label: "SEM",
+      title: "Semantic cache hit (served by OmniRoute)",
+      className:
+        "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30",
+    };
+  }
+
+  return {
+    label: "UP",
+    title: "Upstream provider response",
+    className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30",
+  };
 }
 
 export default function RequestLoggerV2() {
@@ -207,6 +239,10 @@ export default function RequestLoggerV2() {
           return (b.duration || 0) - (a.duration || 0);
         case "duration_asc":
           return (a.duration || 0) - (b.duration || 0);
+        case "tps_desc":
+          return getLogTps(b) - getLogTps(a);
+        case "tps_asc":
+          return getLogTps(a) - getLogTps(b);
         case "status_desc":
           return (b.status || 0) - (a.status || 0);
         case "status_asc":
@@ -443,6 +479,8 @@ export default function RequestLoggerV2() {
           <option value="tokens_asc">Tokens ↑</option>
           <option value="duration_desc">Duration ↓</option>
           <option value="duration_asc">Duration ↑</option>
+          <option value="tps_desc">TPS ↓</option>
+          <option value="tps_asc">TPS ↑</option>
           <option value="status_desc">Status ↓</option>
           <option value="status_asc">Status ↑</option>
           <option value="model_asc">Model A-Z</option>
@@ -565,6 +603,11 @@ export default function RequestLoggerV2() {
                       Status
                     </th>
                   )}
+                  {visibleColumns.cacheSource && (
+                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                      Cache Source
+                    </th>
+                  )}
                   {visibleColumns.model && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
                       Model
@@ -605,6 +648,11 @@ export default function RequestLoggerV2() {
                       Tokens
                     </th>
                   )}
+                  {visibleColumns.tps && (
+                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
+                      TPS
+                    </th>
+                  )}
                   {visibleColumns.duration && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
                       Duration
@@ -635,6 +683,7 @@ export default function RequestLoggerV2() {
                   };
                   const providerLabel = compatLabel || providerColor.label;
                   const isError = log.status >= 400;
+                  const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
 
                   return (
                     <tr
@@ -649,6 +698,16 @@ export default function RequestLoggerV2() {
                             style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
                           >
                             {log.status || "..."}
+                          </span>
+                        </td>
+                      )}
+                      {visibleColumns.cacheSource && (
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta.className}`}
+                            title={cacheSourceMeta.title}
+                          >
+                            {cacheSourceMeta.label === "SEM" ? "Semantic" : "Upstream"}
                           </span>
                         </td>
                       )}
@@ -737,6 +796,26 @@ export default function RequestLoggerV2() {
                           <span className="text-emerald-700 dark:text-emerald-400">
                             {log.tokens?.out?.toLocaleString() || 0}
                           </span>
+                        </td>
+                      )}
+                      {visibleColumns.tps && (
+                        <td className="px-3 py-2 text-right whitespace-nowrap font-mono">
+                          {(() => {
+                            const tps = getLogTps(log);
+                            const color =
+                              tps <= 0
+                                ? "text-text-muted"
+                                : tps >= 80
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : tps >= 30
+                                    ? "text-sky-600 dark:text-sky-400"
+                                    : "text-amber-600 dark:text-amber-400";
+                            return (
+                              <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
+                                {formatTps(tps)}
+                              </span>
+                            );
+                          })()}
                         </td>
                       )}
                       {visibleColumns.duration && (

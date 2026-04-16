@@ -43,7 +43,6 @@ const AGENT_ICON_MAP: Record<string, string> = {
   droid: "droid",
   goose: "goose",
   aider: "aider",
-  iflow: "iflow",
   kiro: "kiro",
   nanobot: "nanobot",
   picoclaw: "picoclaw",

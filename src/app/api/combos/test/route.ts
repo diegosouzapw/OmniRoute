@@ -18,12 +18,15 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, internalUrl) {
+async function testComboTarget(target, baseInternalUrl) {
   const startTime = Date.now();
   try {
-    // Send a minimal but real chat request through the same internal
-    // endpoint an external OpenAI-compatible client would use.
-    const testBody = buildComboTestRequestBody(target.modelStr);
+    const isEmbedding =
+      target.modelStr.toLowerCase().includes("embedding") ||
+      target.modelStr.toLowerCase().includes("bge-") ||
+      target.modelStr.toLowerCase().includes("text-embed");
+    const internalUrl = `${baseInternalUrl}/v1/${isEmbedding ? "embeddings" : "chat/completions"}`;
+    const testBody = buildComboTestRequestBody(target.modelStr, isEmbedding);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
@@ -137,9 +140,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
     }
 
-    const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
+    const baseInternalUrl = getBaseUrl(request);
     const results = await Promise.all(
-      targets.map((target) => testComboTarget(target, internalUrl))
+      targets.map((target) => testComboTarget(target, baseInternalUrl))
     );
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;

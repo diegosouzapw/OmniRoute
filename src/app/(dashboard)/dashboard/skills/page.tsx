@@ -26,6 +26,14 @@ export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [loading, setLoading] = useState(true);
+  const [skillsPage, setSkillsPage] = useState(1);
+  const [skillsTotal, setSkillsTotal] = useState(0);
+  const [skillsTotalPages, setSkillsTotalPages] = useState(1);
+
+  const [execPage, setExecPage] = useState(1);
+  const [execTotal, setExecTotal] = useState(0);
+  const [execTotalPages, setExecTotalPages] = useState(1);
+
   const [activeTab, setActiveTab] = useState<
     "skills" | "executions" | "sandbox" | "marketplace" | "skillssh"
   >("skills");
@@ -59,22 +67,42 @@ export default function SkillsPage() {
   const [shInstallingId, setShInstallingId] = useState<string | null>(null);
   const t = useTranslations("skills");
 
+  const fetchSkills = async (page: number) => {
+    const res = await fetch(`/api/skills?page=${page}&limit=20`).then((r) => r.json());
+    setSkills(res.data || []);
+    setSkillsTotal(res.total || 0);
+    setSkillsTotalPages(res.totalPages || 1);
+  };
+
+  const fetchExecutions = async (page: number) => {
+    const res = await fetch(`/api/skills/executions?page=${page}&limit=20`).then((r) => r.json());
+    setExecutions(res.data || []);
+    setExecTotal(res.total || 0);
+    setExecTotalPages(res.totalPages || 1);
+  };
+
   useEffect(() => {
     Promise.all([
-      fetch("/api/skills").then((r) => r.json()),
-      fetch("/api/skills/executions").then((r) => r.json()),
+      fetch("/api/skills?page=1&limit=20").then((r) => r.json()),
+      fetch("/api/skills/executions?page=1&limit=20").then((r) => r.json()),
     ])
       .then(([skillsData, executionsData]) => {
-        setSkills(skillsData.skills || []);
-        setExecutions(executionsData.executions || []);
+        setSkills(skillsData.data || []);
+        setSkillsTotal(skillsData.total || 0);
+        setSkillsTotalPages(skillsData.totalPages || 1);
+
+        setExecutions(executionsData.data || []);
+        setExecTotal(executionsData.total || 0);
+        setExecTotalPages(executionsData.totalPages || 1);
+
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
   const refreshSkills = async () => {
-    const res = await fetch("/api/skills").then((r) => r.json());
-    setSkills(res.skills || []);
+    setSkillsPage(1);
+    await fetchSkills(1);
   };
 
   const toggleSkill = async (skillId: string, enabled: boolean) => {
@@ -360,6 +388,35 @@ export default function SkillsPage() {
               </Card>
             ))
           )}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <span className="text-sm text-text-muted">
+              Page {skillsPage} of {skillsTotalPages} ({skillsTotal} total)
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const p = Math.max(1, skillsPage - 1);
+                  setSkillsPage(p);
+                  fetchSkills(p);
+                }}
+                disabled={skillsPage === 1}
+                className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => {
+                  const p = Math.min(skillsTotalPages, skillsPage + 1);
+                  setSkillsPage(p);
+                  fetchSkills(p);
+                }}
+                disabled={skillsPage === skillsTotalPages || skillsTotalPages === 0}
+                className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -408,6 +465,35 @@ export default function SkillsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <span className="text-sm text-text-muted">
+              Page {execPage} of {execTotalPages} ({execTotal} total)
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const p = Math.max(1, execPage - 1);
+                  setExecPage(p);
+                  fetchExecutions(p);
+                }}
+                disabled={execPage === 1}
+                className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => {
+                  const p = Math.min(execTotalPages, execPage + 1);
+                  setExecPage(p);
+                  fetchExecutions(p);
+                }}
+                disabled={execPage === execTotalPages || execTotalPages === 0}
+                className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </Card>
       )}

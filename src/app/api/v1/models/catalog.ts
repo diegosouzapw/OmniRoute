@@ -29,7 +29,6 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   cx: "codex",
   gc: "gemini-cli",
   gh: "github",
-  if: "iflow",
   kc: "kilocode",
   kmc: "kimi-coding",
   kr: "kiro",

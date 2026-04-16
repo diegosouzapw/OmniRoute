@@ -151,6 +151,9 @@ export {
 export {
   // Backup Management
   backupDbFile,
+  cleanupDbBackups,
+  getDbBackupMaxFiles,
+  getDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
 } from "./db/backup";
@@ -234,6 +237,15 @@ export {
   updateToolVersion,
   setToolStatus,
 } from "./db/versionManager";
+
+export {
+  listSyncTokens,
+  getSyncTokenById,
+  getSyncTokenByHash,
+  createSyncTokenRecord,
+  revokeSyncToken,
+  touchSyncTokenLastUsed,
+} from "./db/syncTokens";
 
 export {
   getUpstreamProxyConfigs,

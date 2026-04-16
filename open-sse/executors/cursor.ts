@@ -28,6 +28,7 @@ import {
   extractTextFromResponse,
 } from "../utils/cursorProtobuf.ts";
 import { estimateUsage } from "../utils/usageTracking.ts";
+import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
 import { FORMATS } from "../translator/formats.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
@@ -240,12 +241,13 @@ export class CursorExecutor extends BaseExecutor {
 
   buildHeaders(credentials) {
     const accessToken = credentials.accessToken;
-    const machineId = credentials.providerSpecificData?.machineId;
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
 
-    if (!machineId) {
-      throw new Error("Machine ID is required for Cursor API");
-    }
+    // Use stored machineId, or derive a stable one from the access token
+    // (cursor-agent imports don't provide a machineId)
+    const machineId =
+      credentials.providerSpecificData?.machineId ||
+      crypto.createHash("sha256").update(accessToken).digest("hex");
 
     const cleanToken = accessToken.includes("::") ? accessToken.split("::")[1] : accessToken;
 
@@ -254,11 +256,11 @@ export class CursorExecutor extends BaseExecutor {
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
       "content-type": "application/connect+proto",
-      "user-agent": CURSOR_USER_AGENT,
+      "user-agent": `Cursor/${getCursorVersion()}`,
       "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
       "x-client-key": crypto.createHash("sha256").update(cleanToken).digest("hex"),
       "x-cursor-checksum": this.generateChecksum(machineId),
-      "x-cursor-client-version": CURSOR_CLIENT_VERSION,
+      "x-cursor-client-version": getCursorVersion(),
       "x-cursor-client-type": "ide",
       "x-cursor-client-os":
         process.platform === "win32"
@@ -268,7 +270,7 @@ export class CursorExecutor extends BaseExecutor {
             : "linux",
       "x-cursor-client-arch": process.arch === "arm64" ? "aarch64" : "x64",
       "x-cursor-client-device-type": "desktop",
-      "x-cursor-user-agent": CURSOR_USER_AGENT,
+      "x-cursor-user-agent": `Cursor/${getCursorVersion()}`,
       "x-cursor-config-version": crypto.randomUUID(),
       "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       "x-ghost-mode": ghostMode ? "true" : "false",

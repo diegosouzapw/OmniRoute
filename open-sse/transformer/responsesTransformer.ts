@@ -399,6 +399,13 @@ export function createResponsesApiTransformStream(logger = null) {
 
           // Regular text content
           if (content) {
+            // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
+            if (!state.msgTextBuf[idx]) {
+              content = content.trimStart();
+            }
+
+            if (!content) continue;
+
             if (!state.msgItemAdded[idx]) {
               state.msgItemAdded[idx] = true;
               const msgId = `msg_${state.responseId}_${idx}`;

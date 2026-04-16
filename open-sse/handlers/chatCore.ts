@@ -51,15 +51,15 @@ import {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getUpstreamProxyConfig,
-  getCachedSettings,
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
+import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import {
   shouldPreserveCacheControl,
   providerSupportsCaching,
-  type CacheControlMode,
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
+import { getCachedSettings } from "@/lib/db/readCache";
 
 import {
   parseCodexQuotaHeaders,
@@ -79,13 +79,15 @@ import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
+  updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
 import {
   generateSignature,
   getCachedResponse,
   setCachedResponse,
-  isCacheable,
+  isCacheableForRead,
+  isCacheableForWrite,
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
@@ -97,6 +99,7 @@ import {
   getModelFamily,
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
+import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
 import {
   getBackgroundTaskReason,
   getDegradedModel,
@@ -129,11 +132,6 @@ import {
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
-import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
-import {
-  enforceThinkingTemperature,
-  disableThinkingIfToolChoiceForced,
-} from "../services/claudeCodeConstraints.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -270,6 +268,42 @@ function getSkillsModelIdForFormat(format: string): string {
     default:
       return "openai";
   }
+}
+
+function parseNonStreamingSSEPayload(
+  rawBody: string,
+  preferredFormat: string,
+  fallbackModel: string
+): { body: Record<string, unknown>; format: string } | null {
+  const formatsToTry: string[] = [];
+  const seen = new Set<string>();
+  const queueFormat = (format: string) => {
+    if (!format || seen.has(format)) return;
+    seen.add(format);
+    formatsToTry.push(format);
+  };
+
+  queueFormat(preferredFormat);
+  queueFormat(FORMATS.OPENAI_RESPONSES);
+  queueFormat(FORMATS.CLAUDE);
+  queueFormat(FORMATS.OPENAI);
+
+  for (const format of formatsToTry) {
+    const parsed =
+      format === FORMATS.OPENAI_RESPONSES
+        ? parseSSEToResponsesOutput(rawBody, fallbackModel)
+        : format === FORMATS.CLAUDE
+          ? parseSSEToClaudeResponse(rawBody, fallbackModel)
+          : parseSSEToOpenAIResponse(rawBody, fallbackModel);
+    if (parsed && typeof parsed === "object") {
+      return {
+        body: parsed as Record<string, unknown>,
+        format,
+      };
+    }
+  }
+
+  return null;
 }
 
 function getHeaderValueCaseInsensitive(
@@ -694,6 +728,7 @@ export async function handleChatCore({
     clientResponse,
     claudeCacheMeta,
     claudeCacheUsageMeta,
+    cacheSource,
   }: {
     status: number;
     tokens?: unknown;
@@ -704,6 +739,7 @@ export async function handleChatCore({
     clientResponse?: unknown;
     claudeCacheMeta?: Record<string, unknown>;
     claudeCacheUsageMeta?: Record<string, unknown>;
+    cacheSource?: "upstream" | "semantic";
   }) => {
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
@@ -755,6 +791,7 @@ export async function handleChatCore({
       comboName,
       comboStepId,
       comboExecutionKey,
+      cacheSource: cacheSource === "semantic" ? "semantic" : "upstream",
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
@@ -817,36 +854,11 @@ export async function handleChatCore({
     delete b.disable_stream;
     delete b.disable_streaming;
     delete b.streaming;
-    delete b.prompt_cache_retention;
   }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
-  const runtimeSettings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
-  const semanticCacheEnabled = runtimeSettings.semanticCacheEnabled !== false;
-  const cacheControlMode =
-    runtimeSettings.alwaysPreserveClientCache === "always" ||
-    runtimeSettings.alwaysPreserveClientCache === "never"
-      ? (runtimeSettings.alwaysPreserveClientCache as CacheControlMode)
-      : "auto";
-
-  // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
-  if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
-    const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
-    const cached = getCachedResponse(signature);
-    if (cached) {
-      log?.debug?.("CACHE", `Semantic cache HIT for ${model}`);
-      return {
-        success: true,
-        response: new Response(JSON.stringify(cached), {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": getCorsOrigin(),
-            "X-OmniRoute-Cache": "HIT",
-          },
-        }),
-      };
-    }
-  }
+  const settings = await getCachedSettings();
+  const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
   // Create request logger for this session: sourceFormat_targetFormat_model
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model);
@@ -861,6 +873,41 @@ export async function handleChatCore({
   }
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
+
+  // ── Phase 9.1: Semantic cache check (temp=0, any streaming mode) ──
+  // Streaming responses are cached after assembly; cache hits return JSON regardless of stream flag.
+  if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
+    const signature = generateSignature(
+      model,
+      body.messages ?? body.input,
+      body.temperature,
+      body.top_p
+    );
+    const cached = getCachedResponse(signature);
+    if (cached) {
+      log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);
+      reqLogger.logConvertedResponse(cached as Record<string, unknown>);
+      persistAttemptLogs({
+        status: 200,
+        tokens: (cached as Record<string, unknown>)?.usage,
+        responseBody: cached,
+        providerRequest: null,
+        providerResponse: null,
+        clientResponse: cached,
+        cacheSource: "semantic",
+      });
+      return {
+        success: true,
+        response: new Response(JSON.stringify(cached), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": getCorsOrigin(),
+            "X-OmniRoute-Cache": "HIT",
+          },
+        }),
+      };
+    }
+  }
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
   // #994: Normalize max_output_tokens to max_tokens for universal compatibility
@@ -962,13 +1009,12 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
-  // Respect the client's explicit non-streaming intent for CC-compatible providers.
-  // Most upstreams can answer JSON directly; the SSE->JSON fallback remains as a
-  // compatibility path when an upstream still responds with event-stream.
-  const upstreamStream = stream;
+  const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
+  // Fetch settings from DB to get user preference
+  const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
   const preserveCacheControl = shouldPreserveCacheControl({
     userAgent,
     isCombo,
@@ -1030,17 +1076,6 @@ export async function handleChatCore({
         now: new Date(),
         preserveCacheControl,
       });
-
-      // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
-      // runs later in BaseExecutor over the serialized string).
-      // Only thinking constraints and tool remapping are applied here; cache-control
-      // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
-      // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
-      // toward the 4-block cap and would strip legitimate client cache markers.
-      remapToolNamesInRequest(translatedBody);
-      enforceThinkingTemperature(translatedBody);
-      disableThinkingIfToolChoiceForced(translatedBody);
-
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
@@ -1183,6 +1218,40 @@ export async function handleChatCore({
         }
       }
 
+      // OpenAI-compatible providers only support function tools.
+      // Non-function tool types (computer, mcp, web_search, custom, etc.) are handled:
+      //   - tools with a name → converted to function format in-place before translation
+      //   - tools without a name AND without .function → dropped (unconvertible)
+      // This must happen before translateRequest, which validates and throws on unknown types.
+      if (provider?.startsWith("openai-compatible-") && Array.isArray(translatedBody.tools)) {
+        const before = (translatedBody.tools as unknown[]).length;
+        translatedBody.tools = (translatedBody.tools as Record<string, unknown>[])
+          .filter((t) => !t.type || t.type === "function" || !!t.function || !!t.name)
+          .map((t) => {
+            if (!t.type || t.type === "function" || t.function) return t;
+            // Named non-function tool: normalise to function format so the translator
+            // does not throw on the unknown type.
+            return {
+              type: "function",
+              function: {
+                name: t.name,
+                ...(t.description !== undefined ? { description: t.description } : {}),
+                ...(t.parameters !== undefined || t.input_schema !== undefined
+                  ? { parameters: t.parameters ?? t.input_schema ?? {} }
+                  : {}),
+                ...(t.strict !== undefined ? { strict: t.strict } : {}),
+              },
+            };
+          });
+        const dropped = before - (translatedBody.tools as unknown[]).length;
+        if (dropped > 0) {
+          log?.debug?.(
+            "TOOLS",
+            `Dropped ${dropped} unconvertible tool(s) for openai-compatible provider`
+          );
+        }
+      }
+
       const normalizeToolCallId = getModelNormalizeToolCallId(
         provider || "",
         model || "",
@@ -1256,7 +1325,14 @@ export async function handleChatCore({
   delete translatedBody._disableToolPrefix;
 
   // Update model in body — use resolved alias so the provider gets the correct model ID (#472)
-  translatedBody.model = effectiveModel;
+  // Strip provider/alias prefix if it exactly matches the routing prefix so upstream receives the raw model name (#1261)
+  let finalModelToUpstream = effectiveModel;
+  if (finalModelToUpstream.startsWith(`${provider}/`)) {
+    finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
+  } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
+    finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+  }
+  translatedBody.model = finalModelToUpstream;
 
   // Strip unsupported parameters for reasoning models (o1, o3, etc.)
   const unsupported = getUnsupportedParams(provider, model);
@@ -1285,6 +1361,53 @@ export async function handleChatCore({
           `Capping ${field} from ${translatedBody[field]} to ${providerCap} for ${provider}`
         );
         translatedBody[field] = providerCap;
+      }
+    }
+  }
+
+  if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
+    const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
+    const contextLimit = getTokenLimit(provider, effectiveModel);
+    const COMPRESSION_THRESHOLD = 0.85;
+    const threshold = Math.floor(contextLimit * COMPRESSION_THRESHOLD);
+
+    if (estimatedTokens > threshold) {
+      log?.info?.(
+        "CONTEXT",
+        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
+      );
+
+      const compressionResult = compressContext(translatedBody, {
+        provider,
+        model: effectiveModel,
+        maxTokens: contextLimit,
+      });
+
+      if (compressionResult.compressed) {
+        translatedBody = compressionResult.body;
+        const stats = compressionResult.stats;
+        const layersInfo =
+          stats && "layers" in stats && Array.isArray(stats.layers)
+            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
+            : "";
+
+        log?.info?.(
+          "CONTEXT",
+          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
+        );
+
+        logAuditEvent({
+          action: "context.proactive_compression",
+          actor: apiKeyInfo?.name || "system",
+          target: connectionId || provider || "chat",
+          details: {
+            provider,
+            model: effectiveModel,
+            original_tokens: stats.original,
+            final_tokens: stats.final,
+            layers: "layers" in stats ? stats.layers : undefined,
+          },
+        });
       }
     }
   }
@@ -1382,6 +1505,21 @@ export async function handleChatCore({
         translatedBody.model === modelToCall
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
+
+      // Qwen OAuth rejects requests without a non-empty `user` field.
+      // Some minimal OpenAI-compatible clients omit it, so we backfill a
+      // stable default only for OAuth mode (API key mode is unaffected).
+      const hasValidQwenUser =
+        typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
+      const isQwenOAuthRequest =
+        provider === "qwen" &&
+        !credentials?.apiKey &&
+        typeof credentials?.accessToken === "string" &&
+        credentials.accessToken.trim().length > 0;
+      if (isQwenOAuthRequest && !hasValidQwenUser) {
+        bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
+        log?.debug?.("QWEN", "Injected fallback user for OAuth request");
+      }
 
       // Inject prompt_cache_key only for providers that support it
       if (
@@ -1535,6 +1673,7 @@ export async function handleChatCore({
       providerRequest: finalBody || translatedBody,
       clientResponse: buildErrorBody(failureStatus, failureMessage),
       claudeCacheMeta: claudePromptCacheLogMeta,
+      cacheSource: "upstream",
     });
     if (error.name === "AbortError") {
       streamController.handleError(error);
@@ -1684,23 +1823,24 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
+          const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "rate_limited",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              rateLimitCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(rateLimitCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
-            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+            const rateLimitedUntil = new Date(Date.now() + rateLimitCooldownMs).toISOString();
             await updateProviderConnection(connectionId, {
               rateLimitedUntil: rateLimitedUntil,
-              testStatus: "credits_exhausted",
+              testStatus: "unavailable",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
@@ -1802,6 +1942,9 @@ export async function handleChatCore({
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
+    if (connectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
+      updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
+    }
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
     // Before returning a model-unavailable error upstream, try sibling models
@@ -1835,6 +1978,7 @@ export async function handleChatCore({
               providerRequest: finalBody || translatedBody,
               providerResponse: upstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
+              cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "model_unavailable");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1846,6 +1990,7 @@ export async function handleChatCore({
             providerRequest: finalBody || translatedBody,
             providerResponse: upstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
+            cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "model_unavailable");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1857,6 +2002,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: upstreamErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
+          cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "model_unavailable");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1892,6 +2038,7 @@ export async function handleChatCore({
               providerRequest: finalBody || translatedBody,
               providerResponse: upstreamErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
+              cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "context_overflow");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1903,6 +2050,7 @@ export async function handleChatCore({
             providerRequest: finalBody || translatedBody,
             providerResponse: upstreamErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
+            cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "context_overflow");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1914,6 +2062,7 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: upstreamErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
+          cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "context_overflow");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
@@ -1925,6 +2074,7 @@ export async function handleChatCore({
         providerRequest: finalBody || translatedBody,
         providerResponse: upstreamErrorBody,
         clientResponse: buildErrorBody(statusCode, errMsg),
+        cacheSource: "upstream",
       });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
 
@@ -2009,7 +2159,7 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
-    let responseFormatForTranslation = targetFormat;
+    let responsePayloadFormat = targetFormat;
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
@@ -2017,21 +2167,7 @@ export async function handleChatCore({
 
     if (looksLikeSSE) {
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
-      const looksLikeResponsesSSE =
-        targetFormat === FORMATS.OPENAI_RESPONSES ||
-        provider === "codex" ||
-        /(^|\n)\s*(?:event:\s*response\.|data:\s*\{.*"type"\s*:\s*"response\.)/m.test(rawBody);
-      responseFormatForTranslation = looksLikeResponsesSSE
-        ? FORMATS.OPENAI_RESPONSES
-        : targetFormat === FORMATS.CLAUDE
-          ? FORMATS.CLAUDE
-          : FORMATS.OPENAI;
-      const parsedFromSSE =
-        responseFormatForTranslation === FORMATS.OPENAI_RESPONSES
-          ? parseSSEToResponsesOutput(rawBody, model)
-          : responseFormatForTranslation === FORMATS.CLAUDE
-            ? parseSSEToClaudeResponse(rawBody, model)
-            : parseSSEToOpenAIResponse(rawBody, model);
+      const parsedFromSSE = parseNonStreamingSSEPayload(rawBody, targetFormat, model);
 
       if (!parsedFromSSE) {
         appendRequestLog({
@@ -2047,41 +2183,34 @@ export async function handleChatCore({
           providerRequest: finalBody || translatedBody,
           providerResponse: normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
+          cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
-      responseBody = parsedFromSSE;
+      responseBody = parsedFromSSE.body;
+      responsePayloadFormat = parsedFromSSE.format;
     } else {
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
       } catch {
-        const isHtmlResponse =
-          rawBody && typeof rawBody === "string" && /^\s*(?:\s|<!|<[a-zA-Z]|<\?xml)/.test(rawBody);
         appendRequestLog({
           model,
           provider,
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-
-        const invalidJsonMessage = isHtmlResponse
-          ? "Provider returned HTML error page instead of JSON - check credentials and endpoint"
-          : "Invalid JSON response from provider";
+        const invalidJsonMessage = "Invalid JSON response from provider";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidJsonMessage,
           providerRequest: finalBody || translatedBody,
-          providerResponse: isHtmlResponse
-            ? { _raw: rawBody?.slice(0, 500) }
-            : normalizedProviderPayload,
+          providerResponse: normalizedProviderPayload,
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+          cacheSource: "upstream",
         });
-        persistFailureUsage(
-          HTTP_STATUS.BAD_GATEWAY,
-          isHtmlResponse ? "html_error_response" : "invalid_json_payload"
-        );
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }
@@ -2101,6 +2230,7 @@ export async function handleChatCore({
         providerRequest: finalBody || translatedBody,
         providerResponse: normalizedProviderPayload,
         clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage),
+        cacheSource: "upstream",
       });
       persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "empty_content");
 
@@ -2221,10 +2351,10 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(responseFormatForTranslation, clientResponseFormat)
+    let translatedResponse = needsTranslation(responsePayloadFormat, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
-          responseFormatForTranslation,
+          responsePayloadFormat,
           clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )
@@ -2309,8 +2439,13 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (semanticCacheEnabled && isCacheable(body, clientRawRequest?.headers)) {
-      const signature = generateSignature(model, body.messages, body.temperature, body.top_p);
+    if (semanticCacheEnabled && isCacheableForWrite(body, clientRawRequest?.headers)) {
+      const signature = generateSignature(
+        model,
+        body.messages ?? body.input,
+        body.temperature,
+        body.top_p
+      );
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);
       log?.debug?.("CACHE", `Stored response for ${model} (${tokensSaved} tokens)`);
@@ -2334,6 +2469,7 @@ export async function handleChatCore({
       clientResponse: translatedResponse,
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
+      cacheSource: "upstream",
     });
 
     return {
@@ -2424,6 +2560,7 @@ export async function handleChatCore({
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
+      cacheSource: "upstream",
     });
 
     if (apiKeyInfo?.id && streamUsage) {
@@ -2432,6 +2569,32 @@ export async function handleChatCore({
           if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
         })
         .catch(() => {});
+    }
+
+    // Semantic cache: store assembled streaming response for future cache hits
+    if (
+      semanticCacheEnabled &&
+      streamStatus === 200 &&
+      streamResponseBody &&
+      isCacheableForWrite(body, clientRawRequest?.headers)
+    ) {
+      try {
+        const cleanBody = { ...streamResponseBody };
+        delete cleanBody._streamed;
+        const sig = generateSignature(
+          model,
+          body.messages ?? body.input,
+          body.temperature,
+          body.top_p
+        );
+        const u = streamUsage as Record<string, unknown> | null;
+        const tokensSaved =
+          (Number(u?.prompt_tokens ?? 0) || 0) + (Number(u?.completion_tokens ?? 0) || 0);
+        setCachedResponse(sig, model, cleanBody, tokensSaved);
+        log?.debug?.("CACHE", `Stored streaming response for ${model} (${tokensSaved} tokens)`);
+      } catch {
+        // Cache write failed — non-critical
+      }
     }
   };
 

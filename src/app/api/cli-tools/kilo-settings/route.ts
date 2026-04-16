@@ -130,6 +130,9 @@ export async function POST(request) {
       return NextResponse.json({ error: writeGuard }, { status: 403 });
     }
 
+    // (#549) Extract keyId BEFORE validation — Zod strips unknown fields!
+    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+
     const validation = validateBody(cliModelConfigSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
@@ -137,8 +140,7 @@ export async function POST(request) {
     const { baseUrl, model } = validation.data;
     let { apiKey } = validation.data;
 
-    // (#549) Resolve real key from DB if keyId was provided.
-    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+    // Resolve real key from DB by ID
     if (keyId) {
       try {
         const keyRecord = await getApiKeyById(keyId);

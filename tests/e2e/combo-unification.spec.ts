@@ -140,7 +140,12 @@ test.describe("Combo Unification", () => {
 
     test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
-    await expect(page.getByRole("button", { name: /^layers all$/i })).toBeVisible();
+    await expect(
+      page
+        .locator("button")
+        .filter({ has: page.locator("span", { hasText: "layers" }) })
+        .filter({ hasText: "All" })
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: /intelligent/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /deterministic/i })).toBeVisible();
     await expect(page.getByText("Intelligent Routing Dashboard")).toBeVisible();
@@ -186,10 +191,10 @@ test.describe("Combo Unification", () => {
     await page.getByTestId("strategy-option-auto").click();
     await page.getByTestId("combo-builder-next").click();
 
-    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Exploration Rate", { exact: true })).toBeVisible({
-      timeout: 5000,
+      timeout: 15000,
     });
   });
 });

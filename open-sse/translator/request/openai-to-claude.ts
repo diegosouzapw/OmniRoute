@@ -495,7 +495,8 @@ function convertOpenAIToolChoice(choice) {
     }
     // Map OpenAI string types to Claude equivalents
     if (choice.type === "auto" || choice.type === "none") return { type: "auto" };
-    if (choice.type === "required" || choice.type === "any") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
+    if (choice.type === "required" || choice.type === "any")
+      return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
     if (choice.type === "tool" && choice.name) return choice;
     // Fallback: unknown object type — default to auto to avoid 400 errors

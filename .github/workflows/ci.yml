@@ -14,6 +14,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  CI_NODE_VERSION: "22.22.2"
+
 jobs:
   lint:
     name: Lint
@@ -22,9 +25,10 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npm run lint
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
@@ -82,7 +86,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
       - name: Validate source changes include tests
@@ -112,16 +116,17 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
 
       - run: npm ci
+      - run: npm run check:node-runtime
 
       - name: Dependency audit
-        run: npm audit --audit-level=high --omit=dev || true
+        run: npm audit --audit-level=high --omit=dev
 
       - name: Check for known vulnerabilities
-        run: npx is-my-node-vulnerable || true
+        run: npx is-my-node-vulnerable
 
       - name: Run Snyk Vulnerability checks
         if: github.actor != 'dependabot[bot]'
@@ -138,10 +143,28 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npm run build
+
+  package-artifact:
+    name: Package Artifact
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - run: npm run build:cli
+      - run: npm run check:pack-artifact
 
   test-unit:
     name: Unit Tests
@@ -151,13 +174,15 @@ jobs:
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npm run test:unit
 
   test-coverage:
@@ -168,13 +193,15 @@ jobs:
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - name: Run coverage gate
         run: npm run test:coverage
       - name: Build coverage summary
@@ -322,13 +349,15 @@ jobs:
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/4
@@ -343,13 +372,15 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       INITIAL_PASSWORD: ci-test-password-for-integration
       DATA_DIR: /tmp/omniroute-ci
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npm run test:integration
 
   test-security:
@@ -359,13 +390,15 @@ jobs:
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - run: npm run check:node-runtime
       - run: npm run test:security
 
   ci-summary:
@@ -378,6 +411,7 @@ jobs:
       - pr-test-policy
       - advanced-security
       - build
+      - package-artifact
       - test-unit
       - test-coverage
       - sonarqube
@@ -424,6 +458,7 @@ jobs:
           echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"

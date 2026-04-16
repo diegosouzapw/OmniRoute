@@ -14,13 +14,13 @@ import {
   formatRetryAfter,
   checkFallbackError,
   isModelLocked,
+  getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
+  getRuntimeProviderProfile,
+  recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import {
-  isLocalProvider,
-  getPassthroughProviders,
-} from "@omniroute/open-sse/config/providerRegistry.ts";
+import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
@@ -69,9 +69,17 @@ interface CredentialSelectionOptions {
   excludeConnectionIds?: string[] | null;
 }
 
+interface CooldownInspectionState {
+  connection: ProviderConnectionView;
+  connectionCooldownMs: number | null;
+  codexScopeCooldownMs: number | null;
+  retryableModelCooldownMs: number | null;
+}
+
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
+const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -311,6 +319,12 @@ function getEarliestFutureDate(candidates: Array<string | null>): string | null 
       .filter((entry) => entry.ms !== null)
       .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null
   );
+}
+
+function isRetryableModelLockoutReason(reason: unknown): boolean {
+  return typeof reason === "string" && reason.length > 0
+    ? !NON_RETRYABLE_MODEL_LOCKOUT_REASONS.has(reason)
+    : false;
 }
 
 function getConnectionQuotaHeadroomPercent(
@@ -673,6 +687,8 @@ export async function getProviderCredentials(
       const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
       const terminalStatus = isTerminalConnectionStatus(c);
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
+      const modelLocked =
+        Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
@@ -693,35 +709,91 @@ export async function getProviderCredentials(
             ? `  → ${c.id?.slice(0, 8)} | retained codex scope-limited account until ${scopeUntil} for combo live test`
             : `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`
         );
+      } else if (modelLocked) {
+        const lockout = getModelLockoutInfo(provider, c.id, requestedModel);
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained model lockout for ${requestedModel} (${lockout?.remainingMs || 0}ms remaining) for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | model-locked for ${requestedModel} (${lockout?.remainingMs || 0}ms remaining)`
+        );
       }
     });
 
     if (availableConnections.length === 0) {
+      const cooldownStates: CooldownInspectionState[] = connections.map((connection) => {
+        const connectionCooldownMs = parseFutureDateMs(connection.rateLimitedUntil);
+        const codexScopeCooldownMs =
+          provider === "codex"
+            ? parseFutureDateMs(
+                getCodexScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
+              )
+            : null;
+        const modelLockout = requestedModel
+          ? getModelLockoutInfo(provider, connection.id, requestedModel)
+          : null;
+        const retryableModelCooldownMs =
+          modelLockout &&
+          modelLockout.remainingMs > 0 &&
+          isRetryableModelLockoutReason(modelLockout.reason)
+            ? Date.now() + modelLockout.remainingMs
+            : null;
+
+        return {
+          connection,
+          connectionCooldownMs,
+          codexScopeCooldownMs,
+          retryableModelCooldownMs,
+        };
+      });
+
+      const cooldownCandidates = cooldownStates
+        .flatMap((state) => {
+          const candidates: Array<{ ms: number; connection: ProviderConnectionView }> = [];
+          if (state.connectionCooldownMs !== null) {
+            candidates.push({ ms: state.connectionCooldownMs, connection: state.connection });
+          }
+          if (state.codexScopeCooldownMs !== null) {
+            candidates.push({ ms: state.codexScopeCooldownMs, connection: state.connection });
+          }
+          if (state.retryableModelCooldownMs !== null) {
+            candidates.push({ ms: state.retryableModelCooldownMs, connection: state.connection });
+          }
+          return candidates;
+        })
+        .sort((a, b) => a.ms - b.ms);
+
+      const allBlockedByModelCooldown =
+        Boolean(requestedModel) &&
+        cooldownStates.length > 0 &&
+        cooldownStates.every((state) => {
+          const hasModelSpecificCooldown =
+            state.codexScopeCooldownMs !== null || state.retryableModelCooldownMs !== null;
+          return hasModelSpecificCooldown && state.connectionCooldownMs === null;
+        });
+
+      const earliestCandidate = cooldownCandidates[0];
       const earliest =
-        getEarliestRateLimitedUntil(connections) ||
-        (provider === "codex"
-          ? getEarliestCodexScopeRateLimitedUntil(connections, requestedModel)
-          : null);
+        earliestCandidate?.ms && Number.isFinite(earliestCandidate.ms)
+          ? new Date(earliestCandidate.ms).toISOString()
+          : null;
+
       if (earliest) {
-        // Find the connection with the earliest rateLimitedUntil to get its error info
-        const rateLimitedConns = connections.filter(
-          (c) => c.rateLimitedUntil && new Date(c.rateLimitedUntil).getTime() > Date.now()
-        );
-        const earliestConn = rateLimitedConns.sort(
-          (a, b) =>
-            new Date(a.rateLimitedUntil || 0).getTime() -
-            new Date(b.rateLimitedUntil || 0).getTime()
-        )[0];
+        const earliestConn = earliestCandidate?.connection;
         log.warn(
           "AUTH",
-          `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+          allBlockedByModelCooldown
+            ? `${provider} | all ${connections.length} active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            : `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
         );
         return {
           allRateLimited: true,
           retryAfter: earliest,
           retryAfterHuman: formatRetryAfter(earliest),
           lastError: earliestConn?.lastError || null,
-          lastErrorCode: earliestConn?.errorCode || null,
+          lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
+          cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
+          cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
@@ -1037,7 +1109,8 @@ export async function markAccountUnavailable(
   status: number,
   errorText: string,
   provider: string | null = null,
-  model: string | null = null
+  model: string | null = null,
+  providerProfile = null
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1050,27 +1123,6 @@ export async function markAccountUnavailable(
 
   try {
     await currentMutex;
-
-    // ── Per-model lockout for providers with independent model quotas ──
-    // Providers like Gemini AI Studio have per-model quotas. A 429/404 on one
-    // model must NOT lock out other models on the same API key.
-    if (hasPerModelQuota(provider) && model && (status === 429 || status === 404)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
-      const cooldown = status === 404 ? COOLDOWN_MS.notFoundLocal : COOLDOWN_MS.rateLimit;
-      lockModel(provider, connectionId, model, reason, cooldown);
-      // Update last error for observability (without changing terminal status)
-      updateProviderConnection(connectionId, {
-        lastErrorType: reason,
-        lastError: `Model ${model} ${reason}`,
-        lastErrorAt: new Date().toISOString(),
-        errorCode: status,
-      }).catch(() => {});
-      log.info(
-        "AUTH",
-        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
-      );
-      return { shouldFallback: true, cooldownMs: cooldown };
-    }
 
     // Read current connection to get backoffLevel
     const connectionsRaw = await getProviderConnections({ provider });
@@ -1122,54 +1174,80 @@ export async function markAccountUnavailable(
       }
     }
 
+    const effectiveProviderProfile =
+      providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
+      const reason = status === 404 ? "not_found" : "rate_limited";
+      const fallbackCooldown =
+        status === 404
+          ? (effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.notFoundLocal)
+          : 0;
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        reason,
+        status,
+        fallbackCooldown,
+        effectiveProviderProfile
+      );
+      // Update last error for observability (without changing terminal status)
+      updateProviderConnection(connectionId, {
+        lastErrorType: reason,
+        lastError: `Model ${model} ${reason}`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const result = checkFallbackError(
       status,
       errorText,
       backoffLevel,
       model,
-      provider // ← Now passes provider for profile-aware cooldowns
+      provider,
+      null,
+      effectiveProviderProfile
     );
     const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── 404 model-only lockout: connection stays active ──
-    // For local providers (detected by URL) and cloud providers with passthrough models
-    // (like Antigravity), a 404 means the specific model doesn't exist or isn't available
-    // for this account — it should NOT lock out the entire connection.
+    // For local providers (detected by URL), a 404 means the specific model
+    // doesn't exist or isn't available for this account — it should NOT lock
+    // out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
       | string
       | undefined;
 
-    const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
-    const isPerModelQuotaProvider = hasPerModelQuota(provider);
-    if (
-      (isLocalProvider(connBaseUrl) || isPerModelQuotaProvider) &&
-      status === 404 &&
-      provider &&
-      model
-    ) {
-      const localCooldown = COOLDOWN_MS.notFoundLocal;
-      lockModel(provider, connectionId, model, "not_found", localCooldown);
+    if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "not_found",
+        status,
+        COOLDOWN_MS.notFoundLocal,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "not_found",
+        lastError: `Model ${model} not_found`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
       log.info(
         "AUTH",
-        `Model-only lockout for ${model} — 404 lockout ${localCooldown / 1000}s (connection stays active)`
+        `Model-only lockout for ${provider}:${model} — 404 not_found ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
       );
-      return { shouldFallback: true, cooldownMs: localCooldown };
-    }
-
-    // ── 429 model-only lockout for per-model quota providers ──
-    // For providers where each model has independent quota (passthrough providers,
-    // Gemini AI Studio), a 429 on one model should NOT lock out the entire connection
-    // — other models may still have quota available. Use lockModel() instead of
-    // connection-wide rateLimitedUntil.
-    if (isPerModelQuotaProvider && status === 429 && provider && model) {
-      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
-      lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
-      log.info(
-        "AUTH",
-        `Model-only lockout for ${model} — 429 rate limit ${Math.ceil(modelCooldown / 1000)}s (connection stays active)`
-      );
-      return { shouldFallback: true, cooldownMs: modelCooldown };
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);
