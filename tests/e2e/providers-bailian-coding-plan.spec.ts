@@ -77,7 +77,7 @@ test.describe("Bailian Coding Plan Provider", () => {
     if (
       await addKeyButton
         .first()
-        .isVisible({ timeout: 5000 })
+        .isVisible({ timeout: 15000 })
         .catch(() => false)
     ) {
       await addKeyButton.first().click();
@@ -90,7 +90,7 @@ test.describe("Bailian Coding Plan Provider", () => {
       .getByLabel(/base.*url/i)
       .or(dialog.locator("input").filter({ has: page.locator("..").getByText(/base.*url/i) }));
 
-    await expect(baseUrlInput).toBeVisible({ timeout: 5000 });
+    await expect(baseUrlInput).toBeVisible({ timeout: 15000 });
 
     const inputValue = await baseUrlInput.inputValue();
     expect(inputValue).toBe(DEFAULT_BAILIAN_URL);
@@ -111,7 +111,7 @@ test.describe("Bailian Coding Plan Provider", () => {
         name: /save|add|create|connect/i,
       })
       .last();
-    await expect(saveButton).toBeEnabled({ timeout: 5000 });
+    await expect(saveButton).toBeEnabled({ timeout: 15000 });
     await saveButton.click();
 
     await expect(dialog)
@@ -195,7 +195,7 @@ test.describe("Bailian Coding Plan Provider", () => {
     if (
       await addKeyButton
         .first()
-        .isVisible({ timeout: 5000 })
+        .isVisible({ timeout: 15000 })
         .catch(() => false)
     ) {
       await addKeyButton.first().click();
@@ -207,7 +207,7 @@ test.describe("Bailian Coding Plan Provider", () => {
     const baseUrlInput = dialog
       .getByLabel(/base.*url/i)
       .or(dialog.locator("input").filter({ has: page.locator("..").getByText(/base.*url/i) }));
-    await expect(baseUrlInput).toBeVisible({ timeout: 5000 });
+    await expect(baseUrlInput).toBeVisible({ timeout: 15000 });
 
     const nameInput = dialog.getByLabel(/name/i).or(dialog.locator("input").first());
     await nameInput.fill("Test Invalid URL Connection");

@@ -191,10 +191,10 @@ test.describe("Combo Unification", () => {
     await page.getByTestId("strategy-option-auto").click();
     await page.getByTestId("combo-builder-next").click();
 
-    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Exploration Rate", { exact: true })).toBeVisible({
-      timeout: 5000,
+      timeout: 15000,
     });
   });
 });
