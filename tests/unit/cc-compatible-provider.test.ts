@@ -142,6 +142,23 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
 });
 
+test("buildClaudeCodeCompatibleRequest preserves xhigh for Claude models that support it", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      reasoning_effort: "xhigh",
+    },
+    normalizedBody: {
+      messages: [{ role: "user", content: "u1" }],
+    },
+    model: "claude-opus-4-7",
+    cwd: "/tmp/work",
+    now: new Date("2026-04-01T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.output_config.effort, "xhigh");
+  assert.equal(payload.thinking.type, "adaptive");
+});
+
 test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when requested", () => {
   const payload = buildClaudeCodeCompatibleRequest({
     sourceBody: {

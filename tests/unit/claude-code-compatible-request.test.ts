@@ -11,6 +11,7 @@ const {
   resolveClaudeCodeCompatibleMaxTokens,
   buildClaudeCodeCompatibleRequest,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
+const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
 test("Claude Code compatible URL helpers cover empty values, version trimming and legacy session headers", () => {
   assert.equal(stripClaudeCodeCompatibleEndpointSuffix(""), "");
@@ -33,9 +34,33 @@ test("Claude Code compatible URL helpers cover empty values, version trimming an
 });
 
 test("Claude Code compatible effort and max token helpers cover priority fallbacks", () => {
+  const claudeModels = getModelsByProviderId("claude");
+  assert.equal(
+    claudeModels.find((model) => model.id === "claude-opus-4-7")?.supportsXHighEffort,
+    true
+  );
+  assert.equal(
+    claudeModels.find((model) => model.id === "claude-opus-4-6")?.supportsXHighEffort,
+    false
+  );
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning_effort: "medium" }), "medium");
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning: { effort: "none" } }), "low");
-  assert.equal(resolveClaudeCodeCompatibleEffort({ output_config: { effort: "xhigh" } }), "high");
+  assert.equal(
+    resolveClaudeCodeCompatibleEffort(
+      { output_config: { effort: "xhigh" } },
+      null,
+      "claude-opus-4-7"
+    ),
+    "xhigh"
+  );
+  assert.equal(
+    resolveClaudeCodeCompatibleEffort(
+      { output_config: { effort: "xhigh" } },
+      null,
+      "claude-opus-4-6"
+    ),
+    "high"
+  );
   assert.equal(
     resolveClaudeCodeCompatibleEffort({ output_config: { effort: "unexpected" } }),
     "high"

@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
+import { getModelsByProviderId } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
@@ -46,6 +47,11 @@ export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER = `x-anthropic-billing-header
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
+const CLAUDE_XHIGH_SUPPORTED_MODELS = new Set(
+  getModelsByProviderId("claude")
+    .filter((model) => model.supportsXHighEffort)
+    .map((model) => model.id)
+);
 
 type HeaderLike =
   | Headers
@@ -70,6 +76,10 @@ type BuildRequestOptions = {
   sessionId?: string | null;
   preserveCacheControl?: boolean;
 };
+
+function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
+  return typeof model === "string" && CLAUDE_XHIGH_SUPPORTED_MODELS.has(model);
+}
 
 export function isClaudeCodeCompatibleProvider(provider: string | null | undefined): boolean {
   return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
@@ -331,7 +341,7 @@ export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
   model?: string | null
-): "low" | "medium" | "high" {
+): "low" | "medium" | "high" | "xhigh" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
     readNestedString(sourceBody, ["reasoning", "effort"]) ||
@@ -342,14 +352,16 @@ export function resolveClaudeCodeCompatibleEffort(
     "";
 
   const normalizedEffort = raw.toLowerCase();
-  void model;
 
   if (!normalizedEffort) return "high";
   if (normalizedEffort === "low") return "low";
   if (normalizedEffort === "medium") return "medium";
   if (normalizedEffort === "high") return "high";
   if (normalizedEffort === "none" || normalizedEffort === "disabled") return "low";
-  if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
+  if (normalizedEffort === "xhigh") {
+    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+  }
+  if (normalizedEffort === "max") {
     return "high";
   }
   return "high";
