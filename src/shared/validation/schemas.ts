@@ -90,6 +90,15 @@ function validateProviderSpecificData(
           path: ["requestDefaults", "serviceTier"],
         });
       }
+
+      const context1m = requestDefaultsRecord.context1m;
+      if (context1m !== undefined && context1m !== null && typeof context1m !== "boolean") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.requestDefaults.context1m must be a boolean",
+          path: ["requestDefaults", "context1m"],
+        });
+      }
     }
   }
 

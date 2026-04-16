@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildOpenAIStoreSessionId, ensureOpenAIStoreSessionFallback } =
-  await import("../../src/lib/providers/requestDefaults.ts");
+const {
+  buildOpenAIStoreSessionId,
+  ensureOpenAIStoreSessionFallback,
+  getClaudeCodeCompatibleRequestDefaults,
+  normalizeProviderSpecificData,
+} = await import("../../src/lib/providers/requestDefaults.ts");
 
 test("buildOpenAIStoreSessionId normalizes external and generated session ids", () => {
   assert.equal(
@@ -37,4 +41,32 @@ test("ensureOpenAIStoreSessionFallback injects session_id only when no stable ca
     "ext:session-4"
   );
   assert.equal(withExplicitSession.session_id, "existing-session");
+});
+
+test("normalizeProviderSpecificData keeps only boolean CC-compatible 1M request defaults", () => {
+  const normalized = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
+    baseUrl: "https://proxy.example.com/v1/messages?beta=true",
+    requestDefaults: {
+      context1m: true,
+      customFlag: "keep-me",
+    },
+  });
+
+  assert.deepEqual(getClaudeCodeCompatibleRequestDefaults(normalized), {
+    context1m: true,
+  });
+  assert.deepEqual(normalized?.requestDefaults, {
+    context1m: true,
+    customFlag: "keep-me",
+  });
+
+  const stripped = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
+    requestDefaults: {
+      context1m: "yes",
+      customFlag: "keep-me",
+    },
+  });
+  assert.deepEqual(stripped?.requestDefaults, {
+    customFlag: "keep-me",
+  });
 });

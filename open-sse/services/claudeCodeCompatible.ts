@@ -29,8 +29,16 @@ export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
   "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
+export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
 export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
 export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
+const CONTEXT_1M_SUPPORTED_MODELS = [
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+  "claude-sonnet-4-5",
+  "claude-sonnet-4",
+];
 /**
  * Build the billing header dynamically with fingerprint and CCH placeholder.
  * The cch=00000 placeholder is later replaced by signRequestBody().
@@ -114,6 +122,37 @@ export function joinBaseUrlAndPath(baseUrl: string, path: string): string {
 
 export function joinClaudeCodeCompatibleUrl(baseUrl: string, path: string): string {
   return joinNormalizedBaseUrlAndPath(stripClaudeCodeCompatibleEndpointSuffix(baseUrl), path);
+}
+
+export function appendAnthropicBetaHeader(
+  headers: Record<string, string>,
+  betaHeader: string
+): void {
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  if (!existingKey) {
+    headers["anthropic-beta"] = betaHeader;
+    return;
+  }
+
+  const existingValues = String(headers[existingKey] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (!existingValues.includes(betaHeader)) {
+    headers[existingKey] = [...existingValues, betaHeader].join(",");
+  }
+}
+
+export function modelSupportsContext1mBeta(model: string | null | undefined): boolean {
+  const normalizedModel = String(model || "")
+    .trim()
+    .toLowerCase()
+    .replace(/-\d{8}$/, "");
+
+  return CONTEXT_1M_SUPPORTED_MODELS.some(
+    (supported) => normalizedModel === supported || normalizedModel.startsWith(`${supported}-`)
+  );
 }
 
 export function buildClaudeCodeCompatibleHeaders(

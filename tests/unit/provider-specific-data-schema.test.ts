@@ -41,3 +41,49 @@ test("provider schemas reject non-boolean openaiStoreEnabled values", () => {
   assert.equal(created.success, false);
   assert.equal(updated.success, false);
 });
+
+test("provider schemas accept boolean requestDefaults.context1m for CC-compatible providers", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "anthropic-compatible-cc-demo",
+    apiKey: "token",
+    name: "CC Compatible",
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: true,
+      },
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: false,
+      },
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject non-boolean requestDefaults.context1m values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "anthropic-compatible-cc-demo",
+    apiKey: "token",
+    name: "CC Compatible",
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: "yes",
+      },
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: 1,
+      },
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});

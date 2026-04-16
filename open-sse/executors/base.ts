@@ -4,6 +4,12 @@ import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
+import {
+  appendAnthropicBetaHeader,
+  CONTEXT_1M_BETA_HEADER,
+  modelSupportsContext1mBeta,
+} from "../services/claudeCodeCompatible.ts";
+import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -386,27 +392,17 @@ export class BaseExecutor {
       const headers = this.buildHeaders(activeCredentials, stream);
       applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
 
-      // Append 1M context beta header when [1m] suffix was used
-      // Only supported for specific Claude models per Anthropic docs
-      if (extendedContext) {
-        const EXTENDED_CONTEXT_MODELS = [
-          "claude-opus-4-7",
-          "claude-opus-4-6",
-          "claude-sonnet-4-6",
-          "claude-sonnet-4-5",
-          "claude-sonnet-4",
-        ];
-        const baseModel = model.replace(/-\d{8}$/, "");
-        if (
-          EXTENDED_CONTEXT_MODELS.some((m) => baseModel === m || model === m || model.startsWith(m))
-        ) {
-          const existing = headers["Anthropic-Beta"];
-          if (existing) {
-            headers["Anthropic-Beta"] = existing + ",context-1m-2025-08-07";
-          } else {
-            headers["Anthropic-Beta"] = "context-1m-2025-08-07";
-          }
-        }
+      const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
+        ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
+        : {};
+      const shouldForwardExtendedContext =
+        extendedContext &&
+        modelSupportsContext1mBeta(model) &&
+        !isClaudeCodeCompatible(this.provider);
+      const shouldForwardCcCompatibleContext1m =
+        isClaudeCodeCompatible(this.provider) && ccRequestDefaults.context1m === true;
+      if (shouldForwardExtendedContext || shouldForwardCcCompatibleContext1m) {
+        appendAnthropicBetaHeader(headers, CONTEXT_1M_BETA_HEADER);
       }
 
       const transformedBody = await this.transformRequest(model, body, stream, activeCredentials);

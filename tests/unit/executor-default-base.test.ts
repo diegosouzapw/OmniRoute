@@ -14,6 +14,7 @@ import { PROVIDERS } from "../../open-sse/config/constants.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+  CONTEXT_1M_BETA_HEADER,
 } from "../../open-sse/services/claudeCodeCompatible.ts";
 
 class TestExecutor extends BaseExecutor {
@@ -320,6 +321,91 @@ test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code
   assert.equal(ccHeaders["X-Claude-Code-Session-Id"], "session-1");
   assert.equal(ccHeaders.Accept, "text/event-stream");
   assert.equal(ccJsonHeaders.Accept, "application/json");
+});
+
+test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1M beta", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  const toPlainHeaders = (headers) =>
+    headers instanceof Headers
+      ? Object.fromEntries(headers.entries())
+      : Object.fromEntries(
+          Object.entries(headers || {}).map(([key, value]) => [
+            key,
+            value == null ? "" : String(value),
+          ])
+        );
+
+  globalThis.fetch = async (_url, init = {}) => {
+    calls.push({ headers: toPlainHeaders(init.headers) });
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const cc = new DefaultExecutor("anthropic-compatible-cc-test");
+    await cc.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          baseUrl: "https://cc.example.com/v1/messages?beta=true",
+          ccSessionId: "session-1",
+        },
+      },
+      extendedContext: false,
+    });
+    await cc.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          baseUrl: "https://cc.example.com/v1/messages?beta=true",
+          ccSessionId: "session-1",
+          requestDefaults: { context1m: true },
+        },
+      },
+      extendedContext: false,
+    });
+
+    const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+    await anthropicCompat.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "anth-key",
+        providerSpecificData: {
+          baseUrl: "https://anthropic.example.com/v1",
+        },
+      },
+      extendedContext: true,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
+  assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  assert.equal(calls[2].headers["anthropic-beta"], CONTEXT_1M_BETA_HEADER);
 });
 
 test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {
