@@ -45,7 +45,13 @@ test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", (
 
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
-    ["app/server.js", "bin/omniroute.ts", "package.json", "scripts/postinstall.mjs"],
+    [
+      "app/server.js",
+      "bin/omniroute.ts",
+      "package.json",
+      "scripts/postinstall.mjs",
+      "scripts/postinstallSupport.mjs",
+    ],
     PACK_ARTIFACT_REQUIRED_PATHS
   );
 

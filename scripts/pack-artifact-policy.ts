@@ -72,6 +72,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/check-supported-node-runtime.ts",
   "scripts/native-binary-compat.mjs",
   "scripts/postinstall.mjs",
+  "scripts/postinstallSupport.mjs",
   "scripts/sync-env.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
@@ -89,6 +90,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "package.json",
   "scripts/native-binary-compat.mjs",
   "scripts/postinstall.mjs",
+  "scripts/postinstallSupport.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 

@@ -23,6 +23,7 @@
     "src/shared/utils/nodeRuntimeSupport.ts",
     ".env.example",
     "scripts/postinstall.mjs",
+    "scripts/postinstallSupport.mjs",
     "scripts/check-supported-node-runtime.ts",
     "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",

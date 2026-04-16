@@ -22,6 +22,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
+import { hasStandaloneAppBundle } from "./postinstallSupport.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -174,6 +175,10 @@ async function fixBetterSqliteBinary() {
 }
 
 async function ensureSwcHelpers() {
+  if (!hasStandaloneAppBundle(ROOT)) {
+    return;
+  }
+
   const swcHelpersApp = join(ROOT, "app", "node_modules", "@swc", "helpers");
   const swcHelpersRoot = join(ROOT, "node_modules", "@swc", "helpers");
 
