@@ -4,7 +4,7 @@
   "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
-    "omniroute": "bin/omniroute.mjs",
+    "omniroute": "bin/omniroute.ts",
     "omniroute-reset-password": "bin/reset-password.mjs"
   },
   "files": [
@@ -20,8 +20,10 @@
     "open-sse/mcp-server/tools/",
     "open-sse/mcp-server/README.md",
     "src/shared/contracts/",
+    "src/shared/utils/nodeRuntimeSupport.js",
     ".env.example",
     "scripts/postinstall.mjs",
+    "scripts/check-supported-node-runtime.mjs",
     "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",
     "scripts/build-next-isolated.mjs",
@@ -32,7 +34,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=18.0.0 <24.0.0"
+    "node": ">=20.20.2 <21 || >=22.22.2 <23"
   },
   "keywords": [
     "ai",
@@ -59,7 +61,7 @@
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",
     "build": "node scripts/build-next-isolated.mjs",
-    "build:cli": "node scripts/prepublish.mjs",
+    "build:cli": "node --import tsx/esm scripts/prepublish.ts",
     "start": "node scripts/run-next.mjs start",
     "lint": "eslint .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:20128 && cd electron && npm run dev\"",
@@ -76,6 +78,8 @@
     "check:route-validation:t06": "node scripts/check-route-validation.mjs",
     "check:any-budget:t11": "node scripts/check-t11-any-budget.mjs",
     "check:docs-sync": "node scripts/check-docs-sync.mjs",
+    "check:node-runtime": "node --import tsx/esm scripts/check-supported-node-runtime.ts",
+    "check:pack-artifact": "node --import tsx/esm scripts/validate-pack-artifact.ts",
     "typecheck:core": "tsc --pretty false -p tsconfig.typecheck-core.json",
     "typecheck:noimplicit:core": "tsc --pretty false -p tsconfig.typecheck-noimplicit-core.json",
     "env:sync": "node scripts/sync-env.mjs",
@@ -92,7 +96,7 @@
     "coverage:report:legacy": "c8 report --output-dir coverage --exclude=open-sse --reporter=text --reporter=text-summary",
     "test:all": "npm run test:unit && npm run test:vitest && npm run test:ecosystem && npm run test:e2e",
     "check": "npm run lint && npm run test",
-    "prepublishOnly": "npm run build:cli",
+    "prepublishOnly": "npm run build:cli && npm run check:pack-artifact",
     "postinstall": "node scripts/postinstall.mjs",
     "uninstall": "node scripts/uninstall.mjs",
     "uninstall:full": "node scripts/uninstall.mjs --full",

@@ -3,37 +3,14 @@ import { jwtVerify, SignJWT } from "jose";
 import { generateRequestId } from "./shared/utils/requestId";
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
+import { isPublicApiRoute } from "./shared/constants/publicApiRoutes";
 
 const E2E_MODE = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
-const PUBLIC_API_ROUTES = [
-  "/api/auth/login",
-  "/api/auth/logout",
-  "/api/auth/status",
-  "/api/init",
-  "/api/monitoring/health",
-  "/api/v1/",
-  "/api/cloud/",
-  "/api/sync/bundle",
-  "/api/oauth/",
-];
-const PUBLIC_READONLY_API_ROUTES = ["/api/settings/require-login"];
 
 let apiAuthModulePromise: Promise<typeof import("./shared/utils/apiAuth")> | null = null;
 let settingsModulePromise: Promise<typeof import("./lib/db/settings")> | null = null;
 let modelSyncModulePromise: Promise<typeof import("./shared/services/modelSyncScheduler")> | null =
   null;
-
-function isPublicApiRoute(pathname: string, method = "GET"): boolean {
-  if (PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route))) {
-    return true;
-  }
-
-  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-    return false;
-  }
-
-  return PUBLIC_READONLY_API_ROUTES.some((route) => pathname.startsWith(route));
-}
 
 function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(process.env.JWT_SECRET || "");

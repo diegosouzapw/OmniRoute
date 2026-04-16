@@ -23,11 +23,85 @@ import {
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  APP_STAGING_ALLOWED_EXACT_PATHS,
+  APP_STAGING_ALLOWED_PATH_PREFIXES,
+  APP_STAGING_REMOVAL_PATHS,
+  findUnexpectedArtifactPaths,
+} from "./pack-artifact-policy.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 
 const APP_DIR = join(ROOT, "app");
+
+function walkFiles(dir: string, rootDir: string = dir, files: string[] = []): string[] {
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return files;
+  }
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry);
+    let stat;
+    try {
+      stat = statSync(fullPath);
+    } catch {
+      continue;
+    }
+
+    if (stat.isDirectory()) {
+      walkFiles(fullPath, rootDir, files);
+      continue;
+    }
+
+    files.push(
+      fullPath
+        .replace(rootDir, "")
+        .replace(/^[/\\]/, "")
+        .replace(/\\/g, "/")
+    );
+  }
+
+  return files;
+}
+
+function removeEmptyDirectories(dir: string): boolean {
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return false;
+  }
+
+  let hasFiles = false;
+  for (const entry of entries) {
+    const fullPath = join(dir, entry);
+    let stat;
+    try {
+      stat = statSync(fullPath);
+    } catch {
+      continue;
+    }
+
+    if (stat.isDirectory()) {
+      const childHasFiles = removeEmptyDirectories(fullPath);
+      if (!childHasFiles) {
+        rmSync(fullPath, { recursive: true, force: true });
+      } else {
+        hasFiles = true;
+      }
+      continue;
+    }
+
+    hasFiles = true;
+  }
+
+  return hasFiles;
+}
 
 console.log("🔨 OmniRoute — Building for npm publish...\n");
 
@@ -79,8 +153,11 @@ if (!existsSync(serverJs)) {
 // runtime by the externals patch in next.config.mjs, but log for visibility.
 {
   const HASH_RE = /require\(["']([\w@./-]+-[0-9a-f]{16})["']\)/;
-  const scanDir = (dir, hits = []) => {
-    let entries = [];
+  const scanDir = (
+    dir: string,
+    hits: { file: string; mod: string }[] = []
+  ): { file: string; mod: string }[] => {
+    let entries: string[] = [];
     try {
       entries = readdirSync(dir);
     } catch {
@@ -170,8 +247,8 @@ if (sanitisedCount > 0) {
   const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+-[0-9a-f]{16})\1/g;
   let patchedFiles = 0;
   let patchedMatches = 0;
-  const walkDir = (dir) => {
-    let entries = [];
+  const walkDir = (dir: string) => {
+    let entries: string[] = [];
     try {
       entries = readdirSync(dir);
     } catch {
@@ -259,7 +336,7 @@ if (existsSync(mitmSrc)) {
   try {
     execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
-  } catch (err) {
+  } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
     // Fallback: copy source files so at least they are present
     cpSync(mitmSrc, mitmDest, { recursive: true });
@@ -285,7 +362,7 @@ if (existsSync(mcpSrcFile)) {
       { cwd: ROOT, stdio: "inherit" }
     );
     console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");
-  } catch (err) {
+  } catch (err: any) {
     console.warn("  ⚠️  MCP Server bundle error:", err.message);
   }
 }
@@ -297,6 +374,33 @@ if (existsSync(sharedApiKey)) {
   console.log("  📋 Copying shared utilities...");
   mkdirSync(sharedApiKeyDest, { recursive: true });
   cpSync(sharedApiKey, join(sharedApiKeyDest, "apiKey.js"));
+}
+
+// ── Step 9.5: Copy minimal runtime sidecars required outside .next ─────────
+const envExampleSrc = join(ROOT, ".env.example");
+if (existsSync(envExampleSrc)) {
+  cpSync(envExampleSrc, join(APP_DIR, ".env.example"));
+}
+
+const openapiSpecSrc = join(ROOT, "docs", "openapi.yaml");
+if (existsSync(openapiSpecSrc)) {
+  const docsDest = join(APP_DIR, "docs");
+  mkdirSync(docsDest, { recursive: true });
+  cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
+}
+
+const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
+if (existsSync(syncEnvSrc)) {
+  const scriptsDest = join(APP_DIR, "scripts");
+  mkdirSync(scriptsDest, { recursive: true });
+  cpSync(syncEnvSrc, join(scriptsDest, "sync-env.mjs"));
+}
+
+const migrationsSrc = join(ROOT, "src", "lib", "db", "migrations");
+if (existsSync(migrationsSrc)) {
+  const migrationsDest = join(APP_DIR, "src", "lib", "db", "migrations");
+  mkdirSync(join(APP_DIR, "src", "lib", "db"), { recursive: true });
+  cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
 }
 
 // ── Step 10: Ensure data/ directory exists ──────────────────
@@ -314,29 +418,41 @@ if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
   console.log("  ✅ @swc/helpers included in standalone build.");
 }
 
-// ── Step 10.6: Remove large binaries & unneeded traces from standalone build ──
-// These directories contain platform-native binaries (.node, .asar) that
-// trigger Z_DATA_ERROR during npm pack, or are huge trace outputs (_references).
-// They are not needed in the npm package.
-const binaryDirsToRemove = [
-  "vscode-extension",
-  "electron",
-  "logs",
-  "coverage",
-  "_references",
-  "_mono_repo",
-  "_tasks",
-  "_ideia",
-  "tests",
-  "docs",
-];
-for (const dir of binaryDirsToRemove) {
-  const targetDir = join(APP_DIR, dir);
-  if (existsSync(targetDir)) {
-    console.log(`  🧹 Removing app/${dir}/ (not needed in npm package)...`);
-    rmSync(targetDir, { recursive: true, force: true });
-    console.log(`  ✅ app/${dir}/ removed.`);
+// ── Step 10.6: Remove development-only residue from staged app/ ─────────────
+for (const relativePath of APP_STAGING_REMOVAL_PATHS) {
+  const targetPath = join(APP_DIR, relativePath);
+  if (existsSync(targetPath)) {
+    console.log(`  🧹 Removing app/${relativePath} (not needed in npm package)...`);
+    rmSync(targetPath, { recursive: true, force: true });
+    console.log(`  ✅ app/${relativePath} removed.`);
   }
+}
+
+// ── Step 10.7: Prune any staged app/ file outside the allowed runtime set ───
+const stagedFiles = walkFiles(APP_DIR);
+const unexpectedStagedFiles = findUnexpectedArtifactPaths(stagedFiles, {
+  exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
+  prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+});
+
+if (unexpectedStagedFiles.length > 0) {
+  console.log("  🧹 Pruning unexpected files from staged app/...");
+  unexpectedStagedFiles.forEach((unexpectedPath: string) => {
+    rmSync(join(APP_DIR, unexpectedPath), { force: true });
+    console.log(`  ✅ Removed app/${unexpectedPath}`);
+  });
+  removeEmptyDirectories(APP_DIR);
+}
+
+const remainingUnexpectedFiles = findUnexpectedArtifactPaths(walkFiles(APP_DIR), {
+  exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
+  prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+});
+
+if (remainingUnexpectedFiles.length > 0) {
+  console.error("\n  ❌ Staged app/ still contains unexpected publish artifacts:");
+  remainingUnexpectedFiles.forEach((violation: string) => console.error(`     - app/${violation}`));
+  process.exit(1);
 }
 
 // ── Done ───────────────────────────────────────────────────

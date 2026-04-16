@@ -880,7 +880,10 @@ function scoreAutoTargets(
   weights: ScoringWeights
 ) {
   const candidateByExecutionKey = new Map(
-    candidates.map((candidate: any) => [candidate.executionKey, candidate])
+    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
+      candidate.executionKey,
+      candidate,
+    ])
   );
   return targets
     .map((target) => {

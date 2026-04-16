@@ -37,6 +37,9 @@ permissions:
   id-token: write
   packages: write
 
+env:
+  NPM_PUBLISH_NODE_VERSION: "22.22.2"
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -48,7 +51,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies (skip scripts to avoid heavy build)
@@ -88,7 +91,10 @@ jobs:
       - name: Build CLI bundle (standalone app)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-        run: node scripts/prepublish.mjs
+        run: npm run build:cli
+
+      - name: Validate npm package artifact
+        run: npm run check:pack-artifact
 
       - name: Publish to npm
         run: |

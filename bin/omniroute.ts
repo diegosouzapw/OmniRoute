@@ -18,6 +18,10 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform } from "node:os";
 import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
+import {
+  getNodeRuntimeSupport,
+  getNodeRuntimeWarning,
+} from "../src/shared/utils/nodeRuntimeSupport.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -169,15 +173,14 @@ console.log(`
 \x1b[0m`);
 
 // ── Node.js version check ──────────────────────────────────
-const nodeMajor = parseInt(process.versions.node.split(".")[0], 10);
-if (nodeMajor >= 24) {
+const nodeSupport = getNodeRuntimeSupport();
+if (!nodeSupport.nodeCompatible) {
+  const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
   console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
-     OmniRoute uses better-sqlite3, a native addon that does not yet
-     have compatible prebuilt binaries for Node.js 24+.
-     You may experience errors like "is not a valid Win32 application"
-     or "NODE_MODULE_VERSION mismatch".
+     ${runtimeWarning}
 
-     Recommended: use Node.js 22 LTS (or 20 LTS).
+     Supported secure runtimes: ${nodeSupport.supportedDisplay}
+     Recommended: use Node.js ${nodeSupport.recommendedVersion} or newer on the 22.x LTS line.
      Workaround:  npm rebuild better-sqlite3\x1b[0m
 `);
 }
