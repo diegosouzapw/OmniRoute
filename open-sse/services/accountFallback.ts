@@ -860,8 +860,49 @@ export function checkFallbackError(
     };
   }
 
-  // 400 Bad Request - don't fallback (same request will fail on all accounts)
+  // 400 Bad Request — check for context overflow / malformed request before blanket rejection.
+  // When using combos (multiple models), a 400 caused by context length exceeding one model's
+  // limit should trigger fallback so the next model (potentially with a larger context window)
+  // can be tried instead of failing immediately.
   if (status === HTTP_STATUS.BAD_REQUEST) {
+    const lowerError = errorStr.toLowerCase();
+
+    // Context overflow: the prompt exceeds the model's maximum context length.
+    // Different providers phrase this differently.
+    const CONTEXT_OVERFLOW_PATTERNS = [
+      /\binput is too long\b/i,
+      /\binput too long\b/i,
+      /\bcontext.*(too long|exceeded|overflow|limit)/i,
+      /\btoo many tokens\b/i,
+      /\bprompt is too long\b/i,
+      /\bcontext window/i,
+      /\bmaximum context/i,
+      /\bmax.*token/i,
+      /\btoken limit/i,
+      /\brequest too large\b/i,
+    ];
+
+    // Malformed request: the model rejected the message format but a different
+    // provider/model in the combo may accept it.
+    const MALFORMED_REQUEST_PATTERNS = [
+      /\bimproperly formed request\b/i,
+      /\binvalid.*message.*format/i,
+      /\bmessages must alternate/i,
+      /\bempty (message|content)/i,
+    ];
+
+    const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
+    const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+
+    if (isOverflow || isMalformed) {
+      return {
+        shouldFallback: true,
+        cooldownMs: 0,
+        reason: RateLimitReason.MODEL_CAPACITY,
+      };
+    }
+
+    // Generic 400 — same request will likely fail on all accounts; don't fallback.
     return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
   }
 
