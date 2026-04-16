@@ -327,6 +327,11 @@ if (existsSync(mitmSrc)) {
       resolveJsonModule: true,
       esModuleInterop: true,
       skipLibCheck: true,
+      types: ["node"],
+      baseUrl: ".",
+      paths: {
+        "@/*": ["src/*"],
+      },
     },
     include: [mitmSrc + "/**/*"],
   };
