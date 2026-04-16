@@ -158,6 +158,33 @@ export function isModelAvailable(provider, model) {
 }
 
 /**
+ * Get remaining cooldown information for a model, if it is currently unavailable.
+ *
+ * @param {string} provider
+ * @param {string} model
+ * @returns {{ provider: string, model: string, reason: string, remainingMs: number, unavailableSince: string } | null}
+ */
+export function getModelCooldownInfo(provider, model) {
+  const key = makeKey(provider, model);
+  const entry = unavailable.get(key);
+  if (!entry) return null;
+
+  const elapsed = Date.now() - entry.unavailableSince;
+  if (elapsed >= entry.cooldownMs) {
+    unavailable.delete(key);
+    return null;
+  }
+
+  return {
+    provider: entry.provider,
+    model: entry.model,
+    reason: entry.reason || "unknown",
+    remainingMs: entry.cooldownMs - elapsed,
+    unavailableSince: new Date(entry.unavailableSince).toISOString(),
+  };
+}
+
+/**
  * Mark a model as temporarily unavailable.
  *
  * @param {string} provider
