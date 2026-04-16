@@ -407,16 +407,21 @@ function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
 export function cleanupOrphanCallLogFiles(baseDir = CALL_LOGS_DIR) {
   if (!baseDir || !fs.existsSync(baseDir)) return 0;
 
-  const referenced = listReferencedArtifacts();
-  let deleted = 0;
-  for (const file of listCallLogArtifactFiles(baseDir)) {
-    if (referenced.has(file.relativePath)) continue;
-    if (deleteCallArtifact(file.relativePath)) {
-      deleted++;
+  try {
+    const referenced = listReferencedArtifacts();
+    let deleted = 0;
+    for (const file of listCallLogArtifactFiles(baseDir)) {
+      if (referenced.has(file.relativePath)) continue;
+      if (deleteCallArtifact(file.relativePath)) {
+        deleted++;
+      }
     }
+    cleanupEmptyCallLogDirs(baseDir);
+    return deleted;
+  } catch (error) {
+    console.error("[callLogs] Failed to prune orphan request artifacts:", (error as Error).message);
+    return 0;
   }
-  cleanupEmptyCallLogDirs(baseDir);
-  return deleted;
 }
 
 export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?: number) {
@@ -425,17 +430,24 @@ export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?
   const limit = maxEntries ?? getCallLogMaxEntries();
   if (!Number.isInteger(limit) || limit < 1) return 0;
 
-  let deleted = 0;
-  const files = listCallLogArtifactFiles(baseDir);
-  for (const file of files.slice(limit)) {
-    if (deleteCallArtifact(file.relativePath)) {
-      clearArtifactReference(file.relativePath, "missing");
-      deleted++;
+  try {
+    let deleted = 0;
+    const files = listCallLogArtifactFiles(baseDir);
+    for (const file of files.slice(limit)) {
+      if (deleteCallArtifact(file.relativePath)) {
+        clearArtifactReference(file.relativePath, "missing");
+        deleted++;
+      }
     }
+    cleanupEmptyCallLogDirs(baseDir);
+    return deleted;
+  } catch (error) {
+    console.error(
+      "[callLogs] Failed to prune overflow request artifacts:",
+      (error as Error).message
+    );
+    return 0;
   }
-
-  cleanupEmptyCallLogDirs(baseDir);
-  return deleted;
 }
 
 export function deleteCallLogsBefore(cutoff: string): DeleteResult {

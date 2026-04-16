@@ -153,33 +153,29 @@ export function cleanupEmptyCallLogDirs(baseDir = CALL_LOGS_DIR) {
 export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
   if (!baseDir || !fs.existsSync(baseDir)) return [];
 
-  try {
-    return fs
-      .readdirSync(baseDir)
-      .flatMap((entry) => {
-        const entryPath = path.join(baseDir, entry);
-        try {
-          const stat = fs.statSync(entryPath);
-          if (!stat.isDirectory()) return [];
+  return fs
+    .readdirSync(baseDir)
+    .flatMap((entry) => {
+      const entryPath = path.join(baseDir, entry);
+      try {
+        const stat = fs.statSync(entryPath);
+        if (!stat.isDirectory()) return [];
 
-          return fs
-            .readdirSync(entryPath)
-            .filter((file) => file.endsWith(".json"))
-            .map((file) => {
-              const absPath = path.join(entryPath, file);
-              const fileStat = fs.statSync(absPath);
-              return {
-                relativePath: path.posix.join(entry, file),
-                absPath,
-                mtimeMs: fileStat.mtimeMs,
-              };
-            });
-        } catch {
-          return [];
-        }
-      })
-      .sort((a, b) => b.mtimeMs - a.mtimeMs);
-  } catch {
-    return [];
-  }
+        return fs
+          .readdirSync(entryPath)
+          .filter((file) => file.endsWith(".json"))
+          .map((file) => {
+            const absPath = path.join(entryPath, file);
+            const fileStat = fs.statSync(absPath);
+            return {
+              relativePath: path.posix.join(entry, file),
+              absPath,
+              mtimeMs: fileStat.mtimeMs,
+            };
+          });
+      } catch {
+        return [];
+      }
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
 }
