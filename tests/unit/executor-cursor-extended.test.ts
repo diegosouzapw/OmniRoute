@@ -14,6 +14,10 @@ import {
   generateHashed64Hex,
   generateSessionId,
 } from "../../open-sse/utils/cursorChecksum.ts";
+import {
+  getCursorVersion,
+  resetCursorVersionCache,
+} from "../../open-sse/utils/cursorVersionDetector.ts";
 
 const LEN = 2;
 const VARINT = 0;
@@ -89,6 +93,10 @@ test("CursorExecutor.buildUrl uses the configured Cursor endpoint", () => {
 test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/session headers", () => {
   const executor = new CursorExecutor();
   const originalDateNow = Date.now;
+  const originalDbPath = process.env.CURSOR_STATE_DB_PATH;
+  // Force fallback by pointing to a non-existent DB path
+  process.env.CURSOR_STATE_DB_PATH = "/nonexistent/cursor/state.vscdb";
+  resetCursorVersionCache();
   Date.now = () => 1_700_000_000_000;
 
   try {
@@ -97,30 +105,52 @@ test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/ses
       providerSpecificData: { machineId: "machine-1", ghostMode: false },
     });
 
+    const expectedVersion = getCursorVersion();
+
     assert.equal(headers.authorization, "Bearer real-token");
     assert.equal(headers["x-client-key"], generateHashed64Hex("real-token"));
     assert.equal(headers["x-session-id"], generateSessionId("real-token"));
     assert.equal(headers["x-cursor-checksum"], generateCursorChecksum("machine-1"));
-    assert.equal(headers["x-cursor-client-version"], "3.1.0");
-    assert.equal(headers["x-cursor-user-agent"], "Cursor/3.1.0");
-    assert.equal(headers["user-agent"], "Cursor/3.1.0");
+    assert.equal(headers["x-cursor-client-version"], expectedVersion);
+    assert.equal(headers["x-cursor-user-agent"], `Cursor/${expectedVersion}`);
+    assert.equal(headers["user-agent"], `Cursor/${expectedVersion}`);
     assert.equal(headers["x-ghost-mode"], "false");
     assert.equal(headers["connect-protocol-version"], "1");
     assert.match(headers["x-amzn-trace-id"], /^Root=/);
     assert.ok(headers["x-request-id"]);
   } finally {
     Date.now = originalDateNow;
+    if (originalDbPath === undefined) {
+      delete process.env.CURSOR_STATE_DB_PATH;
+    } else {
+      process.env.CURSOR_STATE_DB_PATH = originalDbPath;
+    }
+    resetCursorVersionCache();
   }
 });
 
 test("buildCursorHeaders utility stays aligned with Cursor Composer 2 versioned headers", () => {
-  const headers = buildCursorHeaders("prefix::real-token", "machine-1", false);
+  const originalDbPath = process.env.CURSOR_STATE_DB_PATH;
+  process.env.CURSOR_STATE_DB_PATH = "/nonexistent/cursor/state.vscdb";
+  resetCursorVersionCache();
 
-  assert.equal(headers.Authorization, "Bearer real-token");
-  assert.equal(headers["x-cursor-client-version"], "3.1.0");
-  assert.equal(headers["x-cursor-user-agent"], "Cursor/3.1.0");
-  assert.equal(headers["User-Agent"], "Cursor/3.1.0");
-  assert.equal(headers["x-ghost-mode"], "false");
+  try {
+    const headers = buildCursorHeaders("prefix::real-token", "machine-1", false);
+    const expectedVersion = getCursorVersion();
+
+    assert.equal(headers.Authorization, "Bearer real-token");
+    assert.equal(headers["x-cursor-client-version"], expectedVersion);
+    assert.equal(headers["x-cursor-user-agent"], `Cursor/${expectedVersion}`);
+    assert.equal(headers["User-Agent"], `Cursor/${expectedVersion}`);
+    assert.equal(headers["x-ghost-mode"], "false");
+  } finally {
+    if (originalDbPath === undefined) {
+      delete process.env.CURSOR_STATE_DB_PATH;
+    } else {
+      process.env.CURSOR_STATE_DB_PATH = originalDbPath;
+    }
+    resetCursorVersionCache();
+  }
 });
 
 test("CursorExecutor.buildHeaders derives machineId when not provided", () => {

@@ -13,7 +13,8 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
 const { invalidateCacheControlSettingsCache } =
   await import("../../src/lib/cacheControlSettings.ts");
-const { clearCache } = await import("../../src/lib/semanticCache.ts");
+const { clearCache, getCachedResponse, generateSignature } =
+  await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -1114,6 +1115,18 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
 
   const payload = await second.result.response.json();
   assert.equal(payload.choices[0].message.content, "cached-once");
+
+  await waitForAsyncSideEffects();
+  const semanticLog = await waitFor(async () => {
+    const rows = await getCallLogs({ limit: 10 });
+    const hit = rows.find((row) => row.cacheSource === "semantic");
+    if (!hit) return null;
+    return await getCallLogById(hit.id);
+  });
+  assert.ok(semanticLog, "expected semantic cache HIT to be persisted in call logs");
+  assert.equal(semanticLog.cacheSource, "semantic");
+  assert.equal(semanticLog.path, "/v1/chat/completions");
+  assert.equal(semanticLog.status, 200);
 });
 
 test("chatCore skips semantic cache when disabled in settings", async () => {
@@ -1287,6 +1300,67 @@ test("chatCore retries Qwen quota 429 responses before succeeding", async () => 
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
   assert.equal(payload.choices[0].message.content, "qwen recovered");
+});
+
+test("chatCore injects fallback user for Qwen OAuth requests without user", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "qwen",
+    model: "qwen3-coder",
+    credentials: {
+      accessToken: "qwen-oauth-token",
+      providerSpecificData: { resourceUrl: "portal.qwen.ai" },
+    },
+    body: {
+      model: "qwen3-coder",
+      stream: false,
+      messages: [{ role: "user", content: "check qwen user fallback" }],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.user, "omniroute-qwen-oauth");
+});
+
+test("chatCore keeps explicit user for Qwen OAuth requests", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "qwen",
+    model: "qwen3-coder",
+    credentials: {
+      accessToken: "qwen-oauth-token",
+      providerSpecificData: { resourceUrl: "portal.qwen.ai" },
+    },
+    body: {
+      model: "qwen3-coder",
+      stream: false,
+      user: "explicit-user",
+      messages: [{ role: "user", content: "keep my user" }],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.user, "explicit-user");
+});
+
+test("chatCore does not inject fallback user for Qwen API key requests", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "qwen",
+    model: "qwen3-coder",
+    credentials: {
+      apiKey: "qwen-api-key",
+      providerSpecificData: { resourceUrl: "dashscope.aliyuncs.com/compatible-mode/v1" },
+    },
+    body: {
+      model: "qwen3-coder",
+      stream: false,
+      messages: [{ role: "user", content: "api key mode should stay untouched" }],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal("user" in call.body, false);
 });
 
 test("chatCore persists Codex quota headers and scope cooldown on 429 responses", async () => {
@@ -1705,4 +1779,185 @@ test("chatCore maps upstream aborts to request-aborted errors", async () => {
   assert.equal(result.success, false);
   assert.equal(result.status, 499);
   assert.equal(result.error, "Request aborted");
+});
+
+// ── Streaming semantic cache tests ──────────────────────────────────────────
+
+test("chatCore caches streaming response and serves cache HIT on repeat", async () => {
+  let upstreamHits = 0;
+  const sharedBody = {
+    model: "gpt-4o-mini",
+    stream: true,
+    temperature: 0,
+    messages: [{ role: "user", content: "stream-cache-test" }],
+  };
+
+  const first = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, "streamed-once");
+    },
+  });
+
+  assert.equal(first.result.success, true);
+  // Consume the stream to trigger onStreamComplete and cache write
+  await first.result.response.text();
+  await waitForAsyncSideEffects();
+
+  // Second request with same body should get cache HIT (JSON, not SSE)
+  const second = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, "should-not-stream");
+    },
+  });
+
+  assert.equal(upstreamHits, 1, "upstream should be called only once");
+  assert.equal(second.calls.length, 0, "second request should not reach upstream");
+  assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
+
+  const payload = await second.result.response.json();
+  assert.ok(payload.choices, "cached response should have choices");
+  assert.equal(payload.choices[0].message.content, "streamed-once");
+});
+
+test("chatCore does not cache streaming response when temperature > 0", async () => {
+  let upstreamHits = 0;
+  const sharedBody = {
+    model: "gpt-4o-mini",
+    stream: true,
+    temperature: 0.7,
+    messages: [{ role: "user", content: "non-deterministic-stream" }],
+  };
+
+  const first = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, `hot-${upstreamHits}`);
+    },
+  });
+
+  await first.result.response.text();
+  await waitForAsyncSideEffects();
+
+  const second = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, `hot-${upstreamHits}`);
+    },
+  });
+
+  await second.result.response.text();
+  assert.equal(upstreamHits, 2, "both requests should hit upstream");
+  assert.equal(second.calls.length, 1, "second request should reach upstream");
+});
+
+test("chatCore skips streaming cache when X-OmniRoute-No-Cache header is set", async () => {
+  let upstreamHits = 0;
+  const sharedBody = {
+    model: "gpt-4o-mini",
+    stream: true,
+    temperature: 0,
+    messages: [{ role: "user", content: "no-cache-stream" }],
+  };
+
+  const first = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    requestHeaders: { "x-omniroute-no-cache": "true" },
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, "bypass-cache");
+    },
+  });
+
+  await first.result.response.text();
+  await waitForAsyncSideEffects();
+
+  // Verify nothing was cached
+  const sig = generateSignature("gpt-4o-mini", sharedBody.messages, 0, 1);
+  const cached = getCachedResponse(sig);
+  assert.equal(cached, null, "response should not be cached when no-cache header is set");
+
+  const second = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    requestHeaders: { "x-omniroute-no-cache": "true" },
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(true, "bypass-again");
+    },
+  });
+
+  await second.result.response.text();
+  assert.equal(upstreamHits, 2, "both requests should hit upstream with no-cache");
+});
+
+test("chatCore returns cache HIT as JSON even when client requests SSE", async () => {
+  const sharedBody = {
+    model: "gpt-4o-mini",
+    stream: false,
+    temperature: 0,
+    messages: [{ role: "user", content: "json-then-sse-cache" }],
+  };
+
+  // First: non-streaming request populates cache
+  await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      return buildOpenAIResponse(false, "cached-json");
+    },
+  });
+
+  // Second: streaming request should still get cache HIT as JSON
+  const second = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: { ...sharedBody, stream: true },
+    responseFormat: "openai",
+    responseFactory() {
+      return buildOpenAIResponse(true, "should-not-stream");
+    },
+  });
+
+  assert.equal(second.calls.length, 0, "cached response should prevent upstream call");
+  assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
+  assert.equal(
+    second.result.response.headers.get("Content-Type"),
+    "application/json",
+    "cache HIT should return JSON regardless of stream flag"
+  );
+
+  const payload = await second.result.response.json();
+  assert.equal(payload.choices[0].message.content, "cached-json");
 });
