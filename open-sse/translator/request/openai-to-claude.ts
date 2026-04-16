@@ -1,6 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.ts";
+import { supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -99,6 +100,7 @@ export function openaiToClaudeRequest(model, body, stream) {
     tools?: ClaudeTool[];
     tool_choice?: Record<string, unknown> | string;
     thinking?: Record<string, unknown>;
+    output_config?: Record<string, unknown>;
     _toolNameMap?: Map<string, string>;
   } = {
     model: model,
@@ -333,22 +335,36 @@ export function openaiToClaudeRequest(model, body, stream) {
   } else if (body.reasoning_effort) {
     // Convert OpenAI reasoning_effort to Claude thinking format (#627)
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
-    const effortBudgetMap: Record<string, number> = {
-      low: 1024,
-      medium: 10240,
-      high: 131072,
-      max: 131072,
-    };
-    const effort = String(body.reasoning_effort).toLowerCase();
-    const budget = effortBudgetMap[effort];
-    if (budget !== undefined && budget > 0) {
+    const requestedEffort = String(body.reasoning_effort).toLowerCase();
+    const normalizedEffort =
+      requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+        ? "high"
+        : requestedEffort;
+    if (normalizedEffort === "xhigh") {
       result.thinking = {
-        type: "enabled",
-        budget_tokens: budget,
+        type: "adaptive",
       };
-      // Claude requires max_tokens > budget_tokens
-      if (result.max_tokens <= budget) {
-        result.max_tokens = budget + 8192;
+      result.output_config = {
+        ...(result.output_config || {}),
+        effort: "xhigh",
+      };
+    } else {
+      const effortBudgetMap: Record<string, number> = {
+        low: 1024,
+        medium: 10240,
+        high: 131072,
+        max: 131072,
+      };
+      const budget = effortBudgetMap[normalizedEffort];
+      if (budget !== undefined && budget > 0) {
+        result.thinking = {
+          type: "enabled",
+          budget_tokens: budget,
+        };
+        // Claude requires max_tokens > budget_tokens
+        if (result.max_tokens <= budget) {
+          result.max_tokens = budget + 8192;
+        }
       }
     }
   }

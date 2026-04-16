@@ -18,6 +18,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   joinClaudeCodeCompatibleUrl,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
+const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
@@ -143,6 +144,10 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
 });
 
 test("buildClaudeCodeCompatibleRequest preserves xhigh for Claude models that support it", () => {
+  const xhighModel = getModelsByProviderId("claude").find(
+    (model) => model.supportsXHighEffort === true
+  );
+  assert.ok(xhighModel, "expected at least one Claude model with xhigh support");
   const payload = buildClaudeCodeCompatibleRequest({
     sourceBody: {
       reasoning_effort: "xhigh",
@@ -150,7 +155,7 @@ test("buildClaudeCodeCompatibleRequest preserves xhigh for Claude models that su
     normalizedBody: {
       messages: [{ role: "user", content: "u1" }],
     },
-    model: "claude-opus-4-7",
+    model: xhighModel.id,
     cwd: "/tmp/work",
     now: new Date("2026-04-01T12:00:00.000Z"),
   });

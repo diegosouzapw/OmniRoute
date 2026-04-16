@@ -13,6 +13,15 @@ const {
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
+function getClaudeEffortFixtures() {
+  const claudeModels = getModelsByProviderId("claude");
+  const xhighModel = claudeModels.find((model) => model.supportsXHighEffort === true);
+  const standardModel = claudeModels.find((model) => model.supportsXHighEffort === false);
+  assert.ok(xhighModel, "expected at least one Claude model with xhigh support");
+  assert.ok(standardModel, "expected at least one Claude model without xhigh support");
+  return { xhighModel, standardModel };
+}
+
 test("Claude Code compatible URL helpers cover empty values, version trimming and legacy session headers", () => {
   assert.equal(stripClaudeCodeCompatibleEndpointSuffix(""), "");
   assert.equal(
@@ -34,30 +43,18 @@ test("Claude Code compatible URL helpers cover empty values, version trimming an
 });
 
 test("Claude Code compatible effort and max token helpers cover priority fallbacks", () => {
-  const claudeModels = getModelsByProviderId("claude");
-  assert.equal(
-    claudeModels.find((model) => model.id === "claude-opus-4-7")?.supportsXHighEffort,
-    true
-  );
-  assert.equal(
-    claudeModels.find((model) => model.id === "claude-opus-4-6")?.supportsXHighEffort,
-    false
-  );
+  const { xhighModel, standardModel } = getClaudeEffortFixtures();
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning_effort: "medium" }), "medium");
   assert.equal(resolveClaudeCodeCompatibleEffort({ reasoning: { effort: "none" } }), "low");
   assert.equal(
-    resolveClaudeCodeCompatibleEffort(
-      { output_config: { effort: "xhigh" } },
-      null,
-      "claude-opus-4-7"
-    ),
+    resolveClaudeCodeCompatibleEffort({ output_config: { effort: "xhigh" } }, null, xhighModel.id),
     "xhigh"
   );
   assert.equal(
     resolveClaudeCodeCompatibleEffort(
       { output_config: { effort: "xhigh" } },
       null,
-      "claude-opus-4-6"
+      standardModel.id
     ),
     "high"
   );

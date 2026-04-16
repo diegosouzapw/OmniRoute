@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
-import { getModelsByProviderId } from "../config/providerModels.ts";
+import { supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
@@ -47,11 +47,6 @@ export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER = `x-anthropic-billing-header
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
-const CLAUDE_XHIGH_SUPPORTED_MODELS = new Set(
-  getModelsByProviderId("claude")
-    .filter((model) => model.supportsXHighEffort)
-    .map((model) => model.id)
-);
 
 type HeaderLike =
   | Headers
@@ -78,7 +73,7 @@ type BuildRequestOptions = {
 };
 
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
-  return typeof model === "string" && CLAUDE_XHIGH_SUPPORTED_MODELS.has(model);
+  return typeof model === "string" && supportsXHighEffort("claude", model);
 }
 
 export function isClaudeCodeCompatibleProvider(provider: string | null | undefined): boolean {
