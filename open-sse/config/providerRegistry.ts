@@ -1400,6 +1400,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
   },
 
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api-inference.modelscope.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // ModelScope uses per-model quotas. Setting passthroughModels: true ensures 429/404
+    // only locks the specific model, not the entire connection. This allows fallback
+    // to other models on the same API key.
+    passthroughModels: true,
+    models: [
+      { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
+      { id: "ZhipuAI/GLM-5", name: "GLM-5" },
+      { id: "stepfun-ai/Step-3.5-Flash", name: "Step-3.5-Flash" },
+    ],
+  },
+
   // ── New Free Providers (2026) ─────────────────────────────────────────────
 
   longcat: {

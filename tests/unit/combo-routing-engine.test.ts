@@ -716,6 +716,43 @@ test("shouldFallbackComboBadRequest only flags known provider-scoped 400 pattern
   assert.equal(shouldFallbackComboBadRequest(429, "prohibited_content"), false);
   assert.equal(shouldFallbackComboBadRequest(400, null), false);
   assert.equal(shouldFallbackComboBadRequest(400, "generic bad request"), false);
+  // Chinese transient errors (ModelScope/Qwen)
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "[400]: 抱歉，服务遇到了一点小状况，请您稍后重试。"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "服务遇到了一点小状况"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "请稍后重试"), true);
+  // Model not supported errors
+  assert.equal(
+    shouldFallbackComboBadRequest(
+      400,
+      "Model id : XiaomiMiMo/MiMo-V2-Flash , has no provider supported"
+    ),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "no provider supported"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "model not found"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "model not available"), true);
+  // Function calling format errors
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "function.arguments parameter must be in JSON format"),
+    true
+  );
+  assert.equal(
+    shouldFallbackComboBadRequest(
+      400,
+      '[400]: <400> InternalError.Algo.InvalidParameter: The "function.arguments" parameter of the code model must be in JSON format.'
+    ),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "tool arguments invalid format"), true);
+  // Input length range errors
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "Range of input length should be [1, 98304]"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "input length should be"), true);
 });
 
 test("handleComboChat accepts binary and Responses-style 200 bodies but falls through malformed success payloads", async () => {

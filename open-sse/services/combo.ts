@@ -58,6 +58,37 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
+  // Context overflow — model-specific, may succeed on a model with larger context window
+  /context overflow/i,
+  /context length exceeded/i,
+  /prompt too large/i,
+  /token limit/i,
+  /too many tokens/i,
+  /exceeds? context/i,
+  /maximum context/i,
+  /input too long/i,
+  /messages? exceed/i,
+  // Model not supported/found — permanent model-level error, try next combo target
+  /no provider supported/i,
+  /model not found/i,
+  /model not available/i,
+  /unsupported model/i,
+  /model.*has no provider/i,
+  // Function calling format error — model doesn't support this capability
+  /function\.?arguments.*(must be|should be|必须).*(json|JSON)/i,
+  /tool.*arguments.*invalid/i,
+  /function.*parameter.*(invalid|format)/i,
+  // Input length range error — model-specific context limit
+  /range of input length/i,
+  /input length should be/i,
+  // Transient 400 errors from upstream — should fallback to next combo target
+  /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
+  /稍后重试/i, // "retry later" in Chinese
+  /temporary.*error/i,
+  /transient.*error/i,
+  /service.*unavailable/i,
+  /please.*try.*again/i,
+  /rate.*limit/i, // Some providers return 400 instead of 429 for rate limits
 ];
 
 const MAX_COMBO_DEPTH = 3;
