@@ -7,24 +7,20 @@
  * with a tooltip containing additional details like remaining cooldown time
  * or last error message.
  * Only renders for non-available models to keep the UI clean.
+ *
+ * Uses shared polling via ModelStatusContext to avoid redundant API calls.
  */
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Tooltip from "@/shared/components/Tooltip";
+import { useModelStatus } from "./ModelStatusContext";
 
 interface ModelStatusBadgeProps {
   provider: string;
   model: string;
   size?: "sm" | "md";
   className?: string;
-}
-
-interface ModelStatus {
-  status: "available" | "cooldown" | "unavailable" | "error" | "unknown";
-  reason?: string;
-  remainingMs?: number;
-  lastError?: string;
 }
 
 function formatRemainingTime(ms: number): string {
@@ -48,81 +44,55 @@ export default function ModelStatusBadge({
   className = "",
 }: ModelStatusBadgeProps) {
   const t = useTranslations("providers");
-  const [status, setStatus] = useState<ModelStatus>({ status: "unknown" });
-  const [remainingMs, setRemainingMs] = useState<number | null>(null);
+  const status = useModelStatus(provider, model);
 
-  // Use ref for badge start time to avoid triggering re-renders
-  const badgeStartMsRef = useRef<number | null>(null);
-  const cooldownMsRef = useRef<number | null>(null);
+  // Store the latest remaining time calculated by the interval
+  const [displayRemainingMs, setDisplayRemainingMs] = useState<number | null>(null);
 
-  // Poll status every 15 seconds
+  // Use ref to track server-provided initial cooldown duration for countdown calculation
+  const initialCooldownMsRef = useRef<number | null>(null);
+  // Track when we started counting down
+  const countdownStartRef = useRef<number | null>(null);
+
+  // Set up countdown timer when cooldown begins
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/models/availability");
-        if (res.ok) {
-          const json = await res.json();
-          const models = json?.models || [];
-          const modelEntry = models.find(
-            (m: any) =>
-              m.provider === provider &&
-              (m.model === model || m.model?.includes(model) || model.includes(m.model))
-          );
-          if (modelEntry) {
-            const newStatus: ModelStatus = {
-              status: modelEntry.status || "unknown",
-              reason: modelEntry.reason,
-              remainingMs: modelEntry.remainingMs,
-              lastError: modelEntry.lastError,
-            };
-            setStatus(newStatus);
-            if (modelEntry.status === "cooldown" && modelEntry.remainingMs) {
-              badgeStartMsRef.current = Date.now();
-              cooldownMsRef.current = modelEntry.remainingMs;
-              setRemainingMs(modelEntry.remainingMs);
-            } else {
-              badgeStartMsRef.current = null;
-              cooldownMsRef.current = null;
-              setRemainingMs(null);
-            }
-          } else {
-            setStatus({ status: "available" });
-            setRemainingMs(null);
-          }
-        }
-      } catch {
-        setStatus({ status: "unknown" });
-        setRemainingMs(null);
-      }
-    };
-
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 15000);
-    return () => clearInterval(interval);
-  }, [provider, model]);
-
-  // Update remaining time every second for countdown using refs
-  useEffect(() => {
-    if (status.status !== "cooldown" || !cooldownMsRef.current || !badgeStartMsRef.current) {
+    if (status?.status !== "cooldown" || !status.remainingMs) {
+      // Reset refs when not in cooldown (no setState here)
+      initialCooldownMsRef.current = null;
+      countdownStartRef.current = null;
       return;
     }
 
+    // Initialize timing refs (no setState here)
+    initialCooldownMsRef.current = status.remainingMs;
+    countdownStartRef.current = Date.now();
+
+    // Update countdown every second via interval callback (setState allowed here)
     const interval = setInterval(() => {
-      const elapsed = Date.now() - (badgeStartMsRef.current || Date.now());
-      const totalRemaining = cooldownMsRef.current || 0;
-      const newRemaining = totalRemaining - elapsed;
-      if (newRemaining <= 0) {
-        setRemainingMs(0);
-      } else {
-        setRemainingMs(newRemaining);
+      if (!initialCooldownMsRef.current || !countdownStartRef.current) {
+        return;
+      }
+
+      const elapsed = Date.now() - countdownStartRef.current;
+      const newRemaining = Math.max(0, initialCooldownMsRef.current - elapsed);
+
+      setDisplayRemainingMs(newRemaining);
+
+      // Stop updating when countdown reaches zero
+      if (newRemaining === 0) {
+        clearInterval(interval);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status.status]);
+  }, [status?.status, status?.remainingMs]);
+
+  // Derive the displayed remaining time: use countdown value if active, else use status value
+  const remainingMs =
+    status?.status === "cooldown" ? (displayRemainingMs ?? status.remainingMs ?? null) : null;
 
   // Don't render badge for available models (keep UI clean)
-  if (status.status === "available" || status.status === "unknown") {
+  if (!status || status.status === "available" || status.status === "unknown") {
     return null;
   }
 
