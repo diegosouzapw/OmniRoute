@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-routing-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const {
@@ -88,9 +89,26 @@ function getComboTargetBreakerKey(comboName, index, stepInput) {
   return `combo:${comboName}:${step.id}`;
 }
 
+async function cleanupTestDataDir() {
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      core.resetDbInstance();
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+}
+
 async function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTestDataDir();
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.resetAllPricing();
   settingsDb.clearAllLKGP();
@@ -110,8 +128,14 @@ test.after(async () => {
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
-  await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  clearModelsDevCapabilities();
+  settingsDb.clearAllLKGP();
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  await cleanupTestDataDir();
 });
 
 test("getComboFromData and getComboModelsFromData resolve combos from array and object containers", () => {

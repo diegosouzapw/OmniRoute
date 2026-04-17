@@ -9,11 +9,11 @@ import {
 } from "../../src/shared/validation/schemas.ts";
 import { validateBody } from "../../src/shared/validation/helpers.ts";
 
-test("xiaomi-mimo registry uses current token-plan base URL and current MiMo V2 models", () => {
+test("xiaomi-mimo registry uses the current default base URL and MiMo V2 models", () => {
   const entry = REGISTRY["xiaomi-mimo"];
 
   assert.ok(entry, "xiaomi-mimo should exist in registry");
-  assert.equal(entry.baseUrl, "https://token-plan-sgp.xiaomimimo.com/v1");
+  assert.equal(entry.baseUrl, "https://api.xiaomimimo.com/v1");
   assert.deepEqual(
     entry.models.map((model) => model.id),
     ["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]

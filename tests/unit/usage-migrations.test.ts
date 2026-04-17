@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const ORIGINAL_HOME = process.env.HOME;
+const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_NEXT_PHASE = process.env.NEXT_PHASE;
 
@@ -12,6 +13,7 @@ const TEST_HOME_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-mig
 const TEST_DATA_DIR = path.join(TEST_HOME_DIR, "data");
 
 process.env.HOME = TEST_HOME_DIR;
+process.env.USERPROFILE = TEST_HOME_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.NEXT_PHASE;
 
@@ -81,6 +83,12 @@ test.after(() => {
     delete process.env.HOME;
   } else {
     process.env.HOME = ORIGINAL_HOME;
+  }
+
+  if (ORIGINAL_USERPROFILE === undefined) {
+    delete process.env.USERPROFILE;
+  } else {
+    process.env.USERPROFILE = ORIGINAL_USERPROFILE;
   }
 
   if (ORIGINAL_DATA_DIR === undefined) {

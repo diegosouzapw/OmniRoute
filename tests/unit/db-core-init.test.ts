@@ -326,6 +326,7 @@ test(
           DATA_DIR: undefined,
           XDG_CONFIG_HOME: undefined,
           HOME: fakeHome,
+          USERPROFILE: fakeHome,
           APPDATA: undefined,
         },
         async () => {
@@ -572,36 +573,33 @@ test(
     seedDb.close();
 
     try {
-      await withEnv(
-        { DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" },
-        async () => {
-          const core = await importFresh("src/lib/db/core.ts");
-          const db = core.getDbInstance();
+      await withEnv({ DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+        const db = core.getDbInstance();
 
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022")
-          );
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
-          );
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
-          );
-          assert.equal(
-            db
-              .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
-              .get("022", "call_logs_cache_source"),
-            undefined
-          );
-          assert.deepEqual(db.prepare("SELECT memory_id FROM memories").get(), { memory_id: 1 });
-          assert.deepEqual(db.prepare("SELECT rowid, content FROM memory_fts").get(), {
-            rowid: 1,
-            content: "memory content",
-          });
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022")
+        );
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
+        );
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
+        );
+        assert.equal(
+          db
+            .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
+            .get("022", "call_logs_cache_source"),
+          undefined
+        );
+        assert.deepEqual(db.prepare("SELECT memory_id FROM memories").get(), { memory_id: 1 });
+        assert.deepEqual(db.prepare("SELECT rowid, content FROM memory_fts").get(), {
+          rowid: 1,
+          content: "memory content",
+        });
 
-          core.resetDbInstance();
-        }
-      );
+        core.resetDbInstance();
+      });
     } finally {
       removePath(dataDir);
     }

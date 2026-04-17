@@ -132,8 +132,12 @@ describe("binaryManager", () => {
       const result = await mod.rollbackVersion(tmpDir);
       // Previous = second highest = 1.0.0
       assert.equal(result, "1.0.0");
-      const real = fs.realpathSync(path.join(binDir, "cliproxyapi"));
-      assert.ok(real.includes("1.0.0"));
+      if (process.platform === "win32") {
+        assert.equal(fs.readFileSync(path.join(binDir, "cliproxyapi"), "utf8"), "bin-1.0.0");
+      } else {
+        const real = fs.realpathSync(path.join(binDir, "cliproxyapi"));
+        assert.ok(real.includes("1.0.0"));
+      }
     });
   });
 

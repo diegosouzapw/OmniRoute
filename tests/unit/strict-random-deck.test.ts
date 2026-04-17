@@ -8,11 +8,17 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-strict-random-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "strict-random-test-secret";
+const core = await import("../../src/lib/db/core.ts");
 
 const { fisherYatesShuffle, getNextFromDeck } = await import("../../src/sse/services/auth.ts");
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  core.resetDbInstance();
+  if (fs.existsSync(TEST_DATA_DIR)) {
+    for (const entry of fs.readdirSync(TEST_DATA_DIR)) {
+      fs.rmSync(path.join(TEST_DATA_DIR, entry), { recursive: true, force: true });
+    }
+  }
 });
 
 // ─── fisherYatesShuffle ──────────────────────────────────────────────────────

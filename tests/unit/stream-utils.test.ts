@@ -6,6 +6,7 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-stream-utils-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+const core = await import("../../src/lib/db/core.ts");
 
 const { createSSEStream, createSSETransformStreamWithLogger, createPassthroughStreamWithLogger } =
   await import("../../open-sse/utils/stream.ts");
@@ -47,7 +48,12 @@ async function readWithTransform(chunks, transformStream) {
 }
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  core.resetDbInstance();
+  if (fs.existsSync(TEST_DATA_DIR)) {
+    for (const entry of fs.readdirSync(TEST_DATA_DIR)) {
+      fs.rmSync(path.join(TEST_DATA_DIR, entry), { recursive: true, force: true });
+    }
+  }
 });
 
 test("createSSEStream passthrough normalizes tool-call finishes and reports the assembled response", async () => {
