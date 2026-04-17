@@ -85,8 +85,12 @@ test("CLI config helpers enforce safe config homes and expose per-tool config pa
   assert.equal(cliRuntime.getCliConfigPaths("unknown"), null);
 
   process.env.XDG_CONFIG_HOME = path.join(homeDir, ".config-test");
+  const expectedOpencodeRoot =
+    process.platform === "win32"
+      ? process.env.APPDATA || path.join(homeDir, "AppData", "Roaming")
+      : process.env.XDG_CONFIG_HOME;
   assert.deepEqual(cliRuntime.getCliConfigPaths("opencode"), {
-    config: path.join(process.env.XDG_CONFIG_HOME, "opencode", "opencode.json"),
+    config: path.join(expectedOpencodeRoot, "opencode", "opencode.json"),
   });
 });
 
@@ -121,8 +125,13 @@ test("getCliRuntimeStatus reports not_executable for absolute env override files
   const status = await cliRuntime.getCliRuntimeStatus("codex");
 
   assert.equal(status.installed, true);
-  assert.equal(status.runnable, false);
-  assert.equal(status.reason, "not_executable");
+  if (process.platform === "win32") {
+    assert.equal(status.runnable, true);
+    assert.equal(status.reason, null);
+  } else {
+    assert.equal(status.runnable, false);
+    assert.equal(status.reason, "not_executable");
+  }
   assert.equal(status.commandPath, scriptPath);
 });
 
@@ -150,7 +159,7 @@ test("getCliRuntimeStatus reports healthcheck_failed when a binary exists but do
 
 test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lookup", async () => {
   const tempDir = createTempDir("omniroute-cli-extra-path-");
-  const scriptName = process.platform === "win32" ? "qodercli.exe" : "qodercli";
+  const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";
   writeScript(
     tempDir,
     scriptName,
@@ -168,12 +177,15 @@ test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lo
   assert.equal(status.installed, true);
   assert.equal(status.runnable, true);
   assert.equal(status.reason, null);
-  assert.ok(status.commandPath === "qodercli" || status.commandPath === "qodercli.exe");
+  assert.equal(
+    path.basename(String(status.commandPath)).toLowerCase(),
+    process.platform === "win32" ? "qodercli.cmd" : "qodercli"
+  );
 });
 
 test("getCliRuntimeStatus resolves known binaries from npm global prefix discovered via npm config", async () => {
   const prefixDir = createTempDir("omniroute-cli-prefix-");
-  const scriptName = process.platform === "win32" ? "qodercli.exe" : "qodercli";
+  const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";
   const scriptPath = writeScript(
     path.join(prefixDir, process.platform === "win32" ? "" : "bin"),
     scriptName,
