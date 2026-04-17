@@ -45,12 +45,13 @@ test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", (
 
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
-    ["app/server.js", "bin/omniroute.ts", "package.json", "scripts/postinstall.mjs"],
+    ["app/server.js", "bin/omniroute.mjs", "package.json", "scripts/postinstall.mjs"],
     PACK_ARTIFACT_REQUIRED_PATHS
   );
 
   assert.deepEqual(missingPaths, [
     "bin/mcp-server.mjs",
+    "bin/nodeRuntimeSupport.mjs",
     "scripts/native-binary-compat.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);

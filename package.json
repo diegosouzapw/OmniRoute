@@ -4,7 +4,7 @@
   "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
-    "omniroute": "bin/omniroute.ts",
+    "omniroute": "bin/omniroute.mjs",
     "omniroute-reset-password": "bin/reset-password.mjs"
   },
   "files": [

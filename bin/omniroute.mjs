@@ -18,26 +18,20 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform } from "node:os";
 import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
-import {
-  getNodeRuntimeSupport,
-  getNodeRuntimeWarning,
-} from "../src/shared/utils/nodeRuntimeSupport.ts";
+import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 const APP_DIR = join(ROOT, "app");
 
-// ── Load .env file (for global npm install) ─────────────────
 function loadEnvFile() {
   const envPaths = [];
 
-  // 1. DATA_DIR/.env if set
   if (process.env.DATA_DIR) {
     envPaths.push(join(process.env.DATA_DIR, ".env"));
   }
 
-  // 2. ~/.omniroute/.env (default data dir)
   const home = homedir();
   if (home) {
     if (platform() === "win32") {
@@ -48,7 +42,6 @@ function loadEnvFile() {
     }
   }
 
-  // 3. ./.env (current working directory)
   envPaths.push(join(process.cwd(), ".env"));
 
   for (const envPath of envPaths) {
@@ -57,15 +50,12 @@ function loadEnvFile() {
         const content = readFileSync(envPath, "utf-8");
         for (const line of content.split("\n")) {
           const trimmed = line.trim();
-          // Skip empty lines and comments
           if (!trimmed || trimmed.startsWith("#")) continue;
           const eqIdx = trimmed.indexOf("=");
           if (eqIdx > 0) {
             const key = trimmed.slice(0, eqIdx).trim();
             const value = trimmed.slice(eqIdx + 1).trim();
-            // Don't override existing env vars
             if (process.env[key] === undefined) {
-              // Remove surrounding quotes
               process.env[key] = value.replace(/^["']|["']$/g, "");
             }
           }
@@ -74,14 +64,13 @@ function loadEnvFile() {
         return;
       }
     } catch {
-      // Ignore errors reading env files
+      // Ignore errors reading env files.
     }
   }
 }
 
 loadEnvFile();
 
-// ── Parse args ─────────────────────────────────────────────
 const args = process.argv.slice(2);
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -128,7 +117,6 @@ if (args.includes("--version") || args.includes("-v")) {
   process.exit(0);
 }
 
-// ── MCP Server Mode ───────────────────────────────────────
 if (args.includes("--mcp")) {
   try {
     const { startMcpCli } = await import(join(ROOT, "bin", "mcp-server.mjs"));
@@ -145,7 +133,6 @@ function parsePort(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
 }
 
-// Parse --port (canonical/base port)
 let port = parsePort(process.env.PORT || "20128", 20128);
 const portIdx = args.indexOf("--port");
 if (portIdx !== -1 && args[portIdx + 1]) {
@@ -159,20 +146,17 @@ if (portIdx !== -1 && args[portIdx + 1]) {
 
 const apiPort = parsePort(process.env.API_PORT || String(port), port);
 const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-
 const noOpen = args.includes("--no-open");
 
-// ── Banner ─────────────────────────────────────────────────
 console.log(`
 \x1b[36m   ____                  _ ____              _
-   / __ \\                (_) __ \\            | |
+   / __ \\\\                (_) __ \\\\            | |
   | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
-  | |  | | '_ \` _ \\| '_ \\ |  _  // _ \\| | | | __/ _ \\
-  | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
-   \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
+  | |  | | '_ \` _ \\\\| '_ \\\\ |  _  // _ \\\\| | | | __/ _ \\\\
+  | |__| | | | | | | | | | | | \\\\ \\\\ (_) | |_| | ||  __/
+   \\\\____/|_| |_| |_|_| |_|_|_|  \\\\_\\\\___/ \\\\__,_|\\\\__\\\\___|
 \x1b[0m`);
 
-// ── Node.js version check ──────────────────────────────────
 const nodeSupport = getNodeRuntimeSupport();
 if (!nodeSupport.nodeCompatible) {
   const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
@@ -185,14 +169,12 @@ if (!nodeSupport.nodeCompatible) {
 `);
 }
 
-// ── Resolve server entry ───────────────────────────────────
 const serverJs = join(APP_DIR, "server.js");
 
 if (!existsSync(serverJs)) {
   console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
   console.error("  The package may not have been built correctly.");
   console.error("");
-  // (#492) Detect common non-standard Node managers that cause this issue
   const nodeExec = process.execPath || "";
   const isMise = nodeExec.includes("mise") || nodeExec.includes(".local/share/mise");
   const isNvm = nodeExec.includes(".nvm") || nodeExec.includes("nvm");
@@ -214,10 +196,6 @@ if (!existsSync(serverJs)) {
   process.exit(1);
 }
 
-// ── Pre-flight: verify better-sqlite3 native binary ───────
-// Verify the binary's actual target platform/arch before trusting dlopen.
-// This avoids the macOS false positive where a bundled linux-x64 addon can
-// appear to load even though the runtime will fail when better-sqlite3 starts.
 const sqliteBinary = join(
   APP_DIR,
   "node_modules",
@@ -237,10 +215,8 @@ if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
   process.exit(1);
 }
 
-// ── Start server ───────────────────────────────────────────
 console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-// Sanitize memory limit — parseInt to prevent command injection (#150)
 const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
 const memoryLimit =
   Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
@@ -268,7 +244,6 @@ server.stdout.on("data", (data) => {
   const text = data.toString();
   process.stdout.write(text);
 
-  // Detect server ready
   if (
     !started &&
     (text.includes("Ready") || text.includes("started") || text.includes("listening"))
@@ -294,7 +269,6 @@ server.on("exit", (code) => {
   process.exit(code ?? 0);
 });
 
-// ── Graceful shutdown ──────────────────────────────────────
 function shutdown() {
   console.log("\n\x1b[33m⏹ Shutting down OmniRoute...\x1b[0m");
   server.kill("SIGTERM");
@@ -307,7 +281,6 @@ function shutdown() {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-// ── On ready ───────────────────────────────────────────────
 async function onReady() {
   const dashboardUrl = `http://localhost:${dashboardPort}`;
   const apiUrl = `http://localhost:${apiPort}`;
@@ -329,12 +302,11 @@ async function onReady() {
       const open = await import("open");
       await open.default(dashboardUrl);
     } catch {
-      // open is optional — if not available, just skip
+      // open is optional — if not available, just skip.
     }
   }
 }
 
-// Fallback: if no "Ready" message detected in 15s, assume server is up
 setTimeout(() => {
   if (!started) {
     started = true;

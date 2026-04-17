@@ -1,5 +1,5 @@
 /**
- * Tests for CLI Memory Sanitization (bin/omniroute.ts)
+ * Tests for CLI Memory Sanitization (bin/omniroute.mjs)
  *
  * Tests cover:
  * - Memory limit parsing and validation
@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 
 describe("CLI Memory Limit Sanitization", () => {
   /**
-   * Replicate the memory sanitization logic from bin/omniroute.ts
+   * Replicate the memory sanitization logic from bin/omniroute.mjs
    */
   function sanitizeMemoryLimit(envValue) {
     const rawMemory = parseInt(envValue || "512", 10);
@@ -101,7 +101,7 @@ describe("CLI Memory Limit Sanitization", () => {
 
 describe("CLI .env File Loading", () => {
   /**
-   * Simulate the .env parsing logic from bin/omniroute.ts
+   * Simulate the .env parsing logic from bin/omniroute.mjs
    */
   function parseEnvLine(line) {
     const trimmed = line.trim();
