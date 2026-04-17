@@ -1448,6 +1448,7 @@ export async function handleComboChat({
                 percentUsed: quotaInfo.percentUsed,
                 messages: handoffSourceMessages,
                 model: modelStr,
+                comboTargets: orderedTargets.map((t) => t.executionKey),
                 expiresAt: resetCandidates[0] || null,
                 config: relayConfig,
                 handleSingleModel: handleSingleModelWrapped,

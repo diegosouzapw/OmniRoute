@@ -127,14 +127,20 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
 function selectMessagesForSummary(
   messages: MessageLike[],
   maxMessages: number,
-  modelStr: string
+  models: string | string[]
 ): MessageLike[] {
-  const parsed = parseModel(modelStr);
-  const provider = parsed.provider || parsed.providerAlias || "unknown";
-  const model = parsed.model || modelStr;
+  const modelArray = Array.isArray(models) ? models : [models];
 
-  const modelContextLimit = getTokenLimit(provider, model);
-  const maxHistoryTokens = Math.floor(modelContextLimit * CONTEXT_SAFETY_MARGIN);
+  let minContextLimit = Infinity;
+  for (const modelStr of modelArray) {
+    const parsed = parseModel(modelStr);
+    const provider = parsed.provider || parsed.providerAlias || "unknown";
+    const model = parsed.model || modelStr;
+    const limit = getTokenLimit(provider, model);
+    minContextLimit = Math.min(minContextLimit, limit);
+  }
+
+  const maxHistoryTokens = Math.floor(minContextLimit * CONTEXT_SAFETY_MARGIN);
   const effectiveLimit = Math.max(maxHistoryTokens, FALLBACK_MAX_HISTORY_TOKENS);
 
   const recentMessages = messages.slice(-maxMessages);
@@ -151,7 +157,7 @@ function selectMessagesForSummary(
 
   if (working.length === 0) {
     console.warn(
-      `[context-handoff] History too large even with single message (${estimateTokens(formatMessagesForPrompt(working))} tokens > ${effectiveLimit} limit for ${modelStr})`
+      `[context-handoff] History too large even with single message (${estimateTokens(formatMessagesForPrompt(working))} tokens > ${effectiveLimit} limit for models: ${modelArray.join(", ")})`
     );
   }
 
@@ -266,6 +272,7 @@ async function generateHandoffAsync(options: {
   percentUsed: number;
   messages: MessageLike[];
   model: string;
+  comboTargets?: string[];
   expiresAt: string | null;
   config?: ContextRelayConfig | null;
   handleSingleModel: (body: Record<string, unknown>, modelStr: string) => Promise<Response>;
@@ -274,10 +281,14 @@ async function generateHandoffAsync(options: {
 
   const relayConfig = resolveContextRelayConfig(options.config as Record<string, unknown>);
   const summaryModel = relayConfig.handoffModel || options.model;
+
+  const modelsToConsider =
+    options.comboTargets && options.comboTargets.length > 0 ? options.comboTargets : [summaryModel];
+
   const selectedMessages = selectMessagesForSummary(
     Array.isArray(options.messages) ? options.messages : [],
     relayConfig.maxMessagesForSummary,
-    summaryModel
+    modelsToConsider
   );
   const historyText = formatMessagesForPrompt(selectedMessages);
   if (!historyText) return;
@@ -334,6 +345,7 @@ export function maybeGenerateHandoff(options: {
   percentUsed: number;
   messages: MessageLike[];
   model: string;
+  comboTargets?: string[];
   expiresAt: string | null;
   config?: ContextRelayConfig | null;
   handleSingleModel: (body: Record<string, unknown>, modelStr: string) => Promise<Response>;
@@ -353,10 +365,16 @@ export function maybeGenerateHandoff(options: {
 
   setImmediate(() => {
     generateHandoffAsync({
-      ...options,
       sessionId: options.sessionId as string,
+      comboName: options.comboName,
       connectionId: options.connectionId as string,
+      percentUsed: options.percentUsed,
+      messages: options.messages,
+      model: options.model,
+      comboTargets: options.comboTargets,
+      expiresAt: options.expiresAt,
       config: relayConfig,
+      handleSingleModel: options.handleSingleModel,
     })
       .catch((err) => {
         if (process.env.NODE_ENV !== "test") {
