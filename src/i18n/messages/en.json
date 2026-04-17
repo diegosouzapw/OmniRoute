@@ -282,6 +282,10 @@
     "evals": "Evals",
     "utilization": "Utilization",
     "utilizationDescription": "Provider quota usage trends and rate limit tracking",
+    "modelStatus": "Model Status",
+    "modelStatusCooldown": "Cooldown",
+    "modelStatusUnavailable": "Unavailable",
+    "modelStatusError": "Error",
     "comboHealth": "Combo Health",
     "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics"
   },
@@ -644,7 +648,8 @@
       "kiro": "Use when integrating Kiro and controlling model routing centrally from OmniRoute.",
       "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
-      "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
+      "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE with MITM",
@@ -1108,6 +1113,7 @@
     "builderAccount": "Account",
     "builderPreview": "Preview",
     "builderAddStep": "Add step",
+    "builderDuplicateExact": "This exact provider/model/account step is already in the combo.",
     "builderComboRef": "Combo Ref",
     "builderAddComboRef": "Add combo reference",
     "builderComboRefStep": "Add combo reference",
@@ -1865,6 +1871,9 @@
     "compatUpstreamAddRow": "Add header",
     "compatUpstreamRemoveRow": "Remove row",
     "compatBadgeUpstreamHeaders": "Headers",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle",
     "modelId": "Model ID",
     "customModelPlaceholder": "e.g. gpt-4.5-turbo",
     "loading": "Loading...",

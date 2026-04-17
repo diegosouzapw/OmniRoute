@@ -11,6 +11,7 @@ import {
   extractIntelligentHealthState,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import ModelStatusBadge from "@/app/(dashboard)/dashboard/providers/components/ModelStatusBadge";
 
 function getI18nOrFallback(t: any, key: string, fallback: string) {
   if (typeof t?.has === "function" && t.has(key)) return t(key);
@@ -283,6 +284,8 @@ export default function IntelligentComboPanel({
                           </p>
                           <p className="text-[11px] text-text-muted mt-0.5">{entry.model}</p>
                         </div>
+                        {/* Model status badge - shows cooldown/error state */}
+                        <ModelStatusBadge provider={entry.provider} model={entry.model} size="sm" />
                         <span className="rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">
                           {percentage}%
                         </span>

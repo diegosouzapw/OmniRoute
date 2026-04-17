@@ -47,6 +47,7 @@ import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/ut
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import { getCodexRequestDefaults as _getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import ModelStatusBadge from "@/app/(dashboard)/dashboard/providers/components/ModelStatusBadge";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -320,6 +321,7 @@ function anyUpstreamHeadersBadge(
 interface ModelRowProps {
   model: { id: string; isHidden?: boolean };
   fullModel: string;
+  provider: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
@@ -2409,6 +2411,7 @@ export default function ProviderDetailPage() {
                 key={model.id}
                 model={model}
                 fullModel={`${providerDisplayAlias}/${model.id}`}
+                provider={providerId}
                 copied={copied}
                 onCopy={copy}
                 t={t}
@@ -3203,6 +3206,7 @@ export default function ProviderDetailPage() {
 function ModelRow({
   model,
   fullModel,
+  provider,
   copied,
   onCopy,
   t,
@@ -3232,6 +3236,7 @@ function ModelRow({
         <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
           {fullModel}
         </code>
+        <ModelStatusBadge provider={provider} model={model.id} size="sm" />
         <button
           onClick={() => onCopy(fullModel, `model-${model.id}`)}
           className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
@@ -3280,6 +3285,7 @@ ModelRow.propTypes = {
     id: PropTypes.string.isRequired,
   }).isRequired,
   fullModel: PropTypes.string.isRequired,
+  provider: PropTypes.string.isRequired,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   t: PropTypes.func,
@@ -5186,6 +5192,7 @@ function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    passthroughModels: true,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5265,6 +5272,9 @@ function AddApiKeyModal({
       const providerSpecificData: Record<string, unknown> = {};
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
+      }
+      if (formData.passthroughModels) {
+        providerSpecificData.passthroughModels = true;
       }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
@@ -5391,6 +5401,13 @@ function AddApiKeyModal({
               onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
               placeholder="my-app/1.0"
               hint="Optional override sent upstream as the User-Agent header for this connection"
+            />
+            <Toggle
+              size="sm"
+              checked={formData.passthroughModels}
+              onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+              label={t("perModelQuotaLabel")}
+              description={t("perModelQuotaDescription")}
             />
             {provider === "bailian-coding-plan" && (
               <Input
@@ -5526,6 +5543,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    passthroughModels: true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5577,6 +5595,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        passthroughModels: connection.providerSpecificData?.passthroughModels === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5708,6 +5727,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
           tag: formData.tag.trim() || undefined,
           customUserAgent: formData.customUserAgent.trim(),
+          passthroughModels: formData.passthroughModels || undefined,
         };
         if (connection.provider === "bailian-coding-plan") {
           if (formData.consoleApiKey.trim()) {
@@ -5902,6 +5922,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
+                />
+                <Toggle
+                  size="sm"
+                  checked={formData.passthroughModels}
+                  onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+                  label={t("perModelQuotaLabel")}
+                  description={t("perModelQuotaDescription")}
                 />
                 {connection.provider === "bailian-coding-plan" && (
                   <Input

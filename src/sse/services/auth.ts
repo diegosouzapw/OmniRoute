@@ -1177,7 +1177,13 @@ export async function markAccountUnavailable(
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
 
-    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    // Read passthroughModels from connection config (user-configured per-model quota)
+    const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
+    const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
+      | boolean
+      | undefined;
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
       const fallbackCooldown =
