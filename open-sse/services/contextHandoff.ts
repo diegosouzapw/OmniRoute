@@ -18,6 +18,7 @@ const MAX_TASK_PROGRESS_LENGTH = 1200;
 const MAX_DECISIONS = 8;
 const MAX_ENTITIES = 10;
 const DEFAULT_TTL_MS = 5 * 60 * 60 * 1000;
+const SUMMARIZATION_TIMEOUT_MS = 300000;
 const OMNI_MODEL_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g;
 const inflightHandoffGenerations = new Set<string>();
 
@@ -269,10 +270,52 @@ async function generateHandoffAsync(options: {
     temperature: 0.1,
     _omnirouteSkipContextRelay: true,
     _omnirouteInternalRequest: "context-handoff",
+    _omnirouteSummarizationTimeout: SUMMARIZATION_TIMEOUT_MS,
   };
 
-  const response = await options.handleSingleModel(summaryBody, summaryModel);
-  if (!response.ok) return;
+  const timeoutPromise = new Promise<Response>((_, reject) =>
+    setTimeout(() => reject(new Error("Summarization timeout")), SUMMARIZATION_TIMEOUT_MS)
+  );
+
+  let response: Response;
+  try {
+    response = await Promise.race([
+      options.handleSingleModel(summaryBody, summaryModel),
+      timeoutPromise,
+    ]);
+  } catch (err: any) {
+    console.warn(
+      `[context-handoff] Summarization timeout for session ${options.sessionId}: ${err?.message || "unknown"}`
+    );
+    return;
+  }
+
+  // T09: Better error logging for compaction failures
+  // Log the actual error to help diagnose 500 issues during OpenCode compaction
+  if (!response.ok) {
+    let errorDetail = `Status ${response.status}`;
+    try {
+      const errorText = await response.clone().text();
+      if (errorText) {
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail =
+            errorJson?.error?.message ||
+            errorJson?.error ||
+            errorJson?.message ||
+            errorText.substring(0, 200);
+        } catch {
+          errorDetail = errorText.substring(0, 200);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    console.warn(
+      `[context-handoff] Summarization failed for session ${options.sessionId}: ${errorDetail}`
+    );
+    return;
+  }
 
   let content = "";
   try {
@@ -287,7 +330,10 @@ async function generateHandoffAsync(options: {
   }
 
   const parsed = parseHandoffJSON(content);
-  if (!parsed) return;
+  if (!parsed) {
+    console.warn(`[context-handoff] Failed to parse handoff JSON for session ${options.sessionId}`);
+    return;
+  }
 
   upsertHandoff({
     sessionId: options.sessionId,
