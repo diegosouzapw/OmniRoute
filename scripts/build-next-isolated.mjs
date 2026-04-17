@@ -90,6 +90,13 @@ export async function main() {
       moved = true;
     }
 
+    // 清理旧的 standalone 目录，避免 ENOTEMPTY 错误
+    const standaloneDir = path.join(projectRoot, ".next", "standalone");
+    if (await exists(standaloneDir)) {
+      console.log("[build-next-isolated] 清理旧的 standalone 目录...");
+      await fs.rm(standaloneDir, { recursive: true, force: true });
+    }
+
     const result = await runNextBuild();
     if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
       console.log("[build-next-isolated] Copying static assets for standalone server...");
