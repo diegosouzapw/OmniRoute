@@ -914,7 +914,10 @@ export async function handleChatCore({
   // For Responses API targets, max_output_tokens is the canonical field. For others,
   // max_tokens is preferred. We handle normalization here to support passthrough
   // paths where the translator is skipped.
-  if (targetFormat === FORMATS.OPENAI_RESPONSES) {
+  const prefersResponsesTokenField =
+    sourceFormat === FORMATS.OPENAI_RESPONSES || targetFormat === FORMATS.OPENAI_RESPONSES;
+
+  if (prefersResponsesTokenField) {
     if (body.max_output_tokens === undefined) {
       if (body.max_completion_tokens !== undefined) {
         body.max_output_tokens = body.max_completion_tokens;
