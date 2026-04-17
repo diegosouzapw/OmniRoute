@@ -355,11 +355,21 @@ export function clearModelLock(provider, connectionId, model) {
  * Compatible and passthrough providers multiplex multiple upstream models behind one
  * connection, so transient 404/429 responses should stay model-scoped instead of
  * poisoning the whole connection.
+ *
+ * @param provider - Provider ID
+ * @param _model - Model ID (reserved for future use)
+ * @param connectionPassthroughModels - Optional per-connection override from providerSpecificData.
+ *        When provided, takes precedence over registry/provider-level logic.
  */
 export function hasPerModelQuota(
   provider: string | null | undefined,
-  _model: string | null | undefined = null
+  _model: string | null | undefined = null,
+  connectionPassthroughModels?: boolean
 ): boolean {
+  // Connection-level override takes precedence (e.g., user-configured ModelScope)
+  if (typeof connectionPassthroughModels === "boolean") {
+    return connectionPassthroughModels;
+  }
   if (!provider) return false;
   if (provider === "gemini") return true;
   if (getPassthroughProviders().has(provider)) return true;
@@ -385,9 +395,10 @@ export function lockModelIfPerModelQuota(
 
 export function shouldMarkAccountExhaustedFrom429(
   provider: string | null | undefined,
-  model: string | null | undefined = null
+  model: string | null | undefined = null,
+  connectionPassthroughModels?: boolean
 ): boolean {
-  return !hasPerModelQuota(provider, model);
+  return !hasPerModelQuota(provider, model, connectionPassthroughModels);
 }
 
 /**

@@ -785,7 +785,11 @@ async function handleSingleModelChat(
       // 6. Mark account as quota-exhausted on 429 response
       // For providers that route quota/cooldown at model scope, a 429 on one model
       // does not mean the whole connection is exhausted.
-      if (result.status === 429 && shouldMarkAccountExhaustedFrom429(provider, model)) {
+      const passthroughModels = credentials.providerSpecificData?.passthroughModels;
+      if (
+        result.status === 429 &&
+        shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
+      ) {
         markAccountExhaustedFrom429(credentials.connectionId, provider);
       }
 
