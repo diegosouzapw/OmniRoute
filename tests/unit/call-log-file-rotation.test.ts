@@ -23,9 +23,9 @@ function insertCallLog(row) {
   db.prepare(
     `
     INSERT INTO call_logs (
-      id, timestamp, method, path, status, model, provider, account, has_request_body, has_response_body, detail_state
+      id, timestamp, method, path, status, model, provider, account, has_request_body, has_response_body, detail_state, artifact_relpath
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     row.id,
@@ -38,7 +38,8 @@ function insertCallLog(row) {
     row.account || "acct",
     row.has_request_body || 0,
     row.has_response_body || 0,
-    row.detail_state || "ready"
+    row.detail_state || "ready",
+    row.artifact_relpath || null
   );
 }
 
@@ -90,18 +91,22 @@ test("call log file rotation honors both retention days and file count", () => {
   insertCallLog({
     id: "old-log",
     timestamp: "2026-03-01T08:00:00.000Z",
+    artifact_relpath: oldRelPath,
   });
   insertCallLog({
     id: "keep-a",
     timestamp: "2026-04-12T09:00:00.000Z",
+    artifact_relpath: keepARelPath,
   });
   insertCallLog({
     id: "keep-b",
     timestamp: "2026-04-13T09:10:00.000Z",
+    artifact_relpath: keepBRelPath,
   });
   insertCallLog({
     id: "keep-c",
     timestamp: "2026-04-14T09:20:00.000Z",
+    artifact_relpath: keepCRelPath,
   });
 
   const now = Date.now();
