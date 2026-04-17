@@ -6,7 +6,7 @@
  */
 
 import { REGISTRY } from "../config/providerRegistry.ts";
-import { getModelContextLimit } from "../../src/lib/modelCapabilities";
+import { getModelContextLimit } from "../../src/lib/modelCapabilities.ts";
 
 // Default token limits per provider (fallbacks when not in registry)
 const DEFAULT_LIMITS: Record<string, number> = {
@@ -29,6 +29,16 @@ function getEnvOverride(provider: string): number | null {
   const globalValue = process.env.CONTEXT_LENGTH_DEFAULT;
   if (globalValue) {
     const parsed = parseInt(globalValue, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+}
+
+// Reserve tokens override from environment variable
+function getReserveTokensOverride(): number | null {
+  const envValue = process.env.CONTEXT_RESERVE_TOKENS;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
     if (!isNaN(parsed) && parsed > 0) return parsed;
   }
   return null;
@@ -109,7 +119,7 @@ export function compressContext(
   const provider = options.provider || "default";
   const maxTokens =
     options.maxTokens || getTokenLimit(provider, (body.model as string) || options.model || null);
-  const reserveTokens = options.reserveTokens || 16000; // Reserve for response
+  const reserveTokens = options.reserveTokens ?? getReserveTokensOverride() ?? 16000;
   const targetTokens = maxTokens - reserveTokens;
 
   let messages = [...body.messages];

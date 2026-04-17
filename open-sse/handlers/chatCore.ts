@@ -1378,11 +1378,19 @@ export async function handleChatCore({
     }
   }
 
+  // ── Proactive Context Compression (Phase 4) ──
+  // Check if context exceeds 85% of limit and compress proactively before sending to provider.
+  // This prevents "prompt too long" errors for large-but-not-full contexts.
   if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
     const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
     const contextLimit = getTokenLimit(provider, effectiveModel);
     const COMPRESSION_THRESHOLD = 0.85;
     const threshold = Math.floor(contextLimit * COMPRESSION_THRESHOLD);
+
+    log?.debug?.(
+      "CONTEXT",
+      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit)`
+    );
 
     if (estimatedTokens > threshold) {
       log?.info?.(
@@ -1394,6 +1402,7 @@ export async function handleChatCore({
         provider,
         model: effectiveModel,
         maxTokens: contextLimit,
+        reserveTokens: 0,
       });
 
       if (compressionResult.compressed) {
@@ -1421,8 +1430,15 @@ export async function handleChatCore({
             layers: "layers" in stats ? stats.layers : undefined,
           },
         });
+      } else {
+        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
       }
     }
+  } else {
+    log?.debug?.(
+      "CONTEXT",
+      `Skipping compression check: translatedBody=${!!translatedBody}, messages=${!!translatedBody?.messages}, isArray=${Array.isArray(translatedBody?.messages)}`
+    );
   }
 
   // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
