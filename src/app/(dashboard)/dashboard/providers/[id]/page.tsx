@@ -26,6 +26,9 @@ import {
   FREE_PROVIDERS,
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
+  SEARCH_PROVIDERS,
+  AUDIO_ONLY_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -979,7 +982,10 @@ export default function ProviderDetailPage() {
       }
     : (FREE_PROVIDERS as any)[providerId] ||
       (OAUTH_PROVIDERS as any)[providerId] ||
-      (APIKEY_PROVIDERS as any)[providerId];
+      (APIKEY_PROVIDERS as any)[providerId] ||
+      (WEB_COOKIE_PROVIDERS as any)[providerId] ||
+      (SEARCH_PROVIDERS as any)[providerId] ||
+      (AUDIO_ONLY_PROVIDERS as any)[providerId];
   const providerSupportsOAuth =
     !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
