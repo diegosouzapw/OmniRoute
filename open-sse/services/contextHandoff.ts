@@ -4,13 +4,15 @@ import {
   type HandoffPayload,
   upsertHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
-import { estimateTokens } from "./contextManager.ts";
+import { estimateTokens, getTokenLimit } from "./contextManager.ts";
 import { stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
+import { parseModel } from "./model.ts";
 
 export const HANDOFF_WARNING_THRESHOLD = 0.85;
 export const HANDOFF_EXHAUSTION_THRESHOLD = 0.95;
 
-const MAX_HISTORY_TOKENS_FOR_SUMMARY = 8000;
+const FALLBACK_MAX_HISTORY_TOKENS = 8000;
+const CONTEXT_SAFETY_MARGIN = 0.4;
 const DEFAULT_MAX_MESSAGES_FOR_SUMMARY = 30;
 const DEFAULT_SUMMARY_RESPONSE_TOKENS = 800;
 const MAX_SUMMARY_LENGTH = 2000;
@@ -122,16 +124,35 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+function selectMessagesForSummary(
+  messages: MessageLike[],
+  maxMessages: number,
+  modelStr: string
+): MessageLike[] {
+  const parsed = parseModel(modelStr);
+  const provider = parsed.provider || parsed.providerAlias || "unknown";
+  const model = parsed.model || modelStr;
+
+  const modelContextLimit = getTokenLimit(provider, model);
+  const maxHistoryTokens = Math.floor(modelContextLimit * CONTEXT_SAFETY_MARGIN);
+  const effectiveLimit = Math.max(maxHistoryTokens, FALLBACK_MAX_HISTORY_TOKENS);
+
   const recentMessages = messages.slice(-maxMessages);
   let working = [...recentMessages];
 
   while (working.length > 1) {
     const history = formatMessagesForPrompt(working);
-    if (estimateTokens(history) <= MAX_HISTORY_TOKENS_FOR_SUMMARY) {
+    const tokenCount = estimateTokens(history);
+    if (tokenCount <= effectiveLimit) {
       return working;
     }
     working = working.slice(1);
+  }
+
+  if (working.length === 0) {
+    console.warn(
+      `[context-handoff] History too large even with single message (${estimateTokens(formatMessagesForPrompt(working))} tokens > ${effectiveLimit} limit for ${modelStr})`
+    );
   }
 
   return working;
@@ -255,7 +276,8 @@ async function generateHandoffAsync(options: {
   const summaryModel = relayConfig.handoffModel || options.model;
   const selectedMessages = selectMessagesForSummary(
     Array.isArray(options.messages) ? options.messages : [],
-    relayConfig.maxMessagesForSummary
+    relayConfig.maxMessagesForSummary,
+    summaryModel
   );
   const historyText = formatMessagesForPrompt(selectedMessages);
   if (!historyText) return;
