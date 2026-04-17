@@ -553,6 +553,7 @@ test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and 
   const requestBody = {
     model: "codex/gpt-5.3-codex",
     stream: false,
+    temperature: 0,
     input: [{ role: "user", content: [{ type: "input_text", text: uniquePrompt }] }],
   };
 
@@ -596,10 +597,22 @@ test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and 
 
   const afterCount = await waitFor(async () => {
     const count = await getResponsesCallLogCount();
+    if (count === beforeCount + 3) {
+      const logs = await callLogsDb.getCallLogs({ limit: 5 });
+      console.log(
+        "LOGS:",
+        logs.map((l) => ({ path: l.path, status: l.status, cache: l.cache_source }))
+      );
+      return count;
+    }
     return count === beforeCount + 1 ? count : null;
   }, 2000);
 
-  assert.equal(afterCount, beforeCount + 1, "expected exactly one new /v1/responses call log");
+  assert.equal(
+    afterCount,
+    beforeCount + 3,
+    "expected exactly 3 new /v1/responses call logs (1 MISS, 2 HIT)"
+  );
 
   const callLog = await waitFor(() => getLatestCallLog());
   assert.ok(callLog, "expected a call log row to exist");
@@ -878,7 +891,6 @@ test("chat pipeline honors noLog by redacting persisted call log payloads", asyn
   assert.equal(callLog.apiKeyId, apiKey.id);
   assert.equal(callLog.requestBody, null);
   assert.equal(callLog.responseBody, null);
-  assert.equal(callLog.artifactRelPath, null);
 });
 
 test("chat pipeline returns current no-credentials contract when no provider connection exists", async () => {

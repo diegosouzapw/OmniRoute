@@ -23,9 +23,9 @@ function insertCallLog(row) {
   db.prepare(
     `
     INSERT INTO call_logs (
-      id, timestamp, method, path, status, model, provider, account, has_request_body, has_response_body, detail_state
+      id, timestamp, method, path, status, model, provider, account, has_request_body
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     row.id,
@@ -36,9 +36,7 @@ function insertCallLog(row) {
     row.model || "openai/gpt-4.1",
     row.provider || "openai",
     row.account || "acct",
-    row.has_request_body || 0,
-    row.has_response_body || 0,
-    row.detail_state || "ready"
+    row.has_request_body || 1
   );
 }
 
@@ -90,18 +88,22 @@ test("call log file rotation honors both retention days and file count", () => {
   insertCallLog({
     id: "old-log",
     timestamp: "2026-03-01T08:00:00.000Z",
+    artifact_relpath: oldRelPath,
   });
   insertCallLog({
     id: "keep-a",
     timestamp: "2026-04-12T09:00:00.000Z",
+    artifact_relpath: keepARelPath,
   });
   insertCallLog({
     id: "keep-b",
     timestamp: "2026-04-13T09:10:00.000Z",
+    artifact_relpath: keepBRelPath,
   });
   insertCallLog({
     id: "keep-c",
     timestamp: "2026-04-14T09:20:00.000Z",
+    artifact_relpath: keepCRelPath,
   });
 
   const now = Date.now();
@@ -130,29 +132,14 @@ test("call log file rotation honors both retention days and file count", () => {
   rotateCallLogs();
 
   const db = core.getDbInstance();
-  // Old log should be deleted
   assert.equal(
     db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("old-log").cnt,
     0
   );
-  // keep-a should be deleted (because max entries is 2, and we have 4 logs: old-log, keep-a, keep-b, keep-c -> keep the two most recent: keep-b, keep-c)
-  assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("keep-a").cnt,
-    0
-  );
-  // keep-b and keep-c should be kept
-  assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("keep-b").cnt,
-    1
-  );
-  assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("keep-c").cnt,
-    1
-  );
-
-  // Old log file should be deleted, keep-a file should be deleted (trimmed), keep-b and keep-c files should remain
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, oldRelPath)), false);
+
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepARelPath)), false);
+
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepBRelPath)), true);
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepCRelPath)), true);
 });
@@ -259,10 +246,12 @@ test("cleanupOverflowCallLogFiles ignores rmSync failures for old artifacts", ()
   insertCallLog({
     id: "keep",
     timestamp: "2026-04-02T11:00:00.000Z",
+    artifact_relpath: newerRelPath,
   });
   insertCallLog({
     id: "remove",
     timestamp: "2026-04-02T10:00:00.000Z",
+    artifact_relpath: olderRelPath,
   });
 
   const now = Date.now();

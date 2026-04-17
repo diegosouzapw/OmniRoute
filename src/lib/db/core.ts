@@ -179,7 +179,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
-    cache_source TEXT DEFAULT "upstream",
+    cache_source TEXT DEFAULT 'upstream',
     request_type TEXT,
     source_format TEXT,
     target_format TEXT,
@@ -188,18 +188,20 @@ const SCHEMA_SQL = `
     combo_name TEXT,
     combo_step_id TEXT,
     combo_execution_key TEXT,
+    has_request_body INTEGER DEFAULT 0,
+    has_response_body INTEGER DEFAULT 0,
+    request_summary TEXT,
     error_summary TEXT,
     detail_state TEXT DEFAULT 'none',
     artifact_relpath TEXT,
-    artifact_size_bytes INTEGER DEFAULT NULL,
-    artifact_sha256 TEXT DEFAULT NULL,
-    has_request_body INTEGER DEFAULT 0,
-    has_response_body INTEGER DEFAULT 0,
-    has_pipeline_details INTEGER DEFAULT 0,
-    request_summary TEXT
+    artifact_size_bytes INTEGER,
+    artifact_sha256 TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
+  CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model);
+  CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);
+  CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp);
 
   CREATE TABLE IF NOT EXISTS proxy_logs (
     id TEXT PRIMARY KEY,
@@ -515,6 +517,9 @@ function parseLegacyError(value: unknown): unknown {
 }
 
 function offloadLegacyCallLogDetails(db: SqliteDatabase) {
+  console.log(
+    `[offloadLegacyCallLogDetails] Checking for call_logs_v1_legacy: ${hasTable(db, "call_logs_v1_legacy")}`
+  );
   if (!hasTable(db, "call_logs_v1_legacy")) return;
 
   type LegacyCallLogRow = {
