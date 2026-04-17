@@ -59,6 +59,24 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
   },
 ] as const;
 
+const PHYSICAL_SCHEMA_SENTINELS = [
+  { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
+  { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
+  { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
+  { version: "017", tableName: "version_manager", description: "version_manager table" },
+  { version: "016", tableName: "skill_executions", description: "skill_executions table" },
+  { version: "015", tableName: "memories", description: "memories table" },
+  { version: "013", tableName: "quota_snapshots", description: "quota_snapshots table" },
+  { version: "011", tableName: "webhooks", description: "webhooks table" },
+  { version: "010", tableName: "model_combo_mappings", description: "model_combo_mappings table" },
+  { version: "008", tableName: "registered_keys", description: "registered_keys table" },
+  { version: "006", tableName: "request_detail_logs", description: "request_detail_logs table" },
+  { version: "004", tableName: "proxy_registry", description: "proxy_registry table" },
+  { version: "002", tableName: "mcp_tool_audit", description: "mcp_tool_audit table" },
+] as const;
+
+const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
+
 /**
  * Ensure the schema_migrations tracking table exists.
  */
@@ -116,6 +134,45 @@ function getAppliedRecords(db: Database.Database): Array<{ version: string; name
   }>;
 }
 
+function hasTable(db: Database.Database, tableName: string): boolean {
+  const row = db
+    .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
+    .get(tableName) as { name?: string } | undefined;
+  return Boolean(row?.name);
+}
+
+function inferPhysicalSchemaBaseline(db: Database.Database): {
+  version: string;
+  description: string;
+} | null {
+  for (const sentinel of PHYSICAL_SCHEMA_SENTINELS) {
+    if (hasTable(db, sentinel.tableName)) {
+      return {
+        version: sentinel.version,
+        description: sentinel.description,
+      };
+    }
+  }
+
+  const hasInitialSchema = INITIAL_SCHEMA_SENTINELS.every((tableName) => hasTable(db, tableName));
+  if (hasInitialSchema) {
+    return {
+      version: "001",
+      description: "initial schema tables",
+    };
+  }
+
+  return null;
+}
+
+function getPlausiblePendingCount(
+  files: Array<{ version: string; name: string; path: string }>,
+  baselineVersion: string
+): number {
+  const baseline = Number.parseInt(baselineVersion, 10);
+  return files.filter((file) => Number.parseInt(file.version, 10) > baseline).length;
+}
+
 /**
  * Detect migration name mismatches — when a migration version number
  * has been reused/renumbered with a different name. This is a strong signal
@@ -150,12 +207,10 @@ function reconcileRenumberedMigrations(
 
   for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
     const hasTargetFile = files.some(
-      (file) =>
-        file.version === compatibility.toVersion && file.name === compatibility.toName
+      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
     );
     const hasSourceFile = files.some(
-      (file) =>
-        file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
     );
 
     if (!hasTargetFile || !hasSourceFile) {
@@ -289,13 +344,33 @@ export function runMigrations(db: Database.Database): number {
     applied.size > 0 &&
     pending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
   ) {
-    const msg =
-      `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
-      `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
-      `This usually means the migration tracking table was accidentally wiped. ` +
-      `Running all migrations from scratch will cause data loss or schema errors.`;
-    console.error(msg);
-    throw new Error(msg);
+    const physicalBaseline = inferPhysicalSchemaBaseline(db);
+    const plausiblePendingCount = physicalBaseline
+      ? getPlausiblePendingCount(files, physicalBaseline.version)
+      : null;
+
+    if (plausiblePendingCount !== null && pending.length <= plausiblePendingCount) {
+      console.warn(
+        `[Migration] Allowing ${pending.length} pending migrations on an existing database ` +
+          `because the physical schema only proves ${physicalBaseline?.version} ` +
+          `(${physicalBaseline?.description}).`
+      );
+    } else {
+      const schemaHint =
+        physicalBaseline && plausiblePendingCount !== null
+          ? ` Physical schema already shows ${physicalBaseline.version} ` +
+            `(${physicalBaseline.description}), so at most ${plausiblePendingCount} pending ` +
+            `migration(s) are expected from a legitimate upgrade.`
+          : "";
+      const msg =
+        `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
+        `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
+        `This usually means the migration tracking table was accidentally wiped. ` +
+        `Running all migrations from scratch will cause data loss or schema errors.` +
+        schemaHint;
+      console.error(msg);
+      throw new Error(msg);
+    }
   }
 
   // ── Safety Check 3: Pre-migration backup ──
