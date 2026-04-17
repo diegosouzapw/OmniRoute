@@ -19,6 +19,8 @@ import {
   hasPerModelQuota,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
+  isProviderInCooldown,
+  getProviderCooldownRemainingMs,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
@@ -681,6 +683,22 @@ export async function getProviderCredentials(
       }
       return true;
     });
+
+    // Check if the entire provider is in cooldown (too many transient failures)
+    if (isProviderInCooldown(provider)) {
+      const cooldownRemaining = getProviderCooldownRemainingMs(provider);
+      log.warn(
+        "AUTH",
+        `${provider} | provider in cooldown for ${Math.ceil((cooldownRemaining || 0) / 1000)}s (${availableConnections.length} connections bypassed)`
+      );
+      return {
+        allRateLimited: true,
+        retryAfter: new Date(Date.now() + (cooldownRemaining || 0)).toISOString(),
+        retryAfterHuman: formatRetryAfter(
+          new Date(Date.now() + (cooldownRemaining || 0)).toISOString()
+        ),
+      };
+    }
 
     log.debug(
       "AUTH",

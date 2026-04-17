@@ -24,6 +24,25 @@ type ModelFailureState = {
   resetAfterMs: number;
 };
 
+// Provider-level failure tracking for circuit breaker behavior
+type ProviderFailureEntry = {
+  failureCount: number;
+  lastFailureAt: number;
+  resetAfterMs: number;
+  cooldownUntil: number | null;
+};
+
+// Error codes that count toward provider-level failure threshold
+const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
+
+// Configuration for provider-level failure tracking
+const PROVIDER_FAILURE_THRESHOLD = 5;
+const PROVIDER_FAILURE_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
+const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
+
+// Provider-level failure state map: providerId -> failure entry
+const providerFailureState = new Map<string, ProviderFailureEntry>();
+
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
 // and should NOT be retried after token refresh.
@@ -453,6 +472,134 @@ export function getAllModelLockouts() {
   return active;
 }
 
+// ─── Provider-Level Failure Tracking ─────────────────────────────────────────
+// Track failures at provider level: when a provider has too many transient failures
+// across all its connections, cooldown the entire provider temporarily.
+
+/**
+ * Check if a provider is currently in cooldown due to too many failures
+ */
+export function isProviderInCooldown(provider: string | null | undefined): boolean {
+  if (!provider) return false;
+  const entry = providerFailureState.get(provider);
+  if (!entry) return false;
+
+  // If in cooldown, check if it has expired
+  if (entry.cooldownUntil !== null && Date.now() >= entry.cooldownUntil) {
+    providerFailureState.delete(provider);
+    return false;
+  }
+
+  return entry.cooldownUntil !== null;
+}
+
+/**
+ * Get remaining cooldown time for a provider
+ */
+export function getProviderCooldownRemainingMs(provider: string | null | undefined): number | null {
+  if (!provider) return null;
+  const entry = providerFailureState.get(provider);
+  if (!entry || entry.cooldownUntil === null) return null;
+
+  const remaining = entry.cooldownUntil - Date.now();
+  return remaining > 0 ? remaining : null;
+}
+
+/**
+ * Record a failure for a provider. When threshold is reached within the window,
+ * the provider enters cooldown.
+ */
+export function recordProviderFailure(provider: string | null | undefined): void {
+  if (!provider) return;
+
+  const now = Date.now();
+  const entry = providerFailureState.get(provider);
+
+  // Check if we're in cooldown period
+  if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
+    return; // Already in cooldown, don't record
+  }
+
+  // Check if failure window has expired
+  if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
+    // Window expired, reset count
+    providerFailureState.set(provider, {
+      failureCount: 1,
+      lastFailureAt: now,
+      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+      cooldownUntil: null,
+    });
+    return;
+  }
+
+  // Increment failure count
+  const newCount = entry ? entry.failureCount + 1 : 1;
+
+  if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
+    // Threshold reached, enter cooldown
+    const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
+    providerFailureState.set(provider, {
+      failureCount: newCount,
+      lastFailureAt: now,
+      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+      cooldownUntil,
+    });
+    console.warn(
+      `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
+    );
+  } else {
+    // Just increment counter
+    providerFailureState.set(provider, {
+      failureCount: newCount,
+      lastFailureAt: now,
+      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+      cooldownUntil: null,
+    });
+  }
+}
+
+/**
+ * Clear provider failure state (e.g., after successful request)
+ */
+export function clearProviderFailure(provider: string | null | undefined): void {
+  if (!provider) return;
+  providerFailureState.delete(provider);
+}
+
+/**
+ * Get all providers currently in cooldown (for debugging/dashboard)
+ */
+export function getProvidersInCooldown(): Array<{
+  provider: string;
+  failureCount: number;
+  cooldownRemainingMs: number | null;
+  lastFailureAt: number;
+}> {
+  const result = [];
+  for (const [provider, entry] of providerFailureState) {
+    if (entry.cooldownUntil === null) continue;
+    const remaining = entry.cooldownUntil - Date.now();
+    if (remaining <= 0) {
+      providerFailureState.delete(provider);
+      continue;
+    }
+    result.push({
+      provider,
+      failureCount: entry.failureCount,
+      cooldownRemainingMs: remaining,
+      lastFailureAt: entry.lastFailureAt,
+    });
+  }
+  return result;
+}
+
+/**
+ * Check if a status code should be counted toward provider failure threshold
+ */
+export function isProviderFailureCode(status: number): boolean {
+  return PROVIDER_FAILURE_ERROR_CODES.has(status);
+}
+
 // ─── Retry-After Parsing ────────────────────────────────────────────────────
 
 /**
@@ -691,6 +838,12 @@ export function checkFallbackError(
 ) {
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
+
+  // Track provider-level failures for circuit breaker behavior
+  // Only count transient errors that are likely to recover
+  if (isProviderFailureCode(status)) {
+    recordProviderFailure(provider);
+  }
 
   function parseResetFromHeaders(headers, errorStr = "") {
     if (!headers) return null;

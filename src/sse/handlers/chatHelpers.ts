@@ -27,7 +27,10 @@ import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/c
 import { getModelCooldownInfo, isModelAvailable } from "../../domain/modelAvailability";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
-import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
+import {
+  getRuntimeProviderProfile,
+  clearProviderFailure,
+} from "@omniroute/open-sse/services/accountFallback.ts";
 
 export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
@@ -168,6 +171,8 @@ export async function executeChatWithBreaker({
           },
           onRequestSuccess: async () => {
             await clearAccountError(credentials.connectionId, credentials);
+            // Clear provider-level failure state on successful request
+            clearProviderFailure(modelInfo.provider);
           },
         })
       );

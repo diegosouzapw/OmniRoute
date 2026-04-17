@@ -727,18 +727,33 @@ export class AntigravityExecutor extends BaseExecutor {
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
           let sseBuffer = "";
+          const decoder = new TextDecoder(); // Singleton for correct streaming decode
+          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
+
           const passThrough = new TransformStream({
             transform(chunk, controller) {
               controller.enqueue(chunk);
               // Accumulate text to scan for remainingCredits
               try {
-                const text = new TextDecoder().decode(chunk, { stream: true });
+                const text = decoder.decode(chunk, { stream: true });
                 sseBuffer += text;
+                // Limit buffer size to prevent unbounded growth
+                if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                  sseBuffer = sseBuffer.slice(-MAX_BUFFER_SIZE);
+                }
               } catch {
                 /* decoding best-effort */
               }
             },
             flush() {
+              // Final decode for any remaining bytes
+              try {
+                const text = decoder.decode(); // Flush pending bytes
+                sseBuffer += text;
+              } catch {
+                /* decoding best-effort */
+              }
+
               // Parse the accumulated SSE data for remainingCredits
               try {
                 const lines = sseBuffer.split("\n");
