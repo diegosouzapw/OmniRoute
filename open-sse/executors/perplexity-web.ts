@@ -6,6 +6,7 @@
  * completions format and Perplexity's internal protocol.
  */
 
+import crypto from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
@@ -300,16 +301,24 @@ function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string
       "You have built-in web search. Answer questions directly using search results.",
     ];
   }
+
+  const MAX_HISTORY_ITEMS = 50;
   if (parsed.history.length > 0) {
-    obj.history = parsed.history;
+    obj.history = parsed.history.slice(-MAX_HISTORY_ITEMS);
   }
+
   if (parsed.currentMsg) {
     obj.query = parsed.currentMsg;
   } else if (parsed.history.length === 0) {
     obj.query = "";
   }
+
   const json = JSON.stringify(obj);
-  return json.length > 96000 ? json.slice(-96000) : json;
+  if (json.length > 96000 && obj.history && Array.isArray(obj.history)) {
+    obj.history = (obj.history as any[]).slice(-10);
+    return JSON.stringify(obj);
+  }
+  return json;
 }
 
 // ─── Content extraction ─────────────────────────────────────────────────────

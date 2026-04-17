@@ -182,7 +182,7 @@ export async function retrieveMemories(
       if (config.query && ftsAvailable) {
         const ftsQuery =
           `SELECT m.* FROM ${tableName} m ` +
-          `JOIN memory_fts f ON m.memory_id = f.rowid ` +
+          `JOIN memory_fts f ON m.rowid = f.rowid ` +
           `WHERE f.memory_fts MATCH ? AND m.${columns.apiKeyId} = ? ` +
           `AND (m.${columns.expiresAt} IS NULL OR datetime(m.${columns.expiresAt}) > datetime('now'))` +
           (normalizedConfig.scope === "session" && config.sessionId

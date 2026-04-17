@@ -92,7 +92,7 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
       `[Encryption] Encryption failed: ${message}. ` +
         `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
     );
-    return plaintext; // fallback to plaintext rather than crashing
+    throw new Error(`Encryption failed: ${message}. Cannot store sensitive data in plaintext.`);
   }
 }
 
