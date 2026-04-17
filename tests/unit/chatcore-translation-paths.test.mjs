@@ -571,6 +571,107 @@ test("chatCore preserves cache_control automatically for Claude Code single-mode
   assert.deepEqual(call.body.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
 });
 
+test("chatCore Claude passthrough with cache_control applies thinking budget for reasoning_effort", async () => {
+  await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
+  invalidateCacheControlSettingsCache();
+
+  const claudeBody = {
+    model: "claude-opus-4-6",
+    max_tokens: 64,
+    reasoning_effort: "max",
+    system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
+    messages: [
+      {
+        role: "user",
+        content: [{ type: "text", text: "u1", cache_control: { type: "ephemeral" } }],
+      },
+    ],
+  };
+
+  const { call } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-opus-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    body: claudeBody,
+    userAgent: "Claude-Code/1.0.0",
+    responseFormat: "claude",
+  });
+
+  assert.deepEqual(call.body.thinking, { type: "adaptive" });
+  assert.equal(call.body.output_config?.effort, "max");
+  assert.deepEqual(call.body.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
+  assert.deepEqual(call.body.messages[0].content[0].cache_control, { type: "ephemeral" });
+});
+
+test("chatCore Claude passthrough with cache_control does not inject thinking when reasoning_effort absent", async () => {
+  await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
+  invalidateCacheControlSettingsCache();
+
+  const claudeBody = {
+    model: "claude-opus-4-6",
+    max_tokens: 64,
+    system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
+    messages: [
+      {
+        role: "user",
+        content: [{ type: "text", text: "u1", cache_control: { type: "ephemeral" } }],
+      },
+    ],
+  };
+
+  const { call } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-opus-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    body: claudeBody,
+    userAgent: "Claude-Code/1.0.0",
+    responseFormat: "claude",
+  });
+
+  assert.equal(call.body.thinking, undefined);
+  assert.equal(call.body.output_config, undefined);
+  assert.deepEqual(call.body.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
+});
+
+test("chatCore Claude passthrough preserves thinking on multi-turn assistant-last conversation", async () => {
+  await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
+  invalidateCacheControlSettingsCache();
+
+  const claudeBody = {
+    model: "claude-opus-4-6",
+    max_tokens: 64,
+    reasoning_effort: "max",
+    system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
+    messages: [
+      { role: "user", content: [{ type: "text", text: "what time is it?" }] },
+      {
+        role: "assistant",
+        content: [{ type: "tool_use", id: "tu_1", name: "get_time", input: {} }],
+      },
+      {
+        role: "user",
+        content: [{ type: "tool_result", tool_use_id: "tu_1", content: "10:00" }],
+      },
+      { role: "assistant", content: [{ type: "text", text: "It is 10:00." }] },
+    ],
+  };
+
+  const { call } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-opus-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    body: claudeBody,
+    userAgent: "Claude-Code/1.0.0",
+    responseFormat: "claude",
+  });
+
+  assert.deepEqual(call.body.thinking, { type: "adaptive" });
+  assert.equal(call.body.output_config?.effort, "max");
+});
+
 test("chatCore auto cache policy becomes false for nondeterministic combos", async () => {
   await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
   invalidateCacheControlSettingsCache();

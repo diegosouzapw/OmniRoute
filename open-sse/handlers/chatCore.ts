@@ -1,6 +1,7 @@
 import { getCorsOrigin } from "../utils/cors.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
+import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { FORMATS } from "../translator/formats.ts";
 import {
   createSSETransformStreamWithLogger,
@@ -1018,7 +1019,9 @@ export async function handleChatCore({
       // as-is without prior normalization. The OpenAI round-trip would strip
       // cache_control markers; even prepareClaudeRequest can alter structure.
       // Claude Code sends well-formed Messages API payloads — trust it.
-      translatedBody = { ...body };
+      // Still apply thinking budget to convert reasoning_effort → Claude thinking
+      // (applyThinkingBudget only touches thinking/reasoning fields, preserves cache_control).
+      translatedBody = applyThinkingBudget({ ...body });
       translatedBody._disableToolPrefix = true;
       if (provider === "claude") {
         const lexicalRewrite = applyClaudeOAuthLexicalRewrite(translatedBody);

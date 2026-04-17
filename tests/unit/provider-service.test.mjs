@@ -114,7 +114,7 @@ test("Unknown providers fall back to bearer auth and OpenAI format", () => {
   assert.equal(getTargetFormat("custom-provider"), "openai");
 });
 
-test("thinking config is removed when the last message is not from the user", () => {
+test("non-Claude target: thinking config is removed when the last message is not from the user", () => {
   const assistantLast = {
     messages: [
       { role: "user", content: "hi" },
@@ -129,12 +129,45 @@ test("thinking config is removed when the last message is not from the user", ()
     thinking: { type: "enabled" },
   };
 
-  const normalized = normalizeThinkingConfig(assistantLast);
+  const normalized = normalizeThinkingConfig(assistantLast, "openai");
 
   assert.equal(isLastMessageFromUser({ messages: [] }), true);
   assert.equal(isLastMessageFromUser(assistantLast), false);
   assert.equal(hasThinkingConfig(userLast), true);
   assert.equal("reasoning_effort" in normalized, false);
   assert.equal("thinking" in normalized, false);
-  assert.equal(normalizeThinkingConfig(userLast).reasoning_effort, "medium");
+  assert.equal(normalizeThinkingConfig(userLast, "openai").reasoning_effort, "medium");
+});
+
+test("Claude target: thinking config is preserved even when last message is not from user", () => {
+  const assistantLast = {
+    messages: [
+      { role: "user", content: "what time is it?" },
+      { role: "assistant", content: [{ type: "tool_use", name: "get_time" }] },
+      { role: "user", content: [{ type: "tool_result", content: "10:00" }] },
+      { role: "assistant", content: "It is 10:00." },
+    ],
+    reasoning_effort: "max",
+    thinking: { type: "adaptive" },
+    output_config: { effort: "max" },
+  };
+
+  const normalized = normalizeThinkingConfig(assistantLast, "claude");
+
+  assert.equal(isLastMessageFromUser(assistantLast), false);
+  assert.equal(normalized.reasoning_effort, "max");
+  assert.deepEqual(normalized.thinking, { type: "adaptive" });
+  assert.deepEqual(normalized.output_config, { effort: "max" });
+});
+
+test("non-Claude target: output_config is also stripped when last message is not user", () => {
+  const body = {
+    messages: [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "hello" },
+    ],
+    output_config: { effort: "high" },
+  };
+  const normalized = normalizeThinkingConfig(body, "openai");
+  assert.equal("output_config" in normalized, false);
 });

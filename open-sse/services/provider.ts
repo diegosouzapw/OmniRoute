@@ -369,13 +369,25 @@ export function hasThinkingConfig(body) {
   return !!(body.reasoning_effort || body.thinking?.type === "enabled");
 }
 
-// Normalize thinking config based on last message role
-// - If lastMessage is not user → remove thinking config
-// - If lastMessage is user AND has thinking config → keep it (force enable)
-export function normalizeThinkingConfig(body) {
+// Normalize thinking config based on last message role and target format.
+//
+// Anthropic Messages API is stateless: thinking/output_config must be sent on
+// every request. Stripping them when the last message is not user breaks
+// multi-turn tool-use flows (assistant+tool_use → tool_result → model response)
+// where thinking is still required.
+//
+// For non-Claude targets, the original "last must be user" heuristic is kept
+// because OpenAI/Gemini have different semantics around reasoning fields when
+// the last message is assistant.
+export function normalizeThinkingConfig(body, targetFormat) {
+  const isClaudeTarget = targetFormat === "claude";
+  if (isClaudeTarget) {
+    return body;
+  }
   if (!isLastMessageFromUser(body)) {
     delete body.reasoning_effort;
     delete body.thinking;
+    delete body.output_config;
   }
   return body;
 }

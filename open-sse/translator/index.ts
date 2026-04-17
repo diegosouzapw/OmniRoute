@@ -97,8 +97,7 @@ export function translateRequest(
   // Phase 2: Apply thinking budget control before normalization
   result = applyThinkingBudget(result);
 
-  // Normalize thinking config: remove if lastMessage is not user
-  normalizeThinkingConfig(result);
+  normalizeThinkingConfig(result, targetFormat);
 
   // Ensure tool_calls have id; optionally normalize to 9-char for providers like Mistral
   ensureToolCallIds(result, { use9CharId });
