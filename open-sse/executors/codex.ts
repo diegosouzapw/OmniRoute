@@ -1,6 +1,5 @@
 import {
   getCodexRequestDefaults,
-  isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
@@ -408,7 +407,30 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
 
+    // Originator header — identifies the client type to the Codex backend.
+    // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
+    headers["originator"] = "codex_cli_rs";
+
+    // session_id header — enables prompt cache affinity on the Codex backend.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex codex-api/src/requests/headers.rs build_conversation_headers()
+    const cacheSessionId = this.getPromptCacheSessionId(credentials);
+    if (cacheSessionId) {
+      headers["session_id"] = cacheSessionId;
+    }
+
     return headers;
+  }
+
+  /**
+   * Derive a stable session ID for prompt cache affinity.
+   * Uses workspaceId (chatgpt account ID) as the cache partition key.
+   * This mirrors the official Codex client's use of conversation_id for
+   * prompt_cache_key and session_id header.
+   * Ref: openai/codex core/src/client.rs line 853
+   */
+  private getPromptCacheSessionId(credentials): string | null {
+    return credentials?.providerSpecificData?.workspaceId || null;
   }
 
   /**
@@ -448,10 +470,9 @@ export class CodexExecutor extends BaseExecutor {
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
-    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
-    const responsesStoreMarker = consumeResponsesStoreMarker(body);
+    consumeResponsesStoreMarker(body);
 
     // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
     if (isCompactRequest) {
@@ -512,10 +533,14 @@ export class CodexExecutor extends BaseExecutor {
       hoistSystemMessagesToInstructions(body);
     }
 
-    if (!storeEnabled) {
+    // Codex store setting: the official openai/codex client sets store=false by default
+    // (only Azure Responses endpoints use store=true).
+    // Ref: openai/codex core/src/client.rs line 862:
+    //   store: provider.is_azure_responses_endpoint()
+    // We don't manipulate the client's store value — if the client doesn't set it,
+    // default to false to match the official behavior.
+    if (body.store === undefined) {
       body.store = false;
-    } else if (responsesStoreMarker !== undefined && body.store === undefined) {
-      body.store = responsesStoreMarker;
     }
 
     // Codex Responses only supports function tools with non-empty names.
@@ -561,6 +586,29 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
+    // Delete previous_response_id — the official Codex client never sets it for HTTP
+    // requests (only WebSocket uses it as None). Sending a stale ID when store=false
+    // causes 404 errors from the Codex backend.
+    // Ref: openai/codex codex-api/src/common.rs line 187: previous_response_id: None
+    delete body.previous_response_id;
+
+    // Remove unsupported token limit parameters BEFORE the passthrough return.
+    // Codex API rejects both max_tokens and max_output_tokens regardless of
+    // whether the request came via native passthrough or translation.
+    delete body.max_tokens;
+    delete body.max_output_tokens;
+
+    // Inject prompt_cache_key for Codex prompt caching.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex core/src/client.rs line 853:
+    //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
+    if (!body.prompt_cache_key) {
+      const cacheSessionId = this.getPromptCacheSessionId(credentials);
+      if (cacheSessionId) {
+        body.prompt_cache_key = cacheSessionId;
+      }
+    }
+
     if (nativeCodexPassthrough) {
       return body;
     }
@@ -574,8 +622,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.top_logprobs;
     delete body.n;
     delete body.seed;
-    delete body.max_tokens;
-    delete body.max_output_tokens; // Responses API translator maps max_tokens -> max_output_tokens, but Codex rejects it
+    // max_tokens and max_output_tokens already deleted above (before passthrough return)
     delete body.user; // Cursor sends this but Codex doesn't support it
     delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
     delete body.metadata; // Cursor sends this but Codex doesn't support it
