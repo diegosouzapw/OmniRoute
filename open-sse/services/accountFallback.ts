@@ -106,14 +106,19 @@ const CONTEXT_OVERFLOW_PATTERNS = [
 const MALFORMED_REQUEST_PATTERNS = [
   /\bimproperly formed request\b/i,
   /\binvalid.*message.*format/i,
-  /\bmessages must alternate/i,
-  /\bempty (message|content)/i,
+  /\bmessages must alternate\b/i,
+  /\bempty (message|content)\b/i,
   // Tool call function name errors
   /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
   /function.*name.*(?:blank|empty|missing)/i,
   /tool_call.*name.*(?:blank|empty|missing)/i,
-  // Content moderation errors — only match specific phrases that indicate policy-blocked content
-  // These are permanent errors: the prompt itself is blocked, not a transient issue
+];
+
+// Content moderation patterns — the prompt itself is blocked by content policy.
+// These are permanent errors: no retry will succeed with the same prompt.
+// Note: Only include patterns that unambiguously indicate content policy blocks,
+// NOT generic malformed request errors (which are separate concerns).
+const CONTENT_MODERATION_PATTERNS = [
   /\b敏感内容.*?(?:无法|无法响应|请检查|过滤)/i,
   /内容.*敏感.*?(?:无法|过滤|被拦截)/i,
   /无法响应.*?(?:请求|该内容)/i,
@@ -420,9 +425,13 @@ export function lockModelIfPerModelQuota(
   connectionId: string,
   model: string | null,
   reason: string,
-  cooldownMs: number
+  cooldownMs: number,
+  connectionPassthroughModels?: boolean
 ): boolean {
-  if (!hasPerModelQuota(provider, model) || !model) return false;
+  if (!hasPerModelQuota(provider, model, connectionPassthroughModels) || !model) return false;
+  // Skip model-level lock if the entire provider is in circuit-breaker cooldown.
+  // The provider cooldown already prevents all requests, so a model lock is redundant.
+  if (isProviderInCooldown(provider)) return false;
   lockModel(provider, connectionId, model, reason, cooldownMs);
   return true;
 }
@@ -818,7 +827,10 @@ export function getMsUntilTomorrow(): number {
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
-  return tomorrow.getTime() - now.getTime();
+  const ms = tomorrow.getTime() - now.getTime();
+  // Guard against DST edge cases: if ms is negative (shouldn't happen) or
+  // unreasonably large (>25h due to spring-forward), cap at 24 hours.
+  return ms > 0 && ms <= 25 * 60 * 60 * 1000 ? ms : 24 * 60 * 60 * 1000;
 }
 
 /**
@@ -873,8 +885,8 @@ export function isContentModerationResponse(response: unknown): boolean {
 
   if (typeof content !== "string" || !content) return false;
 
-  // Use existing MALFORMED_REQUEST_PATTERNS to detect content moderation
-  return MALFORMED_REQUEST_PATTERNS.some((pattern) => pattern.test(content));
+  // Use dedicated content moderation patterns (NOT malformed request patterns)
+  return CONTENT_MODERATION_PATTERNS.some((pattern) => pattern.test(content));
 }
 
 /**
@@ -1193,8 +1205,9 @@ export function checkFallbackError(
   if (status === HTTP_STATUS.BAD_REQUEST) {
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+    const isModeration = CONTENT_MODERATION_PATTERNS.some((p) => p.test(errorStr));
 
-    if (isOverflow || isMalformed) {
+    if (isOverflow || isMalformed || isModeration) {
       return {
         shouldFallback: true,
         cooldownMs: 0,

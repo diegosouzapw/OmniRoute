@@ -5408,7 +5408,7 @@ function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     ccCompatibleContext1m: false,
-    passthroughModels: true,
+    passthroughModels: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5841,7 +5841,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
-    passthroughModels: true,
+    passthroughModels: connection.providerSpecificData?.passthroughModels === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -6050,8 +6050,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
-          // Write explicit boolean to override registry default when unchecked
-          passthroughModels: formData.passthroughModels ? true : false,
+          // Only write when explicitly enabled; omit to let registry default take effect
+          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
         if (connection.provider === "bailian-coding-plan") {
           if (formData.consoleApiKey.trim()) {

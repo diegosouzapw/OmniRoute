@@ -747,9 +747,10 @@ export class AntigravityExecutor extends BaseExecutor {
                   if (lastNewline !== -1) {
                     sseBuffer = sseBuffer.slice(lastNewline + 1);
                   } else {
-                    // No newline found in discard region; keep last MAX_BUFFER_SIZE chars
-                    // (fallback — rare case, entire buffer has no newlines)
-                    sseBuffer = sseBuffer.slice(-MAX_BUFFER_SIZE);
+                    // No newline found in discard region — buffer contains an incomplete SSE line.
+                    // Discard it entirely to avoid returning malformed data; the remainingCredits
+                    // parser won't find valid data in a truncated line anyway.
+                    sseBuffer = "";
                   }
                 }
               } catch {
