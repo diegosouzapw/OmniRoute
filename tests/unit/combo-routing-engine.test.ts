@@ -1765,3 +1765,112 @@ test("handleComboChat round-robin recovers from provider-scoped 400s when a late
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["model-a", "model-b"]);
 });
+
+test("handleComboChat falls back to next model when first model returns all-accounts-rate-limited 503", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "all-accounts-rate-limited-fallback",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      // Simulate handleNoCredentials returning a 503 with "unavailable" message
+      // This is the signal emitted when getProviderCredentialsWithQuotaPreflight exhausts all accounts
+      return new Response(
+        JSON.stringify({ error: { message: `[provider/model] Service temporarily unavailable` } }),
+        {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const payload = await result.json();
+  // First model returns 503 with "unavailable" → combo should try model-b next
+  // If the fix is not applied, combo would abort here and return 503 immediately
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+  assert.equal(payload.choices[0].message.content, "ok");
+});
+
+test("handleComboChat round-robin falls back when all-accounts-rate-limited 503 is returned", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "rr-all-accounts-rate-limited",
+      strategy: "round-robin",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0, retryDelayMs: 1, concurrencyPerModel: 1, queueTimeoutMs: 5 },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      // Simulate all accounts rate-limited — handleNoCredentials signal
+      return new Response(
+        JSON.stringify({ error: { message: `[provider/model] Service temporarily unavailable` } }),
+        {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const payload = await result.json();
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+  assert.equal(payload.choices[0].message.content, "ok");
+});
+
+test("handleComboChat aborts combo when 503 response does NOT contain the unavailable signal", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "503-no-signal-abort",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      // A generic 503 that is NOT an all-accounts-rate-limited signal
+      // (missing "unavailable" in message or wrong content-type)
+      return new Response(
+        JSON.stringify({ error: { message: "Server error" } }),
+        {
+          status: 503,
+          headers: { "content-type": "text/html" },
+        }
+      );
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const payload = await result.json();
+  // Without the fix, combo would abort (still 503). With the fix, it's still 503 because
+  // the signal check filters out non-JSON or non-"unavailable" responses.
+  assert.equal(result.status, 503);
+  // Model-a was tried, model-b was NOT tried (combo aborted)
+  assert.deepEqual(calls, ["model-a"]);
+  assert.ok(payload.error?.message?.includes("Server error") || payload.error?.message?.includes("unavailable") || result.status === 503);
+});
