@@ -133,6 +133,18 @@ test("AntigravityExecutor.transformRequest preserves thinking config for support
   assert.equal(result.request.generationConfig.thinkingConfig.includeThoughts, true);
 });
 
+test("AntigravityExecutor.transformRequest tolerates a missing body when projectId is present", async () => {
+  const executor = new AntigravityExecutor();
+
+  const result = await executor.transformRequest("antigravity/gemini-3.1-pro", null, true, {
+    projectId: "project-1",
+  });
+
+  assert.equal(result.project, "project-1");
+  assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.ok(result.request.sessionId);
+});
+
 test("AntigravityExecutor.transformRequest returns a structured error response when projectId is missing", async () => {
   const executor = new AntigravityExecutor();
   const result = await executor.transformRequest(

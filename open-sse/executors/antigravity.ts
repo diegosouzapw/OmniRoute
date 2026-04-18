@@ -171,10 +171,10 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     const upstreamModel = cleanModelName(model);
-    const normalizedBody =
-      shouldStripCloudCodeThinking(this.provider, upstreamModel) && body && typeof body === "object"
-        ? stripCloudCodeThinkingConfig(body)
-        : body;
+    const baseBody = body && typeof body === "object" ? body : {};
+    const normalizedBody = shouldStripCloudCodeThinking(this.provider, upstreamModel)
+      ? stripCloudCodeThinkingConfig(baseBody)
+      : baseBody;
 
     // Fix contents for Claude models via Antigravity
     const normalizedContents =
