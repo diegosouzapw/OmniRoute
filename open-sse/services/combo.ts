@@ -8,6 +8,7 @@ import {
   checkFallbackError,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  isContentModerationResponse,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
@@ -228,6 +229,12 @@ async function validateResponseQuality(
 
   if (!hasContent && !hasToolCalls) {
     return { valid: false, reason: "empty content and no tool_calls in response" };
+  }
+
+  // Check for content moderation rejection in response content
+  // Some providers return HTTP 200 with a rejection message in the content
+  if (isContentModerationResponse(json)) {
+    return { valid: false, reason: "content moderation rejection" };
   }
 
   return { valid: true };

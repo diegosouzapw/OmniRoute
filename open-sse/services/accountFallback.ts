@@ -42,7 +42,10 @@ const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
 
 // Provider-level failure state map: providerId -> failure entry
 const providerFailureState = new Map<string, ProviderFailureEntry>();
-// Guard against concurrent modifications (prevents race conditions in high-concurrency scenarios)
+// Guard against synchronous re-entrant calls within the same event-loop tick.
+// NOT a true mutex — Node.js is single-threaded, so different SSE streams
+// can interleave across ticks. This Set prevents a single call from recursively
+// re-entering recordProviderFailure within the same synchronous call stack.
 const providerFailureLocks = new Set<string>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
