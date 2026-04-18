@@ -379,7 +379,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
 
 function getResponsesSubpath(endpointPath: unknown): string | null {
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  const match = normalizedEndpoint.match(/(?:^|\/)responses(?:(\/.*))  ?$/i);
+  const match = normalizedEndpoint.match(/(?:^|\/)responses(?:(\/.*))?$/i);
   if (!match) return null;
   return match[1] || "";
 }
