@@ -83,12 +83,17 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /input length should be/i,
   // Transient 400 errors from upstream — should fallback to next combo target
   /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
+  /敏感内容|内容存在.*敏感|无法响应.*请求|请检查/i, // Content moderation errors
   /稍后重试/i, // "retry later" in Chinese
   /temporary.*error/i,
   /transient.*error/i,
   /service.*unavailable/i,
   /please.*try.*again/i,
   /rate.*limit/i, // Some providers return 400 instead of 429 for rate limits
+  // Tool call function name errors — model-specific, try next combo target
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
 const MAX_COMBO_DEPTH = 3;

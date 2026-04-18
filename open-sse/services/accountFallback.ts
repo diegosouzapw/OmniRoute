@@ -103,6 +103,12 @@ const MALFORMED_REQUEST_PATTERNS = [
   /\binvalid.*message.*format/i,
   /\bmessages must alternate/i,
   /\bempty (message|content)/i,
+  // Tool call function name errors
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
+  // Content moderation errors
+  /敏感内容|内容存在.*敏感|无法响应.*请求|请检查/i,
 ];
 
 /**
