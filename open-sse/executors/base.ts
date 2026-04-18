@@ -12,7 +12,10 @@ import {
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
-import { computeFingerprint, extractFirstUserMessageText } from "../services/claudeCodeFingerprint.ts";
+import {
+  computeFingerprint,
+  extractFirstUserMessageText,
+} from "../services/claudeCodeFingerprint.ts";
 import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 
@@ -434,7 +437,19 @@ export class BaseExecutor {
             ? mergeAbortSignals(signal, timeoutSignal)
             : signal || timeoutSignal;
 
-        if (this.provider === "claude" && typeof transformedBody === "object" && transformedBody !== null) {
+        const isClaudeCodeClient =
+          clientHeaders?.["x-app"] === "cli" ||
+          (clientHeaders?.["user-agent"] &&
+            clientHeaders["user-agent"].toLowerCase().includes("claude-code")) ||
+          (clientHeaders?.["user-agent"] &&
+            clientHeaders["user-agent"].toLowerCase().includes("claude-cli"));
+
+        if (
+          this.provider === "claude" &&
+          isClaudeCodeClient &&
+          typeof transformedBody === "object" &&
+          transformedBody !== null
+        ) {
           const tb = transformedBody as Record<string, unknown>;
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
@@ -483,7 +498,8 @@ export class BaseExecutor {
 
           const ccHeaders: Record<string, string> = {
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,redact-thinking-2026-02-12,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advisor-tool-2026-03-01,advanced-tool-use-2025-11-20,effort-2025-11-24",
+            "anthropic-beta":
+              "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,redact-thinking-2026-02-12,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advisor-tool-2026-03-01,advanced-tool-use-2025-11-20,effort-2025-11-24",
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${ccVersion} (external, cli)`,
@@ -491,13 +507,13 @@ export class BaseExecutor {
             "X-Stainless-Timeout": "600",
             "accept-language": "*",
             "accept-encoding": "gzip, deflate, br, zstd",
-            "connection": "keep-alive",
+            connection: "keep-alive",
             "x-client-request-id": randomUUID(),
             "X-Claude-Code-Session-Id": randomUUID(),
           };
           Object.assign(headers, ccHeaders);
           delete headers["X-Stainless-Helper-Method"];
-          
+
           // Add X-Stainless headers to match real Claude Code
           headers["X-Stainless-Arch"] = "x64";
           headers["X-Stainless-Lang"] = "js";
@@ -507,7 +523,9 @@ export class BaseExecutor {
           headers["X-Stainless-Retry-Count"] = "0";
           delete headers["X-Stainless-Os"];
 
-          console.log(`[CLAUDE-PATCH] provider=${this.provider} tools remapped, billing header injected, body fields added, headers patched`);
+          console.log(
+            `[CLAUDE-PATCH] provider=${this.provider} tools remapped, billing header injected, body fields added, headers patched`
+          );
         }
 
         // Apply CLI fingerprint ordering if enabled for this provider
