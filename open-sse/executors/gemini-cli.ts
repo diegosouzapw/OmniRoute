@@ -3,6 +3,10 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { geminiCLIUserAgent, googApiClientHeader } from "../services/antigravityHeaders.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
+import {
+  shouldStripCloudCodeThinking,
+  stripCloudCodeThinkingConfig,
+} from "../services/cloudCodeThinking.ts";
 
 const LOAD_CODE_ASSIST_URL = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
 const ONBOARD_USER_URL = "https://cloudcode-pa.googleapis.com/v1internal:onboardUser";
@@ -276,16 +280,24 @@ export class GeminiCLIExecutor extends BaseExecutor {
 
   async transformRequest(model, body, stream, credentials) {
     this._currentModel = normalizeGeminiModel(model);
+    const normalizedBody =
+      shouldStripCloudCodeThinking(this.provider, this._currentModel) &&
+      body &&
+      typeof body === "object"
+        ? stripCloudCodeThinkingConfig(body)
+        : body;
 
     // Refresh the project ID via loadCodeAssist (cached for 30s).
-    if (body && typeof body === "object" && body.request && credentials.accessToken) {
-      const freshProject = await this.refreshProject(credentials.accessToken);
-      if (freshProject) {
-        body.project = freshProject;
+    if (normalizedBody && typeof normalizedBody === "object" && normalizedBody.request) {
+      if (credentials.accessToken) {
+        const freshProject = await this.refreshProject(credentials.accessToken);
+        if (freshProject) {
+          normalizedBody.project = freshProject;
+        }
       }
 
       // Obfuscate sensitive client names in user content
-      const contents = body.request?.contents;
+      const contents = normalizedBody.request?.contents;
       if (Array.isArray(contents)) {
         for (const msg of contents) {
           if (Array.isArray(msg.parts)) {
@@ -298,7 +310,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         }
       }
     }
-    return body;
+    return normalizedBody;
   }
 
   async refreshCredentials(credentials, log) {

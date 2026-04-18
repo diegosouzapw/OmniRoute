@@ -56,6 +56,42 @@ test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transfo
   }
 });
 
+test("GeminiCLIExecutor.transformRequest preserves thinking config for supported Gemini models", async () => {
+  const executor = new GeminiCLIExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ cloudaicompanionProject: "fresh-project-id" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
+  try {
+    const transformed = await executor.transformRequest(
+      "models/gemini-3.1-pro-preview",
+      {
+        request: {
+          contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+          generationConfig: {
+            thinkingConfig: {
+              thinkingBudget: 8192,
+              includeThoughts: true,
+            },
+          },
+        },
+      },
+      true,
+      { accessToken: "access-token-1" }
+    );
+
+    assert.equal(transformed.project, "fresh-project-id");
+    assert.equal(transformed.request.generationConfig.thinkingConfig.thinkingBudget, 8192);
+    assert.equal(transformed.request.generationConfig.thinkingConfig.includeThoughts, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("GeminiCLIExecutor.refreshProject returns null on failed loadCodeAssist responses", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;

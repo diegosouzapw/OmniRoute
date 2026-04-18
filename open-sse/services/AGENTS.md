@@ -30,6 +30,7 @@
 - **`intentClassifier.ts`** — Classifies request intent (chat, embedding, image, video, etc.) for intelligent routing.
 - **`taskAwareRouter.ts`** — Routes based on task characteristics (reasoning-heavy → o1, code-gen → Cursor, long-context → Claude).
 - **`thinkingBudget.ts`** — Allocates thinking tokens for o1/o3 models; enforces per-request budget.
+  Provider-specific Cloud Code compatibility stripping belongs in executors, not in this service.
 - **`contextManager.ts`** — Injects routing context (system prompts, memory) into requests.
 
 ### Model Lifecycle & Fallback
