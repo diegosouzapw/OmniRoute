@@ -533,15 +533,11 @@ export class CodexExecutor extends BaseExecutor {
       hoistSystemMessagesToInstructions(body);
     }
 
-    // Codex store setting: the official openai/codex client sets store=false by default
-    // (only Azure Responses endpoints use store=true).
-    // Ref: openai/codex core/src/client.rs line 862:
-    //   store: provider.is_azure_responses_endpoint()
-    // We don't manipulate the client's store value — if the client doesn't set it,
-    // default to false to match the official behavior.
-    if (body.store === undefined) {
-      body.store = false;
-    }
+    // Store: CLIProxyAPI does not manipulate the store field (passthrough).
+    // The official Codex TUI client sets store=false (core/src/client.rs:862)
+    // because it sends full conversation history each turn.
+    // Proxy clients may rely on store=true for response chaining via
+    // previous_response_id. We follow CLIProxyAPI: don't touch it.
 
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
@@ -586,11 +582,10 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
-    // Delete previous_response_id — the official Codex client never sets it for HTTP
-    // requests (only WebSocket uses it as None). Sending a stale ID when store=false
-    // causes 404 errors from the Codex backend.
-    // Ref: openai/codex codex-api/src/common.rs line 187: previous_response_id: None
-    delete body.previous_response_id;
+    // previous_response_id: pass through from client.
+    // The official Codex TUI sets this to None for HTTP (it rebuilds full history),
+    // but proxy clients may rely on it for conversation chaining when store=true.
+    // CLIProxyAPI passes it through. We follow the same approach.
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
     // Codex API rejects both max_tokens and max_output_tokens regardless of
