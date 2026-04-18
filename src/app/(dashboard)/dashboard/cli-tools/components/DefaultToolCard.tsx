@@ -153,7 +153,7 @@ export default function DefaultToolCard({
   };
 
   // Check if this tool supports direct config file write
-  const supportsDirectSave = ["continue", "opencode"].includes(toolId);
+  const supportsDirectSave = ["continue", "opencode", "qwen"].includes(toolId);
 
   const renderApiKeySelector = () => {
     return (

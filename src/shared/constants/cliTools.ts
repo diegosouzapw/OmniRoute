@@ -338,39 +338,55 @@ amp --model "{{model}}"
     color: "#10B981",
     description: "Alibaba Qwen Code CLI — OpenAI-compatible endpoint",
     docsUrl: "https://qwenlm.github.io/qwen-code-docs/",
-    configType: "custom",
+    configType: "guide",
     defaultCommand: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports custom OpenAI-compatible API endpoints via environment variables or settings.json.",
+        text: "Qwen Code supports custom OpenAI-compatible API endpoints via modelProviders in settings.json.",
       },
       {
         type: "warning",
-        text: "Config path: Linux/macOS ~/.qwen/ • Windows %USERPROFILE%\\.qwen\\",
+        text: "Config path: Linux/macOS ~/.qwen/settings.json • Windows %USERPROFILE%\\.qwen\\settings.json",
+      },
+    ],
+    modelAliases: ["default", "claude-sonnet", "claude-opus", "gemini-pro", "gemini-flash"],
+    defaultModels: [
+      {
+        id: "default",
+        name: "Default Model",
+        alias: "default",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "auto",
       },
     ],
     guideSteps: [
       { step: 1, title: "Install Qwen Code", desc: "npm install -g @qwen-code/qwen-code" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
       {
-        step: 4,
-        title: "Configure Settings",
-        desc: "Add to your ~/.qwen/.env file or settings.json env field:",
+        step: 5,
+        title: "Save Config",
+        desc: "Click Save Config below to write your settings.json automatically.",
       },
     ],
     codeBlock: {
-      language: "bash",
-      code: `# ~/.qwen/.env
-OPENAI_API_KEY="{{apiKey}}"
-OPENAI_BASE_URL="{{baseUrl}}"
-OPENAI_MODEL="auto"
-# Or add to settings.json:
-# "env": {
-#   "OPENAI_API_KEY": "{{apiKey}}",
-#   "OPENAI_BASE_URL": "{{baseUrl}}"
-# }`,
+      language: "json",
+      code: `# ~/.qwen/settings.json
+{
+  "modelProviders": {
+    "openai": [{
+      "id": "omniroute",
+      "name": "OmniRoute",
+      "envKey": "OPENAI_API_KEY",
+      "baseUrl": "{{baseUrl}}",
+      "generationConfig": {
+        "defaultModel": "{{model}}"
+      }
+    }]
+  }
+}`,
     },
   },
   // HIDDEN: gemini-cli
