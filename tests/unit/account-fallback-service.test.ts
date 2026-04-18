@@ -28,6 +28,9 @@ const {
   clearProviderFailure,
   isProviderFailureCode,
   getProvidersInCooldown,
+  isContentModerationResponse,
+  createContentModerationError,
+  isContentModerationError,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -465,4 +468,125 @@ test("clearProviderFailure removes provider from cooldown", () => {
     Date.now = originalNow;
     clearProviderFailure("test-provider-clear");
   }
+});
+
+// Daily quota exhausted detection tests
+test("isDailyQuotaExhausted detects today's quota errors", () => {
+  const { isDailyQuotaExhausted } = accountFallback;
+  assert.equal(isDailyQuotaExhausted("You have exceeded today's quota for model X"), true);
+  assert.equal(isDailyQuotaExhausted("exceeded your daily quota"), true);
+  assert.equal(isDailyQuotaExhausted("Please try again tomorrow"), true);
+  assert.equal(isDailyQuotaExhausted("rate limit exceeded"), false);
+  assert.equal(isDailyQuotaExhausted(""), false);
+  assert.equal(isDailyQuotaExhausted(null), false);
+});
+
+test("getMsUntilTomorrow returns positive value less than 24 hours", () => {
+  const { getMsUntilTomorrow } = accountFallback;
+  const ms = getMsUntilTomorrow();
+  assert.ok(ms > 0, "should be positive");
+  assert.ok(ms <= 24 * 60 * 60 * 1000, "should be <= 24 hours");
+});
+
+test("checkFallbackError locks model until tomorrow for daily quota exhaustion", () => {
+  const result = checkFallbackError(
+    429,
+    "You have exceeded today's quota for model moonshotai/Kimi-K2.5, please try again tomorrow"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.ok(result.cooldownMs > 0, "cooldown should be positive");
+  assert.ok(result.cooldownMs <= 24 * 60 * 60 * 1000, "cooldown should be <= 24 hours");
+});
+
+test("checkFallbackError detects daily quota with 'try again tomorrow'", () => {
+  const result = checkFallbackError(429, "Please try again tomorrow");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+test("checkFallbackError detects daily quota with 'daily quota'", () => {
+  const result = checkFallbackError(429, "You have exceeded your daily quota");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+// Content moderation fallback tests (400 status)
+test("checkFallbackError triggers fallback for Chinese content moderation on 400", () => {
+  const result = checkFallbackError(
+    400,
+    "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入。"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError triggers fallback for content moderation variant 2", () => {
+  const result = checkFallbackError(400, "内容敏感，无法响应该请求");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+});
+
+// Content moderation response detection tests (HTTP 200 with rejection content)
+test("isContentModerationResponse detects Chinese content moderation in OpenAI response format", () => {
+  const response = {
+    choices: [
+      {
+        message: {
+          content:
+            "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入。",
+        },
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), true);
+});
+
+test("isContentModerationResponse returns false for normal response", () => {
+  const response = {
+    choices: [
+      {
+        message: {
+          content: "Hello, how can I help you today?",
+        },
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), false);
+});
+
+test("isContentModerationResponse returns false for null/undefined", () => {
+  assert.equal(isContentModerationResponse(null), false);
+  assert.equal(isContentModerationResponse(undefined), false);
+  assert.equal(isContentModerationResponse({}), false);
+});
+
+test("isContentModerationResponse detects content moderation in Anthropic response format", () => {
+  const response = {
+    content: [
+      {
+        type: "text",
+        text: "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求。",
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), true);
+});
+
+test("createContentModerationError creates error with correct properties", () => {
+  const error = createContentModerationError("test-model", "test-provider");
+  assert.ok(error instanceof Error);
+  assert.equal(error.statusCode, 400);
+  assert.equal(error.isContentModeration, true);
+  assert.ok(error.message.includes("test-model"));
+  assert.ok(error.message.includes("test-provider"));
+});
+
+test("isContentModerationError identifies content moderation errors", () => {
+  const error = createContentModerationError("model", "provider");
+  assert.equal(isContentModerationError(error), true);
+  assert.equal(isContentModerationError(new Error("regular error")), false);
+  assert.equal(isContentModerationError(null), false);
 });

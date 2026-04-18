@@ -803,6 +803,110 @@ export function classifyError(status, errorText) {
   return RateLimitReason.UNKNOWN;
 }
 
+// ─── Daily Quota Helpers ────────────────────────────────────────────────────
+
+/**
+ * Calculate milliseconds from now until tomorrow at midnight (00:00:00).
+ * Used to lock a model until the next day when daily quota is exhausted.
+ * @returns {number} Milliseconds until tomorrow
+ */
+export function getMsUntilTomorrow(): number {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  return tomorrow.getTime() - now.getTime();
+}
+
+/**
+ * Check if error text indicates daily quota exhaustion (as opposed to rate limiting).
+ * Daily quota errors typically mention "today's quota" or "try again tomorrow".
+ * @param {string} errorText - Error message text
+ * @returns {boolean} True if daily quota is exhausted
+ */
+export function isDailyQuotaExhausted(errorText: string): boolean {
+  if (!errorText) return false;
+  const lower = errorText.toLowerCase();
+  return (
+    lower.includes("today's quota") ||
+    lower.includes("daily quota") ||
+    lower.includes("try again tomorrow")
+  );
+}
+
+/**
+ * Check if a response body contains a content moderation rejection message.
+ * This detects cases where the model returns HTTP 200 but the response content
+ * is a content policy rejection (e.g., Chinese providers returning sensitive content errors).
+ * @param {unknown} response - Response body object
+ * @returns {boolean} True if response appears to be a content moderation rejection
+ */
+export function isContentModerationResponse(response: unknown): boolean {
+  if (!response || typeof response !== "object") return false;
+
+  // Extract response text from common response formats
+  const resp = response as Record<string, unknown>;
+  let content: string | unknown = null;
+
+  // OpenAI format: choices[0].message.content
+  if (Array.isArray(resp.choices) && resp.choices.length > 0) {
+    const choice = resp.choices[0] as Record<string, unknown>;
+    if (choice?.message && typeof choice.message === "object") {
+      const msg = choice.message as Record<string, unknown>;
+      content = msg.content;
+    }
+  }
+  // Anthropic format: content[0].text
+  else if (Array.isArray(resp.content) && resp.content.length > 0) {
+    const block = resp.content[0] as Record<string, unknown>;
+    if (block?.type === "text" && typeof block.text === "string") {
+      content = block.text;
+    }
+  }
+  // Direct content field
+  else if (typeof resp.content === "string") {
+    content = resp.content;
+  }
+
+  if (typeof content !== "string" || !content) return false;
+
+  // Use existing MALFORMED_REQUEST_PATTERNS to detect content moderation
+  return MALFORMED_REQUEST_PATTERNS.some((pattern) => pattern.test(content));
+}
+
+/**
+ * Create a content moderation error that triggers combo fallback.
+ * This error is used when a model returns HTTP 200 but the response content
+ * indicates a content policy rejection.
+ * @param {string} model - Model ID
+ * @param {string} provider - Provider ID
+ * @returns {Error & { statusCode: number; isContentModeration: boolean }} Error object
+ */
+export function createContentModerationError(
+  model: string,
+  provider: string
+): Error & { statusCode: number; isContentModeration: boolean } {
+  const error = new Error(
+    `Content moderation triggered for model ${model} (provider: ${provider})`
+  ) as Error & { statusCode: number; isContentModeration: boolean };
+  error.statusCode = 400;
+  error.isContentModeration = true;
+  return error;
+}
+
+/**
+ * Check if an error was created by createContentModerationError.
+ * Used to determine if the error should trigger combo fallback without locking the model.
+ * @param {unknown} error - Error to check
+ * @returns {boolean} True if error is a content moderation error
+ */
+export function isContentModerationError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error as Error & { isContentModeration?: boolean }).isContentModeration === true
+  );
+}
+
 // ─── Configurable Backoff ───────────────────────────────────────────────────
 
 /**
@@ -918,6 +1022,19 @@ export function checkFallbackError(
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         creditsExhausted: true,
+      };
+    }
+
+    // Daily quota exhausted — lock model until tomorrow
+    if (isDailyQuotaExhausted(errorStr)) {
+      const msUntilTomorrow = getMsUntilTomorrow();
+      // Cap at 24 hours to handle timezone edge cases
+      const cooldownMs = Math.min(msUntilTomorrow, 24 * 60 * 60 * 1000);
+      return {
+        shouldFallback: true,
+        cooldownMs,
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        dailyQuotaExhausted: true,
       };
     }
 

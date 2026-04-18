@@ -14,7 +14,12 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import {
+  hasPerModelQuota,
+  lockModelIfPerModelQuota,
+  isContentModerationResponse,
+  createContentModerationError,
+} from "../services/accountFallback.ts";
 import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
@@ -2640,6 +2645,17 @@ export async function handleChatCore({
         `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
       );
       return createErrorResult(HTTP_STATUS.BAD_REQUEST, guardrailMessage);
+    }
+
+    // ── Phase 8.5: Content moderation detection on successful response ──
+    // Some providers return HTTP 200 with a content moderation rejection message.
+    // Detect this and throw error to trigger combo fallback.
+    if (isContentModerationResponse(translatedResponse)) {
+      log?.warn?.(
+        "CONTENT_MODERATION",
+        `Response contains content moderation message for ${provider}:${model}`
+      );
+      throw createContentModerationError(model, provider);
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
