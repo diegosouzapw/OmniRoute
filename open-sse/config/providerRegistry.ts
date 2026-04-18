@@ -165,6 +165,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://console.anthropic.com/v1/oauth/token",
     },
     models: [
+      { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
       { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
       { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
       { id: "claude-opus-4-5-20251101", name: "Claude 4.5 Opus" },

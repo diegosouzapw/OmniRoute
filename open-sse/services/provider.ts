@@ -366,7 +366,11 @@ export function isLastMessageFromUser(body) {
 
 // Check if request has thinking config
 export function hasThinkingConfig(body) {
-  return !!(body.reasoning_effort || body.thinking?.type === "enabled");
+  return !!(
+    body.reasoning_effort ||
+    body.thinking?.type === "enabled" ||
+    body.thinking?.type === "adaptive"
+  );
 }
 
 // Normalize thinking config based on last message role and target format.

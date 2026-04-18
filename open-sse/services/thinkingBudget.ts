@@ -13,7 +13,12 @@ export const ThinkingMode = {
   ADAPTIVE: "adaptive", // Scale based on request complexity
 };
 
-import { capThinkingBudget, getDefaultThinkingBudget } from "@/shared/constants/modelSpecs";
+import {
+  capThinkingBudget,
+  getDefaultThinkingBudget,
+  isAdaptiveOnlyModel,
+  downgradeEffort,
+} from "@/shared/constants/modelSpecs";
 import { supportsReasoning } from "./modelCapabilities.ts";
 
 // Effort → budget token mapping
@@ -133,17 +138,19 @@ export function ensureThinkingConfig(body) {
   if (!body || typeof body !== "object") return body;
   const model = body.model || "";
 
-  // Only auto-inject for models with -thinking suffix
   if (!model.endsWith("-thinking")) return body;
 
-  // If thinking config already present, don't override
   if (body.thinking) return body;
 
   const result = { ...body };
-  result.thinking = {
-    type: "enabled",
-    budget_tokens: getDefaultThinkingBudget(model) || EFFORT_BUDGETS.medium,
-  };
+  if (isAdaptiveOnlyModel(model)) {
+    result.thinking = { type: "adaptive" };
+  } else {
+    result.thinking = {
+      type: "enabled",
+      budget_tokens: getDefaultThinkingBudget(model) || EFFORT_BUDGETS.medium,
+    };
+  }
   return result;
 }
 
@@ -181,30 +188,38 @@ export function applyThinkingBudget(body, config = null) {
       !originalHasExplicitThinking &&
       (hasExplicitEffortSignal(processed) || originalHasThinkingLevelSignal)
     ) {
-      return setAdaptiveClaudeThinking(processed, cfg, body);
+      return coerceThinkingForModel(setAdaptiveClaudeThinking(processed, cfg, body), modelStr);
     }
 
     if (cfg.mode === ThinkingMode.ADAPTIVE) {
-      return processed;
+      return coerceThinkingForModel(processed, modelStr);
     }
   }
 
+  let result;
   switch (cfg.mode) {
     case ThinkingMode.AUTO:
-      return stripThinkingConfig(processed);
+      result = stripThinkingConfig(processed);
+      break;
 
     case ThinkingMode.PASSTHROUGH:
-      return processed;
+      result = processed;
+      break;
 
     case ThinkingMode.CUSTOM:
-      return setCustomBudget(processed, cfg.customBudget);
+      result = setCustomBudget(processed, cfg.customBudget);
+      break;
 
     case ThinkingMode.ADAPTIVE:
-      return applyAdaptiveBudget(processed, cfg);
+      result = applyAdaptiveBudget(processed, cfg);
+      break;
 
     default:
-      return processed;
+      result = processed;
+      break;
   }
+
+  return coerceThinkingForModel(result, modelStr);
 }
 
 function isClaudeModel(model) {
@@ -236,6 +251,38 @@ function thinkingLevelToEffort(level) {
   if (normalized === "max") return "max";
   if (normalized === "xhigh") return "xhigh";
   return null;
+}
+
+function coerceThinkingForModel(body, modelStr) {
+  if (!body || typeof body !== "object") return body;
+  if (!modelStr || !isAdaptiveOnlyModel(modelStr)) return body;
+
+  if (!body.thinking || body.thinking.type === "disabled") return body;
+
+  if (body.thinking.type !== "adaptive") {
+    const result = { ...body };
+    const currentEffort =
+      result.output_config?.effort || result.reasoning_effort || result.reasoning?.effort || "high";
+    result.thinking = { type: "adaptive" };
+    result.output_config = {
+      ...(result.output_config && typeof result.output_config === "object"
+        ? result.output_config
+        : {}),
+      effort: downgradeEffort(modelStr, String(currentEffort).toLowerCase()),
+    };
+    return result;
+  }
+
+  if (body.output_config?.effort) {
+    const result = { ...body };
+    result.output_config = {
+      ...result.output_config,
+      effort: downgradeEffort(modelStr, String(body.output_config.effort).toLowerCase()),
+    };
+    return result;
+  }
+
+  return body;
 }
 
 function resolveAnthropicEffort(body, cfg, originalBody = body) {

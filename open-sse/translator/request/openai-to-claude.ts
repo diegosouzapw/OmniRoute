@@ -5,7 +5,14 @@ import {
   rewriteForwardedTextForLane,
   rewriteForwardedToolNameForLane,
 } from "../../config/forwardingKeywordRules.ts";
-import { capMaxOutputTokens, capThinkingBudget } from "@/shared/constants/modelSpecs";
+import {
+  capMaxOutputTokens,
+  capThinkingBudget,
+  isAdaptiveOnlyModel,
+  rejectsSamplingParams,
+  getDefaultThinkingDisplay,
+  downgradeEffort,
+} from "@/shared/constants/modelSpecs";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -387,9 +394,12 @@ export function openaiToClaudeRequest(model, body, stream) {
   }
 
   // Thinking configuration
+  const adaptiveOnly = isAdaptiveOnlyModel(model);
+
   if (body.thinking) {
+    const defaultType = adaptiveOnly ? "adaptive" : "enabled";
     result.thinking = {
-      type: body.thinking.type || "enabled",
+      type: body.thinking.type || defaultType,
       ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
       ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
     };
@@ -400,46 +410,64 @@ export function openaiToClaudeRequest(model, body, stream) {
       typeof body.output_config.effort === "string"
     ) {
       result.output_config = {
-        effort: body.output_config.effort,
+        effort: downgradeEffort(model, body.output_config.effort),
       };
     }
   } else if (body.reasoning_effort) {
-    // Convert OpenAI reasoning_effort to Claude thinking format (#627)
-    // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
-    const effortBudgetMap: Record<string, number> = {
-      low: 1024,
-      medium: 10240,
-      high: 131072,
-      max: 131072,
-    };
     const effort = String(body.reasoning_effort).toLowerCase();
-    const budget = effortBudgetMap[effort];
-    if (budget !== undefined && budget > 0) {
-      result.thinking = {
-        type: "enabled",
-        budget_tokens: budget,
+    if (adaptiveOnly) {
+      result.thinking = { type: "adaptive" };
+      result.output_config = { effort: downgradeEffort(model, effort) };
+    } else {
+      const effortBudgetMap: Record<string, number> = {
+        low: 1024,
+        medium: 10240,
+        high: 131072,
+        max: 131072,
       };
+      const budget = effortBudgetMap[effort];
+      if (budget !== undefined && budget > 0) {
+        result.thinking = {
+          type: "enabled",
+          budget_tokens: budget,
+        };
+      }
+    }
+  }
+
+  // Adaptive-only models: coerce any surviving type:"enabled" → type:"adaptive"
+  if (
+    adaptiveOnly &&
+    result.thinking &&
+    result.thinking.type !== "adaptive" &&
+    result.thinking.type !== "disabled"
+  ) {
+    const effort = result.output_config?.effort || result.thinking?.budget_tokens ? "high" : "high";
+    result.thinking = { type: "adaptive" };
+    if (!result.output_config?.effort) {
+      result.output_config = { ...(result.output_config || {}), effort };
     }
   }
 
   result.max_tokens = capMaxOutputTokens(model, result.max_tokens);
 
-  // Ensure thinking budget stays below the model-capped max_tokens (#627)
-  const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
-  if (budgetTokens > 0) {
-    const maxBudgetForRequest = Math.max(0, result.max_tokens);
-    const cappedBudget = Math.min(capThinkingBudget(model, budgetTokens), maxBudgetForRequest);
+  if (!adaptiveOnly) {
+    const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
+    if (budgetTokens > 0) {
+      const maxBudgetForRequest = Math.max(0, result.max_tokens);
+      const cappedBudget = Math.min(capThinkingBudget(model, budgetTokens), maxBudgetForRequest);
 
-    if (cappedBudget > 0) {
-      result.thinking = {
-        ...result.thinking,
-        budget_tokens: cappedBudget,
-        ...(result.thinking?.max_tokens
-          ? { max_tokens: Math.min(Number(result.thinking.max_tokens), maxBudgetForRequest) }
-          : {}),
-      };
-    } else {
-      delete result.thinking;
+      if (cappedBudget > 0) {
+        result.thinking = {
+          ...result.thinking,
+          budget_tokens: cappedBudget,
+          ...(result.thinking?.max_tokens
+            ? { max_tokens: Math.min(Number(result.thinking.max_tokens), maxBudgetForRequest) }
+            : {}),
+        };
+      } else {
+        delete result.thinking;
+      }
     }
   }
 
@@ -448,7 +476,23 @@ export function openaiToClaudeRequest(model, body, stream) {
     delete result.thinking.max_tokens;
   }
 
-  // Attach toolNameMap to result for response translation
+  // Inject thinking.display for models that default to "omitted"
+  if (result.thinking && result.thinking.type !== "disabled") {
+    const display = getDefaultThinkingDisplay(model);
+    if (display === "omitted" && !body.thinking?.display) {
+      result.thinking.display = "summarized";
+    } else if (body.thinking?.display) {
+      result.thinking.display = body.thinking.display;
+    }
+  }
+
+  // Strip sampling params for models that reject non-default values (Opus 4.7+)
+  if (rejectsSamplingParams(model)) {
+    delete result.temperature;
+    delete result.top_p;
+    delete result.top_k;
+  }
+
   if (toolNameMap.size > 0) {
     result._toolNameMap = toolNameMap;
   }
