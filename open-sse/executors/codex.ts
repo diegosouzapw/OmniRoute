@@ -256,6 +256,53 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
+/**
+ * Strip stored response item references from the input array.
+ *
+ * The Codex /codex/responses endpoint does not persist response items even when
+ * store=true is sent. Proxy clients (e.g. OpenClaw) may include string references
+ * like "rs_<id>" in the input array expecting the server to expand them inline.
+ * Since the items were never persisted, these references cause 404 errors.
+ *
+ * This function removes:
+ *   - String items matching the "rs_" / "resp_" / "msg_" pattern (response item IDs)
+ *   - Object items with type "item_reference" (explicit stored-item references)
+ *
+ * After stripping, also delete previous_response_id since it references
+ * a non-persisted response and would cause the same 404.
+ */
+function stripStoredItemReferences(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  const originalLength = body.input.length;
+  body.input = body.input.filter((item) => {
+    // String references: "rs_abc123", "resp_abc123", "msg_abc123"
+    if (typeof item === "string" && /^(rs|resp|msg)_[a-zA-Z0-9]+/.test(item)) {
+      return false;
+    }
+
+    // Object references: { type: "item_reference", id: "rs_..." }
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  if (body.input.length < originalLength) {
+    // Also remove previous_response_id since stored responses aren't available
+    delete body.previous_response_id;
+    console.debug(
+      `[Codex] stripStoredItemReferences: removed ${originalLength - body.input.length} stored item reference(s) from input`
+    );
+  }
+}
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -546,6 +593,11 @@ export class CodexExecutor extends BaseExecutor {
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body);
 
+    // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
+    // The /codex/responses endpoint does not persist responses even with store=true,
+    // so any references to previous response items would cause 404 errors.
+    stripStoredItemReferences(body);
+
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.
     delete body.messages;
@@ -584,10 +636,10 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
-    // previous_response_id: pass through from client.
-    // The official Codex TUI sets this to None for HTTP (it rebuilds full history),
-    // but proxy clients may rely on it for conversation chaining when store=true.
-    // CLIProxyAPI passes it through. We follow the same approach.
+    // previous_response_id: stripped by stripStoredItemReferences() when stored
+    // item references are present in input, because the /codex/responses endpoint
+    // does not persist responses. When no stored references exist, pass through
+    // from client (they may reference items from a different persistence layer).
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
     // Codex API rejects both max_tokens and max_output_tokens regardless of
