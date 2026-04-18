@@ -1,5 +1,5 @@
 // CLI Tools configuration
-import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
 
 const _cc = getClaudeCodeDefaultModels();
 
