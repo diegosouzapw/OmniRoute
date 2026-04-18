@@ -48,11 +48,18 @@ async function fetchModelStatus(): Promise<void> {
     const now = Date.now();
     registeredModels.forEach((key) => {
       const [provider, model] = key.split("/");
-      const modelEntry = models.find(
-        (m: any) =>
-          m.provider === provider &&
-          (m.model === model || m.model?.includes(model) || model.includes(m.model))
-      );
+      // Use exact matching first to avoid gpt-4 matching gpt-4-turbo incorrectly
+      const modelEntry =
+        models.find((m: any) => m.provider === provider && m.model === model) ||
+        models.find(
+          // Fallback to prefix matching only for models that contain the registered key
+          // This handles cases like "gpt-4o" matching badge for "gpt-4"
+          (m: any) =>
+            m.provider === provider &&
+            m.model &&
+            model &&
+            (m.model.startsWith(model + "-") || model.startsWith(m.model + "-"))
+        );
 
       if (modelEntry) {
         const newStatus: ModelStatus = {

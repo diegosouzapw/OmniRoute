@@ -738,8 +738,19 @@ export class AntigravityExecutor extends BaseExecutor {
                 const text = decoder.decode(chunk, { stream: true });
                 sseBuffer += text;
                 // Limit buffer size to prevent unbounded growth
+                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
                 if (sseBuffer.length > MAX_BUFFER_SIZE) {
-                  sseBuffer = sseBuffer.slice(-MAX_BUFFER_SIZE);
+                  const lastNewline = sseBuffer.lastIndexOf(
+                    "\n",
+                    sseBuffer.length - MAX_BUFFER_SIZE
+                  );
+                  if (lastNewline !== -1) {
+                    sseBuffer = sseBuffer.slice(lastNewline + 1);
+                  } else {
+                    // No newline found in discard region; keep last MAX_BUFFER_SIZE chars
+                    // (fallback — rare case, entire buffer has no newlines)
+                    sseBuffer = sseBuffer.slice(-MAX_BUFFER_SIZE);
+                  }
                 }
               } catch {
                 /* decoding best-effort */

@@ -6050,7 +6050,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
-          passthroughModels: formData.passthroughModels || undefined,
+          // Write explicit boolean to override registry default when unchecked
+          passthroughModels: formData.passthroughModels ? true : false,
         };
         if (connection.provider === "bailian-coding-plan") {
           if (formData.consoleApiKey.trim()) {
