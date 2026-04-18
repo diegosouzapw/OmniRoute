@@ -8,6 +8,7 @@ const SENSITIVE_KEYS = new Set([
   "Authorization",
   "x-api-key",
   "X-Api-Key",
+  "x-goog-api-key",
   "access_token",
   "accessToken",
   "refresh_token",

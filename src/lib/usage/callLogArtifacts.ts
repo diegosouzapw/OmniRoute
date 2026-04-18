@@ -75,8 +75,9 @@ export function writeCallArtifact(
   try {
     const serialized = JSON.stringify(artifact, null, 2);
     const sizeBytes = Buffer.byteLength(serialized);
-    // codeql[js/insufficient-password-hash] - This is a file checksum, not a password hash
-    const artifactHash = crypto.createHash("sha256").update(serialized).digest("hex");
+    // This is a file integrity checksum, not a password hash
+    // codeql[js/insufficient-password-hash]
+    const fileChecksum = crypto.createHash("sha256").update(serialized).digest("hex");
 
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(tmpPath, serialized);
@@ -85,7 +86,7 @@ export function writeCallArtifact(
     return {
       relPath: relativePath,
       sizeBytes,
-      sha256: artifactHash,
+      sha256: fileChecksum,
     };
   } catch (error) {
     try {
