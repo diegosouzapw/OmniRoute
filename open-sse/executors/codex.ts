@@ -564,32 +564,22 @@ export class CodexExecutor extends BaseExecutor {
       body.service_tier = requestDefaults.serviceTier;
     }
 
-    // ── System prompt handling: cache-aware strategy ──
+    // ── Cache-aware system prompt handling (both paths) ──
     //
-    // For GPT-5 models, OpenAI's automatic prompt caching only considers the
-    // `input` array content (+ tools). The `instructions` field is NOT included
-    // in the cache prefix computation. Moving system prompts from `input` into
-    // `instructions` therefore removes them from the cacheable prefix, causing
-    // 0% cache hit rates even with identical repeated requests.
+    // Convert system → developer role IN-PLACE so system prompts remain in the
+    // `input` array where they contribute to the automatic prompt cache prefix.
+    // The `instructions` field is NOT included in the cache key for GPT-5 models.
     //
-    // For native passthrough (client sends Responses API format directly):
-    //   - Convert system → developer role in-place (Codex accepts developer but rejects system)
-    //   - Only inject minimal instructions if the field is completely empty
-    //   - Do NOT inject CODEX_DEFAULT_INSTRUCTIONS (it would bloat the non-cached field)
+    // This applies to BOTH native passthrough (Responses API) and translated
+    // (Chat Completions) paths. Previously the translated path used
+    // hoistSystemMessagesToInstructions() which moved system content out of
+    // `input` and into `instructions`, destroying cache eligibility.
     //
-    // For translated requests (from Chat Completions format):
-    //   - Continue hoisting system messages to instructions (legacy behavior)
-    //   - Inject CODEX_DEFAULT_INSTRUCTIONS as fallback
-    //
-    // Ref: https://community.openai.com/t/caching-is-borked-for-gpt-5-models/1359574
-    // Ref: https://community.openai.com/t/no-caching-with-model-responses/1338627
-    if (nativeCodexPassthrough) {
-      // Passthrough path: keep system prompts in input for caching.
-      // Convert system → developer role since Codex rejects role=system in input.
-      convertSystemToDeveloperRole(body);
+    // Ref: PR #1346 (original fix for passthrough only)
+    convertSystemToDeveloperRole(body);
 
-      // Codex still requires a non-empty instructions field.
-      // Use a minimal placeholder if the client didn't provide one.
+    if (nativeCodexPassthrough) {
+      // Passthrough: minimal placeholder instructions.
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
@@ -597,14 +587,14 @@ export class CodexExecutor extends BaseExecutor {
         body.instructions = "Follow the developer instructions in the conversation.";
       }
     } else {
-      // Translated path: hoist system messages to instructions (legacy behavior).
+      // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
+      // prompt was provided by the client (safety net for bare requests).
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
       ) {
         body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
       }
-      hoistSystemMessagesToInstructions(body);
     }
 
     // Store: The Codex API defaults store to false when not specified.
