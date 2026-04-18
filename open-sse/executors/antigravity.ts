@@ -15,6 +15,10 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import {
+  shouldStripCloudCodeThinking,
+  stripCloudCodeThinkingConfig,
+} from "../services/cloudCodeThinking.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -166,9 +170,15 @@ export class AntigravityExecutor extends BaseExecutor {
       return resp as unknown as never;
     }
 
+    const upstreamModel = cleanModelName(model);
+    const baseBody = body && typeof body === "object" ? body : {};
+    const normalizedBody = shouldStripCloudCodeThinking(this.provider, upstreamModel)
+      ? stripCloudCodeThinkingConfig(baseBody)
+      : baseBody;
+
     // Fix contents for Claude models via Antigravity
     const normalizedContents =
-      body.request?.contents?.map((c) => {
+      normalizedBody.request?.contents?.map((c) => {
         let role = c.role;
         // functionResponse must be role "user" for Claude models
         if (c.parts?.some((p) => p.functionResponse)) {
@@ -203,17 +213,15 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     const transformedRequest = {
-      ...body.request,
+      ...normalizedBody.request,
       ...(contents.length > 0 && { contents }),
-      sessionId: body.request?.sessionId || this.generateSessionId(),
+      sessionId: normalizedBody.request?.sessionId || this.generateSessionId(),
       safetySettings: undefined,
       toolConfig:
-        body.request?.tools?.length > 0
+        normalizedBody.request?.tools?.length > 0
           ? { functionCallingConfig: { mode: "VALIDATED" } }
-          : body.request?.toolConfig,
+          : normalizedBody.request?.toolConfig,
     };
-
-    const upstreamModel = cleanModelName(model);
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
     const requestContents = transformedRequest.contents;
@@ -230,7 +238,7 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     return {
-      ...body,
+      ...normalizedBody,
       project: projectId,
       model: upstreamModel,
       userAgent: "antigravity",

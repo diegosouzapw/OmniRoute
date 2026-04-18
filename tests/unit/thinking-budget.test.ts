@@ -42,6 +42,18 @@ test("PASSTHROUGH: body unchanged", () => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 
+test("PASSTHROUGH: keeps reasoning_effort for OpenAI-compatible Gemini routes", () => {
+  setThinkingBudgetConfig({ mode: ThinkingMode.PASSTHROUGH });
+  const body = {
+    model: "openai-compatible-sp-google/gemini-3.1-pro-preview",
+    messages: [{ role: "user", content: "hello" }],
+    reasoning_effort: "high",
+  };
+  const result = applyThinkingBudget(body);
+  assert.equal(result.reasoning_effort, "high");
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
+
 // ─── AUTO Mode ──────────────────────────────────────────────────────────────
 
 test("AUTO: strips Claude thinking config", () => {
