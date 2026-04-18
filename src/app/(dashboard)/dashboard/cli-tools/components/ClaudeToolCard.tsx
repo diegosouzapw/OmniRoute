@@ -148,7 +148,7 @@ export default function ClaudeToolCard({
       }
 
       tool.defaultModels.forEach((model) => {
-        const targetModel = modelMappings[model.alias];
+        const targetModel = modelMappings[model.alias] || model.defaultValue || "";
         if (targetModel && model.envKey) env[model.envKey] = targetModel;
       });
 
