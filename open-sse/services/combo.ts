@@ -89,7 +89,10 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /transient.*error/i,
   /service.*unavailable/i,
   /please.*try.*again/i,
-  /rate.*limit/i, // Some providers return 400 instead of 429 for rate limits
+  // Rate limit errors — some providers return 400 instead of 429
+  /\brate.?-?limit.?(?:exceeded|reached|hit)/i,
+  /too many requests/i,
+  /请求过于频繁/i, // Chinese rate limit message
   // Tool call function name errors — model-specific, try next combo target
   /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
   /function.*name.*(?:blank|empty|missing)/i,

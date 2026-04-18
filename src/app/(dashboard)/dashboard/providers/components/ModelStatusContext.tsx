@@ -107,11 +107,12 @@ export function ModelStatusProvider({ children }: { children: React.ReactNode })
     return () => window.removeEventListener("model-status-update", handleUpdate);
   }, []);
 
-  // Cleanup on unmount (optional - keep polling for SPA navigation)
+  // Cleanup on unmount — stop polling only when no models remain registered
   useEffect(() => {
     return () => {
-      // Don't stop polling on unmount - badges may remount during navigation
-      // stopPolling();
+      if (registeredModels.size === 0) {
+        stopPolling();
+      }
     };
   }, []);
 

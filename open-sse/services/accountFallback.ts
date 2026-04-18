@@ -42,6 +42,8 @@ const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
 
 // Provider-level failure state map: providerId -> failure entry
 const providerFailureState = new Map<string, ProviderFailureEntry>();
+// Guard against concurrent modifications (prevents race conditions in high-concurrency scenarios)
+const providerFailureLocks = new Set<string>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
@@ -518,49 +520,57 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
 export function recordProviderFailure(provider: string | null | undefined): void {
   if (!provider) return;
 
-  const now = Date.now();
-  const entry = providerFailureState.get(provider);
+  // Guard against concurrent re-entrant calls within the same tick
+  if (providerFailureLocks.has(provider)) return;
+  providerFailureLocks.add(provider);
 
-  // Check if we're in cooldown period
-  if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
-    return; // Already in cooldown, don't record
-  }
+  try {
+    const now = Date.now();
+    const entry = providerFailureState.get(provider);
 
-  // Check if failure window has expired
-  if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
-    // Window expired, reset count
-    providerFailureState.set(provider, {
-      failureCount: 1,
-      lastFailureAt: now,
-      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-      cooldownUntil: null,
-    });
-    return;
-  }
+    // Check if we're in cooldown period
+    if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
+      return; // Already in cooldown, don't record
+    }
 
-  // Increment failure count
-  const newCount = entry ? entry.failureCount + 1 : 1;
+    // Check if failure window has expired
+    if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
+      // Window expired, reset count
+      providerFailureState.set(provider, {
+        failureCount: 1,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil: null,
+      });
+      return;
+    }
 
-  if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
-    // Threshold reached, enter cooldown
-    const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
-    providerFailureState.set(provider, {
-      failureCount: newCount,
-      lastFailureAt: now,
-      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-      cooldownUntil,
-    });
-    console.warn(
-      `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
-    );
-  } else {
-    // Just increment counter
-    providerFailureState.set(provider, {
-      failureCount: newCount,
-      lastFailureAt: now,
-      resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-      cooldownUntil: null,
-    });
+    // Increment failure count
+    const newCount = entry ? entry.failureCount + 1 : 1;
+
+    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
+      // Threshold reached, enter cooldown
+      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
+      providerFailureState.set(provider, {
+        failureCount: newCount,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil,
+      });
+      console.warn(
+        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
+      );
+    } else {
+      // Just increment counter
+      providerFailureState.set(provider, {
+        failureCount: newCount,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil: null,
+      });
+    }
+  } finally {
+    providerFailureLocks.delete(provider);
   }
 }
 
