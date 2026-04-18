@@ -533,11 +533,13 @@ export class CodexExecutor extends BaseExecutor {
       hoistSystemMessagesToInstructions(body);
     }
 
-    // Store: CLIProxyAPI does not manipulate the store field (passthrough).
-    // The official Codex TUI client sets store=false (core/src/client.rs:862)
-    // because it sends full conversation history each turn.
-    // Proxy clients may rely on store=true for response chaining via
-    // previous_response_id. We follow CLIProxyAPI: don't touch it.
+    // Store: The Codex API defaults store to false when not specified.
+    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
+    // which requires store=true so that response items are persisted.
+    // If the client explicitly sets store, respect it. Otherwise default to true.
+    if (body.store === undefined) {
+      body.store = true;
+    }
 
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
