@@ -172,7 +172,7 @@ export async function executeChatWithBreaker({
           onRequestSuccess: async () => {
             await clearAccountError(credentials.connectionId, credentials);
             // Clear provider-level failure state on successful request
-            clearProviderFailure(modelInfo.provider);
+            clearProviderFailure(provider);
           },
         })
       );
