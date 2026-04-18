@@ -130,50 +130,33 @@ Post a substantive comment that:
 
 ### 6. Generate Report & Wait for Validation
 
-Present a summary report to the user via `notify_user` with `BlockedOnUser: true`:
+Present a summary report to the user. For any bugs that have been fixed, you MUST explicitly explain to the user the version that the fix was applied to (e.g., `release/vX.Y.Z`) and point out that it will be included in the next release.
 
-| Issue | Title | Status        | Action                      |
-| ----- | ----- | ------------- | --------------------------- |
-| #N    | Title | ✅ Closed     | Already fixed / duplicate   |
-| #N    | Title | 🔧 Fixed      | Code fix applied            |
-| #N    | Title | 📝 Responded  | Guidance comment posted     |
-| #N    | Title | ❓ Needs Info | Triage comment posted       |
-| #N    | Title | ⏭️ Skipped    | Feature request / not a bug |
+| Issue | Title | Status        | Action / Version                   |
+| ----- | ----- | ------------- | ---------------------------------- |
+| #N    | Title | ✅ Closed     | Already fixed / duplicate          |
+| #N    | Title | 🔧 Fixed      | Code fix applied in release/vX.Y.Z |
+| #N    | Title | 📝 Responded  | Guidance comment posted            |
+| #N    | Title | ❓ Needs Info | Triage comment posted              |
+| #N    | Title | ⏭️ Skipped    | Feature request / not a bug        |
 
-> **⚠️ IMPORTANT**: Do NOT merge or generate releases at this step.
+> **⚠️ IMPORTANT**: Do NOT commit, push, or close issues at this step.
 > Wait for the user to review the changes and respond with **OK** before proceeding.
 
 - If the user says **OK** or approves → Proceed to step 7
 - If the user requests changes → Apply the requested adjustments first, then present the report again
 - If the user rejects → Revert the changes and stop
 
-### 7. Commit & Push (only after user approval)
+### 7. Commit, Push & Close Issues (only after user approval)
 
-After the user validates:
+After the user validates and gives the OK to commit:
 
-- Commit each fix individually on the release branch with message format: `fix: <description> (#<issue_number>)`
-- Push the release branch: `git push origin release/vX.Y.Z`
-- **Update CHANGELOG.md** with all new bug fix entries
+1. **Update CHANGELOG.md** with all new bug fix entries.
+2. **Commit** each fix individually on the release branch with message format: `fix: <description> (#<issue_number>)`.
+3. **Push** the release branch: `git push origin release/vX.Y.Z`.
+4. **Close resolved issues immediately**. For each issue that was marked as Fixed, run:
+   `gh issue close <NUMBER> --repo <owner>/<repo> --comment "Fixed in release/vX.Y.Z. The fix will be included in the next release."`
+5. Likewise, close `Duplicate` or `Needs Info` issues as needed with relevant comments.
+6. If the project runs automatic releases or needs a PR, proceed to run `/generate-release` workflow Phase 1 steps 7–10 (tests → commit → push → open PR to main → wait for user).
 
-### 8. 🛑 WAIT — Notify User & Await Verification
-
-**This is a mandatory stop point.** Use `notify_user` with `BlockedOnUser: true`:
-
-- Inform the user that fixes have been **committed and pushed to the release branch**
-- Include summary of fixes, test status, and files changed
-- **DO NOT merge, close issues, generate releases, or deploy until the user confirms**
-
-Wait for the user to respond:
-
-- **User confirms** → Proceed to step 9
-- **User requests changes** → Apply changes, push to the same branch, notify again
-- **User rejects** → Revert and stop
-
-### 9. Close Issues & Finalize (only after user confirms)
-
-After the user confirms:
-
-1. **Close** resolved issues with a comment: `gh issue close <NUMBER> --repo <owner>/<repo> --comment "Fixed in release/vX.Y.Z. The fix will be included in the next release."`
-2. Run `/generate-release` workflow Phase 1 steps 7–10 (tests → commit → push → open PR to main → wait for user)
-
-If NO fixes were committed, skip this step and just present the report.
+If NO fixes were committed, skip closing and source control steps and just conclude the workflow.

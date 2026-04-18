@@ -6,13 +6,15 @@
 ## Quick Start
 
 ```bash
-npm install          # Install deps (auto-generates .env from .env.example)
-npm run dev          # Dev server at http://localhost:20128
-npm run build        # Production build (Next.js 16 standalone)
-npm run lint         # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core  # TypeScript check (should be clean)
-npm run test:coverage   # Unit tests + coverage gate (60% min)
-npm run check        # lint + test combined
+npm install                    # Install deps (auto-generates .env from .env.example)
+npm run dev                    # Dev server at http://localhost:20128
+npm run build                  # Production build (Next.js 16 standalone)
+npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
+npm run typecheck:core         # TypeScript check (should be clean)
+npm run typecheck:noimplicit:core  # Strict check (no implicit any)
+npm run test:coverage          # Unit tests + coverage gate (60% min)
+npm run check                  # lint + test combined
+npm run check:cycles           # Detect circular dependencies
 ```
 
 ### Running a Single Test
@@ -171,6 +173,8 @@ Client → /v1/chat/completions (Next.js route)
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
 you must include or update tests in the same PR.
+
+**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
 
 ---
 

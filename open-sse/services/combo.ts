@@ -48,7 +48,8 @@ import {
 } from "../../src/domain/tagRouter.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
-const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
+// 401, 403 added so Auth errors quickly open the circuit breaker to prevent background request leaks
+const TRANSIENT_FOR_BREAKER = [401, 403, 429, 500, 502, 503, 504];
 const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /\bprohibited_content\b/i,
   /request blocked by .*api/i,
@@ -1028,6 +1029,7 @@ export async function handleComboChat({
   const strategy = combo.strategy || "priority";
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
+  let globalAttempts = 0;
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
@@ -1469,6 +1471,15 @@ export async function handleComboChat({
 
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
+      globalAttempts++;
+      if (globalAttempts > 30) {
+        log.warn(
+          "COMBO",
+          `Maximum combo attempts (30) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
+        );
+        return errorResponse(503, "Maximum combo retry limit reached");
+      }
+
       if (retry > 0) {
         log.info(
           "COMBO",
@@ -1778,6 +1789,7 @@ async function handleRoundRobinCombo({
   let earliestRetryAfter = null;
   let fallbackCount = 0;
   let recordedAttempts = 0;
+  let globalAttempts = 0;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -1829,6 +1841,15 @@ async function handleRoundRobinCombo({
     // Retry loop within this model
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
+        globalAttempts++;
+        if (globalAttempts > 30) {
+          log.warn(
+            "COMBO-RR",
+            `Maximum combo attempts (30) exceeded. Terminating loop to prevent runaway requests.`
+          );
+          return errorResponse(503, "Maximum combo retry limit reached");
+        }
+
         if (retry > 0) {
           log.info(
             "COMBO-RR",

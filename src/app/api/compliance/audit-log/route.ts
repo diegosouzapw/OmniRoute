@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { countAuditLog, getAuditLog } from "@/lib/compliance/index";
 
+export const dynamic = "force-dynamic";
+
 function parsePagination(value: string | null, fallback: number, min: number, max: number) {
   const parsed = Number.parseInt(value || "", 10);
   if (!Number.isFinite(parsed)) return fallback;

@@ -1,4 +1,8 @@
 // CLI Tools configuration
+import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
+
+const _cc = getClaudeCodeDefaultModels();
+
 export const CLI_TOOLS = {
   claude: {
     id: "claude",
@@ -20,25 +24,41 @@ export const CLI_TOOLS = {
     defaultCommand: "claude",
     defaultModels: [
       {
+        id: "model",
+        name: "Default Model",
+        alias: "model",
+        envKey: "ANTHROPIC_MODEL",
+        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
+        isTopLevel: true,
+      },
+      {
+        id: "smallFast",
+        name: "Small Fast Model",
+        alias: "smallFast",
+        envKey: "ANTHROPIC_SMALL_FAST_MODEL",
+        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
+        isTopLevel: true,
+      },
+      {
         id: "opus",
         name: "Claude Opus",
         alias: "opus",
         envKey: "ANTHROPIC_DEFAULT_OPUS_MODEL",
-        defaultValue: "cc/claude-opus-4-5-20251101",
+        defaultValue: _cc.opus ? `cc/${_cc.opus}` : "cc/claude-opus-4-5-20251101",
       },
       {
         id: "sonnet",
         name: "Claude Sonnet",
         alias: "sonnet",
         envKey: "ANTHROPIC_DEFAULT_SONNET_MODEL",
-        defaultValue: "cc/claude-sonnet-4-5-20250929",
+        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
       },
       {
         id: "haiku",
         name: "Claude Haiku",
         alias: "haiku",
         envKey: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-        defaultValue: "cc/claude-haiku-4-5-20251001",
+        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
       },
     ],
   },

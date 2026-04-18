@@ -170,7 +170,11 @@ export async function runWithProxyContext(proxyConfig, fn) {
     throw new TypeError("runWithProxyContext requires a callback function");
   }
 
-  const resolvedProxyUrl = proxyConfig ? proxyConfigToUrl(proxyConfig) : null;
+  // Inherit existing context if no specific proxyConfig is provided
+  const currentContext = proxyContext.getStore();
+  const effectiveProxyConfig = proxyConfig || currentContext || null;
+
+  const resolvedProxyUrl = effectiveProxyConfig ? proxyConfigToUrl(effectiveProxyConfig) : null;
 
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
@@ -188,8 +192,8 @@ export async function runWithProxyContext(proxyConfig, fn) {
     }
   }
 
-  return proxyContext.run(proxyConfig || null, async () => {
-    if (resolvedProxyUrl) {
+  return proxyContext.run(effectiveProxyConfig, async () => {
+    if (resolvedProxyUrl && effectiveProxyConfig !== currentContext) {
       console.log(
         `[ProxyFetch] Applied request proxy context: ${proxyUrlForLogs(resolvedProxyUrl)}`
       );

@@ -2149,3 +2149,22 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
   if (!entry) return "apikey"; // Safe default for unknown providers
   return entry.authType === "apikey" ? "apikey" : "oauth";
 }
+
+/**
+ * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
+ * Picks the first model whose ID matches each family pattern — registry order
+ * determines precedence, so newer models should be listed first.
+ */
+export function getClaudeCodeDefaultModels(): {
+  opus: string;
+  sonnet: string;
+  haiku: string;
+} {
+  const models = REGISTRY.claude?.models ?? [];
+  const find = (pattern: RegExp) => models.find((m) => pattern.test(m.id))?.id ?? "";
+  return {
+    opus: find(/opus/i),
+    sonnet: find(/sonnet/i),
+    haiku: find(/haiku/i),
+  };
+}
