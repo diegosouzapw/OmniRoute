@@ -109,8 +109,12 @@ const MALFORMED_REQUEST_PATTERNS = [
   /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
   /function.*name.*(?:blank|empty|missing)/i,
   /tool_call.*name.*(?:blank|empty|missing)/i,
-  // Content moderation errors
-  /敏感内容|内容存在.*敏感|无法响应.*请求|请检查/i,
+  // Content moderation errors — only match specific phrases that indicate policy-blocked content
+  // These are permanent errors: the prompt itself is blocked, not a transient issue
+  /\b敏感内容.*?(?:无法|无法响应|请检查|过滤)/i,
+  /内容.*敏感.*?(?:无法|过滤|被拦截)/i,
+  /无法响应.*?(?:请求|该内容)/i,
+  /抱歉.*?(?:敏感内容|内容.*敏感).*?(?:请检查|无法)/i,
 ];
 
 /**

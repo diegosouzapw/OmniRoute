@@ -83,7 +83,9 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /input length should be/i,
   // Transient 400 errors from upstream — should fallback to next combo target
   /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
-  /敏感内容|内容存在.*敏感|无法响应.*请求|请检查/i, // Content moderation errors
+  /抱歉.*?敏感内容.*?请检查/i, // ModelScope/Qwen content moderation with context
+  /内容.*?敏感.*?(?:无法|过滤)/i, // Content sensitivity block
+  /无法响应.*?请求/i, // "unable to respond to request"
   /稍后重试/i, // "retry later" in Chinese
   /temporary.*error/i,
   /transient.*error/i,

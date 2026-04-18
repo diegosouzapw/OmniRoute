@@ -753,6 +753,15 @@ test("shouldFallbackComboBadRequest only flags known provider-scoped 400 pattern
     true
   );
   assert.equal(shouldFallbackComboBadRequest(400, "input length should be"), true);
+  // Content moderation errors (should fallback to next model)
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "抱歉，您的内容包含敏感内容，请检查后重试"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "内容存在敏感信息，无法响应"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "无法响应该请求"), true);
+  // Generic "please check" should NOT match (was too broad before)
+  assert.equal(shouldFallbackComboBadRequest(400, "请检查您的参数"), false);
 });
 
 test("handleComboChat accepts binary and Responses-style 200 bodies but falls through malformed success payloads", async () => {
