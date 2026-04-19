@@ -205,6 +205,11 @@ function extractMemoryTextFromRequestBody(
   if (input && input.length > 0) {
     const chunks = input
       .map((item: Record<string, unknown>) => {
+        const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
+        const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
+        if (role && role !== "user") return "";
+        if (itemType && itemType !== "message") return "";
+
         if (typeof item?.content === "string") return item.content.trim();
         if (Array.isArray(item?.content)) {
           return item.content
@@ -234,13 +239,7 @@ function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): strin
   if (typeof rawId === "string" && rawId.trim().length > 0) {
     return rawId;
   }
-
-  const rawName = apiKeyInfo?.name;
-  if (typeof rawName === "string" && rawName.trim().length > 0) {
-    return `name:${rawName.trim().toLowerCase()}`;
-  }
-
-  return "local";
+  return null;
 }
 
 export function shouldUseNativeCodexPassthrough({

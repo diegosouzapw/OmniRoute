@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById } from "@/models";
-import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
+import {
+  getAccessToken,
+  updateProviderCredentials,
+} from "@omniroute/open-sse/services/tokenRefresh";
+
+type RefreshResult = {
+  accessToken?: string;
+  expiresIn?: number;
+  error?: string;
+};
 
 /**
  * POST /api/providers/[id]/refresh
@@ -33,7 +42,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
-    const provider = connection.provider as string;
+    if (typeof connection.provider !== "string" || connection.provider.length === 0) {
+      return NextResponse.json({ error: "Connection provider is invalid" }, { status: 422 });
+    }
+
+    const provider = connection.provider;
     const credentials = {
       connectionId: id,
       accessToken: connection.accessToken,
@@ -46,7 +59,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
     // Use the existing getAccessToken helper which knows how to refresh
     // tokens for each provider type (Claude, GitHub, Gemini, etc.)
-    const newCredentials = await getAccessToken(provider, credentials);
+    const newCredentials = (await getAccessToken(provider, credentials)) as RefreshResult | null;
 
     if (newCredentials && typeof newCredentials === "object" && newCredentials.error) {
       if (
@@ -54,7 +67,6 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         newCredentials.error === "refresh_token_reused" ||
         newCredentials.error === "invalid_grant"
       ) {
-        const { updateProviderConnection } = await import("@/lib/localDb");
         await updateProviderConnection(id, {
           testStatus: "invalid",
           lastError: "Refresh token expired. Please re-authenticate this account.",

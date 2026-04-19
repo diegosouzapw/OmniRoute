@@ -124,7 +124,7 @@ export function arePrivateProviderUrlsAllowed() {
   const value = process.env[PRIVATE_PROVIDER_URLS_ENV];
   if (value && TRUE_ENV_VALUES.has(value.trim().toLowerCase())) return true;
 
-  const legacyValue = process.env.OUTBOUND_SSRF_GUARD_ENABLED;
+  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
   if (legacyValue && ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase()))
     return true;
 

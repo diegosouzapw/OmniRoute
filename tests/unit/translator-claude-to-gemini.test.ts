@@ -5,8 +5,33 @@ const { claudeToGeminiRequest } =
   await import("../../open-sse/translator/request/claude-to-gemini.ts");
 const { DEFAULT_SAFETY_SETTINGS } =
   await import("../../open-sse/translator/helpers/geminiHelper.ts");
-const { DEFAULT_THINKING_GEMINI_SIGNATURE } =
-  await import("../../open-sse/config/defaultThinkingSignature.ts");
+
+type UnknownRecord = Record<string, unknown>;
+
+function getFunctionDeclarationParameters(parameters: unknown) {
+  assert.ok(
+    parameters && typeof parameters === "object",
+    "expected function declaration parameters"
+  );
+  return parameters as UnknownRecord & {
+    properties?: Record<string, UnknownRecord>;
+    examples?: unknown;
+  };
+}
+
+function getFunctionCall(part: unknown) {
+  assert.ok(part && typeof part === "object", "expected Gemini part");
+  const functionCall = (part as UnknownRecord).functionCall;
+  assert.ok(functionCall && typeof functionCall === "object", "expected functionCall");
+  return functionCall as { name: string };
+}
+
+function getFunctionResponse(part: unknown) {
+  assert.ok(part && typeof part === "object", "expected Gemini part");
+  const functionResponse = (part as UnknownRecord).functionResponse;
+  assert.ok(functionResponse && typeof functionResponse === "object", "expected functionResponse");
+  return functionResponse as { name: string };
+}
 
 test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", () => {
   const result = claudeToGeminiRequest(
@@ -74,7 +99,7 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
     includeThoughts: true,
   });
   assert.deepEqual(result.safetySettings, DEFAULT_SAFETY_SETTINGS);
-  assert.deepEqual(result.tools[0].functionDeclarations[0].parameters, {
+  assert.deepEqual((result as any).tools[0].functionDeclarations[0].parameters, {
     type: "object",
     properties: { city: { type: "string" } },
   });
@@ -163,17 +188,17 @@ test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () 
     false
   );
 
-  const sanitizedToolName = result.tools[0].functionDeclarations[0].name;
+  const sanitizedToolName = (result as any).tools[0].functionDeclarations[0].name as string;
+  const parameters = getFunctionDeclarationParameters(
+    (result as any).tools[0].functionDeclarations[0].parameters
+  );
   assert.ok(longToolName.length > 64);
   assert.equal(sanitizedToolName.length, 64);
-  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
-  assert.equal(result.contents[0].parts[0].functionCall.name, sanitizedToolName);
-  assert.equal(result.contents[1].parts[0].functionResponse.name, sanitizedToolName);
-  assert.equal(result.tools[0].functionDeclarations[0].parameters.examples, undefined);
-  assert.equal(
-    result.tools[0].functionDeclarations[0].parameters.properties.path["x-ui"],
-    undefined
-  );
+  assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
+  assert.equal(getFunctionCall(result.contents[0].parts[0]).name, sanitizedToolName);
+  assert.equal(getFunctionResponse(result.contents[1].parts[0]).name, sanitizedToolName);
+  assert.equal(parameters.examples, undefined);
+  assert.equal(parameters.properties?.path?.["x-ui"], undefined);
 });
 
 test("Claude -> Gemini handles empty bodies without producing invalid content", () => {
