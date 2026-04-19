@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
-const { extractUsage } = await import("../../open-sse/utils/usageTracking.ts");
+const { buildOpenAIUsage, extractUsage, getOpenAIPromptCacheDetails } =
+  await import("../../open-sse/utils/usageTracking.ts");
 
 test("extractUsageFromResponse reads OpenAI chat completion usage", () => {
   const usage = extractUsageFromResponse(
@@ -291,4 +292,34 @@ test("extractUsage reads OpenAI streaming chunk with prompt_tokens_details", () 
 
   assert.equal(usage.cached_tokens, 50);
   assert.equal(usage.reasoning_tokens, 20);
+});
+
+test("getOpenAIPromptCacheDetails reads nested cached and reasoning token details", () => {
+  const details = getOpenAIPromptCacheDetails({
+    input_tokens_details: { cached_tokens: 7, cache_creation_tokens: 3 },
+    output_tokens_details: { reasoning_tokens: 2 },
+  });
+
+  assert.deepEqual(details, {
+    cacheReadTokens: 7,
+    cacheCreationTokens: 3,
+    reasoningTokens: 2,
+  });
+});
+
+test("buildOpenAIUsage folds nested cached token details into prompt totals", () => {
+  const usage = buildOpenAIUsage({
+    input_tokens: 20,
+    output_tokens: 5,
+    input_tokens_details: { cached_tokens: 7 },
+    output_tokens_details: { reasoning_tokens: 2 },
+  });
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 27,
+    completion_tokens: 5,
+    total_tokens: 32,
+    prompt_tokens_details: { cached_tokens: 7 },
+    completion_tokens_details: { reasoning_tokens: 2 },
+  });
 });

@@ -1,5 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { buildOpenAIUsage, getOpenAIPromptCacheDetails } from "../../utils/usageTracking.ts";
 
 type OpenAIUsage = {
   prompt_tokens: number;
@@ -9,7 +10,27 @@ type OpenAIUsage = {
     cached_tokens?: number;
     cache_creation_tokens?: number;
   };
+  completion_tokens_details?: {
+    reasoning_tokens?: number;
+  };
 };
+
+function buildClaudeStateUsage(usage) {
+  const openAIUsage = buildOpenAIUsage(usage);
+  if (!openAIUsage) return null;
+
+  const inputTokens = Number(usage?.input_tokens ?? usage?.prompt_tokens ?? 0);
+  const outputTokens = Number(usage?.output_tokens ?? usage?.completion_tokens ?? 0);
+  const { cacheReadTokens, cacheCreationTokens } = getOpenAIPromptCacheDetails(usage);
+
+  return {
+    ...openAIUsage,
+    input_tokens: Number.isFinite(inputTokens) ? inputTokens : 0,
+    output_tokens: Number.isFinite(outputTokens) ? outputTokens : 0,
+    cache_read_input_tokens: cacheReadTokens,
+    cache_creation_input_tokens: cacheCreationTokens,
+  };
+}
 
 // Create OpenAI chunk helper
 function createChunk(state, delta, finishReason = null) {
@@ -112,51 +133,8 @@ export function claudeToOpenAIResponse(chunk, state) {
     }
 
     case "message_delta": {
-      // Extract usage from message_delta event (Claude native format)
-      // Normalize to OpenAI format (prompt_tokens/completion_tokens) for consistent logging
       if (chunk.usage && typeof chunk.usage === "object") {
-        const inputTokens =
-          typeof chunk.usage.input_tokens === "number" ? chunk.usage.input_tokens : 0;
-        const outputTokens =
-          typeof chunk.usage.output_tokens === "number" ? chunk.usage.output_tokens : 0;
-        const cacheReadTokens =
-          typeof chunk.usage.cache_read_input_tokens === "number"
-            ? chunk.usage.cache_read_input_tokens
-            : 0;
-        const cacheCreationTokens =
-          typeof chunk.usage.cache_creation_input_tokens === "number"
-            ? chunk.usage.cache_creation_input_tokens
-            : 0;
-
-        const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
-        const totalTokens = promptTokens + outputTokens;
-
-        // Use OpenAI format keys for consistent logging in stream.js
-        state.usage = {
-          prompt_tokens: promptTokens,
-          completion_tokens: outputTokens,
-          total_tokens: totalTokens,
-          input_tokens: inputTokens,
-          output_tokens: outputTokens,
-        };
-
-        // Store cache tokens if present
-        if (cacheReadTokens > 0) {
-          state.usage.cache_read_input_tokens = cacheReadTokens;
-        }
-        if (cacheCreationTokens > 0) {
-          state.usage.cache_creation_input_tokens = cacheCreationTokens;
-        }
-
-        if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
-          state.usage.prompt_tokens_details = {};
-          if (cacheReadTokens > 0) {
-            state.usage.prompt_tokens_details.cached_tokens = cacheReadTokens;
-          }
-          if (cacheCreationTokens > 0) {
-            state.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
-          }
-        }
+        state.usage = buildClaudeStateUsage(chunk.usage);
       }
 
       if (chunk.delta?.stop_reason) {
@@ -186,36 +164,8 @@ export function claudeToOpenAIResponse(chunk, state) {
           ],
         };
 
-        // Include usage in final chunk if available
         if (state.usage && typeof state.usage === "object") {
-          const inputTokens = state.usage.input_tokens || 0;
-          const outputTokens = state.usage.output_tokens || 0;
-          const cachedTokens = state.usage.cache_read_input_tokens || 0;
-          const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
-
-          // prompt_tokens = input_tokens + cache_read + cache_creation (all prompt-side tokens)
-          // completion_tokens = output_tokens
-          // total_tokens = prompt_tokens + completion_tokens
-          const promptTokens = inputTokens + cachedTokens + cacheCreationTokens;
-          const completionTokens = outputTokens;
-          const totalTokens = promptTokens + completionTokens;
-
-          finalChunk.usage = {
-            prompt_tokens: promptTokens,
-            completion_tokens: completionTokens,
-            total_tokens: totalTokens,
-          };
-
-          // Add prompt_tokens_details if cached tokens exist
-          if (cachedTokens > 0 || cacheCreationTokens > 0) {
-            finalChunk.usage.prompt_tokens_details = {};
-            if (cachedTokens > 0) {
-              finalChunk.usage.prompt_tokens_details.cached_tokens = cachedTokens;
-            }
-            if (cacheCreationTokens > 0) {
-              finalChunk.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
-            }
-          }
+          finalChunk.usage = buildOpenAIUsage(state.usage) as OpenAIUsage;
         }
 
         results.push(finalChunk);
@@ -230,31 +180,7 @@ export function claudeToOpenAIResponse(chunk, state) {
           state.finishReason || (state.toolCalls?.size > 0 ? "tool_calls" : "stop");
         const usageObj =
           state.usage && typeof state.usage === "object"
-            ? (() => {
-                const inputTokens = state.usage.input_tokens || 0;
-                const outputTokens = state.usage.output_tokens || 0;
-                const cachedTokens = state.usage.cache_read_input_tokens || 0;
-                const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
-                const promptTokens = inputTokens + cachedTokens + cacheCreationTokens;
-                const totalTokens = promptTokens + outputTokens;
-                const usage = {
-                  prompt_tokens: promptTokens,
-                  completion_tokens: outputTokens,
-                  total_tokens: totalTokens,
-                };
-
-                if (cachedTokens > 0 || cacheCreationTokens > 0) {
-                  usage.prompt_tokens_details = {};
-                  if (cachedTokens > 0) {
-                    usage.prompt_tokens_details.cached_tokens = cachedTokens;
-                  }
-                  if (cacheCreationTokens > 0) {
-                    usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
-                  }
-                }
-
-                return { usage };
-              })()
+            ? { usage: buildOpenAIUsage(state.usage) }
             : {};
         results.push({
           id: `chatcmpl-${state.messageId}`,

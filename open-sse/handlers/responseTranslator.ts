@@ -1,4 +1,5 @@
 import { FORMATS } from "../translator/formats.ts";
+import { buildOpenAIUsage } from "../utils/usageTracking.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -186,31 +187,9 @@ export function translateNonStreamingResponse(
     };
 
     if (Object.keys(usage).length > 0) {
-      const inputTokens = toNumber(usage.input_tokens, 0);
-      const cacheReadTokens = toNumber(usage.cache_read_input_tokens, 0);
-      const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
-      const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
-      const outputTokens = toNumber(usage.output_tokens, 0);
-      result.usage = {
-        prompt_tokens: promptTokens,
-        completion_tokens: outputTokens,
-        total_tokens: promptTokens + outputTokens,
-      };
-
-      if (toNumber(usage.reasoning_tokens, 0) > 0) {
-        (result.usage as JsonRecord).completion_tokens_details = {
-          reasoning_tokens: toNumber(usage.reasoning_tokens, 0),
-        };
-      }
-      if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
-        (result.usage as JsonRecord).prompt_tokens_details = {};
-        const promptDetails = (result.usage as JsonRecord).prompt_tokens_details as JsonRecord;
-        if (cacheReadTokens > 0) {
-          promptDetails.cached_tokens = cacheReadTokens;
-        }
-        if (cacheCreationTokens > 0) {
-          promptDetails.cache_creation_tokens = cacheCreationTokens;
-        }
+      const openAIUsage = buildOpenAIUsage(usage);
+      if (openAIUsage) {
+        result.usage = openAIUsage;
       }
     }
 
@@ -428,25 +407,9 @@ export function translateNonStreamingResponse(
 
       const usage = toRecord(root.usage);
       if (Object.keys(usage).length > 0) {
-        const inputTokens = toNumber(usage.input_tokens, 0);
-        const cacheReadTokens = toNumber(usage.cache_read_input_tokens, 0);
-        const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
-        const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
-        const completionTokens = toNumber(usage.output_tokens, 0);
-        result.usage = {
-          prompt_tokens: promptTokens,
-          completion_tokens: completionTokens,
-          total_tokens: promptTokens + completionTokens,
-        };
-        if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
-          (result.usage as JsonRecord).prompt_tokens_details = {};
-          const promptDetails = (result.usage as JsonRecord).prompt_tokens_details as JsonRecord;
-          if (cacheReadTokens > 0) {
-            promptDetails.cached_tokens = cacheReadTokens;
-          }
-          if (cacheCreationTokens > 0) {
-            promptDetails.cache_creation_tokens = cacheCreationTokens;
-          }
+        const openAIUsage = buildOpenAIUsage(usage);
+        if (openAIUsage) {
+          result.usage = openAIUsage;
         }
       }
 

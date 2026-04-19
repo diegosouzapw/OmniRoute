@@ -137,6 +137,78 @@ export function addBufferToUsage(usage) {
   return result;
 }
 
+export function getOpenAIPromptCacheDetails(usage) {
+  if (!usage || typeof usage !== "object") {
+    return {
+      cacheReadTokens: 0,
+      cacheCreationTokens: 0,
+      reasoningTokens: 0,
+    };
+  }
+
+  const cacheReadTokens = Number(
+    usage.cache_read_input_tokens ??
+      usage.cached_tokens ??
+      usage.prompt_tokens_details?.cached_tokens ??
+      usage.input_tokens_details?.cached_tokens ??
+      0
+  );
+  const cacheCreationTokens = Number(
+    usage.cache_creation_input_tokens ??
+      usage.prompt_tokens_details?.cache_creation_tokens ??
+      usage.input_tokens_details?.cache_creation_tokens ??
+      0
+  );
+  const reasoningTokens = Number(
+    usage.reasoning_tokens ??
+      usage.completion_tokens_details?.reasoning_tokens ??
+      usage.output_tokens_details?.reasoning_tokens ??
+      0
+  );
+
+  return {
+    cacheReadTokens: Number.isFinite(cacheReadTokens) ? cacheReadTokens : 0,
+    cacheCreationTokens: Number.isFinite(cacheCreationTokens) ? cacheCreationTokens : 0,
+    reasoningTokens: Number.isFinite(reasoningTokens) ? reasoningTokens : 0,
+  };
+}
+
+export function buildOpenAIUsage(usage) {
+  if (!usage || typeof usage !== "object") return null;
+
+  const inputTokens = Number(usage.input_tokens ?? usage.prompt_tokens ?? 0);
+  const outputTokens = Number(usage.output_tokens ?? usage.completion_tokens ?? 0);
+  const promptTokensBase = Number.isFinite(inputTokens) ? inputTokens : 0;
+  const completionTokens = Number.isFinite(outputTokens) ? outputTokens : 0;
+  const { cacheReadTokens, cacheCreationTokens, reasoningTokens } =
+    getOpenAIPromptCacheDetails(usage);
+  const promptTokens = promptTokensBase + cacheReadTokens + cacheCreationTokens;
+
+  const normalizedUsage = {
+    prompt_tokens: promptTokens,
+    completion_tokens: completionTokens,
+    total_tokens: promptTokens + completionTokens,
+  };
+
+  if (reasoningTokens > 0) {
+    normalizedUsage.completion_tokens_details = {
+      reasoning_tokens: reasoningTokens,
+    };
+  }
+
+  if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
+    normalizedUsage.prompt_tokens_details = {};
+    if (cacheReadTokens > 0) {
+      normalizedUsage.prompt_tokens_details.cached_tokens = cacheReadTokens;
+    }
+    if (cacheCreationTokens > 0) {
+      normalizedUsage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+    }
+  }
+
+  return normalizedUsage;
+}
+
 export function filterUsageForFormat(usage, targetFormat) {
   if (!usage || typeof usage !== "object") return usage;
 

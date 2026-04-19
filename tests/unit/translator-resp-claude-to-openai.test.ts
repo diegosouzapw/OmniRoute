@@ -283,3 +283,35 @@ test("Claude stream: message_stop fallback preserves cached prompt tokens in usa
 test("Claude stream: unsupported events return null", () => {
   assert.equal(claudeToOpenAIResponse({ type: "error" }, createState()), null);
 });
+
+test("Responses non-stream: OpenAI-compatible cached token details are read from nested detail objects", () => {
+  const result = translateNonStreamingResponse(
+    {
+      id: "resp_123",
+      object: "response",
+      model: "gpt-4.1",
+      output: [
+        {
+          id: "msg_1",
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text: "Hello" }],
+        },
+      ],
+      usage: {
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 7 },
+        output_tokens_details: { reasoning_tokens: 2 },
+      },
+    },
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI
+  );
+
+  assert.equal(result.usage.prompt_tokens, 27);
+  assert.equal(result.usage.completion_tokens, 5);
+  assert.equal(result.usage.total_tokens, 32);
+  assert.equal(result.usage.prompt_tokens_details.cached_tokens, 7);
+  assert.equal(result.usage.completion_tokens_details.reasoning_tokens, 2);
+});
