@@ -114,14 +114,10 @@ test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, 
       content: [{ type: "text", text: "draft answer\nalternate answer" }],
     },
   ]);
-  assert.equal(payload.system.length, 4);
+  assert.equal(payload.system.length, 3);
   assert.match(payload.system[0].text, /Claude Agent SDK/);
-  assert.match(
-    payload.system[1].text,
-    /interactive agent that helps users with software engineering tasks/
-  );
-  assert.equal(payload.system[2].text, "system note");
-  assert.equal(payload.system[3].text, "developer note");
+  assert.equal(payload.system[1].text, "system note");
+  assert.equal(payload.system[2].text, "developer note");
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_account",
@@ -226,7 +222,7 @@ test("buildClaudeCodeCompatibleRequest omits tool choice when there are no tools
   assert.equal(payload.tools.length, 0);
   assert.equal("tool_choice" in payload, false);
   assert.equal(payload.output_config.effort, "high");
-  assert.equal(payload.system.length, 2);
+  assert.equal(payload.system.length, 1);
   assert.match(payload.system[0].text, /Claude Agent SDK/);
 });
 
