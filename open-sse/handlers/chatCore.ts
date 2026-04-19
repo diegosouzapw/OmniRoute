@@ -1198,7 +1198,11 @@ export async function handleChatCore({
       sourceFormat,
       targetFormat,
       backgroundReason,
-      messages: Array.isArray(body.messages) ? body.messages : undefined,
+      messages: Array.isArray(body.messages)
+        ? body.messages
+        : Array.isArray(body.input)
+          ? body.input
+          : undefined,
     });
 
     if (mergedTools.length > existingTools.length) {
