@@ -187,11 +187,14 @@ export function translateNonStreamingResponse(
 
     if (Object.keys(usage).length > 0) {
       const inputTokens = toNumber(usage.input_tokens, 0);
+      const cacheReadTokens = toNumber(usage.cache_read_input_tokens, 0);
+      const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
+      const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
       const outputTokens = toNumber(usage.output_tokens, 0);
       result.usage = {
-        prompt_tokens: inputTokens,
+        prompt_tokens: promptTokens,
         completion_tokens: outputTokens,
-        total_tokens: inputTokens + outputTokens,
+        total_tokens: promptTokens + outputTokens,
       };
 
       if (toNumber(usage.reasoning_tokens, 0) > 0) {
@@ -199,17 +202,14 @@ export function translateNonStreamingResponse(
           reasoning_tokens: toNumber(usage.reasoning_tokens, 0),
         };
       }
-      if (
-        toNumber(usage.cache_read_input_tokens, 0) > 0 ||
-        toNumber(usage.cache_creation_input_tokens, 0) > 0
-      ) {
+      if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
         (result.usage as JsonRecord).prompt_tokens_details = {};
         const promptDetails = (result.usage as JsonRecord).prompt_tokens_details as JsonRecord;
-        if (toNumber(usage.cache_read_input_tokens, 0) > 0) {
-          promptDetails.cached_tokens = toNumber(usage.cache_read_input_tokens, 0);
+        if (cacheReadTokens > 0) {
+          promptDetails.cached_tokens = cacheReadTokens;
         }
-        if (toNumber(usage.cache_creation_input_tokens, 0) > 0) {
-          promptDetails.cache_creation_tokens = toNumber(usage.cache_creation_input_tokens, 0);
+        if (cacheCreationTokens > 0) {
+          promptDetails.cache_creation_tokens = cacheCreationTokens;
         }
       }
     }
@@ -428,13 +428,26 @@ export function translateNonStreamingResponse(
 
       const usage = toRecord(root.usage);
       if (Object.keys(usage).length > 0) {
-        const promptTokens = toNumber(usage.input_tokens, 0);
+        const inputTokens = toNumber(usage.input_tokens, 0);
+        const cacheReadTokens = toNumber(usage.cache_read_input_tokens, 0);
+        const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
+        const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
         const completionTokens = toNumber(usage.output_tokens, 0);
         result.usage = {
           prompt_tokens: promptTokens,
           completion_tokens: completionTokens,
           total_tokens: promptTokens + completionTokens,
         };
+        if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
+          (result.usage as JsonRecord).prompt_tokens_details = {};
+          const promptDetails = (result.usage as JsonRecord).prompt_tokens_details as JsonRecord;
+          if (cacheReadTokens > 0) {
+            promptDetails.cached_tokens = cacheReadTokens;
+          }
+          if (cacheCreationTokens > 0) {
+            promptDetails.cache_creation_tokens = cacheCreationTokens;
+          }
+        }
       }
 
       intermediateOpenAI = result;

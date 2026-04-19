@@ -453,7 +453,12 @@ export function createSSEStream(options: StreamOptions = {}) {
       const estimated = estimateUsage(body, totalContentLength, sourceFormat);
       itemSanitized.usage = filterUsageForFormat(estimated, sourceFormat);
       state.usage = estimated;
-    } else if (state?.finishReason && isFinishChunk && state.usage) {
+    } else if (
+      state?.finishReason &&
+      isFinishChunk &&
+      state.usage &&
+      !hasValidUsage(itemSanitized.usage)
+    ) {
       const buffered = addBufferToUsage(state.usage);
       itemSanitized.usage = filterUsageForFormat(buffered, sourceFormat);
     }
@@ -1096,6 +1101,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     },
                   ],
                   usage: {
+                    ...(usage && typeof usage === "object" ? usage : {}),
                     prompt_tokens: prompt,
                     completion_tokens: completion,
                     total_tokens: prompt + completion,
@@ -1302,6 +1308,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   },
                 ],
                 usage: {
+                  ...(u && typeof u === "object" ? u : {}),
                   prompt_tokens: prompt,
                   completion_tokens: completion,
                   total_tokens: prompt + completion,

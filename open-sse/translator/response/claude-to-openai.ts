@@ -128,10 +128,14 @@ export function claudeToOpenAIResponse(chunk, state) {
             ? chunk.usage.cache_creation_input_tokens
             : 0;
 
+        const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
+        const totalTokens = promptTokens + outputTokens;
+
         // Use OpenAI format keys for consistent logging in stream.js
         state.usage = {
-          prompt_tokens: inputTokens,
+          prompt_tokens: promptTokens,
           completion_tokens: outputTokens,
+          total_tokens: totalTokens,
           input_tokens: inputTokens,
           output_tokens: outputTokens,
         };
@@ -142,6 +146,16 @@ export function claudeToOpenAIResponse(chunk, state) {
         }
         if (cacheCreationTokens > 0) {
           state.usage.cache_creation_input_tokens = cacheCreationTokens;
+        }
+
+        if (cacheReadTokens > 0 || cacheCreationTokens > 0) {
+          state.usage.prompt_tokens_details = {};
+          if (cacheReadTokens > 0) {
+            state.usage.prompt_tokens_details.cached_tokens = cacheReadTokens;
+          }
+          if (cacheCreationTokens > 0) {
+            state.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+          }
         }
       }
 
@@ -216,13 +230,31 @@ export function claudeToOpenAIResponse(chunk, state) {
           state.finishReason || (state.toolCalls?.size > 0 ? "tool_calls" : "stop");
         const usageObj =
           state.usage && typeof state.usage === "object"
-            ? {
-                usage: {
-                  prompt_tokens: state.usage.input_tokens || 0,
-                  completion_tokens: state.usage.output_tokens || 0,
-                  total_tokens: (state.usage.input_tokens || 0) + (state.usage.output_tokens || 0),
-                },
-              }
+            ? (() => {
+                const inputTokens = state.usage.input_tokens || 0;
+                const outputTokens = state.usage.output_tokens || 0;
+                const cachedTokens = state.usage.cache_read_input_tokens || 0;
+                const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
+                const promptTokens = inputTokens + cachedTokens + cacheCreationTokens;
+                const totalTokens = promptTokens + outputTokens;
+                const usage = {
+                  prompt_tokens: promptTokens,
+                  completion_tokens: outputTokens,
+                  total_tokens: totalTokens,
+                };
+
+                if (cachedTokens > 0 || cacheCreationTokens > 0) {
+                  usage.prompt_tokens_details = {};
+                  if (cachedTokens > 0) {
+                    usage.prompt_tokens_details.cached_tokens = cachedTokens;
+                  }
+                  if (cacheCreationTokens > 0) {
+                    usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+                  }
+                }
+
+                return { usage };
+              })()
             : {};
         results.push({
           id: `chatcmpl-${state.messageId}`,

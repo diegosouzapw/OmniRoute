@@ -76,6 +76,31 @@ test("Claude non-stream: end_turn becomes stop and empty text is preserved", () 
   assert.equal(result.model, "claude-3-5-haiku");
 });
 
+test("Claude non-stream: usage.prompt_tokens includes cache read and cache creation tokens", () => {
+  const result = translateNonStreamingResponse(
+    {
+      id: "msg_cached",
+      model: "claude-3-7-sonnet",
+      content: [{ type: "text", text: "cached reply" }],
+      stop_reason: "end_turn",
+      usage: {
+        input_tokens: 384,
+        output_tokens: 28,
+        cache_read_input_tokens: 37248,
+        cache_creation_input_tokens: 16,
+      },
+    },
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI
+  );
+
+  assert.equal(result.usage.prompt_tokens, 37648);
+  assert.equal(result.usage.completion_tokens, 28);
+  assert.equal(result.usage.total_tokens, 37676);
+  assert.equal(result.usage.prompt_tokens_details.cached_tokens, 37248);
+  assert.equal(result.usage.prompt_tokens_details.cache_creation_tokens, 16);
+});
+
 test("Claude stream: message_start emits initial assistant role chunk", () => {
   const result = claudeToOpenAIResponse(
     {
@@ -226,6 +251,33 @@ test("Claude stream: message_stop falls back to tool_calls when tool use already
   const result = claudeToOpenAIResponse({ type: "message_stop" }, state);
 
   assert.equal(result[0].choices[0].finish_reason, "tool_calls");
+});
+
+test("Claude stream: message_stop fallback preserves cached prompt tokens in usage", () => {
+  const state = createState();
+  claudeToOpenAIResponse(
+    { type: "message_start", message: { id: "msg1", model: "claude-3-7-sonnet" } },
+    state
+  );
+  claudeToOpenAIResponse(
+    {
+      type: "message_delta",
+      usage: {
+        input_tokens: 10,
+        output_tokens: 4,
+        cache_read_input_tokens: 2,
+        cache_creation_input_tokens: 1,
+      },
+    },
+    state
+  );
+
+  const result = claudeToOpenAIResponse({ type: "message_stop" }, state);
+
+  assert.equal(result[0].choices[0].finish_reason, "stop");
+  assert.equal(result[0].usage.prompt_tokens, 13);
+  assert.equal(result[0].usage.completion_tokens, 4);
+  assert.equal(result[0].usage.total_tokens, 17);
 });
 
 test("Claude stream: unsupported events return null", () => {

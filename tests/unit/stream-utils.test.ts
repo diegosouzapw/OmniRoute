@@ -661,6 +661,130 @@ test("createSSETransformStreamWithLogger flushes a trailing Claude usage event w
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 5);
 });
 
+test("createSSEStream translate mode preserves cached Claude prompt tokens in final OpenAI usage", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_cached_usage",
+          model: "claude-sonnet-4",
+          role: "assistant",
+          usage: { input_tokens: 10 },
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_start",
+        index: 0,
+        content_block: { type: "text", text: "" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "Cached hello" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn" },
+        usage: {
+          input_tokens: 10,
+          output_tokens: 4,
+          cache_read_input_tokens: 2,
+          cache_creation_input_tokens: 1,
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_stop",
+      })}\n\n`,
+    ],
+    {
+      mode: "translate",
+      targetFormat: FORMATS.CLAUDE,
+      sourceFormat: FORMATS.OPENAI,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"prompt_tokens":13/);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Cached hello");
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 13);
+  assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 4);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 17);
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens_details.cached_tokens, 2);
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens_details.cache_creation_tokens, 1);
+});
+
+test("createSSEStream translate mode keeps cached Claude prompt totals after extractUsage normalizes state", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_cached_overwrite",
+          model: "claude-sonnet-4",
+          role: "assistant",
+          usage: {
+            input_tokens: 384,
+            cache_read_input_tokens: 37248,
+          },
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_start",
+        index: 0,
+        content_block: { type: "text", text: "" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "Cached follow-up" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn" },
+        usage: {
+          input_tokens: 384,
+          output_tokens: 28,
+          cache_read_input_tokens: 37248,
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_stop",
+      })}\n\n`,
+    ],
+    {
+      mode: "translate",
+      targetFormat: FORMATS.CLAUDE,
+      sourceFormat: FORMATS.OPENAI,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      body: {
+        messages: [{ role: "user", content: "follow up" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"prompt_tokens":37632/);
+  assert.match(text, /"completion_tokens":28/);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Cached follow-up");
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 37632);
+  assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 28);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 37660);
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens_details.cached_tokens, 37248);
+});
+
 test("buildStreamSummaryFromEvents compacts Responses API deltas into a synthetic response", () => {
   const summary = buildStreamSummaryFromEvents(
     [
