@@ -98,7 +98,12 @@ test("buildClaudeCodeCompatibleValidationPayload produces the expected smoke-tes
     content: [{ type: "text", text: "ok" }],
   });
   assert.equal(payload.tools.length, 0);
-  assert.deepEqual(payload.system, []);
+  assert.equal(payload.system.length, 2);
+  assert.match(payload.system[0].text, /Claude Agent SDK/);
+  assert.match(
+    payload.system[1].text,
+    /interactive agent that helps users with software engineering tasks/
+  );
   assert.ok(JSON.parse(payload.metadata.user_id).session_id);
   assert.ok(CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS > payload.max_tokens);
 });
