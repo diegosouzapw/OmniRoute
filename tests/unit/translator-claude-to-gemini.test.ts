@@ -80,11 +80,11 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
     parts: [{ text: "Rules" }],
   });
   assert.equal(result.contents[0].role, "model");
-  assert.deepEqual(result.contents[0].parts[0], { thought: true, text: "need tool" });
-  assert.deepEqual(result.contents[0].parts[1], {
+  assert.deepEqual(result.contents[0].parts[0] as any, { thought: true, text: "need tool" });
+  assert.deepEqual(result.contents[0].parts[1] as any, {
     functionCall: { id: "tu_1", name: "weather", args: { city: "Tokyo" } },
   });
-  assert.deepEqual(result.contents[1].parts[0], {
+  assert.deepEqual(result.contents[1].parts[0] as any, {
     functionResponse: {
       id: "tu_1",
       name: "weather",
@@ -149,8 +149,8 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
 
   assert.equal(result.contents.length, 1);
   assert.equal(result.contents[0].role, "model");
-  assert.equal(result.contents[0].parts[0].functionCall.name, "read_file");
-  assert.equal(result.contents[0].parts[0].thoughtSignature, undefined);
+  assert.equal((result.contents[0].parts[0] as any).functionCall.name, "read_file");
+  assert.equal((result.contents[0].parts[0] as any).thoughtSignature, undefined);
 });
 
 test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {
@@ -195,8 +195,8 @@ test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () 
   assert.ok(longToolName.length > 64);
   assert.equal(sanitizedToolName.length, 64);
   assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
-  assert.equal(getFunctionCall(result.contents[0].parts[0]).name, sanitizedToolName);
-  assert.equal(getFunctionResponse(result.contents[1].parts[0]).name, sanitizedToolName);
+  assert.equal(getFunctionCall(result.contents[0].parts[0] as any).name, sanitizedToolName);
+  assert.equal(getFunctionResponse(result.contents[1].parts[0] as any).name, sanitizedToolName);
   assert.equal(parameters.examples, undefined);
   assert.equal(parameters.properties?.path?.["x-ui"], undefined);
 });

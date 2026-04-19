@@ -858,7 +858,7 @@ test("isProviderBlocked clears expired circuit-breaker entries once cooldown pas
     await refreshWithRetry(async () => null, 1, log, provider);
   }
 
-  const blockedUntil = Date.parse(getCircuitBreakerStatus()[provider].blockedUntil);
+  const blockedUntil = Date.parse(getCircuitBreakerStatus()[provider].blockedUntil as string);
 
   await withMockedNow(blockedUntil + 1, async () => {
     assert.equal(isProviderBlocked(provider), false);

@@ -467,7 +467,7 @@ test("OpenAI -> Antigravity keeps googleSearch without function calling config",
       ],
     },
     false,
-    { projectId: "proj-search" }
+    { projectId: "proj-search" } as any
   );
 
   assert.deepEqual((result as any).request?.tools, [{ googleSearch: {} }]);
@@ -498,7 +498,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
       reasoning_effort: "medium",
     },
     false,
-    { projectId: "proj-1" }
+    { projectId: "proj-1" } as any
   );
 
   assert.equal(result.project, "proj-1");
@@ -553,7 +553,7 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
       ],
     },
     false,
-    { projectId: "proj-claude" }
+    { projectId: "proj-claude" } as any
   );
 
   assert.equal(result.project, "proj-claude");
@@ -619,7 +619,7 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
       ],
     },
     false,
-    { projectId: "proj-claude-map" }
+    { projectId: "proj-claude-map" } as any
   );
 
   const sanitizedToolName = (result as any).request?.tools[0].functionDeclarations[0].name;
