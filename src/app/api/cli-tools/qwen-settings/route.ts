@@ -47,12 +47,20 @@ const hasOmniRouteConfig = (settings: any) => {
   if (!settings || !settings.modelProviders) return false;
   const openai = settings.modelProviders.openai;
   if (!Array.isArray(openai)) return false;
-  return openai.some(
-    (p: any) =>
-      p.name?.includes("OmniRoute") ||
-      p.id === "omniroute" ||
-      (p.baseUrl && !p.baseUrl.includes("dashscope") && !p.baseUrl.includes("openai.com"))
-  );
+  return openai.some((p: any) => {
+    if (p.name?.includes("OmniRoute") || p.id === "omniroute") return true;
+    if (!p.baseUrl) return false;
+    try {
+      const urlObj = new URL(p.baseUrl);
+      const host = urlObj.hostname;
+      const isDashScope =
+        host === "dashscope.aliyuncs.com" || host.endsWith(".dashscope.aliyuncs.com");
+      const isOpenAI = host === "api.openai.com" || host.endsWith(".openai.com");
+      return !isDashScope && !isOpenAI;
+    } catch {
+      return true; // invalid URLs are treated as custom endpoints
+    }
+  });
 };
 
 // GET - Check Qwen CLI and read current settings
