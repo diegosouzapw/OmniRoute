@@ -1708,6 +1708,7 @@ export async function handleChatCore({
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
             clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            onCredentialsRefreshed,
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1910,6 +1911,7 @@ export async function handleChatCore({
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
           clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+          onCredentialsRefreshed,
         });
 
         if (retryResult.response.ok) {

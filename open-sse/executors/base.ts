@@ -81,6 +81,8 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Callback to persist tokens that are proactively refreshed during execution. */
+  onCredentialsRefreshed?: (newCredentials: any) => Promise<void> | void;
 };
 
 export type CountTokensInput = {
@@ -387,6 +389,11 @@ export class BaseExecutor {
             ...credentials,
             ...refreshed,
           };
+          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
+          // without updating the central database connection.
+          if (arguments[0].onCredentialsRefreshed) {
+            await arguments[0].onCredentialsRefreshed(refreshed);
+          }
         }
       } catch (error) {
         log?.warn?.(
