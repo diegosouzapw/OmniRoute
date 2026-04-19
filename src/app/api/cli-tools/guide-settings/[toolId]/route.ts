@@ -45,6 +45,17 @@ export async function POST(request, { params }) {
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
         // opencode reads ~/.config/opencode/config.toml — write the OmniRoute settings there.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model });
+      case "qwen":
+        // @deprecated Qwen 配置保存功能已废弃，手动配置 ~/.qwen/settings.json
+        return NextResponse.json(
+          {
+            error: "Qwen config save is deprecated",
+            message:
+              "Please manually configure ~/.qwen/settings.json with OmniRoute as the provider",
+            deprecatedSince: "v3.7.0",
+          },
+          { status: 410 }
+        );
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
