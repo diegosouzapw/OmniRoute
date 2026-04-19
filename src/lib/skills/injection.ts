@@ -132,17 +132,21 @@ function buildContextText(options: InjectionOptions): string {
   return parts.filter(Boolean).join(" ");
 }
 
-function scoreAutoSkill(skill: Skill, options: InjectionOptions, contextText: string): number {
+function scoreAutoSkill(
+  skill: Skill,
+  options: InjectionOptions,
+  contextText: string,
+  contextTokens: Set<string>,
+  backgroundTokens: Set<string>
+): number {
   const name = skill.name.toLowerCase();
   const tags = (Array.isArray(skill.tags) ? skill.tags : []).map((tag) =>
     String(tag).toLowerCase()
   );
   const description = toLowerText(skill.description);
 
-  const contextTokens = extractTokens(contextText);
   const nameTokens = splitNameTokens(skill.name);
   const descriptionTokens = extractTokens(description);
-  const backgroundTokens = extractTokens(toLowerText(options.backgroundReason));
 
   let score = 0;
 
@@ -196,6 +200,8 @@ function scoreAutoSkill(skill: Skill, options: InjectionOptions, contextText: st
 
 export function injectSkills(options: InjectionOptions): unknown[] {
   const contextText = buildContextText(options);
+  const contextTokens = extractTokens(contextText);
+  const backgroundTokens = extractTokens(toLowerText(options.backgroundReason));
   const selectedSkills = skillRegistry.list(options.apiKeyId).filter((s) => {
     const mode = s.mode || (s.enabled ? "on" : "off");
     if (mode === "off") return false;
@@ -215,7 +221,7 @@ export function injectSkills(options: InjectionOptions): unknown[] {
   const autoSkills = autoCandidates
     .map((skill) => ({
       skill,
-      score: scoreAutoSkill(skill, options, contextText),
+      score: scoreAutoSkill(skill, options, contextText, contextTokens, backgroundTokens),
     }))
     .filter((entry) => entry.score >= AUTO_MIN_SCORE)
     .sort((a, b) => {
