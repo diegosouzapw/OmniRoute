@@ -16,7 +16,7 @@
 ### 🐛 Bug Fixes
 
 - **fix(providers):** Fix `usage.prompt_tokens` under-reporting when translating Claude caching responses to OpenAI format (#1426)
-- **fix(core):** Fix token refresh resilience for Codex providers. Unrecoverable OAuth refresh errors now correctly mark the connection as invalid to prompt user re-authentication, rather than silently failing (#1415)
+- **fix(core):** Fix token refresh resilience for Codex providers. Unrecoverable OAuth refresh errors (`token_expired` and `invalid_token`) now correctly mark the connection as invalid to prompt user re-authentication, rather than silently failing (#1415)
 - **fix(providers):** Fix Gemini tool calling by removing the unsupported `additionalProperties` schema field, resolving 400 errors during complex tool invocations (#1421)
 - **fix(providers):** Remove arbitrary user thought signature injection in Gemini responses to comply with updated API constraints (#1410)
 - **fix(providers):** Fix Gemini API part count mismatch for streaming responses (#1412)

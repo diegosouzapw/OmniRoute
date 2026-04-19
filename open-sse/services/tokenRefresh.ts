@@ -451,7 +451,12 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
         // not JSON, ignore
       }
 
-      if (errorCode === "refresh_token_reused" || errorCode === "invalid_grant") {
+      if (
+        errorCode === "refresh_token_reused" ||
+        errorCode === "invalid_grant" ||
+        errorCode === "token_expired" ||
+        errorCode === "invalid_token"
+      ) {
         log?.error?.(
           "TOKEN_REFRESH",
           "Codex refresh token already used or invalid. Re-authentication required.",
