@@ -553,6 +553,14 @@ export function openaiToOpenAIResponsesRequest(
     result.max_output_tokens = root.max_tokens;
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  if (root.reasoning !== undefined) {
+    result.reasoning = root.reasoning;
+  } else if (root.reasoning_effort !== undefined) {
+    const effort = toString(root.reasoning_effort);
+    if (effort) {
+      result.reasoning = { effort };
+    }
+  }
   if (storeEnabled) {
     if (root[RESPONSES_STORE_MARKER] !== undefined) {
       result.store = root[RESPONSES_STORE_MARKER];
