@@ -12,7 +12,7 @@
     "strict": false,
     "jsx": "react-jsx",
     "lib": ["dom", "esnext"],
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "baseUrl": "..",
     "paths": {
       "@/*": ["./src/*"],

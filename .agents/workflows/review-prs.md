@@ -163,9 +163,9 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 
 ### 7. Pre-Merge Fixes & CI Green-Lighting (if approved)
 
-> **⚠️ Fixes should be pushed back to the PR branch before merging.** We want the PR itself to be green and fully valid before it integrates.
+> **⚠️ Fixes and Conflict Resolutions MUST be pushed back to the PR branch before merging.** We want the PR itself to be green and fully valid before it integrates.
 
-- **Sync latest fixes:** Merge the current `release` branch into the PR branch so the PR inherits any latest CI or integration test fixes (preventing false-positive failures).
+- **Sync latest fixes & Resolve Conflicts:** Merge the current `release` branch into the PR branch. If there are merge conflicts, you MUST resolve them inside the author's PR branch. NEVER resolve conflicts by closing their PR and doing the work in a separate branch, as this steals credit from the original author.
 - **Implement improvements:** Apply the required fixes identified in the analysis directly on the PR branch (e.g., adding missing API routes, fixing SSRF, applying comments from other agents).
 - **Pushing changes to PR branches:**
 
@@ -195,13 +195,13 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 
 ### 8. Merge into Release Branch (NEVER CLOSE!)
 
-> **⚠️ CRITICAL**: NEVER use `gh pr close` for a PR whose idea or code was accepted. Closing a PR in a contributor's face after taking their idea is unacceptable.
-> You MUST ALWAYS merge the PR using GitHub so the contributor gets the official "Merged" badge and proper credit on their profile.
+> **⚠️ CRITICAL**: NEVER use `gh pr close` for a PR whose idea or code was accepted. Closing a PR in a contributor's face after taking their idea—or closing it just because it had conflicts—is unacceptable.
+> You MUST ALWAYS resolve conflicts and apply fixes on the author's PR branch, and then merge the PR using GitHub so the contributor gets the official "Merged" badge and proper credit on their profile.
 
 Even if the PR had severe conflicts or required significant architectural adjustments, you MUST:
 
-1. Apply the fixes directly to their PR branch (as detailed in step 7).
-2. Once the PR branch is green and correct, merge it into the release branch using the GitHub CLI.
+1. Resolve any conflicts and apply the fixes directly to their PR branch (as detailed in step 7).
+2. Once the PR branch is green, conflict-free, and correct, merge it into the release branch using the GitHub CLI.
 
 ```bash
 # Merge the PR (base is already set to release/vX.Y.Z from step 3.5)

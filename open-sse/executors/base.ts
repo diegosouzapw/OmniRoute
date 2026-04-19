@@ -50,6 +50,7 @@ export type ProviderConfig = {
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   timeoutMs?: number;
+  format?: string;
 };
 
 export type ProviderCredentials = {

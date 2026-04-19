@@ -615,9 +615,9 @@ function buildExecutorClientHeaders(
   const normalized: Record<string, string> = {};
 
   if (headers instanceof Headers) {
-    for (const [key, value] of headers.entries()) {
+    headers.forEach((value, key) => {
       normalized[key] = value;
-    }
+    });
   } else if (headers && typeof headers === "object") {
     for (const [key, value] of Object.entries(headers)) {
       if (typeof value === "string") {
@@ -1221,7 +1221,7 @@ export async function handleChatCore({
   const allMessages =
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    const estimatedTokens = estimateTokens(JSON.stringify(allMessages), provider);
+    const estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let contextLimit = getTokenLimit(provider, effectiveModel);
 
     if (isCombo && comboName) {
@@ -1251,7 +1251,7 @@ export async function handleChatCore({
     const COMPRESSION_THRESHOLD = 0.7;
     let reservedTokens = 0;
     if (Array.isArray(body.tools)) {
-      reservedTokens = estimateTokens(JSON.stringify(body.tools), provider);
+      reservedTokens = estimateTokens(JSON.stringify(body.tools));
     }
     const threshold = Math.max(
       1,
