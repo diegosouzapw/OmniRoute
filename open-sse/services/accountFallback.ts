@@ -1124,9 +1124,8 @@ export function checkFallbackError(
   if (status === HTTP_STATUS.BAD_REQUEST) {
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
-    const isModeration = CONTENT_MODERATION_PATTERNS.some((p) => p.test(errorStr));
 
-    if (isOverflow || isMalformed || isModeration) {
+    if (isOverflow || isMalformed) {
       return {
         shouldFallback: true,
         cooldownMs: 0,
