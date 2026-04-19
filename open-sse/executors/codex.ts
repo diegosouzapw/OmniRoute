@@ -1,7 +1,4 @@
-import {
-  getCodexRequestDefaults,
-  isOpenAIResponsesStoreEnabled,
-} from "@/lib/providers/requestDefaults";
+import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
@@ -598,8 +595,13 @@ export class CodexExecutor extends BaseExecutor {
     // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
     // which requires store=true so that response items are persisted.
     // If the client explicitly sets store, respect it. Otherwise default to true.
-    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
-    if (!storeEnabled) {
+    const explicitStoreSetting =
+      credentials?.providerSpecificData &&
+      typeof credentials.providerSpecificData === "object" &&
+      !Array.isArray(credentials.providerSpecificData)
+        ? credentials.providerSpecificData.openaiStoreEnabled
+        : undefined;
+    if (explicitStoreSetting === false) {
       body.store = false;
     } else if (body.store === undefined) {
       body.store = true;

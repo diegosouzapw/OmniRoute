@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
-import {
-  getAccessToken,
-  updateProviderCredentials,
-} from "@omniroute/open-sse/services/tokenRefresh";
+import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
 
 type RefreshResult = {
   accessToken?: string;

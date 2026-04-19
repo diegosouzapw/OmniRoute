@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  type CliAgentInfo,
   detectInstalledAgents,
   refreshAgentCache,
   resolveVersionProbe,
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
     }
 
     const agents = detectInstalledAgents();
-    const installed = agents.filter((a: any) => a.installed).length;
+    const installed = agents.filter((a: CliAgentInfo) => a.installed).length;
     const total = agents.length;
 
     return NextResponse.json({
@@ -44,8 +45,8 @@ export async function GET(request: Request) {
         total,
         installed,
         notFound: total - installed,
-        builtIn: agents.filter((a: any) => !a.isCustom).length,
-        custom: agents.filter((a: any) => a.isCustom).length,
+        builtIn: agents.filter((a: CliAgentInfo) => !a.isCustom).length,
+        custom: agents.filter((a: CliAgentInfo) => a.isCustom).length,
       },
     });
   } catch (error) {

@@ -5,6 +5,19 @@ function getTimeRangeSelector(page: import("@playwright/test").Page) {
   return page.getByRole("tablist", { name: /select time range/i }).first();
 }
 
+async function waitForAnalyticsShell(page: import("@playwright/test").Page) {
+  const mainTabList = page.locator('[role="tablist"]').first();
+  await expect(mainTabList).toBeVisible({ timeout: 15000 });
+  await expect(
+    page
+      .locator("button")
+      .filter({
+        hasText: /overview/i,
+      })
+      .first()
+  ).toBeVisible({ timeout: 15000 });
+}
+
 test.describe("Analytics Tabs UI", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("**/api/usage/analytics", async (route) => {
@@ -111,7 +124,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("displays all 5 analytics tabs", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await waitForAnalyticsShell(page);
 
     const mainTabList = page.locator('[role="tablist"]').first();
     await expect(mainTabList).toBeVisible();
@@ -136,7 +149,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("Provider Utilization tab shows TimeRangeSelector and chart", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await waitForAnalyticsShell(page);
 
     const utilizationTab = page
       .locator("button")
@@ -171,7 +184,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("Combo Health tab displays health cards and metrics", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await waitForAnalyticsShell(page);
 
     const comboHealthTab = page
       .locator("button")
@@ -200,7 +213,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("time range change triggers network request", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await waitForAnalyticsShell(page);
 
     const utilizationTab = page
       .locator("button")
@@ -257,7 +270,7 @@ test.describe("Analytics Tabs UI", () => {
 
   test("tab switching persists state correctly", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/analytics");
-    await page.waitForLoadState("networkidle");
+    await waitForAnalyticsShell(page);
 
     const overviewTab = page
       .locator("button")

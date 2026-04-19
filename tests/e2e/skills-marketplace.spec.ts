@@ -153,15 +153,16 @@ test.describe("Skills marketplace", () => {
     await expect.poll(() => state.toggleCalls).toBe(1);
 
     await page.getByRole("button", { name: /marketplace/i }).click();
-    await expect(page.getByPlaceholder("Search skills...")).toBeVisible({ timeout: 15000 });
+    const marketplaceSearch = page.getByPlaceholder(/Search SkillsMP\.\.\./i);
+    await expect(marketplaceSearch).toBeVisible({ timeout: 15000 });
 
-    await page.getByPlaceholder("Search skills...").fill("weather");
+    await marketplaceSearch.fill("weather");
     await page.getByRole("button", { name: /search skillsmp/i }).click();
     await expect(page.getByText("Weather Pro")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /^install$/i }).click();
     await expect.poll(() => state.marketplaceInstalls).toBe(1);
 
-    await page.getByPlaceholder("Search skills...").fill("");
+    await marketplaceSearch.fill("");
     await page.getByRole("button", { name: /search skillsmp/i }).click();
     const lastMarketplaceSkill = page.getByText("Skill Page 12").last();
     await lastMarketplaceSkill.scrollIntoViewIfNeeded();
