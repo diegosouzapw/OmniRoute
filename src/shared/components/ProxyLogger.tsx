@@ -50,6 +50,7 @@ export default function ProxyLogger() {
   const [selectedLog, setSelectedLog] = useState(null);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
+  const logsSignatureRef = useRef("");
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_VISIBLE;
@@ -88,7 +89,12 @@ export default function ProxyLogger() {
         const res = await fetch(`/api/usage/proxy-logs?${params}`);
         if (res.ok) {
           const data = await res.json();
-          setLogs(data);
+          // Skip re-render if data hasn't changed (#1369 GPU perf)
+          const sig = JSON.stringify(data.map?.((l: any) => l.id) ?? []);
+          if (sig !== logsSignatureRef.current) {
+            logsSignatureRef.current = sig;
+            setLogs(data);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch proxy logs:", error);

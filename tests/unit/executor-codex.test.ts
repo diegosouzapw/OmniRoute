@@ -152,7 +152,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   });
 
   assert.equal(result.stream, true);
-  assert.equal(result.store, false);
+  assert.equal(result.store, true);
   assert.equal(result.instructions.length > 0, true);
   assert.equal(result.reasoning.effort, "high");
   assert.equal(result.service_tier, "priority");
@@ -181,7 +181,7 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.stream, undefined);
   assert.equal(result.service_tier, "priority");
   assert.equal(result.reasoning.effort, "medium");
-  assert.equal(result.store, false);
+  assert.equal(result.store, true);
   assert.equal(result.instructions, "keep this");
 });
 
@@ -205,7 +205,7 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
 
   assert.equal(result._omnirouteResponsesStore, undefined);
   assert.equal(result.store, true);
-  assert.equal(result.previous_response_id, "resp_prev_123");
+  assert.equal(result.previous_response_id, undefined);
 });
 
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {

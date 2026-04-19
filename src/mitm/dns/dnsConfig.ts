@@ -30,8 +30,11 @@ export function execWithPassword(command, password) {
  */
 function execElevatedWindows(command) {
   return new Promise((resolve, reject) => {
-    const psCommand = `Start-Process cmd -ArgumentList '/c','${command.replace(/'/g, "''")}' -Verb RunAs -Wait`;
-    exec(`powershell -Command "${psCommand}"`, (error, stdout, stderr) => {
+    const psScript = `
+      $proc = Start-Process cmd -ArgumentList '/c','${command.replace(/'/g, "''")}' -Verb RunAs -Wait -PassThru;
+      if ($proc.ExitCode -ne 0) { throw "Elevated command exited with code $($proc.ExitCode)" }
+    `;
+    exec(`powershell -Command "${psScript.replace(/\n/g, " ")}"`, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(`Elevated command failed: ${error.message}\n${stderr}`));
       } else {
@@ -50,7 +53,7 @@ export function checkDNSEntry() {
     const lines = hostsContent.split(/\r?\n/);
     return lines.some((line) => {
       const parts = line.trim().split(/\s+/);
-      return parts.length >= 2 && parts[0] === "127.0.0.1" && parts.some(p => p === TARGET_HOST);
+      return parts.length >= 2 && parts[0] === "127.0.0.1" && parts.some((p) => p === TARGET_HOST);
     });
   } catch {
     return false;

@@ -88,6 +88,7 @@ done
 ```
 
 This ensures:
+
 1. PRs merge into the release branch, not directly into `main`
 2. Merge conflict detection is accurate against the release branch
 3. The release branch accumulates all changes before the final merge to `main`
@@ -192,25 +193,33 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 
 ### 8. Merge into Release Branch
 
-> **⚠️ IMPORTANT**: PRs are merged into the **release branch** (`release/vX.Y.Z`), NOT into `main`.
+### 8. Merge into Release Branch (NEVER SILENTLY CLOSE!)
 
-- Once the PR is green (you can check with `gh pr status`), merge the PR into the release branch.
-- The PR's base was already changed to the release branch in step 3.5, so the default merge target is correct.
+> **⚠️ CRITICAL**: NEVER use `gh pr close` for a PR whose idea or code was accepted, even if you had to rewrite it manually. Closing a PR in a contributor's face after taking their idea is unacceptable.
+> ALWAYS ensure the contributor gets proper credit.
 
+If the PR is green and can be merged directly:
+
+- Merge the PR into the release branch using the GitHub CLI.
   ```bash
   # Merge the PR (base is already set to release/vX.Y.Z from step 3.5)
   gh pr merge <NUMBER> --repo <owner>/<repo> --squash --body "Integrated into release/vX.Y.Z"
-
-  # If the PR is a draft, mark it as ready first
-  gh pr ready <NUMBER> --repo <owner>/<repo>
   ```
 
-- Post a **thank-you comment** on the PR via the GitHub API
+If the PR had severe conflicts or you had to implement the feature manually on our branch instead:
+
+- You MUST still post a comment giving them full credit before closing it.
+- Explain that their idea was great, that it was integrated in a specific commit (mention the commit hash), and that due to merge conflicts or architectural adjustments, it was integrated manually.
+- Add their name as a Co-authored-by in the manual commit if possible.
+
+In ALL accepted cases (merged directly or implemented manually):
+
+- Post a **thank-you comment** on the PR via the GitHub API.
 - The message should:
-  - Thank the author by name/username for their contribution
-  - Briefly mention what the PR accomplishes and any improvements applied
-  - Note it will be included in the upcoming release
-  - Be friendly, professional, and encouraging
+  - Thank the author by name/username for their contribution.
+  - Explain what was adjusted or improved (if anything).
+  - Note it will be included in the upcoming release.
+  - Be friendly, professional, and encouraging.
 - Example: _"Thanks @author for this great contribution! 🎉 The [feature/fix] has been integrated into the release/vX.Y.Z branch and will be part of the next release. We appreciate your effort!"_
 
 ### 9. Sync Local Release Branch

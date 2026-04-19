@@ -13,3 +13,9 @@
 - CI/CD files and ignore definitions (`.gitignore`, `.dockerignore`)
 
 When creating _any_ validation tests or one-off logic scripts, default to using `scripts/scratch/` or the `tests/unit/` directories according to your goals. Do not pollute the `/` root context.
+
+## 2. VPS Dashboard Credentials
+
+| Environment | URL                       | Password |
+| ----------- | ------------------------- | -------- |
+| Local VPS   | http://192.168.0.15:20128 | 123456   |

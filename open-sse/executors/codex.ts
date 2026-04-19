@@ -1,6 +1,5 @@
 import {
   getCodexRequestDefaults,
-  isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
@@ -311,7 +310,11 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
     // Object items with server-generated IDs: strip the id field but keep the item.
     // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
     // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
-    if (item && typeof item === "object" && !Array.isArray(item)) {
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item)
+    ) {
       const record = item as Record<string, unknown>;
       if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
         delete record.id;
@@ -484,7 +487,26 @@ export class CodexExecutor extends BaseExecutor {
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
     headers["originator"] = "codex_cli_rs";
 
+    // session_id header — enables prompt cache affinity on the Codex backend.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex codex-api/src/requests/headers.rs build_conversation_headers()
+    const cacheSessionId = this.getPromptCacheSessionId(credentials);
+    if (cacheSessionId) {
+      headers["session_id"] = cacheSessionId;
+    }
+
     return headers;
+  }
+
+  /**
+   * Derive a stable session ID for prompt cache affinity.
+   * Uses workspaceId (chatgpt account ID) as the cache partition key.
+   * This mirrors the official Codex client's use of conversation_id for
+   * prompt_cache_key and session_id header.
+   * Ref: openai/codex core/src/client.rs line 853
+   */
+  private getPromptCacheSessionId(credentials): string | null {
+    return credentials?.providerSpecificData?.workspaceId || null;
   }
 
   /**
@@ -524,10 +546,9 @@ export class CodexExecutor extends BaseExecutor {
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
-    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
-    const responsesStoreMarker = consumeResponsesStoreMarker(body);
+    consumeResponsesStoreMarker(body);
 
     // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
     if (isCompactRequest) {
@@ -545,32 +566,22 @@ export class CodexExecutor extends BaseExecutor {
       body.service_tier = requestDefaults.serviceTier;
     }
 
-    // ── System prompt handling: cache-aware strategy ──
+    // ── Cache-aware system prompt handling (both paths) ──
     //
-    // For GPT-5 models, OpenAI's automatic prompt caching only considers the
-    // `input` array content (+ tools). The `instructions` field is NOT included
-    // in the cache prefix computation. Moving system prompts from `input` into
-    // `instructions` therefore removes them from the cacheable prefix, causing
-    // 0% cache hit rates even with identical repeated requests.
+    // Convert system → developer role IN-PLACE so system prompts remain in the
+    // `input` array where they contribute to the automatic prompt cache prefix.
+    // The `instructions` field is NOT included in the cache key for GPT-5 models.
     //
-    // For native passthrough (client sends Responses API format directly):
-    //   - Convert system → developer role in-place (Codex accepts developer but rejects system)
-    //   - Only inject minimal instructions if the field is completely empty
-    //   - Do NOT inject CODEX_DEFAULT_INSTRUCTIONS (it would bloat the non-cached field)
+    // This applies to BOTH native passthrough (Responses API) and translated
+    // (Chat Completions) paths. Previously the translated path used
+    // hoistSystemMessagesToInstructions() which moved system content out of
+    // `input` and into `instructions`, destroying cache eligibility.
     //
-    // For translated requests (from Chat Completions format):
-    //   - Continue hoisting system messages to instructions (legacy behavior)
-    //   - Inject CODEX_DEFAULT_INSTRUCTIONS as fallback
-    //
-    // Ref: https://community.openai.com/t/caching-is-borked-for-gpt-5-models/1359574
-    // Ref: https://community.openai.com/t/no-caching-with-model-responses/1338627
-    if (nativeCodexPassthrough) {
-      // Passthrough path: keep system prompts in input for caching.
-      // Convert system → developer role since Codex rejects role=system in input.
-      convertSystemToDeveloperRole(body);
+    // Ref: PR #1346 (original fix for passthrough only)
+    convertSystemToDeveloperRole(body);
 
-      // Codex still requires a non-empty instructions field.
-      // Use a minimal placeholder if the client didn't provide one.
+    if (nativeCodexPassthrough) {
+      // Passthrough: minimal placeholder instructions.
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
@@ -578,26 +589,33 @@ export class CodexExecutor extends BaseExecutor {
         body.instructions = "Follow the developer instructions in the conversation.";
       }
     } else {
-      // Translated path: hoist system messages to instructions (legacy behavior).
+      // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
+      // prompt was provided by the client (safety net for bare requests).
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
       ) {
         body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
       }
-      hoistSystemMessagesToInstructions(body);
     }
 
-    if (!storeEnabled) {
-      body.store = false;
-    } else if (responsesStoreMarker !== undefined && body.store === undefined) {
-      body.store = responsesStoreMarker;
+    // Store: The Codex API defaults store to false when not specified.
+    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
+    // which requires store=true so that response items are persisted.
+    // If the client explicitly sets store, respect it. Otherwise default to true.
+    if (body.store === undefined) {
+      body.store = true;
     }
 
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body);
+
+    // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
+    // The /codex/responses endpoint does not persist responses even with store=true,
+    // so any references to previous response items would cause 404 errors.
+    stripStoredItemReferences(body);
 
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.
@@ -637,6 +655,28 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
+    // previous_response_id: always stripped by stripStoredItemReferences().
+    // The /codex/responses endpoint does not persist responses, so any reference
+    // to a previous response ID would cause a 404. This matches the behavior of
+    // both the official Codex CLI (sets None) and CLIProxyAPI (deletes the field).
+
+    // Remove unsupported token limit parameters BEFORE the passthrough return.
+    // Codex API rejects both max_tokens and max_output_tokens regardless of
+    // whether the request came via native passthrough or translation.
+    delete body.max_tokens;
+    delete body.max_output_tokens;
+
+    // Inject prompt_cache_key for Codex prompt caching.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex core/src/client.rs line 853:
+    //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
+    if (!body.prompt_cache_key) {
+      const cacheSessionId = this.getPromptCacheSessionId(credentials);
+      if (cacheSessionId) {
+        body.prompt_cache_key = cacheSessionId;
+      }
+    }
+
     if (nativeCodexPassthrough) {
       return body;
     }
@@ -650,8 +690,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.top_logprobs;
     delete body.n;
     delete body.seed;
-    delete body.max_tokens;
-    delete body.max_output_tokens; // Responses API translator maps max_tokens -> max_output_tokens, but Codex rejects it
+    // max_tokens and max_output_tokens already deleted above (before passthrough return)
     delete body.user; // Cursor sends this but Codex doesn't support it
     delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
     delete body.metadata; // Cursor sends this but Codex doesn't support it

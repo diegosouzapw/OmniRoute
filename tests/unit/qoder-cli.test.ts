@@ -3,14 +3,17 @@ import assert from "node:assert/strict";
 
 const qoderCli = await import("../../open-sse/services/qoderCli.ts");
 
-function withEnv(overrides, fn) {
-  const previous = new Map();
+function withEnv(
+  overrides: Record<string, string | undefined | null>,
+  fn: () => void | Promise<void>
+) {
+  const previous = new Map<string, string | undefined>();
   for (const [key, value] of Object.entries(overrides)) {
     previous.set(key, process.env[key]);
-    if (value === undefined) {
+    if (value === undefined || value === null) {
       delete process.env[key];
     } else {
-      process.env[key] = value;
+      process.env[key] = String(value);
     }
   }
 
@@ -280,7 +283,7 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
       providerSpecificData: { modelId: "qwen3-max" },
     });
     assert.equal(denied.valid, false);
-    assert.match(denied.error, /Authentication failed/);
+    assert.match(denied.error!, /Authentication failed/);
     assert.equal(denied.unsupported, false);
   }
 
@@ -292,7 +295,7 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
 
     const failed = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
     assert.equal(failed.valid, false);
-    assert.match(failed.error, /Cannot reach Qoder API/);
+    assert.match(failed.error!, /Cannot reach Qoder API/);
     assert.equal(failed.unsupported, false);
   }
 
@@ -315,7 +318,7 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
     await withEnv({ QODER_PERSONAL_ACCESS_TOKEN: undefined }, async () => {
       const noToken = await qoderCli.validateQoderCliPat({ apiKey: "" });
       assert.equal(noToken.valid, false);
-      assert.match(noToken.error, /No Qoder token provided/);
+      assert.match(noToken.error!, /No Qoder token provided/);
     });
   }
 
@@ -324,7 +327,7 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
     const blobToken = "x".repeat(600);
     const blobResult = await qoderCli.validateQoderCliPat({ apiKey: blobToken });
     assert.equal(blobResult.valid, false);
-    assert.match(blobResult.error, /encrypted auth blob/);
+    assert.match(blobResult.error!, /encrypted auth blob/);
   }
 
   globalThis.fetch = originalFetch;
@@ -346,7 +349,7 @@ test("validateQoderCliPat succeeds when the validation endpoint returns OK", asy
   }
 });
 
-test("validateQoderCliPat returns HTTP failures without touching the network", async () => {
+test("validateQoderCliPat treats 5xx HTTP failures as valid bypass", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
@@ -355,8 +358,8 @@ test("validateQoderCliPat returns HTTP failures without touching the network", a
 
   try {
     const result = await qoderCli.validateQoderCliPat({ apiKey: "valid-pat" });
-    assert.equal(result.valid, false);
-    assert.match(result.error, /HTTP 500/);
+    assert.equal(result.valid, true);
+    assert.match(result.error!, /HTTP 500.*treating PAT as valid/);
   } finally {
     globalThis.fetch = originalFetch;
   }

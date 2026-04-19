@@ -892,6 +892,8 @@ export async function GET(
         ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
         guard: getProviderOutboundGuard(),
         proxyConfig: proxy,
+        // Ollama Cloud /v1/models returns 301 redirects (#1381)
+        ...(provider === "ollama-cloud" ? { allowRedirect: true } : {}),
         ...fetchOptions,
       });
 

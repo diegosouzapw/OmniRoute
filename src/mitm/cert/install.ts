@@ -82,10 +82,13 @@ async function installCertMac(sudoPassword, certPath) {
 }
 
 async function installCertWindows(certPath) {
-  // Use PowerShell elevated to add cert to Root store
-  const psCommand = `Start-Process certutil -ArgumentList '-addstore','Root','${certPath.replace(/'/g, "''")}' -Verb RunAs -Wait`;
+  // Use PowerShell elevated to add cert to Root store and capture exit code
+  const psScript = `
+    $proc = Start-Process certutil -ArgumentList '-addstore','Root','${certPath.replace(/'/g, "''")}' -Verb RunAs -Wait -PassThru;
+    if ($proc.ExitCode -ne 0) { throw "certutil exited with code $($proc.ExitCode)" }
+  `;
   return new Promise((resolve, reject) => {
-    exec(`powershell -Command "${psCommand}"`, (error) => {
+    exec(`powershell -Command "${psScript.replace(/\n/g, " ")}"`, (error) => {
       if (error) {
         reject(new Error(`Failed to install certificate: ${error.message}`));
       } else {

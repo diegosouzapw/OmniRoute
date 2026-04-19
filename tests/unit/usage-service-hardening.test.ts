@@ -11,7 +11,7 @@ test.afterEach(() => {
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
-  const calls = [];
+  const calls: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     calls.push(init);
     return new Response(
@@ -126,7 +126,7 @@ test("usage service covers GitHub paid snapshot edge cases, missing quota payloa
 });
 
 test("usage service covers Gemini CLI access-token checks, cached subscription lookup and quota failures", async () => {
-  const calls = [];
+  const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
 
@@ -259,7 +259,7 @@ test("usage service covers Gemini CLI tier-label fallbacks and fetch error handl
 });
 
 test("usage service covers Antigravity quota parsing, exclusions and forbidden access", async () => {
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -346,7 +346,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
 });
 
 test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -361,13 +361,16 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       );
     }
 
-    if (String(url).startsWith("https://cloudcode-pa.googleapis.com/")) {
-      return new Response("bad gateway", { status: 502 });
-    }
-
-    const urlStr = String(url);
-    if (urlStr.includes("://daily-cloudcode-pa.googleapis.com/")) {
-      return new Response("bad gateway", { status: 502 });
+    try {
+      const parsedUrl = new URL(String(url));
+      if (parsedUrl.hostname === "cloudcode-pa.googleapis.com") {
+        return new Response("bad gateway", { status: 502 });
+      }
+      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
+        return new Response("bad gateway", { status: 502 });
+      }
+    } catch {
+      // Ignore invalid URLs
     }
 
     return new Response(
@@ -852,7 +855,7 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
 });
 
 test("usage service parses Cursor team quotas and clamps on-demand ratio", async () => {
-  const calls = [];
+  const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
 

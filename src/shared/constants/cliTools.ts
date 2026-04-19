@@ -1,4 +1,8 @@
 // CLI Tools configuration
+import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
+
+const _cc = getClaudeCodeDefaultModels();
+
 export const CLI_TOOLS = {
   claude: {
     id: "claude",
@@ -20,25 +24,41 @@ export const CLI_TOOLS = {
     defaultCommand: "claude",
     defaultModels: [
       {
+        id: "model",
+        name: "Default Model",
+        alias: "model",
+        envKey: "ANTHROPIC_MODEL",
+        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
+        isTopLevel: true,
+      },
+      {
+        id: "smallFast",
+        name: "Small Fast Model",
+        alias: "smallFast",
+        envKey: "ANTHROPIC_SMALL_FAST_MODEL",
+        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
+        isTopLevel: true,
+      },
+      {
         id: "opus",
         name: "Claude Opus",
         alias: "opus",
         envKey: "ANTHROPIC_DEFAULT_OPUS_MODEL",
-        defaultValue: "cc/claude-opus-4-5-20251101",
+        defaultValue: _cc.opus ? `cc/${_cc.opus}` : "cc/claude-opus-4-5-20251101",
       },
       {
         id: "sonnet",
         name: "Claude Sonnet",
         alias: "sonnet",
         envKey: "ANTHROPIC_DEFAULT_SONNET_MODEL",
-        defaultValue: "cc/claude-sonnet-4-5-20250929",
+        defaultValue: _cc.sonnet ? `cc/${_cc.sonnet}` : "cc/claude-sonnet-4-5-20250929",
       },
       {
         id: "haiku",
         name: "Claude Haiku",
         alias: "haiku",
         envKey: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-        defaultValue: "cc/claude-haiku-4-5-20251001",
+        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
       },
     ],
   },
@@ -338,39 +358,55 @@ amp --model "{{model}}"
     color: "#10B981",
     description: "Alibaba Qwen Code CLI — OpenAI-compatible endpoint",
     docsUrl: "https://qwenlm.github.io/qwen-code-docs/",
-    configType: "custom",
+    configType: "guide",
     defaultCommand: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports custom OpenAI-compatible API endpoints via environment variables or settings.json.",
+        text: "Qwen Code supports custom OpenAI-compatible API endpoints via modelProviders in settings.json.",
       },
       {
         type: "warning",
-        text: "Config path: Linux/macOS ~/.qwen/ • Windows %USERPROFILE%\\.qwen\\",
+        text: "Config path: Linux/macOS ~/.qwen/settings.json • Windows %USERPROFILE%\\.qwen\\settings.json",
+      },
+    ],
+    modelAliases: ["default", "claude-sonnet", "claude-opus", "gemini-pro", "gemini-flash"],
+    defaultModels: [
+      {
+        id: "default",
+        name: "Default Model",
+        alias: "default",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "auto",
       },
     ],
     guideSteps: [
       { step: 1, title: "Install Qwen Code", desc: "npm install -g @qwen-code/qwen-code" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
       {
-        step: 4,
-        title: "Configure Settings",
-        desc: "Add to your ~/.qwen/.env file or settings.json env field:",
+        step: 5,
+        title: "Save Config",
+        desc: "Click Save Config below to write your settings.json automatically.",
       },
     ],
     codeBlock: {
-      language: "bash",
-      code: `# ~/.qwen/.env
-OPENAI_API_KEY="{{apiKey}}"
-OPENAI_BASE_URL="{{baseUrl}}"
-OPENAI_MODEL="auto"
-# Or add to settings.json:
-# "env": {
-#   "OPENAI_API_KEY": "{{apiKey}}",
-#   "OPENAI_BASE_URL": "{{baseUrl}}"
-# }`,
+      language: "json",
+      code: `# ~/.qwen/settings.json
+{
+  "modelProviders": {
+    "openai": [{
+      "id": "omniroute",
+      "name": "OmniRoute",
+      "envKey": "OPENAI_API_KEY",
+      "baseUrl": "{{baseUrl}}",
+      "generationConfig": {
+        "defaultModel": "{{model}}"
+      }
+    }]
+  }
+}`,
     },
   },
   // HIDDEN: gemini-cli

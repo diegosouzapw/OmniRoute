@@ -194,7 +194,7 @@ test("handleResponsesCore preserves store for Codex responses when connection op
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, "resp_prev_store");
+  assert.equal(call.body.previous_response_id, undefined);
   assert.equal(call.body.store, true);
   assert.equal(call.body.stream, true);
 });

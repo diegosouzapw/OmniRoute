@@ -163,6 +163,7 @@ export default function RequestLoggerV2() {
   const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
+  const logsSignatureRef = useRef("");
   const [providerNodes, setProviderNodes] = useState([]);
 
   // Column visibility with localStorage persistence
@@ -205,7 +206,12 @@ export default function RequestLoggerV2() {
         const res = await fetch(`/api/usage/call-logs?${params}`);
         if (res.ok) {
           const data = await res.json();
-          setLogs(data);
+          // Skip re-render if data hasn't changed (#1369 GPU perf)
+          const sig = JSON.stringify(data.map?.((l: any) => l.id) ?? []);
+          if (sig !== logsSignatureRef.current) {
+            logsSignatureRef.current = sig;
+            setLogs(data);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch call logs:", error);

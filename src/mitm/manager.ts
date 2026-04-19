@@ -25,10 +25,13 @@ export function clearCachedPassword() {
 
 const PID_FILE = path.join(resolveDataDir(), "mitm", ".mitm.pid");
 const MITM_SERVER_URL = new URL("./server.cjs", import.meta.url);
-const MITM_SERVER_PATH =
+const urlPath =
   process.platform === "win32" && MITM_SERVER_URL.pathname.startsWith("/")
     ? decodeURIComponent(MITM_SERVER_URL.pathname.slice(1))
     : decodeURIComponent(MITM_SERVER_URL.pathname);
+
+const cwdPath = path.join(process.cwd(), "src", "mitm", "server.cjs");
+const MITM_SERVER_PATH = fs.existsSync(cwdPath) ? cwdPath : urlPath;
 
 // Check if a PID is alive
 function isProcessAlive(pid) {
