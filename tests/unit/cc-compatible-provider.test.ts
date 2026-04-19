@@ -120,16 +120,12 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.equal(payload.messages[0].content.at(-1).cache_control, undefined);
   assert.equal(payload.messages[1].content.at(-1).cache_control, undefined);
   assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
-  assert.equal(payload.system.length, 3);
+  assert.equal(payload.system.length, 2);
   assert.match(payload.system[0].text, /Claude Agent SDK/);
   assert.equal(payload.system[0].cache_control, undefined);
-  assert.match(
-    payload.system[1].text,
-    /interactive agent that helps users with software engineering tasks/
-  );
   assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.system[2].text, "sys");
-  assert.equal(payload.system[2].cache_control, undefined);
+  assert.equal(payload.system[1].text, "sys");
+  assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_weather",
@@ -325,10 +321,9 @@ test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserv
     preserveCacheControl: false,
   });
 
-  assert.equal(payload.system.length, 3);
+  assert.equal(payload.system.length, 2);
   assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.system[2].cache_control, undefined);
   assert.equal(payload.messages[0].content[0].cache_control, undefined);
   assert.equal(payload.messages[1].content[0].cache_control, undefined);
   assert.equal(payload.messages[2].content[0].cache_control, undefined);
