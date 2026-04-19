@@ -45,8 +45,6 @@ export async function POST(request, { params }) {
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
         // opencode reads ~/.config/opencode/config.toml — write the OmniRoute settings there.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model });
-      case "qwen":
-        return await saveQwenConfig({ baseUrl, apiKey, model });
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -176,62 +174,3 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
   });
 }
 
-/**
- * Save Qwen Code config to ~/.qwen/settings.json
- * Writes the modelProviders.openai entry with OmniRoute as the provider.
- * Merges with existing config to preserve other providers.
- */
-async function saveQwenConfig({ baseUrl, apiKey, model }) {
-  const home = os.homedir();
-  const configPath = path.join(home, ".qwen", "settings.json");
-  const configDir = path.dirname(configPath);
-
-  await fs.mkdir(configDir, { recursive: true });
-
-  const normalizedBaseUrl = String(baseUrl || "").trim().replace(/\/+$/, "");
-
-  // Read existing config to preserve other provider entries
-  let existingConfig: Record<string, any> = {};
-  try {
-    const raw = await fs.readFile(configPath, "utf-8");
-    existingConfig = JSON.parse(raw);
-  } catch {
-    // File doesn't exist or invalid JSON
-  }
-
-  // Build OmniRoute openai provider entry
-  const omnirouteEntry = {
-    id: "omniroute",
-    name: "OmniRoute",
-    envKey: "OPENAI_API_KEY",
-    baseUrl: normalizedBaseUrl,
-    apiKey: apiKey || "sk_omniroute",
-    generationConfig: {
-      defaultModel: model || "auto",
-    },
-  };
-
-  // Ensure modelProviders.openai array exists
-  if (!existingConfig.modelProviders) existingConfig.modelProviders = {};
-  if (!existingConfig.modelProviders.openai) existingConfig.modelProviders.openai = [];
-
-  const providers = existingConfig.modelProviders.openai;
-
-  // Replace OmniRoute entry if already present, otherwise add it
-  const existingIdx = providers.findIndex(
-    (p: any) => p && (p.baseUrl === normalizedBaseUrl || p.id === "omniroute")
-  );
-  if (existingIdx >= 0) {
-    providers[existingIdx] = omnirouteEntry;
-  } else {
-    providers.push(omnirouteEntry);
-  }
-
-  await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-  return NextResponse.json({
-    success: true,
-    message: `Qwen Code config saved to ${configPath}`,
-    configPath,
-  });
-}

@@ -6,7 +6,7 @@ import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
 import { cliBackupMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo"];
+const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo", "qwen"];
 
 // GET /api/cli-tools/backups?tool=claude — list backups
 export async function GET(request) {
