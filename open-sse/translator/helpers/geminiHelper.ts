@@ -313,7 +313,10 @@ function normalizeAdditionalProperties(obj) {
     return;
   }
 
-  if ("additionalProperties" in obj && obj.additionalProperties !== true) {
+  // Gemini API does not support `additionalProperties` at all in function_declarations
+  // schemas (returns 400 "Unknown name"). Since Gemini defaults to allowing additional
+  // properties anyway, stripping it unconditionally is safe and prevents errors (#1421).
+  if ("additionalProperties" in obj) {
     delete obj.additionalProperties;
   }
 

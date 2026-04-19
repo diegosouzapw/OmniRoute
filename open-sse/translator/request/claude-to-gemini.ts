@@ -98,7 +98,6 @@ export function claudeToGeminiRequest(model, body, stream) {
               // Preserve thinking blocks as thought parts
               if (block.thinking) {
                 parts.push({ thought: true, text: block.thinking });
-                parts.push({ thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE, text: "" });
               }
               break;
 
@@ -157,21 +156,10 @@ export function claudeToGeminiRequest(model, body, stream) {
         const geminiRole = msg.role === "assistant" ? "model" : "user";
 
         // Gemini 3+ expects the signature on all functionCall parts in a tool-call
-        // batch. If the assistant turn had no explicit thinking block, inject a fallback
-        // signature into all functionCalls.
+        // batch. If there is no real signature, we don't inject a fake one because
+        // Gemini API strictly validates it and returns 400.
         if (geminiRole === "model") {
-          const hasFunctionCall = parts.some((p) => p.functionCall);
-          const hasSignature = parts.some((p) => p.thoughtSignature);
-          if (hasFunctionCall && !hasSignature) {
-            for (let i = 0; i < parts.length; i++) {
-              if (parts[i].functionCall) {
-                parts[i] = {
-                  ...parts[i],
-                  thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-                };
-              }
-            }
-          }
+          // No operation needed since we no longer inject fake signatures.
         }
 
         result.contents.push({ role: geminiRole, parts });

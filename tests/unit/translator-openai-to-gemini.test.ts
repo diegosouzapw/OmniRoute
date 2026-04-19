@@ -121,7 +121,7 @@ test("OpenAI -> Gemini helper inlines local refs and preserves only additionalPr
   assert.equal(cleaned.properties.shipping.properties.street.minLength, undefined);
   assert.deepEqual(cleaned.properties.shipping.required, ["street"]);
   assert.equal(cleaned.properties.shipping.additionalProperties, undefined);
-  assert.equal(cleaned.properties.metadata.additionalProperties, true);
+  assert.equal(cleaned.properties.metadata.additionalProperties, undefined);
   assert.equal(cleaned.properties.options.additionalProperties, undefined);
 });
 
@@ -207,10 +207,9 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
   assert.ok(modelTurn, "expected a model turn with functionCall");
   assert.equal(modelTurn.parts[0].thought, true);
   assert.equal(modelTurn.parts[0].text, "Need live data");
-  assert.equal(modelTurn.parts[1].thoughtSignature !== undefined, true);
-  assert.equal(modelTurn.parts[2].text, "Calling a tool");
-  assert.equal(modelTurn.parts[3].functionCall.name, "weather");
-  assert.deepEqual(modelTurn.parts[3].functionCall.args, { city: "Tokyo" });
+  assert.equal(modelTurn.parts[1].text, "Calling a tool");
+  assert.equal(modelTurn.parts[2].functionCall.name, "weather");
+  assert.deepEqual(modelTurn.parts[2].functionCall.args, { city: "Tokyo" });
 
   const toolResponseTurn = result.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)

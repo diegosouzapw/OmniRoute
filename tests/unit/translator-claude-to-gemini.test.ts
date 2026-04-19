@@ -57,10 +57,6 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
   assert.equal(result.contents[0].role, "model");
   assert.deepEqual(result.contents[0].parts[0], { thought: true, text: "need tool" });
   assert.deepEqual(result.contents[0].parts[1], {
-    thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-    text: "",
-  });
-  assert.deepEqual(result.contents[0].parts[2], {
     functionCall: { id: "tu_1", name: "weather", args: { city: "Tokyo" } },
   });
   assert.deepEqual(result.contents[1].parts[0], {
@@ -129,7 +125,7 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
   assert.equal(result.contents.length, 1);
   assert.equal(result.contents[0].role, "model");
   assert.equal(result.contents[0].parts[0].functionCall.name, "read_file");
-  assert.equal(result.contents[0].parts[0].thoughtSignature, DEFAULT_THINKING_GEMINI_SIGNATURE);
+  assert.equal(result.contents[0].parts[0].thoughtSignature, undefined);
 });
 
 test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {

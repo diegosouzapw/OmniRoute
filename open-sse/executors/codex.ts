@@ -670,6 +670,12 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
 
+    // Delete session_id and conversation_id from the body.
+    // These are often injected by OmniRoute's fallback logic for store=true,
+    // but the upstream Codex API strictly rejects them as unsupported parameters.
+    delete body.session_id;
+    delete body.conversation_id;
+
     if (nativeCodexPassthrough) {
       return body;
     }
