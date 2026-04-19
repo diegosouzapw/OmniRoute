@@ -46,6 +46,11 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
 
+function isTruthyEnvFlag(value: string | undefined): boolean {
+  if (typeof value !== "string") return false;
+  return new Set(["1", "true", "yes", "on"]).has(value.trim().toLowerCase());
+}
+
 function isAutomatedTestProcess(): boolean {
   return (
     typeof process !== "undefined" &&
@@ -250,7 +255,8 @@ async function applyModelsDevSyncSection(
 ) {
   const { startPeriodicSync, stopPeriodicSync } = await import("@/lib/modelsDevSync");
   const skipBackgroundSyncInTests =
-    isAutomatedTestProcess() && process.env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
+    (isAutomatedTestProcess() && process.env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1") ||
+    isTruthyEnvFlag(process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES);
 
   if (skipBackgroundSyncInTests) {
     stopPeriodicSync();

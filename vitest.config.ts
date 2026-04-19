@@ -13,6 +13,7 @@ export default defineConfig({
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
       "tests/e2e/ecosystem.test.ts",
+      "tests/e2e/protocol-clients.test.ts",
     ],
     exclude: [
       "**/node_modules/**",

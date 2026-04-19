@@ -27,6 +27,7 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "definitions",
   "const",
   "$ref",
+  "ref",
   // Object validation keywords (not supported)
   "propertyNames",
   "patternProperties",

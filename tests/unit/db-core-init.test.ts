@@ -705,6 +705,9 @@ test(
         assert.ok(
           db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
         );
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("027")
+        );
         assert.equal(
           db
             .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")

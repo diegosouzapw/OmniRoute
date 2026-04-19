@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 function getTimeRangeSelector(page: import("@playwright/test").Page) {
   return page.getByRole("tablist", { name: /select time range/i }).first();
@@ -109,11 +110,8 @@ test.describe("Analytics Tabs UI", () => {
   });
 
   test("displays all 5 analytics tabs", async ({ page }) => {
-    await page.goto("/dashboard/analytics");
+    await gotoDashboardRoute(page, "/dashboard/analytics");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const mainTabList = page.locator('[role="tablist"]').first();
     await expect(mainTabList).toBeVisible();
@@ -137,11 +135,8 @@ test.describe("Analytics Tabs UI", () => {
   });
 
   test("Provider Utilization tab shows TimeRangeSelector and chart", async ({ page }) => {
-    await page.goto("/dashboard/analytics");
+    await gotoDashboardRoute(page, "/dashboard/analytics");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const utilizationTab = page
       .locator("button")
@@ -175,11 +170,8 @@ test.describe("Analytics Tabs UI", () => {
   });
 
   test("Combo Health tab displays health cards and metrics", async ({ page }) => {
-    await page.goto("/dashboard/analytics");
+    await gotoDashboardRoute(page, "/dashboard/analytics");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const comboHealthTab = page
       .locator("button")
@@ -207,11 +199,8 @@ test.describe("Analytics Tabs UI", () => {
   });
 
   test("time range change triggers network request", async ({ page }) => {
-    await page.goto("/dashboard/analytics");
+    await gotoDashboardRoute(page, "/dashboard/analytics");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const utilizationTab = page
       .locator("button")
@@ -267,11 +256,8 @@ test.describe("Analytics Tabs UI", () => {
   });
 
   test("tab switching persists state correctly", async ({ page }) => {
-    await page.goto("/dashboard/analytics");
+    await gotoDashboardRoute(page, "/dashboard/analytics");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const overviewTab = page
       .locator("button")

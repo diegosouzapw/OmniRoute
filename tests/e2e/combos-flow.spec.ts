@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 type ComboStub = {
   id: string;
@@ -192,13 +193,12 @@ test.describe("Combos flow", () => {
       });
     });
 
-    await page.goto("/dashboard/combos", { waitUntil: "domcontentloaded" });
+    await gotoDashboardRoute(page, "/dashboard/combos", {
+      waitUntil: "domcontentloaded",
+    });
     await expect(
       page.getByRole("button", { name: /create combo|criar combo/i }).first()
     ).toBeVisible();
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     await page
       .getByRole("button", { name: /create combo|criar combo/i })
@@ -359,11 +359,10 @@ test.describe("Combos flow", () => {
       });
     });
 
-    await page.goto("/dashboard/combos", { waitUntil: "domcontentloaded" });
+    await gotoDashboardRoute(page, "/dashboard/combos", {
+      waitUntil: "domcontentloaded",
+    });
     await expect(page.getByTestId("combo-card-combo-1")).toBeVisible();
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     const comboCards = page.locator('[data-testid^="combo-card-"]');
     await expect

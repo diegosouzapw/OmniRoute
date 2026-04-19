@@ -39,16 +39,27 @@ class SkillRegistry {
     handler: string;
     enabled?: boolean;
     apiKeyId: string;
+    mode?: "on" | "off" | "auto";
+    sourceProvider?: "skillsmp" | "skillssh" | "local";
+    tags?: string[];
+    installCount?: number;
   }): Promise<Skill> {
-    const { apiKeyId: _apiKeyId, ...parseableData } = skillData;
+    const {
+      apiKeyId: _apiKeyId,
+      mode: _mode,
+      sourceProvider: _sourceProvider,
+      tags: _tags,
+      installCount: _installCount,
+      ...parseableData
+    } = skillData;
     const parsed = SkillCreateInputSchema.parse(parseableData);
     const db = getDbInstance();
     const id = randomUUID();
     const now = new Date();
 
     db.prepare(
-      `INSERT INTO skills (id, api_key_id, name, version, description, schema, handler, enabled, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO skills (id, api_key_id, name, version, description, schema, handler, enabled, mode, source_provider, tags, install_count, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       skillData.apiKeyId,
@@ -58,6 +69,10 @@ class SkillRegistry {
       JSON.stringify(parsed.schema),
       parsed.handler,
       parsed.enabled ? 1 : 0,
+      skillData.mode || (parsed.enabled ? "on" : "off"),
+      skillData.sourceProvider || null,
+      JSON.stringify(skillData.tags || []),
+      typeof skillData.installCount === "number" ? Math.max(0, skillData.installCount) : 0,
       now.toISOString(),
       now.toISOString()
     );
@@ -71,6 +86,11 @@ class SkillRegistry {
       schema: parsed.schema,
       handler: parsed.handler,
       enabled: parsed.enabled,
+      mode: skillData.mode || (parsed.enabled ? "on" : "off"),
+      sourceProvider: skillData.sourceProvider,
+      tags: skillData.tags || [],
+      installCount:
+        typeof skillData.installCount === "number" ? Math.max(0, skillData.installCount) : 0,
       createdAt: now,
       updatedAt: now,
     };
@@ -246,6 +266,16 @@ class SkillRegistry {
           : db.prepare("SELECT * FROM skills").all();
 
         for (const row of rows as any[]) {
+          const tags = (() => {
+            try {
+              if (typeof row.tags !== "string") return [];
+              const parsed = JSON.parse(row.tags);
+              return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+            } catch {
+              return [];
+            }
+          })();
+
           const skill: Skill = {
             id: row.id,
             apiKeyId: row.api_key_id,
@@ -255,6 +285,15 @@ class SkillRegistry {
             schema: JSON.parse(row.schema),
             handler: row.handler,
             enabled: row.enabled === 1,
+            mode: row.mode === "off" || row.mode === "auto" ? row.mode : "on",
+            sourceProvider:
+              row.source_provider === "skillsmp" || row.source_provider === "skillssh"
+                ? row.source_provider
+                : row.source_provider
+                  ? "local"
+                  : undefined,
+            tags,
+            installCount: typeof row.install_count === "number" ? row.install_count : 0,
             createdAt: new Date(row.created_at),
             updatedAt: new Date(row.updated_at),
           };
