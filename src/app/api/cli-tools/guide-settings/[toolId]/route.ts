@@ -7,6 +7,7 @@ import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
 import { mergeOpenCodeConfig } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -35,7 +36,10 @@ export async function POST(request, { params }) {
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const { baseUrl, apiKey, model } = validation.data;
+  const { baseUrl, model } = validation.data;
+  // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
+  const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+  const apiKey = await resolveApiKey(apiKeyId, validation.data.apiKey);
 
   try {
     switch (toolId) {
@@ -188,7 +192,9 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
 
   await fs.mkdir(configDir, { recursive: true });
 
-  const normalizedBaseUrl = String(baseUrl || "").trim().replace(/\/+$/, "");
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
 
   // Read existing config to preserve other provider entries
   let existingConfig: Record<string, any> = {};

@@ -36,9 +36,9 @@ export default function DefaultToolCard({
   const [saving, setSaving] = useState(false);
   const runtimeFetchStartedRef = useRef(false);
 
-  // Initialize state directly with computed value
-  const [selectedApiKey, setSelectedApiKey] = useState(() =>
-    apiKeys?.length > 0 ? apiKeys[0].key : ""
+  // (#523) Initialize state with key *id* instead of masked key string
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState(() =>
+    apiKeys?.length > 0 ? apiKeys[0].id : ""
   );
 
   // Persist and restore model selection per tool via localStorage
@@ -46,7 +46,16 @@ export default function DefaultToolCard({
     const savedModel = localStorage.getItem(`omniroute-cli-model-${toolId}`);
     if (savedModel) setModelValue(savedModel);
     const savedKey = localStorage.getItem(`omniroute-cli-key-${toolId}`);
-    if (savedKey && apiKeys?.some((k) => k.key === savedKey)) setSelectedApiKey(savedKey);
+    // (#523) localStorage may contain a masked key string from before the fix —
+    // match by prefix/suffix against known keys to find the id.
+    if (savedKey && apiKeys?.length > 0) {
+      const prefix = savedKey.slice(0, 8);
+      const suffix = savedKey.slice(-4);
+      const matchedKey = apiKeys.find(
+        (k) => k.key && k.key.startsWith(prefix) && k.key.endsWith(suffix)
+      );
+      if (matchedKey) setSelectedApiKeyId(matchedKey.id);
+    }
   }, [toolId, apiKeys]);
 
   const handleModelChange = useCallback(
@@ -63,8 +72,9 @@ export default function DefaultToolCard({
 
   const handleApiKeyChange = useCallback(
     (value) => {
-      setSelectedApiKey(value);
+      setSelectedApiKeyId(value);
       if (value) {
+        // (#523) Store the key id in localStorage for persistence
         localStorage.setItem(`omniroute-cli-key-${toolId}`, value);
       }
     },
@@ -82,12 +92,10 @@ export default function DefaultToolCard({
   }, [isExpanded, runtimeStatus, toolId]);
 
   const replaceVars = (text) => {
+    // (#523) Look up the key object by id to get the masked display value.
+    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
     const keyToUse =
-      selectedApiKey && selectedApiKey.trim()
-        ? selectedApiKey
-        : !cloudEnabled
-          ? "sk_omniroute"
-          : t("yourApiKeyPlaceholder");
+      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
 
     const normalizedBaseUrl = baseUrl || "http://localhost:20128";
     const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -118,12 +126,8 @@ export default function DefaultToolCard({
     setSaving(true);
     setMessage(null);
     try {
-      const keyToUse =
-        selectedApiKey && selectedApiKey.trim()
-          ? selectedApiKey
-          : !cloudEnabled
-            ? "sk_omniroute"
-            : "";
+      // (#523) Prefer keyId lookup so the backend writes the real key to disk.
+      const selectedKeyId = selectedApiKeyId?.trim() || null;
 
       const normalizedBaseUrl = baseUrl || "http://localhost:20128";
       const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -135,7 +139,8 @@ export default function DefaultToolCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseUrl: baseUrlWithV1,
-          apiKey: keyToUse,
+          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          keyId: selectedKeyId,
           model: modelValue,
         }),
       });
@@ -161,18 +166,22 @@ export default function DefaultToolCard({
         {apiKeys && apiKeys.length > 0 ? (
           <>
             <select
-              value={selectedApiKey}
+              value={selectedApiKeyId}
               onChange={(e) => handleApiKeyChange(e.target.value)}
               className="flex-1 px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
             >
               {apiKeys.map((key) => (
-                <option key={key.id} value={key.key}>
+                <option key={key.id} value={key.id}>
                   {key.key}
                 </option>
               ))}
             </select>
             <button
-              onClick={() => handleCopy(selectedApiKey, "apiKey")}
+              onClick={() => {
+                // (#523) Look up the masked key by id for clipboard copy
+                const keyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+                handleCopy(keyObj?.key || selectedApiKeyId, "apiKey");
+              }}
               className="shrink-0 px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary rounded-lg border border-border transition-colors"
             >
               <span className="material-symbols-outlined text-lg">

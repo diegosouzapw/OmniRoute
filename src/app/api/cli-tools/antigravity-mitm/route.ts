@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 
 // GET - Check MITM status
 export async function GET() {
@@ -46,7 +47,10 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { apiKey, sudoPassword } = validation.data;
+    const { apiKey: rawApiKey, sudoPassword } = validation.data;
+    // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
+    const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+    const apiKey = await resolveApiKey(apiKeyId, rawApiKey);
     const { startMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
     const isWin = process.platform === "win32";
     const pwd = sudoPassword || getCachedPassword() || "";

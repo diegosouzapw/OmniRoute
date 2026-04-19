@@ -35,12 +35,12 @@ export default function CopilotToolCard({
       return new Set<string>();
     }
   });
-  const [selectedApiKey, setSelectedApiKey] = useState(() => {
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState(() => {
     if (typeof window !== "undefined") {
       const savedKey = localStorage.getItem("omniroute-cli-key-copilot");
-      if (savedKey && apiKeys?.some((k: any) => k.key === savedKey)) return savedKey;
+      if (savedKey && apiKeys?.some((k: any) => k.id === savedKey)) return savedKey;
     }
-    return apiKeys?.length > 0 ? apiKeys[0].key : "";
+    return apiKeys?.length > 0 ? apiKeys[0].id : "";
   });
   const [maxInputTokens, setMaxInputTokens] = useState(128000);
   const [maxOutputTokens, setMaxOutputTokens] = useState(16000);
@@ -145,7 +145,7 @@ export default function CopilotToolCard({
   };
 
   const handleApiKeyChange = (value: string) => {
-    setSelectedApiKey(value);
+    setSelectedApiKeyId(value);
     if (value) localStorage.setItem("omniroute-cli-key-copilot", value);
   };
 
@@ -229,12 +229,12 @@ export default function CopilotToolCard({
                   <span className="font-medium text-sm">API Key</span>
                 </div>
                 <select
-                  value={selectedApiKey}
+                  value={selectedApiKeyId}
                   onChange={(e) => handleApiKeyChange(e.target.value)}
                   className="w-full px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   {apiKeys.map((key: any) => (
-                    <option key={key.id} value={key.key}>
+                    <option key={key.id} value={key.id}>
                       {key.key}
                     </option>
                   ))}

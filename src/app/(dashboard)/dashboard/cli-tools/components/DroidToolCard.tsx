@@ -26,7 +26,7 @@ export default function DroidToolCard({
   const [applying, setApplying] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState(null);
-  const [selectedApiKey, setSelectedApiKey] = useState("");
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modelAliases, setModelAliases] = useState({});
@@ -57,11 +57,13 @@ export default function DroidToolCard({
   // Use batch status as fallback when card hasn't been expanded yet
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
+  // (#523) Store the key *id* (not the masked string) so the backend can
+  // resolve the real secret from DB before writing to config files.
   useEffect(() => {
-    if (apiKeys?.length > 0 && !selectedApiKey) {
-      setSelectedApiKey(apiKeys[0].key);
+    if (apiKeys?.length > 0 && !selectedApiKeyId) {
+      setSelectedApiKeyId(apiKeys[0].id);
     }
-  }, [apiKeys, selectedApiKey]);
+  }, [apiKeys, selectedApiKeyId]);
 
   useEffect(() => {
     if (isExpanded && !droidStatus) {
@@ -89,8 +91,14 @@ export default function DroidToolCard({
       );
       if (customModel) {
         if (customModel.model) setSelectedModel(customModel.model);
-        if (customModel.apiKey && apiKeys?.some((k) => k.key === customModel.apiKey)) {
-          setSelectedApiKey(customModel.apiKey);
+        if (customModel.apiKey) {
+          // (#523) Keys from /api/keys are masked. Match by prefix/suffix.
+          const fileKeyPrefix = customModel.apiKey.slice(0, 8);
+          const fileKeySuffix = customModel.apiKey.slice(-4);
+          const matchedKey = apiKeys?.find(
+            (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
+          );
+          if (matchedKey) setSelectedApiKeyId(matchedKey.id);
         }
       }
     }
@@ -123,17 +131,17 @@ export default function DroidToolCard({
     setApplying(true);
     setMessage(null);
     try {
-      const keyToUse =
-        selectedApiKey?.trim() ||
-        (apiKeys?.length > 0 ? apiKeys[0].key : null) ||
-        (!cloudEnabled ? "sk_omniroute" : null);
+      // (#523) Prefer keyId lookup so the backend writes the real key to disk.
+      const selectedKeyId =
+        selectedApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
       const res = await fetch("/api/cli-tools/droid-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseUrl: getEffectiveBaseUrl(),
-          apiKey: keyToUse,
+          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          keyId: selectedKeyId,
           model: selectedModel,
         }),
       });
@@ -160,7 +168,7 @@ export default function DroidToolCard({
       if (res.ok) {
         setMessage({ type: "success", text: t("settingsReset") });
         setSelectedModel("");
-        setSelectedApiKey("");
+        setSelectedApiKeyId("");
         checkDroidStatus();
       } else {
         setMessage({ type: "error", text: data.error || t("failedResetSettings") });
@@ -213,12 +221,10 @@ export default function DroidToolCard({
   };
 
   const getManualConfigs = () => {
-    const keyToUse =
-      selectedApiKey && selectedApiKey.trim()
-        ? selectedApiKey
-        : !cloudEnabled
-          ? "sk_omniroute"
-          : "<API_KEY_FROM_DASHBOARD>";
+    // (#523) Look up the key object by id to get the masked display value.
+    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+    const keyToDisplay =
+      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
 
     const settingsContent = {
       customModels: [
@@ -227,7 +233,7 @@ export default function DroidToolCard({
           id: "custom:OmniRoute-0",
           index: 0,
           baseUrl: getEffectiveBaseUrl(),
-          apiKey: keyToUse,
+          apiKey: keyToDisplay,
           displayName: selectedModel || "provider/model-id",
           maxOutputTokens: 131072,
           noImageSupport: false,
@@ -374,12 +380,12 @@ export default function DroidToolCard({
                   </span>
                   {apiKeys.length > 0 ? (
                     <select
-                      value={selectedApiKey}
-                      onChange={(e) => setSelectedApiKey(e.target.value)}
+                      value={selectedApiKeyId}
+                      onChange={(e) => setSelectedApiKeyId(e.target.value)}
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >
                       {apiKeys.map((key) => (
-                        <option key={key.id} value={key.key}>
+                        <option key={key.id} value={key.id}>
                           {key.key}
                         </option>
                       ))}
