@@ -1400,6 +1400,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
   },
 
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api-inference.modelscope.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // ModelScope uses per-model quotas. Setting passthroughModels: true ensures 429/404
+    // only locks the specific model, not the entire connection. This allows fallback
+    // to other models on the same API key.
+    passthroughModels: true,
+    models: [
+      { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
+      { id: "ZhipuAI/GLM-5", name: "GLM-5" },
+      { id: "stepfun-ai/Step-3.5-Flash", name: "Step-3.5-Flash" },
+    ],
+  },
+
   // ── New Free Providers (2026) ─────────────────────────────────────────────
 
   longcat: {
@@ -2128,8 +2147,14 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   const cached = _unsupportedParamsMap.get(modelId);
   if (cached) return cached;
 
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3", "moonshotai/Kimi-K2.5" → "moonshotai/Kimi-K2.5")
+  // ModelScope models have slash in ID, check both full ID and bare ID
   if (modelId.includes("/")) {
+    // First check full model ID with provider prefix (e.g., "moonshotai/Kimi-K2.5")
+    const cachedWithPrefix = _unsupportedParamsMap.get(modelId);
+    if (cachedWithPrefix) return cachedWithPrefix;
+
+    // Fall back to bare ID (e.g., "Kimi-K2.5")
     const bareId = modelId.split("/").pop() || "";
     const bare = _unsupportedParamsMap.get(bareId);
     if (bare) return bare;
@@ -2154,6 +2179,7 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
  * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
+ * @deprecated 此函数将在 v4.0 中移除，请直接使用 REGISTRY.claude?.models
  */
 export function getClaudeCodeDefaultModels(): {
   opus: string;
