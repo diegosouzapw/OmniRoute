@@ -8,6 +8,7 @@ import {
   checkFallbackError,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  isContentModerationResponse,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
@@ -59,13 +60,58 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
+  // Context overflow — model-specific, may succeed on a model with larger context window
+  /context overflow/i,
+  /context length exceeded/i,
+  /prompt too large/i,
+  /token limit/i,
+  /too many tokens/i,
+  /exceeds? context/i,
+  /maximum context/i,
+  /input too long/i,
+  /messages? exceed/i,
+  // Model not supported/found — permanent model-level error, try next combo target
+  /no provider supported/i,
+  /model not found/i,
+  /model not available/i,
+  /unsupported model/i,
+  /model.*has no provider/i,
+  // Function calling format error — model doesn't support this capability
+  /function\.?arguments.*(must be|should be|必须).*(json|JSON)/i,
+  /tool.*arguments.*invalid/i,
+  /function.*parameter.*(invalid|format)/i,
+  // Input length range error — model-specific context limit
+  /range of input length/i,
+  /input length should be/i,
+  // Transient 400 errors from upstream — should fallback to next combo target
+  /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
+  /抱歉.*?敏感内容.*?请检查/i, // ModelScope/Qwen content moderation with context
+  /内容.*?敏感.*?(?:无法|过滤)/i, // Content sensitivity block
+  /无法响应.*?请求/i, // "unable to respond to request"
+  /稍后重试/i, // "retry later" in Chinese
+  /temporary.*error/i,
+  /transient.*error/i,
+  /service.*unavailable/i,
+  /please.*try.*again/i,
+  // Rate limit errors — some providers return 400 instead of 429
+  /\brate.?-?limit.?(?:exceeded|reached|hit)/i,
+  /too many requests/i,
+  /请求过于频繁/i, // Chinese rate limit message
+  // Tool call function name errors — model-specific, try next combo target
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
 // Used to detect 503 responses from handleNoCredentials so combo can fallback.
 const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
 
-function isAllAccountsRateLimitedResponse(status: number, contentType: string | null, errorText: string): boolean {
+function isAllAccountsRateLimitedResponse(
+  status: number,
+  contentType: string | null,
+  errorText: string
+): boolean {
   if (status !== 503) return false;
   if (!contentType?.includes("application/json")) return false;
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
@@ -73,6 +119,7 @@ function isAllAccountsRateLimitedResponse(status: number, contentType: string | 
 
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
+const MAX_GLOBAL_ATTEMPTS = 30;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -198,6 +245,12 @@ async function validateResponseQuality(
 
   if (!hasContent && !hasToolCalls) {
     return { valid: false, reason: "empty content and no tool_calls in response" };
+  }
+
+  // Check for content moderation rejection in response content
+  // Some providers return HTTP 200 with a rejection message in the content
+  if (isContentModerationResponse(json)) {
+    return { valid: false, reason: "content moderation rejection" };
   }
 
   return { valid: true };
@@ -1448,6 +1501,7 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
+  globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
@@ -1482,10 +1536,10 @@ export async function handleComboChat({
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
       globalAttempts++;
-      if (globalAttempts > 30) {
+      if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
         log.warn(
           "COMBO",
-          `Maximum combo attempts (30) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
+          `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
         );
         return errorResponse(503, "Maximum combo retry limit reached");
       }
@@ -1805,9 +1859,9 @@ async function handleRoundRobinCombo({
   let lastError = null;
   let lastStatus = null;
   let earliestRetryAfter = null;
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
-  let globalAttempts = 0;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -1860,10 +1914,10 @@ async function handleRoundRobinCombo({
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
         globalAttempts++;
-        if (globalAttempts > 30) {
+        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
           log.warn(
             "COMBO-RR",
-            `Maximum combo attempts (30) exceeded. Terminating loop to prevent runaway requests.`
+            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded. Terminating loop to prevent runaway requests.`
           );
           return errorResponse(503, "Maximum combo retry limit reached");
         }
@@ -2001,7 +2055,10 @@ async function handleRoundRobinCombo({
         }
 
         if (isAllAccountsRateLimited) {
-          log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
+          log.info(
+            "COMBO",
+            `All accounts rate-limited for ${modelStr}, falling back to next model`
+          );
         } else if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           recordComboRequest(combo.name, modelStr, {
