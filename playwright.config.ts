@@ -34,7 +34,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node scripts/run-next-playwright.mjs ${playwrightServerMode}`,
+    command: `${JSON.stringify(process.execPath)} scripts/run-next-playwright.mjs ${playwrightServerMode}`,
     url: webServerReadyUrl,
     reuseExistingServer: !process.env.CI,
     timeout: Number.isFinite(playwrightWebServerTimeout) ? playwrightWebServerTimeout : 900_000,

@@ -81,6 +81,8 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Callback to persist tokens that are proactively refreshed during execution. */
+  onCredentialsRefreshed?: (newCredentials: ProviderCredentials) => Promise<void> | void;
 };
 
 export type CountTokensInput = {
@@ -387,6 +389,11 @@ export class BaseExecutor {
             ...credentials,
             ...refreshed,
           };
+          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
+          // without updating the central database connection.
+          if (arguments[0].onCredentialsRefreshed) {
+            await arguments[0].onCredentialsRefreshed(refreshed);
+          }
         }
       } catch (error) {
         log?.warn?.(
@@ -463,7 +470,18 @@ export class BaseExecutor {
 
           if (Array.isArray(tb.system)) {
             const sysBlocks = tb.system as Array<Record<string, unknown>>;
-            sysBlocks.unshift({ type: "text", text: billingLine });
+            const firstSystemCacheControl =
+              sysBlocks[0] &&
+              typeof sysBlocks[0] === "object" &&
+              !Array.isArray(sysBlocks[0]) &&
+              sysBlocks[0].cache_control
+                ? sysBlocks[0].cache_control
+                : undefined;
+            const billingBlock: Record<string, unknown> = { type: "text", text: billingLine };
+            if (firstSystemCacheControl) {
+              billingBlock.cache_control = firstSystemCacheControl;
+            }
+            sysBlocks.unshift(billingBlock);
           } else if (typeof tb.system === "string") {
             tb.system = [
               { type: "text", text: billingLine },

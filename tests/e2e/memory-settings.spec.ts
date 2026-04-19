@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 const NAVIGATION_TIMEOUT_MS = 300_000;
 
@@ -29,29 +30,6 @@ async function fulfillJson(route: Route, body: unknown, status = 200) {
     contentType: "application/json",
     body: JSON.stringify(body),
   });
-}
-
-async function gotoOrSkip(page: Page, url: string) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      await page.goto(url, { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    } catch (error) {
-      lastError = error;
-    }
-    try {
-      await page.waitForURL(/\/(login|dashboard)(\/.*)?$/, { timeout: NAVIGATION_TIMEOUT_MS });
-      await page.locator("body").waitFor({ state: "visible", timeout: NAVIGATION_TIMEOUT_MS });
-      lastError = null;
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-    await page.waitForTimeout(1000);
-  }
-  if (lastError) throw lastError;
-  const redirectedToLogin = page.url().includes("/login");
-  test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 }
 
 async function setRangeValue(page: Page, testId: string, value: number) {
@@ -162,7 +140,9 @@ test.describe("Memory settings", () => {
       await fulfillJson(route, { success: true });
     });
 
-    await gotoOrSkip(page, "/dashboard/settings?tab=ai");
+    await gotoDashboardRoute(page, "/dashboard/settings?tab=ai", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
 
     let settingsHydrationRetries = 0;
     await expect(async () => {
@@ -194,7 +174,9 @@ test.describe("Memory settings", () => {
     );
     await expect.poll(() => state.config.enabled).toBe(false);
 
-    await gotoOrSkip(page, "/dashboard/memory");
+    await gotoDashboardRoute(page, "/dashboard/memory", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
 
     let memoryHydrationRetries = 0;
     await expect(async () => {

@@ -118,6 +118,7 @@ export default function DefaultToolCard({
     setSaving(true);
     setMessage(null);
     try {
+      const selectedKeyId = apiKeys?.find((key) => key.key === selectedApiKey)?.id || null;
       const keyToUse =
         selectedApiKey && selectedApiKey.trim()
           ? selectedApiKey
@@ -136,6 +137,7 @@ export default function DefaultToolCard({
         body: JSON.stringify({
           baseUrl: baseUrlWithV1,
           apiKey: keyToUse,
+          keyId: selectedKeyId,
           model: modelValue,
         }),
       });

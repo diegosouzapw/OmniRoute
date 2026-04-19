@@ -65,7 +65,11 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 // Used to detect 503 responses from handleNoCredentials so combo can fallback.
 const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
 
-function isAllAccountsRateLimitedResponse(status: number, contentType: string | null, errorText: string): boolean {
+function isAllAccountsRateLimitedResponse(
+  status: number,
+  contentType: string | null,
+  errorText: string
+): boolean {
   if (status !== 503) return false;
   if (!contentType?.includes("application/json")) return false;
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
@@ -1039,7 +1043,6 @@ export async function handleComboChat({
   const strategy = combo.strategy || "priority";
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
-  let globalAttempts = 0;
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
@@ -1481,15 +1484,6 @@ export async function handleComboChat({
 
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
-      globalAttempts++;
-      if (globalAttempts > 30) {
-        log.warn(
-          "COMBO",
-          `Maximum combo attempts (30) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
-        );
-        return errorResponse(503, "Maximum combo retry limit reached");
-      }
-
       if (retry > 0) {
         log.info(
           "COMBO",
@@ -1807,7 +1801,6 @@ async function handleRoundRobinCombo({
   let earliestRetryAfter = null;
   let fallbackCount = 0;
   let recordedAttempts = 0;
-  let globalAttempts = 0;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -1859,15 +1852,6 @@ async function handleRoundRobinCombo({
     // Retry loop within this model
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
-        globalAttempts++;
-        if (globalAttempts > 30) {
-          log.warn(
-            "COMBO-RR",
-            `Maximum combo attempts (30) exceeded. Terminating loop to prevent runaway requests.`
-          );
-          return errorResponse(503, "Maximum combo retry limit reached");
-        }
-
         if (retry > 0) {
           log.info(
             "COMBO-RR",
@@ -2001,7 +1985,10 @@ async function handleRoundRobinCombo({
         }
 
         if (isAllAccountsRateLimited) {
-          log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
+          log.info(
+            "COMBO",
+            `All accounts rate-limited for ${modelStr}, falling back to next model`
+          );
         } else if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           recordComboRequest(combo.name, modelStr, {
