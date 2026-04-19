@@ -1093,6 +1093,103 @@ export async function handleChatCore({
   }
 
   // Translate request (pass reqLogger for intermediate logging)
+  // ── Proactive Context Compression (Phase 4) ──
+  // Check if context exceeds 70% of limit and compress proactively before sending to provider.
+  // This prevents "prompt too long" errors for large-but-not-full contexts.
+  const allMessages =
+    body?.messages || body?.input || body?.contents || body?.request?.contents || [];
+  if (body && Array.isArray(allMessages) && allMessages.length > 0) {
+    const estimatedTokens = estimateTokens(JSON.stringify(allMessages), provider);
+    let contextLimit = getTokenLimit(provider, effectiveModel);
+
+    if (isCombo && comboName) {
+      log?.info?.("CONTEXT", `Attempting to resolve combo limits for comboName=${comboName}`);
+      try {
+        const { getComboByName } = await import("../../src/lib/localDb");
+        const { parseModel } = await import("../services/model.ts");
+        const { resolveComboTargets } = await import("../services/combo.ts");
+        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
+        const comboConfig = await getComboByName(comboToSearch);
+        if (comboConfig) {
+          const targets = await resolveComboTargets(comboConfig, null);
+          const limits = targets.map((t: { modelStr?: string }) => {
+            const parsed = parseModel(t.modelStr);
+            return getTokenLimit(parsed.provider, parsed.model);
+          });
+          if (limits.length > 0) {
+            contextLimit = Math.min(...limits);
+            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
+          }
+        }
+      } catch (err) {
+        log?.warn?.("CONTEXT", "Failed to resolve combo limits for compression: " + err);
+      }
+    }
+
+    const COMPRESSION_THRESHOLD = 0.7;
+    let reservedTokens = 0;
+    if (Array.isArray(body.tools)) {
+      reservedTokens = estimateTokens(JSON.stringify(body.tools), provider);
+    }
+    const threshold = Math.max(
+      1,
+      Math.floor((Math.max(1, contextLimit) - reservedTokens) * COMPRESSION_THRESHOLD)
+    );
+
+    log?.debug?.(
+      "CONTEXT",
+      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
+    );
+
+    if (estimatedTokens > threshold) {
+      log?.info?.(
+        "CONTEXT",
+        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
+      );
+
+      const compressionResult = compressContext(body, {
+        provider,
+        model: effectiveModel,
+        maxTokens: threshold,
+        reserveTokens: 0,
+      });
+
+      if (compressionResult.compressed) {
+        body = compressionResult.body;
+        const stats = compressionResult.stats;
+        const layersInfo =
+          stats && "layers" in stats && Array.isArray(stats.layers)
+            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
+            : "";
+
+        log?.info?.(
+          "CONTEXT",
+          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
+        );
+
+        logAuditEvent({
+          action: "context.proactive_compression",
+          actor: apiKeyInfo?.name || "system",
+          target: connectionId || provider || "chat",
+          details: {
+            provider,
+            model: effectiveModel,
+            original_tokens: stats.original,
+            final_tokens: stats.final,
+            layers: "layers" in stats ? stats.layers : undefined,
+          },
+        });
+      } else {
+        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
+      }
+    }
+  } else {
+    log?.debug?.(
+      "CONTEXT",
+      `Skipping compression check: body=${!!body}, hasMessages=${Array.isArray(allMessages)}`
+    );
+  }
+
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
@@ -1414,69 +1511,6 @@ export async function handleChatCore({
         translatedBody[field] = providerCap;
       }
     }
-  }
-
-  // ── Proactive Context Compression (Phase 4) ──
-  // Check if context exceeds 85% of limit and compress proactively before sending to provider.
-  // This prevents "prompt too long" errors for large-but-not-full contexts.
-  if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
-    const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
-    const contextLimit = getTokenLimit(provider, effectiveModel);
-    const COMPRESSION_THRESHOLD = 0.85;
-    const threshold = Math.floor(contextLimit * COMPRESSION_THRESHOLD);
-
-    log?.debug?.(
-      "CONTEXT",
-      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit)`
-    );
-
-    if (estimatedTokens > threshold) {
-      log?.info?.(
-        "CONTEXT",
-        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
-      );
-
-      const compressionResult = compressContext(translatedBody, {
-        provider,
-        model: effectiveModel,
-        maxTokens: contextLimit,
-        reserveTokens: 0,
-      });
-
-      if (compressionResult.compressed) {
-        translatedBody = compressionResult.body;
-        const stats = compressionResult.stats;
-        const layersInfo =
-          stats && "layers" in stats && Array.isArray(stats.layers)
-            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
-            : "";
-
-        log?.info?.(
-          "CONTEXT",
-          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
-        );
-
-        logAuditEvent({
-          action: "context.proactive_compression",
-          actor: apiKeyInfo?.name || "system",
-          target: connectionId || provider || "chat",
-          details: {
-            provider,
-            model: effectiveModel,
-            original_tokens: stats.original,
-            final_tokens: stats.final,
-            layers: "layers" in stats ? stats.layers : undefined,
-          },
-        });
-      } else {
-        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
-      }
-    }
-  } else {
-    log?.debug?.(
-      "CONTEXT",
-      `Skipping compression check: translatedBody=${!!translatedBody}, messages=${!!translatedBody?.messages}, isArray=${Array.isArray(translatedBody?.messages)}`
-    );
   }
 
   // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
