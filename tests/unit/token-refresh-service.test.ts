@@ -385,7 +385,10 @@ test("refreshCodexToken recognizes refresh_token_reused responses", async () => 
     async () => textResponse(JSON.stringify({ error: { code: "refresh_token_reused" } }), 400),
     async () => {
       const result = await refreshCodexToken("codex-refresh", log);
-      assert.deepEqual(result, { error: "refresh_token_reused" });
+      assert.deepEqual(result, {
+        error: "unrecoverable_refresh_error",
+        code: "refresh_token_reused",
+      });
     }
   );
 });

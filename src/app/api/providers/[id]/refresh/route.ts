@@ -48,6 +48,24 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     // tokens for each provider type (Claude, GitHub, Gemini, etc.)
     const newCredentials = await getAccessToken(provider, credentials);
 
+    if (newCredentials && typeof newCredentials === "object" && newCredentials.error) {
+      if (
+        newCredentials.error === "unrecoverable_refresh_error" ||
+        newCredentials.error === "refresh_token_reused" ||
+        newCredentials.error === "invalid_grant"
+      ) {
+        const { updateProviderConnection } = await import("@/lib/localDb");
+        await updateProviderConnection(id, {
+          testStatus: "invalid",
+          lastError: "Refresh token expired. Please re-authenticate this account.",
+        });
+        return NextResponse.json(
+          { error: "Token refresh failed — provider returned no new token", requiresReauth: true },
+          { status: 401 }
+        );
+      }
+    }
+
     if (!newCredentials?.accessToken) {
       return NextResponse.json(
         { error: "Token refresh failed — provider returned no new token" },
