@@ -271,9 +271,130 @@ test("checkConnection uses the resolved proxy payload when refreshing tokens", a
             assert.equal(updated?.testStatus, "active");
             assert.equal(updated?.lastError ?? null, null);
             assert.ok(updated?.tokenExpiresAt);
+            assert.ok(updated?.expiresAt);
+            assert.equal(updated?.expiresAt, updated?.tokenExpiresAt);
           }
         );
       });
+    }
+  );
+});
+
+test("checkConnection uses the latest stored refresh token instead of a stale sweep snapshot", async () => {
+  await resetStorage();
+
+  const providerId = "custom-oauth-stale-snapshot";
+  const refreshRequests: string[] = [];
+
+  await withHttpServer(
+    (req, res) => {
+      let body = "";
+      req.setEncoding("utf8");
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        refreshRequests.push(body);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            access_token: "snapshot-access-next",
+            refresh_token: "snapshot-refresh-next",
+            expires_in: 3600,
+          })
+        );
+      });
+    },
+    async (tokenServer) => {
+      await withPatchedProvider(
+        providerId,
+        {
+          tokenUrl: `${tokenServer.url}/token`,
+          clientId: "snapshot-client-id",
+          clientSecret: "snapshot-client-secret",
+        },
+        async () => {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            name: "Snapshot Account",
+            email: "snapshot@example.com",
+            accessToken: "snapshot-access-old",
+            refreshToken: "snapshot-refresh-old",
+            isActive: true,
+          });
+
+          const staleCheckTime = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+          await providersDb.updateProviderConnection(connection.id, {
+            refreshToken: "snapshot-refresh-current",
+            lastHealthCheckAt: staleCheckTime,
+          });
+
+          await tokenHealthCheck.checkConnection(connection);
+
+          const updated = await providersDb.getProviderConnectionById(connection.id);
+          assert.equal(refreshRequests.length, 1);
+          assert.match(refreshRequests[0], /refresh_token=snapshot-refresh-current/);
+          assert.equal(updated?.refreshToken, "snapshot-refresh-next");
+          assert.equal(updated?.accessToken, "snapshot-access-next");
+        }
+      );
+    }
+  );
+});
+
+test("checkConnection skips interval refresh when token expiry is known and still far away", async () => {
+  await resetStorage();
+
+  const providerId = "custom-oauth-known-expiry";
+  let refreshCount = 0;
+
+  await withHttpServer(
+    (_req, res) => {
+      refreshCount += 1;
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          access_token: "should-not-refresh",
+          refresh_token: "should-not-refresh",
+          expires_in: 3600,
+        })
+      );
+    },
+    async (tokenServer) => {
+      await withPatchedProvider(
+        providerId,
+        {
+          tokenUrl: `${tokenServer.url}/token`,
+          clientId: "known-expiry-client-id",
+          clientSecret: "known-expiry-client-secret",
+        },
+        async () => {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            name: "Known Expiry Account",
+            email: "known-expiry@example.com",
+            accessToken: "known-expiry-access",
+            refreshToken: "known-expiry-refresh",
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+          });
+
+          const staleCheckTime = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+          await providersDb.updateProviderConnection(connection.id, {
+            lastHealthCheckAt: staleCheckTime,
+          });
+
+          await tokenHealthCheck.checkConnection(connection);
+
+          const updated = await providersDb.getProviderConnectionById(connection.id);
+          assert.equal(refreshCount, 0);
+          assert.equal(updated?.accessToken, "known-expiry-access");
+          assert.equal(updated?.refreshToken, "known-expiry-refresh");
+          assert.equal(updated?.lastHealthCheckAt, staleCheckTime);
+        }
+      );
     }
   );
 });

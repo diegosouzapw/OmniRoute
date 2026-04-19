@@ -162,6 +162,8 @@ export async function executeChatWithBreaker({
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
               refreshToken: newCreds.refreshToken,
+              expiresIn: newCreds.expiresIn,
+              expiresAt: newCreds.expiresAt,
               providerSpecificData: newCreds.providerSpecificData,
               testStatus: "active",
             });
