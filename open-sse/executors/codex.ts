@@ -1,6 +1,4 @@
-import {
-  getCodexRequestDefaults,
-} from "@/lib/providers/requestDefaults";
+import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
@@ -273,6 +271,8 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
+ *
+ * @deprecated 此函数将在 v4.0 中移除，Codex executor 已更新处理逻辑
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   // Always strip previous_response_id — the /codex/responses endpoint does not
@@ -308,11 +308,7 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
     // Object items with server-generated IDs: strip the id field but keep the item.
     // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
     // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
-    if (
-      item &&
-      typeof item === "object" &&
-      !Array.isArray(item)
-    ) {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
       const record = item as Record<string, unknown>;
       if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
         delete record.id;
