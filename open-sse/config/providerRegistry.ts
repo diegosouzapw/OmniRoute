@@ -2147,8 +2147,14 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   const cached = _unsupportedParamsMap.get(modelId);
   if (cached) return cached;
 
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3", "moonshotai/Kimi-K2.5" → "moonshotai/Kimi-K2.5")
+  // ModelScope models have slash in ID, check both full ID and bare ID
   if (modelId.includes("/")) {
+    // First check full model ID with provider prefix (e.g., "moonshotai/Kimi-K2.5")
+    const cachedWithPrefix = _unsupportedParamsMap.get(modelId);
+    if (cachedWithPrefix) return cachedWithPrefix;
+
+    // Fall back to bare ID (e.g., "Kimi-K2.5")
     const bareId = modelId.split("/").pop() || "";
     const bare = _unsupportedParamsMap.get(bareId);
     if (bare) return bare;
