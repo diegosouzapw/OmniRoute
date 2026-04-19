@@ -2742,7 +2742,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       value={builderProviderId}
                       onChange={handleBuilderProviderChange}
                       data-testid="combo-builder-provider"
-                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none"
                     >
                       <option value="">
                         {builderLoading
@@ -2767,7 +2767,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       onChange={handleBuilderModelChange}
                       disabled={!selectedBuilderProvider}
                       data-testid="combo-builder-model"
-                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none disabled:opacity-50"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none disabled:opacity-50"
                     >
                       <option value="">
                         {selectedBuilderProvider
@@ -2792,7 +2792,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       onChange={handleBuilderConnectionChange}
                       disabled={!selectedBuilderModel}
                       data-testid="combo-builder-account"
-                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none disabled:opacity-50"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none disabled:opacity-50"
                     >
                       <option value={COMBO_BUILDER_AUTO_CONNECTION}>
                         {getI18nOrFallback(
@@ -2853,7 +2853,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     <select
                       value={builderComboRefName}
                       onChange={(e) => setBuilderComboRefName(e.target.value)}
-                      className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none"
                     >
                       <option value="">
                         {getI18nOrFallback(
