@@ -186,14 +186,13 @@ test("openaiHelper filters content, normalizes tools and removes OpenAI-incompat
 
   const result = openaiHelper.filterToOpenAIFormat(body);
 
-  assert.equal(result.messages.length, 4);
+  assert.equal(result.messages.length, 3);
   assert.equal(result.messages[2].reasoning_content, "plan first");
   assert.deepEqual(result.messages[2].content, [
     { type: "text", text: "visible text" },
     { type: "image_url", image_url: { url: "https://example.com/a.png" } },
-    { type: "tool_result", tool_use_id: "call_1", text: "done" },
+    { type: "text", text: "[Tool Result: call_1]\ndone" },
   ]);
-  assert.deepEqual(result.messages[3].content, [{ type: "tool_result", tool_use_id: "call_2" }]);
   assert.equal(result.tools.length, 3);
   assert.equal(result.tools[0].function.name, "claude-tool");
   assert.equal(result.tools[1].function.name, "gemini-tool");

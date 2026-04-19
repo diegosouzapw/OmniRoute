@@ -370,6 +370,7 @@ export class BaseExecutor {
     log,
     extendedContext,
     upstreamExtraHeaders,
+    clientHeaders,
   }: ExecuteInput) {
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -462,7 +463,18 @@ export class BaseExecutor {
 
           if (Array.isArray(tb.system)) {
             const sysBlocks = tb.system as Array<Record<string, unknown>>;
-            sysBlocks.unshift({ type: "text", text: billingLine });
+            const firstSystemCacheControl =
+              sysBlocks[0] &&
+              typeof sysBlocks[0] === "object" &&
+              !Array.isArray(sysBlocks[0]) &&
+              sysBlocks[0].cache_control
+                ? sysBlocks[0].cache_control
+                : undefined;
+            const billingBlock: Record<string, unknown> = { type: "text", text: billingLine };
+            if (firstSystemCacheControl) {
+              billingBlock.cache_control = firstSystemCacheControl;
+            }
+            sysBlocks.unshift(billingBlock);
           } else if (typeof tb.system === "string") {
             tb.system = [
               { type: "text", text: billingLine },

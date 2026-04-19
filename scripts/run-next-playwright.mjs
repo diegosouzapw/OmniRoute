@@ -37,6 +37,14 @@ function testDistDir() {
   return process.env.NEXT_DIST_DIR || ".next";
 }
 
+function resolvePlaywrightDataDir({ cwd, env, pid = process.pid }) {
+  if (typeof env.DATA_DIR === "string" && env.DATA_DIR.trim().length > 0) {
+    return env.DATA_DIR;
+  }
+
+  return join(cwd, ".tmp", "playwright-data", String(pid));
+}
+
 export function resolvePlaywrightAppBackupDir({
   cwd,
   baseBackupExists,
@@ -136,17 +144,34 @@ function restoreAppDir() {
   console.log("[Playwright WebServer] Restored app/ directory");
 }
 
-const bootstrapEnvVars = bootstrapEnv({ quiet: true });
+const playwrightDataDir = resolvePlaywrightDataDir({
+  cwd,
+  env: process.env,
+});
+const bootstrapEnvVars = bootstrapEnv({
+  quiet: true,
+  dataDirOverride: playwrightDataDir,
+});
 const runtimePorts = resolveRuntimePorts(bootstrapEnvVars);
+const bootstrapMode = process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "auth";
+const playwrightPassword =
+  process.env.OMNIROUTE_E2E_PASSWORD || process.env.INITIAL_PASSWORD || "omniroute-e2e-password";
 const testServerEnv = {
   ...sanitizeColorEnv(bootstrapEnvVars),
   ...sanitizeColorEnv(process.env),
+  DATA_DIR: playwrightDataDir,
   NEXT_PUBLIC_OMNIROUTE_E2E_MODE: process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE || "1",
   OMNIROUTE_DISABLE_BACKGROUND_SERVICES:
     process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES || "true",
   OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK: process.env.OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK || "true",
   OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: process.env.OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK || "true",
   OMNIROUTE_HIDE_HEALTHCHECK_LOGS: process.env.OMNIROUTE_HIDE_HEALTHCHECK_LOGS || "true",
+  ...(bootstrapMode === "open"
+    ? {}
+    : {
+        INITIAL_PASSWORD: playwrightPassword,
+        OMNIROUTE_E2E_PASSWORD: playwrightPassword,
+      }),
   ...(process.env.OMNIROUTE_USE_TURBOPACK
     ? {
         OMNIROUTE_USE_TURBOPACK: process.env.OMNIROUTE_USE_TURBOPACK,

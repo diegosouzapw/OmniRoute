@@ -1,9 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 test.describe("Settings Toggles", () => {
+  const waitForSettingsShell = async (page) => {
+    await expect(page.getByRole("tab", { name: /general/i }).first()).toBeVisible({
+      timeout: 15000,
+    });
+  };
+
   const getDebugToggle = (page) =>
     page
       .getByText(/enable debug mode/i)
+      .locator('xpath=ancestor::div[contains(@class, "flex items-center justify-between")][1]')
+      .getByRole("switch");
+
+  const getSidebarVisibilityToggle = (page, itemLabel: string) =>
+    page
+      .getByRole("tabpanel", { name: /appearance/i })
+      .getByText(new RegExp(`^${itemLabel}$`, "i"))
       .locator('xpath=ancestor::div[contains(@class, "flex items-center justify-between")][1]')
       .getByRole("switch");
 
@@ -16,8 +30,8 @@ test.describe("Settings Toggles", () => {
     );
 
   test("Debug mode toggle should work", async ({ page }) => {
-    await page.goto("/dashboard/settings");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/settings");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /advanced/i }).click();
 
     const debugToggle = getDebugToggle(page);
@@ -35,16 +49,16 @@ test.describe("Settings Toggles", () => {
   });
 
   test("Sidebar visibility toggle should work", async ({ page }) => {
-    await page.goto("/dashboard/settings");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/settings");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /appearance/i }).click();
 
-    const sidebarToggle = page.getByRole("switch").first();
+    const sidebarToggle = getSidebarVisibilityToggle(page, "Health");
 
     await expect(sidebarToggle).toBeVisible({ timeout: 15000 });
 
     const initialState = await sidebarToggle.getAttribute("aria-checked");
-    await sidebarToggle.click();
+    await Promise.all([waitForSettingsPatch(page), sidebarToggle.click()]);
     await expect(sidebarToggle).toHaveAttribute(
       "aria-checked",
       initialState === "true" ? "false" : "true",
@@ -53,8 +67,8 @@ test.describe("Settings Toggles", () => {
   });
 
   test("Clear Cache button calls DELETE /api/cache", async ({ page }) => {
-    await page.goto("/dashboard/settings");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/settings");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /general/i }).click();
 
     const clearBtn = page.getByRole("button", { name: /clear cache/i });
@@ -68,8 +82,8 @@ test.describe("Settings Toggles", () => {
   });
 
   test("Purge Expired Logs button calls POST /api/settings/purge-logs", async ({ page }) => {
-    await page.goto("/dashboard/settings");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/settings");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /general/i }).click();
 
     const purgeBtn = page.getByRole("button", { name: /purge expired logs/i });
@@ -85,8 +99,8 @@ test.describe("Settings Toggles", () => {
   });
 
   test("Debug mode should persist after page reload", async ({ page }) => {
-    await page.goto("/dashboard/settings");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/settings");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /advanced/i }).click();
 
     const debugToggle = getDebugToggle(page);
@@ -99,7 +113,7 @@ test.describe("Settings Toggles", () => {
     const nextState = initialState === "true" ? "false" : "true";
     await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 15000 });
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await waitForSettingsShell(page);
     await page.getByRole("tab", { name: /advanced/i }).click();
     const reloadedToggle = getDebugToggle(page);
     await expect(reloadedToggle).toBeEnabled({ timeout: 15000 });

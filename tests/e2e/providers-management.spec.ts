@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 const NAVIGATION_TIMEOUT_MS = 300_000;
 
@@ -230,29 +231,6 @@ async function readProviderMockState(page: Page) {
   );
 }
 
-async function gotoOrSkip(page: Page, url: string) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      await page.goto(url, { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    } catch (error) {
-      lastError = error;
-    }
-    try {
-      await page.waitForURL(/\/(login|dashboard)(\/.*)?$/, { timeout: NAVIGATION_TIMEOUT_MS });
-      await page.locator("body").waitFor({ state: "visible", timeout: NAVIGATION_TIMEOUT_MS });
-      lastError = null;
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-    await page.waitForTimeout(1000);
-  }
-  if (lastError) throw lastError;
-  const redirectedToLogin = page.url().includes("/login");
-  test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
-}
-
 test.describe("Providers management", () => {
   test.setTimeout(600_000);
 
@@ -261,7 +239,9 @@ test.describe("Providers management", () => {
   }) => {
     await installProviderFetchMock(page);
 
-    await gotoOrSkip(page, "/dashboard/providers");
+    await gotoDashboardRoute(page, "/dashboard/providers", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
 
     const openAiCard = page.locator('a[href="/dashboard/providers/openai"]').first();
     await expect(openAiCard).toBeVisible();

@@ -369,6 +369,11 @@ function buildClaudePromptCacheLogMeta(
   const systemBreakpoints = Array.isArray(finalBody.system)
     ? finalBody.system.flatMap((block, index) => {
         if (!block || typeof block !== "object") return [];
+        const text =
+          typeof block.text === "string" && block.text.trim().length > 0 ? block.text.trim() : "";
+        if (text.startsWith("x-anthropic-billing-header:")) {
+          return [];
+        }
         const cacheControl =
           block.cache_control && typeof block.cache_control === "object"
             ? block.cache_control
@@ -528,6 +533,33 @@ async function getUpstreamProxyConfigCached(providerId: string) {
     : { mode: "native" as const, enabled: false, ts: Date.now() };
   _proxyConfigCache.set(providerId, result);
   return result;
+}
+
+function buildExecutorClientHeaders(
+  headers: Headers | Record<string, unknown> | null | undefined,
+  userAgent?: string | null
+) {
+  const normalized: Record<string, string> = {};
+
+  if (headers instanceof Headers) {
+    for (const [key, value] of headers.entries()) {
+      normalized[key] = value;
+    }
+  } else if (headers && typeof headers === "object") {
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === "string") {
+        normalized[key] = value;
+      }
+    }
+  }
+
+  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
+  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
+    normalized["user-agent"] = normalizedUserAgent;
+    normalized["User-Agent"] = normalizedUserAgent;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
 export async function handleChatCore({
@@ -1215,6 +1247,79 @@ export async function handleChatCore({
     );
   }
 
+  const normalizeClaudeUpstreamMessages = (payload: Record<string, any>) => {
+    if (!Array.isArray(payload.messages)) return;
+
+    // Anthropic rejects empty text blocks in native Messages payloads.
+    for (const msg of payload.messages) {
+      if (Array.isArray(msg.content)) {
+        msg.content = msg.content.filter(
+          (block: Record<string, unknown>) =>
+            block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+        );
+      }
+    }
+
+    // Normalize unsupported content types without reintroducing the Claude -> OpenAI round-trip.
+    for (const msg of payload.messages) {
+      if (msg.role !== "user" || !Array.isArray(msg.content)) continue;
+      msg.content = (msg.content as Record<string, unknown>[]).flatMap(
+        (block: Record<string, unknown>) => {
+          if (
+            block.type === "text" ||
+            block.type === "image_url" ||
+            block.type === "image" ||
+            block.type === "file_url" ||
+            block.type === "file" ||
+            block.type === "document"
+          ) {
+            const fileData = (block.file_url ?? block.file ?? block.document) as
+              | Record<string, unknown>
+              | undefined;
+            if (
+              (block.type === "file" || block.type === "document") &&
+              !fileData?.url &&
+              !fileData?.data
+            ) {
+              const fileContent =
+                (block.file as Record<string, unknown>)?.content ??
+                (block.file as Record<string, unknown>)?.text ??
+                block.content ??
+                block.text;
+              const fileName =
+                (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
+              if (typeof fileContent === "string" && fileContent.length > 0) {
+                return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+              }
+            }
+            return [block];
+          }
+
+          if (block.type === "tool_result") {
+            const toolId = block.tool_use_id ?? block.id ?? "unknown";
+            const resultContent = block.content ?? block.text ?? block.output ?? "";
+            const resultText =
+              typeof resultContent === "string"
+                ? resultContent
+                : Array.isArray(resultContent)
+                  ? resultContent
+                      .filter((c: Record<string, unknown>) => c.type === "text")
+                      .map((c: Record<string, unknown>) => c.text)
+                      .join("\n")
+                  : JSON.stringify(resultContent);
+            if (resultText.length > 0) {
+              return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
+            }
+            return [];
+          }
+
+          log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
+          return [];
+        }
+      );
+    }
+  };
+
   try {
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
@@ -1269,6 +1374,7 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
+      normalizeClaudeUpstreamMessages(translatedBody);
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
     } else {
@@ -1281,89 +1387,7 @@ export async function handleChatCore({
       // "proxy_Bash", which Claude rejects ("No such tool available: proxy_Bash").
       if (targetFormat === FORMATS.CLAUDE) {
         translatedBody._disableToolPrefix = true;
-      }
-
-      // Strip empty text content blocks from messages.
-      // Anthropic API rejects {"type":"text","text":""} with 400 "text content blocks must be non-empty".
-      // Some clients (LiteLLM passthrough, @ai-sdk/anthropic) may forward these empty blocks as-is.
-      if (Array.isArray(translatedBody.messages)) {
-        for (const msg of translatedBody.messages) {
-          if (Array.isArray(msg.content)) {
-            msg.content = msg.content.filter(
-              (block: Record<string, unknown>) =>
-                block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
-            );
-          }
-        }
-      }
-
-      // ── #409: Normalize unsupported content part types ──
-      // Cursor and other clients send {type:"file"} when attaching .md or other files.
-      // Providers (Copilot, OpenAI) only accept "text" and "image_url" in content arrays.
-      // Convert: file → text (extract content), drop unrecognized types with a warning.
-      if (Array.isArray(translatedBody.messages)) {
-        for (const msg of translatedBody.messages) {
-          if (msg.role === "user" && Array.isArray(msg.content)) {
-            msg.content = (msg.content as Record<string, unknown>[]).flatMap(
-              (block: Record<string, unknown>) => {
-                if (
-                  block.type === "text" ||
-                  block.type === "image_url" ||
-                  block.type === "image" ||
-                  block.type === "file_url" ||
-                  block.type === "file" ||
-                  block.type === "document"
-                ) {
-                  // Only extract text if it's explicitly a text-only representation without data
-                  const fileData = (block.file_url ?? block.file ?? block.document) as
-                    | Record<string, unknown>
-                    | undefined;
-                  if (
-                    (block.type === "file" || block.type === "document") &&
-                    !fileData?.url &&
-                    !fileData?.data
-                  ) {
-                    const fileContent =
-                      (block.file as Record<string, unknown>)?.content ??
-                      (block.file as Record<string, unknown>)?.text ??
-                      block.content ??
-                      block.text;
-                    const fileName =
-                      (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
-                    if (typeof fileContent === "string" && fileContent.length > 0) {
-                      return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
-                    }
-                  }
-                  return [block];
-                }
-                // (#527) tool_result → convert to text instead of dropping.
-                // When Claude Code + superpowers routes through Codex, it sends tool_result
-                // blocks in user messages. Silently dropping them causes Codex to loop
-                // because it never receives the tool response and keeps re-requesting it.
-                if (block.type === "tool_result") {
-                  const toolId = block.tool_use_id ?? block.id ?? "unknown";
-                  const resultContent = block.content ?? block.text ?? block.output ?? "";
-                  const resultText =
-                    typeof resultContent === "string"
-                      ? resultContent
-                      : Array.isArray(resultContent)
-                        ? resultContent
-                            .filter((c: Record<string, unknown>) => c.type === "text")
-                            .map((c: Record<string, unknown>) => c.text)
-                            .join("\n")
-                        : JSON.stringify(resultContent);
-                  if (resultText.length > 0) {
-                    return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
-                  }
-                  return [];
-                }
-                // Unknown types: drop silently
-                log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
-                return [];
-              }
-            );
-          }
-        }
+        normalizeClaudeUpstreamMessages(translatedBody);
       }
 
       // OpenAI-compatible providers only support function tools.
@@ -1683,7 +1707,7 @@ export async function handleChatCore({
             log,
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-            clientHeaders: clientRawRequest?.headers ?? null,
+            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1885,7 +1909,7 @@ export async function handleChatCore({
           log,
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
-          clientHeaders: clientRawRequest?.headers ?? null,
+          clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
         });
 
         if (retryResult.response.ok) {
