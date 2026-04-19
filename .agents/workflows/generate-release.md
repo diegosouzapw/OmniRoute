@@ -159,21 +159,29 @@ git push origin release/v2.x.y
 
 ### 9. Open PR to main
 
+### 9. Open PR to main
+
+// turbo
+
 ```bash
+VERSION=$(node -p "require('./package.json').version")
+
+# Extract the exact changelog entry for this version from the root CHANGELOG.md
+awk "/^## \\[$VERSION\\]/{flag=1; print; next} /^---/{if(flag) {flag=0; exit}} flag" CHANGELOG.md > /tmp/changelog_body.txt
+
+# Append test status and next steps
+echo "" >> /tmp/changelog_body.txt
+echo "### Tests" >> /tmp/changelog_body.txt
+echo "- All tests pass" >> /tmp/changelog_body.txt
+echo "" >> /tmp/changelog_body.txt
+echo "### ⚠️ After merging: run Phase 2 steps to tag, publish, and deploy." >> /tmp/changelog_body.txt
+
 gh pr create \
   --repo diegosouzapw/OmniRoute \
   --base main \
-  --head release/v2.x.y \
-  --title "chore(release): v2.x.y — summary" \
-  --body "## 🚀 Release v2.x.y
-
-### Changes
-...
-
-### Tests
-- X/X tests pass
-
-### ⚠️ After merging: run Phase 2 steps to tag, publish, and deploy."
+  --head release/v$VERSION \
+  --title "Release v$VERSION" \
+  --body-file /tmp/changelog_body.txt
 ```
 
 ### 10. 🛑 STOP — Notify User & Await PR Confirmation

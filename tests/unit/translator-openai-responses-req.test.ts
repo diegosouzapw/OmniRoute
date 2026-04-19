@@ -279,6 +279,37 @@ test("Chat -> Responses preserves prompt_cache_key and session affinity fields",
   assert.equal(result.store, undefined);
 });
 
+test("Chat -> Responses preserves explicit reasoning objects", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning: { effort: "low" },
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual(result.reasoning, { effort: "low" });
+  assert.equal(result.store, false);
+});
+
+test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "low",
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual(result.reasoning, { effort: "low" });
+  assert.equal(result.reasoning_effort, undefined);
+  assert.equal(result.store, false);
+});
+
 test("Chat -> Responses filters orphan function_call_output items and leaves empty instructions when absent", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",

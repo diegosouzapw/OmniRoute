@@ -26,6 +26,10 @@ export interface Skill {
   schema: SkillSchema;
   handler: string;
   enabled: boolean;
+  mode?: "on" | "off" | "auto";
+  sourceProvider?: "skillsmp" | "skillssh" | "local";
+  tags?: string[];
+  installCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }

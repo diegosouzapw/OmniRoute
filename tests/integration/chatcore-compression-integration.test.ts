@@ -12,6 +12,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-compression-sec
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { estimateTokens, getTokenLimit } = await import("../../open-sse/services/contextManager.ts");
 const { resetAllAvailability } = await import("../../src/domain/modelAvailability.ts");
@@ -325,6 +326,103 @@ test("chatCore integration: compression handles tool messages", async () => {
         "Tool message should have truncation marker"
       );
     }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("chatCore integration: combo requests run proactive compression before Kiro translation", async () => {
+  const provider = "kiro";
+  const model = "claude-sonnet-4.5";
+
+  const connectionId = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  await combosDb.createCombo({
+    name: "test-kiro-compression-combo",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        model: `${provider}/${model}`,
+        connectionId,
+      },
+    ],
+  });
+
+  const body = {
+    model: "combo/test-kiro-compression-combo",
+    stream: false,
+    messages: [
+      { role: "system", content: "You are helpful." },
+      { role: "user", content: "x".repeat(50000) },
+      { role: "assistant", content: "Ack 1" },
+      { role: "user", content: "x".repeat(50000) },
+      { role: "assistant", content: "Ack 2" },
+      { role: "user", content: "x".repeat(50000) },
+      { role: "assistant", content: "Ack 3" },
+      { role: "user", content: "Please summarize everything." },
+    ],
+  };
+
+  let capturedTranslatedBody: Record<string, unknown> | null = null;
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) {
+      capturedTranslatedBody = JSON.parse(init.body as string) as Record<string, unknown>;
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 11, completion_tokens: 5, total_tokens: 16 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await handleChatCore({
+      body,
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId,
+      isCombo: true,
+      comboName: "test-kiro-compression-combo",
+    });
+
+    // Kiro response translation in this integration harness may fail depending on upstream
+    // payload shape, but the regression target is request-side behavior before translation.
+    assert.ok(result, "Handler should return a result object");
+    assert.ok(capturedTranslatedBody, "Translated body should be sent upstream");
+
+    // Ensure request was translated to Kiro shape (messages are not sent directly upstream).
+    const conversationState = capturedTranslatedBody?.conversationState as
+      | Record<string, unknown>
+      | undefined;
+    assert.ok(conversationState, "Kiro translated request should include conversationState");
+
+    const history = Array.isArray(conversationState?.history)
+      ? (conversationState.history as unknown[])
+      : [];
+    assert.ok(
+      history.length < body.messages.length - 1,
+      "History should be reduced by proactive compression before translation"
+    );
+
+    const currentMessage = conversationState?.currentMessage as Record<string, unknown> | undefined;
+    const userInputMessage = currentMessage?.userInputMessage as
+      | Record<string, unknown>
+      | undefined;
+    const currentContent =
+      typeof userInputMessage?.content === "string" ? userInputMessage.content : "";
+    assert.match(currentContent, /Please summarize everything\./);
   } finally {
     globalThis.fetch = originalFetch;
   }

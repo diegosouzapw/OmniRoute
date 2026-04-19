@@ -7,6 +7,7 @@ import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
 import { mergeOpenCodeConfig } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { getApiKeyById } from "@/lib/localDb";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -31,11 +32,24 @@ export async function POST(request, { params }) {
   }
 
   const { toolId } = await params;
+  const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
   const validation = validateBody(guideSettingsSaveSchema, rawBody);
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const { baseUrl, apiKey, model } = validation.data;
+  const { baseUrl, model } = validation.data;
+  let { apiKey } = validation.data;
+
+  if (keyId) {
+    try {
+      const keyRecord = await getApiKeyById(keyId);
+      if (keyRecord?.key) {
+        apiKey = keyRecord.key;
+      }
+    } catch {
+      // Fall back to the provided apiKey when key lookup is unavailable.
+    }
+  }
 
   try {
     switch (toolId) {
@@ -188,7 +202,9 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
 
   await fs.mkdir(configDir, { recursive: true });
 
-  const normalizedBaseUrl = String(baseUrl || "").trim().replace(/\/+$/, "");
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
 
   // Read existing config to preserve other provider entries
   let existingConfig: Record<string, any> = {};

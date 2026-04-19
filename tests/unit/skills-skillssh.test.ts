@@ -9,6 +9,7 @@ const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { searchSkillsSh, fetchSkillMd, SkillsShSearchResponseSchema, SkillsShSkillSchema } =
   await import("../../src/lib/skills/skillssh.ts");
@@ -30,8 +31,9 @@ function resetStorage() {
 
 const originalFetch = globalThis.fetch;
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   resetStorage();
+  await settingsDb.updateSettings({ skillsProvider: "skillssh", requireLogin: false });
   globalThis.fetch = originalFetch;
 });
 

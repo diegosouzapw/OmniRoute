@@ -8,12 +8,18 @@
 
 ### ✨ New Features
 
+- **feat(claude-code):** Update Claude Code obfuscation to version 2.1.114, centralize hardcoded version strings, and use standard logger (#1403)
 - **feat(cli-tools):** Add direct configuration file generation and override support for Qwen Code local settings (#1394)
 - **feat(providers):** Derive Claude CLI model defaults dynamically from provider registry to stay current with upstream API changes (#1393)
 - **feat(core):** Implement persistent API key, backup pruning, and GPU optimization (#1350, #1367, #1369)
 
 ### 🐛 Bug Fixes
 
+- **fix(ui):** Makes dropdown text visible in dark mode within the Combo Builder modal (#1409)
+- **fix(chatcore):** Apply proactive compression before provider translation to prevent token limit errors in combo routes (#1406)
+- **fix(claude-code):** Scope thinking stripping to executor boundaries to prevent issues with normal API requests (#1401)
+- **fix(mitm):** Resolve MITM not working when connecting Antigravity (#1399)
+- **fix(security):** Resolve CodeQL password hash alert and fix TruffleHog CI failure (#161)
 - **fix(combo):** Fallback to the next model when all provider accounts return a 503 rate-limited signal instead of aborting the routing sequence (#1398)
 - **fix(codex):** Strip server-generated IDs from response items in input to prevent 404 lookup errors in multi-turn Codex Conversations (#1397)
 - **fix(codex):** Optimize Chat Completions paths by converting `system` to `developer` roles instead of hoisting them into instructions, enabling prompt caching for system messages on GPT-5 models (#1400)
@@ -22,6 +28,10 @@
 - **fix(providers):** Treat upstream legacy validation HTTP 5xx responses as a valid bypass for Qoder PAT tokens to prevent false negative invalidation (#1391)
 - **fix(electron):** Resolve type error in Header electronAPI properties
 - **fix(security):** Resolve CodeQL security alerts including safe prototype bindings (#151, #152, #154, #155-159)
+
+### 🧪 Tests
+
+- **test(core):** Resolve typescript strictness complaints and fix combo-routing-engine test regression
 
 ### 🛠️ Maintenance
 

@@ -324,6 +324,7 @@ if (existsSync(mitmSrc)) {
       module: "CommonJS",
       outDir: mitmDest,
       rootDir: mitmSrc,
+      ignoreDeprecations: "6.0",
       resolveJsonModule: true,
       esModuleInterop: true,
       skipLibCheck: true,

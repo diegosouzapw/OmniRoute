@@ -54,19 +54,44 @@ export function obfuscateSensitiveWords(text: string): string {
 }
 
 export function obfuscateInBody(body: Record<string, unknown>): void {
-  const messages = body.messages as Array<Record<string, unknown>> | undefined;
-  if (!Array.isArray(messages)) return;
+  // System prompt (Claude format: string or array of blocks)
+  if (typeof body.system === "string") {
+    body.system = obfuscateSensitiveWords(body.system);
+  } else if (Array.isArray(body.system)) {
+    for (const block of body.system as Array<Record<string, unknown>>) {
+      if (typeof block.text === "string") {
+        block.text = obfuscateSensitiveWords(block.text);
+      }
+    }
+  }
 
-  for (const msg of messages) {
-    if (String(msg.role) !== "user") continue;
-    const content = msg.content;
-    if (typeof content === "string") {
-      msg.content = obfuscateSensitiveWords(content);
-    } else if (Array.isArray(content)) {
-      for (const block of content as Array<Record<string, unknown>>) {
-        if (typeof block.text === "string") {
-          block.text = obfuscateSensitiveWords(block.text);
+  // Messages (all roles, not just user — system/assistant may also contain sensitive words)
+  const messages = body.messages as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(messages)) {
+    for (const msg of messages) {
+      const content = msg.content;
+      if (typeof content === "string") {
+        msg.content = obfuscateSensitiveWords(content);
+      } else if (Array.isArray(content)) {
+        for (const block of content as Array<Record<string, unknown>>) {
+          if (typeof block.text === "string") {
+            block.text = obfuscateSensitiveWords(block.text);
+          }
         }
+      }
+    }
+  }
+
+  // Tool descriptions (may contain URLs or names like "opencode")
+  const tools = body.tools as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(tools)) {
+    for (const tool of tools) {
+      if (typeof tool.description === "string") {
+        tool.description = obfuscateSensitiveWords(tool.description);
+      }
+      const fn = tool.function as Record<string, unknown> | undefined;
+      if (fn && typeof fn.description === "string") {
+        fn.description = obfuscateSensitiveWords(fn.description);
       }
     }
   }

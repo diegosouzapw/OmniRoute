@@ -10,7 +10,10 @@
  * - Response path: TitleCase → lowercase (for clients expecting lowercase)
  */
 
+import { EXTRA_TOOL_RENAME_MAP } from "./claudeCodeExtraRemap.ts";
+
 const TOOL_RENAME_MAP: Record<string, string> = {
+  ...EXTRA_TOOL_RENAME_MAP,
   bash: "Bash",
   read: "Read",
   write: "Write",
@@ -19,12 +22,15 @@ const TOOL_RENAME_MAP: Record<string, string> = {
   grep: "Grep",
   task: "Task",
   webfetch: "WebFetch",
+  websearch: "WebSearch",
   todowrite: "TodoWrite",
   todoread: "TodoRead",
   question: "Question",
   skill: "Skill",
   multiedit: "MultiEdit",
   notebook: "Notebook",
+  lsp: "Lsp",
+  apply_patch: "ApplyPatch",
 };
 
 const REVERSE_MAP: Record<string, string> = {};

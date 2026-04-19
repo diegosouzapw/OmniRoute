@@ -1,6 +1,4 @@
-import {
-  getCodexRequestDefaults,
-} from "@/lib/providers/requestDefaults";
+import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
@@ -308,11 +306,7 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
     // Object items with server-generated IDs: strip the id field but keep the item.
     // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
     // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
-    if (
-      item &&
-      typeof item === "object" &&
-      !Array.isArray(item)
-    ) {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
       const record = item as Record<string, unknown>;
       if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
         delete record.id;
@@ -663,6 +657,7 @@ export class CodexExecutor extends BaseExecutor {
     // whether the request came via native passthrough or translation.
     delete body.max_tokens;
     delete body.max_output_tokens;
+    delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
