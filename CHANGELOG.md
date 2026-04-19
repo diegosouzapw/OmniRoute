@@ -20,6 +20,7 @@
 - **fix(providers):** Fix Gemini tool calling by removing the unsupported `additionalProperties` schema field, resolving 400 errors during complex tool invocations (#1421)
 - **fix(providers):** Remove arbitrary user thought signature injection in Gemini responses to comply with updated API constraints (#1410)
 - **fix(providers):** Fix Gemini API part count mismatch for streaming responses (#1412)
+- **fix(codex):** Respect `openaiStoreEnabled` setting during native passthrough for Responses API to prevent unsupported upstream arguments (#1432)
 - **fix(ui):** Makes dropdown text visible in dark mode within the Combo Builder modal (#1409)
 - **fix(chatcore):** Apply proactive compression before provider translation to prevent token limit errors in combo routes (#1406)
 - **fix(claude-code):** Scope thinking stripping to executor boundaries to prevent issues with normal API requests (#1401)
