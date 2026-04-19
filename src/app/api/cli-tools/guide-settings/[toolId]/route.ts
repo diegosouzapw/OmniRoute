@@ -188,7 +188,9 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
 
   await fs.mkdir(configDir, { recursive: true });
 
-  const normalizedBaseUrl = String(baseUrl || "").trim().replace(/\/+$/, "");
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
 
   // Read existing config to preserve other provider entries
   let existingConfig: Record<string, any> = {};

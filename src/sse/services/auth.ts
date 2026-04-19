@@ -19,6 +19,8 @@ import {
   hasPerModelQuota,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
+  isProviderInCooldown,
+  getProviderCooldownRemainingMs,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
@@ -682,6 +684,22 @@ export async function getProviderCredentials(
       return true;
     });
 
+    // Check if the entire provider is in cooldown (too many transient failures)
+    if (isProviderInCooldown(provider)) {
+      const cooldownRemaining = getProviderCooldownRemainingMs(provider);
+      log.warn(
+        "AUTH",
+        `${provider} | provider in cooldown for ${Math.ceil((cooldownRemaining || 0) / 1000)}s (${availableConnections.length} connections bypassed)`
+      );
+      return {
+        allRateLimited: true,
+        retryAfter: new Date(Date.now() + (cooldownRemaining || 0)).toISOString(),
+        retryAfterHuman: formatRetryAfter(
+          new Date(Date.now() + (cooldownRemaining || 0)).toISOString()
+        ),
+      };
+    }
+
     log.debug(
       "AUTH",
       `${provider} | available: ${availableConnections.length}/${connections.length}`
@@ -1189,7 +1207,13 @@ export async function markAccountUnavailable(
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
 
-    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    // Read passthroughModels from connection config (user-configured per-model quota)
+    const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
+    const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
+      | boolean
+      | undefined;
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
       const fallbackCooldown =
