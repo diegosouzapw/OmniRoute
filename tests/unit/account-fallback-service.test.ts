@@ -22,6 +22,15 @@ const {
   recordModelLockoutFailure,
   clearModelLock,
   shouldMarkAccountExhaustedFrom429,
+  recordProviderFailure,
+  isProviderInCooldown,
+  getProviderCooldownRemainingMs,
+  clearProviderFailure,
+  isProviderFailureCode,
+  getProvidersInCooldown,
+  isContentModerationResponse,
+  createContentModerationError,
+  isContentModerationError,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -289,4 +298,295 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     Date.now = originalNow;
     clearModelLock("openai-compatible-custom-node", "conn-compatible", "custom-model-a");
   }
+});
+
+// Provider-level failure circuit breaker tests
+test("isProviderFailureCode correctly identifies transient error codes", () => {
+  assert.equal(isProviderFailureCode(429), true);
+  assert.equal(isProviderFailureCode(408), true);
+  assert.equal(isProviderFailureCode(500), true);
+  assert.equal(isProviderFailureCode(502), true);
+  assert.equal(isProviderFailureCode(503), true);
+  assert.equal(isProviderFailureCode(504), true);
+  assert.equal(isProviderFailureCode(401), false);
+  assert.equal(isProviderFailureCode(403), false);
+  assert.equal(isProviderFailureCode(400), false);
+  assert.equal(isProviderFailureCode(404), false);
+  assert.equal(isProviderFailureCode(200), false);
+});
+
+test("recordProviderFailure tracks failures and triggers cooldown after threshold", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider";
+
+    // Clear any existing state
+    clearProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+
+    // Record 4 failures - should not trigger cooldown yet
+    for (let i = 0; i < 4; i++) {
+      recordProviderFailure(provider);
+      now += 1000; // 1 second between failures
+    }
+    assert.equal(isProviderInCooldown(provider), false);
+
+    // 5th failure - should trigger cooldown
+    recordProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), true);
+
+    const remaining = getProviderCooldownRemainingMs(provider);
+    assert.ok(remaining !== null);
+    assert.ok(remaining > 0);
+    assert.ok(remaining <= 10 * 60 * 1000); // 10 minutes max
+
+    // Check getProvidersInCooldown returns the provider
+    const inCooldown = getProvidersInCooldown();
+    assert.ok(inCooldown.some((p) => p.provider === provider));
+    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, 5);
+
+    // Simulate cooldown expiration
+    now += 11 * 60 * 1000; // 11 minutes later
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+    assert.equal(
+      getProvidersInCooldown().some((p) => p.provider === provider),
+      false
+    );
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider");
+  }
+});
+
+test("recordProviderFailure resets counter after failure window expires", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-window";
+    clearProviderFailure(provider);
+
+    // Record 3 failures
+    for (let i = 0; i < 3; i++) {
+      recordProviderFailure(provider);
+      now += 1000;
+    }
+    assert.equal(isProviderInCooldown(provider), false);
+
+    // Wait for failure window to expire (20 minutes + 1 second)
+    now += 20 * 60 * 1000 + 1000;
+
+    // Next failure should reset counter, not trigger cooldown
+    recordProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), false);
+
+    // Need 4 more failures to trigger cooldown
+    for (let i = 0; i < 4; i++) {
+      recordProviderFailure(provider);
+      now += 1000;
+    }
+    assert.equal(isProviderInCooldown(provider), true);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-window");
+  }
+});
+
+test("checkFallbackError records provider failure for transient errors", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-check";
+    clearProviderFailure(provider);
+
+    // Simulate 5 transient errors through checkFallbackError
+    for (let i = 0; i < 5; i++) {
+      checkFallbackError(429, "rate limited", 0, null, provider);
+      now += 1000;
+    }
+
+    // Provider should now be in cooldown
+    assert.equal(isProviderInCooldown(provider), true);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-check");
+  }
+});
+
+test("checkFallbackError does not record provider failure for non-transient errors", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-no-record";
+    clearProviderFailure(provider);
+
+    // Simulate 5 auth errors (401) - should NOT trigger provider cooldown
+    for (let i = 0; i < 5; i++) {
+      checkFallbackError(401, "unauthorized", 0, null, provider);
+      now += 1000;
+    }
+
+    // Provider should NOT be in cooldown
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-no-record");
+  }
+});
+
+test("clearProviderFailure removes provider from cooldown", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-clear";
+    clearProviderFailure(provider);
+
+    // Trigger cooldown
+    for (let i = 0; i < 5; i++) {
+      recordProviderFailure(provider);
+      now += 1000;
+    }
+    assert.equal(isProviderInCooldown(provider), true);
+
+    // Clear the failure state
+    clearProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-clear");
+  }
+});
+
+// Daily quota exhausted detection tests
+test("isDailyQuotaExhausted detects today's quota errors", () => {
+  const { isDailyQuotaExhausted } = accountFallback;
+  assert.equal(isDailyQuotaExhausted("You have exceeded today's quota for model X"), true);
+  assert.equal(isDailyQuotaExhausted("exceeded your daily quota"), true);
+  assert.equal(isDailyQuotaExhausted("Please try again tomorrow"), true);
+  assert.equal(isDailyQuotaExhausted("rate limit exceeded"), false);
+  assert.equal(isDailyQuotaExhausted(""), false);
+  assert.equal(isDailyQuotaExhausted(null), false);
+});
+
+test("getMsUntilTomorrow returns positive value less than 24 hours", () => {
+  const { getMsUntilTomorrow } = accountFallback;
+  const ms = getMsUntilTomorrow();
+  assert.ok(ms > 0, "should be positive");
+  assert.ok(ms <= 24 * 60 * 60 * 1000, "should be <= 24 hours");
+});
+
+test("checkFallbackError locks model until tomorrow for daily quota exhaustion", () => {
+  const result = checkFallbackError(
+    429,
+    "You have exceeded today's quota for model moonshotai/Kimi-K2.5, please try again tomorrow"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.ok(result.cooldownMs > 0, "cooldown should be positive");
+  assert.ok(result.cooldownMs <= 24 * 60 * 60 * 1000, "cooldown should be <= 24 hours");
+});
+
+test("checkFallbackError detects daily quota with 'try again tomorrow'", () => {
+  const result = checkFallbackError(429, "Please try again tomorrow");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+test("checkFallbackError detects daily quota with 'daily quota'", () => {
+  const result = checkFallbackError(429, "You have exceeded your daily quota");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+// Content moderation fallback tests (400 status)
+test("checkFallbackError triggers fallback for Chinese content moderation on 400", () => {
+  const result = checkFallbackError(
+    400,
+    "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入。"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError triggers fallback for content moderation variant 2", () => {
+  const result = checkFallbackError(400, "内容敏感，无法响应该请求");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+});
+
+// Content moderation response detection tests (HTTP 200 with rejection content)
+test("isContentModerationResponse detects Chinese content moderation in OpenAI response format", () => {
+  const response = {
+    choices: [
+      {
+        message: {
+          content:
+            "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入。",
+        },
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), true);
+});
+
+test("isContentModerationResponse returns false for normal response", () => {
+  const response = {
+    choices: [
+      {
+        message: {
+          content: "Hello, how can I help you today?",
+        },
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), false);
+});
+
+test("isContentModerationResponse returns false for null/undefined", () => {
+  assert.equal(isContentModerationResponse(null), false);
+  assert.equal(isContentModerationResponse(undefined), false);
+  assert.equal(isContentModerationResponse({}), false);
+});
+
+test("isContentModerationResponse detects content moderation in Anthropic response format", () => {
+  const response = {
+    content: [
+      {
+        type: "text",
+        text: "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求。",
+      },
+    ],
+  };
+  assert.equal(isContentModerationResponse(response), true);
+});
+
+test("createContentModerationError creates error with correct properties", () => {
+  const error = createContentModerationError("test-model", "test-provider");
+  assert.ok(error instanceof Error);
+  assert.equal(error.statusCode, 400);
+  assert.equal(error.isContentModeration, true);
+  assert.ok(error.message.includes("test-model"));
+  assert.ok(error.message.includes("test-provider"));
+});
+
+test("isContentModerationError identifies content moderation errors", () => {
+  const error = createContentModerationError("model", "provider");
+  assert.equal(isContentModerationError(error), true);
+  assert.equal(isContentModerationError(new Error("regular error")), false);
+  assert.equal(isContentModerationError(null), false);
 });

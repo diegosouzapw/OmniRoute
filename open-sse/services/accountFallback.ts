@@ -24,6 +24,30 @@ type ModelFailureState = {
   resetAfterMs: number;
 };
 
+// Provider-level failure tracking for circuit breaker behavior
+type ProviderFailureEntry = {
+  failureCount: number;
+  lastFailureAt: number;
+  resetAfterMs: number;
+  cooldownUntil: number | null;
+};
+
+// Error codes that count toward provider-level failure threshold
+const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
+
+// Configuration for provider-level failure tracking
+const PROVIDER_FAILURE_THRESHOLD = 5;
+const PROVIDER_FAILURE_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
+const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
+
+// Provider-level failure state map: providerId -> failure entry
+const providerFailureState = new Map<string, ProviderFailureEntry>();
+// Guard against synchronous re-entrant calls within the same event-loop tick.
+// NOT a true mutex — Node.js is single-threaded, so different SSE streams
+// can interleave across ticks. This Set prevents a single call from recursively
+// re-entering recordProviderFailure within the same synchronous call stack.
+const providerFailureLocks = new Set<string>();
+
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
 // and should NOT be retried after token refresh.
@@ -82,8 +106,12 @@ const CONTEXT_OVERFLOW_PATTERNS = [
 const MALFORMED_REQUEST_PATTERNS = [
   /\bimproperly formed request\b/i,
   /\binvalid.*message.*format/i,
-  /\bmessages must alternate/i,
-  /\bempty (message|content)/i,
+  /\bmessages must alternate\b/i,
+  /\bempty (message|content)\b/i,
+  // Tool call function name errors
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
 /**
@@ -355,11 +383,21 @@ export function clearModelLock(provider, connectionId, model) {
  * Compatible and passthrough providers multiplex multiple upstream models behind one
  * connection, so transient 404/429 responses should stay model-scoped instead of
  * poisoning the whole connection.
+ *
+ * @param provider - Provider ID
+ * @param _model - Model ID (reserved for future use)
+ * @param connectionPassthroughModels - Optional per-connection override from providerSpecificData.
+ *        When provided, takes precedence over registry/provider-level logic.
  */
 export function hasPerModelQuota(
   provider: string | null | undefined,
-  _model: string | null | undefined = null
+  _model: string | null | undefined = null,
+  connectionPassthroughModels?: boolean
 ): boolean {
+  // Connection-level override takes precedence (e.g., user-configured ModelScope)
+  if (typeof connectionPassthroughModels === "boolean") {
+    return connectionPassthroughModels;
+  }
   if (!provider) return false;
   if (provider === "gemini") return true;
   if (getPassthroughProviders().has(provider)) return true;
@@ -376,18 +414,23 @@ export function lockModelIfPerModelQuota(
   connectionId: string,
   model: string | null,
   reason: string,
-  cooldownMs: number
+  cooldownMs: number,
+  connectionPassthroughModels?: boolean
 ): boolean {
-  if (!hasPerModelQuota(provider, model) || !model) return false;
+  if (!hasPerModelQuota(provider, model, connectionPassthroughModels) || !model) return false;
+  // Skip model-level lock if the entire provider is in circuit-breaker cooldown.
+  // The provider cooldown already prevents all requests, so a model lock is redundant.
+  if (isProviderInCooldown(provider)) return false;
   lockModel(provider, connectionId, model, reason, cooldownMs);
   return true;
 }
 
 export function shouldMarkAccountExhaustedFrom429(
   provider: string | null | undefined,
-  model: string | null | undefined = null
+  model: string | null | undefined = null,
+  connectionPassthroughModels?: boolean
 ): boolean {
-  return !hasPerModelQuota(provider, model);
+  return !hasPerModelQuota(provider, model, connectionPassthroughModels);
 }
 
 /**
@@ -440,6 +483,145 @@ export function getAllModelLockouts() {
     });
   }
   return active;
+}
+
+// ─── Provider-Level Failure Tracking ─────────────────────────────────────────
+// Track failures at provider level: when a provider has too many transient failures
+// across all its connections, cooldown the entire provider temporarily.
+
+/**
+ * Check if a provider is currently in cooldown due to too many failures
+ */
+export function isProviderInCooldown(provider: string | null | undefined): boolean {
+  if (!provider) return false;
+  const entry = providerFailureState.get(provider);
+  if (!entry) return false;
+
+  // If in cooldown, check if it has expired
+  if (entry.cooldownUntil !== null && Date.now() >= entry.cooldownUntil) {
+    providerFailureState.delete(provider);
+    return false;
+  }
+
+  return entry.cooldownUntil !== null;
+}
+
+/**
+ * Get remaining cooldown time for a provider
+ */
+export function getProviderCooldownRemainingMs(provider: string | null | undefined): number | null {
+  if (!provider) return null;
+  const entry = providerFailureState.get(provider);
+  if (!entry || entry.cooldownUntil === null) return null;
+
+  const remaining = entry.cooldownUntil - Date.now();
+  return remaining > 0 ? remaining : null;
+}
+
+/**
+ * Record a failure for a provider. When threshold is reached within the window,
+ * the provider enters cooldown.
+ */
+export function recordProviderFailure(
+  provider: string | null | undefined,
+  log?: { warn?: (...args: unknown[]) => void }
+): void {
+  if (!provider) return;
+
+  // Guard against concurrent re-entrant calls within the same tick
+  if (providerFailureLocks.has(provider)) return;
+  providerFailureLocks.add(provider);
+
+  try {
+    const now = Date.now();
+    const entry = providerFailureState.get(provider);
+
+    // Check if we're in cooldown period
+    if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
+      return; // Already in cooldown, don't record
+    }
+
+    // Check if failure window has expired
+    if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
+      // Window expired, reset count
+      providerFailureState.set(provider, {
+        failureCount: 1,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil: null,
+      });
+      return;
+    }
+
+    // Increment failure count
+    const newCount = entry ? entry.failureCount + 1 : 1;
+
+    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
+      // Threshold reached, enter cooldown
+      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
+      providerFailureState.set(provider, {
+        failureCount: newCount,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil,
+      });
+      log?.warn?.(
+        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
+      );
+    } else {
+      // Just increment counter
+      providerFailureState.set(provider, {
+        failureCount: newCount,
+        lastFailureAt: now,
+        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        cooldownUntil: null,
+      });
+    }
+  } finally {
+    providerFailureLocks.delete(provider);
+  }
+}
+
+/**
+ * Clear provider failure state (e.g., after successful request)
+ */
+export function clearProviderFailure(provider: string | null | undefined): void {
+  if (!provider) return;
+  providerFailureState.delete(provider);
+}
+
+/**
+ * Get all providers currently in cooldown (for debugging/dashboard)
+ */
+export function getProvidersInCooldown(): Array<{
+  provider: string;
+  failureCount: number;
+  cooldownRemainingMs: number | null;
+  lastFailureAt: number;
+}> {
+  const result = [];
+  for (const [provider, entry] of providerFailureState) {
+    if (entry.cooldownUntil === null) continue;
+    const remaining = entry.cooldownUntil - Date.now();
+    if (remaining <= 0) {
+      providerFailureState.delete(provider);
+      continue;
+    }
+    result.push({
+      provider,
+      failureCount: entry.failureCount,
+      cooldownRemainingMs: remaining,
+      lastFailureAt: entry.lastFailureAt,
+    });
+  }
+  return result;
+}
+
+/**
+ * Check if a status code should be counted toward provider failure threshold
+ */
+export function isProviderFailureCode(status: number): boolean {
+  return PROVIDER_FAILURE_ERROR_CODES.has(status);
 }
 
 // ─── Retry-After Parsing ────────────────────────────────────────────────────
@@ -625,6 +807,40 @@ export function classifyError(status, errorText) {
   return RateLimitReason.UNKNOWN;
 }
 
+// ─── Daily Quota Helpers ────────────────────────────────────────────────────
+
+/**
+ * Calculate milliseconds from now until tomorrow at midnight (00:00:00).
+ * Used to lock a model until the next day when daily quota is exhausted.
+ * @returns {number} Milliseconds until tomorrow
+ */
+export function getMsUntilTomorrow(): number {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  const ms = tomorrow.getTime() - now.getTime();
+  // Guard against DST edge cases: if ms is negative (shouldn't happen) or
+  // unreasonably large (>25h due to spring-forward), cap at 24 hours.
+  return ms > 0 && ms <= 25 * 60 * 60 * 1000 ? ms : 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Check if error text indicates daily quota exhaustion (as opposed to rate limiting).
+ * Daily quota errors typically mention "today's quota" or "try again tomorrow".
+ * @param {string} errorText - Error message text
+ * @returns {boolean} True if daily quota is exhausted
+ */
+export function isDailyQuotaExhausted(errorText: string): boolean {
+  if (!errorText) return false;
+  const lower = errorText.toLowerCase();
+  return (
+    lower.includes("today's quota") ||
+    lower.includes("daily quota") ||
+    lower.includes("try again tomorrow")
+  );
+}
+
 // ─── Configurable Backoff ───────────────────────────────────────────────────
 
 /**
@@ -681,6 +897,12 @@ export function checkFallbackError(
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
 
+  // Track provider-level failures for circuit breaker behavior
+  // Only count transient errors that are likely to recover
+  if (isProviderFailureCode(status)) {
+    recordProviderFailure(provider);
+  }
+
   function parseResetFromHeaders(headers, errorStr = "") {
     if (!headers) return null;
 
@@ -734,6 +956,19 @@ export function checkFallbackError(
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         creditsExhausted: true,
+      };
+    }
+
+    // Daily quota exhausted — lock model until tomorrow
+    if (isDailyQuotaExhausted(errorStr)) {
+      const msUntilTomorrow = getMsUntilTomorrow();
+      // Cap at 24 hours to handle timezone edge cases
+      const cooldownMs = Math.min(msUntilTomorrow, 24 * 60 * 60 * 1000);
+      return {
+        shouldFallback: true,
+        cooldownMs,
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        dailyQuotaExhausted: true,
       };
     }
 
@@ -889,8 +1124,9 @@ export function checkFallbackError(
   if (status === HTTP_STATUS.BAD_REQUEST) {
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+    const isModeration = CONTENT_MODERATION_PATTERNS.some((p) => p.test(errorStr));
 
-    if (isOverflow || isMalformed) {
+    if (isOverflow || isMalformed || isModeration) {
       return {
         shouldFallback: true,
         cooldownMs: 0,
