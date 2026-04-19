@@ -14,11 +14,17 @@ function stripGeminiThinkingConfig(value: unknown): unknown {
   return next;
 }
 
+/**
+ * @deprecated 此函数将在 v4.0 中移除，reasoning 配置处理已迁移到 translateRequest
+ */
 export function shouldStripCloudCodeThinking(provider: string, model: string): boolean {
   if (!provider || !model) return false;
   return !supportsReasoning(`${provider}/${model}`);
 }
 
+/**
+ * @deprecated 此函数将在 v4.0 中移除，reasoning 配置处理已迁移到 translateRequest
+ */
 export function stripCloudCodeThinkingConfig(
   body: Record<string, unknown>
 ): Record<string, unknown> {

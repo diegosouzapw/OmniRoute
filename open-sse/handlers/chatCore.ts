@@ -14,7 +14,12 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import {
+  hasPerModelQuota,
+  lockModelIfPerModelQuota,
+  isDailyQuotaExhausted,
+  getMsUntilTomorrow,
+} from "../services/accountFallback.ts";
 import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
@@ -1955,17 +1960,22 @@ export async function handleChatCore({
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
+          // Daily quota exhausted: lock until tomorrow; otherwise use default cooldown
+          const isDailyQuota = isDailyQuotaExhausted(message);
+          const quotaCooldownMs = isDailyQuota
+            ? getMsUntilTomorrow()
+            : retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
-              "quota_exhausted",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              isDailyQuota ? "daily_quota_exhausted" : "quota_exhausted",
+              quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} ${isDailyQuota ? "daily " : ""}quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {
