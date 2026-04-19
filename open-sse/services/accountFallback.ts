@@ -533,7 +533,10 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
  * Record a failure for a provider. When threshold is reached within the window,
  * the provider enters cooldown.
  */
-export function recordProviderFailure(provider: string | null | undefined): void {
+export function recordProviderFailure(
+  provider: string | null | undefined,
+  log?: { warn?: (...args: unknown[]) => void }
+): void {
   if (!provider) return;
 
   // Guard against concurrent re-entrant calls within the same tick
@@ -573,7 +576,7 @@ export function recordProviderFailure(provider: string | null | undefined): void
         resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
         cooldownUntil,
       });
-      console.warn(
+      log?.warn?.(
         `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
       );
     } else {

@@ -105,6 +105,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
+const MAX_GLOBAL_ATTEMPTS = 30;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -1520,10 +1521,10 @@ export async function handleComboChat({
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
       globalAttempts++;
-      if (globalAttempts > 30) {
+      if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
         log.warn(
           "COMBO",
-          `Maximum combo attempts (30) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
+          `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
         );
         return errorResponse(503, "Maximum combo retry limit reached");
       }
@@ -1890,10 +1891,10 @@ async function handleRoundRobinCombo({
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
         globalAttempts++;
-        if (globalAttempts > 30) {
+        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
           log.warn(
             "COMBO-RR",
-            `Maximum combo attempts (30) exceeded. Terminating loop to prevent runaway requests.`
+            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded. Terminating loop to prevent runaway requests.`
           );
           return errorResponse(503, "Maximum combo retry limit reached");
         }
