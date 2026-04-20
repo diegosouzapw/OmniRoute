@@ -65,7 +65,11 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 // Used to detect 503 responses from handleNoCredentials so combo can fallback.
 const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
 
-function isAllAccountsRateLimitedResponse(status: number, contentType: string | null, errorText: string): boolean {
+function isAllAccountsRateLimitedResponse(
+  status: number,
+  contentType: string | null,
+  errorText: string
+): boolean {
   if (status !== 503) return false;
   if (!contentType?.includes("application/json")) return false;
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
@@ -168,7 +172,9 @@ async function validateResponseQuality(
   try {
     json = JSON.parse(text);
   } catch {
-    if (text.startsWith("data:")) return { valid: true };
+    if (text.startsWith("data:") || text.startsWith("event:") || text.includes("\ndata:")) {
+      return { valid: true };
+    }
     return { valid: false, reason: "response is not valid JSON" };
   }
 
@@ -1522,6 +1528,8 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+          if (!lastStatus) lastStatus = 422;
+          lastError = lastError || `quality check failed: ${quality.reason}`;
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
@@ -1900,6 +1908,8 @@ async function handleRoundRobinCombo({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
+            if (!lastStatus) lastStatus = 422;
+            lastError = lastError || `quality check failed: ${quality.reason}`;
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }
@@ -2001,7 +2011,10 @@ async function handleRoundRobinCombo({
         }
 
         if (isAllAccountsRateLimited) {
-          log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
+          log.info(
+            "COMBO",
+            `All accounts rate-limited for ${modelStr}, falling back to next model`
+          );
         } else if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           recordComboRequest(combo.name, modelStr, {

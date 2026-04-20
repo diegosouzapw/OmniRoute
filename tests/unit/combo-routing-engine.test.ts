@@ -1927,3 +1927,97 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
       result.status === 503
   );
 });
+
+test("handleComboChat returns 422 (not ALL_ACCOUNTS_INACTIVE) when all models fail quality check", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-check-laststatus",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      // Return 200 with invalid JSON — passes the ok check but fails validateResponseQuality
+      return new Response("{not valid json", {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  const payload = await result.json();
+  // Before the fix: lastStatus was never set on quality-check failure path,
+  // so the code fell through to the `!lastStatus` branch returning ALL_ACCOUNTS_INACTIVE.
+  // After the fix: lastStatus is set to 422 and lastError is populated.
+  assert.equal(result.status, 422);
+  assert.ok(payload.error?.message?.includes("quality check failed"));
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+});
+
+test("handleComboChat accepts SSE responses starting with event: line as valid", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-sse-event-prefix",
+      strategy: "priority",
+      models: ["model-a"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async () =>
+      new Response('event: message_start\ndata: {"type":"message_start"}\n\n', {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      }),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  // Before the fix: validateResponseQuality only checked text.startsWith("data:"),
+  // so SSE starting with "event:" was rejected as "response is not valid JSON".
+  // After the fix: text.startsWith("event:") and text.includes("\ndata:") also pass.
+  assert.equal(result.ok, true);
+});
+
+test("handleComboChat accepts SSE responses with event and data on separate lines", async () => {
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-sse-newline-data",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        // SSE with event: prefix before data: — Anthropic-style
+        return new Response(
+          'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_1"}}\n\nevent: content_block_start\ndata: {"type":"content_block_start"}\n\n',
+          { status: 200, headers: { "content-type": "text/event-stream" } }
+        );
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a"]);
+});
