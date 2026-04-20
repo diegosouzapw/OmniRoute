@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - prod
     tags:
       - "v*"
   release:
@@ -58,7 +59,8 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod' }}
+            type=raw,value=prod,enable=${{ github.ref == 'refs/heads/prod' }}
             type=ref,event=branch
             type=ref,event=tag
             type=sha,prefix=sha-

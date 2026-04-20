@@ -1,0 +1,118 @@
+services:
+  omniroute:
+    image: ghcr.io/rafacpti23/omniroute:latest
+    networks:
+      - omniroute-net
+    ports:
+      - target: 20128
+        published: 20130
+        protocol: tcp
+        mode: ingress
+      - target: 20129
+        published: 20131
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - omniroute-data:/app/data
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=768
+      HOSTNAME: 0.0.0.0
+      PORT: "20128"
+      DASHBOARD_PORT: "20128"
+      API_PORT: "20129"
+      API_HOST: 0.0.0.0
+      DATA_DIR: /app/data
+
+      # Admin/auth. Defina valores fortes antes do deploy.
+      MANAGEMENT_PASSWORD: TROQUE_ESTA_SENHA_ADMIN_FORTE
+      STORAGE_ENCRYPTION_KEY: TROQUE_ESTA_CHAVE_COM_32_CARACTERES_OU_MAIS
+      STORAGE_ENCRYPTION_KEY_VERSION: v1
+      REQUIRE_API_KEY: "true"
+
+      # Retencao e logs para evitar crescimento indefinido.
+      APP_LOG_TO_FILE: "true"
+      APP_LOG_FILE_PATH: /app/data/logs/application/app.log
+      APP_LOG_MAX_FILE_SIZE: 50M
+      APP_LOG_RETENTION_DAYS: "7"
+      APP_LOG_MAX_FILES: "10"
+      CALL_LOG_RETENTION_DAYS: "30"
+      CALL_LOGS_TABLE_MAX_ROWS: "100000"
+      PROXY_LOGS_TABLE_MAX_ROWS: "50000"
+      DB_BACKUP_MAX_FILES: "10"
+      DB_BACKUP_RETENTION_DAYS: "7"
+      DISABLE_SQLITE_AUTO_BACKUP: "false"
+      OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS: "21600000"
+
+      # Qdrant continua opcional no app. Se ativar no dashboard, use host "qdrant" e porta 6333.
+      OPENAI_API_KEY: ""
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+      resources:
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+        limits:
+          cpus: "2.00"
+          memory: 1536M
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.6
+    networks:
+      - omniroute-net
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: "6333"
+      QDRANT__SERVICE__GRPC_PORT: "6334"
+      QDRANT__LOG_LEVEL: INFO
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+      resources:
+        reservations:
+          cpus: "0.10"
+          memory: 256M
+        limits:
+          cpus: "1.00"
+          memory: 1024M
+
+networks:
+  omniroute-net:
+    driver: overlay
+    attachable: true
+
+volumes:
+  omniroute-data:
+    driver: local
+  qdrant-data:
+    driver: local
