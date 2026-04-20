@@ -193,6 +193,34 @@ export type {
 } from "./db/registeredKeys";
 
 export {
+  ensureSaasSchema,
+  deactivateSaasCustomerApiKeys,
+  deleteSaasCustomer,
+  deleteSaasPlan,
+  listSaasPlans,
+  upsertSaasPlan,
+  listSaasCustomers,
+  getSaasCustomerById,
+  createSaasCustomer,
+  updateSaasCustomer,
+  linkApiKeyToSaasCustomer,
+  updateSaasCustomerApiKey,
+  getSaasPolicyForApiKeyId,
+  getSaasUsageForCustomer,
+  isAllowedBySaasPattern,
+} from "./db/saas";
+
+export type {
+  SaasPlan,
+  SaasCustomer,
+  SaasCustomerApiKey,
+  SaasCustomerStatus,
+  SaasBillingStatus,
+  SaasUsageSummary,
+  SaasPolicyContext,
+} from "./db/saas";
+
+export {
   // Model-Combo Mappings (#563)
   getModelComboMappings,
   getModelComboMappingById,

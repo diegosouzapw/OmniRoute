@@ -36,7 +36,7 @@ export default function SegmentedControl({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex items-center p-1 rounded-lg",
+        "segmented-root inline-flex items-center p-1 rounded-lg",
         "bg-black/5 dark:bg-white/5",
         className
       )}
@@ -49,7 +49,8 @@ export default function SegmentedControl({
           tabIndex={value === option.value ? 0 : -1}
           onClick={() => onChange(option.value)}
           className={cn(
-            "px-4 rounded-md font-medium transition-all",
+            "segmented-item px-4 rounded-md font-medium transition-all",
+            value === option.value && "is-active",
             sizes[size],
             value === option.value
               ? "bg-white dark:bg-white/10 text-text-main shadow-sm"

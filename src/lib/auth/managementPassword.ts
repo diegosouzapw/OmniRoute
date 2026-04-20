@@ -88,17 +88,28 @@ export async function ensurePersistentManagementPasswordHash(
     updates.requireLogin = true;
   }
 
-  const nextSettings = (await updateSettings(updates)) as JsonRecord;
-  if (options.logger) {
-    const context = options.source ? ` during ${options.source}` : "";
-    const migrationSource = storedPassword ? "stored plaintext password" : "INITIAL_PASSWORD";
-    options.logger.log(`[AUTH] Migrated ${migrationSource} to bcrypt hash${context}`);
-  }
+  try {
+    const nextSettings = (await updateSettings(updates)) as JsonRecord;
+    if (options.logger) {
+      const context = options.source ? ` during ${options.source}` : "";
+      const migrationSource = storedPassword ? "stored plaintext password" : "INITIAL_PASSWORD";
+      options.logger.log(`[AUTH] Migrated ${migrationSource} to bcrypt hash${context}`);
+    }
 
-  return {
-    hash: getStoredManagementPassword(nextSettings) || passwordHash,
-    migrated: true,
-    settings: nextSettings,
-    source: storedPassword ? "stored_plaintext" : "env",
-  };
+    return {
+      hash: getStoredManagementPassword(nextSettings) || passwordHash,
+      migrated: true,
+      settings: nextSettings,
+      source: storedPassword ? "stored_plaintext" : "env",
+    };
+  } catch {
+    // Fail-open for migration persistence errors: keep auth working using
+    // the in-memory hash for this request instead of throwing 500.
+    return {
+      hash: passwordHash,
+      migrated: false,
+      settings: { ...settings, password: passwordHash },
+      source: storedPassword ? "stored_plaintext" : "env",
+    };
+  }
 }

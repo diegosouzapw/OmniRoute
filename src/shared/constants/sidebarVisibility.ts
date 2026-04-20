@@ -2,6 +2,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "home",
   "endpoints",
   "api-manager",
+  "customers",
   "providers",
   "combos",
   "costs",
@@ -34,6 +35,14 @@ export interface SidebarItemDefinition {
   icon: string;
   exact?: boolean;
   external?: boolean;
+  children?: readonly SidebarSubItemDefinition[];
+}
+
+export interface SidebarSubItemDefinition {
+  id: string;
+  href: string;
+  i18nKey: string;
+  icon?: string;
 }
 
 export interface SidebarSectionDefinition {
@@ -49,6 +58,32 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "home", href: "/dashboard", i18nKey: "home", icon: "home", exact: true },
   { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
   { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  {
+    id: "customers",
+    href: "/dashboard/customers",
+    i18nKey: "customers",
+    icon: "groups",
+    children: [
+      {
+        id: "customers-users",
+        href: "/dashboard/customers?tab=users",
+        i18nKey: "customersUsers",
+        icon: "person",
+      },
+      {
+        id: "customers-plans",
+        href: "/dashboard/customers?tab=plans",
+        i18nKey: "customersPlans",
+        icon: "sell",
+      },
+      {
+        id: "customers-finance",
+        href: "/dashboard/customers?tab=finance",
+        i18nKey: "customersFinance",
+        icon: "payments",
+      },
+    ],
+  },
   { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
   { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
   { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },

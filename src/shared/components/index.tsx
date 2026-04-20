@@ -32,6 +32,7 @@ export { default as NotificationToast } from "./NotificationToast";
 export { default as FilterBar } from "./FilterBar";
 export { default as ColumnToggle } from "./ColumnToggle";
 export { default as DataTable } from "./DataTable";
+export { default as Tooltip } from "./Tooltip";
 
 // Layouts
 export * from "./layouts";

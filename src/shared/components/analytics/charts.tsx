@@ -49,7 +49,7 @@ function DarkTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
+    <div className="chart-tooltip rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
       {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 text-text-muted">
@@ -267,10 +267,7 @@ export function ActivityHeatmap({ activityMap }) {
         </span>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto"
-      >
+      <div ref={scrollRef} className="overflow-x-auto">
         <div className="w-max">
           <div className="flex gap-[3px] mb-1 ml-6" style={{ fontSize: "10px" }}>
             {monthLabels.map((m, i) => (
@@ -300,18 +297,18 @@ export function ActivityHeatmap({ activityMap }) {
             </div>
 
             {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((day, di) => (
-                <div
-                  key={di}
-                  title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
-                  className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
-                />
-              ))}
-            </div>
-          ))}
+              <div key={wi} className="flex flex-col gap-[3px]">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
+                    className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
       </div>
 
       <div className="flex items-center gap-1 mt-2 ml-6 text-[10px] text-text-muted">
@@ -357,7 +354,7 @@ export function DailyTrendChart({ dailyTrend }) {
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
         Token &amp; Cost Trend
       </h3>
-      <ResponsiveContainer width="100%" height={140}>
+      <ResponsiveContainer width="100%" height={164}>
         <ComposedChart
           data={chartData}
           margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}
@@ -403,7 +400,7 @@ export function DailyTrendChart({ dailyTrend }) {
               type="monotone"
               dataKey="Cost"
               stroke="#f59e0b"
-              strokeWidth={2}
+              strokeWidth={2.35}
               dot={false}
               animationDuration={600}
             />
@@ -440,7 +437,7 @@ function CostTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
+    <div className="chart-tooltip rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
       {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 text-text-muted">
@@ -780,7 +777,7 @@ export function WeeklyPattern({ weeklyPattern }) {
       <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
         Weekly
       </h3>
-      <ResponsiveContainer width="100%" height={48}>
+      <ResponsiveContainer width="100%" height={64}>
         <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="day"
@@ -1260,7 +1257,7 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
               stroke={getModelColor(i)}
               fill={getModelColor(i)}
               fillOpacity={0.4}
-              strokeWidth={1.5}
+              strokeWidth={1.9}
               animationDuration={600}
             />
           ))}

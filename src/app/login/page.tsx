@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect } from "react";
-import { Button, Input } from "@/shared/components";
+import Button from "@/shared/components/Button";
+import Input from "@/shared/components/Input";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {

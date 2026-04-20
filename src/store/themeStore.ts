@@ -8,9 +8,11 @@ interface ThemeState {
   theme: string;
   colorTheme: string;
   customColor: string;
+  visualTheme: "classic" | "neo";
   setTheme: (theme: string) => void;
   setColorTheme: (colorTheme: string) => void;
   setCustomColorTheme: (color: string) => void;
+  setVisualTheme: (visualTheme: "classic" | "neo") => void;
   toggleTheme: () => void;
   initTheme: () => void;
 }
@@ -21,6 +23,7 @@ const useThemeStore = create<ThemeState>()(
       theme: THEME_CONFIG.defaultTheme,
       colorTheme: "coral",
       customColor: "#3b82f6",
+      visualTheme: "classic",
 
       setTheme: (theme) => {
         set({ theme });
@@ -38,6 +41,11 @@ const useThemeStore = create<ThemeState>()(
         applyColorTheme("custom", normalized);
       },
 
+      setVisualTheme: (visualTheme) => {
+        set({ visualTheme });
+        applyVisualTheme(visualTheme);
+      },
+
       toggleTheme: () => {
         const currentTheme = get().theme;
         const newTheme = currentTheme === "dark" ? "light" : "dark";
@@ -46,9 +54,10 @@ const useThemeStore = create<ThemeState>()(
       },
 
       initTheme: () => {
-        const { theme, colorTheme, customColor } = get();
+        const { theme, colorTheme, customColor, visualTheme } = get();
         applyTheme(theme);
         applyColorTheme(colorTheme, customColor);
+        applyVisualTheme(visualTheme);
       },
     }),
     {
@@ -94,6 +103,16 @@ function applyColorTheme(colorTheme: string, customColor: string) {
 
   root.style.setProperty("--color-primary", baseColor);
   root.style.setProperty("--color-primary-hover", hoverColor);
+}
+
+function applyVisualTheme(visualTheme: "classic" | "neo") {
+  if (typeof window === "undefined") return;
+  const root = document.documentElement;
+  if (visualTheme === "neo") {
+    root.setAttribute("data-ui-theme", "neo");
+    return;
+  }
+  root.removeAttribute("data-ui-theme");
 }
 
 function normalizeHexColor(color: string) {

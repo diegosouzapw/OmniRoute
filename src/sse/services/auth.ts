@@ -1189,6 +1189,41 @@ export async function markAccountUnavailable(
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
 
+    // Invalid JSON payload from upstream is often model/endpoint-specific, not account-wide.
+    // Avoid cooling down the whole connection so fallback can try sibling models immediately.
+    const normalizedErrorText =
+      typeof errorText === "string" ? errorText.trim().toLowerCase() : String(errorText || "");
+    if (
+      status === 502 &&
+      provider &&
+      model &&
+      normalizedErrorText.includes("invalid json response from provider")
+    ) {
+      const fallbackCooldown = effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.transient;
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "invalid_json_payload",
+        status,
+        fallbackCooldown,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "invalid_json_payload",
+        lastError: `Model ${model} invalid_json_payload`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — 502 invalid_json_payload ${Math.ceil(
+          lockout.cooldownMs / 1000
+        )}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";

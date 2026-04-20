@@ -100,6 +100,11 @@ export function isManagementApiRequest(request: RequestLike | Request): boolean 
   const pathname = getRequestPathname(request);
   if (!pathname?.startsWith("/api/")) return false;
   if (pathname.startsWith("/api/v1/")) return false;
+  // MCP transports are client-facing protocol endpoints and must support
+  // Bearer API key auth (no dashboard cookie required).
+  if (pathname.startsWith("/api/mcp/stream") || pathname.startsWith("/api/mcp/sse")) {
+    return false;
+  }
   return !isPublicApiRoute(pathname, getRequestMethod(request));
 }
 

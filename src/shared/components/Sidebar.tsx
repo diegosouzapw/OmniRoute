@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { getActiveSidebarHref } from "@/shared/utils/sidebarRouteMatch";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
@@ -33,6 +33,7 @@ export default function Sidebar({
   isMacElectron?: boolean;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
   const [showShutdownModal, setShowShutdownModal] = useState(false);
@@ -44,6 +45,7 @@ export default function Sidebar({
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
   const [customAppName, setCustomAppName] = useState<string | null>(null);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const applySettings = (data) => {
@@ -136,14 +138,23 @@ export default function Sidebar({
     .filter((section) => section.items.length > 0);
   const activeHref = getActiveSidebarHref(
     pathname,
-    visibleSections.flatMap((section) => section.items)
+    visibleSections.flatMap((section) =>
+      section.items.flatMap((item) => [item, ...(item.children || [])])
+    )
   );
+  const currentTab = searchParams.get("tab") || "users";
 
   const renderNavLink = (item) => {
-    const active = !item.external && activeHref === item.href;
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+    const active =
+      !item.external &&
+      (activeHref === item.href || item.children?.some((child) => activeHref === child.href));
+    const expanded = expandedGroups[item.id] ?? active;
     const className = cn(
+      "sidebar-link",
       "flex items-center gap-3 rounded-lg transition-all group",
       collapsed ? "justify-center px-2 py-2.5" : "px-4 py-2",
+      active && "is-active",
       active
         ? "bg-primary/10 text-primary"
         : "text-text-muted hover:bg-surface/50 hover:text-text-main"
@@ -155,9 +166,63 @@ export default function Sidebar({
     const content = (
       <>
         <span className={iconClassName}>{item.icon}</span>
-        {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+        {!collapsed && <span className="text-sm font-medium flex-1">{item.label}</span>}
+        {!collapsed && hasChildren && (
+          <span
+            className={cn(
+              "material-symbols-outlined text-[18px] transition-transform",
+              expanded && "rotate-90"
+            )}
+            aria-hidden="true"
+          >
+            chevron_right
+          </span>
+        )}
       </>
     );
+
+    if (hasChildren && !collapsed) {
+      return (
+        <div key={item.id}>
+          <button
+            type="button"
+            onClick={() => setExpandedGroups((state) => ({ ...state, [item.id]: !expanded }))}
+            title={collapsed ? item.label : undefined}
+            className={cn(className, "w-full text-left")}
+            aria-expanded={expanded}
+          >
+            {content}
+          </button>
+          {expanded && (
+            <div className="mt-1 space-y-1 pl-8">
+              {item.children.map((child) => {
+                const childUrl = new URL(child.href, "http://localhost");
+                const childTab = childUrl.searchParams.get("tab");
+                const childActive = pathname === childUrl.pathname && childTab === currentTab;
+                return (
+                  <Link
+                    key={child.id}
+                    href={child.href}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all",
+                      childActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+                    )}
+                  >
+                    {child.icon && (
+                      <span className="material-symbols-outlined text-[15px]">{child.icon}</span>
+                    )}
+                    <span>{t(child.i18nKey)}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     if (item.external) {
       return (
@@ -192,6 +257,7 @@ export default function Sidebar({
     <>
       <aside
         className={cn(
+          "sidebar-root",
           "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
           collapsed ? "w-16" : "w-80"
         )}
@@ -242,7 +308,7 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className={cn("py-4", collapsed ? "px-2" : "px-6")}>
+        <div className={cn("sidebar-brand py-4", collapsed ? "px-2" : "px-6")}>
           <Link
             href="/dashboard"
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
@@ -282,7 +348,7 @@ export default function Sidebar({
             return (
               <div key={section.id} className={showTitle ? "pt-4 mt-2" : undefined}>
                 {!collapsed && showTitle && (
-                  <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
+                  <p className="sidebar-section-title px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
                     {section.title}
                   </p>
                 )}

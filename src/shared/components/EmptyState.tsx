@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { cn } from "@/shared/utils/cn";
 
 /**
  * EmptyState — FASE-07 UX
@@ -36,86 +37,17 @@ export default function EmptyState({
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("nothingHere");
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "48px 24px",
-        textAlign: "center",
-        minHeight: "200px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "48px",
-          marginBottom: "16px",
-          opacity: 0.8,
-          animation: "emptyBounce 2s ease-in-out infinite",
-        }}
-        role="img"
-        aria-hidden="true"
-      >
+    <div className="empty-state-root">
+      <div className="empty-state-icon" role="img" aria-hidden="true">
         {icon}
       </div>
-      <h3
-        style={{
-          fontSize: "18px",
-          fontWeight: 600,
-          color: "var(--text-primary, #e0e0e0)",
-          marginBottom: "8px",
-          margin: 0,
-        }}
-      >
-        {resolvedTitle}
-      </h3>
-      {description && (
-        <p
-          style={{
-            fontSize: "14px",
-            color: "var(--text-secondary, #888)",
-            maxWidth: "320px",
-            lineHeight: 1.5,
-            marginTop: "8px",
-          }}
-        >
-          {description}
-        </p>
-      )}
+      <h3 className="empty-state-title">{resolvedTitle}</h3>
+      {description && <p className="empty-state-description">{description}</p>}
       {actionLabel && onAction && (
-        <button
-          onClick={onAction}
-          style={{
-            marginTop: "20px",
-            padding: "10px 24px",
-            borderRadius: "8px",
-            border: "1px solid rgba(99, 102, 241, 0.4)",
-            background: "rgba(99, 102, 241, 0.15)",
-            color: "#818cf8",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "rgba(99, 102, 241, 0.25)";
-            (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "rgba(99, 102, 241, 0.15)";
-            (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-          }}
-        >
+        <button onClick={onAction} className={cn("empty-state-action btn-root btn-secondary")}>
           {actionLabel}
         </button>
       )}
-      <style>{`
-        @keyframes emptyBounce {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-8px); }
-        }
-      `}</style>
     </div>
   );
 }

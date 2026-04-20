@@ -1046,6 +1046,49 @@ export async function handleChatCore({
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
     : null;
 
+  const memoryQuery = (() => {
+    // Extract a lightweight "semantic query" from the latest user message so semantic/hybrid retrieval can work.
+    const extractText = (content: unknown): string => {
+      if (typeof content === "string") return content;
+      if (Array.isArray(content)) {
+        return content
+          .map((part) => {
+            if (!part || typeof part !== "object") return "";
+            const t = (part as any).text;
+            return typeof t === "string" ? t : "";
+          })
+          .filter(Boolean)
+          .join("\n");
+      }
+      if (content && typeof content === "object") {
+        const t = (content as any).text;
+        return typeof t === "string" ? t : "";
+      }
+      return "";
+    };
+
+    const pickFromMessages = (arr: unknown[]): string => {
+      for (let i = arr.length - 1; i >= 0; i -= 1) {
+        const msg = arr[i] as any;
+        const role = typeof msg?.role === "string" ? msg.role : "";
+        if (role !== "user") continue;
+        const text = extractText(msg?.content);
+        if (text.trim().length > 0) return text.trim();
+      }
+      return "";
+    };
+
+    try {
+      const b: any = body as any;
+      const fromMessages = Array.isArray(b?.messages) ? pickFromMessages(b.messages) : "";
+      const fromInput = Array.isArray(b?.input) ? pickFromMessages(b.input) : "";
+      const text = (fromMessages || fromInput || "").slice(0, 600).trim();
+      return text.length > 0 ? text : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
   if (
     apiKeyInfo?.id &&
     memorySettings &&
@@ -1054,10 +1097,10 @@ export async function handleChatCore({
     })
   ) {
     try {
-      const memories = await retrieveMemories(
-        apiKeyInfo.id,
-        toMemoryRetrievalConfig(memorySettings)
-      );
+      const memories = await retrieveMemories(apiKeyInfo.id, {
+        ...toMemoryRetrievalConfig(memorySettings),
+        query: memoryQuery,
+      });
       if (memories.length > 0) {
         const injected = injectMemory(
           body as Parameters<typeof injectMemory>[0],
@@ -1096,7 +1139,9 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
-  const upstreamStream = stream || isClaudeCodeCompatible;
+  const isAnthropicCompatibleProvider =
+    typeof provider === "string" && provider.startsWith("anthropic-compatible-");
+  const upstreamStream = stream || isClaudeCodeCompatible || isAnthropicCompatibleProvider;
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
@@ -1792,6 +1837,39 @@ export async function handleChatCore({
   let parsedMessage = "";
   let parsedRetryAfterMs: number | null = null;
   let upstreamErrorBody: unknown = null;
+  const upstreamContentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
+
+  if (providerResponse.ok && upstreamContentType.includes("text/html")) {
+    const htmlPreview = await providerResponse
+      .clone()
+      .text()
+      .then((text) =>
+        String(text || "")
+          .replace(/\s+/g, " ")
+          .slice(0, 200)
+      )
+      .catch(() => "");
+    const htmlMisconfigMessage =
+      "Provider returned HTML instead of API response. Check baseUrl/chatPath for this provider.";
+
+    appendRequestLog({
+      model,
+      provider,
+      connectionId,
+      status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+    }).catch(() => {});
+    persistAttemptLogs({
+      status: HTTP_STATUS.BAD_GATEWAY,
+      error: htmlMisconfigMessage,
+      providerRequest: finalBody || translatedBody,
+      providerResponse: normalizePayloadForLog(htmlPreview || "<html>"),
+      clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, htmlMisconfigMessage),
+      claudeCacheMeta: claudePromptCacheLogMeta,
+      cacheSource: "upstream",
+    });
+    persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "upstream_html_payload");
+    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, htmlMisconfigMessage);
+  }
 
   if (provider === "qwen" && providerResponse.status === HTTP_STATUS.BAD_REQUEST) {
     const errorDetails = await parseUpstreamError(providerResponse, provider);
@@ -2305,23 +2383,45 @@ export async function handleChatCore({
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
       } catch {
-        appendRequestLog({
-          model,
-          provider,
-          connectionId,
-          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
-        }).catch(() => {});
-        const invalidJsonMessage = "Invalid JSON response from provider";
-        persistAttemptLogs({
-          status: HTTP_STATUS.BAD_GATEWAY,
-          error: invalidJsonMessage,
-          providerRequest: finalBody || translatedBody,
-          providerResponse: normalizedProviderPayload,
-          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
-          cacheSource: "upstream",
-        });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
-        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
+        const recoveredFromEventPayload = parseNonStreamingSSEPayload(
+          normalizeNonStreamingEventPayload(rawBody, contentType),
+          targetFormat,
+          model
+        );
+        if (recoveredFromEventPayload) {
+          log?.warn?.(
+            "STREAM",
+            "Recovered non-JSON payload for non-stream request via SSE/NDJSON parser"
+          );
+          responseBody = recoveredFromEventPayload.body;
+          responsePayloadFormat = recoveredFromEventPayload.format;
+          // Continue as successful parse.
+        } else {
+          const preview = String(rawBody || "")
+            .replace(/\s+/g, " ")
+            .slice(0, 240);
+          log?.warn?.(
+            "UPSTREAM_PARSE",
+            `Non-JSON non-event payload (content-type=${contentType || "unknown"}): ${preview || "<empty>"}`
+          );
+          appendRequestLog({
+            model,
+            provider,
+            connectionId,
+            status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+          }).catch(() => {});
+          const invalidJsonMessage = "Invalid JSON response from provider";
+          persistAttemptLogs({
+            status: HTTP_STATUS.BAD_GATEWAY,
+            error: invalidJsonMessage,
+            providerRequest: finalBody || translatedBody,
+            providerResponse: normalizedProviderPayload,
+            clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+            cacheSource: "upstream",
+          });
+          persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
+          return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
+        }
       }
     }
 

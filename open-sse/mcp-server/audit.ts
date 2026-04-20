@@ -161,12 +161,23 @@ async function getDb(): Promise<AuditDatabase | null> {
   try {
     // Try importing the db module from the main app
     const { homedir } = await import("node:os");
+    const { platform } = await import("node:os");
     const { join } = await import("node:path");
     const { existsSync } = await import("node:fs");
 
-    const dbPath = process.env.DATA_DIR
-      ? join(process.env.DATA_DIR, "storage.sqlite")
-      : join(homedir(), ".omniroute", "storage.sqlite");
+    const resolveDataDir = () => {
+      if (process.env.DATA_DIR && process.env.DATA_DIR.trim().length > 0) {
+        return process.env.DATA_DIR.trim();
+      }
+      const home = homedir();
+      if (platform() === "win32") {
+        const appData = process.env.APPDATA || join(home, "AppData", "Roaming");
+        return join(appData, "omniroute");
+      }
+      return join(home, ".omniroute");
+    };
+
+    const dbPath = join(resolveDataDir(), "storage.sqlite");
 
     if (!existsSync(dbPath)) {
       console.error(`[MCP Audit] Database not found at ${dbPath} — audit logging disabled`);

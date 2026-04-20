@@ -15,8 +15,13 @@ export interface Settings {
     | "cost-optimized"
     | "strict-random";
   stickyRoundRobinLimit: number;
-  requestRetry: number;
-  maxRetryIntervalSec: number;
+  globalRandomRoutingEnabled?: boolean;
+  globalRandomRoutingMode?: "strict" | "weighted";
+  globalRandomRoutingPool?: string[];
+  globalRandomRoutingProviders?: string[];
+  globalRandomRoutingBlockedModels?: string[];
+  globalRandomRoutingExcludeCombos?: boolean;
+  globalRandomRoutingWeights?: Record<string, number>;
   jwtSecret?: string;
   hideHealthCheckLogs?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];

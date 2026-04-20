@@ -34,7 +34,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
-const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK === "1";
+const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK !== "0";
 
 const nextApp = next({
   dev,
@@ -42,7 +42,6 @@ const nextApp = next({
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
-  webpack: dev && !useTurbopack,
 });
 
 async function start() {

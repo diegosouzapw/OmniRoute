@@ -35,6 +35,7 @@ export default function Card({
   return (
     <div
       className={cn(
+        "card-root",
         "bg-surface",
         "border border-black/5 dark:border-white/5",
         "rounded-lg shadow-sm",
@@ -45,19 +46,19 @@ export default function Card({
       {...props}
     >
       {(title || action) && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+        <div className="card-header flex items-center justify-between mb-4">
+          <div className="card-header-main flex items-center gap-3">
             {icon && (
-              <div className="p-2 rounded-lg bg-bg text-text-muted">
+              <div className="card-header-icon p-2 rounded-lg bg-bg text-text-muted">
                 <span className="material-symbols-outlined text-[20px]">{icon}</span>
               </div>
             )}
             <div>
-              {title && <h3 className="text-text-main font-semibold">{title}</h3>}
-              {subtitle && <p className="text-sm text-text-muted">{subtitle}</p>}
+              {title && <h3 className="card-header-title text-text-main font-semibold">{title}</h3>}
+              {subtitle && <p className="card-header-subtitle text-sm text-text-muted">{subtitle}</p>}
             </div>
           </div>
-          {action}
+          <div className="card-header-action">{action}</div>
         </div>
       )}
       {children}
@@ -70,6 +71,7 @@ Card.Section = function CardSection({ children, className, ...props }) {
   return (
     <div
       className={cn(
+        "card-section",
         "p-4 rounded-lg",
         "bg-black/[0.02] dark:bg-white/[0.02]",
         "border border-black/5 dark:border-white/5",
@@ -87,6 +89,7 @@ Card.Row = function CardRow({ children, className, ...props }) {
   return (
     <div
       className={cn(
+        "card-row",
         "p-3 -mx-3 px-3 transition-colors",
         "border-b border-black/5 dark:border-white/5 last:border-b-0",
         "hover:bg-black/[0.02] dark:hover:bg-white/[0.02]",
@@ -104,6 +107,7 @@ Card.ListItem = function CardListItem({ children, actions, className, ...props }
   return (
     <div
       className={cn(
+        "card-list-item",
         "group flex items-center justify-between p-3 -mx-3 px-3",
         "border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0",
         "hover:bg-black/[0.02] dark:hover:bg-white/[0.02]",

@@ -74,8 +74,8 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json(validation.error, { status: 400 });
     }
-    const memoryId = await createMemory(validation.data);
-    return NextResponse.json({ success: true, id: memoryId });
+    const memory = await createMemory(validation.data);
+    return NextResponse.json({ success: true, id: memory.id, memory });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error }, { status: 400 });

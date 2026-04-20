@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+    <div className="dashboard-shell flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -73,12 +73,12 @@ export default function DashboardLayout({ children }) {
       {/* Main content */}
       <main
         id="main-content"
-        className="relative flex min-h-0 flex-1 min-w-0 flex-col transition-colors duration-300"
+        className="dashboard-main relative flex min-h-0 flex-1 min-w-0 flex-col transition-colors duration-300"
       >
         <Header onMenuClick={() => setSidebarOpen(true)} />
         {!isE2EMode && <MaintenanceBanner />}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto w-full">
+        <div className="dashboard-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
+          <div className="dashboard-content-inner max-w-7xl mx-auto w-full">
             <Breadcrumbs />
             {children}
           </div>

@@ -2,6 +2,7 @@ import { getDbInstance } from "../db/core";
 import { Memory, MemoryConfig, MemoryType } from "./types";
 import { MemoryConfigSchema } from "./schemas";
 import { logger } from "../../../open-sse/utils/logger.ts";
+import { searchSemanticMemory } from "./qdrant";
 
 const log = logger("MEMORY_RETRIEVAL");
 
@@ -138,6 +139,9 @@ export async function retrieveMemories(
   const memories: Array<{ memory: Memory; score: number }> = [];
   let totalTokens = 0;
 
+  // Optional semantic index results (Qdrant): id -> score
+  let externalScoreById: Map<string, number> | null = null;
+
   const useModernTable = hasTable("memories");
   const tableName = useModernTable ? "memories" : "memory";
   const columns = useModernTable
@@ -177,8 +181,51 @@ export async function retrieveMemories(
   let rows: MemoryRow[];
   const ftsAvailable = useModernTable && hasTable("memory_fts");
 
+  async function rowsFromExternalSemanticSearch(): Promise<MemoryRow[] | null> {
+    if (!config.query) return null;
+    const res = await searchSemanticMemory(config.query, 20, {
+      apiKeyId,
+      sessionId: config.sessionId,
+    });
+    if (!res.ok || !res.results || res.results.length === 0) return null;
+
+    const orderedIds = res.results.map((r) => String(r.id));
+    externalScoreById = new Map(
+      res.results.map((r) => [String(r.id), typeof r.score === "number" ? r.score : 0])
+    );
+
+    const placeholders = orderedIds.map(() => "?").join(",");
+    let sql =
+      `SELECT * FROM ${tableName} WHERE id IN (${placeholders}) AND ${columns.apiKeyId} = ? ` +
+      `AND (${columns.expiresAt} IS NULL OR datetime(${columns.expiresAt}) > datetime('now'))`;
+    const p: any[] = [...orderedIds, apiKeyId];
+
+    if (normalizedConfig.scope === "session" && config.sessionId) {
+      sql += ` AND ${columns.sessionId} = ?`;
+      p.push(config.sessionId);
+    }
+
+    if (normalizedConfig.retentionDays > 0) {
+      const cutoff = new Date(
+        Date.now() - normalizedConfig.retentionDays * 24 * 60 * 60 * 1000
+      ).toISOString();
+      sql += ` AND datetime(${columns.createdAt}) >= datetime(?)`;
+      p.push(cutoff);
+    }
+
+    const found = db.prepare(sql).all(...p) as MemoryRow[];
+    const byId = new Map(found.map((r) => [String(r.id), r]));
+    const ordered = orderedIds.map((id) => byId.get(id)).filter(Boolean) as MemoryRow[];
+    return ordered.length > 0 ? ordered : null;
+  }
+
   switch (strategy) {
     case "semantic": {
+      const extRows = await rowsFromExternalSemanticSearch();
+      if (extRows && extRows.length > 0) {
+        rows = extRows;
+        break;
+      }
       if (config.query && ftsAvailable) {
         const ftsQuery =
           `SELECT m.* FROM ${tableName} m ` +
@@ -218,6 +265,7 @@ export async function retrieveMemories(
       break;
     }
     case "hybrid": {
+      const extRows = await rowsFromExternalSemanticSearch();
       let ftsRows: MemoryRow[] = [];
       if (config.query && ftsAvailable) {
         const ftsQuery =
@@ -255,7 +303,7 @@ export async function retrieveMemories(
       // Union: FTS5 results first (higher relevance), then keyword results, dedup by id
       const seen = new Set<string | number>();
       rows = [];
-      for (const row of [...ftsRows, ...keywordRows]) {
+      for (const row of [...(extRows || []), ...ftsRows, ...keywordRows]) {
         const rowId = String(row.id);
         if (!seen.has(rowId)) {
           seen.add(rowId);
@@ -274,10 +322,17 @@ export async function retrieveMemories(
   const rankedRows = rows
     .map((row) => {
       const memory = rowToMemory(row);
-      const score = config.query ? getRelevanceScore(memory, config.query) : 0;
+      const externalScore = externalScoreById?.get(memory.id);
+      const score =
+        externalScore !== undefined
+          ? // External semantic scores are in [0..1-ish]. Lift them so they win sorting.
+            1000 + externalScore * 100
+          : config.query
+            ? getRelevanceScore(memory, config.query)
+            : 0;
       return { memory, score };
     })
-    .filter((entry) => !config.query || entry.score > 0)
+    .filter((entry) => !config.query || entry.score > 0 || externalScoreById?.has(entry.memory.id))
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       return b.memory.createdAt.getTime() - a.memory.createdAt.getTime();

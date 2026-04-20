@@ -4,6 +4,7 @@
 
 import { getDbInstance } from "../db/core";
 import { Memory, MemoryType } from "./types";
+import { deleteSemanticMemoryPoint, upsertSemanticMemoryPoint } from "./qdrant";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("MEMORY_STORE");
@@ -124,6 +125,24 @@ export async function createMemory(
 
   log.info("memory.stored", { apiKeyId: memory.apiKeyId, type: memory.type, id });
 
+  // Optional external semantic index (Qdrant). Best-effort: never block the main write.
+  if (createdMemory.type === "semantic") {
+    void upsertSemanticMemoryPoint({
+      id: createdMemory.id,
+      apiKeyId: createdMemory.apiKeyId,
+      sessionId: createdMemory.sessionId,
+      key: createdMemory.key,
+      content: createdMemory.content,
+      metadata: createdMemory.metadata ?? {},
+      createdAt: createdMemory.createdAt.toISOString(),
+      expiresAt: createdMemory.expiresAt ? createdMemory.expiresAt.toISOString() : null,
+    }).then((res) => {
+      if (!res.ok) {
+        log.debug("memory.qdrant.upsert_failed", { id: createdMemory.id, error: res.error });
+      }
+    });
+  }
+
   return createdMemory;
 }
 
@@ -234,6 +253,9 @@ export async function deleteMemory(id: string): Promise<boolean> {
   invalidateMemoryCache(id);
 
   log.info("memory.deleted", { id });
+
+  // Best-effort cleanup in Qdrant (if enabled).
+  void deleteSemanticMemoryPoint(id).catch(() => {});
 
   return true;
 }

@@ -8,24 +8,6 @@
 import { z } from "zod";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
-const fallbackStrategyValues = [
-  "priority",
-  "weighted",
-  "round-robin",
-  "context-relay",
-  "fill-first",
-  "p2c",
-  "random",
-  "least-used",
-  "cost-optimized",
-  "strict-random",
-  "auto",
-  "context-optimized",
-  "lkgp",
-] as const;
-
-const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
-
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
@@ -48,11 +30,11 @@ export const updateSettingsSchema = z.object({
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z.enum(fallbackStrategyValues).optional(),
+  fallbackStrategy: z
+    .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])
+    .optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
-  requestRetry: z.number().int().min(0).max(10).optional(),
-  maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -63,14 +45,12 @@ export const updateSettingsSchema = z.object({
   mcpEnabled: z.boolean().optional(),
   mcpTransport: z.enum(["stdio", "sse", "streamable-http"]).optional(),
   a2aEnabled: z.boolean().optional(),
-  wsAuth: z.boolean().optional(),
   // CLI Fingerprint compatibility (per-provider)
   cliCompatProviders: z.array(z.string().max(100)).optional(),
   // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
   stripModelPrefix: z.boolean().optional(),
   // Cache control preservation mode
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
-  antigravitySignatureCacheMode: z.enum(signatureCacheModeValues).optional(),
   // Adaptive Volume Routing
   adaptiveVolumeRouting: z.boolean().optional(),
   // Usage token buffer — safety margin added to reported prompt/input token counts.
@@ -94,8 +74,13 @@ export const updateSettingsSchema = z.object({
   skillsmpApiKey: z.string().max(200).optional(),
   // models.dev sync settings
   modelsDevSyncEnabled: z.boolean().optional(),
-  modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
-  // Missing settings
-  lkgpEnabled: z.boolean().optional(),
-  backgroundDegradation: z.unknown().optional(),
+  modelsDevSyncInterval: z.number().int().min(3600).max(604800).optional(),
+  // Global random routing (without combo requirement)
+  globalRandomRoutingEnabled: z.boolean().optional(),
+  globalRandomRoutingMode: z.enum(["strict", "weighted"]).optional(),
+  globalRandomRoutingPool: z.array(z.string().min(1).max(300)).max(2000).optional(),
+  globalRandomRoutingProviders: z.array(z.string().min(1).max(100)).max(500).optional(),
+  globalRandomRoutingBlockedModels: z.array(z.string().min(1).max(300)).max(2000).optional(),
+  globalRandomRoutingExcludeCombos: z.boolean().optional(),
+  globalRandomRoutingWeights: z.record(z.string().min(1).max(300), z.number().min(0)).optional(),
 });

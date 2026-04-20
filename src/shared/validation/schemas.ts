@@ -425,6 +425,14 @@ export const updateSettingsSchema = z.object({
   intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
   intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
   intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
+  // Global random routing (without combo requirement)
+  globalRandomRoutingEnabled: z.boolean().optional(),
+  globalRandomRoutingMode: z.enum(["strict", "weighted"]).optional(),
+  globalRandomRoutingPool: z.array(z.string().min(1).max(300)).max(2000).optional(),
+  globalRandomRoutingProviders: z.array(z.string().min(1).max(100)).max(500).optional(),
+  globalRandomRoutingBlockedModels: z.array(z.string().min(1).max(300)).max(2000).optional(),
+  globalRandomRoutingExcludeCombos: z.boolean().optional(),
+  globalRandomRoutingWeights: z.record(z.string().min(1).max(300), z.number().min(0)).optional(),
   // Protocol toggles (default: disabled)
   mcpEnabled: z.boolean().optional(),
   a2aEnabled: z.boolean().optional(),

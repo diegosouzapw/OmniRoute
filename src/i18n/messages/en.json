@@ -164,6 +164,10 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "apiManager": "API Manager",
+    "customers": "Customers",
+    "customersUsers": "Users",
+    "customersPlans": "Plans",
+    "customersFinance": "Finance",
     "logs": "Logs",
     "auditLog": "Audit Log",
     "shutdown": "Shutdown",
@@ -1084,14 +1088,26 @@
     "failedReorder": "Failed to reorder models",
     "builderFlowTitle": "Combo Builder Flow",
     "builderStage": {
-      "basics": { "label": "Basics", "description": "Name and starting template" },
-      "steps": { "label": "Steps", "description": "Provider, model, and account selection" },
-      "strategy": { "label": "Strategy", "description": "Routing behavior and advanced settings" },
+      "basics": {
+        "label": "Basics",
+        "description": "Name and starting template"
+      },
+      "steps": {
+        "label": "Steps",
+        "description": "Provider, model, and account selection"
+      },
+      "strategy": {
+        "label": "Strategy",
+        "description": "Routing behavior and advanced settings"
+      },
       "intelligent": {
         "label": "Smart Routing",
         "description": "Auto-routing candidate pool, presets, and scoring"
       },
-      "review": { "label": "Review", "description": "Final validation before saving" }
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      }
     },
     "builderStageVisited": "Stage completed",
     "builderStageCurrent": "Current stage",
@@ -1412,16 +1428,48 @@
     "export": "Export",
     "import": "Import",
     "addMemory": "Add Memory",
+    "addMemoryTitle": "Add Memory",
+    "addMemoryDesc": "Create a manual memory entry for testing or seeding behavior.",
+    "addMemorySuccess": "Memory added.",
+    "addMemoryFailed": "Failed to add memory.",
+    "addMemoryValidation": "Key and content are required.",
     "type": "Type",
+    "typePlaceholder": "Select type",
     "key": "Key",
+    "keyPlaceholder": "e.g. user_preference",
     "content": "Content",
+    "contentPlaceholder": "Write the memory content...",
     "created": "Created",
     "actions": "Actions",
     "delete": "Delete",
     "factual": "Factual",
     "episodic": "Episodic",
     "procedural": "Procedural",
-    "semantic": "Semantic"
+    "semantic": "Semantic",
+    "sessionId": "Session ID (optional)",
+    "sessionIdPlaceholder": "Leave empty for global",
+    "apiKeyId": "API Key ID (optional)",
+    "apiKeyIdPlaceholder": "Leave empty for global",
+    "expiresAt": "Expires At (optional)",
+    "expiresAtPlaceholder": "YYYY-MM-DD or ISO timestamp",
+    "expiresAtInvalid": "Invalid expiration date.",
+    "metadata": "Metadata (JSON)",
+    "metadataPlaceholder": "{ \"source\": \"manual\" }",
+    "metadataHint": "Must be a JSON object.",
+    "metadataInvalid": "Invalid metadata JSON. Must be an object.",
+    "typeLegend": "Memory types:",
+    "exportSuccess": "Export downloaded.",
+    "exportFailed": "Export failed.",
+    "importEmpty": "No memory items found in this file.",
+    "importSuccess": "Imported {count} memory item(s).",
+    "importPartial": "{count} item(s) failed to import.",
+    "importFailed": "Import failed.",
+    "typeHelp": {
+      "factual": "Stable facts (preferences, profile facts) that should be reused across sessions.",
+      "episodic": "Event-based notes (what happened recently) that may age out over time.",
+      "procedural": "How-to rules and workflows (steps, habits, procedures).",
+      "semantic": "Knowledge summaries and concepts (topic-level, embedding-friendly)."
+    }
   },
   "skills": {
     "title": "Skills",

@@ -9,7 +9,14 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import { getApiKeyMetadata, isModelAllowedForKey } from "@/lib/localDb";
+import {
+  getApiKeyMetadata,
+  getComboByName,
+  deactivateSaasCustomerApiKeys,
+  getSaasPolicyForApiKeyId,
+  isAllowedBySaasPattern,
+  isModelAllowedForKey,
+} from "@/lib/localDb";
 import { checkBudget } from "@/domain/costRules";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -113,6 +120,7 @@ const _requestTimestamps = new Map<string, number[]>();
 const REQUEST_COUNTER_MAX_KEYS = 5000;
 const REQUEST_DAY_MS = 24 * 60 * 60 * 1000;
 const REQUEST_MINUTE_MS = 60 * 1000;
+const SUPPORT_SITE = "ramelseg.com.br";
 
 /** Record a request and check per-key limits. Returns null if OK, or an error message. */
 function checkRequestCountLimits(
@@ -163,6 +171,42 @@ function checkRequestCountLimits(
   // All checks passed — record this request
   timestamps.push(now);
   return null;
+}
+
+function getFriendlySaasBlockMessage(reason: string | null | undefined): {
+  status: number;
+  message: string;
+} {
+  if (reason === "billing") {
+    return {
+      status: HTTP_STATUS.PAYMENT_REQUIRED,
+      message: `Sua conta esta com uma pendencia financeira. Para continuar usando a API, regularize a mensalidade ou fale com o suporte. Acesse: ${SUPPORT_SITE}`,
+    };
+  }
+
+  if (reason === "limit") {
+    return {
+      status: HTTP_STATUS.RATE_LIMITED,
+      message: `Seu limite de tokens deste ciclo foi atingido. Para continuar usando a API, aguarde a renovacao do ciclo ou solicite tokens adicionais. Acesse: ${SUPPORT_SITE}`,
+    };
+  }
+
+  return {
+    status: HTTP_STATUS.FORBIDDEN,
+    message: `Esta API key esta temporariamente desativada. Entre em contato com o suporte para entender o motivo e reativar o acesso. Acesse: ${SUPPORT_SITE}`,
+  };
+}
+
+function getFriendlyCustomerStatusMessage(status: string): string {
+  if (status === "blocked") {
+    return `Sua conta esta bloqueada no momento. Entre em contato com o suporte para verificar a situacao e reativar o acesso. Acesse: ${SUPPORT_SITE}`;
+  }
+
+  if (status === "inactive") {
+    return `Sua conta esta inativa no momento. Entre em contato com o suporte para ativar seu acesso novamente. Acesse: ${SUPPORT_SITE}`;
+  }
+
+  return `Sua conta nao esta liberada para uso da API no momento. Entre em contato com o suporte para verificar a situacao. Acesse: ${SUPPORT_SITE}`;
 }
 
 export interface ApiKeyPolicyResult {
@@ -222,12 +266,52 @@ export async function enforceApiKeyPolicy(
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
 
+  let saasPolicyApplied = false;
+  let saasPolicy: ReturnType<typeof getSaasPolicyForApiKeyId> | null = null;
+  if (apiKeyInfo.id) {
+    try {
+      saasPolicy = getSaasPolicyForApiKeyId(apiKeyInfo.id);
+      saasPolicyApplied = Boolean(saasPolicy);
+    } catch (error) {
+      log.error("API_POLICY", "SaaS customer policy failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Customer policy unavailable"),
+      };
+    }
+  }
+
+  if (saasPolicy?.usage.blocked) {
+    if (saasPolicy.usage.blockReason === "limit" || saasPolicy.usage.blockReason === "billing") {
+      deactivateSaasCustomerApiKeys(saasPolicy.customer.id, saasPolicy.usage.blockReason);
+    }
+    const friendlyBlock = getFriendlySaasBlockMessage(saasPolicy.usage.blockReason);
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: errorResponse(friendlyBlock.status, friendlyBlock.message),
+    };
+  }
+
+  if (saasPolicy && !saasPolicy.apiKey.isActive) {
+    const friendlyBlock = getFriendlySaasBlockMessage(null);
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: errorResponse(friendlyBlock.status, friendlyBlock.message),
+    };
+  }
+
   // ── Check 1: is_active — hard block regardless of schedule ──
   if (apiKeyInfo.isActive === false) {
     return {
       apiKey,
       apiKeyInfo,
-      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
+      rejection: errorResponse(
+        HTTP_STATUS.FORBIDDEN,
+        "Esta API key esta desativada. Verifique se ela ainda esta ativa no painel ou fale com o suporte para reativar o acesso."
+      ),
     };
   }
 
@@ -247,7 +331,79 @@ export async function enforceApiKeyPolicy(
   }
 
   // ── Check 3: Model restriction ──
-  if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
+  if (apiKeyInfo.id) {
+    try {
+      if (saasPolicy) {
+        if (saasPolicy.customer.status !== "active") {
+          return {
+            apiKey,
+            apiKeyInfo,
+            rejection: errorResponse(
+              HTTP_STATUS.FORBIDDEN,
+              getFriendlyCustomerStatusMessage(saasPolicy.customer.status)
+            ),
+          };
+        }
+        if (!saasPolicy.plan || !saasPolicy.plan.isActive) {
+          return {
+            apiKey,
+            apiKeyInfo,
+            rejection: errorResponse(
+              HTTP_STATUS.FORBIDDEN,
+              `O plano vinculado a sua conta esta inativo. Entre em contato com o suporte para atualizar o plano e liberar o acesso. Acesse: ${SUPPORT_SITE}`
+            ),
+          };
+        }
+
+        if (modelStr) {
+          const combo = await getComboByName(modelStr).catch(() => null);
+          if (combo) {
+            const comboAllowed =
+              saasPolicy.plan.allowAllCombos ||
+              isAllowedBySaasPattern(modelStr, saasPolicy.allowedCombos);
+            if (!comboAllowed) {
+              return {
+                apiKey,
+                apiKeyInfo,
+                rejection: errorResponse(
+                  HTTP_STATUS.FORBIDDEN,
+                  `Combo "${modelStr}" is not enabled for this customer`
+                ),
+              };
+            }
+          } else {
+            const modelAllowed =
+              saasPolicy.plan.allowAllModels ||
+              isAllowedBySaasPattern(modelStr, saasPolicy.allowedModels);
+            if (!modelAllowed) {
+              return {
+                apiKey,
+                apiKeyInfo,
+                rejection: errorResponse(
+                  HTTP_STATUS.FORBIDDEN,
+                  `Model "${modelStr}" is not enabled for this customer`
+                ),
+              };
+            }
+          }
+        }
+      }
+    } catch (error) {
+      log.error("API_POLICY", "SaaS customer policy failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Customer policy unavailable"),
+      };
+    }
+  }
+
+  if (
+    !saasPolicyApplied &&
+    modelStr &&
+    apiKeyInfo.allowedModels &&
+    apiKeyInfo.allowedModels.length > 0
+  ) {
     const allowed = await isModelAllowedForKey(apiKey, modelStr);
     if (!allowed) {
       return {

@@ -1795,6 +1795,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const notify = useNotificationStore();
   const createDraftStateRef = useRef<CreateDraftSnapshot>(getEmptyCreateDraftSnapshot());
   const [name, setName] = useState(combo?.name || "");
+  const [nameTouched, setNameTouched] = useState<boolean>(!!combo?.name);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [models, setModels] = useState(() => {
     return (combo?.models || []).map((m) => normalizeModelEntry(m));
   });
@@ -1844,6 +1846,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         : Object.fromEntries(Object.entries(nextDefaults).filter(([key]) => key !== "strategy"));
 
       setName(nextCombo?.name || "");
+      setNameTouched(!!nextCombo?.name);
+      setSelectedTemplateId(null);
       setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
       setStrategy(nextCombo?.strategy || comboDefaults?.strategy || "priority");
       setConfig(nextConfig);
@@ -2175,6 +2179,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const handleNameChange = (e) => {
     const value = e.target.value;
+    setNameTouched(true);
     setName(value);
     if (value) validateName(value);
     else setNameError("");
@@ -2381,9 +2386,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   ];
 
   const applyTemplate = (template) => {
+    setSelectedTemplateId(template.id);
     setStrategy(template.strategy);
     setConfig((prev) => ({ ...prev, ...template.config }));
-    if (!name.trim()) setName(template.suggestedName);
+    // Keep template switching intuitive: keep overwriting the name until the user edits it.
+    if (!nameTouched) setName(template.suggestedName);
     if (template.id === "free-stack") {
       setModels(FREE_STACK_PRESET_MODELS);
     } else if (template.id === "paid-premium") {
@@ -2626,15 +2633,18 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                     {COMBO_TEMPLATES.map((template) => (
+                      // Selected style makes it obvious when switching templates even if models don't change.
                       <button
                         type="button"
                         key={template.id}
                         onClick={() => applyTemplate(template)}
                         data-testid={`combo-template-${template.id}`}
                         className={`text-left rounded-md border px-3 py-2 transition-all ${
-                          template.isFeatured
-                            ? "border-emerald-500/50 bg-emerald-500/5 hover:border-emerald-500/80 hover:bg-emerald-500/10 ring-1 ring-emerald-500/20"
-                            : "border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] hover:border-primary/40 hover:bg-primary/5"
+                          selectedTemplateId === template.id
+                            ? "border-primary/70 bg-primary/5 ring-2 ring-primary/20"
+                            : selectedTemplateId === null && template.isFeatured
+                              ? "border-emerald-500/50 bg-emerald-500/5 hover:border-emerald-500/80 hover:bg-emerald-500/10 ring-1 ring-emerald-500/20"
+                              : "border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] hover:border-primary/40 hover:bg-primary/5"
                         }`}
                       >
                         <div className="flex items-center gap-2">

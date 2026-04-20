@@ -8,8 +8,7 @@ import {
   getStoredManagementPassword,
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
-import { loginSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, loginSchema, validateBody } from "@/shared/validation/helpers";
 
 // SECURITY: No hardcoded fallback — JWT_SECRET must be configured.
 if (!process.env.JWT_SECRET) {
@@ -135,6 +134,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   } catch (error) {
     console.error("[AUTH] Login failed:", error);
+    const debugMessage = error instanceof Error ? error.message : "unknown_error";
     logAuditEvent({
       action: "auth.login.error",
       actor: "system",
@@ -144,7 +144,7 @@ export async function POST(request) {
       ipAddress: auditContext.ipAddress || undefined,
       requestId: auditContext.requestId,
       metadata: {
-        message: error instanceof Error ? error.message : "unknown_error",
+        message: debugMessage,
       },
     });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

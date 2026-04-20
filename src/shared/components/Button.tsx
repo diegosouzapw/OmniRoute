@@ -44,7 +44,8 @@ export default function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 cursor-pointer",
+        "btn-root inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 cursor-pointer",
+        `btn-${variant}`,
         "active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
         variants[variant],
         sizes[size],

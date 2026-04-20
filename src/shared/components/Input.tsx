@@ -65,7 +65,7 @@ export default function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            "w-full py-2 px-3 text-sm text-text-main",
+            "input-root w-full py-2 px-3 text-sm text-text-main",
             "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-md",
             "placeholder-text-muted/60",
             "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",

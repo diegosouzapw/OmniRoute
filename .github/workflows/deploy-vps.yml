@@ -1,8 +1,8 @@
-name: Deploy to VPS
+name: Deploy Docker to VPS
 
 on:
   workflow_run:
-    workflows: ["Publish to Docker Hub"]
+    workflows: ["Publish Docker Image"]
     types: [completed]
   workflow_dispatch:
 
@@ -14,30 +14,76 @@ jobs:
     if: >-
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
       && vars.DEPLOY_ENABLED == 'true'
-    name: Deploy OmniRoute to VPS
+    name: Pull GHCR image and restart VPS container
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        continue-on-error: true
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Upload production compose
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          source: "docker-compose.prod.yml"
+          target: ${{ vars.DEPLOY_PATH || '/opt/omniroute' }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
           timeout: 30s
-          command_timeout: 5m
+          command_timeout: 10m
           script: |
-            echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@latest 2>&1
-            INSTALLED_VERSION=$(omniroute --version 2>/dev/null || echo "unknown")
-            echo "Installed version: $INSTALLED_VERSION"
+            set -euo pipefail
 
-            echo "=== Restarting PM2 ==="
-            pm2 restart omniroute || pm2 start omniroute --name omniroute -- --port 20128
-            pm2 save
+            DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/omniroute}"
+            IMAGE="$(printf '%s' 'ghcr.io/${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
 
-            echo "=== Health Check ==="
-            sleep 3
-            curl -sf http://localhost:20128/api/settings > /dev/null && echo "✅ OmniRoute is healthy" || echo "❌ Health check failed"
-            echo "=== Deploy complete ==="
+            echo "=== Preparing deploy path: ${DEPLOY_PATH} ==="
+            mkdir -p "${DEPLOY_PATH}"
+            cd "${DEPLOY_PATH}"
+
+            if [ ! -f docker-compose.prod.yml ]; then
+              echo "docker-compose.prod.yml not found in ${DEPLOY_PATH}."
+              echo "Place the production compose file there before enabling DEPLOY_ENABLED."
+              exit 1
+            fi
+
+            if [ ! -f .env ]; then
+              touch .env
+            fi
+
+            if grep -q '^OMNIROUTE_IMAGE=' .env; then
+              sed -i.bak "s|^OMNIROUTE_IMAGE=.*|OMNIROUTE_IMAGE=${IMAGE}|" .env
+            else
+              echo "OMNIROUTE_IMAGE=${IMAGE}" >> .env
+            fi
+            if ! grep -q '^OMNIROUTE_IMAGE_TAG=' .env; then
+              echo "OMNIROUTE_IMAGE_TAG=latest" >> .env
+            fi
+
+            echo "=== Logging into GHCR ==="
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            echo "=== Pulling image ==="
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "=== Starting container ==="
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "=== Container status ==="
+            docker compose -f docker-compose.prod.yml ps
+
+            echo "=== Health check ==="
+            sleep 5
+            HOST_PORT="$(grep -E '^PROD_DASHBOARD_PORT=' .env | tail -n 1 | cut -d= -f2- || true)"
+            HOST_PORT="${HOST_PORT:-20130}"
+            curl -sf "http://127.0.0.1:${HOST_PORT}/api/monitoring/health" > /dev/null
+            echo "Deploy complete."

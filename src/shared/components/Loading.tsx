@@ -68,7 +68,7 @@ export function PageLoading({ message, className }: PageLoadingProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg px-6",
+        "loading-page fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg px-6",
         className
       )}
       role="status"
@@ -86,7 +86,10 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={cn("animate-pulse motion-reduce:animate-none rounded-lg bg-border", className)}
+      className={cn(
+        "loading-skeleton animate-pulse motion-reduce:animate-none rounded-lg bg-border",
+        className
+      )}
       {...props}
     />
   );
@@ -95,7 +98,10 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 // Card skeleton
 export function CardSkeleton() {
   return (
-    <div className="p-6 rounded-xl border border-border bg-surface" aria-hidden="true">
+    <div
+      className="loading-card-skeleton p-6 rounded-xl border border-border bg-surface"
+      aria-hidden="true"
+    >
       <div className="flex items-center justify-between mb-4 gap-4">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="size-10 rounded-lg" />

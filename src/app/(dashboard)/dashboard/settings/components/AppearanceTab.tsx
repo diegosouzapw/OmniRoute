@@ -16,7 +16,8 @@ import {
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
-  const { colorTheme, customColor, setColorTheme, setCustomColorTheme } = useThemeStore();
+  const { colorTheme, customColor, visualTheme, setColorTheme, setCustomColorTheme, setVisualTheme } =
+    useThemeStore();
   const t = useTranslations("settings");
   const tSidebar = useTranslations("sidebar");
   const [settings, setSettings] = useState<Record<string, any>>({});
@@ -66,6 +67,9 @@ export default function AppearanceTab() {
             data[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
           ),
         });
+        if (data.visualTheme === "neo" || data.visualTheme === "classic") {
+          setVisualTheme(data.visualTheme);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -166,6 +170,41 @@ export default function AppearanceTab() {
                   {option === "light" ? "light_mode" : option === "dark" ? "dark_mode" : "contrast"}
                 </span>
                 <span>{themeOptionLabels[option] || option}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <p className="font-medium mb-1">
+            {getSettingsLabel("uiVisualTheme", "Visual Theme")}
+          </p>
+          <p className="text-sm text-text-muted mb-3">
+            {getSettingsLabel(
+              "uiVisualThemeDesc",
+              "Switch between the current classic look and a modern dark dashboard style"
+            )}
+          </p>
+          <div className="inline-flex p-1 rounded-lg bg-black/5 dark:bg-white/5">
+            {[
+              { id: "classic", label: getSettingsLabel("uiVisualThemeClassic", "Classic") },
+              { id: "neo", label: getSettingsLabel("uiVisualThemeNeo", "Neo Dark") },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  const nextTheme = item.id as "classic" | "neo";
+                  setVisualTheme(nextTheme);
+                  updateSetting("visualTheme", nextTheme);
+                }}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                  visualTheme === item.id
+                    ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
+                    : "text-text-muted hover:text-text-main"
+                )}
+              >
+                {item.label}
               </button>
             ))}
           </div>

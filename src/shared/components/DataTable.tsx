@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useTranslations } from "next-intl";
+import { cn } from "@/shared/utils/cn";
 
 /**
  * DataTable — Shared UI primitive (T-29)
@@ -63,45 +64,30 @@ export default function DataTable({
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 24px",
-          color: "var(--text-secondary, #888)",
-          fontSize: "14px",
-        }}
-      >
-        <span style={{ animation: "spin 1s linear infinite", marginRight: "8px" }}>⏳</span>
+      <div className="datatable-loading">
+        <span className="datatable-loading-icon material-symbols-outlined" aria-hidden="true">
+          hourglass_top
+        </span>
         {t("loading")}
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 24px",
-          color: "var(--text-secondary, #888)",
-          fontSize: "14px",
-        }}
-      >
-        <span style={{ fontSize: "32px", marginBottom: "8px", opacity: 0.6 }}>{emptyIcon}</span>
+      <div className="datatable-empty">
+        <span className="datatable-empty-icon" aria-hidden="true">
+          {emptyIcon}
+        </span>
         {resolvedEmptyMessage}
       </div>
     );
   }
 
   return (
-    <div style={{ overflow: "auto", maxHeight, borderRadius: "8px" }}>
+    <div className="datatable-root" style={{ overflow: "auto", maxHeight, borderRadius: "8px" }}>
       <table
+        className="datatable-table"
         style={{
           width: "100%",
           borderCollapse: "collapse",
@@ -114,15 +100,17 @@ export default function DataTable({
             {columns.map((col) => (
               <th
                 key={col.key}
+                className="datatable-head"
                 style={{
                   padding: "8px 10px",
                   textAlign: "left",
                   fontWeight: 600,
-                  color: "var(--text-secondary, #888)",
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  color: "var(--datatable-text-secondary, var(--text-secondary, #888))",
+                  borderBottom: "1px solid var(--datatable-border-strong, rgba(255,255,255,0.08))",
                   position: "sticky",
                   top: 0,
-                  background: "var(--bg-table-header, rgba(15,15,25,0.95))",
+                  background:
+                    "var(--bg-table-header, var(--datatable-header-bg, rgba(15,15,25,0.95)))",
                   zIndex: 1,
                   whiteSpace: "nowrap",
                   fontSize: "11px",
@@ -140,34 +128,23 @@ export default function DataTable({
             <tr
               key={row.id || idx}
               onClick={() => onRowClick?.(row)}
+              className={cn(
+                "datatable-row",
+                onRowClick && "is-clickable",
+                row.id === selectedId && "is-selected"
+              )}
               style={{
                 cursor: onRowClick ? "pointer" : "default",
-                background:
-                  row.id === selectedId
-                    ? "rgba(99,102,241,0.1)"
-                    : idx % 2 === 0
-                      ? "transparent"
-                      : "rgba(255,255,255,0.02)",
                 transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                if (row.id !== selectedId) {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (row.id !== selectedId) {
-                  e.currentTarget.style.background =
-                    idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)";
-                }
               }}
             >
               {columns.map((col) => (
                 <td
                   key={col.key}
+                  className="datatable-cell"
                   style={{
                     padding: "6px 10px",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid var(--datatable-border-soft, rgba(255,255,255,0.04))",
                     whiteSpace: "nowrap",
                     maxWidth: col.maxWidth || "200px",
                     overflow: "hidden",
