@@ -35,11 +35,6 @@ type ProviderFailureEntry = {
 // Error codes that count toward provider-level failure threshold
 const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
 
-// Configuration for provider-level failure tracking
-const PROVIDER_FAILURE_THRESHOLD = 5;
-const PROVIDER_FAILURE_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
-const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
-
 // Provider-level failure state map: providerId -> failure entry
 const providerFailureState = new Map<string, ProviderFailureEntry>();
 // Guard against synchronous re-entrant calls within the same event-loop tick.
@@ -536,6 +531,12 @@ export function recordProviderFailure(
     const now = Date.now();
     const entry = providerFailureState.get(provider);
 
+    // Get provider profile for configurable thresholds
+    const profile = getProviderProfile(provider);
+    const threshold = profile.providerFailureThreshold ?? 5;
+    const windowMs = profile.providerFailureWindowMs ?? 1200000; // 20min default
+    const cooldownMs = profile.providerCooldownMs ?? 600000; // 10min default
+
     // Check if we're in cooldown period
     if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
       return; // Already in cooldown, don't record
@@ -547,7 +548,7 @@ export function recordProviderFailure(
       providerFailureState.set(provider, {
         failureCount: 1,
         lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        resetAfterMs: windowMs,
         cooldownUntil: null,
       });
       return;
@@ -556,24 +557,24 @@ export function recordProviderFailure(
     // Increment failure count
     const newCount = entry ? entry.failureCount + 1 : 1;
 
-    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
+    if (newCount >= threshold) {
       // Threshold reached, enter cooldown
-      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
+      const cooldownUntil = now + cooldownMs;
       providerFailureState.set(provider, {
         failureCount: newCount,
         lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        resetAfterMs: windowMs,
         cooldownUntil,
       });
       log?.warn?.(
-        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
+        `[ProviderFailure] ${provider}: ${newCount} failures in ${windowMs / 1000}s — entering ${cooldownMs / 1000}s cooldown`
       );
     } else {
       // Just increment counter
       providerFailureState.set(provider, {
         failureCount: newCount,
         lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
+        resetAfterMs: windowMs,
         cooldownUntil: null,
       });
     }
