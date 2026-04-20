@@ -21,6 +21,13 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  buildAzureAiHeaders,
+  buildAzureAiUrl,
+  getAzureAiApiVersion,
+  getAzureAiBaseUrl,
+} from "@omniroute/open-sse/executors/azure-ai.ts";
+import { parseAwsCredentialInput, signAwsRequest } from "@omniroute/open-sse/services/awsSigV4.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
@@ -528,6 +535,104 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
 
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateAwsPollyProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseAwsCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error: "AWS Polly credentials must include access key and secret key",
+    };
+  }
+
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) ||
+    `https://polly.${credentials.region}.amazonaws.com/v1/speech`;
+  const body = JSON.stringify({
+    Engine: "standard",
+    OutputFormat: "mp3",
+    Text: "test",
+    TextType: "text",
+    VoiceId: "Joanna",
+  });
+
+  try {
+    const headers = signAwsRequest({
+      method: "POST",
+      url: baseUrl,
+      body,
+      service: "polly",
+      region: credentials.region,
+      credentials,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+      },
+    });
+
+    const response = await validationWrite(baseUrl, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateAzureAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = getAzureAiBaseUrl(providerSpecificData, "https://example.models.ai.azure.com");
+  const url = buildAzureAiUrl(baseUrl, getAzureAiApiVersion(providerSpecificData));
+  const model = providerSpecificData.validationModelId || "gpt-oss-120b";
+  const isClaudeModel = typeof model === "string" && model.toLowerCase().includes("claude");
+  const headers = buildAzureAiHeaders({
+    apiKey,
+    baseUrl,
+    stream: false,
+    model: isClaudeModel ? model : null,
+  });
+  const body = isClaudeModel
+    ? {
+        model,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      }
+    : {
+        model,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      };
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -1285,6 +1390,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     nanobanana: validateNanoBananaProvider,
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    "aws-polly": validateAwsPollyProvider,
+    "azure-ai": validateAzureAIProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,

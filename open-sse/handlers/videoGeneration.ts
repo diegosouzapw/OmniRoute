@@ -7,6 +7,7 @@
  * Supported provider formats:
  * - ComfyUI: submit AnimateDiff/SVD workflow → poll → fetch video
  * - SD WebUI: POST to AnimateDiff extension endpoint
+ * - RunwayML: submit async task → poll → fetch output video
  *
  * Response format (OpenAI-like):
  * {
@@ -23,6 +24,46 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
+
+const RUNWAYML_API_VERSION = "2024-11-06";
+const RUNWAYML_POLL_INTERVAL_MS = 2000;
+const RUNWAYML_POLL_TIMEOUT_MS = 180000;
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeRunwayRatio(size) {
+  if (typeof size !== "string" || !size.includes("x")) return null;
+  const [width, height] = size.split("x").map((part) => part.trim());
+  if (!width || !height) return null;
+  return `${width}:${height}`;
+}
+
+function normalizeRunwayDuration(seconds) {
+  if (seconds === undefined || seconds === null) return null;
+  const value = Number(seconds);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return Math.round(value);
+}
+
+function extractRunwayOutputUrl(task) {
+  const output = task?.output;
+  if (Array.isArray(output)) {
+    return typeof output[0] === "string" ? output[0] : null;
+  }
+  return typeof output === "string" ? output : null;
+}
+
+function getRunwayHeaders(credentials) {
+  const key = credentials?.apiKey || credentials?.accessToken;
+  if (!key) return null;
+  return {
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json",
+    "X-Runway-Version": RUNWAYML_API_VERSION,
+  };
+}
 
 /**
  * Handle video generation request
@@ -53,6 +94,17 @@ export async function handleVideoGeneration({ body, credentials, log }) {
 
   if (providerConfig.format === "sdwebui-video") {
     return handleSDWebUIVideoGeneration({ model, provider, providerConfig, body, log });
+  }
+
+  if (providerConfig.format === "runwayml") {
+    return handleRunwayMLVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
   }
 
   return {
@@ -250,6 +302,158 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
     };
   } catch (err) {
     if (log) log.error("VIDEO", `${provider} sdwebui error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
+    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+  }
+}
+
+async function handleRunwayMLVideoGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const headers = getRunwayHeaders(credentials);
+
+  if (!headers) {
+    return {
+      success: false,
+      status: 400,
+      error: "RunwayML requires an API key or access token",
+    };
+  }
+
+  const submitUrl = `${providerConfig.baseUrl}/${body.input_reference ? "image_to_video" : "text_to_video"}`;
+  const ratio = normalizeRunwayRatio(body.size);
+  const duration = normalizeRunwayDuration(body.seconds);
+  const upstreamBody = {
+    model,
+    promptText: body.prompt,
+    ...(body.input_reference ? { promptImage: body.input_reference } : {}),
+    ...(ratio ? { ratio } : {}),
+    ...(duration ? { duration } : {}),
+  };
+
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info("VIDEO", `${provider}/${model} (runwayml) | prompt: "${promptPreview}..."`);
+  }
+
+  try {
+    const submitResponse = await fetch(submitUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(upstreamBody),
+    });
+
+    if (!submitResponse.ok) {
+      const errorText = await submitResponse.text();
+      if (log) {
+        log.error(
+          "VIDEO",
+          `${provider} error ${submitResponse.status}: ${errorText.slice(0, 200)}`
+        );
+      }
+      return { success: false, status: submitResponse.status, error: errorText };
+    }
+
+    let task = await submitResponse.json();
+    const taskId = typeof task?.id === "string" ? task.id : null;
+    if (!taskId) {
+      return {
+        success: false,
+        status: 502,
+        error: "RunwayML returned a task response without an id",
+      };
+    }
+
+    while (true) {
+      const status = String(task?.status || "").toUpperCase();
+      if (status === "SUCCEEDED") break;
+      if (status === "FAILED" || status === "CANCELLED") {
+        const failure = task?.failure || task?.failureCode || "Video generation failed";
+        return {
+          success: false,
+          status: 502,
+          error: `RunwayML task failed: ${failure}`,
+        };
+      }
+
+      if (Date.now() - startTime > RUNWAYML_POLL_TIMEOUT_MS) {
+        return {
+          success: false,
+          status: 504,
+          error: `RunwayML task timed out after ${RUNWAYML_POLL_TIMEOUT_MS}ms`,
+        };
+      }
+
+      await wait(RUNWAYML_POLL_INTERVAL_MS);
+
+      const pollResponse = await fetch(`${providerConfig.baseUrl}/tasks/${taskId}`, {
+        method: "GET",
+        headers,
+      });
+
+      if (!pollResponse.ok) {
+        const errorText = await pollResponse.text();
+        return {
+          success: false,
+          status: pollResponse.status,
+          error: `RunwayML task poll failed: ${errorText}`,
+        };
+      }
+
+      task = await pollResponse.json();
+    }
+
+    const outputUrl = extractRunwayOutputUrl(task);
+    if (!outputUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: "RunwayML task completed without an output URL",
+      };
+    }
+
+    const outputResponse = await fetch(outputUrl);
+    if (!outputResponse.ok) {
+      return {
+        success: false,
+        status: 502,
+        error: `RunwayML fetch output failed (${outputResponse.status})`,
+      };
+    }
+
+    const outputBuffer = Buffer.from(await outputResponse.arrayBuffer());
+    const videos = [{ b64_json: outputBuffer.toString("base64"), format: "mp4" }];
+
+    saveCallLog({
+      method: "POST",
+      path: "/v1/videos/generations",
+      status: 200,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      responseBody: { videos_count: videos.length, taskId },
+    }).catch(() => {});
+
+    return {
+      success: true,
+      data: { created: Math.floor(Date.now() / 1000), data: videos },
+    };
+  } catch (err) {
+    if (log) log.error("VIDEO", `${provider} runwayml error: ${err.message}`);
     saveCallLog({
       method: "POST",
       path: "/v1/videos/generations",

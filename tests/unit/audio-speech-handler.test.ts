@@ -208,6 +208,87 @@ test("handleAudioSpeech maps PlayHT credentials, output format, and speed", asyn
   }
 });
 
+test("handleAudioSpeech signs AWS Polly requests and maps OpenAI-style voice and format options", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+    return new Response(new Uint8Array([5, 4, 3]));
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "aws-polly/neural",
+        input: "polly text",
+        voice: "nova",
+        response_format: "opus",
+      },
+      credentials: {
+        apiKey: "AKIA_TEST:secret-test",
+        providerSpecificData: {
+          baseUrl: "https://polly.eu-west-1.amazonaws.com/v1/speech",
+        },
+      },
+    });
+
+    assert.equal(captured.url, "https://polly.eu-west-1.amazonaws.com/v1/speech");
+    assert.deepEqual(captured.body, {
+      Engine: "neural",
+      OutputFormat: "ogg_vorbis",
+      Text: "polly text",
+      TextType: "text",
+      VoiceId: "Ivy",
+    });
+    assert.equal(captured.headers.Accept, "*/*");
+    assert.equal(captured.headers["Content-Type"], "application/json");
+    assert.match(captured.headers.Authorization, /^AWS4-HMAC-SHA256 Credential=AKIA_TEST\//);
+    assert.match(captured.headers.Authorization, /\/eu-west-1\/polly\/aws4_request,/);
+    assert.ok(captured.headers["X-Amz-Date"]);
+    assert.ok(captured.headers["X-Amz-Content-Sha256"]);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "audio/ogg");
+    assert.deepEqual(Array.from(new Uint8Array(await response.arrayBuffer())), [5, 4, 3]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech rejects malformed AWS Polly credentials before fetching", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("should not fetch");
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "aws-polly/standard",
+        input: "bad credentials",
+      },
+      credentials: { apiKey: "AKIA_ONLY" },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 400);
+    assert.equal(
+      payload.error.message,
+      "AWS Polly credentials must include access key and secret key"
+    );
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleAudioSpeech requires credentials for authenticated providers", async () => {
   const response = await handleAudioSpeech({
     body: {

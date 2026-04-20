@@ -17,6 +17,9 @@ Object.assign(process.env, {
     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
   ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
+  GITLAB_OAUTH_CLIENT_ID: "gitlab-test-client-id",
+  GITLAB_OAUTH_CLIENT_SECRET: "gitlab-test-client-secret",
+  GITLAB_OAUTH_BASE_URL: "https://gitlab.com",
 });
 
 const providersModule = await import("../../src/lib/oauth/providers/index.ts");
@@ -32,9 +35,11 @@ const {
   CURSOR_CONFIG,
   GEMINI_CONFIG,
   GITHUB_CONFIG,
+  GITLAB_DUO_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
+  AMAZON_Q_CONFIG,
   OAUTH_TIMEOUT,
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
@@ -54,9 +59,11 @@ const EXPECTED_PROVIDER_KEYS = [
   "kimi-coding",
   "github",
   "kiro",
+  "amazon-q",
   "cursor",
   "kilocode",
   "cline",
+  "gitlab-duo-oauth",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -69,9 +76,11 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
   kiro: KIRO_CONFIG,
+  "amazon-q": AMAZON_Q_CONFIG,
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  "gitlab-duo-oauth": GITLAB_DUO_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -93,9 +102,20 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
     "socialRefreshUrl",
     "authMethods",
   ],
+  "amazon-q": [
+    "registerClientUrl",
+    "deviceAuthUrl",
+    "tokenUrl",
+    "socialAuthEndpoint",
+    "socialLoginUrl",
+    "socialTokenUrl",
+    "socialRefreshUrl",
+    "authMethods",
+  ],
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  "gitlab-duo-oauth": ["authorizeUrl", "tokenUrl", "scope", "clientId", "baseUrl"],
 };
 
 function getByPath(object, path) {
@@ -190,6 +210,12 @@ test("OAuth constants include all provider ids and use a sane timeout", () => {
   }
 });
 
+test("Amazon Q OAuth alias reuses the Kiro device flow implementation", () => {
+  assert.equal(PROVIDERS["amazon-q"], PROVIDERS.kiro);
+  assert.equal(PROVIDERS["amazon-q"].config, KIRO_CONFIG);
+  assert.equal(PROVIDERS["amazon-q"].flowType, "device_code");
+});
+
 test("every registered OAuth provider has a valid config object, flow type and token mapper", () => {
   const allowedFlowTypes = new Set([
     "authorization_code",
@@ -272,6 +298,9 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
     PROVIDERS.antigravity.buildAuthUrl(ANTIGRAVITY_CONFIG, redirectUri, state)
   );
   const clineUrl = new URL(PROVIDERS.cline.buildAuthUrl(CLINE_CONFIG, redirectUri));
+  const gitlabUrl = new URL(
+    PROVIDERS["gitlab-duo-oauth"].buildAuthUrl(GITLAB_DUO_CONFIG, redirectUri, state, codeChallenge)
+  );
 
   assert.equal(claudeUrl.origin, "https://claude.ai");
   assert.equal(claudeUrl.searchParams.get("client_id"), CLAUDE_CONFIG.clientId);
@@ -281,6 +310,9 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(geminiUrl.searchParams.get("redirect_uri"), redirectUri);
   assert.equal(antigravityUrl.origin, "https://accounts.google.com");
   assert.equal(clineUrl.origin, "https://api.cline.bot");
+  assert.equal(gitlabUrl.origin, "https://gitlab.com");
+  assert.equal(gitlabUrl.searchParams.get("scope"), "api read_user");
+  assert.equal(gitlabUrl.searchParams.get("code_challenge"), codeChallenge);
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
@@ -464,6 +496,41 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
   assert.equal(geminiMapped.projectId, "gemini-project");
   assert.equal(antigravityMapped.email, "anti@example.com");
   assert.equal(antigravityMapped.projectId, "anti-project-final");
+});
+
+test("GitLab Duo OAuth exchanges tokens and loads user metadata through mocked endpoints", async () => {
+  useFetchSequence([
+    jsonResponse({
+      access_token: "gitlab-access",
+      refresh_token: "gitlab-refresh",
+      expires_in: 3600,
+      scope: "api read_user",
+    }),
+    jsonResponse({
+      id: 42,
+      username: "gitlab-dev",
+      name: "GitLab Dev",
+      email: "gitlab@example.com",
+    }),
+  ]);
+
+  const tokens = await PROVIDERS["gitlab-duo-oauth"].exchangeToken(
+    GITLAB_DUO_CONFIG,
+    "gitlab-code",
+    "http://localhost/callback",
+    "gitlab-verifier"
+  );
+  const extra = await PROVIDERS["gitlab-duo-oauth"].postExchange(tokens);
+  const mapped = PROVIDERS["gitlab-duo-oauth"].mapTokens(tokens, extra);
+
+  assert.equal(tokens.access_token, "gitlab-access");
+  assert.equal(extra.user.username, "gitlab-dev");
+  assert.equal(mapped.accessToken, "gitlab-access");
+  assert.equal(mapped.refreshToken, "gitlab-refresh");
+  assert.equal(mapped.email, "gitlab@example.com");
+  assert.equal(mapped.displayName, "GitLab Dev");
+  assert.equal(mapped.providerSpecificData.baseUrl, "https://gitlab.com");
+  assert.equal(mapped.providerSpecificData.gitlabUsername, "gitlab-dev");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {

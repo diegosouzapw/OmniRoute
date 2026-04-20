@@ -64,6 +64,7 @@ const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "datarobot",
   "bedrock",
   "azure",
+  "azure-ai",
   "vertex",
   "vertex-partner",
   "cloudflare-ai",

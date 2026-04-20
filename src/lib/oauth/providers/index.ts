@@ -22,6 +22,7 @@ import { kiro } from "./kiro";
 import { cursor } from "./cursor";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
+import { gitlabDuo } from "./gitlab-duo";
 
 export const PROVIDERS = {
   claude,
@@ -33,9 +34,11 @@ export const PROVIDERS = {
   "kimi-coding": kimiCoding,
   github,
   kiro,
+  "amazon-q": kiro,
   cursor,
   kilocode,
   cline,
+  "gitlab-duo-oauth": gitlabDuo,
 };
 
 export default PROVIDERS;

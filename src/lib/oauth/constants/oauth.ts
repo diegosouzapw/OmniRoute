@@ -188,6 +188,21 @@ export const GITHUB_CONFIG = {
   editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
 };
 
+const GITLAB_OAUTH_BASE_URL =
+  (process.env.GITLAB_OAUTH_BASE_URL || "https://gitlab.com").trim().replace(/\/+$/, "") ||
+  "https://gitlab.com";
+
+// GitLab Duo OAuth Configuration (Authorization Code Flow with PKCE)
+export const GITLAB_DUO_CONFIG = {
+  clientId: process.env.GITLAB_OAUTH_CLIENT_ID || "",
+  clientSecret: process.env.GITLAB_OAUTH_CLIENT_SECRET || "",
+  baseUrl: GITLAB_OAUTH_BASE_URL,
+  authorizeUrl: `${GITLAB_OAUTH_BASE_URL}/oauth/authorize`,
+  tokenUrl: `${GITLAB_OAUTH_BASE_URL}/oauth/token`,
+  scope: "api read_user",
+  codeChallengeMethod: "S256",
+};
+
 // Kiro OAuth Configuration
 // Supports multiple auth methods:
 // 1. AWS Builder ID (Device Code Flow)
@@ -216,6 +231,8 @@ export const KIRO_CONFIG = {
   // Auth methods
   authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
+
+export const AMAZON_Q_CONFIG = KIRO_CONFIG;
 
 // Cursor OAuth Configuration (Import Token from Cursor IDE)
 // Cursor stores credentials in SQLite database: state.vscdb
@@ -260,7 +277,9 @@ export const PROVIDERS = {
   OPENAI: "openai",
   GITHUB: "github",
   KIRO: "kiro",
+  AMAZON_Q: "amazon-q",
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  GITLAB_DUO: "gitlab-duo-oauth",
 };

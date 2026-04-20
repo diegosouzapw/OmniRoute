@@ -83,6 +83,73 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(longcat.error, "longcat offline");
 });
 
+test("AWS Polly validator signs synth probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    assert.equal(target, "https://polly.ap-south-1.amazonaws.com/v1/speech");
+    assert.equal(init.method, "POST");
+    assert.match(
+      String(init.headers?.Authorization || ""),
+      /^AWS4-HMAC-SHA256 Credential=AKIA_TEST\//
+    );
+    assert.match(String(init.headers?.Authorization || ""), /\/ap-south-1\/polly\/aws4_request,/);
+    assert.equal(init.headers?.Accept, "*/*");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "AKIA_TEST:secret-test",
+    providerSpecificData: { baseUrl: "https://polly.ap-south-1.amazonaws.com/v1/speech" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("AWS Polly validator rejects malformed credential payloads without fetching", async () => {
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "AKIA_ONLY",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "AWS Polly credentials must include access key and secret key");
+  assert.equal(called, false);
+});
+
+test("Azure AI validator uses the Azure chat endpoint and api-key auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://demo.models.ai.azure.com/models/chat/completions?api-version=2024-10-21"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.["api-key"], "azure-ai-key");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "azure-ai",
+    apiKey: "azure-ai-key",
+    providerSpecificData: {
+      baseUrl: "https://demo.models.ai.azure.com",
+      apiVersion: "2024-10-21",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
 test("web-cookie provider validators accept valid Grok and Perplexity session cookies", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

@@ -70,7 +70,7 @@ const MODALITY_CONFIG: Record<
     placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
     textLabel: "Text",
-    needsCredentials: ["openai", "elevenlabs", "deepgram"],
+    needsCredentials: ["openai", "elevenlabs", "deepgram", "aws-polly"],
   },
   transcription: {
     icon: "mic",
@@ -178,6 +178,16 @@ const PROVIDER_MODELS: Record<
       ],
     },
     {
+      id: "aws-polly",
+      name: "AWS Polly",
+      models: [
+        { id: "aws-polly/standard", name: "AWS Polly Standard" },
+        { id: "aws-polly/neural", name: "AWS Polly Neural" },
+        { id: "aws-polly/long-form", name: "AWS Polly Long Form" },
+        { id: "aws-polly/generative", name: "AWS Polly Generative" },
+      ],
+    },
+    {
       id: "huggingface",
       name: "HuggingFace",
       models: [{ id: "huggingface/espnet/kan-bayashi_ljspeech_vits", name: "VITS LJSpeech" }],
@@ -270,6 +280,14 @@ const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
   inworld: [
     { id: "Eva", label: "Eva (EN)" },
     { id: "Marcus", label: "Marcus (EN)" },
+  ],
+  "aws-polly": [
+    { id: "Joanna", label: "Joanna (EN)" },
+    { id: "Matthew", label: "Matthew (EN)" },
+    { id: "Amy", label: "Amy (EN)" },
+    { id: "Brian", label: "Brian (EN)" },
+    { id: "Ivy", label: "Ivy (EN)" },
+    { id: "Kendra", label: "Kendra (EN)" },
   ],
 };
 

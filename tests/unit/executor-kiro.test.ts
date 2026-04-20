@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
+import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 
 const textEncoder = new TextEncoder();
 
@@ -93,6 +94,25 @@ test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () =>
   assert.equal(headers["anthropic-beta"], "prompt-caching-2024-07-31");
   assert.equal(headers["x-amzn-bedrock-cache-control"], "enable");
   assert.ok(headers["Amz-Sdk-Invocation-Id"]);
+});
+
+test("Executor index resolves Kiro-based providers from registry executor aliases", () => {
+  assert.ok(hasSpecializedExecutor("kiro"));
+  assert.ok(hasSpecializedExecutor("amazon-q"));
+  assert.ok(hasSpecializedExecutor("codebuddy"));
+
+  const kiro = getExecutor("kiro");
+  const amazonQ = getExecutor("amazon-q");
+  const codebuddy = getExecutor("codebuddy");
+
+  assert.ok(kiro instanceof KiroExecutor);
+  assert.ok(amazonQ instanceof KiroExecutor);
+  assert.ok(codebuddy instanceof KiroExecutor);
+  assert.equal(kiro.getProvider(), "kiro");
+  assert.equal(amazonQ.getProvider(), "amazon-q");
+  assert.equal(codebuddy.getProvider(), "codebuddy");
+  assert.equal(getExecutor("amazon-q"), amazonQ);
+  assert.equal(getExecutor("codebuddy"), codebuddy);
 });
 
 test("KiroExecutor.transformRequest removes the top-level model field", () => {

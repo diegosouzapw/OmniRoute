@@ -90,6 +90,128 @@ test("handleVideoGeneration routes SD WebUI payloads and normalizes mp4 output",
   }
 });
 
+test("handleVideoGeneration submits, polls and downloads RunwayML video tasks", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  let submitRequest;
+  let pollCount = 0;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.dev.runwayml.com/v1/image_to_video") {
+      submitRequest = {
+        url: stringUrl,
+        headers: options.headers,
+        body: JSON.parse(String(options.body || "{}")),
+      };
+      return new Response(JSON.stringify({ id: "task-1", status: "PENDING" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.dev.runwayml.com/v1/tasks/task-1") {
+      pollCount += 1;
+      if (pollCount === 1) {
+        return new Response(JSON.stringify({ id: "task-1", status: "RUNNING" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: "task-1",
+          status: "SUCCEEDED",
+          output: ["https://cdn.example.com/runway.mp4"],
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    }
+
+    if (stringUrl === "https://cdn.example.com/runway.mp4") {
+      return new Response(new Uint8Array([9, 8, 7, 6]), { status: 200 });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "runwayml/gen-3-alpha",
+        prompt: "cinematic skyline",
+        input_reference: "https://example.com/seed.png",
+        size: "1280x720",
+        seconds: 6,
+      },
+      credentials: { apiKey: "rw-test-key" },
+      log: null,
+    });
+
+    assert.equal(submitRequest.url, "https://api.dev.runwayml.com/v1/image_to_video");
+    assert.equal(submitRequest.headers.Authorization, "Bearer rw-test-key");
+    assert.equal(submitRequest.headers["X-Runway-Version"], "2024-11-06");
+    assert.deepEqual(submitRequest.body, {
+      model: "gen-3-alpha",
+      promptText: "cinematic skyline",
+      promptImage: "https://example.com/seed.png",
+      ratio: "1280:720",
+      duration: 6,
+    });
+    assert.equal(pollCount, 2);
+    assert.equal(result.success, true);
+    assert.deepEqual(result.data.data, [{ b64_json: "CQgHBg==", format: "mp4" }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleVideoGeneration returns RunwayML task failures with a provider error", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://api.dev.runwayml.com/v1/text_to_video") {
+      return new Response(
+        JSON.stringify({ id: "task-2", status: "FAILED", failure: "safety filter" }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "runwayml/gen-3-alpha-turbo",
+        prompt: "forbidden scene",
+      },
+      credentials: { apiKey: "rw-test-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 502);
+    assert.match(result.error, /RunwayML task failed: safety filter/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
 test("handleVideoGeneration executes ComfyUI workflow and returns fetched output files", async () => {
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;

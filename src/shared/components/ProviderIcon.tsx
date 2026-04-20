@@ -73,6 +73,7 @@ const LOBEHUB_PROVIDER_MAP: Record<string, string> = {
   "aws-bedrock": "bedrock",
   bedrock: "bedrock",
   azure: "azure",
+  "azure-ai": "azure",
   "azure-openai": "azure",
   copilot: "githubcopilot",
   "github-copilot": "githubcopilot",

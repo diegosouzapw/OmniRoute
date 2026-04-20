@@ -12,6 +12,11 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { PollinationsExecutor } from "./pollinations.ts";
+import { PuterExecutor } from "./puter.ts";
+import { GitLabExecutor } from "./gitlab.ts";
+import { AzureAIExecutor } from "./azure-ai.ts";
+import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -32,18 +37,63 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
+  pollinations: new PollinationsExecutor(),
+  puter: new PuterExecutor(),
+  "gitlab-duo": new GitLabExecutor("gitlab-duo"),
+  "gitlab-duo-oauth": new GitLabExecutor("gitlab-duo-oauth"),
+  "azure-ai": new AzureAIExecutor("azure-ai"),
+};
+
+const executorFactories = {
+  antigravity: (provider) => executors.antigravity,
+  "gemini-cli": (provider) => executors["gemini-cli"],
+  github: (provider) => executors.github,
+  qoder: (provider) => executors.qoder,
+  kiro: (provider) => new KiroExecutor(provider),
+  codex: (provider) => executors.codex,
+  cursor: (provider) => executors.cursor,
+  "cloudflare-ai": (provider) => executors["cloudflare-ai"],
+  opencode: (provider) => new OpencodeExecutor(provider),
+  vertex: (provider) => executors.vertex,
+  cliproxyapi: (provider) => executors.cliproxyapi,
+  "perplexity-web": (provider) => executors["perplexity-web"],
+  "grok-web": (provider) => executors["grok-web"],
+  pollinations: (provider) => executors.pollinations,
+  puter: (provider) => executors.puter,
+  gitlab: (provider) => new GitLabExecutor(provider),
+  "azure-ai": (provider) => new AzureAIExecutor(provider),
 };
 
 const defaultCache = new Map();
+const specializedCache = new Map();
+
+function getExecutorAlias(provider) {
+  const entry = getRegistryEntry(provider);
+  const executor = entry?.executor;
+  if (executor && executorFactories[executor]) {
+    return executor;
+  }
+  if (executors[provider]) {
+    return provider;
+  }
+  return null;
+}
 
 export function getExecutor(provider) {
-  if (executors[provider]) return executors[provider];
+  const executorAlias = getExecutorAlias(provider);
+  if (executorAlias) {
+    const cacheKey = `${executorAlias}:${provider}`;
+    if (!specializedCache.has(cacheKey)) {
+      specializedCache.set(cacheKey, executorFactories[executorAlias](provider));
+    }
+    return specializedCache.get(cacheKey);
+  }
   if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
   return defaultCache.get(provider);
 }
 
 export function hasSpecializedExecutor(provider) {
-  return !!executors[provider];
+  return !!getExecutorAlias(provider);
 }
 
 export { BaseExecutor } from "./base.ts";
@@ -61,3 +111,7 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { PollinationsExecutor } from "./pollinations.ts";
+export { PuterExecutor } from "./puter.ts";
+export { GitLabExecutor } from "./gitlab.ts";
+export { AzureAIExecutor } from "./azure-ai.ts";

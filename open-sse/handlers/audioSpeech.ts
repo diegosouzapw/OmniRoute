@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { getCorsOrigin } from "../utils/cors.ts";
 /**
  * Audio Speech Handler (TTS)
@@ -20,6 +19,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
 import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { errorResponse } from "../utils/error.ts";
+import { parseAwsCredentialInput, signAwsRequest } from "../services/awsSigV4.ts";
 
 /**
  * Return a CORS error response from an upstream fetch failure
@@ -74,6 +74,71 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
  */
 function isValidPathSegment(segment: string): boolean {
   return !segment.includes("..") && !segment.includes("//");
+}
+
+const AWS_POLLY_DEFAULT_VOICE = "Joanna";
+const AWS_POLLY_DEFAULT_REGION = "us-east-1";
+const AWS_POLLY_DEFAULT_ENGINE = "neural";
+
+const AWS_POLLY_VOICE_MAPPINGS: Record<string, string> = {
+  alloy: "Joanna",
+  echo: "Matthew",
+  fable: "Amy",
+  onyx: "Brian",
+  nova: "Ivy",
+  shimmer: "Kendra",
+};
+
+const AWS_POLLY_FORMAT_MAPPINGS: Record<string, string> = {
+  mp3: "mp3",
+  opus: "ogg_vorbis",
+  aac: "mp3",
+  flac: "mp3",
+  wav: "pcm",
+  pcm: "pcm",
+};
+
+function resolveAwsPollyVoice(voice: string | undefined): string {
+  if (typeof voice !== "string" || !voice.trim()) {
+    return AWS_POLLY_DEFAULT_VOICE;
+  }
+  const normalized = voice.trim();
+  return AWS_POLLY_VOICE_MAPPINGS[normalized] || normalized;
+}
+
+function resolveAwsPollyEngine(modelId: string | null | undefined): string {
+  const normalized = typeof modelId === "string" ? modelId.trim().toLowerCase() : "";
+  return ["standard", "neural", "long-form", "generative"].includes(normalized)
+    ? normalized
+    : AWS_POLLY_DEFAULT_ENGINE;
+}
+
+function resolveAwsPollyBaseUrl(credentials, region) {
+  const configured =
+    credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    typeof credentials.providerSpecificData.baseUrl === "string" &&
+    credentials.providerSpecificData.baseUrl.trim()
+      ? credentials.providerSpecificData.baseUrl.trim()
+      : "";
+
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  return `https://polly.${region || AWS_POLLY_DEFAULT_REGION}.amazonaws.com/v1/speech`;
+}
+
+function getAwsPollyDefaultContentType(outputFormat: string): string {
+  switch (outputFormat) {
+    case "pcm":
+      return "audio/pcm";
+    case "ogg_vorbis":
+      return "audio/ogg";
+    case "mp3":
+    default:
+      return "audio/mpeg";
+  }
 }
 
 /**
@@ -321,6 +386,48 @@ async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
   return audioStreamResponse(res);
 }
 
+async function handleAwsPollySpeech(body, modelId, credentials, token) {
+  const awsCredentials = parseAwsCredentialInput(token, credentials?.providerSpecificData);
+  if (!awsCredentials) {
+    return errorResponse(400, "AWS Polly credentials must include access key and secret key");
+  }
+
+  const baseUrl = resolveAwsPollyBaseUrl(credentials, awsCredentials.region);
+  const outputFormat = AWS_POLLY_FORMAT_MAPPINGS[body.response_format || "mp3"] || "mp3";
+  const requestBody = JSON.stringify({
+    Engine: resolveAwsPollyEngine(modelId),
+    OutputFormat: outputFormat,
+    Text: body.input,
+    TextType: "text",
+    VoiceId: resolveAwsPollyVoice(body.voice),
+  });
+
+  const signedHeaders = signAwsRequest({
+    method: "POST",
+    url: baseUrl,
+    body: requestBody,
+    service: "polly",
+    region: awsCredentials.region || AWS_POLLY_DEFAULT_REGION,
+    credentials: awsCredentials,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "*/*",
+    },
+  });
+
+  const res = await fetch(baseUrl, {
+    method: "POST",
+    headers: signedHeaders,
+    body: requestBody,
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  return audioStreamResponse(res, getAwsPollyDefaultContentType(outputFormat));
+}
+
 /**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
@@ -412,7 +519,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, aws-polly, coqui, tortoise, qwen`
     );
   }
 
@@ -455,6 +562,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "playht") {
       return handlePlayHtSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "aws-polly") {
+      return handleAwsPollySpeech(body, modelId, credentials, token);
     }
 
     if (providerConfig.format === "coqui") {

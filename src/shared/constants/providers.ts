@@ -1046,6 +1046,17 @@ export const APIKEY_PROVIDERS = {
     website: "https://cloud.google.com/vertex-ai",
     passthroughModels: true,
   },
+  "azure-ai": {
+    id: "azure-ai",
+    alias: "azure-ai",
+    name: "Azure AI Foundry",
+    icon: "cloud",
+    color: "#0078D4",
+    textIcon: "AZ",
+    website: "https://ai.azure.com",
+    apiHint:
+      "Set Base URL to your Azure Foundry endpoint, e.g. https://{endpoint}.{region}.models.ai.azure.com",
+  },
   runwayml: {
     id: "runwayml",
     alias: "runwayml",
