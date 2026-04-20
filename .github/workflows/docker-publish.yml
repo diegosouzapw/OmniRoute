@@ -40,9 +40,6 @@ jobs:
           echo "name=${IMAGE}" >> "$GITHUB_OUTPUT"
           echo "Publishing image: ${IMAGE}"
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -66,12 +63,12 @@ jobs:
             type=sha,prefix=sha-
             type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag != '' }}
 
-      - name: Build and push multi-arch image
+      - name: Build and push amd64 image
         uses: docker/build-push-action@v7
         with:
           context: .
           target: runner-cli
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
