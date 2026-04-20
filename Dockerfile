@@ -1,5 +1,14 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:24.14.1-trixie-slim AS builder
 WORKDIR /app
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NPM_CONFIG_FETCH_RETRIES=5
+ENV NPM_CONFIG_FETCH_RETRY_FACTOR=2
+ENV NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
+ENV NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
@@ -9,14 +18,21 @@ COPY package*.json ./
 COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
 COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
-RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+RUN --mount=type=cache,target=/root/.npm \
+  if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
 FROM node:24.14.1-trixie-slim AS runner-base
 WORKDIR /app
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NPM_CONFIG_FETCH_RETRIES=5
+ENV NPM_CONFIG_FETCH_RETRY_FACTOR=2
+ENV NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
+ENV NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
 
 LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint" \
