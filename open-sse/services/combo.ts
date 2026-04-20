@@ -40,6 +40,16 @@ import {
   getComboStepWeight,
   normalizeComboStep,
 } from "../../src/lib/combos/steps.ts";
+
+function isProviderBreakerOpenResponse(
+  result: Response,
+  errorBody?: { error?: { code?: string | null } } | null
+) {
+  return (
+    result.headers.get("x-omniroute-provider-breaker") === "open" ||
+    errorBody?.error?.code === "provider_circuit_open"
+  );
+}
 import {
   getConnectionRoutingTags,
   matchesRoutingTags,
@@ -1660,9 +1670,7 @@ export async function handleComboChat({
         }
       }
 
-      const providerBreakerOpen =
-        result.headers.get("x-omniroute-provider-breaker") === "open" ||
-        errorBody?.error?.code === "provider_circuit_open";
+      const providerBreakerOpen = isProviderBreakerOpenResponse(result, errorBody);
 
       if (providerBreakerOpen) {
         lastError = errorText || String(result.status);
@@ -1936,13 +1944,14 @@ async function handleRoundRobinCombo({
         // Extract error info
         let errorText = result.statusText || "";
         let retryAfter = null;
+        let errorBody: { error?: { code?: string | null; message?: string | null } } | null = null;
         try {
           const cloned = result.clone();
           try {
             const text = await cloned.text();
             if (text) {
               errorText = text.substring(0, 500);
-              const errorBody = JSON.parse(text);
+              errorBody = JSON.parse(text);
               errorText =
                 errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
               retryAfter = errorBody?.retryAfter || null;
@@ -1969,7 +1978,7 @@ async function handleRoundRobinCombo({
           }
         }
 
-        if (/circuit breaker is open/i.test(errorText)) {
+        if (isProviderBreakerOpenResponse(result, errorBody)) {
           lastError = errorText || String(result.status);
           if (!lastStatus) lastStatus = result.status;
           if (offset > 0) fallbackCount++;

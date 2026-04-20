@@ -37,6 +37,24 @@ function okResponse(body = { choices: [{ message: { content: "ok" } }] }) {
   });
 }
 
+function providerBreakerOpenResponse() {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Provider circuit breaker is open",
+        code: "provider_circuit_open",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-provider-breaker": "open",
+      },
+    }
+  );
+}
+
 function buildQuotaResponse(usedPercent, resetAfterSeconds = 3600) {
   return new Response(
     JSON.stringify({
@@ -177,13 +195,7 @@ test("handleComboChat context-relay skips targets that report an open provider c
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
       if (modelStr === "codex/gpt-5.4") {
-        return new Response(
-          JSON.stringify({ error: { message: "Provider circuit breaker is open" } }),
-          {
-            status: 503,
-            headers: { "content-type": "application/json" },
-          }
-        );
+        return providerBreakerOpenResponse();
       }
       return okResponse();
     },

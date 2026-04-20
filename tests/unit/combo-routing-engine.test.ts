@@ -53,6 +53,24 @@ function errorResponse(status: number, message: string = `Error ${status}`) {
   });
 }
 
+function providerBreakerOpenResponse() {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Provider circuit breaker is open",
+        code: "provider_circuit_open",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-provider-breaker": "open",
+      },
+    }
+  );
+}
+
 function streamResponse(chunks: any[]) {
   return new Response(chunks.join(""), {
     status: 200,
@@ -1388,7 +1406,7 @@ test("handleComboChat falls through targets that return provider circuit breaker
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
       if (modelStr === "openai/model-a") {
-        return errorResponse(503, "Provider circuit breaker is open");
+        return providerBreakerOpenResponse();
       }
       return okResponse();
     },
@@ -1810,7 +1828,7 @@ test("handleComboChat round-robin skips targets that return provider circuit bre
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
       if (modelStr === "openai/model-a") {
-        return errorResponse(503, "Provider circuit breaker is open");
+        return providerBreakerOpenResponse();
       }
       return okResponse();
     },
