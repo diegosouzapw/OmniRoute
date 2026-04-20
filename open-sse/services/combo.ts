@@ -1085,7 +1085,6 @@ export async function handleComboChat({
   const strategy = combo.strategy || "priority";
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
-  let globalAttempts = 0;
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
@@ -1536,7 +1535,6 @@ export async function handleComboChat({
         );
         return errorResponse(503, "Maximum combo retry limit reached");
       }
-
       if (retry > 0) {
         log.info(
           "COMBO",
@@ -1914,7 +1912,6 @@ async function handleRoundRobinCombo({
           );
           return errorResponse(503, "Maximum combo retry limit reached");
         }
-
         if (retry > 0) {
           log.info(
             "COMBO-RR",

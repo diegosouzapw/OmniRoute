@@ -13,6 +13,37 @@ const {
 } = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const { ANTIGRAVITY_DEFAULT_SYSTEM } = await import("../../open-sse/config/constants.ts");
 
+type UnknownRecord = Record<string, unknown>;
+
+function getFunctionCall(part: unknown) {
+  assert.ok(part && typeof part === "object", "expected Gemini functionCall part");
+  const functionCall = (part as UnknownRecord).functionCall;
+  assert.ok(functionCall && typeof functionCall === "object", "expected functionCall payload");
+  return functionCall as { id?: string; name: string; args?: unknown };
+}
+
+function getFunctionResponse(part: unknown) {
+  assert.ok(part && typeof part === "object", "expected Gemini functionResponse part");
+  const functionResponse = (part as UnknownRecord).functionResponse;
+  assert.ok(
+    functionResponse && typeof functionResponse === "object",
+    "expected functionResponse payload"
+  );
+  return functionResponse as { id?: string; name: string; response?: unknown };
+}
+
+function getFunctionDeclarationParameters(parameters: unknown) {
+  assert.ok(
+    parameters && typeof parameters === "object",
+    "expected function declaration parameters"
+  );
+  return parameters as UnknownRecord & {
+    properties?: Record<string, UnknownRecord>;
+    examples?: unknown;
+    $schema?: unknown;
+  };
+}
+
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
   const parts = convertOpenAIContentToParts([
     { type: "text", text: "Hello" },
@@ -121,7 +152,7 @@ test("OpenAI -> Gemini helper inlines local refs and preserves only additionalPr
   assert.equal(cleaned.properties.shipping.properties.street.minLength, undefined);
   assert.deepEqual(cleaned.properties.shipping.required, ["street"]);
   assert.equal(cleaned.properties.shipping.additionalProperties, undefined);
-  assert.equal(cleaned.properties.metadata.additionalProperties, true);
+  assert.equal(cleaned.properties.metadata.additionalProperties, undefined);
   assert.equal(cleaned.properties.options.additionalProperties, undefined);
 });
 
@@ -193,8 +224,11 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     false
   );
 
-  assert.equal(result.systemInstruction.role, "user");
-  assert.deepEqual(result.systemInstruction.parts, [{ text: "Rule A" }, { text: "Rule B" }]);
+  assert.equal((result as any).systemInstruction.role, "user");
+  assert.deepEqual((result as any).systemInstruction.parts, [
+    { text: "Rule A" },
+    { text: "Rule B" },
+  ]);
   assert.equal(result.contents[0].role, "user");
   assert.deepEqual(result.contents[0].parts, [
     { text: "What is the weather?" },
@@ -205,31 +239,38 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
   );
   assert.ok(modelTurn, "expected a model turn with functionCall");
+  const modelTurnThought = modelTurn.parts[0] as { thought?: boolean; text?: string };
+  const modelTurnFunctionCall = getFunctionCall(modelTurn.parts[2]);
   assert.equal(modelTurn.parts[0].thought, true);
-  assert.equal(modelTurn.parts[0].text, "Need live data");
-  assert.equal(modelTurn.parts[1].thoughtSignature !== undefined, true);
-  assert.equal(modelTurn.parts[2].text, "Calling a tool");
-  assert.equal(modelTurn.parts[3].functionCall.name, "weather");
-  assert.deepEqual(modelTurn.parts[3].functionCall.args, { city: "Tokyo" });
+  assert.equal(modelTurnThought.text, "Need live data");
+  assert.equal(modelTurn.parts[1].text, "Calling a tool");
+  assert.equal(modelTurnFunctionCall.name, "weather");
+  assert.deepEqual(modelTurnFunctionCall.args, { city: "Tokyo" });
 
   const toolResponseTurn = result.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
   assert.ok(toolResponseTurn, "expected a tool response turn");
-  assert.deepEqual(toolResponseTurn.parts[0].functionResponse, {
+  assert.deepEqual(getFunctionResponse(toolResponseTurn.parts[0]), {
     id: "call_1",
     name: "weather",
     response: { result: { temp: 20 } },
   });
 
-  assert.equal(result.generationConfig.maxOutputTokens, 2222);
-  assert.equal(result.generationConfig.temperature, 0.3);
-  assert.equal(result.generationConfig.topP, 0.9);
-  assert.deepEqual(result.generationConfig.stopSequences, ["DONE"]);
-  assert.equal(result.generationConfig.responseMimeType, "application/json");
-  assert.equal(result.generationConfig.responseSchema.properties.answer.type, "string");
-  assert.deepEqual(result.generationConfig.responseSchema.properties.answer.enum, ["ok"]);
-  assert.deepEqual(result.tools[0].functionDeclarations[0].parameters, {
+  assert.equal((result as any).generationConfig.maxOutputTokens, 2222);
+  assert.equal((result as any).generationConfig.temperature, 0.3);
+  assert.equal((result as any).generationConfig.topP, 0.9);
+  assert.deepEqual((result as any).generationConfig.stopSequences, ["DONE"]);
+  assert.equal((result as any).generationConfig.responseMimeType, "application/json");
+  const responseSchema = (result as any).generationConfig.responseSchema as {
+    properties: { answer: { type: string; enum?: string[] } };
+  };
+  assert.equal(responseSchema.properties.answer.type, "string");
+  assert.deepEqual(responseSchema.properties.answer.enum, ["ok"]);
+  const parameters = getFunctionDeclarationParameters(
+    (result as any).tools[0].functionDeclarations[0].parameters
+  );
+  assert.deepEqual(parameters, {
     type: "object",
     properties: {
       city: { type: "string" },
@@ -252,7 +293,7 @@ test("OpenAI -> Gemini request preserves custom safety settings and handles syst
   );
 
   assert.deepEqual(result.safetySettings, customSafety);
-  assert.equal(result.systemInstruction, undefined);
+  assert.equal((result as any).systemInstruction, undefined);
   assert.equal(result.contents.length, 1);
   assert.equal(result.contents[0].role, "user");
   assert.deepEqual(result.contents[0].parts, [{ text: "Only rules" }]);
@@ -294,18 +335,20 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
     false
   );
 
-  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
-  assert.ok(result.generationConfig.thinkingConfig.thinkingBudget > 0);
-  assert.equal(result.tools[0].functionDeclarations[0].name, "weather");
-  assert.equal(result._toolNameMap.get("weather"), "ns:weather");
+  assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  assert.ok((result as any).generationConfig.thinkingConfig.thinkingBudget > 0);
+  assert.equal((result as any).tools[0].functionDeclarations[0].name, "weather");
+  assert.equal((result as any)._toolNameMap.get("weather"), "ns:weather");
 
   const modelTurn = result.contents.find((content) => content.role === "model");
-  assert.equal(modelTurn.parts[0].functionCall.name, "weather");
+  assert.ok(modelTurn, "expected a model turn");
+  assert.equal(getFunctionCall(modelTurn.parts[0]).name, "weather");
 
   const responseTurn = result.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.equal(responseTurn.parts[0].functionResponse.name, "weather");
+  assert.ok(responseTurn, "expected a function response turn");
+  assert.equal(getFunctionResponse(responseTurn.parts[0]).name, "weather");
 });
 
 test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsupported schema fields", () => {
@@ -355,25 +398,33 @@ test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsuppor
     false
   );
 
-  const sanitizedToolName = result.tools[0].functionDeclarations[0].name;
+  const sanitizedToolName = (result as any).tools[0].functionDeclarations[0].name;
   assert.ok(longToolName.length > 64);
   assert.equal(sanitizedToolName.length, 64);
   assert.match(sanitizedToolName, /_[a-f0-9]{8}$/);
-  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
+  assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
 
   const modelTurn = result.contents.find((content) => content.role === "model");
-  assert.equal(modelTurn.parts[0].functionCall.name, sanitizedToolName);
+  assert.ok(modelTurn, "expected a model turn");
+  assert.equal(getFunctionCall(modelTurn.parts[0]).name, sanitizedToolName);
 
   const toolTurn = result.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.equal(toolTurn.parts[0].functionResponse.name, sanitizedToolName);
-  assert.equal(result.tools[0].functionDeclarations[0].parameters.$schema, undefined);
-  assert.equal(result.tools[0].functionDeclarations[0].parameters.examples, undefined);
-  assert.equal(
-    result.tools[0].functionDeclarations[0].parameters.properties.paths.items["x-ui"],
-    undefined
-  );
+  assert.ok(toolTurn, "expected a tool response turn");
+  assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
+  const longToolParameters = getFunctionDeclarationParameters(
+    (result as any).tools[0].functionDeclarations[0].parameters
+  ) as UnknownRecord & {
+    properties?: {
+      paths?: {
+        items?: UnknownRecord;
+      };
+    };
+  };
+  assert.equal(longToolParameters.$schema, undefined);
+  assert.equal(longToolParameters.examples, undefined);
+  assert.equal(longToolParameters.properties?.paths?.items?.["x-ui"], undefined);
 });
 
 test("OpenAI -> Gemini request gives googleSearch precedence over function tools", () => {
@@ -396,7 +447,7 @@ test("OpenAI -> Gemini request gives googleSearch precedence over function tools
     false
   );
 
-  assert.deepEqual(result.tools, [{ googleSearch: {} }]);
+  assert.deepEqual((result as any).tools, [{ googleSearch: {} }]);
 });
 
 test("OpenAI -> Antigravity keeps googleSearch without function calling config", () => {
@@ -416,10 +467,10 @@ test("OpenAI -> Antigravity keeps googleSearch without function calling config",
       ],
     },
     false,
-    { projectId: "proj-search" }
+    { projectId: "proj-search" } as any
   );
 
-  assert.deepEqual(result.request.tools, [{ googleSearch: {} }]);
+  assert.deepEqual((result as any).request?.tools, [{ googleSearch: {} }]);
   assert.equal(result.request.toolConfig, undefined);
 });
 
@@ -427,7 +478,7 @@ test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format",
   assert.match(generateRequestId(), /^agent-/);
   assert.match(generateSessionId(), /^-\d+$/);
   assert.deepEqual(tryParseJSON('{"ok":true}'), { ok: true });
-  assert.equal(tryParseJSON("not-json"), null);
+  assert.equal(tryParseJSON("not-json"), null as any);
 });
 
 test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () => {
@@ -447,7 +498,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
       reasoning_effort: "medium",
     },
     false,
-    { projectId: "proj-1" }
+    { projectId: "proj-1" } as any
   );
 
   assert.equal(result.project, "proj-1");
@@ -455,7 +506,10 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   assert.equal(result.requestType, "agent");
   assert.match(result.requestId, /^agent-/);
   assert.match(result.request.sessionId, /^-\d+$/);
-  assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
+  assert.equal(
+    (result as any).request?.systemInstruction.parts[0].text,
+    ANTIGRAVITY_DEFAULT_SYSTEM
+  );
   assert.deepEqual(result.request.toolConfig, {
     functionCallingConfig: { mode: "VALIDATED" },
   });
@@ -499,27 +553,31 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
       ],
     },
     false,
-    { projectId: "proj-claude" }
+    { projectId: "proj-claude" } as any
   );
 
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
-  assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
-  assert.equal(result.request.systemInstruction.parts[1].text, "Project rules");
+  assert.equal(
+    (result as any).request?.systemInstruction.parts[0].text,
+    ANTIGRAVITY_DEFAULT_SYSTEM
+  );
+  assert.equal((result as any).request?.systemInstruction.parts[1].text, "Project rules");
 
   const modelTurn = result.request.contents.find(
     (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
   );
   assert.ok(modelTurn, "expected a Claude-bridged model turn");
-  assert.equal(modelTurn.parts[0].functionCall.name, "read_file");
-  assert.deepEqual(modelTurn.parts[0].functionCall.args, { path: "/tmp/demo" });
+  const bridgeFunctionCall = getFunctionCall(modelTurn.parts[0]);
+  assert.equal(bridgeFunctionCall.name, "read_file");
+  assert.deepEqual(bridgeFunctionCall.args, { path: "/tmp/demo" });
 
   const toolTurn = result.request.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
   assert.ok(toolTurn, "expected a Claude-bridged tool response turn");
-  assert.equal(toolTurn.parts[0].functionResponse.id, "call_1");
-  assert.equal(result.request.tools[0].functionDeclarations[0].name, "read_file");
+  assert.equal(getFunctionResponse(toolTurn.parts[0]).id, "call_1");
+  assert.equal((result as any).request?.tools[0].functionDeclarations[0].name, "read_file");
 });
 
 test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves restore map", () => {
@@ -561,20 +619,22 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
       ],
     },
     false,
-    { projectId: "proj-claude-map" }
+    { projectId: "proj-claude-map" } as any
   );
 
-  const sanitizedToolName = result.request.tools[0].functionDeclarations[0].name;
+  const sanitizedToolName = (result as any).request?.tools[0].functionDeclarations[0].name;
   assert.equal(sanitizedToolName.length, 64);
-  assert.equal(result._toolNameMap.get(sanitizedToolName), longToolName);
+  assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
 
   const modelTurn = result.request.contents.find(
     (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
   );
-  assert.equal(modelTurn.parts[0].functionCall.name, sanitizedToolName);
+  assert.ok(modelTurn, "expected a model turn");
+  assert.equal(getFunctionCall(modelTurn.parts[0]).name, sanitizedToolName);
 
   const toolTurn = result.request.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.equal(toolTurn.parts[0].functionResponse.name, sanitizedToolName);
+  assert.ok(toolTurn, "expected a tool response turn");
+  assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
 });

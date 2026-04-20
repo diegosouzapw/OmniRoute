@@ -69,6 +69,14 @@ function insertCallLog(row) {
   );
 }
 
+function buildArtifactRelPath(date: Date, label: string) {
+  const dateFolder = date.toISOString().slice(0, 10);
+  const timePart = `${String(date.getUTCHours()).padStart(2, "0")}${String(
+    date.getUTCMinutes()
+  ).padStart(2, "0")}${String(date.getUTCSeconds()).padStart(2, "0")}`;
+  return `${dateFolder}/${timePart}_${label}_200.json`;
+}
+
 test.beforeEach(async () => {
   await resetTestDataDir();
 });
@@ -105,10 +113,17 @@ test("call log file rotation honors both retention days and file count", () => {
   fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
   fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
 
-  const oldRelPath = "2026-03-01/080000_old_200.json";
-  const keepARelPath = "2026-04-12/090000_keep-a_200.json";
-  const keepBRelPath = "2026-04-13/091000_keep-b_200.json";
-  const keepCRelPath = "2026-04-14/092000_keep-c_200.json";
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const oldDate = new Date(now - 10 * oneDay);
+  const keepADate = new Date(now - 3 * oneDay);
+  const keepBDate = new Date(now - 2 * oneDay);
+  const keepCDate = new Date(now - oneDay);
+
+  const oldRelPath = buildArtifactRelPath(oldDate, "old");
+  const keepARelPath = buildArtifactRelPath(keepADate, "keep-a");
+  const keepBRelPath = buildArtifactRelPath(keepBDate, "keep-b");
+  const keepCRelPath = buildArtifactRelPath(keepCDate, "keep-c");
 
   for (const relativePath of [oldRelPath, keepARelPath, keepBRelPath, keepCRelPath]) {
     const absolutePath = path.join(CALL_LOGS_DIR, relativePath);
@@ -118,27 +133,24 @@ test("call log file rotation honors both retention days and file count", () => {
 
   insertCallLog({
     id: "old-log",
-    timestamp: "2026-03-01T08:00:00.000Z",
+    timestamp: oldDate.toISOString(),
     artifact_relpath: oldRelPath,
   });
   insertCallLog({
     id: "keep-a",
-    timestamp: "2026-04-12T09:00:00.000Z",
+    timestamp: keepADate.toISOString(),
     artifact_relpath: keepARelPath,
   });
   insertCallLog({
     id: "keep-b",
-    timestamp: "2026-04-13T09:10:00.000Z",
+    timestamp: keepBDate.toISOString(),
     artifact_relpath: keepBRelPath,
   });
   insertCallLog({
     id: "keep-c",
-    timestamp: "2026-04-14T09:20:00.000Z",
+    timestamp: keepCDate.toISOString(),
     artifact_relpath: keepCRelPath,
   });
-
-  const now = Date.now();
-  const oneDay = 24 * 60 * 60 * 1000;
   fs.utimesSync(
     path.join(CALL_LOGS_DIR, oldRelPath),
     new Date(now - 10 * oneDay),

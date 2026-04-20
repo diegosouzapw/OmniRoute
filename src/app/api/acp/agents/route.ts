@@ -1,16 +1,33 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
+  type CliAgentInfo,
   detectInstalledAgents,
   refreshAgentCache,
+  resolveVersionProbe,
   setCustomAgents,
-  getCustomAgentDefs,
   type CustomAgentDef,
 } from "@/lib/acp/registry";
-import { getSettings, updateSettings } from "@/lib/localDb";
-import { jsonObjectSchema } from "@/shared/validation/schemas";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
-export async function GET() {
+const customAgentBodySchema = z.object({
+  action: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  binary: z.string().optional(),
+  versionCommand: z.string().optional(),
+  providerAlias: z.string().optional(),
+  spawnArgs: z.array(z.string()).optional(),
+  protocol: z.enum(["stdio", "http"]).optional(),
+});
+
+export async function GET(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     // Load custom agents from settings on each GET to stay in sync
     const settings = await getSettings();
@@ -19,7 +36,7 @@ export async function GET() {
     }
 
     const agents = detectInstalledAgents();
-    const installed = agents.filter((a) => a.installed).length;
+    const installed = agents.filter((a: CliAgentInfo) => a.installed).length;
     const total = agents.length;
 
     return NextResponse.json({
@@ -28,8 +45,8 @@ export async function GET() {
         total,
         installed,
         notFound: total - installed,
-        builtIn: agents.filter((a) => !a.isCustom).length,
-        custom: agents.filter((a) => a.isCustom).length,
+        builtIn: agents.filter((a: CliAgentInfo) => !a.isCustom).length,
+        custom: agents.filter((a: CliAgentInfo) => a.isCustom).length,
       },
     });
   } catch (error) {
@@ -39,6 +56,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -46,7 +67,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const validation = validateBody(jsonObjectSchema, rawBody);
+  const validation = validateBody(customAgentBodySchema, rawBody);
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
@@ -69,14 +90,21 @@ export async function POST(request: Request) {
     }
 
     const newAgent: CustomAgentDef = {
-      id: (id as string).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-      name: name as string,
-      binary: binary as string,
-      versionCommand: versionCommand as string,
-      providerAlias: (providerAlias as string) || (id as string),
-      spawnArgs: Array.isArray(spawnArgs) ? (spawnArgs as string[]) : [],
-      protocol: (protocol as "stdio" | "http") || "stdio",
+      id: id.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+      name,
+      binary,
+      versionCommand,
+      providerAlias: providerAlias || id,
+      spawnArgs: spawnArgs || [],
+      protocol: protocol || "stdio",
     };
+
+    if (!resolveVersionProbe(newAgent.binary, newAgent.versionCommand, true)) {
+      return NextResponse.json(
+        { error: "Invalid versionCommand: use the configured binary with plain arguments only" },
+        { status: 400 }
+      );
+    }
 
     // Load current, append, save
     const settings = await getSettings();
@@ -104,6 +132,10 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get("id");

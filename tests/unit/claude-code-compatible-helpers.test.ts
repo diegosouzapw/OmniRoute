@@ -41,12 +41,13 @@ test("base URL helpers strip messages suffixes and join canonical paths", () => 
   );
 });
 
-test("buildClaudeCodeCompatibleHeaders emits stream-aware auth headers and session id", () => {
+test("buildClaudeCodeCompatibleHeaders emits bearer auth headers and session id", () => {
   const streamHeaders = buildClaudeCodeCompatibleHeaders("sk-demo", true, "session-123");
   const jsonHeaders = buildClaudeCodeCompatibleHeaders("sk-demo", false);
 
-  assert.equal(streamHeaders.Accept, "text/event-stream");
-  assert.equal(streamHeaders["x-api-key"], "sk-demo");
+  assert.equal(streamHeaders.Accept, "application/json");
+  assert.equal(streamHeaders.Authorization, "Bearer sk-demo");
+  assert.equal(streamHeaders["x-api-key"], undefined);
   assert.equal(streamHeaders["X-Claude-Code-Session-Id"], "session-123");
   assert.equal(
     streamHeaders["X-Stainless-Timeout"],
@@ -56,13 +57,19 @@ test("buildClaudeCodeCompatibleHeaders emits stream-aware auth headers and sessi
   assert.equal(jsonHeaders["X-Claude-Code-Session-Id"], undefined);
 });
 
-test("Claude Code compatible beta set stays conservative for third-party proxies", () => {
-  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("oauth-2025-04-20"));
-  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("advanced-tool-use-2025-11-20"));
-  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("fast-mode-2026-02-01"));
-  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("token-efficient-tools-2026-03-28"));
-  assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("fast-mode-2025-04-01"), false);
-  assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("redact-thinking-2025-06-20"), false);
+test("Claude Code compatible beta set matches the stable API-key Claude CLI profile", () => {
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("claude-code-20250219"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("interleaved-thinking-2025-05-14"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("effort-2025-11-24"));
+  assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("oauth-2025-04-20"), false);
+  assert.equal(
+    CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("context-management-2025-06-27"),
+    false
+  );
+  assert.equal(
+    CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("prompt-caching-scope-2026-01-05"),
+    false
+  );
 });
 
 test("resolveClaudeCodeCompatibleSessionId prefers explicit session headers and generates a fallback id", () => {
@@ -91,8 +98,8 @@ test("buildClaudeCodeCompatibleValidationPayload produces the expected smoke-tes
     content: [{ type: "text", text: "ok" }],
   });
   assert.equal(payload.tools.length, 0);
-  assert.equal(payload.system[0].cache_control, undefined);
+  assert.equal(payload.system.length, 1);
+  assert.match(payload.system[0].text, /Claude Agent SDK/);
   assert.ok(JSON.parse(payload.metadata.user_id).session_id);
-  assert.ok(payload.system.some((block) => String(block.text).includes(process.cwd())));
   assert.ok(CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS > payload.max_tokens);
 });

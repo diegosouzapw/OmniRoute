@@ -15,6 +15,7 @@ describe("Cache Control Policy", () => {
       assert.equal(isClaudeCodeClient("claude-code/0.1.0"), true);
       assert.equal(isClaudeCodeClient("claude_code/0.1.0"), true);
       assert.equal(isClaudeCodeClient("Anthropic CLI/1.0"), true);
+      assert.equal(isClaudeCodeClient("claude-cli/2.1.113 (external, sdk-cli)"), true);
     });
 
     test("rejects non-Claude clients", () => {

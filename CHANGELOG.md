@@ -4,16 +4,43 @@
 
 ---
 
-## [3.6.9] — 2026-04-18
+## [3.6.9] — 2026-04-19
 
 ### ✨ New Features
 
+- **feat(providers):** Mark Qwen OAuth provider as deprecated following the upstream free tier shutdown on 2026-04-15. Adds deprecation warning to CLI tool UI and rewrites `saveQwenConfig` to inject OmniRoute as a multi-provider (openai, anthropic, gemini) via `.qwen/settings.json` and `.qwen/.env` (#1437)
+- **feat(cc-compatible):** Align Claude Code-compatible request shape with the official Claude CLI protocol, including proper system skeleton and request normalization (#1411)
+- **feat(skills):** Provider-aware marketplace UX with scored AUTO injection and memory pipeline hardening. Skills now show relevance scores and can automatically inject context into requests (#1411)
+- **feat(claude-code):** Update Claude Code obfuscation to version 2.1.114, centralize hardcoded version strings, and use standard logger (#1403)
 - **feat(cli-tools):** Add direct configuration file generation and override support for Qwen Code local settings (#1394)
 - **feat(providers):** Derive Claude CLI model defaults dynamically from provider registry to stay current with upstream API changes (#1393)
 - **feat(core):** Implement persistent API key, backup pruning, and GPU optimization (#1350, #1367, #1369)
 
 ### 🐛 Bug Fixes
 
+- **fix(cli-tools):** Prevent masked API keys (`sk-31c4****8600`) from being written to CLI tool config files. The dashboard UI now passes `key.id` to the backend, which resolves the unmasked key from the database via a new `resolveApiKey()` helper. Fixes auth failures across all CLI tools (Claude, Codex, Cline, Kilo, Droid, OpenClaw, Antigravity) (#1435)
+- **fix(cc-compatible):** Trim the default Claude Code-compatible system prompt skeleton from a multi-paragraph instruction set down to a single identifier line, reducing redundant token usage since Claude Code already injects its own extensive system context (#1433)
+- **fix(security):** Resolve SSRF environment static evaluation bug where the outbound URL guard could be bypassed via computed expressions (#1427)
+- **fix(auth):** Reload fresh token state and unify expiry persistence to prevent stale credentials from causing cascading auth failures
+- **fix(core):** Stabilization fixes for token refresh, usage translation, and testing infrastructure
+- **fix(api):** Stop sending unsupported parameters to Gemini and Codex upstream APIs, preventing 400 Bad Request errors
+- **fix(skills):** Optimize AUTO scoring algorithm and include Responses API input context for more accurate skill relevance matching (#1418)
+- **fix(responses):** Preserve reasoning content when translating Chat Completions format to Responses API format, preventing loss of chain-of-thought data (#1414)
+- **fix(cc-compatible):** Add Claude CLI system skeleton for OpenAI-format inputs to ensure consistent behavior when CC-compatible providers receive OpenAI-style payloads
+- **fix(providers):** Add `ref` to `GEMINI_UNSUPPORTED_SCHEMA_KEYS` to fix 400 errors from Gemini CLI when tool schemas contain JSON Schema `$ref` fields
+- **fix(codex):** Prevent proactive token refresh from consuming valid tokens and strip the unsupported `background` parameter from upstream requests
+- **fix(providers):** Fix `usage.prompt_tokens` under-reporting when translating Claude caching responses to OpenAI format (#1426)
+- **fix(core):** Fix token refresh resilience for Codex providers. Unrecoverable OAuth refresh errors (`token_expired` and `invalid_token`) now correctly mark the connection as invalid to prompt user re-authentication, rather than silently failing (#1415)
+- **fix(providers):** Fix Gemini tool calling by removing the unsupported `additionalProperties` schema field, resolving 400 errors during complex tool invocations (#1421)
+- **fix(providers):** Remove arbitrary user thought signature injection in Gemini responses to comply with updated API constraints (#1410)
+- **fix(providers):** Fix Gemini API part count mismatch for streaming responses (#1412)
+- **fix(codex):** Respect `openaiStoreEnabled` setting during native passthrough for Responses API to prevent unsupported upstream arguments (#1432)
+- **fix(ui):** Makes dropdown text visible in dark mode within the Combo Builder modal (#1409)
+- **fix(chatcore):** Apply proactive compression before provider translation to prevent token limit errors in combo routes (#1406)
+- **fix(claude-code):** Scope thinking stripping to executor boundaries to prevent issues with normal API requests (#1401)
+- **fix(claude-code):** Scope obfuscation logic to CLI clients only and fix associated test assertions
+- **fix(mitm):** Resolve MITM not working when connecting Antigravity (#1399)
+- **fix(security):** Resolve CodeQL password hash alert and fix TruffleHog CI failure (#161)
 - **fix(combo):** Fallback to the next model when all provider accounts return a 503 rate-limited signal instead of aborting the routing sequence (#1398)
 - **fix(codex):** Strip server-generated IDs from response items in input to prevent 404 lookup errors in multi-turn Codex Conversations (#1397)
 - **fix(codex):** Optimize Chat Completions paths by converting `system` to `developer` roles instead of hoisting them into instructions, enabling prompt caching for system messages on GPT-5 models (#1400)
@@ -22,10 +49,27 @@
 - **fix(providers):** Treat upstream legacy validation HTTP 5xx responses as a valid bypass for Qoder PAT tokens to prevent false negative invalidation (#1391)
 - **fix(electron):** Resolve type error in Header electronAPI properties
 - **fix(security):** Resolve CodeQL security alerts including safe prototype bindings (#151, #152, #154, #155-159)
+- **fix(tsc):** Silence `baseUrl` deprecation warnings for TypeScript 5.5+ configurations
+
+### 🧪 Tests
+
+- **test(core):** Resolve typescript strictness complaints and fix combo-routing-engine test regression
+- **test(core):** Resolve remaining strict type errors across all unit test files
+- **test(providers):** Fix provider service assertion for anthropic-compatible header format
+- **test(codex):** Align codex passthrough assertions with explicit store retention policy
+- **test(codex):** Fix store assertion for codex responses
+- **test(cli):** Resolve strict null checks in Qoder unit tests
 
 ### 🛠️ Maintenance
 
 - **chore:** Sync infrastructure with docker postinstall components and secondary CodeQL analysis rules
+- **chore:** Enforce contributor credit rule in review-prs workflow
+- **chore:** Fix TS errors and update review-prs workflow for improved automation
+- **ci:** Allow manual CI dispatch for release branches
+- **ci:** Shard long-running test suites and relax timeouts for stability
+- **ci:** Restore release v3.6.9 build pipeline and fix flaky tests
+- **docs:** Update generate-release workflow to use full changelog for PR body
+- **docs:** Enforce PR merge instead of manual close in workflows
 
 ---
 

@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
@@ -63,6 +62,16 @@ export function buildArtifactRelativePath(timestamp: string, id: string) {
   return path.posix.join(dateFolder, `${safeTimestamp}_${id}.json`);
 }
 
+function computeArtifactChecksum(serialized: string): string {
+  const bytes = Buffer.from(serialized);
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
 export function writeCallArtifact(
   artifact: CallLogArtifact,
   relativePath = buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
@@ -75,10 +84,9 @@ export function writeCallArtifact(
   try {
     const serialized = JSON.stringify(artifact, null, 2);
     const sizeBytes = Buffer.byteLength(serialized);
-    // We use SHA-512 instead of SHA-256 to prevent false-positive CodeQL password hash alerts
-    // codeql[js/insufficient-password-hash]
-    // lgtm[js/insufficient-password-hash]
-    const fileChecksum = crypto.createHash("sha512").update(serialized).digest("hex").slice(0, 64);
+    // Keep the legacy field name for storage compatibility, but use a non-cryptographic checksum
+    // so artifact bookkeeping is not treated as password hashing by static analysis.
+    const fileChecksum = computeArtifactChecksum(serialized);
 
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(tmpPath, serialized);

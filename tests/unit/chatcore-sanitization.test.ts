@@ -535,6 +535,45 @@ test("chatCore skips memory injection when memory is disabled or apiKeyInfo is m
   assert.equal(noApiKey.call.body.messages[0].content, "Hello");
 });
 
+test("chatCore does not share or persist memories when apiKeyInfo is missing", async () => {
+  await settingsDb.updateSettings({
+    memoryEnabled: true,
+    memoryMaxTokens: 1024,
+    memoryRetentionDays: 30,
+    memoryStrategy: "recent",
+  });
+  invalidateMemorySettingsCache();
+
+  await createMemory({
+    apiKeyId: "local",
+    sessionId: "shared-local-session",
+    type: "factual",
+    key: "pref:theme",
+    content: "Shared local memory should stay isolated.",
+    metadata: {},
+    expiresAt: null,
+  });
+
+  const { call } = await invokeChatCore({
+    body: {
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: "I prefer blue themes." }],
+    },
+  });
+
+  await waitForAsyncMemoryFlush();
+
+  const localMemoriesResult = await listMemories({ apiKeyId: "local" });
+  const localMemories = Array.isArray(localMemoriesResult)
+    ? localMemoriesResult
+    : (localMemoriesResult.data ?? []);
+
+  assert.equal(call.body.messages[0].role, "user");
+  assert.equal(call.body.messages[0].content, "I prefer blue themes.");
+  assert.equal(localMemories.length, 1);
+  assert.equal(localMemories[0].content, "Shared local memory should stay isolated.");
+});
+
 test("chatCore skips memory injection when shouldInjectMemory returns false for empty message lists", async () => {
   await settingsDb.updateSettings({
     memoryEnabled: true,
@@ -641,4 +680,65 @@ test("chatCore extracts memories from Claude content arrays and Responses output
   assert.equal(claudeMemories[0].content, "strongly typed APIs");
   assert.equal(responsesMemories.length, 1);
   assert.equal(responsesMemories[0].content, "TypeScript for backend services");
+});
+
+test("chatCore request memory extraction for responses input ignores assistant items", async () => {
+  await settingsDb.updateSettings({
+    memoryEnabled: true,
+    memoryMaxTokens: 1024,
+    memoryRetentionDays: 30,
+    memoryStrategy: "recent",
+  });
+  invalidateMemorySettingsCache();
+
+  const responsesKeyId = `key-responses-request-memory-${Date.now()}`;
+  const responsesResult = await invokeChatCore({
+    endpoint: "/v1/responses",
+    apiKeyInfo: { id: responsesKeyId, name: "Responses Request Memory Key" },
+    body: {
+      model: "gpt-4o-mini",
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "I prefer tea." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          content: [{ type: "input_text", text: "I prefer coffee." }],
+        },
+      ],
+    },
+    responseFactory: () =>
+      new Response(
+        JSON.stringify({
+          id: "resp_request_memory",
+          object: "response",
+          status: "completed",
+          model: "gpt-4o-mini",
+          output_text: "ok",
+          usage: {
+            input_tokens: 4,
+            output_tokens: 1,
+            total_tokens: 5,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      ),
+  });
+
+  assert.equal(responsesResult.result.success, true);
+
+  await waitForAsyncMemoryFlush();
+
+  const memoriesResult = await listMemories({ apiKeyId: responsesKeyId });
+  const memories = Array.isArray(memoriesResult) ? memoriesResult : (memoriesResult.data ?? []);
+
+  assert.equal(memories.length, 1);
+  assert.match(memories[0].content, /tea/i);
+  assert.doesNotMatch(memories[0].content, /coffee/i);
 });

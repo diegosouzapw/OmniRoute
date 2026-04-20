@@ -51,6 +51,9 @@ async function registerSkill({
   handler,
   enabled = true,
   description = "Test skill",
+  mode,
+  tags,
+  installCount,
 }) {
   return skillRegistry.register({
     apiKeyId,
@@ -71,6 +74,9 @@ async function registerSkill({
     },
     handler,
     enabled,
+    mode,
+    tags,
+    installCount,
   });
 }
 
@@ -381,6 +387,65 @@ test("injectSkills() merges with existing tools without duplicating", async () =
   const names = tools.map((t) => t.function?.name || t.name);
   assert.ok(names.includes("calcRoute@1.0.0"));
   assert.ok(names.includes("preExistingTool"));
+});
+
+test("responses input context participates in AUTO skill injection", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-skills-responses-input" });
+  const apiKey = await seedApiKey();
+  await enableSkills();
+
+  await registerSkill({
+    apiKeyId: apiKey.id,
+    name: "issueSearch",
+    handler: "issue-search-handler",
+    description: "search github issues and pull requests",
+    mode: "auto",
+    tags: ["github", "issues", "search"],
+    installCount: 40,
+  });
+
+  await registerSkill({
+    apiKeyId: apiKey.id,
+    name: "calendarPlanner",
+    handler: "calendar-handler",
+    description: "manage meetings and calendars",
+    mode: "auto",
+    tags: ["calendar", "meeting"],
+    installCount: 100,
+  });
+
+  const fetchBodies = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    fetchBodies.push(init.body ? JSON.parse(String(init.body)) : null);
+    return buildOpenAIResponse("AUTO skill selection via responses input");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      authKey: apiKey.key,
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "Please search github issues for flaky tests" }],
+          },
+        ],
+      },
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(fetchBodies[0].tools));
+
+  const names = fetchBodies[0].tools
+    .map((tool) => tool?.function?.name)
+    .filter((name) => typeof name === "string");
+
+  assert.ok(names.includes("issueSearch@1.0.0"));
+  assert.ok(!names.includes("calendarPlanner@1.0.0"));
 });
 
 test("handleToolCallExecution() processes a tool call correctly", async () => {
