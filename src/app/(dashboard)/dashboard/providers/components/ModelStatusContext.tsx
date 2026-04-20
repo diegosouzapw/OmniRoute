@@ -27,8 +27,8 @@ const ModelStatusContext = createContext<ModelStatusContextValue | null>(null);
 
 // Global map of model key -> status
 let modelStatusMap = new Map<string, ModelStatus>();
-// Global set of registered model keys
-let registeredModels = new Set<string>();
+// Global map of model key -> reference count
+let registeredModels = new Map<string, number>();
 // Polling interval ref (singleton)
 let pollIntervalRef: NodeJS.Timeout | null = null;
 
@@ -46,8 +46,10 @@ async function fetchModelStatus(): Promise<void> {
 
     // Update all registered models with fresh data
     const now = Date.now();
-    registeredModels.forEach((key) => {
-      const [provider, model] = key.split("/");
+    registeredModels.forEach((_, key) => {
+      const slashIndex = key.indexOf("/");
+      const provider = key.substring(0, slashIndex);
+      const model = key.substring(slashIndex + 1);
       // Use exact matching first to avoid gpt-4 matching gpt-4-turbo incorrectly
       const modelEntry =
         models.find((m: any) => m.provider === provider && m.model === model) ||
@@ -129,11 +131,11 @@ export function ModelStatusProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const registerModel = useCallback((key: string, provider: string, model: string): void => {
-    const wasEmpty = registeredModels.size === 0;
-    registeredModels.add(key);
+    const count = registeredModels.get(key) || 0;
+    registeredModels.set(key, count + 1);
 
     // Start polling when first model registers
-    if (wasEmpty) {
+    if (registeredModels.size === 1 && count === 0) {
       ensurePolling();
     }
 
@@ -144,8 +146,13 @@ export function ModelStatusProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const unregisterModel = useCallback((key: string): void => {
-    registeredModels.delete(key);
-    modelStatusMap.delete(key);
+    const count = registeredModels.get(key) || 0;
+    if (count <= 1) {
+      registeredModels.delete(key);
+      modelStatusMap.delete(key);
+    } else {
+      registeredModels.set(key, count - 1);
+    }
 
     // Stop polling when last model unregisters
     if (registeredModels.size === 0) {

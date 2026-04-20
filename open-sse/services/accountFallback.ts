@@ -33,7 +33,7 @@ type ProviderFailureEntry = {
 };
 
 // Error codes that count toward provider-level failure threshold
-const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
+const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
 
 // Provider-level failure state map: providerId -> failure entry
 const providerFailureState = new Map<string, ProviderFailureEntry>();
