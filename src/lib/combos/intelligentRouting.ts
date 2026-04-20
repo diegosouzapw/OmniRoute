@@ -176,8 +176,8 @@ export function extractIntelligentHealthState(health: unknown): {
       lastFailure: typeof statusRecord.lastFailure === "string" ? statusRecord.lastFailure : null,
     };
   });
-  const breakersFromArray = Array.isArray(healthRecord.circuitBreakers)
-    ? healthRecord.circuitBreakers
+  const breakersFromArray = Array.isArray(healthRecord.providerBreakers)
+    ? healthRecord.providerBreakers
         .map((entry) => {
           const breaker = isRecord(entry) ? entry : {};
           const provider =

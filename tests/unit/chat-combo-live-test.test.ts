@@ -12,8 +12,6 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
 const { generateSignature, invalidateBySignature, setCachedResponse } =
   await import("../../src/lib/semanticCache.ts");
-const { clearModelUnavailability, resetAllAvailability, setModelUnavailable } =
-  await import("../../src/domain/modelAvailability.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
@@ -28,7 +26,6 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  resetAllAvailability();
   resetAllCircuitBreakers();
 }
 
@@ -79,26 +76,19 @@ test.beforeEach(async () => {
 test.afterEach(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
-  resetAllAvailability();
   resetAllCircuitBreakers();
 });
 
 test.after(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
-  resetAllAvailability();
   resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("combo live test bypasses local cooldown and breaker state to perform a real upstream request", async () => {
+test("combo live test bypasses connection cooldown and breaker state to perform a real upstream request", async () => {
   const created = await seedSuppressedConnection();
-
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "test cooldown");
-  const breaker = getCircuitBreaker("openai");
-  breaker.state = STATE.OPEN;
-  breaker.lastFailureTime = Date.now();
 
   const fetchCalls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -120,7 +110,10 @@ test("combo live test bypasses local cooldown and breaker state to perform a rea
   assert.equal(blockedByCooldown.status, 503);
   assert.equal(fetchCalls.length, 0);
 
-  clearModelUnavailability("openai", "gpt-4o-mini");
+  const breaker = getCircuitBreaker("openai");
+  breaker.state = STATE.OPEN;
+  breaker.lastFailureTime = Date.now();
+  breaker.resetTimeout = 60_000;
 
   const blockedByBreaker = await chatRoute.POST(makeRequest());
   assert.equal(blockedByBreaker.status, 503);

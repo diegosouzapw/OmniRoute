@@ -1176,22 +1176,33 @@ export async function markAccountUnavailable(
 
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+    const fallbackResult = checkFallbackError(
+      status,
+      errorText,
+      backoffLevel,
+      model,
+      provider,
+      null,
+      effectiveProviderProfile
+    );
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
-      const fallbackCooldown =
-        status === 404
-          ? (effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.notFoundLocal)
-          : 0;
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         reason,
         status,
-        fallbackCooldown,
-        effectiveProviderProfile
+        status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
+        effectiveProviderProfile,
+        {
+          exactCooldownMs:
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+        }
       );
       // Update last error for observability (without changing terminal status)
       updateProviderConnection(connectionId, {
@@ -1206,16 +1217,7 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
-
-    const result = checkFallbackError(
-      status,
-      errorText,
-      backoffLevel,
-      model,
-      provider,
-      null,
-      effectiveProviderProfile
-    );
+    const result = fallbackResult;
     const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
@@ -1250,7 +1252,6 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
-    const rateLimitedUntil = getUnavailableUntil(cooldownMs);
     const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
 
     // T09: Codex per-scope lockout (do not block the whole account globally).
@@ -1258,7 +1259,7 @@ export async function markAccountUnavailable(
       const scope = getCodexModelScope(model);
       const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
       const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || rateLimitedUntil;
+      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
       await updateProviderConnection(connectionId, {
@@ -1287,14 +1288,25 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
     }
 
-    await updateProviderConnection(connectionId, {
-      rateLimitedUntil,
-      testStatus: "unavailable",
+    const baseUpdate = {
       lastError: errorMsg,
       errorCode: status,
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
-    });
+    };
+
+    if (cooldownMs > 0) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: getUnavailableUntil(cooldownMs),
+        testStatus: "unavailable",
+      });
+    } else {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: null,
+      });
+    }
 
     // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
     // mark account as inactive so it is never retried again.
@@ -1316,11 +1328,6 @@ export async function markAccountUnavailable(
       } catch (e) {
         log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
       }
-    }
-
-    // Per-model lockout: lock the specific model if known
-    if (provider && model && cooldownMs > 0) {
-      lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
     }
 
     if (provider && status && errorMsg) {
