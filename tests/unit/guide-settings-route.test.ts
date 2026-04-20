@@ -3,13 +3,21 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { NextResponse } from "next/server";
-
 const guideSettingsRoute =
   await import("../../src/app/api/cli-tools/guide-settings/[toolId]/route.ts");
 
 const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-qwen-test-" + Date.now());
 const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
+const QWEN_ENV_PATH = path.join(DUMMY_HOME, ".qwen", ".env");
+
+type QwenProviderEntry = {
+  id?: string;
+  baseUrl?: string;
+  envKey?: string;
+  generationConfig?: {
+    contextWindowSize?: number;
+  };
+};
 
 function buildRequest(body: any) {
   return new Request("http://localhost/api/cli-tools/guide-settings/qwen", {
@@ -40,11 +48,19 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
   assert.ok(content.modelProviders.openai);
 
-  const omniProvider = content.modelProviders.openai.find((p: any) => p.id === "omniroute");
+  const omniProvider = content.modelProviders.openai.find(
+    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
+  );
   assert.ok(omniProvider);
+  assert.equal(omniProvider.id, "qwen-max");
   assert.equal(omniProvider.baseUrl, "http://my-omni");
-  assert.equal(omniProvider.apiKey, "sk-123");
-  assert.equal(omniProvider.generationConfig.defaultModel, "qwen-max");
+  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
+  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
+
+  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
+  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
+  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
+  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
 });
 
 test("guide-settings POST merges into existing qwen settings.json", async () => {
@@ -66,11 +82,22 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
   assert.equal(content.modelProviders.openai.length, 2);
 
-  const otherProvider = content.modelProviders.openai.find((p: any) => p.id === "other");
+  const otherProvider = content.modelProviders.openai.find(
+    (p: QwenProviderEntry) => p.id === "other"
+  );
   assert.ok(otherProvider);
   assert.equal(otherProvider.baseUrl, "https://other");
 
-  const omniProvider = content.modelProviders.openai.find((p: any) => p.id === "omniroute");
+  const omniProvider = content.modelProviders.openai.find(
+    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
+  );
   assert.ok(omniProvider);
-  assert.equal(omniProvider.generationConfig.defaultModel, "auto"); // default fallback
+  assert.equal(omniProvider.id, "auto");
+  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
+  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
+
+  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
+  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
+  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
+  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
 });

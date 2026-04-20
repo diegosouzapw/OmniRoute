@@ -1,11 +1,24 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { sanitizeColorEnv } from "./runtime-env.mjs";
 
-const port = process.env.DASHBOARD_PORT || process.env.PORT || "20128";
-const baseUrl = process.env.OMNIROUTE_BASE_URL || `http://localhost:${port}`;
+function parsePort(value, fallback) {
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
+}
+
+const explicitBaseUrl = process.env.OMNIROUTE_BASE_URL || "";
+const isolatedPort = parsePort(
+  process.env.DASHBOARD_PORT || process.env.PORT,
+  22000 + (process.pid % 1000)
+);
+const isolatedDataDir =
+  process.env.DATA_DIR || join(process.cwd(), ".tmp", "ecosystem-data", String(process.pid));
+const port = explicitBaseUrl ? null : isolatedPort;
+const baseUrl = explicitBaseUrl || `http://127.0.0.1:${isolatedPort}`;
 const healthUrl = `${baseUrl}/api/monitoring/health`;
 const maxWaitMs = Number(process.env.ECOSYSTEM_SERVER_WAIT_MS || 180000);
 const pollMs = 2000;
@@ -34,7 +47,19 @@ async function waitForServerReady() {
 async function main() {
   let serverProcess = null;
   let startedHere = false;
-  const testEnv = sanitizeColorEnv(process.env);
+  const testEnv = {
+    ...sanitizeColorEnv(process.env),
+    DATA_DIR: isolatedDataDir,
+    ...(explicitBaseUrl
+      ? {}
+      : {
+          PORT: String(port),
+          DASHBOARD_PORT: String(port),
+          API_PORT: String(port),
+          OMNIROUTE_BASE_URL: baseUrl,
+        }),
+    OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
+  };
 
   if (!(await isServerReady())) {
     serverProcess = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {

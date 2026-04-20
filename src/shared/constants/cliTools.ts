@@ -356,28 +356,96 @@ amp --model "{{model}}"
     name: "Qwen Code",
     icon: "psychology",
     color: "#10B981",
-    description: "Alibaba Qwen Code CLI — OpenAI-compatible endpoint",
-    docsUrl: "https://qwenlm.github.io/qwen-code-docs/",
+    description:
+      "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
+    docsUrl: "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/model-providers/",
     configType: "guide",
     defaultCommand: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports custom OpenAI-compatible API endpoints via modelProviders in settings.json.",
+        text: "Qwen Code supports multiple provider types (openai, anthropic, gemini) via modelProviders in settings.json. OmniRoute works as an OpenAI-compatible endpoint.",
+      },
+      {
+        type: "info",
+        text: "Any model available in OmniRoute can be used — not just Qwen models. Select from Qwen, Claude, Gemini, GPT, and more.",
       },
       {
         type: "warning",
         text: "Config path: Linux/macOS ~/.qwen/settings.json • Windows %USERPROFILE%\\.qwen\\settings.json",
       },
+      {
+        type: "error",
+        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with alicode/openrouter/anthropic/gemini providers instead.",
+      },
     ],
-    modelAliases: ["default", "claude-sonnet", "claude-opus", "gemini-pro", "gemini-flash"],
+    modelAliases: [
+      "coder-model",
+      "qwen3-coder-plus",
+      "qwen3-coder-flash",
+      "vision-model",
+      "claude-sonnet-4-6",
+      "claude-opus-4-6-thinking",
+      "gemini-3-flash",
+      "gemini-3.1-pro-high",
+    ],
     defaultModels: [
       {
-        id: "default",
-        name: "Default Model",
-        alias: "default",
+        id: "coder-model",
+        name: "Coder Model (Qwen 3.6 Plus)",
+        alias: "coder-model",
         envKey: "OPENAI_MODEL",
-        defaultValue: "auto",
+        defaultValue: "coder-model",
+        isTopLevel: true,
+      },
+      {
+        id: "qwen3-coder-plus",
+        name: "Qwen 3 Coder Plus",
+        alias: "qwen3-coder-plus",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "qwen3-coder-plus",
+      },
+      {
+        id: "qwen3-coder-flash",
+        name: "Qwen 3 Coder Flash",
+        alias: "qwen3-coder-flash",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "qwen3-coder-flash",
+      },
+      {
+        id: "vision-model",
+        name: "Vision Model (Multimodal)",
+        alias: "vision-model",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "vision-model",
+      },
+      {
+        id: "claude-sonnet-4-6",
+        name: "Claude Sonnet 4.6",
+        alias: "claude-sonnet-4-6",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "claude-sonnet-4-6",
+      },
+      {
+        id: "claude-opus-4-6-thinking",
+        name: "Claude Opus 4.6 Thinking",
+        alias: "claude-opus-4-6-thinking",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "claude-opus-4-6-thinking",
+      },
+      {
+        id: "gemini-3.1-pro-high",
+        name: "Gemini 3.1 Pro High",
+        alias: "gemini-3.1-pro-high",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "gemini-3.1-pro-high",
+      },
+      {
+        id: "gemini-3-flash",
+        name: "Gemini 3 Flash",
+        alias: "gemini-3-flash",
+        envKey: "OPENAI_MODEL",
+        defaultValue: "gemini-3-flash",
       },
     ],
     guideSteps: [
@@ -393,17 +461,28 @@ amp --model "{{model}}"
     ],
     codeBlock: {
       language: "json",
-      code: `# ~/.qwen/settings.json
+      code: `# ~/.qwen/settings.json — OmniRoute as multi-provider
 {
   "modelProviders": {
     "openai": [{
-      "id": "omniroute",
+      "id": "{{model}}",
       "name": "OmniRoute",
       "envKey": "OPENAI_API_KEY",
       "baseUrl": "{{baseUrl}}",
-      "generationConfig": {
-        "defaultModel": "{{model}}"
-      }
+      "generationConfig": { "contextWindowSize": 200000 }
+    }],
+    "anthropic": [{
+      "id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
+      "envKey": "ANTHROPIC_API_KEY",
+      "baseUrl": "{{baseUrl}}",
+      "generationConfig": { "contextWindowSize": 200000 }
+    }],
+    "gemini": [{
+      "id": "gemini-3-flash",
+      "name": "Gemini 3 Flash",
+      "envKey": "GEMINI_API_KEY",
+      "baseUrl": "{{baseUrl}}"
     }]
   }
 }`,

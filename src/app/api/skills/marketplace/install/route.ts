@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { skillRegistry } from "@/lib/skills/registry";
+import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
 
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
@@ -18,6 +19,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
+    const provider = await getSkillsProviderSetting();
+    if (provider !== "skillsmp") {
+      return NextResponse.json(
+        {
+          error:
+            "Active skills provider is not SkillsMP. Switch provider in Settings → Memory & Skills.",
+        },
+        { status: 409 }
+      );
+    }
+
     const rawBody = await request.json();
     const validation = validateBody(marketplaceInstallSchema, rawBody);
     if (isValidationFailure(validation)) {
@@ -31,8 +43,12 @@ export async function POST(request: Request) {
       description,
       schema: { input: { content: "string" }, output: { result: "string" } },
       handler: `// Installed from SkillsMP\n// SKILL.md content:\n${skillMdContent}`,
-      apiKeyId: "skillsmp",
+      apiKeyId: provider,
       enabled: true,
+      mode: "auto",
+      sourceProvider: "skillsmp",
+      tags: ["popular", "marketplace"],
+      installCount: 1,
     });
 
     return NextResponse.json({ success: true, id: skill.id });

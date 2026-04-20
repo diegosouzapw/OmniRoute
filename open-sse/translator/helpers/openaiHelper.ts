@@ -56,14 +56,51 @@ export function filterToOpenAIFormat(body) {
         if (VALID_OPENAI_CONTENT_TYPES.includes(block.type)) {
           // Remove signature and cache_control fields
           const { signature, cache_control, ...cleanBlock } = block;
+          if (
+            cleanBlock.type === "text" &&
+            typeof cleanBlock.text === "string" &&
+            cleanBlock.text.length === 0
+          ) {
+            continue;
+          }
+          const fileData = cleanBlock.file_url ?? cleanBlock.file ?? cleanBlock.document;
+          if (
+            (cleanBlock.type === "file" || cleanBlock.type === "document") &&
+            !fileData?.url &&
+            !fileData?.data
+          ) {
+            const fileContent =
+              cleanBlock.file?.content ??
+              cleanBlock.file?.text ??
+              cleanBlock.content ??
+              cleanBlock.text;
+            const fileName = cleanBlock.file?.name ?? cleanBlock.name ?? "attachment";
+            if (typeof fileContent === "string" && fileContent.length > 0) {
+              filteredContent.push({ type: "text", text: `[${fileName}]\n${fileContent}` });
+              continue;
+            }
+          }
           filteredContent.push(cleanBlock);
         } else if (block.type === "tool_use") {
           // Convert tool_use to tool_calls format (handled separately)
           continue;
         } else if (block.type === "tool_result") {
-          // Keep tool_result but clean it
-          const { signature, cache_control, ...cleanBlock } = block;
-          filteredContent.push(cleanBlock);
+          const resultContent = block.content ?? block.text ?? block.output ?? "";
+          const resultText =
+            typeof resultContent === "string"
+              ? resultContent
+              : Array.isArray(resultContent)
+                ? resultContent
+                    .filter((c) => c?.type === "text")
+                    .map((c) => c.text)
+                    .join("\n")
+                : JSON.stringify(resultContent);
+          if (typeof resultText === "string" && resultText.length > 0) {
+            filteredContent.push({
+              type: "text",
+              text: `[Tool Result: ${block.tool_use_id ?? block.id ?? "unknown"}]\n${resultText}`,
+            });
+          }
         }
       }
 

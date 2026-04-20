@@ -106,7 +106,9 @@ export async function getModelInfo(modelStr) {
  */
 export async function getCombo(modelStr) {
   // Check combo DB first (supports names with /)
-  const combo = await getComboByName(modelStr);
+  // Strip combo/ prefix if present
+  const nameToSearch = modelStr.startsWith("combo/") ? modelStr.substring(6) : modelStr;
+  const combo = await getComboByName(nameToSearch);
   if (combo && combo.models && combo.models.length > 0) {
     return combo;
   }

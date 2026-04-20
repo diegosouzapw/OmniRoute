@@ -248,15 +248,7 @@ test("listMemories applies query filtering before pagination and type stats", as
   assert.deepEqual(filtered.byType, { factual: 1, semantic: 1 });
 });
 
-// ---------------------------------------------------------------------------
-// Pagination via page parameter (page-based, complementing the offset tests above)
-// SKIPPED: These tests require insertMemoryRow() which triggers a pre-existing
-// SQLITE_MISMATCH error in the test environment (same issue that affects 7 of
-// the 9 original tests above). The pagination logic itself is covered by the
-// pure-function tests in tests/unit/pagination.test.ts.
-// ---------------------------------------------------------------------------
-
-test.skip("listMemories supports page-based pagination (page 1)", async () => {
+test("listMemories supports page-based pagination (page 1)", async () => {
   insertMemoryRow({
     id: "pg-1",
     content: "first",
@@ -284,7 +276,7 @@ test.skip("listMemories supports page-based pagination (page 1)", async () => {
   assert.equal(page1.total, 3);
 });
 
-test.skip("listMemories supports page-based pagination (page 2 returns remainder)", async () => {
+test("listMemories supports page-based pagination (page 2 returns remainder)", async () => {
   insertMemoryRow({
     id: "pg-1",
     content: "first",
@@ -312,7 +304,7 @@ test.skip("listMemories supports page-based pagination (page 2 returns remainder
   assert.equal(page2.total, 3);
 });
 
-test.skip("listMemories returns empty data for a page beyond the result set", async () => {
+test("listMemories returns empty data for a page beyond the result set", async () => {
   insertMemoryRow({
     id: "pg-1",
     content: "only entry",
@@ -325,7 +317,7 @@ test.skip("listMemories returns empty data for a page beyond the result set", as
   assert.equal(beyondPage.total, 1);
 });
 
-test.skip("listMemories page parameter defaults to page 1 when omitted with limit", async () => {
+test("listMemories page parameter defaults to page 1 when omitted with limit", async () => {
   insertMemoryRow({
     id: "pg-1",
     content: "first",

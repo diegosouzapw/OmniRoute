@@ -58,7 +58,7 @@ test("Anthropic-compatible Claude Code providers use the Claude Code URL and hea
 
   assert.equal(isClaudeCodeCompatible("anthropic-compatible-cc-demo"), true);
   assert.equal(url, "https://proxy.example.com/v1/messages?beta=true");
-  assert.equal(headers["x-api-key"], "anthropic-token");
+  assert.equal(headers["Authorization"], "Bearer anthropic-token");
   assert.equal(headers.Accept, "application/json");
   assert.equal(headers["X-Claude-Code-Session-Id"], "session-123");
   assert.equal(headers["anthropic-version"], "2023-06-01");

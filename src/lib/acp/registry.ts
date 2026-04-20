@@ -10,7 +10,8 @@
  * Reference: https://github.com/iOfficeAI/AionUi (auto-detects CLI agents)
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+import path from "path";
 
 export interface CliAgentInfo {
   /** Agent identifier (e.g., "codex", "claude", "goose") */
@@ -188,6 +189,8 @@ const CACHE_TTL_MS = 60_000;
 /** Custom agents loaded from settings */
 let _customAgentDefs: CustomAgentDef[] = [];
 
+const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
+
 /**
  * Set custom agent definitions from settings.
  */
@@ -203,6 +206,110 @@ export function getCustomAgentDefs(): CustomAgentDef[] {
   return _customAgentDefs;
 }
 
+function tokenizeVersionCommand(command: string): string[] | null {
+  if (!command || DISALLOWED_VERSION_COMMAND_CHARS.test(command)) {
+    return null;
+  }
+
+  const tokens: string[] = [];
+  let current = "";
+  let quote: '"' | "'" | null = null;
+
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index];
+
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      } else {
+        current += char;
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+
+    if (/\s/.test(char)) {
+      if (current) {
+        tokens.push(current);
+        current = "";
+      }
+      continue;
+    }
+
+    if (char === "\\") {
+      const next = command[index + 1];
+      if (next) {
+        current += next;
+        index += 1;
+        continue;
+      }
+    }
+
+    current += char;
+  }
+
+  if (quote) {
+    return null;
+  }
+
+  if (current) {
+    tokens.push(current);
+  }
+
+  return tokens.length > 0 ? tokens : null;
+}
+
+function normalizeCommandToken(command: string): string {
+  return path.normalize(command).replace(/\\/g, "/").toLowerCase();
+}
+
+export function resolveVersionProbe(
+  binary: string,
+  versionCommand: string,
+  requireBinaryMatch = false
+): { command: string; args: string[] } | null {
+  const tokens = tokenizeVersionCommand(versionCommand);
+  if (!tokens) {
+    return null;
+  }
+
+  const [command, ...args] = tokens;
+  if (!command) {
+    return null;
+  }
+
+  if (requireBinaryMatch) {
+    const normalizedCommand = normalizeCommandToken(command);
+    const allowed = new Set([
+      normalizeCommandToken(binary),
+      normalizeCommandToken(path.basename(binary)),
+    ]);
+    if (!allowed.has(normalizedCommand)) {
+      return null;
+    }
+  }
+
+  return { command, args };
+}
+
+export function shouldUseShellForVersionProbe(
+  command: string,
+  platform = process.platform
+): boolean {
+  if (platform !== "win32") return false;
+
+  const normalized = command.trim().toLowerCase();
+  if (!normalized) return false;
+
+  return (
+    normalized.endsWith(".cmd") || normalized.endsWith(".bat") || path.extname(normalized) === ""
+  );
+}
+
 /**
  * Detect a single agent by running its version command.
  */
@@ -214,10 +321,16 @@ function detectAgent(
   let installed = false;
 
   try {
-    const output = execSync(def.versionCommand, {
+    const probe = resolveVersionProbe(def.binary, def.versionCommand, isCustom);
+    if (!probe) {
+      return { ...def, version, installed, isCustom };
+    }
+
+    const output = execFileSync(probe.command, probe.args, {
       timeout: 5000,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
+      ...(shouldUseShellForVersionProbe(probe.command) ? { shell: true } : {}),
     }).trim();
 
     // Extract version number from output

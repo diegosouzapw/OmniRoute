@@ -316,10 +316,11 @@ test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code
 
   assert.equal(first.Authorization, "Bearer primary");
   assert.equal(second.Authorization, "Bearer extra-1");
-  assert.equal(ccHeaders["x-api-key"], "cc-key");
+  assert.equal(ccHeaders.Authorization, "Bearer cc-key");
+  assert.equal(ccHeaders["x-api-key"], undefined);
   assert.equal(ccHeaders["anthropic-version"], CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION);
   assert.equal(ccHeaders["X-Claude-Code-Session-Id"], "session-1");
-  assert.equal(ccHeaders.Accept, "text/event-stream");
+  assert.equal(ccHeaders.Accept, "application/json");
   assert.equal(ccJsonHeaders.Accept, "application/json");
 });
 

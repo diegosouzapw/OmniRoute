@@ -7,6 +7,7 @@ import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
 import { mergeOpenCodeConfig } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -35,7 +36,10 @@ export async function POST(request, { params }) {
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const { baseUrl, apiKey, model } = validation.data;
+  const { baseUrl, model } = validation.data;
+  // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
+  const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+  const apiKey = await resolveApiKey(apiKeyId, validation.data.apiKey);
 
   try {
     switch (toolId) {
@@ -177,20 +181,50 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save Qwen Code config to ~/.qwen/settings.json
- * Writes the modelProviders.openai entry with OmniRoute as the provider.
- * Merges with existing config to preserve other providers.
+ * Save Qwen Code config to ~/.qwen/settings.json + ~/.qwen/.env
+ *
+ * Per official docs, credentials go in .env via envKey references,
+ * not hardcoded in settings.json modelProviders entries.
+ * Writes openai, anthropic, and gemini providers pointing to OmniRoute.
  */
 async function saveQwenConfig({ baseUrl, apiKey, model }) {
   const home = os.homedir();
   const configPath = path.join(home, ".qwen", "settings.json");
+  const envPath = path.join(home, ".qwen", ".env");
   const configDir = path.dirname(configPath);
 
   await fs.mkdir(configDir, { recursive: true });
 
-  const normalizedBaseUrl = String(baseUrl || "").trim().replace(/\/+$/, "");
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+  const resolvedApiKey = apiKey || "sk_omniroute";
+  const resolvedModel = model || "coder-model";
 
-  // Read existing config to preserve other provider entries
+  // --- Write API keys to .env ---
+  let envContent = "";
+  try {
+    envContent = await fs.readFile(envPath, "utf-8");
+  } catch {
+    // File doesn't exist
+  }
+
+  const envLines = envContent.split("\n").filter((line) => {
+    // Remove old OmniRoute-related keys we're about to write
+    return (
+      !line.startsWith("OPENAI_API_KEY=") &&
+      !line.startsWith("ANTHROPIC_API_KEY=") &&
+      !line.startsWith("GEMINI_API_KEY=")
+    );
+  });
+
+  envLines.push(`OPENAI_API_KEY=${resolvedApiKey}`);
+  envLines.push(`ANTHROPIC_API_KEY=${resolvedApiKey}`);
+  envLines.push(`GEMINI_API_KEY=${resolvedApiKey}`);
+
+  await fs.writeFile(envPath, envLines.join("\n").trim() + "\n", "utf-8");
+
+  // --- Write modelProviders to settings.json ---
   let existingConfig: Record<string, any> = {};
   try {
     const raw = await fs.readFile(configPath, "utf-8");
@@ -199,39 +233,75 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
     // File doesn't exist or invalid JSON
   }
 
-  // Build OmniRoute openai provider entry
-  const omnirouteEntry = {
-    id: "omniroute",
-    name: "OmniRoute",
+  if (!existingConfig.modelProviders) existingConfig.modelProviders = {};
+
+  // openai provider — primary, supports all models via OmniRoute
+  const openaiEntry = {
+    id: resolvedModel,
+    name: `${resolvedModel} (OmniRoute)`,
     envKey: "OPENAI_API_KEY",
     baseUrl: normalizedBaseUrl,
-    apiKey: apiKey || "sk_omniroute",
     generationConfig: {
-      defaultModel: model || "auto",
+      contextWindowSize: 200000,
     },
   };
 
-  // Ensure modelProviders.openai array exists
-  if (!existingConfig.modelProviders) existingConfig.modelProviders = {};
   if (!existingConfig.modelProviders.openai) existingConfig.modelProviders.openai = [];
-
-  const providers = existingConfig.modelProviders.openai;
-
-  // Replace OmniRoute entry if already present, otherwise add it
-  const existingIdx = providers.findIndex(
+  const openaiProviders = existingConfig.modelProviders.openai;
+  const openaiIdx = openaiProviders.findIndex(
     (p: any) => p && (p.baseUrl === normalizedBaseUrl || p.id === "omniroute")
   );
-  if (existingIdx >= 0) {
-    providers[existingIdx] = omnirouteEntry;
+  if (openaiIdx >= 0) {
+    openaiProviders[openaiIdx] = openaiEntry;
   } else {
-    providers.push(omnirouteEntry);
+    openaiProviders.push(openaiEntry);
+  }
+
+  // anthropic provider — for Claude models via OmniRoute
+  const anthropicEntry = {
+    id: "claude-sonnet-4-6",
+    name: "Claude Sonnet 4.6 (OmniRoute)",
+    envKey: "ANTHROPIC_API_KEY",
+    baseUrl: normalizedBaseUrl,
+    generationConfig: {
+      contextWindowSize: 200000,
+    },
+  };
+
+  if (!existingConfig.modelProviders.anthropic) existingConfig.modelProviders.anthropic = [];
+  const anthropicProviders = existingConfig.modelProviders.anthropic;
+  const anthropicIdx = anthropicProviders.findIndex(
+    (p: any) => p && p.baseUrl === normalizedBaseUrl
+  );
+  if (anthropicIdx >= 0) {
+    anthropicProviders[anthropicIdx] = anthropicEntry;
+  } else {
+    anthropicProviders.push(anthropicEntry);
+  }
+
+  // gemini provider — for Gemini models via OmniRoute
+  const geminiEntry = {
+    id: "gemini-3-flash",
+    name: "Gemini 3 Flash (OmniRoute)",
+    envKey: "GEMINI_API_KEY",
+    baseUrl: normalizedBaseUrl,
+  };
+
+  if (!existingConfig.modelProviders.gemini) existingConfig.modelProviders.gemini = [];
+  const geminiProviders = existingConfig.modelProviders.gemini;
+  const geminiIdx = geminiProviders.findIndex((p: any) => p && p.baseUrl === normalizedBaseUrl);
+  if (geminiIdx >= 0) {
+    geminiProviders[geminiIdx] = geminiEntry;
+  } else {
+    geminiProviders.push(geminiEntry);
   }
 
   await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2), "utf-8");
 
   return NextResponse.json({
     success: true,
-    message: `Qwen Code config saved to ${configPath}`,
+    message: `Qwen Code config saved to ${configPath} + ${envPath}`,
     configPath,
+    envPath,
   });
 }

@@ -200,6 +200,8 @@ test("updateProviderCredentials persists rotated tokens and returns false for mi
   assert.equal(stored.refreshToken, "refresh-new");
   assert.equal(stored.expiresIn, 600);
   assert.equal(typeof stored.expiresAt, "string");
+  assert.equal(typeof stored.tokenExpiresAt, "string");
+  assert.equal(stored.expiresAt, stored.tokenExpiresAt);
   assert.deepEqual(stored.providerSpecificData, { tenant: "team-a" });
   assert.equal(missing, false);
 });

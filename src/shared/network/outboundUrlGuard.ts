@@ -122,8 +122,13 @@ export function parseAndValidatePublicUrl(input: string | URL) {
 
 export function arePrivateProviderUrlsAllowed() {
   const value = process.env[PRIVATE_PROVIDER_URLS_ENV];
-  if (!value) return false;
-  return TRUE_ENV_VALUES.has(value.trim().toLowerCase());
+  if (value && TRUE_ENV_VALUES.has(value.trim().toLowerCase())) return true;
+
+  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
+  if (legacyValue && ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase()))
+    return true;
+
+  return false;
 }
 
 export function getProviderOutboundGuard(): OutboundUrlGuardMode {

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 const DEFAULT_BAILIAN_URL = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
 
@@ -57,11 +58,8 @@ test.describe("Bailian Coding Plan Provider", () => {
       });
     });
 
-    await page.goto("/dashboard/providers/bailian-coding-plan");
+    await gotoDashboardRoute(page, "/dashboard/providers/bailian-coding-plan");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     // Dismiss any pre-existing dialog/overlay that may appear on page load
     const preExistingDialog = page.getByRole("dialog").first();
@@ -175,11 +173,8 @@ test.describe("Bailian Coding Plan Provider", () => {
       });
     });
 
-    await page.goto("/dashboard/providers/bailian-coding-plan");
+    await gotoDashboardRoute(page, "/dashboard/providers/bailian-coding-plan");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     // Dismiss any pre-existing dialog/overlay that may appear on page load
     const preExistingDialog = page.getByRole("dialog").first();

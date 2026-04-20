@@ -4,6 +4,7 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { skillRegistry } from "@/lib/skills/registry";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { fetchSkillMd } from "@/lib/skills/skillssh";
+import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
 
 const skillsshInstallSchema = z.object({
   name: z.string().min(1).max(64),
@@ -18,6 +19,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
+    const provider = await getSkillsProviderSetting();
+    if (provider !== "skillssh") {
+      return NextResponse.json(
+        {
+          error:
+            "Active skills provider is not skills.sh. Switch provider in Settings → Memory & Skills.",
+        },
+        { status: 409 }
+      );
+    }
+
     const rawBody = await request.json();
     const validation = validateBody(skillsshInstallSchema, rawBody);
     if (isValidationFailure(validation)) {
@@ -33,8 +45,12 @@ export async function POST(request: Request) {
       description,
       schema: { input: { content: "string" }, output: { result: "string" } },
       handler: `// Installed from skills.sh\n// Source: ${source}/${skillId}\n// SKILL.md content:\n${skillMdContent}`,
-      apiKeyId: "skillssh",
+      apiKeyId: provider,
       enabled: true,
+      mode: "auto",
+      sourceProvider: "skillssh",
+      tags: ["popular", "community"],
+      installCount: 1,
     });
 
     return NextResponse.json({ success: true, id: skill.id });

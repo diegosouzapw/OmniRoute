@@ -129,14 +129,16 @@ export function claudeToOpenAIResponse(chunk, state) {
             : 0;
 
         // Use OpenAI format keys for consistent logging in stream.js
+        // Issue #1426: Include cached tokens in prompt_tokens and input_tokens
+        const totalInputTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
         state.usage = {
-          prompt_tokens: inputTokens,
+          prompt_tokens: totalInputTokens,
           completion_tokens: outputTokens,
-          input_tokens: inputTokens,
+          input_tokens: totalInputTokens,
           output_tokens: outputTokens,
         };
 
-        // Store cache tokens if present
+        // Store cache tokens if present (needed for prompt_tokens_details in final chunk)
         if (cacheReadTokens > 0) {
           state.usage.cache_read_input_tokens = cacheReadTokens;
         }
@@ -179,10 +181,10 @@ export function claudeToOpenAIResponse(chunk, state) {
           const cachedTokens = state.usage.cache_read_input_tokens || 0;
           const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
 
-          // prompt_tokens = input_tokens + cache_read + cache_creation (all prompt-side tokens)
+          // prompt_tokens = input_tokens (which now includes cache_read + cache_creation)
           // completion_tokens = output_tokens
           // total_tokens = prompt_tokens + completion_tokens
-          const promptTokens = inputTokens + cachedTokens + cacheCreationTokens;
+          const promptTokens = inputTokens;
           const completionTokens = outputTokens;
           const totalTokens = promptTokens + completionTokens;
 

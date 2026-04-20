@@ -13,6 +13,7 @@
 
 import {
   getProviderConnections,
+  getProviderConnectionById,
   updateProviderConnection,
   getSettings,
   resolveProxyForConnection,
@@ -60,6 +61,18 @@ export function extractResolvedProxyConfig(resolvedProxy: unknown) {
   }
 
   return resolvedProxy ?? null;
+}
+
+function getEffectiveTokenExpiryIso(conn: any): string | null {
+  if (!conn || typeof conn !== "object") return null;
+  return conn.tokenExpiresAt || conn.expiresAt || null;
+}
+
+function getEffectiveTokenExpiryMs(conn: any): number {
+  const effectiveExpiry = getEffectiveTokenExpiryIso(conn);
+  if (!effectiveExpiry) return 0;
+  const expiryMs = new Date(effectiveExpiry).getTime();
+  return Number.isFinite(expiryMs) ? expiryMs : 0;
 }
 
 export function buildRefreshFailureUpdate(conn: any, now: string) {
@@ -246,6 +259,11 @@ async function sweep() {
  * Check a single connection and refresh if due.
  */
 export async function checkConnection(conn) {
+  if (!conn?.id) return;
+
+  const latestConnection = (await getProviderConnectionById(conn.id)) || conn;
+  conn = latestConnection;
+
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
@@ -278,22 +296,26 @@ export async function checkConnection(conn) {
   const intervalMs = intervalMin * 60 * 1000;
   const lastCheck = conn.lastHealthCheckAt ? new Date(conn.lastHealthCheckAt).getTime() : 0;
 
-  // Proactive pre-expiry check (#631): if token is about to expire, refresh immediately
-  // regardless of the health check interval — prevents request failures between checks
+  // Prefer expiry-driven refresh when the provider returns a concrete expiry timestamp.
+  // Rotating-token providers such as Codex should not be refreshed on a fixed hourly
+  // cadence while the access token is still valid for days.
   const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
-  const tokenExpiresAt = conn.tokenExpiresAt ? new Date(conn.tokenExpiresAt).getTime() : 0;
-  const isAboutToExpire = tokenExpiresAt > 0 && tokenExpiresAt - Date.now() < TOKEN_EXPIRY_BUFFER;
+  const tokenExpiresAt = getEffectiveTokenExpiryMs(conn);
+  const hasKnownExpiry = tokenExpiresAt > 0;
+  const isAboutToExpire = hasKnownExpiry && tokenExpiresAt - Date.now() < TOKEN_EXPIRY_BUFFER;
+  const shouldRefreshByInterval = !hasKnownExpiry && Date.now() - lastCheck >= intervalMs;
 
-  // Not yet due: skip if (a) interval hasn't elapsed AND (b) token is not about to expire
-  if (Date.now() - lastCheck < intervalMs && !isAboutToExpire) return;
+  if (!isAboutToExpire && !shouldRefreshByInterval) return;
 
   const reason = isAboutToExpire ? "token expiring soon" : `interval: ${intervalMin}min`;
   log(`${LOG_PREFIX} Refreshing ${conn.provider}/${getConnectionLogLabel(conn)} (${reason})`);
 
+  const attemptedRefreshToken = conn.refreshToken;
+  const attemptedAccessToken = conn.accessToken || null;
   const credentials = {
-    refreshToken: conn.refreshToken,
-    accessToken: conn.accessToken,
-    expiresAt: conn.tokenExpiresAt,
+    refreshToken: attemptedRefreshToken,
+    accessToken: attemptedAccessToken,
+    expiresAt: getEffectiveTokenExpiryIso(conn),
     providerSpecificData: conn.providerSpecificData,
   };
 
@@ -324,6 +346,41 @@ export async function checkConnection(conn) {
   // Once used, the old token is permanently invalidated.
   // Retrying will never succeed → deactivate and stop the loop.
   if (isUnrecoverableRefreshError(result)) {
+    const currentConnection = await getProviderConnectionById(conn.id);
+    const credentialsChangedSinceSweep =
+      !!currentConnection &&
+      (currentConnection.refreshToken !== attemptedRefreshToken ||
+        (currentConnection.accessToken || null) !== attemptedAccessToken);
+
+    if (credentialsChangedSinceSweep) {
+      await updateProviderConnection(conn.id, {
+        lastHealthCheckAt: now,
+      });
+      logWarn(
+        `${LOG_PREFIX} ! ${conn.provider}/${getConnectionLogLabel(conn)} changed during refresh; skipping stale deactivation`
+      );
+      return;
+    }
+
+    const accessTokenStillValid =
+      getEffectiveTokenExpiryMs(currentConnection || conn) > Date.now() + TOKEN_EXPIRY_BUFFER;
+
+    if (accessTokenStillValid) {
+      await updateProviderConnection(conn.id, {
+        lastHealthCheckAt: now,
+        testStatus: "active",
+        lastError: `Health check refresh failed (${result.error}). Re-authenticate before the current access token expires.`,
+        lastErrorAt: now,
+        lastErrorType: result.error,
+        lastErrorSource: "oauth",
+        errorCode: result.error,
+      });
+      logWarn(
+        `${LOG_PREFIX} ! ${conn.provider}/${getConnectionLogLabel(conn)} refresh token is invalid (${result.error}), but the current access token is still valid; keeping connection active`
+      );
+      return;
+    }
+
     await updateProviderConnection(conn.id, {
       lastHealthCheckAt: now,
       testStatus: "expired",
@@ -362,7 +419,12 @@ export async function checkConnection(conn) {
     }
 
     if (result.expiresIn) {
-      updateData.tokenExpiresAt = new Date(Date.now() + result.expiresIn * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + result.expiresIn * 1000).toISOString();
+      updateData.expiresAt = expiresAt;
+      updateData.tokenExpiresAt = expiresAt;
+    } else if (result.expiresAt) {
+      updateData.expiresAt = result.expiresAt;
+      updateData.tokenExpiresAt = result.expiresAt;
     }
 
     if (result.providerSpecificData) {

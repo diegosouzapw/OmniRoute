@@ -12,7 +12,7 @@ import { createBackup } from "@/shared/services/backupService";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getApiKeyById } from "@/lib/localDb";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 
 const getOpenClawSettingsPath = () => getCliPrimaryConfigPath("openclaw");
 const getOpenClawDir = () => path.dirname(getOpenClawSettingsPath());
@@ -105,17 +105,8 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    let { baseUrl, apiKey, model } = validation.data;
-
-    // Resolve real key from DB by ID
-    if (keyId) {
-      try {
-        const keyRecord = await getApiKeyById(keyId);
-        if (keyRecord?.key) apiKey = keyRecord.key as string;
-      } catch {
-        /* non-critical */
-      }
-    }
+    let { baseUrl, model } = validation.data;
+    let apiKey = await resolveApiKey(keyId, validation.data.apiKey);
 
     const openclawDir = getOpenClawDir();
     const settingsPath = getOpenClawSettingsPath();

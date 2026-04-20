@@ -10,6 +10,14 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import {
+  computeFingerprint,
+  extractFirstUserMessageText,
+} from "../services/claudeCodeFingerprint.ts";
+import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -42,6 +50,7 @@ export type ProviderConfig = {
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   timeoutMs?: number;
+  format?: string;
 };
 
 export type ProviderCredentials = {
@@ -73,6 +82,8 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Callback to persist tokens that are proactively refreshed during execution. */
+  onCredentialsRefreshed?: (newCredentials: ProviderCredentials) => Promise<void> | void;
 };
 
 export type CountTokensInput = {
@@ -362,6 +373,7 @@ export class BaseExecutor {
     log,
     extendedContext,
     upstreamExtraHeaders,
+    clientHeaders,
   }: ExecuteInput) {
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -378,6 +390,11 @@ export class BaseExecutor {
             ...credentials,
             ...refreshed,
           };
+          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
+          // without updating the central database connection.
+          if (arguments[0].onCredentialsRefreshed) {
+            await arguments[0].onCredentialsRefreshed(refreshed);
+          }
         }
       } catch (error) {
         log?.warn?.(
@@ -429,6 +446,108 @@ export class BaseExecutor {
             ? mergeAbortSignals(signal, timeoutSignal)
             : signal || timeoutSignal;
 
+        const isClaudeCodeClient =
+          clientHeaders?.["x-app"] === "cli" ||
+          (clientHeaders?.["user-agent"] &&
+            clientHeaders["user-agent"].toLowerCase().includes("claude-code")) ||
+          (clientHeaders?.["user-agent"] &&
+            clientHeaders["user-agent"].toLowerCase().includes("claude-cli"));
+
+        if (
+          this.provider === "claude" &&
+          isClaudeCodeClient &&
+          typeof transformedBody === "object" &&
+          transformedBody !== null
+        ) {
+          const tb = transformedBody as Record<string, unknown>;
+          remapToolNamesInRequest(tb);
+          obfuscateInBody(tb);
+
+          const ccVersion = "2.1.114";
+          const messages = tb.messages as Array<{ role?: string; content?: unknown }> | undefined;
+          const msgText = extractFirstUserMessageText(messages);
+          const fp = computeFingerprint(msgText, ccVersion);
+          const billingLine = `x-anthropic-billing-header: cc_version=${ccVersion}.${fp}; cc_entrypoint=cli; cch=00000;`;
+
+          if (Array.isArray(tb.system)) {
+            const sysBlocks = tb.system as Array<Record<string, unknown>>;
+            const firstSystemCacheControl =
+              sysBlocks[0] &&
+              typeof sysBlocks[0] === "object" &&
+              !Array.isArray(sysBlocks[0]) &&
+              sysBlocks[0].cache_control
+                ? sysBlocks[0].cache_control
+                : undefined;
+            const billingBlock: Record<string, unknown> = { type: "text", text: billingLine };
+            if (firstSystemCacheControl) {
+              billingBlock.cache_control = firstSystemCacheControl;
+            }
+            sysBlocks.unshift(billingBlock);
+          } else if (typeof tb.system === "string") {
+            tb.system = [
+              { type: "text", text: billingLine },
+              { type: "text", text: tb.system },
+            ];
+          } else {
+            tb.system = [{ type: "text", text: billingLine }];
+          }
+
+          if (!tb.metadata || typeof tb.metadata !== "object") {
+            tb.metadata = {
+              user_id: JSON.stringify({
+                device_id: createHash("sha256").update("omniroute").digest("hex").slice(0, 24),
+                account_uuid: "",
+                session_id: randomUUID(),
+              }),
+            };
+          }
+
+          if (!tb.thinking) {
+            tb.thinking = { type: "adaptive" };
+          }
+
+          if (!tb.context_management) {
+            tb.context_management = {
+              edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+            };
+          }
+
+          if (!tb.output_config) {
+            tb.output_config = { effort: "high" };
+          }
+
+          const ccHeaders: Record<string, string> = {
+            "anthropic-version": "2023-06-01",
+            "anthropic-beta":
+              "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,redact-thinking-2026-02-12,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advisor-tool-2026-03-01,advanced-tool-use-2025-11-20,effort-2025-11-24",
+            "anthropic-dangerous-direct-browser-access": "true",
+            "x-app": "cli",
+            "User-Agent": `claude-cli/${ccVersion} (external, cli)`,
+            "X-Stainless-Package-Version": "0.81.0",
+            "X-Stainless-Timeout": "600",
+            "accept-language": "*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            connection: "keep-alive",
+            "x-client-request-id": randomUUID(),
+            "X-Claude-Code-Session-Id": randomUUID(),
+          };
+          Object.assign(headers, ccHeaders);
+          delete headers["X-Stainless-Helper-Method"];
+
+          // Add X-Stainless headers to match real Claude Code
+          headers["X-Stainless-Arch"] = "x64";
+          headers["X-Stainless-Lang"] = "js";
+          headers["X-Stainless-OS"] = "Windows";
+          headers["X-Stainless-Runtime"] = "node";
+          headers["X-Stainless-Runtime-Version"] = "v24.3.0";
+          headers["X-Stainless-Retry-Count"] = "0";
+          delete headers["X-Stainless-Os"];
+
+          console.log(
+            `[CLAUDE-PATCH] provider=${this.provider} tools remapped, billing header injected, body fields added, headers patched`
+          );
+        }
+
         // Apply CLI fingerprint ordering if enabled for this provider
         let finalHeaders = headers;
         let bodyString = JSON.stringify(transformedBody);
@@ -439,10 +558,9 @@ export class BaseExecutor {
           bodyString = fingerprinted.bodyString;
         }
 
-        // CCH signing: Claude Code-compatible providers require an xxHash64 integrity
-        // token over the serialized body. Sign after fingerprint ordering so the hash
-        // covers the exact bytes that will be sent upstream.
-        if (isClaudeCodeCompatible(this.provider)) {
+        // CCH signing: Claude Code-compatible providers AND native claude provider
+        // require an xxHash64 integrity token over the serialized body.
+        if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
           bodyString = await signRequestBody(bodyString);
         }
 

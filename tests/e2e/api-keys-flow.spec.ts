@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 const NAVIGATION_TIMEOUT_MS = 300_000;
 const UI_STABILITY_TIMEOUT_MS = 120_000;
@@ -45,29 +46,6 @@ async function installClipboardMock(page: Page) {
 
 async function readClipboard(page: Page) {
   return page.evaluate(() => (window as Window & { __clipboardValue?: string }).__clipboardValue);
-}
-
-async function gotoOrSkip(page: Page, url: string) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      await page.goto(url, { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    } catch (error) {
-      lastError = error;
-    }
-    try {
-      await page.waitForURL(/\/(login|dashboard)(\/.*)?$/, { timeout: NAVIGATION_TIMEOUT_MS });
-      await page.locator("body").waitFor({ state: "visible", timeout: NAVIGATION_TIMEOUT_MS });
-      lastError = null;
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-    await page.waitForTimeout(1000);
-  }
-  if (lastError) throw lastError;
-  const redirectedToLogin = page.url().includes("/login");
-  test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 }
 
 async function waitForPageToSettle(page: Page) {
@@ -180,7 +158,9 @@ test.describe("API keys flow", () => {
       await fulfillJson(route, { error: "Method not allowed in api keys stub" }, 405);
     });
 
-    await gotoOrSkip(page, "/dashboard/api-manager");
+    await gotoDashboardRoute(page, "/dashboard/api-manager", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
     await waitForPageToSettle(page);
     await waitForNextDevCompileToFinish(page);
 

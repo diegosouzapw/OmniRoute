@@ -439,26 +439,33 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
     if (!response.ok) {
       const errorText = await response.text();
 
-      // Detect unrecoverable "refresh_token_reused" error from OpenAI
-      // This means the token was already consumed and a new one was issued.
+      // Detect unrecoverable "refresh_token_reused" or "invalid_grant" error from OpenAI
+      // This means the token was already consumed or has expired.
       // Retrying with the same token will never succeed.
       let errorCode = null;
       try {
         const parsed = JSON.parse(errorText);
-        errorCode = parsed?.error?.code;
+        errorCode =
+          parsed?.error?.code || (typeof parsed?.error === "string" ? parsed.error : null);
       } catch {
         // not JSON, ignore
       }
 
-      if (errorCode === "refresh_token_reused") {
+      if (
+        errorCode === "refresh_token_reused" ||
+        errorCode === "invalid_grant" ||
+        errorCode === "token_expired" ||
+        errorCode === "invalid_token"
+      ) {
         log?.error?.(
           "TOKEN_REFRESH",
-          "Codex refresh token already used (rotating token consumed). Re-authentication required.",
+          "Codex refresh token already used or invalid. Re-authentication required.",
           {
             status: response.status,
+            errorCode,
           }
         );
-        return { error: "refresh_token_reused" };
+        return { error: "unrecoverable_refresh_error", code: errorCode };
       }
 
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
@@ -817,7 +824,10 @@ export function isUnrecoverableRefreshError(result) {
   return (
     result &&
     typeof result === "object" &&
-    (result.error === "refresh_token_reused" || result.error === "invalid_request")
+    (result.error === "unrecoverable_refresh_error" ||
+      result.error === "refresh_token_reused" ||
+      result.error === "invalid_request" ||
+      result.error === "invalid_grant")
   );
 }
 

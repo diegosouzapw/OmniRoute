@@ -207,9 +207,6 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
             thought: true,
             text: msg.reasoning_content,
           });
-          parts.push({
-            thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-          });
         }
 
         if (content) {
@@ -236,7 +233,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
               extractClientThoughtSignature(tc)
             );
             const embeddedThoughtSignature = shouldUseEmbeddedSignature
-              ? firstPersistedSignature || signatureForToolCall || DEFAULT_THINKING_GEMINI_SIGNATURE
+              ? firstPersistedSignature || signatureForToolCall
               : undefined;
 
             if (embeddedThoughtSignature) {

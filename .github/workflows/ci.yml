@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -111,7 +112,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
+          base: ${{ github.event.before || github.event.repository.default_branch }}
           head: HEAD
           extra_args: --only-verified
 
@@ -168,10 +169,14 @@ jobs:
       - run: npm run check:pack-artifact
 
   test-unit:
-    name: Unit Tests
+    name: Unit Tests (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -184,13 +189,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: npm run test:unit
+      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   node-24-compat:
-    name: Node 24 Compatibility
+    name: Node 24 Compatibility (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -204,12 +213,12 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: npm run test:unit
+      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     needs: build
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
@@ -359,14 +368,14 @@ jobs:
             }
 
   test-e2e:
-    name: E2E Tests (${{ matrix.shard }}/4)
+    name: E2E Tests (${{ matrix.shard }}/6)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -381,18 +390,22 @@ jobs:
       - run: npm run check:node-runtime
       - run: npx playwright install --with-deps chromium
       - run: npm run build
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/4
+      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6
 
   test-integration:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
       INITIAL_PASSWORD: ci-test-password-for-integration
-      DATA_DIR: /tmp/omniroute-ci
+      DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
@@ -402,7 +415,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: npm run test:integration
+      - run: node --import tsx/esm --test --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests

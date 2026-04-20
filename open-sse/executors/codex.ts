@@ -1,6 +1,4 @@
-import {
-  getCodexRequestDefaults,
-} from "@/lib/providers/requestDefaults";
+import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
@@ -308,11 +306,7 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
     // Object items with server-generated IDs: strip the id field but keep the item.
     // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
     // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
-    if (
-      item &&
-      typeof item === "object" &&
-      !Array.isArray(item)
-    ) {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
       const record = item as Record<string, unknown>;
       if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
         delete record.id;
@@ -601,7 +595,15 @@ export class CodexExecutor extends BaseExecutor {
     // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
     // which requires store=true so that response items are persisted.
     // If the client explicitly sets store, respect it. Otherwise default to true.
-    if (body.store === undefined) {
+    const explicitStoreSetting =
+      credentials?.providerSpecificData &&
+      typeof credentials.providerSpecificData === "object" &&
+      !Array.isArray(credentials.providerSpecificData)
+        ? credentials.providerSpecificData.openaiStoreEnabled
+        : undefined;
+    if (explicitStoreSetting === false) {
+      body.store = false;
+    } else if (body.store === undefined) {
       body.store = true;
     }
 
@@ -663,6 +665,7 @@ export class CodexExecutor extends BaseExecutor {
     // whether the request came via native passthrough or translation.
     delete body.max_tokens;
     delete body.max_output_tokens;
+    delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
@@ -674,6 +677,12 @@ export class CodexExecutor extends BaseExecutor {
         body.prompt_cache_key = cacheSessionId;
       }
     }
+
+    // Delete session_id and conversation_id from the body.
+    // These are often injected by OmniRoute's fallback logic for store=true,
+    // but the upstream Codex API strictly rejects them as unsupported parameters.
+    delete body.session_id;
+    delete body.conversation_id;
 
     if (nativeCodexPassthrough) {
       return body;

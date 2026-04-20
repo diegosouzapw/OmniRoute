@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 async function mockCombosPageApis(page: import("@playwright/test").Page) {
   await page.route("**/api/combos", async (route) => {
@@ -135,10 +136,8 @@ test.describe("Combo Unification", () => {
   });
 
   test("combos page exposes strategy tabs and intelligent panel", async ({ page }) => {
-    await page.goto("/dashboard/combos?filter=intelligent");
+    await gotoDashboardRoute(page, "/dashboard/combos?filter=intelligent");
     await page.waitForLoadState("networkidle");
-
-    test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
     await expect(
       page
@@ -153,16 +152,14 @@ test.describe("Combo Unification", () => {
   });
 
   test("legacy auto-combo route redirects to intelligent combos filter", async ({ page }) => {
-    await page.goto("/dashboard/auto-combo");
+    await gotoDashboardRoute(page, "/dashboard/auto-combo");
     await page.waitForURL(/\/dashboard\/combos\?filter=intelligent/);
     await expect(page).toHaveURL(/\/dashboard\/combos\?filter=intelligent/);
   });
 
   test("sidebar no longer shows auto combo entry", async ({ page }) => {
-    await page.goto("/dashboard/combos");
+    await gotoDashboardRoute(page, "/dashboard/combos");
     await page.waitForLoadState("networkidle");
-
-    test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
     const sidebar = page.locator("aside, nav").first();
     await expect(sidebar.getByText("Combos")).toBeVisible();
@@ -170,10 +167,8 @@ test.describe("Combo Unification", () => {
   });
 
   test("builder shows intelligent step when auto strategy is selected", async ({ page }) => {
-    await page.goto("/dashboard/combos");
+    await gotoDashboardRoute(page, "/dashboard/combos");
     await page.waitForLoadState("networkidle");
-
-    test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
     await page.getByRole("button", { name: /create combo/i }).click();
     await page.getByLabel(/combo name/i).waitFor({ state: "visible" });

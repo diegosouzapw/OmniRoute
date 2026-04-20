@@ -1,12 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 test.describe("Protocol visibility", () => {
   test("shows MCP/A2A links inside protocols tab in endpoint page", async ({ page }) => {
-    await page.goto("/dashboard/endpoint");
+    await gotoDashboardRoute(page, "/dashboard/endpoint");
     await page.waitForLoadState("networkidle");
-
-    const redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
     // MCP and A2A are now shown inside the "Protocols" tab — click it first
     const protocolTab = page.getByRole("tab", { name: /protocols|protocolos/i });
@@ -24,17 +22,13 @@ test.describe("Protocol visibility", () => {
   });
 
   test("loads MCP and A2A dashboards without runtime error page", async ({ page }) => {
-    await page.goto("/dashboard/mcp");
+    await gotoDashboardRoute(page, "/dashboard/mcp");
     await page.waitForLoadState("networkidle");
-    let redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
     await expect(page.locator("body")).toBeVisible();
     await expect(page.locator("body")).not.toContainText(/application error|500/i);
 
-    await page.goto("/dashboard/a2a");
+    await gotoDashboardRoute(page, "/dashboard/a2a");
     await page.waitForLoadState("networkidle");
-    redirectedToLogin = page.url().includes("/login");
-    test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
     await expect(page.locator("body")).toBeVisible();
     await expect(page.locator("body")).not.toContainText(/application error|500/i);
   });
