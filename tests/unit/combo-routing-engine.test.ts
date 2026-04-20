@@ -24,8 +24,7 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const { getComboMetrics, recordComboRequest, resetAllComboMetrics } =
   await import("../../open-sse/services/comboMetrics.ts");
-const { getCircuitBreaker, resetAllCircuitBreakers } =
-  await import("../../src/shared/utils/circuitBreaker.ts");
+const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { acquire: acquireSemaphore, resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
@@ -52,6 +51,24 @@ function errorResponse(status: number, message: string = `Error ${status}`) {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+function providerBreakerOpenResponse() {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Provider circuit breaker is open",
+        code: "provider_circuit_open",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-provider-breaker": "open",
+      },
+    }
+  );
 }
 
 function streamResponse(chunks: any[]) {
@@ -83,7 +100,7 @@ function capabilityEntry(limitContext: any) {
   };
 }
 
-function getComboTargetBreakerKey(comboName: string, index: number, stepInput: any) {
+function getComboTargetExecutionKey(comboName: string, index: number, stepInput: any) {
   const step = normalizeComboStep(stepInput, { comboName, index });
   if (!step) throw new Error(`Failed to normalize combo step for ${comboName}#${index}`);
   return `combo:${comboName}:${step.id}`;
@@ -1038,7 +1055,7 @@ test("handleComboChat round-robin returns 404 when no models are configured", as
 
 test("handleComboChat round-robin falls through semaphore timeouts and malformed success payloads", async () => {
   const release = await acquireSemaphore(
-    getComboTargetBreakerKey("rr-timeout-fallback", 0, "model-a"),
+    getComboTargetExecutionKey("rr-timeout-fallback", 0, "model-a"),
     {
       maxConcurrency: 1,
       timeoutMs: 100,
@@ -1376,38 +1393,36 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
 
-test("handleComboChat returns the circuit-breaker unavailable response when all breakers are open", async () => {
-  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
-    const breaker = getCircuitBreaker(
-      getComboTargetBreakerKey("all-breakers-open", index, modelStr),
-      {
-        failureThreshold: 1,
-        resetTimeout: 60000,
-      }
-    );
-    breaker._onFailure();
-  }
-
+test("handleComboChat falls through targets that return provider circuit breaker open responses", async () => {
+  const calls = [];
+  const log = createLog();
   const result = await handleComboChat({
     body: {},
     combo: {
-      name: "all-breakers-open",
+      name: "provider-breaker-open",
       strategy: "priority",
       models: ["openai/model-a", "openai/model-b"],
     },
-    handleSingleModel: async () => {
-      throw new Error("handleSingleModel should not run when all breakers are open");
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/model-a") {
+        return providerBreakerOpenResponse();
+      }
+      return okResponse();
     },
     isModelAvailable: async () => true,
-    log: createLog(),
+    log,
     settings: null,
     relayOptions: null as any,
     allCombos: null,
     relayOptions: null,
   });
 
-  assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /circuit breakers open/);
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.ok(
+    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
+  );
 });
 
 test("handleComboChat auto strategy honors LKGP after filtering to tool-capable models", async () => {
@@ -1799,39 +1814,37 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
 
-test("handleComboChat round-robin returns circuit-breaker unavailable when every model is open", async () => {
-  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
-    const breaker = getCircuitBreaker(
-      getComboTargetBreakerKey("rr-breakers-open", index, modelStr),
-      {
-        failureThreshold: 1,
-        resetTimeout: 60000,
-      }
-    );
-    breaker._onFailure();
-  }
-
+test("handleComboChat round-robin skips targets that return provider circuit breaker open responses", async () => {
+  const calls = [];
+  const log = createLog();
   const result = await handleComboChat({
     body: {},
     combo: {
-      name: "rr-breakers-open",
+      name: "rr-provider-breaker-open",
       strategy: "round-robin",
       models: ["openai/model-a", "openai/model-b"],
       config: { maxRetries: 0 },
     },
-    handleSingleModel: async () => {
-      throw new Error("round-robin should not execute when all breakers are open");
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/model-a") {
+        return providerBreakerOpenResponse();
+      }
+      return okResponse();
     },
     isModelAvailable: async () => true,
-    log: createLog(),
+    log,
     settings: null,
     relayOptions: null as any,
     allCombos: null,
     relayOptions: null,
   });
 
-  assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /circuit breakers open/);
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.ok(
+    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
+  );
 });
 
 test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {

@@ -14,13 +14,11 @@ const {
   resetStorage,
   seedApiKey,
   seedConnection,
-  setModelUnavailable,
   settingsDb,
   toPlainHeaders,
 } = harness;
 
 const { getCircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
-const { clearModelUnavailability } = await import("../../src/domain/modelAvailability.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 const { getDefaultTaskModelMap, resetTaskRoutingStats, setTaskRoutingConfig } =
   await import("../../open-sse/services/taskAwareRouter.ts");
@@ -345,9 +343,11 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
   assert.match(json.error.message, /No credentials for provider: openai/);
 });
 
-test("handleChat returns 503 for cooled-down models and open circuit breakers", async () => {
-  await seedConnection("openai", { apiKey: "sk-openai-breaker" });
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "test cooldown");
+test("handleChat returns 503 for cooled-down connections and 503 for open circuit breakers", async () => {
+  await seedConnection("openai", {
+    apiKey: "sk-openai-breaker",
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+  });
 
   const cooldownResponse = await handleChat(
     buildRequest({
@@ -360,15 +360,13 @@ test("handleChat returns 503 for cooled-down models and open circuit breakers", 
   );
   const cooldownJson = await cooldownResponse.json();
   assert.equal(cooldownResponse.status, 503);
-  assert.match(cooldownJson.error.message, /temporarily unavailable/i);
-
-  clearModelUnavailability("openai", "gpt-4o-mini");
-  const freshBreaker = getCircuitBreaker("openai");
-  freshBreaker.reset();
+  assert.ok(Number(cooldownResponse.headers.get("Retry-After")) >= 1);
+  assert.match(cooldownJson.error.message, /\[openai\/gpt-4o-mini\]/i);
 
   const breaker = getCircuitBreaker("openai");
   breaker.state = STATE.OPEN;
   breaker.lastFailureTime = Date.now();
+  breaker.resetTimeout = 60_000;
 
   const breakerBlocked = await handleChat(
     buildRequest({
@@ -382,6 +380,8 @@ test("handleChat returns 503 for cooled-down models and open circuit breakers", 
   const breakerJson = await breakerBlocked.json();
 
   assert.equal(breakerBlocked.status, 503);
+  assert.equal(breakerBlocked.headers.get("X-OmniRoute-Provider-Breaker"), "open");
+  assert.equal(breakerJson.error.code, "provider_circuit_open");
   assert.match(breakerJson.error.message, /circuit breaker is open/i);
 });
 

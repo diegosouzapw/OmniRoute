@@ -4,11 +4,30 @@ import {
   BACKOFF_STEPS_MS,
   RateLimitReason,
   HTTP_STATUS,
-  PROVIDER_PROFILES,
 } from "../config/constants.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
+import {
+  DEFAULT_RESILIENCE_SETTINGS,
+  resolveResilienceSettings,
+} from "../../src/lib/resilience/settings";
+import {
+  getAllCircuitBreakerStatuses,
+  getCircuitBreaker,
+  STATE,
+} from "../../src/shared/utils/circuitBreaker";
 
-type ProviderProfile = (typeof PROVIDER_PROFILES)["oauth"];
+type ProviderProfile = {
+  baseCooldownMs: number;
+  useUpstreamRetryHints: boolean;
+  maxBackoffSteps: number;
+  failureThreshold: number;
+  resetTimeoutMs: number;
+  transientCooldown: number;
+  rateLimitCooldown: number;
+  maxBackoffLevel: number;
+  circuitBreakerThreshold: number;
+  circuitBreakerReset: number;
+};
 type JsonRecord = Record<string, unknown>;
 type ModelLockoutEntry = {
   reason: string;
@@ -24,29 +43,8 @@ type ModelFailureState = {
   resetAfterMs: number;
 };
 
-// Provider-level failure tracking for circuit breaker behavior
-type ProviderFailureEntry = {
-  failureCount: number;
-  lastFailureAt: number;
-  resetAfterMs: number;
-  cooldownUntil: number | null;
-};
-
 // Error codes that count toward provider-level failure threshold
 const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
-
-// Configuration for provider-level failure tracking
-const PROVIDER_FAILURE_THRESHOLD = 5;
-const PROVIDER_FAILURE_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
-const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
-
-// Provider-level failure state map: providerId -> failure entry
-const providerFailureState = new Map<string, ProviderFailureEntry>();
-// Guard against synchronous re-entrant calls within the same event-loop tick.
-// NOT a true mutex — Node.js is single-threaded, so different SSE streams
-// can interleave across ticks. This Set prevents a single call from recursively
-// re-entering recordProviderFailure within the same synchronous call stack.
-const providerFailureLocks = new Set<string>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
@@ -139,17 +137,7 @@ export function isOAuthInvalidToken(errorText: string): boolean {
   return OAUTH_INVALID_TOKEN_SIGNALS.some((sig) => lower.includes(sig));
 }
 
-// ─── Provider Profile Helper ────────────────────────────────────────────────
-
-/**
- * Get the resilience profile for a provider (oauth or apikey).
- * @param {string} provider - Provider ID or alias
- * @returns {import('../config/constants.js').PROVIDER_PROFILES['oauth']}
- */
-export function getProviderProfile(provider) {
-  const category = getProviderCategory(provider);
-  return PROVIDER_PROFILES[category] ?? PROVIDER_PROFILES.apikey;
-}
+// ─── Resilience Profile Helper ──────────────────────────────────────────────
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -162,42 +150,47 @@ function isCompatibleProvider(provider: string | null | undefined): boolean {
   );
 }
 
-function mergeProviderProfile(fallback: ProviderProfile, overrides: unknown): ProviderProfile {
-  const record = asRecord(overrides);
+function buildProviderProfile(
+  category: "oauth" | "apikey",
+  settings?: Record<string, unknown> | null
+) {
+  const resilience = settings ? resolveResilienceSettings(settings) : DEFAULT_RESILIENCE_SETTINGS;
+  const connectionCooldown = resilience.connectionCooldown[category];
+  const providerBreaker = resilience.providerBreaker[category];
+
   return {
-    transientCooldown:
-      typeof record.transientCooldown === "number"
-        ? record.transientCooldown
-        : fallback.transientCooldown,
-    rateLimitCooldown:
-      typeof record.rateLimitCooldown === "number"
-        ? record.rateLimitCooldown
-        : fallback.rateLimitCooldown,
-    maxBackoffLevel:
-      typeof record.maxBackoffLevel === "number"
-        ? record.maxBackoffLevel
-        : fallback.maxBackoffLevel,
-    circuitBreakerThreshold:
-      typeof record.circuitBreakerThreshold === "number"
-        ? record.circuitBreakerThreshold
-        : fallback.circuitBreakerThreshold,
-    circuitBreakerReset:
-      typeof record.circuitBreakerReset === "number"
-        ? record.circuitBreakerReset
-        : fallback.circuitBreakerReset,
-  };
+    baseCooldownMs: connectionCooldown.baseCooldownMs,
+    useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
+    maxBackoffSteps: connectionCooldown.maxBackoffSteps,
+    failureThreshold: providerBreaker.failureThreshold,
+    resetTimeoutMs: providerBreaker.resetTimeoutMs,
+    transientCooldown: connectionCooldown.baseCooldownMs,
+    rateLimitCooldown: connectionCooldown.useUpstreamRetryHints
+      ? 0
+      : connectionCooldown.baseCooldownMs,
+    maxBackoffLevel: connectionCooldown.maxBackoffSteps,
+    circuitBreakerThreshold: providerBreaker.failureThreshold,
+    circuitBreakerReset: providerBreaker.resetTimeoutMs,
+  } satisfies ProviderProfile;
+}
+
+/**
+ * Get the resilience profile for a provider (oauth or apikey).
+ * @param {string} provider - Provider ID or alias
+ */
+export function getProviderProfile(provider) {
+  const category = getProviderCategory(provider);
+  return buildProviderProfile(category);
 }
 
 export async function getRuntimeProviderProfile(provider: string | null | undefined) {
-  const fallback = getProviderProfile(provider);
   try {
     const { getCachedSettings } = await import("@/lib/db/readCache");
     const settings = await getCachedSettings();
-    const profiles = asRecord(settings.providerProfiles);
     const category = getProviderCategory(provider);
-    return mergeProviderProfile(fallback, profiles[category]);
+    return buildProviderProfile(category, settings);
   } catch {
-    return fallback;
+    return getProviderProfile(provider);
   }
 }
 
@@ -211,7 +204,7 @@ function getModelLockKey(provider: string, connectionId: string, model: string) 
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
-  const configured = profile?.circuitBreakerReset;
+  const configured = profile?.resetTimeoutMs;
   return typeof configured === "number" && configured > 0 ? configured : fallbackMs;
 }
 
@@ -233,23 +226,13 @@ function getModelLockBaseCooldown(
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null
 ) {
-  if (status === HTTP_STATUS.RATE_LIMITED) {
-    if (typeof profile?.rateLimitCooldown === "number" && profile.rateLimitCooldown > 0) {
-      return profile.rateLimitCooldown;
-    }
-    if (Number.isFinite(fallbackCooldownMs) && fallbackCooldownMs > 0) {
-      return fallbackCooldownMs;
-    }
-    return getQuotaCooldown(0);
-  }
-
-  if (typeof profile?.transientCooldown === "number" && profile.transientCooldown > 0) {
-    return profile.transientCooldown;
-  }
   if (Number.isFinite(fallbackCooldownMs) && fallbackCooldownMs > 0) {
     return fallbackCooldownMs;
   }
-  return COOLDOWN_MS.transientInitial;
+  if (typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0) {
+    return profile.baseCooldownMs;
+  }
+  return status === HTTP_STATUS.RATE_LIMITED ? getQuotaCooldown(0) : COOLDOWN_MS.transientInitial;
 }
 
 function getScaledCooldown(
@@ -333,7 +316,8 @@ export function recordModelLockoutFailure(
   reason: string,
   status: number,
   fallbackCooldownMs: number,
-  profile: ProviderProfile | null = null
+  profile: ProviderProfile | null = null,
+  options: { exactCooldownMs?: number | null } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -351,11 +335,14 @@ export function recordModelLockoutFailure(
   });
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  const cooldownMs = getScaledCooldown(
-    baseCooldownMs,
-    failureCount,
-    profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel
-  );
+  const cooldownMs =
+    typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
+      ? options.exactCooldownMs
+      : getScaledCooldown(
+          baseCooldownMs,
+          failureCount,
+          profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
+        );
 
   lockModel(provider, connectionId, model, reason, cooldownMs, {
     failureCount,
@@ -485,113 +472,62 @@ export function getAllModelLockouts() {
   return active;
 }
 
-// ─── Provider-Level Failure Tracking ─────────────────────────────────────────
-// Track failures at provider level: when a provider has too many transient failures
-// across all its connections, cooldown the entire provider temporarily.
+// ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
+// Legacy helpers now delegate to the shared provider circuit breaker.
 
-/**
- * Check if a provider is currently in cooldown due to too many failures
- */
-export function isProviderInCooldown(provider: string | null | undefined): boolean {
-  if (!provider) return false;
-  const entry = providerFailureState.get(provider);
-  if (!entry) return false;
-
-  // If in cooldown, check if it has expired
-  if (entry.cooldownUntil !== null && Date.now() >= entry.cooldownUntil) {
-    providerFailureState.delete(provider);
-    return false;
-  }
-
-  return entry.cooldownUntil !== null;
+function getProviderBreaker(provider: string | null | undefined) {
+  if (!provider) return null;
+  const profile = getProviderProfile(provider);
+  return getCircuitBreaker(provider, {
+    failureThreshold: profile.failureThreshold ?? profile.circuitBreakerThreshold,
+    resetTimeout: profile.resetTimeoutMs ?? profile.circuitBreakerReset,
+  });
 }
 
 /**
- * Get remaining cooldown time for a provider
+ * Check if a provider is currently blocked by the shared circuit breaker.
+ */
+export function isProviderInCooldown(provider: string | null | undefined): boolean {
+  const breaker = getProviderBreaker(provider);
+  return breaker ? !breaker.canExecute() : false;
+}
+
+/**
+ * Get remaining retry-after time for a provider breaker.
  */
 export function getProviderCooldownRemainingMs(provider: string | null | undefined): number | null {
-  if (!provider) return null;
-  const entry = providerFailureState.get(provider);
-  if (!entry || entry.cooldownUntil === null) return null;
-
-  const remaining = entry.cooldownUntil - Date.now();
+  const breaker = getProviderBreaker(provider);
+  if (!breaker || breaker.canExecute()) return null;
+  const remaining = breaker.getRetryAfterMs();
   return remaining > 0 ? remaining : null;
 }
 
 /**
- * Record a failure for a provider. When threshold is reached within the window,
- * the provider enters cooldown.
+ * Record a provider failure against the shared circuit breaker.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
   log?: { warn?: (...args: unknown[]) => void }
 ): void {
-  if (!provider) return;
-
-  // Guard against concurrent re-entrant calls within the same tick
-  if (providerFailureLocks.has(provider)) return;
-  providerFailureLocks.add(provider);
-
-  try {
-    const now = Date.now();
-    const entry = providerFailureState.get(provider);
-
-    // Check if we're in cooldown period
-    if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
-      return; // Already in cooldown, don't record
-    }
-
-    // Check if failure window has expired
-    if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
-      // Window expired, reset count
-      providerFailureState.set(provider, {
-        failureCount: 1,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-      return;
-    }
-
-    // Increment failure count
-    const newCount = entry ? entry.failureCount + 1 : 1;
-
-    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
-      // Threshold reached, enter cooldown
-      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil,
-      });
-      log?.warn?.(
-        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
-      );
-    } else {
-      // Just increment counter
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-    }
-  } finally {
-    providerFailureLocks.delete(provider);
+  const breaker = getProviderBreaker(provider);
+  if (!breaker || !provider) return;
+  breaker._onFailure();
+  const status = breaker.getStatus();
+  if (status.state === STATE.OPEN) {
+    log?.warn?.(`[ProviderBreaker] ${provider}: OPEN after ${status.failureCount} final failures`);
   }
 }
 
 /**
- * Clear provider failure state (e.g., after successful request)
+ * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
-  if (!provider) return;
-  providerFailureState.delete(provider);
+  const breaker = getProviderBreaker(provider);
+  breaker?.reset();
 }
 
 /**
- * Get all providers currently in cooldown (for debugging/dashboard)
+ * Get all providers currently blocked by the shared breaker.
  */
 export function getProvidersInCooldown(): Array<{
   provider: string;
@@ -599,22 +535,17 @@ export function getProvidersInCooldown(): Array<{
   cooldownRemainingMs: number | null;
   lastFailureAt: number;
 }> {
-  const result = [];
-  for (const [provider, entry] of providerFailureState) {
-    if (entry.cooldownUntil === null) continue;
-    const remaining = entry.cooldownUntil - Date.now();
-    if (remaining <= 0) {
-      providerFailureState.delete(provider);
-      continue;
-    }
-    result.push({
-      provider,
-      failureCount: entry.failureCount,
-      cooldownRemainingMs: remaining,
-      lastFailureAt: entry.lastFailureAt,
-    });
-  }
-  return result;
+  return getAllCircuitBreakerStatuses()
+    .filter((status) => {
+      const breaker = getProviderBreaker(status.name);
+      return Boolean(breaker && !breaker.canExecute());
+    })
+    .map((status) => ({
+      provider: status.name,
+      failureCount: status.failureCount,
+      cooldownRemainingMs: status.retryAfterMs || null,
+      lastFailureAt: status.lastFailureTime,
+    }));
 }
 
 /**
@@ -866,16 +797,6 @@ export function getQuotaCooldown(backoffLevel = 0) {
   return Math.min(cooldown, BACKOFF_CONFIG.max);
 }
 
-function getRateLimitCooldown(backoffLevel = 0, profile: ProviderProfile | null = null) {
-  const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;
-  const cappedLevel = Math.min(Math.max(0, backoffLevel), maxLevel);
-  const configuredBase = profile?.rateLimitCooldown;
-  if (typeof configuredBase === "number" && configuredBase > 0) {
-    return configuredBase * Math.pow(2, cappedLevel);
-  }
-  return getQuotaCooldown(cappedLevel);
-}
-
 /**
  * Check if error should trigger account fallback (switch to next account)
  * @param {number} status - HTTP status code
@@ -889,21 +810,24 @@ export function checkFallbackError(
   status,
   errorText,
   backoffLevel = 0,
-  model = null,
+  _model = null,
   provider = null,
   headers = null,
   profileOverride: ProviderProfile | null = null
 ) {
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
+  const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
+  const retryableStatuses = new Set([
+    HTTP_STATUS.REQUEST_TIMEOUT,
+    HTTP_STATUS.RATE_LIMITED,
+    HTTP_STATUS.SERVER_ERROR,
+    HTTP_STATUS.BAD_GATEWAY,
+    HTTP_STATUS.SERVICE_UNAVAILABLE,
+    HTTP_STATUS.GATEWAY_TIMEOUT,
+  ]);
 
-  // Track provider-level failures for circuit breaker behavior
-  // Only count transient errors that are likely to recover
-  if (isProviderFailureCode(status)) {
-    recordProviderFailure(provider);
-  }
-
-  function parseResetFromHeaders(headers, errorStr = "") {
+  function parseResetFromHeaders(headers) {
     if (!headers) return null;
 
     // Retry-After header
@@ -935,6 +859,59 @@ export function checkFallbackError(
     }
     return null;
   }
+
+  function getUpstreamRetryHintMs() {
+    if (!profile?.useUpstreamRetryHints) return null;
+    const resetTime = parseResetFromHeaders(headers);
+    if (resetTime) {
+      const waitMs = Math.max(resetTime - Date.now(), 0);
+      if (waitMs > 0) return waitMs;
+    }
+
+    const retryFromErrorText = parseRetryFromErrorText(errorStr);
+    if (retryFromErrorText && retryFromErrorText > 0) {
+      return retryFromErrorText;
+    }
+
+    return null;
+  }
+
+  function getScaledBaseCooldown(reason, level = backoffLevel) {
+    const baseCooldownMs =
+      typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
+        ? profile.baseCooldownMs
+        : COOLDOWN_MS.transientInitial;
+    return {
+      baseCooldownMs,
+      cooldownMs: getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),
+      newBackoffLevel: Math.min(level + 1, maxBackoffSteps),
+    };
+  }
+
+  function buildRetryableFallback(reason) {
+    const upstreamRetryHintMs = getUpstreamRetryHintMs();
+    if (typeof upstreamRetryHintMs === "number" && upstreamRetryHintMs > 0) {
+      return {
+        shouldFallback: true,
+        cooldownMs: upstreamRetryHintMs,
+        baseCooldownMs: upstreamRetryHintMs,
+        newBackoffLevel: 0,
+        usedUpstreamRetryHint: true,
+        reason,
+      };
+    }
+
+    const scaled = getScaledBaseCooldown(reason, backoffLevel);
+    return {
+      shouldFallback: true,
+      cooldownMs: scaled.cooldownMs,
+      baseCooldownMs: scaled.baseCooldownMs,
+      newBackoffLevel: scaled.newBackoffLevel,
+      usedUpstreamRetryHint: false,
+      reason,
+    };
+  }
+
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
     const lowerError = errorStr.toLowerCase();
@@ -984,6 +961,7 @@ export function checkFallbackError(
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.requestNotAllowed,
+        baseCooldownMs: COOLDOWN_MS.requestNotAllowed,
         reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
       };
     }
@@ -999,45 +977,16 @@ export function checkFallbackError(
       lowerError.includes("capacity") ||
       lowerError.includes("overloaded")
     ) {
-      const resetTime = parseResetFromHeaders(headers);
-      if (resetTime) {
-        const waitMs = resetTime - Date.now();
-        if (waitMs > 60_000) {
-          return {
-            shouldFallback: true,
-            cooldownMs: waitMs,
-            newBackoffLevel: 0,
-            reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-          };
-        }
-      }
-      const retryFromBody = parseRetryFromErrorText(errorStr);
-      if (retryFromBody && retryFromBody > 60_000) {
-        return {
-          shouldFallback: true,
-          cooldownMs: retryFromBody,
-          newBackoffLevel: 0,
-          reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-        };
-      }
-      const newLevel = Math.min(
-        backoffLevel + 1,
-        profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel
-      );
       const reason = classifyErrorText(errorStr);
-      return {
-        shouldFallback: true,
-        cooldownMs: getRateLimitCooldown(backoffLevel, profile),
-        newBackoffLevel: newLevel,
-        reason,
-      };
+      return buildRetryableFallback(reason);
     }
   }
 
   if (status === HTTP_STATUS.UNAUTHORIZED) {
     return {
       shouldFallback: true,
-      cooldownMs: COOLDOWN_MS.unauthorized,
+      cooldownMs: 0,
+      baseCooldownMs: 0,
       reason: RateLimitReason.AUTH_ERROR,
     };
   }
@@ -1045,7 +994,8 @@ export function checkFallbackError(
   if (status === HTTP_STATUS.PAYMENT_REQUIRED || status === HTTP_STATUS.FORBIDDEN) {
     return {
       shouldFallback: true,
-      cooldownMs: COOLDOWN_MS.paymentRequired,
+      cooldownMs: 0,
+      baseCooldownMs: 0,
       reason: RateLimitReason.QUOTA_EXHAUSTED,
     };
   }
@@ -1060,64 +1010,11 @@ export function checkFallbackError(
 
   // 429 - Rate limit with exponential backoff
   if (status === HTTP_STATUS.RATE_LIMITED) {
-    const resetTime = parseResetFromHeaders(headers);
-    if (resetTime) {
-      const waitMs = resetTime - Date.now();
-      if (waitMs > 60_000) {
-        return {
-          shouldFallback: true,
-          cooldownMs: waitMs,
-          newBackoffLevel: 0,
-          reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-        };
-      }
-    }
-
-    const newLevel = Math.min(
-      backoffLevel + 1,
-      profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel
-    );
-    return {
-      shouldFallback: true,
-      cooldownMs: getRateLimitCooldown(backoffLevel, profile),
-      newBackoffLevel: newLevel,
-      reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-    };
+    return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
   }
 
-  // Transient / server errors — exponential backoff with provider profile
-  const transientStatuses = [
-    HTTP_STATUS.NOT_ACCEPTABLE,
-    HTTP_STATUS.REQUEST_TIMEOUT,
-    HTTP_STATUS.SERVER_ERROR,
-    HTTP_STATUS.BAD_GATEWAY,
-    HTTP_STATUS.SERVICE_UNAVAILABLE,
-    HTTP_STATUS.GATEWAY_TIMEOUT,
-  ];
-  if (transientStatuses.includes(status)) {
-    const resetTime = parseResetFromHeaders(headers, errorStr);
-    if (resetTime) {
-      const waitMs = resetTime - Date.now();
-      if (waitMs > 60_000) {
-        return {
-          shouldFallback: true,
-          cooldownMs: waitMs,
-          newBackoffLevel: 0,
-          reason: RateLimitReason.SERVER_ERROR,
-        };
-      }
-    }
-
-    const baseCooldown = profile?.transientCooldown ?? COOLDOWN_MS.transientInitial;
-    const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;
-    const cooldownMs = Math.min(baseCooldown * Math.pow(2, backoffLevel), COOLDOWN_MS.transientMax);
-    const newLevel = Math.min(backoffLevel + 1, maxLevel);
-    return {
-      shouldFallback: true,
-      cooldownMs,
-      newBackoffLevel: newLevel,
-      reason: RateLimitReason.SERVER_ERROR,
-    };
+  if (status === HTTP_STATUS.NOT_ACCEPTABLE || retryableStatuses.has(status)) {
+    return buildRetryableFallback(RateLimitReason.SERVER_ERROR);
   }
 
   // 400 — context overflow / malformed request may succeed on another model in the combo
@@ -1140,7 +1037,8 @@ export function checkFallbackError(
   // All other errors - fallback with transient cooldown
   return {
     shouldFallback: true,
-    cooldownMs: COOLDOWN_MS.transient,
+    cooldownMs: profile?.baseCooldownMs ?? COOLDOWN_MS.transient,
+    baseCooldownMs: profile?.baseCooldownMs ?? COOLDOWN_MS.transient,
     reason: RateLimitReason.UNKNOWN,
   };
 }
@@ -1232,13 +1130,10 @@ export function applyErrorState(account, status, errorText, provider = null) {
   if (!account) return account;
 
   const backoffLevel = account.backoffLevel || 0;
-  const { cooldownMs, newBackoffLevel, reason } = checkFallbackError(
-    status,
-    errorText,
-    backoffLevel,
-    null,
-    provider
-  );
+  const fallbackDecision = checkFallbackError(status, errorText, backoffLevel, null, provider);
+  const { cooldownMs, reason } = fallbackDecision;
+  const newBackoffLevel =
+    "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
 
   return {
     ...account,

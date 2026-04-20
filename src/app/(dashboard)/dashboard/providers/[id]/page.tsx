@@ -53,7 +53,6 @@ import {
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
-import ModelStatusBadge from "@/app/(dashboard)/dashboard/providers/components/ModelStatusBadge";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -3362,7 +3361,6 @@ function ModelRow({
         <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
           {fullModel}
         </code>
-        <ModelStatusBadge provider={provider} model={model.id} size="sm" />
         <ModelSourceBadge source={model.source} />
         <button
           onClick={() => onCopy(fullModel, `model-${model.id}`)}

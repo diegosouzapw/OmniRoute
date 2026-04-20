@@ -243,6 +243,33 @@ export function unavailableResponse(
   });
 }
 
+export function providerCircuitOpenResponse(
+  provider: string,
+  retryAfter?: string | number | Date | null
+) {
+  const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: `Provider ${provider} circuit breaker is open`,
+        type: "server_error",
+        code: "provider_circuit_open",
+        provider,
+        retry_after: retryAfterSec,
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": getCorsOrigin(),
+        "Retry-After": String(retryAfterSec),
+        "X-OmniRoute-Provider-Breaker": "open",
+      },
+    }
+  );
+}
+
 export function buildModelCooldownBody({
   model,
   retryAfterSec,

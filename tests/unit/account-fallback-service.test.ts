@@ -207,8 +207,37 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
-  assert.deepEqual(getProviderProfile("claude"), PROVIDER_PROFILES.oauth);
-  assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
+  const oauthProfile = getProviderProfile("claude");
+  assert.equal(oauthProfile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(
+    oauthProfile.rateLimitCooldown,
+    oauthProfile.useUpstreamRetryHints ? 0 : oauthProfile.baseCooldownMs
+  );
+  assert.equal(oauthProfile.maxBackoffLevel, PROVIDER_PROFILES.oauth.maxBackoffLevel);
+  assert.equal(
+    oauthProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.oauth.circuitBreakerThreshold
+  );
+  assert.equal(oauthProfile.circuitBreakerReset, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+  assert.equal(oauthProfile.baseCooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(oauthProfile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(oauthProfile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+
+  const apiKeyProfile = getProviderProfile("openai");
+  assert.equal(apiKeyProfile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(
+    apiKeyProfile.rateLimitCooldown,
+    apiKeyProfile.useUpstreamRetryHints ? 0 : apiKeyProfile.baseCooldownMs
+  );
+  assert.equal(apiKeyProfile.maxBackoffLevel, PROVIDER_PROFILES.apikey.maxBackoffLevel);
+  assert.equal(
+    apiKeyProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.apikey.circuitBreakerThreshold
+  );
+  assert.equal(apiKeyProfile.circuitBreakerReset, PROVIDER_PROFILES.apikey.circuitBreakerReset);
+  assert.equal(apiKeyProfile.baseCooldownMs, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(apiKeyProfile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(apiKeyProfile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
 });
 
 test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatible providers", () => {
@@ -229,11 +258,11 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     const compatibleProvider = "openai-compatible-custom-node";
     const compatibleModel = "custom-model-a";
     const profile = {
-      transientCooldown: 250,
-      rateLimitCooldown: 125,
-      maxBackoffLevel: 2,
-      circuitBreakerThreshold: 60,
-      circuitBreakerReset: 500,
+      baseCooldownMs: 125,
+      useUpstreamRetryHints: false,
+      maxBackoffSteps: 2,
+      failureThreshold: 60,
+      resetTimeoutMs: 500,
     };
 
     const first = recordModelLockoutFailure(
@@ -360,62 +389,16 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
   }
 });
 
-test("recordProviderFailure resets counter after failure window expires", () => {
-  const originalNow = Date.now;
-  let now = 1_700_000_000_000;
-  Date.now = () => now;
+test("checkFallbackError no longer mutates provider breaker state on per-connection failures", () => {
+  const provider = "test-provider-check";
+  clearProviderFailure(provider);
 
-  try {
-    const provider = "test-provider-window";
-    clearProviderFailure(provider);
-
-    // Record 3 failures
-    for (let i = 0; i < 3; i++) {
-      recordProviderFailure(provider);
-      now += 1000;
-    }
-    assert.equal(isProviderInCooldown(provider), false);
-
-    // Wait for failure window to expire (20 minutes + 1 second)
-    now += 20 * 60 * 1000 + 1000;
-
-    // Next failure should reset counter, not trigger cooldown
-    recordProviderFailure(provider);
-    assert.equal(isProviderInCooldown(provider), false);
-
-    // Need 4 more failures to trigger cooldown
-    for (let i = 0; i < 4; i++) {
-      recordProviderFailure(provider);
-      now += 1000;
-    }
-    assert.equal(isProviderInCooldown(provider), true);
-  } finally {
-    Date.now = originalNow;
-    clearProviderFailure("test-provider-window");
+  for (let i = 0; i < 5; i++) {
+    checkFallbackError(429, "rate limited", 0, null, provider);
   }
-});
 
-test("checkFallbackError records provider failure for transient errors", () => {
-  const originalNow = Date.now;
-  let now = 1_700_000_000_000;
-  Date.now = () => now;
-
-  try {
-    const provider = "test-provider-check";
-    clearProviderFailure(provider);
-
-    // Simulate 5 transient errors through checkFallbackError
-    for (let i = 0; i < 5; i++) {
-      checkFallbackError(429, "rate limited", 0, null, provider);
-      now += 1000;
-    }
-
-    // Provider should now be in cooldown
-    assert.equal(isProviderInCooldown(provider), true);
-  } finally {
-    Date.now = originalNow;
-    clearProviderFailure("test-provider-check");
-  }
+  assert.equal(isProviderInCooldown(provider), false);
+  clearProviderFailure(provider);
 });
 
 test("checkFallbackError does not record provider failure for non-transient errors", () => {

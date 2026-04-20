@@ -6,7 +6,7 @@ const { checkFallbackError, getProviderProfile, parseRetryFromErrorText } =
 
 const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.ts");
 
-const { COOLDOWN_MS, PROVIDER_PROFILES, RateLimitReason } =
+const { BACKOFF_CONFIG, COOLDOWN_MS, PROVIDER_PROFILES, RateLimitReason } =
   await import("../../open-sse/config/constants.ts");
 
 // ─── Provider Category Tests ────────────────────────────────────────────────
@@ -41,12 +41,36 @@ test("getProviderCategory: unknown provider defaults to 'apikey'", () => {
 
 test("getProviderProfile: OAuth provider returns oauth profile", () => {
   const profile = getProviderProfile("claude");
-  assert.deepEqual(profile, PROVIDER_PROFILES.oauth);
+  assert.equal(profile.baseCooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(profile.useUpstreamRetryHints, false);
+  assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.oauth.maxBackoffLevel);
+  assert.equal(profile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+  assert.equal(profile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(
+    profile.rateLimitCooldown,
+    profile.useUpstreamRetryHints ? 0 : profile.baseCooldownMs
+  );
+  assert.equal(profile.maxBackoffLevel, PROVIDER_PROFILES.oauth.maxBackoffLevel);
+  assert.equal(profile.circuitBreakerThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(profile.circuitBreakerReset, PROVIDER_PROFILES.oauth.circuitBreakerReset);
 });
 
 test("getProviderProfile: API provider returns apikey profile", () => {
   const profile = getProviderProfile("groq");
-  assert.deepEqual(profile, PROVIDER_PROFILES.apikey);
+  assert.equal(profile.baseCooldownMs, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(profile.useUpstreamRetryHints, true);
+  assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.apikey.maxBackoffLevel);
+  assert.equal(profile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
+  assert.equal(profile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(
+    profile.rateLimitCooldown,
+    profile.useUpstreamRetryHints ? 0 : profile.baseCooldownMs
+  );
+  assert.equal(profile.maxBackoffLevel, PROVIDER_PROFILES.apikey.maxBackoffLevel);
+  assert.equal(profile.circuitBreakerThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(profile.circuitBreakerReset, PROVIDER_PROFILES.apikey.circuitBreakerReset);
 });
 
 test("getProviderProfile: profiles have different thresholds", () => {
@@ -64,7 +88,7 @@ test("getProviderProfile: profiles have different thresholds", () => {
 
 // ─── Exponential Backoff for Transient Errors ───────────────────────────────
 
-test("502 transient: exponential backoff 5s → 10s → 20s → 40s → 60s (capped)", () => {
+test("502 transient: exponential backoff doubles until the configured max backoff step", () => {
   const cooldowns = [];
   for (let level = 0; level < 6; level++) {
     const result = checkFallbackError(502, "", level, null, null);
@@ -73,14 +97,14 @@ test("502 transient: exponential backoff 5s → 10s → 20s → 40s → 60s (cap
     assert.equal(result.newBackoffLevel, level + 1);
     assert.equal(result.reason, RateLimitReason.SERVER_ERROR);
   }
-  // Without provider: uses COOLDOWN_MS.transientInitial (5s) as base
-  assert.equal(cooldowns[0], COOLDOWN_MS.transientInitial); // 5s
-  assert.equal(cooldowns[1], COOLDOWN_MS.transientInitial * 2); // 10s
-  assert.equal(cooldowns[2], COOLDOWN_MS.transientInitial * 4); // 20s
-  assert.equal(cooldowns[3], COOLDOWN_MS.transientInitial * 8); // 40s
-  // Level 4: 5s * 16 = 80s → capped at 60s
-  assert.equal(cooldowns[4], COOLDOWN_MS.transientMax); // 60s
-  assert.equal(cooldowns[5], COOLDOWN_MS.transientMax); // 60s (stays capped)
+  assert.deepEqual(cooldowns, [
+    COOLDOWN_MS.transientInitial,
+    COOLDOWN_MS.transientInitial * 2,
+    COOLDOWN_MS.transientInitial * 4,
+    COOLDOWN_MS.transientInitial * 8,
+    COOLDOWN_MS.transientInitial * 16,
+    COOLDOWN_MS.transientInitial * 32,
+  ]);
 });
 
 test("502 with OAuth provider: uses oauth profile transientCooldown", () => {
@@ -116,11 +140,13 @@ test("429 rate limit: still uses quota-based exponential backoff", () => {
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
 });
 
-test("401 auth error: still uses flat cooldown, no backoff", () => {
+test("401 auth error: returns terminal auth semantics without connection cooldown", () => {
   const result = checkFallbackError(401, "", 0, null, "groq");
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, COOLDOWN_MS.unauthorized);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.baseCooldownMs, 0);
   assert.equal(result.newBackoffLevel, undefined);
+  assert.equal(result.reason, RateLimitReason.AUTH_ERROR);
 });
 
 test("400 bad request: still returns shouldFallback false", () => {
@@ -162,7 +188,7 @@ test("parseRetryFromErrorText: parses will reset after variant", () => {
 
 // ─── T06: Keyword Matching for Long Cooldowns ────────────────────────────────
 
-test("quota will reset keyword triggers long cooldown from body", () => {
+test("quota reset text is ignored when upstream retry hints are disabled", () => {
   const result = checkFallbackError(
     429,
     "Your quota will reset after 27h41m36s",
@@ -172,19 +198,31 @@ test("quota will reset keyword triggers long cooldown from body", () => {
     null
   );
   assert.equal(result.shouldFallback, true);
-  assert.ok(result.cooldownMs > 60_000, "cooldownMs should be > 60s");
-  assert.equal(result.newBackoffLevel, 0, "backoffLevel should reset to 0");
+  assert.equal(result.cooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(result.newBackoffLevel, 1);
+  assert.equal(result.usedUpstreamRetryHint, false);
 });
 
-test("exhausted your capacity keyword triggers long cooldown", () => {
+test("quota reset text is honored when upstream retry hints are enabled", () => {
   const result = checkFallbackError(
     429,
     "You have exhausted your capacity. Your quota will reset after 2h",
     0,
     null,
-    "antigravity",
+    "groq",
     null
   );
   assert.equal(result.shouldFallback, true);
-  assert.ok(result.cooldownMs > 60_000);
+  assert.equal(result.cooldownMs, 2 * 60 * 60 * 1000);
+  assert.equal(result.newBackoffLevel, 0);
+  assert.equal(result.usedUpstreamRetryHint, true);
+});
+
+test("high transient backoff levels clamp to the configured maxBackoffSteps", () => {
+  const result = checkFallbackError(502, "", BACKOFF_CONFIG.maxLevel + 5, null, null);
+  assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);
+  assert.equal(
+    result.cooldownMs,
+    COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel)
+  );
 });

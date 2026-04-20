@@ -15,13 +15,6 @@ import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerMo
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import {
-  hasPerModelQuota,
-  lockModelIfPerModelQuota,
-  isDailyQuotaExhausted,
-  getMsUntilTomorrow,
-} from "../services/accountFallback.ts";
-import { COOLDOWN_MS } from "../config/constants.ts";
-import {
   buildErrorBody,
   createErrorResult,
   parseUpstreamError,
@@ -2080,66 +2073,6 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
-        } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          // For providers with per-model quotas (passthrough providers, Gemini),
-          // each model has independent quota. A 429 on one model must NOT lock out
-          // the entire connection — other models may still have quota available.
-          const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
-          if (
-            lockModelIfPerModelQuota(
-              provider,
-              connectionId,
-              model,
-              "rate_limited",
-              rateLimitCooldownMs
-            )
-          ) {
-            console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(rateLimitCooldownMs / 1000)}s (connection stays active)`
-            );
-          } else {
-            const rateLimitedUntil = new Date(Date.now() + rateLimitCooldownMs).toISOString();
-            await updateProviderConnection(connectionId, {
-              rateLimitedUntil: rateLimitedUntil,
-              testStatus: "unavailable",
-              lastErrorType: errorType,
-              lastError: message,
-              errorCode: statusCode,
-              healthCheckInterval: null,
-              lastHealthCheckAt: null,
-            });
-            console.warn(
-              `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
-            );
-          }
-        } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
-          // Providers with per-model quotas — lock the model only, not the connection
-          // Daily quota exhausted: lock until tomorrow; otherwise use default cooldown
-          const isDailyQuota = isDailyQuotaExhausted(message);
-          const quotaCooldownMs = isDailyQuota
-            ? getMsUntilTomorrow()
-            : retryAfterMs || COOLDOWN_MS.rateLimit;
-          if (
-            lockModelIfPerModelQuota(
-              provider,
-              connectionId,
-              model,
-              isDailyQuota ? "daily_quota_exhausted" : "quota_exhausted",
-              quotaCooldownMs
-            )
-          ) {
-            console.warn(
-              `[provider] Node ${connectionId} ${isDailyQuota ? "daily " : ""}quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
-            );
-          } else {
-            await updateProviderConnection(connectionId, {
-              testStatus: "credits_exhausted",
-              lastErrorType: errorType,
-              lastError: message,
-              errorCode: statusCode,
-            });
-            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
-          }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           await updateProviderConnection(connectionId, {
             isActive: false,

@@ -14,6 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
+const { COOLDOWN_MS } = await import("../../open-sse/config/constants.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -760,7 +761,7 @@ test("getProviderCredentials exposes copilotToken when present in providerSpecif
   assert.equal(selected.copilotToken, "copilot-token-value");
 });
 
-test("markAccountUnavailable uses configured cooldowns for local 404 model lockouts", async () => {
+test("markAccountUnavailable keeps local 404 failures model-scoped with the local not-found cooldown", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
@@ -790,7 +791,7 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
   const updated = await providersDb.getProviderConnectionById(connection.id);
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 250);
+  assert.equal(result.cooldownMs, COOLDOWN_MS.notFoundLocal);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
@@ -843,7 +844,7 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(Number(updated.errorCode), 429);
 });
 
-test("markAccountUnavailable honors configured api-key rate-limit cooldowns", async () => {
+test("markAccountUnavailable uses the unified configured api-key connection cooldown", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
@@ -869,7 +870,7 @@ test("markAccountUnavailable honors configured api-key rate-limit cooldowns", as
   );
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 125);
+  assert.equal(result.cooldownMs, 200);
 });
 
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {
@@ -1021,7 +1022,7 @@ test("markAccountUnavailable auto-disables permanently banned accounts when the 
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, false);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable leaves permanently banned accounts active when auto-disable is disabled", async () => {
@@ -1041,7 +1042,7 @@ test("markAccountUnavailable leaves permanently banned accounts active when auto
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, true);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable swallows auto-disable persistence errors", async () => {
@@ -1085,7 +1086,7 @@ test("markAccountUnavailable swallows auto-disable persistence errors", async ()
 
     assert.equal(result.shouldFallback, true);
     assert.equal(updated.isActive, true);
-    assert.equal(updated.testStatus, "unavailable");
+    assert.equal(updated.testStatus, "banned");
   } finally {
     db.prepare = originalPrepare;
   }
