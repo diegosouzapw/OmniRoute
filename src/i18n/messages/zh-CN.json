@@ -139,7 +139,9 @@
     "apikey": "API 密钥",
     "http": "HTTP",
     "goToDashboard": "前往仪表板",
-    "checkSystemStatus": "查看系统状态"
+    "checkSystemStatus": "查看系统状态",
+    "videoGeneration": "视频生成",
+    "videoDesc": "通过 ComfyUI、Stable Diffusion WebUI 和兼容提供商生成视频"
   },
   "sidebar": {
     "home": "首页",
@@ -1658,7 +1660,9 @@
     "notAvailable": "—",
     "noEntries": "未找到审核日志条目",
     "previous": "上一页",
-    "next": "下一页"
+    "next": "下一页",
+    "viewDetails": "查看详情",
+    "auditEntryDetails": "审核条目详细信息"
   },
   "onboarding": {
     "welcome": "欢迎",
@@ -2052,7 +2056,8 @@
     "aggregatorsGateways": "Aggregators / Gateways",
     "imageProviders": "Image Generation",
     "ccCompatibleLabel": "CC Compatible",
-    "addCcCompatible": "Add CC Compatible"
+    "addCcCompatible": "Add CC Compatible",
+    "configuredCount": "{configured}/{total} 已配置"
   },
   "settings": {
     "title": "设置",

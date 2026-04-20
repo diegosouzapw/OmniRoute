@@ -1861,6 +1861,7 @@
     "connections": "Connections",
     "providerProxyTitleConfigured": "Provider proxy: {host}",
     "configured": "configured",
+    "configuredCount": "{configured}/{total} configured",
     "providerProxyConfigureHint": "Configure proxy for all connections of this provider",
     "providerProxy": "Provider Proxy",
     "repairEnv": "Repair env",
@@ -2012,6 +2013,10 @@
     "upstreamProxyProviders": "Upstream Proxy Providers",
     "aggregatorsGateways": "Aggregators / Gateways",
     "imageProviders": "Image Generation",
+    "enterpriseCloudProviders": "Enterprise Cloud Platforms",
+    "agentFrameworks": "Developer Tooling & Agent Frameworks",
+    "ideCodingProviders": "IDE Assistants & Coding",
+    "mediaProviders": "Image & Video Generation",
     "ccCompatibleLabel": "CC Compatible",
     "addCcCompatible": "Add CC Compatible"
   },

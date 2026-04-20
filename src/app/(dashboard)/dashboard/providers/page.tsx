@@ -43,14 +43,57 @@ function countConfigured(entries: any[]): { configured: number; total: number } 
   return { configured, total };
 }
 
-// Sub-categorization filter lists for API Key Providers
-const IMAGE_ONLY_PROVIDER_IDS = new Set([
+const MEDIA_PROVIDER_IDS = new Set([
   "nanobanana",
   "fal-ai",
   "stability-ai",
   "black-forest-labs",
   "recraft",
   "topaz",
+  "runwayml",
+  "modal",
+  "sdwebui",
+  "comfyui",
+]);
+
+const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
+  "oci",
+  "watsonx",
+  "sagemaker",
+  "sap",
+  "datarobot",
+  "bedrock",
+  "azure",
+  "vertex",
+  "vertex-partner",
+  "cloudflare-ai",
+  "ovhcloud-ai",
+  "heroku-ai",
+  "databricks",
+  "snowflake",
+  "sambanova",
+  "nscale",
+  "baseten",
+  "predibase",
+  "bytez",
+]);
+
+const AGENT_FRAMEWORKS_PROVIDER_IDS = new Set([
+  "manus",
+  "pydantic-ai",
+  "langgraph",
+  "blockrun",
+  "galadriel",
+  "venice",
+]);
+
+const IDE_CODING_PROVIDER_IDS = new Set([
+  "gitlab-duo",
+  "opencode",
+  "bailian-coding",
+  "codestral",
+  "chutes",
+  "morph",
 ]);
 
 const AGGREGATOR_PROVIDER_IDS = new Set([
@@ -433,16 +476,33 @@ export default function ProvidersPage() {
   );
 
   // Sub-categorization
-  const llmProviderEntries = apiKeyProviderEntries.filter(
-    (e) => !IMAGE_ONLY_PROVIDER_IDS.has(e.providerId) && !AGGREGATOR_PROVIDER_IDS.has(e.providerId)
+  const enterpriseCloudEntries = apiKeyProviderEntries.filter((e) =>
+    ENTERPRISE_CLOUD_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const agentFrameworkEntries = apiKeyProviderEntries.filter((e) =>
+    AGENT_FRAMEWORKS_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const ideCodingEntries = apiKeyProviderEntries.filter((e) =>
+    IDE_CODING_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const mediaProviderEntries = apiKeyProviderEntries.filter((e) =>
+    MEDIA_PROVIDER_IDS.has(e.providerId)
   );
 
   const aggregatorEntries = apiKeyProviderEntries.filter((e) =>
     AGGREGATOR_PROVIDER_IDS.has(e.providerId)
   );
 
-  const imageProviderEntries = apiKeyProviderEntries.filter((e) =>
-    IMAGE_ONLY_PROVIDER_IDS.has(e.providerId)
+  const llmProviderEntries = apiKeyProviderEntries.filter(
+    (e) =>
+      !MEDIA_PROVIDER_IDS.has(e.providerId) &&
+      !AGGREGATOR_PROVIDER_IDS.has(e.providerId) &&
+      !ENTERPRISE_CLOUD_PROVIDER_IDS.has(e.providerId) &&
+      !AGENT_FRAMEWORKS_PROVIDER_IDS.has(e.providerId) &&
+      !IDE_CODING_PROVIDER_IDS.has(e.providerId)
   );
 
   const webCookieProviderEntries = filterConfiguredProviderEntries(
@@ -651,20 +711,91 @@ export default function ProvidersPage() {
         </div>
 
         {/* LLM Providers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {llmProviderEntries.map(
-            ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-              <ApiKeyProviderCard
-                key={providerId}
-                providerId={providerId}
-                provider={provider}
-                stats={stats}
-                authType={displayAuthType}
-                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-              />
-            )
-          )}
-        </div>
+        {llmProviderEntries.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {llmProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {/* Enterprise Cloud sub-section */}
+        {enterpriseCloudEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("enterpriseCloudProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {enterpriseCloudEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Agent Frameworks sub-section */}
+        {agentFrameworkEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("agentFrameworks")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {agentFrameworkEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* IDE & Coding sub-section */}
+        {ideCodingEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("ideCodingProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {ideCodingEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
 
         {/* Aggregators / Gateways sub-section */}
         {aggregatorEntries.length > 0 && (
@@ -689,14 +820,14 @@ export default function ProvidersPage() {
           </>
         )}
 
-        {/* Image Generation sub-section */}
-        {imageProviderEntries.length > 0 && (
+        {/* Media Generation sub-section */}
+        {mediaProviderEntries.length > 0 && (
           <>
             <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
-              {t("imageProviders")}
+              {t("mediaProviders")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {imageProviderEntries.map(
+              {mediaProviderEntries.map(
                 ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                   <ApiKeyProviderCard
                     key={providerId}
