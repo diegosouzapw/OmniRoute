@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  easyia_site:
+    image: ghcr.io/rafacpti23/easy-ia-site:latest
+    ports:
+      - target: 20132
+        published: 20132
+        protocol: tcp
+        mode: ingress
+    environment:
+      NODE_ENV: production
+      PORT: "20132"
+      HOSTNAME: 0.0.0.0
+      OMNIROUTE_API_URL: https://ai.ramelseg.com.br
+      OMNIROUTE_PUBLIC_BASE_URL: https://ai.ramelseg.com.br/v1
+      # Opcional: API key para o chat publico da landing.
+      # OMNIROUTE_DEMO_API_KEY: ""
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          memory: 128M

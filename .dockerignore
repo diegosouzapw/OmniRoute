@@ -46,6 +46,9 @@ docs/*
 # Electron (separate build)
 electron
 
+# Customer landing/client site (separate build)
+site
+
 # VS Code extension (separate project)
 vscode-extension
 
