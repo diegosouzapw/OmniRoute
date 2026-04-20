@@ -43,8 +43,10 @@ type ModelFailureState = {
   resetAfterMs: number;
 };
 
-// Error codes that count toward provider-level failure threshold
-const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
+// Error codes that count toward provider-level failure threshold.
+// Connection-scoped 429 rate limits stay in connection cooldown handling and
+// do not contribute to the shared provider breaker.
+const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead

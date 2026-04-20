@@ -775,6 +775,8 @@ OmniRoute implements provider-level resilience with five components:
    - **OPEN** — Provider is temporarily blocked after repeated failures
    - **HALF_OPEN** — Testing if provider has recovered
 
+   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
+
    The provider breaker runtime state is shown on **Dashboard → Health** only.
 
 4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.

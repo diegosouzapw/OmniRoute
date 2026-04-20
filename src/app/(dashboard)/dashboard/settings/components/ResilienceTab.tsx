@@ -501,7 +501,7 @@ function ProviderBreakerCard({
           </div>
           <SectionDescription
             scope="Whole provider"
-            trigger="Provider-level final failures after connection fallback is exhausted"
+            trigger="Provider-level final transport/server failures after connection fallback is exhausted"
             effect="Temporarily blocks that provider until the reset timeout elapses"
           />
         </div>
@@ -521,7 +521,8 @@ function ProviderBreakerCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Breaker runtime state is now shown only on the Health page.
+        Breaker runtime state is shown only on the Health page. Connection-scoped 429 rate limits
+        stay in Connection Cooldown and do not trip the provider breaker.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
