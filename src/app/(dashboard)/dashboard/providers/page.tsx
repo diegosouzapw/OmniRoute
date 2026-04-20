@@ -34,6 +34,36 @@ import {
   filterConfiguredProviderEntries,
 } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
+import ProviderCountBadge from "./components/ProviderCountBadge";
+
+function countConfigured(entries: any[]): { configured: number; total: number } {
+  const total = entries.length;
+  // A connection counts as configured if stats says total > 0 (it has credentials saved)
+  const configured = entries.filter((e) => Number(e.stats?.total || 0) > 0).length;
+  return { configured, total };
+}
+
+// Sub-categorization filter lists for API Key Providers
+const IMAGE_ONLY_PROVIDER_IDS = new Set([
+  "nanobanana",
+  "fal-ai",
+  "stability-ai",
+  "black-forest-labs",
+  "recraft",
+  "topaz",
+]);
+
+const AGGREGATOR_PROVIDER_IDS = new Set([
+  "openrouter",
+  "synthetic",
+  "kilo-gateway",
+  "aimlapi",
+  "novita",
+  "piapi",
+  "getgoapi",
+  "laozhang",
+  "vercel-ai-gateway",
+]);
 
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
@@ -201,7 +231,7 @@ export default function ProvidersPage() {
           const connectionsData = await connectionsRes.json();
           if (connectionsRes.ok) setConnections(connectionsData.connections || []);
         } else {
-          notify.info("No supported OAuth credentials found in Zed IDE.");
+          notify.info(t("zedImportNone"));
         }
       } else {
         notify.error(data.error || "Failed to import from Zed IDE.");
@@ -401,6 +431,19 @@ export default function ProvidersPage() {
     showConfiguredOnly
   );
 
+  // Sub-categorization
+  const llmProviderEntries = apiKeyProviderEntries.filter(
+    (e) => !IMAGE_ONLY_PROVIDER_IDS.has(e.providerId) && !AGGREGATOR_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const aggregatorEntries = apiKeyProviderEntries.filter((e) =>
+    AGGREGATOR_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const imageProviderEntries = apiKeyProviderEntries.filter((e) =>
+    IMAGE_ONLY_PROVIDER_IDS.has(e.providerId)
+  );
+
   const webCookieProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("web-cookie", getProviderStats),
     showConfiguredOnly
@@ -413,6 +456,16 @@ export default function ProvidersPage() {
 
   const audioProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("audio", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const localProviderEntries = filterConfiguredProviderEntries(
+    buildStaticProviderEntries("local", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const upstreamProxyEntries = filterConfiguredProviderEntries(
+    buildStaticProviderEntries("upstream-proxy", getProviderStats),
     showConfiguredOnly
   );
 
@@ -476,13 +529,13 @@ export default function ProvidersPage() {
                 className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
               >
                 {expirations.summary.expired > 0
-                  ? `${expirations.summary.expired} Provider connection(s) expired`
-                  : `${expirations.summary.expiringSoon} Provider connection(s) expiring soon`}
+                  ? t("expirationBannerExpired", { count: expirations.summary.expired })
+                  : t("expirationBannerExpiringSoon", { count: expirations.summary.expiringSoon })}
               </h3>
               <p className="text-sm mt-1 opacity-80 text-text-main">
                 {expirations.summary.expired > 0
-                  ? "Immediate action required. Expired connections will permanently fail."
-                  : "Please review and renew expiring connections to avoid disruption."}
+                  ? t("expirationBannerExpiredDesc")
+                  : t("expirationBannerExpiringSoonDesc")}
               </p>
             </div>
           </div>
@@ -494,6 +547,7 @@ export default function ProvidersPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
+            <ProviderCountBadge {...countConfigured(oauthProviderEntries)} />
           </h2>
           <div className="flex items-center gap-2">
             <ModelAvailabilityBadge />
@@ -515,7 +569,7 @@ export default function ProvidersPage() {
               >
                 {importingZed ? "sync" : "download"}
               </span>
-              {importingZed ? "Importing..." : "Import from Zed"}
+              {importingZed ? t("zedImporting") : t("zedImportButton")}
             </button>
             {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
               <button
@@ -569,12 +623,13 @@ export default function ProvidersPage() {
         </div>
       </div>
 
-      {/* API Key Providers — fixed list */}
+      {/* API Key Providers — LLMs & Core */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("apiKeyProviders")}{" "}
             <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
+            <ProviderCountBadge {...countConfigured(apiKeyProviderEntries)} />
           </h2>
           <button
             onClick={() => handleBatchTest("apikey")}
@@ -593,8 +648,10 @@ export default function ProvidersPage() {
             {testingMode === "apikey" ? t("testing") : t("testAll")}
           </button>
         </div>
+
+        {/* LLM Providers */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {apiKeyProviderEntries.map(
+          {llmProviderEntries.map(
             ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
               <ApiKeyProviderCard
                 key={providerId}
@@ -607,6 +664,52 @@ export default function ProvidersPage() {
             )
           )}
         </div>
+
+        {/* Aggregators / Gateways sub-section */}
+        {aggregatorEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("aggregatorsGateways") || "Aggregators / Gateways"}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {aggregatorEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Image Generation sub-section */}
+        {imageProviderEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("imageProviders") || "Image Generation"}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {imageProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Web / Cookie Providers */}
@@ -614,8 +717,9 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Web / Cookie Providers{" "}
+              {t("webCookieProviders")}{" "}
               <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
+              <ProviderCountBadge {...countConfigured(webCookieProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("web-cookie")}
@@ -655,7 +759,9 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Search Providers <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+              {t("searchProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+              <ProviderCountBadge {...countConfigured(searchProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("search")}
@@ -695,7 +801,9 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Audio Providers <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+              {t("audioProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+              <ProviderCountBadge {...countConfigured(audioProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("audio")}
@@ -730,12 +838,82 @@ export default function ProvidersPage() {
         </div>
       )}
 
+      {/* Local / Self-Hosted Providers */}
+      {localProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("localProviders") || "Local / Self-Hosted"}{" "}
+              <span className="size-2.5 rounded-full bg-emerald-500" title="Local" />
+              <ProviderCountBadge {...countConfigured(localProviderEntries)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("local")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "local"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "local" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "local" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {localProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Upstream Proxy Providers */}
+      {upstreamProxyEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("upstreamProxyProviders") || "Upstream Proxy"}{" "}
+              <span className="size-2.5 rounded-full bg-indigo-500" title="Upstream Proxy" />
+              <ProviderCountBadge {...countConfigured(upstreamProxyEntries)} />
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {upstreamProxyEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("compatibleProviders")}{" "}
             <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
+            <ProviderCountBadge {...countConfigured(compatibleProviderEntries)} />
           </h2>
           <div className="flex flex-wrap gap-2">
             {(compatibleProviders.length > 0 ||

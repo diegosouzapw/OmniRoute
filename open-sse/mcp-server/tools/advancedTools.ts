@@ -1,5 +1,5 @@
 /**
- * OmniRoute MCP Advanced Tools — 11 intelligence tools that differentiate
+ * OmniRoute MCP Advanced Tools — 13 intelligence tools that differentiate
  * OmniRoute from all other AI gateways.
  *
  * Tools:
@@ -14,6 +14,8 @@
  *   9. omniroute_get_session_snapshot — Full session state snapshot
  *  10. omniroute_db_health_check   — Diagnose and repair DB state drift
  *  11. omniroute_sync_pricing      — Sync provider pricing from external source
+ *  12. omniroute_cache_stats       — Cache statistics and hit rates
+ *  13. omniroute_cache_flush       — Flush/invalidate cache entries
  */
 
 import { logToolCall } from "../audit.ts";
@@ -891,6 +893,87 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_db_health_check", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleCacheStats() {
+  const start = Date.now();
+  try {
+    const raw = toRecord(await apiFetch("/api/cache"));
+
+    const semanticCache = toRecord(raw.semanticCache);
+    const promptCache = raw.promptCache ? toRecord(raw.promptCache) : null;
+    const idempotency = toRecord(raw.idempotency);
+
+    const result = {
+      semanticCache: {
+        memoryEntries: toNumber(semanticCache.memoryEntries, 0),
+        dbEntries: toNumber(semanticCache.dbEntries, 0),
+        hits: toNumber(semanticCache.hits, 0),
+        misses: toNumber(semanticCache.misses, 0),
+        hitRate: toString(semanticCache.hitRate, "0%"),
+        tokensSaved: toNumber(semanticCache.tokensSaved, 0),
+      },
+      promptCache: promptCache
+        ? {
+            totalRequests: toNumber(promptCache.totalRequests, 0),
+            requestsWithCacheControl: toNumber(promptCache.requestsWithCacheControl, 0),
+            totalInputTokens: toNumber(promptCache.totalInputTokens, 0),
+            totalCachedTokens: toNumber(promptCache.totalCachedTokens, 0),
+            totalCacheCreationTokens: toNumber(promptCache.totalCacheCreationTokens, 0),
+            tokensSaved: toNumber(promptCache.tokensSaved, 0),
+            estimatedCostSaved: toNumber(promptCache.estimatedCostSaved, 0),
+          }
+        : null,
+      idempotency: {
+        activeKeys: toNumber(idempotency.activeKeys, 0),
+        windowMs: toNumber(idempotency.windowMs, 0),
+      },
+      config: raw.config
+        ? { semanticCacheEnabled: toBoolean(toRecord(raw.config).semanticCacheEnabled, true) }
+        : undefined,
+    };
+
+    await logToolCall("omniroute_cache_stats", {}, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_cache_stats", {}, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleCacheFlush(args: { signature?: string; model?: string }) {
+  const start = Date.now();
+  try {
+    const params = new URLSearchParams();
+    let scope = "all";
+
+    if (args.signature) {
+      params.set("signature", args.signature);
+      scope = "signature";
+    } else if (args.model) {
+      params.set("model", args.model);
+      scope = "model";
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `/api/cache?${queryString}` : "/api/cache";
+
+    const raw = toRecord(await apiFetch(url, { method: "DELETE" }));
+
+    const result = {
+      ok: toBoolean(raw.ok, true),
+      invalidated: toNumber(raw.invalidated ?? raw.cleared, 0),
+      scope,
+    };
+
+    await logToolCall("omniroute_cache_flush", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_cache_flush", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

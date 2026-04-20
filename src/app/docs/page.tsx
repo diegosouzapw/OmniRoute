@@ -11,6 +11,11 @@ const ENDPOINT_ROWS = [
   { path: "/v1/audio/transcriptions", method: "POST", noteKey: "endpointAudioNote" },
   { path: "/v1/audio/speech", method: "POST", noteKey: "endpointSpeechNote" },
   { path: "/v1/images/generations", method: "POST", noteKey: "endpointImagesNote" },
+  { path: "/v1/videos/generations", method: "POST", noteKey: "endpointVideosNote" },
+  { path: "/v1/music/generations", method: "POST", noteKey: "endpointMusicNote" },
+  { path: "/v1/moderations", method: "POST", noteKey: "endpointModerationsNote" },
+  { path: "/v1/rerank", method: "POST", noteKey: "endpointRerankNote" },
+  { path: "/v1/search", method: "POST", noteKey: "endpointSearchNote" },
   { path: "/chat/completions", method: "POST", noteKey: "endpointRewriteChatNote" },
   { path: "/responses", method: "POST", noteKey: "endpointRewriteResponsesNote" },
   { path: "/models", method: "GET", noteKey: "endpointRewriteModelsNote" },
@@ -55,6 +60,8 @@ const FEATURE_ITEMS = [
   { icon: "terminal", titleKey: "featureCliTitle", textKey: "featureCliText" },
   { icon: "shield", titleKey: "featureSecurityTitle", textKey: "featureSecurityText" },
   { icon: "cloud_sync", titleKey: "featureCloudSyncTitle", textKey: "featureCloudSyncText" },
+  { icon: "route", titleKey: "featureAutoComboTitle", textKey: "featureAutoComboText" },
+  { icon: "psychology", titleKey: "featureSkillsMemoryTitle", textKey: "featureSkillsMemoryText" },
 ] as const;
 
 const USE_CASE_ITEMS = [
@@ -341,7 +348,7 @@ export default function DocsPage() {
           className="rounded-2xl border border-border bg-bg-subtle p-6"
         >
           <h2 className="text-xl font-semibold">{t("clientCompatibility")}</h2>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
             <article className="rounded-lg border border-border p-4 bg-bg">
               <h3 className="font-semibold">{t("clientCherryStudioTitle")}</h3>
               <ul className="mt-2 text-text-muted space-y-1">
@@ -401,6 +408,27 @@ export default function DocsPage() {
                 <li>{t("fullStreaming")}</li>
               </ul>
             </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientWindsurfTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientWindsurfBullet1")}</li>
+                <li>{t("clientWindsurfBullet2")}</li>
+              </ul>
+            </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientClineTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientClineBullet1")}</li>
+                <li>{t("clientClineBullet2")}</li>
+              </ul>
+            </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientKimiTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientKimiBullet1")}</li>
+                <li>{t("clientKimiBullet2")}</li>
+              </ul>
+            </article>
           </div>
         </section>
 
@@ -408,7 +436,7 @@ export default function DocsPage() {
           <h2 className="text-xl font-semibold">{t("protocolsTitle")}</h2>
           <p className="text-sm text-text-muted mt-2">{t("protocolsDescription")}</p>
 
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
             <article className="rounded-lg border border-border p-4 bg-bg">
               <h3 className="font-semibold">{t("protocolMcpTitle")}</h3>
               <p className="text-text-muted mt-1">{t("protocolMcpDesc")}</p>
@@ -433,6 +461,20 @@ export default function DocsPage() {
               <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
                 <code>{`GET /.well-known/agent.json
 POST /a2a  (JSON-RPC: message/send | message/stream)`}</code>
+              </pre>
+            </article>
+
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("protocolAcpTitle")}</h3>
+              <p className="text-text-muted mt-1">{t("protocolAcpDesc")}</p>
+              <ol className="mt-3 list-decimal list-inside space-y-1 text-text-muted">
+                <li>{t("protocolAcpStep1")}</li>
+                <li>{t("protocolAcpStep2")}</li>
+                <li>{t("protocolAcpStep3")}</li>
+              </ol>
+              <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
+                <code>{`GET /api/acp/registry
+POST /api/acp/agents/:agentId/skills/:skillId`}</code>
               </pre>
             </article>
           </div>

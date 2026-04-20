@@ -126,6 +126,8 @@
     "builder-id": "Builder ID",
     "musicDesc": "Music Description",
     "musicGeneration": "Music Generation",
+    "videoGeneration": "Video Generation",
+    "videoDesc": "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers",
     "idc": "IDC",
     "cloud-status-changed": "Cloud status changed",
     "where_used": "Where Used",
@@ -649,7 +651,9 @@
       "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
-      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks."
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE with MITM",
@@ -665,7 +669,9 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -1089,14 +1095,26 @@
     "failedReorder": "Failed to reorder models",
     "builderFlowTitle": "Combo Builder Flow",
     "builderStage": {
-      "basics": { "label": "Basics", "description": "Name and starting template" },
-      "steps": { "label": "Steps", "description": "Provider, model, and account selection" },
-      "strategy": { "label": "Strategy", "description": "Routing behavior and advanced settings" },
+      "basics": {
+        "label": "Basics",
+        "description": "Name and starting template"
+      },
+      "steps": {
+        "label": "Steps",
+        "description": "Provider, model, and account selection"
+      },
+      "strategy": {
+        "label": "Strategy",
+        "description": "Routing behavior and advanced settings"
+      },
       "intelligent": {
         "label": "Smart Routing",
         "description": "Auto-routing candidate pool, presets, and scoring"
       },
-      "review": { "label": "Review", "description": "Final validation before saving" }
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      }
     },
     "builderStageVisited": "Stage completed",
     "builderStageCurrent": "Current stage",
@@ -1131,13 +1149,28 @@
     "reviewNoSteps": "No steps configured"
   },
   "costs": {
-    "title": "Costs",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
     "budget": "Budget",
-    "totalCost": "Total Cost",
-    "breakdown": "Cost Breakdown",
-    "noData": "No cost data",
-    "byModel": "By Model",
-    "byProvider": "By Provider"
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced"
   },
   "endpoint": {
     "title": "API Endpoint",
@@ -1566,7 +1599,9 @@
     "notAvailable": "—",
     "noEntries": "No audit log entries found",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "viewDetails": "View Details",
+    "auditEntryDetails": "Audit Entry Details"
   },
   "onboarding": {
     "welcome": "Welcome",
@@ -1612,6 +1647,16 @@
     "provider": "Provider"
   },
   "providers": {
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
     "title": "Providers",
     "addProvider": "Add Provider",
     "editProvider": "Edit Provider",
@@ -2538,7 +2583,9 @@
       "multi-turn": "Multi-turn",
       "thinking": "Thinking",
       "system-prompt": "System Prompt",
-      "streaming": "Streaming"
+      "streaming": "Streaming",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Basic text message",
@@ -2546,7 +2593,9 @@
       "multi-turn": "Conversation with history",
       "thinking": "Extended thinking / reasoning",
       "system-prompt": "Complex system instructions",
-      "streaming": "SSE streaming request"
+      "streaming": "SSE streaming request",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2573,6 +2622,12 @@
       },
       "streaming": {
         "prompt": "Tell me a short story about a robot learning to paint."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "OpenAI Compatible",
@@ -2613,7 +2668,12 @@
     "requestFailed": "Request failed",
     "noTextExtracted": "(No text extracted)",
     "liveMonitorDescriptionPrefix": "Shows translation events as API calls flow through OmniRoute. Events come from the in-memory buffer (resets on restart). Use",
-    "liveMonitorDescriptionSuffix": ", or external API calls to generate events."
+    "liveMonitorDescriptionSuffix": ", or external API calls to generate events.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Usage",
@@ -3100,7 +3160,30 @@
     "troubleshootingCodexFamily": "For GitHub Codex-family models, keep model as gh/codex-model; router selects /responses automatically.",
     "troubleshootingTestConnection": "Use Dashboard > Providers > Test Connection before testing from IDEs or external clients.",
     "troubleshootingCircuitBreaker": "If a provider shows circuit breaker open, wait for the cooldown or check Health page for details.",
-    "troubleshootingOAuth": "For OAuth providers, re-authenticate if tokens expire. Check the provider card status indicator."
+    "troubleshootingOAuth": "For OAuth providers, re-authenticate if tokens expire. Check the provider card status indicator.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Privacy Policy",
@@ -3163,15 +3246,17 @@
     "termsSection6Text": "OmniRoute is open-source software. You are free to inspect, modify, and distribute it under the terms of its license."
   },
   "agents": {
-    "title": "CLI Agents",
-    "description": "Discover installed CLI agents on your system. Add custom agents for auto-detection.",
+    "title": "Local ACP Agents (Workers)",
+    "description": "OmniRoute can spawn installed CLI tools as local sub-processes (via Agent Communication Protocol) to execute tasks, read local files, and act as a final execution proxy.",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools.",
     "refresh": "Refresh",
     "installed": "Installed",
     "notFound": "Not Found",
     "builtIn": "Built-in",
     "custom": "Custom",
     "remove": "Remove",
-    "addCustomAgent": "Add Custom Agent",
+    "addCustomAgent": "Custom ACP Worker / Local Binary",
     "addCustomAgentDesc": "Register any CLI tool for detection. It will be scanned automatically on refresh.",
     "agentName": "Agent Name",
     "binaryName": "Binary Name",

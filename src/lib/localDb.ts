@@ -273,3 +273,5 @@ export {
   getAllPersistedCreditBalances,
   persistCreditBalance,
 } from "./db/creditBalance";
+
+export * as evalsDb from "./db/evals";

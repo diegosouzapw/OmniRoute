@@ -17,6 +17,7 @@ export interface Webhook {
   last_triggered_at: string | null;
   last_status: number | null;
   failure_count: number;
+  payload_template: string | null;
 }
 
 interface WebhookRow {
@@ -30,6 +31,7 @@ interface WebhookRow {
   last_triggered_at: string | null;
   last_status: number | null;
   failure_count: number;
+  payload_template: string | null;
 }
 
 function rowToWebhook(row: WebhookRow): Webhook {
@@ -63,15 +65,23 @@ export function createWebhook(data: {
   events?: string[];
   secret?: string;
   description?: string;
+  payload_template?: string;
 }): Webhook {
   const db = getDbInstance();
   const id = crypto.randomUUID();
   const secret = data.secret || `whsec_${crypto.randomBytes(24).toString("hex")}`;
 
   db.prepare(
-    `INSERT INTO webhooks (id, url, events, secret, description)
-       VALUES (?, ?, ?, ?, ?)`
-  ).run(id, data.url, JSON.stringify(data.events || ["*"]), secret, data.description || "");
+    `INSERT INTO webhooks (id, url, events, secret, description, payload_template)
+       VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(
+    id,
+    data.url,
+    JSON.stringify(data.events || ["*"]),
+    secret,
+    data.description || "",
+    data.payload_template || null
+  );
 
   return getWebhook(id)!;
 }
@@ -84,6 +94,7 @@ export function updateWebhook(
     secret: string;
     enabled: boolean;
     description: string;
+    payload_template: string | null;
   }>
 ): Webhook | null {
   const db = getDbInstance();
@@ -112,6 +123,10 @@ export function updateWebhook(
   if (data.description !== undefined) {
     fields.push("description = ?");
     values.push(data.description);
+  }
+  if (data.payload_template !== undefined) {
+    fields.push("payload_template = ?");
+    values.push(data.payload_template);
   }
 
   if (fields.length === 0) return existing;

@@ -31,6 +31,7 @@ export interface RequestDetailLog {
   duration_ms?: number;
   api_key_id?: string | null;
   no_log?: boolean;
+  has_warnings?: boolean;
 }
 
 /** Returns true if detailed logging is enabled in settings */
@@ -60,8 +61,8 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
     `
     INSERT INTO request_detail_logs
       (id, call_log_id, timestamp, client_request, translated_request,
-       provider_response, client_response, provider, model, source_format, target_format, duration_ms)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       provider_response, client_response, provider, model, source_format, target_format, duration_ms, has_warnings)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     id,
@@ -75,7 +76,8 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
     entry.model ?? null,
     entry.source_format ?? null,
     entry.target_format ?? null,
-    entry.duration_ms ?? 0
+    entry.duration_ms ?? 0,
+    entry.has_warnings ? 1 : 0
   );
 }
 

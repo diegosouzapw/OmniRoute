@@ -33,8 +33,9 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
+import { detectWarnings, detectStreamWarnings } from "../../src/lib/warningDetector.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
-import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
@@ -661,6 +662,7 @@ export async function handleChatCore({
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
+  let hasWarnings = false;
   const startTime = Date.now();
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
@@ -917,6 +919,23 @@ export async function handleChatCore({
   }) => {
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
+
+    if (hasWarnings) {
+      saveRequestDetailLog({
+        call_log_id: callLogId,
+        has_warnings: true,
+        client_request: clientRawRequest?.body ?? body,
+        translated_request: providerRequest ?? null,
+        provider_response: providerResponse ?? null,
+        client_response: clientResponse ?? null,
+        provider: provider ?? null,
+        model: effectiveModel ?? null,
+        source_format: sourceFormat ?? null,
+        target_format: targetFormat ?? null,
+        duration_ms: Date.now() - startTime,
+        api_key_id: apiKeyInfo?.id || null,
+      });
+    }
 
     if (pipelinePayloads) {
       if (providerResponse !== undefined) {
@@ -1317,6 +1336,21 @@ export async function handleChatCore({
   }
 
   let translatedBody = body;
+
+  if (Array.isArray(body?.messages) && detectWarnings(body.messages)) {
+    hasWarnings = true;
+    log?.warn?.("SECURITY", "Prompt injection warning detected in user messages");
+    logAuditEvent({
+      action: "security.prompt_injection",
+      actor: apiKeyInfo?.name || "system",
+      target: provider || "chat",
+      details: {
+        message: "Prompt injection warning detected in user messages",
+        model: effectiveModel,
+      },
+    });
+  }
+
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
@@ -2911,6 +2945,30 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
     });
+
+    // Stream-level warning detection: scan assembled response for provider warnings
+    if (streamResponseBody && typeof streamResponseBody === "object") {
+      try {
+        const responseText = JSON.stringify(streamResponseBody);
+        if (detectStreamWarnings(responseText)) {
+          hasWarnings = true;
+          log?.warn?.("SECURITY", `Provider stream warning detected from ${provider}/${model}`);
+          logAuditEvent({
+            action: "provider.warning",
+            actor: apiKeyInfo?.name || "system",
+            target: provider || "unknown",
+            details: {
+              message: "Provider stream warning pattern detected in response",
+              model: model || effectiveModel,
+              provider,
+              connectionId,
+            },
+          });
+        }
+      } catch {
+        // Non-critical — don't break stream completion
+      }
+    }
 
     if (apiKeyInfo?.id && streamUsage) {
       calculateCost(provider, model, streamUsage)

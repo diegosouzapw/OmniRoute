@@ -71,6 +71,7 @@ export async function PATCH(request, { params }) {
       isActive,
       maxSessions,
       accessSchedule,
+      mcpScopes,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
@@ -82,6 +83,7 @@ export async function PATCH(request, { params }) {
     if (isActive !== undefined) payload.isActive = isActive;
     if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
+    if (mcpScopes !== undefined) payload.mcpScopes = mcpScopes;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {

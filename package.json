@@ -154,6 +154,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/keytar": "^4.4.0",
     "@types/node": "^25.2.3",
+    "@types/prop-types": "^15.7.15",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

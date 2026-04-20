@@ -25,6 +25,8 @@ const SCENARIOS = [
   { id: "thinking", icon: "psychology", templateId: "thinking" },
   { id: "system-prompt", icon: "settings", templateId: "system-prompt" },
   { id: "streaming", icon: "stream", templateId: "streaming" },
+  { id: "multi-modal", icon: "image", templateId: "multi-modal" },
+  { id: "schema-coercion", icon: "data_object", templateId: "schema-coercion" },
 ];
 
 export default function TestBenchMode() {
@@ -36,6 +38,8 @@ export default function TestBenchMode() {
     thinking: t("scenarioThinking"),
     "system-prompt": t("scenarioSystemPrompt"),
     streaming: t("scenarioStreaming"),
+    "multi-modal": t("scenarioMultiModal"),
+    "schema-coercion": t("scenarioSchemaCoercion"),
   };
   const templates = useMemo(() => getExampleTemplates(t), [t]);
   const [sourceFormat, setSourceFormat] = useState("claude");
@@ -178,9 +182,7 @@ export default function TestBenchMode() {
                   setSourceFormat(e.target.value);
                   setResults({});
                 }}
-                options={FORMAT_OPTIONS.filter((o) =>
-                  ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
-                )}
+                options={FORMAT_OPTIONS}
               />
             </div>
             <div className="flex items-center justify-center px-2">

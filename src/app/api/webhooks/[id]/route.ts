@@ -17,6 +17,7 @@ const updateWebhookSchema = z
     secret: z.string().max(500).optional(),
     description: z.string().max(1000).optional(),
     enabled: z.boolean().optional(),
+    payloadTemplate: z.string().max(5000).optional(),
   })
   .passthrough();
 
@@ -42,7 +43,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const webhook = updateWebhookRecord(id, validation.data);
+    const { payloadTemplate, ...rest } = validation.data;
+    const webhook = updateWebhookRecord(id, {
+      ...rest,
+      ...(payloadTemplate !== undefined && { payload_template: payloadTemplate }),
+    });
     if (!webhook) {
       return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
     }

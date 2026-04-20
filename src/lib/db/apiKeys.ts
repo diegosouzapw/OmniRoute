@@ -42,6 +42,8 @@ interface ApiKeyMetadata {
   maxRequestsPerMinute: number | null;
   // T08: Per-key max concurrent sticky sessions (0 = unlimited)
   maxSessions: number;
+  mcpScopes: string[];
+  expiresAt: number | null;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -62,6 +64,10 @@ interface ApiKeyRow extends JsonRecord {
   isActive?: unknown;
   access_schedule?: unknown;
   accessSchedule?: unknown;
+  mcp_scopes?: unknown;
+  mcpScopes?: unknown;
+  expires_at?: unknown;
+  expiresAt?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -92,6 +98,8 @@ interface ApiKeyView extends JsonRecord {
   autoResolve: boolean;
   isActive: boolean;
   accessSchedule: AccessSchedule | null;
+  mcpScopes: string[];
+  expiresAt: number | null;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -204,6 +212,14 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
       db.exec("ALTER TABLE api_keys ADD COLUMN max_sessions INTEGER NOT NULL DEFAULT 0");
       console.log("[DB] Added api_keys.max_sessions column");
     }
+    if (!columnNames.has("mcp_scopes")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN mcp_scopes TEXT");
+      console.log("[DB] Added api_keys.mcp_scopes column");
+    }
+    if (!columnNames.has("expires_at")) {
+      db.exec("ALTER TABLE api_keys ADD COLUMN expires_at INTEGER");
+      console.log("[DB] Added api_keys.expires_at column");
+    }
     _schemaChecked = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -227,12 +243,12 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   ) {
     _stmtGetAllKeys = db.prepare<ApiKeyRow>("SELECT * FROM api_keys ORDER BY created_at");
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
-    _stmtValidateKey = db.prepare<JsonRecord>("SELECT 1 FROM api_keys WHERE key = ?");
+    _stmtValidateKey = db.prepare<ApiKeyRow>("SELECT expires_at FROM api_keys WHERE key = ?");
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions FROM api_keys WHERE key = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, mcp_scopes, expires_at FROM api_keys WHERE key = ?"
     );
     _stmtInsertKey = db.prepare(
-      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     _stmtDeleteKey = db.prepare("DELETE FROM api_keys WHERE id = ?");
   }
@@ -270,6 +286,11 @@ export async function getApiKeys() {
     camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
     camelRow.isActive = parseIsActive(camelRow.isActive);
     camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
+    camelRow.mcpScopes = parseMcpScopes(camelRow.mcpScopes ?? camelRow.mcp_scopes);
+    camelRow.expiresAt =
+      typeof (camelRow.expiresAt ?? camelRow.expires_at) === "number"
+        ? ((camelRow.expiresAt ?? camelRow.expires_at) as number)
+        : null;
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -289,6 +310,11 @@ export async function getApiKeyById(id: string) {
   camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
   camelRow.isActive = parseIsActive(camelRow.isActive);
   camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
+  camelRow.mcpScopes = parseMcpScopes(camelRow.mcpScopes ?? camelRow.mcp_scopes);
+  camelRow.expiresAt =
+    typeof (camelRow.expiresAt ?? camelRow.expires_at) === "number"
+      ? ((camelRow.expiresAt ?? camelRow.expires_at) as number)
+      : null;
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -373,13 +399,39 @@ function parseAllowedConnections(value: unknown): string[] {
   }
 }
 
-export async function createApiKey(name: string, machineId: string) {
+/**
+ * Helper function to safely parse mcp_scopes JSON
+ */
+function parseMcpScopes(value: unknown): string[] {
+  if (!value || typeof value !== "string" || value.trim() === "") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createApiKey(
+  name: string,
+  machineId: string,
+  expiresInHours: number | null = null
+) {
   if (!machineId) {
     throw new Error("machineId is required");
   }
 
   const db = getDbInstance() as ApiKeysDbLike;
   const now = new Date().toISOString();
+
+  let expiresAt: number | null = null;
+  if (expiresInHours !== null && expiresInHours > 0) {
+    expiresAt = Date.now() + expiresInHours * 60 * 60 * 1000;
+  }
 
   const { generateApiKeyWithMachine } = await import("@/shared/utils/apiKey");
   const result = generateApiKeyWithMachine(machineId);
@@ -393,6 +445,7 @@ export async function createApiKey(name: string, machineId: string) {
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
     createdAt: now,
+    expiresAt: expiresAt,
   };
 
   const stmt = getPreparedStatements(db);
@@ -403,7 +456,8 @@ export async function createApiKey(name: string, machineId: string) {
     apiKey.machineId,
     "[]",
     0,
-    apiKey.createdAt
+    apiKey.createdAt,
+    apiKey.expiresAt
   );
   setNoLog(apiKey.id, false);
 
@@ -427,6 +481,7 @@ export async function updateApiKeyPermissions(
         maxRequestsPerMinute?: number | null;
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
+        mcpScopes?: string[];
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -446,6 +501,7 @@ export async function updateApiKeyPermissions(
           maxRequestsPerDay: update.maxRequestsPerDay,
           maxRequestsPerMinute: update.maxRequestsPerMinute,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
+          mcpScopes: update.mcpScopes,
         };
 
   if (
@@ -458,7 +514,8 @@ export async function updateApiKeyPermissions(
     normalized.accessSchedule === undefined &&
     normalized.maxRequestsPerDay === undefined &&
     normalized.maxRequestsPerMinute === undefined &&
-    (normalized as Record<string, unknown>).maxSessions === undefined
+    (normalized as Record<string, unknown>).maxSessions === undefined &&
+    normalized.mcpScopes === undefined
   ) {
     return false;
   }
@@ -476,6 +533,7 @@ export async function updateApiKeyPermissions(
     maxRequestsPerDay?: number | null;
     maxRequestsPerMinute?: number | null;
     maxSessions?: number;
+    mcpScopes?: string;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -532,6 +590,11 @@ export async function updateApiKeyPermissions(
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
   }
 
+  if (normalized.mcpScopes !== undefined) {
+    updates.push("mcp_scopes = @mcpScopes");
+    params.mcpScopes = JSON.stringify(normalized.mcpScopes || []);
+  }
+
   const result = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
 
   if (result.changes === 0) return false;
@@ -583,15 +646,19 @@ export async function validateApiKey(key: string | null | undefined) {
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
   const row = stmt.validateKey.get(key);
-  const valid = !!row;
 
-  // Only cache valid keys to prevent cache pollution
-  if (valid) {
-    evictIfNeeded(_keyValidationCache);
-    _keyValidationCache.set(key, { valid: true, timestamp: now });
+  if (!row) return false;
+
+  const expiresAt = row.expires_at ?? row.expiresAt;
+  if (typeof expiresAt === "number" && now > expiresAt) {
+    return false; // Key expired
   }
 
-  return valid;
+  // Only cache valid keys to prevent cache pollution
+  evictIfNeeded(_keyValidationCache);
+  _keyValidationCache.set(key, { valid: true, timestamp: now });
+
+  return true;
 }
 
 /**
@@ -627,6 +694,8 @@ export async function getApiKeyMetadata(
 
   const rawMaxSessions = record.max_sessions ?? record.maxSessions;
 
+  const rawExpiresAt = record.expires_at ?? record.expiresAt;
+
   const metadata: ApiKeyMetadata = {
     id: metadataId,
     name: metadataName,
@@ -643,6 +712,8 @@ export async function getApiKeyMetadata(
     maxRequestsPerMinute: typeof rawMaxRPM === "number" && rawMaxRPM > 0 ? rawMaxRPM : null,
     // T08: max concurrent sessions; 0 = unlimited (default & backward-compatible)
     maxSessions: typeof rawMaxSessions === "number" && rawMaxSessions > 0 ? rawMaxSessions : 0,
+    mcpScopes: parseMcpScopes(record.mcp_scopes ?? record.mcpScopes),
+    expiresAt: typeof rawExpiresAt === "number" ? rawExpiresAt : null,
   };
 
   if (!metadata.id) {

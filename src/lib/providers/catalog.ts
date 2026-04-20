@@ -2,6 +2,7 @@ import {
   APIKEY_PROVIDERS,
   AUDIO_ONLY_PROVIDERS,
   FREE_PROVIDERS,
+  LOCAL_PROVIDERS,
   OAUTH_PROVIDERS,
   SEARCH_PROVIDERS,
   UPSTREAM_PROXY_PROVIDERS,
@@ -19,7 +20,8 @@ export type StaticProviderCatalogCategory =
   | "search"
   | "audio"
   | "upstream-proxy"
-  | "apikey";
+  | "apikey"
+  | "local";
 
 export interface ProviderCatalogMetadata {
   id: string;
@@ -125,6 +127,12 @@ export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
     displayAuthType: "apikey",
     toggleAuthType: "apikey",
   },
+  local: {
+    category: "local",
+    providers: LOCAL_PROVIDERS as ProviderRecord,
+    displayAuthType: "apikey",
+    toggleAuthType: "apikey",
+  },
 };
 
 export const STATIC_PROVIDER_CATALOG_RESOLUTION_ORDER: StaticProviderCatalogCategory[] = [
@@ -133,6 +141,7 @@ export const STATIC_PROVIDER_CATALOG_RESOLUTION_ORDER: StaticProviderCatalogCate
   "web-cookie",
   "search",
   "audio",
+  "local",
   "upstream-proxy",
   "apikey",
 ];
@@ -142,6 +151,7 @@ const MANAGED_PROVIDER_CONNECTION_CATEGORIES = new Set<StaticProviderCatalogCate
   "web-cookie",
   "search",
   "audio",
+  "local",
 ]);
 
 export function getStaticProviderCatalogGroup(

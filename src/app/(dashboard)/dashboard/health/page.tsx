@@ -894,11 +894,25 @@ export default function HealthPage() {
           };
 
           // Group entries by provider for a cleaner display
-          const entries = Object.entries(rateLimitStatus).map(([key, status]: [string, any]) => ({
-            key,
-            ...parseKey(key),
-            status,
-          }));
+          const learnedLimits = data.learnedLimits || {};
+          const entries = Object.entries(rateLimitStatus).map(([key, status]: [string, any]) => {
+            const parsed = parseKey(key);
+            // learnedLimits values are objects: { limit, remaining, minTime, lastUpdated, provider, connectionId }
+            const learned = learnedLimits[key] || learnedLimits[parsed.providerId] || {};
+            const limit = typeof learned === "number" ? learned : learned.limit || 10;
+            const remaining = typeof learned === "object" ? learned.remaining : undefined;
+            const minTime = typeof learned === "object" ? learned.minTime : undefined;
+            const lastUpdated = typeof learned === "object" ? learned.lastUpdated : undefined;
+            return {
+              key,
+              ...parsed,
+              status,
+              limit,
+              remaining,
+              minTime,
+              lastUpdated,
+            };
+          });
 
           // Sort: active (queued/running > 0) first, then alphabetically
           entries.sort((a, b) => {
@@ -917,26 +931,55 @@ export default function HealthPage() {
                   </span>
                   {t("rateLimitStatus")}
                 </h2>
-                <span className="text-xs text-text-muted">
-                  {entries.length === 1
-                    ? t("activeLimiters", { count: entries.length })
-                    : t("activeLimitersPlural", { count: entries.length })}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-[10px] text-text-muted/60 italic"
+                    title="Limits are dynamically learned from provider HTTP headers (x-ratelimit-*)"
+                  >
+                    ⚡ auto-learned
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {entries.length === 1
+                      ? t("activeLimiters", { count: entries.length })
+                      : t("activeLimitersPlural", { count: entries.length })}
+                  </span>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {entries.map(
-                  ({ key, displayName, providerInfo, connectionId, model, status }: any) => {
+                  ({
+                    key,
+                    displayName,
+                    providerInfo,
+                    connectionId,
+                    model,
+                    status,
+                    limit,
+                    remaining,
+                    minTime,
+                    lastUpdated,
+                  }: any) => {
                     const isActive = (status.queued || 0) + (status.running || 0) > 0;
                     const isQueued = (status.queued || 0) > 0;
+                    const totalActive = (status.running || 0) + (status.queued || 0);
+                    const usagePercent = Math.min(100, (totalActive / limit) * 100);
+
+                    let statusColor = "green";
+                    if (usagePercent >= 90 || isQueued) statusColor = "amber";
+                    if (usagePercent >= 100 && isQueued) statusColor = "red";
+                    if (isActive && usagePercent < 90 && !isQueued) statusColor = "blue";
+
                     return (
                       <div
                         key={key}
                         className={`rounded-lg p-3 border transition-colors ${
-                          isQueued
+                          statusColor === "amber"
                             ? "bg-amber-500/5 border-amber-500/20"
-                            : isActive
-                              ? "bg-blue-500/5 border-blue-500/15"
-                              : "bg-surface/30 border-white/5"
+                            : statusColor === "red"
+                              ? "bg-red-500/5 border-red-500/20"
+                              : statusColor === "blue"
+                                ? "bg-blue-500/5 border-blue-500/15"
+                                : "bg-surface/30 border-white/5"
                         }`}
                         title={key}
                       >
@@ -967,28 +1010,84 @@ export default function HealthPage() {
                           </div>
                           <span
                             className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              isQueued
+                              statusColor === "amber"
                                 ? "bg-amber-500/15 text-amber-400"
-                                : isActive
-                                  ? "bg-blue-500/15 text-blue-400"
-                                  : "bg-green-500/10 text-green-400"
+                                : statusColor === "red"
+                                  ? "bg-red-500/15 text-red-400"
+                                  : statusColor === "blue"
+                                    ? "bg-blue-500/15 text-blue-400"
+                                    : "bg-green-500/10 text-green-400"
                             }`}
                           >
                             {isQueued ? t("queued") : isActive ? tc("active") : t("ok")}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-[11px] text-text-muted">
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">schedule</span>
-                            {t("queuedCount", { count: status.queued || 0 })}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">
-                              play_arrow
+                        <div className="flex items-center justify-between text-[11px] text-text-muted mt-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">
+                                play_arrow
+                              </span>
+                              {t("runningCount", { count: status.running || 0 })} / {limit}
                             </span>
-                            {t("runningCount", { count: status.running || 0 })}
-                          </span>
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">
+                                schedule
+                              </span>
+                              {t("queuedCount", { count: status.queued || 0 })}
+                            </span>
+                          </div>
+                          <span className="font-mono text-[10px]">{Math.round(usagePercent)}%</span>
                         </div>
+                        {/* Progress Bar */}
+                        <div className="mt-1.5 h-1.5 w-full bg-surface/50 rounded-full overflow-hidden flex">
+                          <div
+                            className="bg-blue-500 h-full transition-all"
+                            style={{
+                              width: `${Math.min(100, ((status.running || 0) / limit) * 100)}%`,
+                            }}
+                          />
+                          <div
+                            className="bg-amber-500 h-full transition-all opacity-80"
+                            style={{
+                              width: `${Math.min(100, ((status.queued || 0) / limit) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                        {/* Learned limit details */}
+                        {(remaining !== undefined ||
+                          minTime !== undefined ||
+                          lastUpdated !== undefined) && (
+                          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-[10px] text-text-muted/70 mt-2">
+                            {remaining !== undefined && (
+                              <span className="flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[11px]">
+                                  data_usage
+                                </span>
+                                {remaining} / {limit} RPM
+                              </span>
+                            )}
+                            {minTime !== undefined && minTime > 0 && (
+                              <span className="flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[11px]">speed</span>
+                                {minTime}ms/req
+                              </span>
+                            )}
+                            {lastUpdated && (
+                              <span className="flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[11px]">
+                                  update
+                                </span>
+                                {(() => {
+                                  const ago = Math.round((Date.now() - lastUpdated) / 1000);
+                                  if (ago < 60) return `${ago}s ago`;
+                                  if (ago < 3600) return `${Math.floor(ago / 60)}m ago`;
+                                  return `${Math.floor(ago / 3600)}h ago`;
+                                })()}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   }

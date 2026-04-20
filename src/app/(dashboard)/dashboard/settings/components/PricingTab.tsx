@@ -23,7 +23,10 @@ export default function PricingTab() {
   const [expandedProviders, setExpandedProviders] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [editedProviders, setEditedProviders] = useState(new Set());
+  const [syncStatus, setSyncStatus] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const t = useTranslations("settings");
+  const tc = useTranslations("costs");
 
   // Load catalog + pricing
   useEffect(() => {
@@ -33,16 +36,37 @@ export default function PricingTab() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [catalogRes, pricingRes] = await Promise.all([
+      const [catalogRes, pricingRes, syncRes] = await Promise.all([
         fetch("/api/pricing/models"),
         fetch("/api/pricing"),
+        fetch("/api/pricing/sync"),
       ]);
       if (catalogRes.ok) setCatalog(await catalogRes.json());
       if (pricingRes.ok) setPricingData(await pricingRes.json());
+      if (syncRes.ok) setSyncStatus(await syncRes.json());
     } catch (error) {
       console.error("Failed to load pricing data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/pricing/sync", { method: "POST" });
+      if (res.ok) {
+        await loadData();
+        setSaveStatus(`✅ ${tc("syncPricing")} OK`);
+        setTimeout(() => setSaveStatus(""), 3000);
+      } else {
+        const err = await res.json();
+        setSaveStatus(`❌ Sync failed: ${err.error || "Unknown error"}`);
+      }
+    } catch (e: any) {
+      setSaveStatus(`❌ Sync failed: ${e.message}`);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -191,8 +215,31 @@ export default function PricingTab() {
       {/* Header + Stats */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold">{t("modelPricing")}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold">{t("modelPricing")}</h2>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <span
+                className={`material-symbols-outlined text-sm ${isSyncing ? "animate-spin" : ""}`}
+              >
+                sync
+              </span>
+              {isSyncing ? tc("syncing") : tc("syncPricing")}
+            </button>
+          </div>
           <p className="text-text-muted text-sm mt-1">{t("modelPricingDesc")}</p>
+          {syncStatus && (
+            <p className="text-xs text-text-muted mt-1">
+              {tc("lastSynced")}:{" "}
+              {syncStatus.lastSynced
+                ? new Date(syncStatus.lastSynced).toLocaleString()
+                : tc("neverSynced")}{" "}
+              • {syncStatus.modelsSynced || 0} {tc("modelsSynced")}
+            </p>
+          )}
         </div>
         <div className="flex gap-3 text-sm">
           <div className="bg-bg-subtle rounded-lg px-3 py-2 text-center">

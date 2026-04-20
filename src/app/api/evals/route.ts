@@ -2,17 +2,18 @@ import { NextResponse } from "next/server";
 import { listSuites, runSuite } from "@/lib/evals/evalRunner";
 import { evalRunSuiteSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { evalsDb } from "@/lib/localDb";
 
 export async function GET() {
   try {
     const suites = listSuites();
     return NextResponse.json(suites);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -33,10 +34,26 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { suiteId, outputs } = validation.data;
+    const { suiteId, outputs, targetId = "unknown", targetType = "model" } = validation.data;
     const result = runSuite(suiteId, outputs);
-    return NextResponse.json(result);
-  } catch (error) {
+
+    let avgLatency = 0;
+    if (result.results && result.results.length > 0) {
+      const totalLat = result.results.reduce((sum, r: any) => sum + (r.durationMs || 0), 0);
+      avgLatency = Math.round(totalLat / result.results.length);
+    }
+
+    const runId = evalsDb.saveEvalResult(
+      suiteId,
+      targetId,
+      targetType as any,
+      result.summary.passRate,
+      avgLatency,
+      result
+    );
+
+    return NextResponse.json({ ...result, runId });
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

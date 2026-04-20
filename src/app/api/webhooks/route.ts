@@ -14,6 +14,7 @@ const createWebhookSchema = z.object({
   events: z.array(z.string()).optional().default(["*"]),
   secret: z.string().max(500).optional(),
   description: z.string().max(1000).optional().default(""),
+  payloadTemplate: z.string().max(5000).optional(),
 });
 
 export async function GET() {
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       events: data.events,
       secret: data.secret,
       description: data.description,
+      payload_template: data.payloadTemplate,
     });
 
     return NextResponse.json({ webhook }, { status: 201 });

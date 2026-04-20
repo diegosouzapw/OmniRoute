@@ -125,6 +125,8 @@
     "builder-id": "ID do construtor",
     "musicDesc": "Descrição da música",
     "musicGeneration": "Geração Musical",
+    "videoGeneration": "Geração de Vídeo",
+    "videoDesc": "Gere vídeos via ComfyUI, Stable Diffusion WebUI e provedores compatíveis",
     "idc": "CDI",
     "cloud-status-changed": "Status da nuvem alterado",
     "where_used": "Onde usado",

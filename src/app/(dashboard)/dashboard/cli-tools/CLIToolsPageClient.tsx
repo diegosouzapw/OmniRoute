@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardSkeleton } from "@/shared/components";
+import { Card, CardSkeleton, SegmentedControl } from "@/shared/components";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
 import {
   PROVIDER_MODELS,
@@ -18,6 +18,7 @@ import {
   DefaultToolCard,
   AntigravityToolCard,
   CopilotToolCard,
+  CustomCliCard,
 } from "./components";
 import { useTranslations } from "next-intl";
 
@@ -34,6 +35,13 @@ export default function CLIToolsPageClient({ machineId }) {
   const [toolStatuses, setToolStatuses] = useState({});
   const [statusesLoaded, setStatusesLoaded] = useState(false);
   const [dynamicModels, setDynamicModels] = useState([]);
+  const [activeTab, setActiveTab] = useState("auto");
+
+  const TAB_MAPPINGS = {
+    auto: ["claude", "codex", "copilot", "opencode", "qwen", "kiro"],
+    guided: ["cursor", "windsurf", "cline", "kilo", "continue", "droid", "openclaw"],
+    mitm: ["antigravity", "amp"],
+  };
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
       try {
@@ -391,39 +399,66 @@ export default function CLIToolsPageClient({ machineId }) {
         </Card>
       )}
 
+      <div className="w-full flex justify-start border-b border-border mb-4">
+        <SegmentedControl
+          options={[
+            { value: "auto", label: "Auto-Configured" },
+            { value: "guided", label: "Guided Setup" },
+            { value: "mitm", label: "MITM Proxies" },
+            { value: "custom", label: "Custom / Any" },
+          ]}
+          value={activeTab}
+          onChange={(val) => setActiveTab(val as any)}
+        />
+      </div>
+
       <div className="flex flex-col gap-4">
-        {Object.entries(CLI_TOOLS).map(([toolId, tool]) => {
-          const docsHref = getToolDocsHref(toolId, tool);
-          const isExternalDocs = /^https?:\/\//i.test(docsHref);
-          return (
-            <div key={toolId} className="flex flex-col gap-2.5">
-              {renderToolCard(toolId, tool)}
-              <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2.5">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                      {t("whenToUseLabel")}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1 break-words">
-                      {getToolUseCase(toolId, tool)}
-                    </p>
+        {Object.entries(CLI_TOOLS)
+          .filter(([toolId]) => {
+            if (activeTab === "custom") return false;
+            const list = TAB_MAPPINGS[activeTab] || [];
+            return list.includes(toolId);
+          })
+          .map(([toolId, tool]) => {
+            const docsHref = getToolDocsHref(toolId, tool);
+            const isExternalDocs = /^https?:\/\//i.test(docsHref);
+            return (
+              <div key={toolId} className="flex flex-col gap-2.5">
+                {renderToolCard(toolId, tool)}
+                <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2.5">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                        {t("whenToUseLabel")}
+                      </p>
+                      <p className="text-xs text-text-muted mt-1 break-words">
+                        {getToolUseCase(toolId, tool)}
+                      </p>
+                    </div>
+                    <a
+                      href={docsHref}
+                      target={isExternalDocs ? "_blank" : undefined}
+                      rel={isExternalDocs ? "noopener noreferrer" : undefined}
+                      className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                        menu_book
+                      </span>
+                      {t("openToolDocs")}
+                    </a>
                   </div>
-                  <a
-                    href={docsHref}
-                    target={isExternalDocs ? "_blank" : undefined}
-                    rel={isExternalDocs ? "noopener noreferrer" : undefined}
-                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
-                  >
-                    <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
-                      menu_book
-                    </span>
-                    {t("openToolDocs")}
-                  </a>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+
+        {activeTab === "custom" && (
+          <CustomCliCard
+            availableModels={availableModels}
+            baseUrl={getBaseUrl()}
+            apiKeys={apiKeys}
+          />
+        )}
       </div>
     </div>
   );

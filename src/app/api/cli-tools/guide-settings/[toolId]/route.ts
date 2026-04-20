@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
@@ -15,7 +15,7 @@ import { resolveApiKey } from "@/shared/services/apiKeyResolver";
  * Save configuration for guide-based tools that have config files.
  * Currently supports: continue, opencode
  */
-export async function POST(request, { params }) {
+export async function POST(request: NextRequest, { params }: { params: any }) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -66,7 +66,15 @@ export async function POST(request, { params }) {
  * Save Continue config to ~/.continue/config.json
  * Merges with existing config if present.
  */
-async function saveContinueConfig({ baseUrl, apiKey, model }) {
+async function saveContinueConfig({
+  baseUrl,
+  apiKey,
+  model,
+}: {
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}) {
   const { apiPort } = getRuntimePorts();
   const configPath = path.join(os.homedir(), ".continue", "config.json");
   const configDir = path.dirname(configPath);
@@ -108,7 +116,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 
   // Check if OmniRoute entry already exists and update it, or add new
   const existingIdx = models.findIndex(
-    (m) =>
+    (m: any) =>
       m &&
       (m.omnirouteManaged === true ||
         normalizeApiBase(m.apiBase) === normalizedBaseUrl.toLowerCase() ||
@@ -145,7 +153,15 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
-async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
+async function saveOpenCodeConfig({
+  baseUrl,
+  apiKey,
+  model,
+}: {
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}) {
   const configPath = getOpenCodeConfigPath();
   const configDir = path.dirname(configPath);
 
@@ -187,7 +203,15 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
  * not hardcoded in settings.json modelProviders entries.
  * Writes openai, anthropic, and gemini providers pointing to OmniRoute.
  */
-async function saveQwenConfig({ baseUrl, apiKey, model }) {
+async function saveQwenConfig({
+  baseUrl,
+  apiKey,
+  model,
+}: {
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}) {
   const home = os.homedir();
   const configPath = path.join(home, ".qwen", "settings.json");
   const envPath = path.join(home, ".qwen", ".env");
