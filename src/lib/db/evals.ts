@@ -43,3 +43,17 @@ export function getEvalHistory(suiteId: string) {
   `);
   return stmt.all(suiteId).map(rowToCamel);
 }
+
+export function getEvalRunsByIds(ids: string[]) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return [];
+  }
+
+  const db = getDbInstance();
+  const placeholders = ids.map(() => "?").join(", ");
+  const stmt = db.prepare(`SELECT * FROM eval_results WHERE id IN (${placeholders})`);
+  const rows = stmt.all(...ids).map(rowToCamel) as Record<string, any>[];
+  const rowById = new Map(rows.map((row) => [String(row.id), row]));
+
+  return ids.map((id) => rowById.get(id)).filter(Boolean);
+}

@@ -45,7 +45,8 @@ export default function CLIToolsPageClient({ machineId }) {
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
       try {
-        return t(key, values);
+        const translated = t(key, values);
+        return translated === key || translated === `cliTools.${key}` ? fallback : translated;
       } catch {
         return fallback;
       }
@@ -402,10 +403,10 @@ export default function CLIToolsPageClient({ machineId }) {
       <div className="w-full flex justify-start border-b border-border mb-4">
         <SegmentedControl
           options={[
-            { value: "auto", label: "Auto-Configured" },
-            { value: "guided", label: "Guided Setup" },
-            { value: "mitm", label: "MITM Proxies" },
-            { value: "custom", label: "Custom / Any" },
+            { value: "auto", label: t("tabAutoConfigured") },
+            { value: "guided", label: t("tabGuidedSetup") },
+            { value: "mitm", label: t("tabMitmProxies") },
+            { value: "custom", label: t("tabCustomAny") },
           ]}
           value={activeTab}
           onChange={(val) => setActiveTab(val as any)}

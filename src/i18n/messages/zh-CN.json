@@ -649,7 +649,9 @@
       "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
       "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。",
-      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。"
+      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "带 MITM 的 Google Antigravity IDE",
@@ -665,7 +667,9 @@
       "kiro": "Amazon Kiro - AI 驱动 IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -789,7 +793,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "组合",
@@ -1206,7 +1221,6 @@
     "builderProviderFirst": "请先选择提供商",
     "builderAccount": "账户",
     "builderPreview": "预览",
-    "builderAddStep": "添加步骤",
     "builderComboRef": "组合引用",
     "builderAddComboRef": "添加组合引用",
     "builderComboRefStep": "添加组合引用步骤",
@@ -1239,7 +1253,35 @@
     "breakdown": "成本明细",
     "noData": "无成本数据",
     "byModel": "按模型",
-    "byProvider": "按提供商"
+    "byProvider": "按提供商",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "API 端点",
@@ -1990,7 +2032,27 @@
     "imagesGenerations": "Images Generations",
     "audioSpeech": "Audio Speech",
     "audioTranscriptions": "Audio Transcriptions",
-    "embeddings": "Embeddings"
+    "embeddings": "Embeddings",
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "设置",
@@ -2588,7 +2650,9 @@
       "multi-turn": "多圈",
       "thinking": "思考",
       "system-prompt": "系统提示",
-      "streaming": "流媒体"
+      "streaming": "流媒体",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "基本短信",
@@ -2596,7 +2660,9 @@
       "multi-turn": "与历史对话",
       "thinking": "扩展思维/推理",
       "system-prompt": "复杂系统指令",
-      "streaming": "SSE 流请求"
+      "streaming": "SSE 流请求",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2623,6 +2689,12 @@
       },
       "streaming": {
         "prompt": "给我讲一个关于机器人学习绘画的小故事。"
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "OpenAI 兼容",
@@ -2663,7 +2735,12 @@
     "requestFailed": "请求失败",
     "noTextExtracted": "（未提取文字）",
     "liveMonitorDescriptionPrefix": "这里会显示 API 调用流经 OmniRoute 时产生的翻译事件。事件来自内存缓冲区（重启后会重置）。使用",
-    "liveMonitorDescriptionSuffix": "，或外部 API 调用来生成事件。"
+    "liveMonitorDescriptionSuffix": "，或外部 API 调用来生成事件。",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "用量",
@@ -3150,7 +3227,30 @@
     "troubleshootingCodexFamily": "对于 GitHub Codex 系列模型，请保持模型名为 `gh/codex-model`；路由器会自动选择 `/responses`。",
     "troubleshootingTestConnection": "在从 IDE 或外部客户端进行测试之前，请使用仪表板 > 提供商 > 测试连接。",
     "troubleshootingCircuitBreaker": "如果提供商显示断路器已打开，请等待冷却或查看运行状况页面以了解详细信息。",
-    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。"
+    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "隐私政策",
@@ -3241,7 +3341,9 @@
     "setupGuideCustomAgentTitle": "注册自定义可执行文件",
     "setupGuideCustomAgentDesc": "如果你的 CLI 不在内置列表中，请使用“添加自定义智能体”，并填写可执行文件名与版本命令。",
     "setupGuideCommandMissingTitle": "修复“command not found”",
-    "setupGuideCommandMissingDesc": "请确认 CLI 命令已存在于 PATH 中，重新打开一个终端会话后再次点击“刷新”。"
+    "setupGuideCommandMissingDesc": "请确认 CLI 命令已存在于 PATH 中，重新打开一个终端会话后再次点击“刷新”。",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools."
   },
   "templateNames": {
     "simple-chat": "简单对话",

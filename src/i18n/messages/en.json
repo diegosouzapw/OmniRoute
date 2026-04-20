@@ -795,7 +795,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "Combos",
@@ -1170,7 +1181,14 @@
     "lastSynced": "Last synced",
     "modelsSynced": "models synced",
     "syncing": "Syncing...",
-    "neverSynced": "Never synced"
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "API Endpoint",
@@ -1985,7 +2003,17 @@
     "statusBanned": "Banned / Sandbox Violation",
     "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted",
     "showEmails": "Show all emails",
-    "hideEmails": "Hide all emails"
+    "hideEmails": "Hide all emails",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "Settings",

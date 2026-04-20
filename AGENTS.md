@@ -305,10 +305,12 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 29 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
-**Core tools** (22): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
+**Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
 set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
+best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
+
+**Cache tools** (2): cache_stats, cache_flush.
 
 **Memory tools** (3): memory_search, memory_add, memory_clear.
 
@@ -383,6 +385,18 @@ MITM proxy capability with certificate management, DNS handling, and target rout
 ### Middleware (`src/middleware/`)
 
 Request middleware including `promptInjectionGuard.ts`.
+
+### Observability & Security
+
+#### Security Interception (`open-sse/handlers/chatCore.ts`)
+
+- **`detectStreamWarnings()`**: Integrated into the `onStreamComplete` lifecycle. Scans the final accumulated response body for security markers (e.g., `[SANITIZER]`, `[FILTER]`, `[CONTENT_BLOCKED]`).
+- **Audit Integration**: Detections trigger high-priority `provider.warning` audit events, providing real-time observability into upstream provider-side safety filters.
+
+#### Dashboard Observability (`src/app/(dashboard)/dashboard/`)
+
+- **Audit Logs Modal**: Full metadata grid (Request ID, IP, Actor, Target) with a recursive JSON viewer for complex audit payloads.
+- **Enhanced Health Metrics**: Decomposes `LearnedLimitEntry` objects to render rich rate-limit cards with RPM capacity, throttle windows, and data freshness telemetry.
 
 ### Adding a New Provider
 

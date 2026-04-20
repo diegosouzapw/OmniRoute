@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getWebhook, updateWebhookRecord, deleteWebhook } from "@/lib/localDb";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const updateWebhookSchema = z
@@ -21,14 +22,24 @@ const updateWebhookSchema = z
   })
   .passthrough();
 
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+function maskWebhookSecret<T extends { secret?: string | null }>(webhook: T) {
+  return {
+    ...webhook,
+    secret: webhook.secret ? `${webhook.secret.slice(0, 10)}...` : null,
+  };
+}
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const webhook = getWebhook(id);
     if (!webhook) {
       return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
     }
-    return NextResponse.json({ webhook });
+    return NextResponse.json({ webhook: maskWebhookSecret(webhook) });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -36,6 +47,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const rawBody = await request.json();
     const validation = validateBody(updateWebhookSchema, rawBody);
@@ -59,6 +73,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authError = await requireManagementAuth(_);
+    if (authError) return authError;
+
     const { id } = await params;
     const deleted = deleteWebhook(id);
     if (!deleted) {

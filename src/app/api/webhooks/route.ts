@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getWebhooks, createWebhook } from "@/lib/localDb";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const createWebhookSchema = z.object({
@@ -17,14 +18,20 @@ const createWebhookSchema = z.object({
   payloadTemplate: z.string().max(5000).optional(),
 });
 
-export async function GET() {
+function maskWebhookSecret<T extends { secret?: string | null }>(webhook: T) {
+  return {
+    ...webhook,
+    secret: webhook.secret ? `${webhook.secret.slice(0, 10)}...` : null,
+  };
+}
+
+export async function GET(request: Request) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const webhooks = getWebhooks();
-    // Mask secrets in listing
-    const masked = webhooks.map((w) => ({
-      ...w,
-      secret: w.secret ? `${w.secret.slice(0, 10)}...` : null,
-    }));
+    const masked = webhooks.map(maskWebhookSecret);
     return NextResponse.json({ webhooks: masked });
   } catch (error: any) {
     return NextResponse.json(
@@ -36,6 +43,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const rawBody = await request.json();
     const validation = validateBody(createWebhookSchema, rawBody);
     if (isValidationFailure(validation)) {

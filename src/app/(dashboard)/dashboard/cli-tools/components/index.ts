@@ -1,1 +1,1 @@
-export * from "./CustomCliCard";
+export { default as CustomCliCard } from "./CustomCliCard";

@@ -644,7 +644,10 @@
       "kiro": "Sử dụng khi tích hợp Kiro và điều khiển định tuyến mô hình tập trung từ OmniRoute.",
       "antigravity": "Sử dụng khi lưu lượng truy cập AntiGravity/Kiro phải bị chặn thông qua MITM và được định tuyến đến OmniRoute.",
       "copilot": "Sử dụng khi bạn muốn UX kiểu trò chuyện Copilot trong khi thực thi các khóa OmniRoute và quy tắc định tuyến.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "IDE chống trọng lực của Google với MITM",
@@ -660,7 +663,9 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -784,7 +789,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "Combo",
@@ -1143,7 +1159,35 @@
     "breakdown": "Phân tích chi phí",
     "noData": "Không có dữ liệu chi phí",
     "byModel": "Theo mẫu",
-    "byProvider": "Theo nhà cung cấp"
+    "byProvider": "Theo nhà cung cấp",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "Điểm cuối API",
@@ -1891,7 +1935,30 @@
     "selectAllModels": "Select all",
     "imagesGenerations": "Images Generations",
     "showEmails": "Show all emails",
-    "modelsActiveCount": "{active}/{total} active"
+    "modelsActiveCount": "{active}/{total} active",
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "Cài đặt",
@@ -2489,7 +2556,9 @@
       "multi-turn": "Nhiều lượt",
       "thinking": "suy nghĩ",
       "system-prompt": "Lời nhắc hệ thống",
-      "streaming": "Truyền phát"
+      "streaming": "Truyền phát",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Tin nhắn văn bản cơ bản",
@@ -2497,7 +2566,9 @@
       "multi-turn": "Đối thoại với lịch sử",
       "thinking": "Suy nghĩ/lý luận mở rộng",
       "system-prompt": "Hướng dẫn hệ thống phức tạp",
-      "streaming": "Yêu cầu phát trực tuyến SSE"
+      "streaming": "Yêu cầu phát trực tuyến SSE",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2524,6 +2595,12 @@
       },
       "streaming": {
         "prompt": "Kể cho tôi nghe một câu chuyện ngắn về một robot học vẽ."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "Tương thích OpenAI",
@@ -2564,7 +2641,12 @@
     "requestFailed": "Yêu cầu không thành công",
     "noTextExtracted": "(Không trích xuất văn bản)",
     "liveMonitorDescriptionPrefix": "Hiển thị các sự kiện dịch khi lệnh gọi API đi qua OmniRoute. Các sự kiện đến từ bộ đệm trong bộ nhớ (đặt lại khi khởi động lại). sử dụng",
-    "liveMonitorDescriptionSuffix": "hoặc lệnh gọi API bên ngoài để tạo sự kiện."
+    "liveMonitorDescriptionSuffix": "hoặc lệnh gọi API bên ngoài để tạo sự kiện.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Cách sử dụng",
@@ -3051,7 +3133,30 @@
     "troubleshootingCodexFamily": "Đối với các mô hình dòng GitHub Codex, hãy giữ mô hình là gh/codex-model; bộ định tuyến chọn/phản hồi tự động.",
     "troubleshootingTestConnection": "Sử dụng Trang tổng quan > Nhà cung cấp > Kiểm tra kết nối trước khi thử nghiệm từ IDE hoặc ứng dụng khách bên ngoài.",
     "troubleshootingCircuitBreaker": "Nếu nhà cung cấp hiển thị cầu dao đang mở, hãy đợi thời gian hồi chiêu hoặc kiểm tra trang Sức khỏe để biết chi tiết.",
-    "troubleshootingOAuth": "Đối với nhà cung cấp OAuth, hãy xác thực lại nếu mã thông báo hết hạn. Kiểm tra chỉ báo trạng thái thẻ nhà cung cấp."
+    "troubleshootingOAuth": "Đối với nhà cung cấp OAuth, hãy xác thực lại nếu mã thông báo hết hạn. Kiểm tra chỉ báo trạng thái thẻ nhà cung cấp.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Chính sách bảo mật",
@@ -3142,7 +3247,9 @@
     "setupGuideCustomAgentTitle": "Register custom binary",
     "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
     "setupGuideCommandMissingTitle": "Fix 'command not found'",
-    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh.",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools."
   },
   "templateNames": {
     "simple-chat": "Trò chuyện đơn giản",

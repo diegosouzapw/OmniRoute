@@ -646,7 +646,10 @@
       "kiro": "Use ao integrar o Kiro e controlar o roteamento do modelo centralmente no OmniRoute.",
       "antigravity": "Use quando o tráfego Antigravity/Kiro deve ser interceptado através do MITM e roteado para OmniRoute.",
       "copilot": "Use quando desejar UX no estilo de bate-papo do Copilot enquanto impõe chaves OmniRoute e regras de roteamento.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE com MITM",
@@ -662,7 +665,9 @@
       "kiro": "Amazon Kiro — IDE com IA",
       "windsurf": "Windsurf — Editor de Código com IA",
       "copilot": "GitHub Copilot — Assistente de IA",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -786,7 +791,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-configurado",
+    "tabGuidedSetup": "Configuração guiada",
+    "tabMitmProxies": "Proxies MITM",
+    "tabCustomAny": "Customizado / Qualquer",
+    "customCliNameLabel": "Nome do CLI customizado",
+    "customCliNamePlaceholder": "ex.: Meu Agente Interno",
+    "customTargetModelLabel": "Modelo de destino para roteamento",
+    "customApiKeyLabel": "Chave de API OmniRoute (Auth)",
+    "chooseKeyPlaceholder": "-- Escolher chave --",
+    "customSetupHint": "Aponte qualquer CLI, SDK ou script compatível com OpenAI para a base /v1 do OmniRoute. As chamadas de chat passam por /v1/chat/completions.",
+    "customEndpointLabel": "Endpoint de chat completions"
   },
   "combos": {
     "title": "Combos",
@@ -1145,7 +1161,35 @@
     "breakdown": "Detalhamento de Custos",
     "noData": "Sem dados de custo",
     "byModel": "Por Modelo",
-    "byProvider": "Por Provedor"
+    "byProvider": "Por Provedor",
+    "weeklyLimit": "Limite semanal (USD)",
+    "resetTime": "Horário de reset (UTC)",
+    "activePeriodSpend": "Gasto do período ativo",
+    "interval": "Intervalo",
+    "nextReset": "Próximo reset (UTC)",
+    "daily": "Diário",
+    "weekly": "Semanal",
+    "monthly": "Mensal",
+    "weeklyLimitLabel": "Limite semanal",
+    "notConfigured": "Não configurado",
+    "resetInterval": "Intervalo de reset",
+    "overviewTab": "Visão geral",
+    "pricing": "Preços",
+    "syncPricing": "Sincronizar preços",
+    "totalSpendToday": "Gasto total hoje",
+    "totalSpendThisWeek": "Gasto total na semana",
+    "totalSpendThisMonth": "Gasto total no mês",
+    "spendByProvider": "Gasto por provedor",
+    "lastSynced": "Última sincronização",
+    "modelsSynced": "modelos sincronizados",
+    "syncing": "Sincronizando...",
+    "neverSynced": "Nunca sincronizado",
+    "loadingOverviewData": "Carregando visão geral de custos...",
+    "noCostDataAvailable": "Nenhum dado de custo disponível",
+    "amountPlaceholder": "ex.: 25.00",
+    "syncPricingSuccess": "Sincronização de preços concluída",
+    "syncPricingFailed": "Falha na sincronização: {message}",
+    "unknownError": "Erro desconhecido"
   },
   "endpoint": {
     "title": "Endpoint da API",
@@ -1938,14 +1982,37 @@
     "embeddings": "Embeddings",
     "audioSpeech": "Audio Speech",
     "imagesGenerations": "Images Generations",
-    "repairEnv": "Repair env",
-    "repairEnvFailed": "Failed to repair .env",
-    "repairEnvHint": "Restore missing OAuth defaults into .env without overwriting existing values.",
+    "repairEnv": "Reparar env",
+    "repairEnvFailed": "Falha ao reparar o .env",
+    "repairEnvHint": "Restaura padrões OAuth ausentes no .env sem sobrescrever valores existentes.",
     "showEmails": "Show all emails",
-    "repairEnvWorking": "Repairing...",
-    "repairEnvSuccess": "OAuth defaults restored",
+    "repairEnvWorking": "Reparando...",
+    "repairEnvSuccess": "Padrões OAuth restaurados",
     "hideEmails": "Hide all emails",
-    "audioTranscriptions": "Audio Transcriptions"
+    "audioTranscriptions": "Audio Transcriptions",
+    "expirationBannerExpired": "{count} conexão(ões) de provedor expirada(s)",
+    "expirationBannerExpiringSoon": "{count} conexão(ões) de provedor expirando em breve",
+    "expirationBannerExpiredDesc": "Ação imediata necessária. Conexões expiradas falharão permanentemente.",
+    "expirationBannerExpiringSoonDesc": "Revise e renove as conexões prestes a expirar para evitar interrupções.",
+    "zedImporting": "Importando...",
+    "zedImportButton": "Importar do Zed",
+    "zedImportNone": "Nenhuma credencial OAuth compatível encontrada no Zed IDE.",
+    "zedImportTitle": "Importar credenciais do Zed IDE",
+    "zedImportSuccess": "Importadas {count} credenciais do Zed IDE ({providers}).",
+    "zedImportFailed": "Falha ao importar do Zed IDE.",
+    "zedImportNetworkError": "Erro de rede ao tentar importar do Zed.",
+    "webCookieProviders": "Provedores Web / Cookie",
+    "searchProviders": "Provedores de Busca",
+    "audioProviders": "Provedores de Áudio",
+    "localProviders": "Provedores Locais / Self-Hosted",
+    "upstreamProxyProviders": "Provedores de Proxy Upstream",
+    "aggregatorsGateways": "Agregadores / Gateways",
+    "imageProviders": "Geração de Imagem",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Adicionar CC Compatible",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle"
   },
   "settings": {
     "title": "Configurações",
@@ -2543,7 +2610,9 @@
       "multi-turn": "Multiturno",
       "thinking": "Raciocínio",
       "system-prompt": "Prompt de Sistema",
-      "streaming": "Streaming"
+      "streaming": "Streaming",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Mensagem de texto básica",
@@ -2551,7 +2620,9 @@
       "multi-turn": "Conversa com histórico",
       "thinking": "Raciocínio estendido",
       "system-prompt": "Instruções de sistema complexas",
-      "streaming": "Requisição de streaming SSE"
+      "streaming": "Requisição de streaming SSE",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2578,6 +2649,12 @@
       },
       "streaming": {
         "prompt": "Conte uma história curta sobre um robô aprendendo a pintar."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "Compatível com OpenAI",
@@ -2618,7 +2695,12 @@
     "requestFailed": "Falha na requisição",
     "noTextExtracted": "(Nenhum texto extraído)",
     "liveMonitorDescriptionPrefix": "Mostra eventos de tradução conforme chamadas de API passam pelo OmniRoute. Os eventos vêm do buffer em memória (reinicia ao reiniciar o servidor). Use",
-    "liveMonitorDescriptionSuffix": ", ou chamadas de API externas para gerar eventos."
+    "liveMonitorDescriptionSuffix": ", ou chamadas de API externas para gerar eventos.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Uso",
@@ -3105,7 +3187,30 @@
     "troubleshootingCodexFamily": "Para modelos da família GitHub Codex, mantenha o modelo como gh/codex-model; o roteador seleciona /responses automaticamente.",
     "troubleshootingTestConnection": "Use Painel > Provedores > Testar Conexão antes de testar por IDEs ou clientes externos.",
     "troubleshootingCircuitBreaker": "Se um provedor mostrar circuit breaker aberto, aguarde o cooldown ou verifique a página Health para detalhes.",
-    "troubleshootingOAuth": "Para provedores OAuth, autentique novamente se os tokens expirarem. Verifique o indicador de status no card do provedor."
+    "troubleshootingOAuth": "Para provedores OAuth, autentique novamente se os tokens expirarem. Verifique o indicador de status no card do provedor.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Política de Privacidade",
@@ -3196,7 +3301,9 @@
     "setupGuideCustomAgentTitle": "Register custom binary",
     "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
     "setupGuideCommandMissingTitle": "Fix 'command not found'",
-    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh.",
+    "misplacedWarning": "Quer configurar sua IDE ou CLI para falar com o OmniRoute?",
+    "misplacedWarningLink": "Ir para Ferramentas CLI."
   },
   "templateNames": {
     "simple-chat": "Bate-papo simples",

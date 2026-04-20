@@ -289,7 +289,7 @@ export default function BudgetTab() {
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g. 25.00"
+              placeholder={tc("amountPlaceholder")}
               value={form.weeklyLimitUsd}
               onChange={(e) => setForm({ ...form, weeklyLimitUsd: e.target.value })}
             />

@@ -57,14 +57,14 @@ export default function PricingTab() {
       const res = await fetch("/api/pricing/sync", { method: "POST" });
       if (res.ok) {
         await loadData();
-        setSaveStatus(`✅ ${tc("syncPricing")} OK`);
+        setSaveStatus(tc("syncPricingSuccess"));
         setTimeout(() => setSaveStatus(""), 3000);
       } else {
         const err = await res.json();
-        setSaveStatus(`❌ Sync failed: ${err.error || "Unknown error"}`);
+        setSaveStatus(tc("syncPricingFailed", { message: err.error || tc("unknownError") }));
       }
     } catch (e: any) {
-      setSaveStatus(`❌ Sync failed: ${e.message}`);
+      setSaveStatus(tc("syncPricingFailed", { message: e.message || tc("unknownError") }));
     } finally {
       setIsSyncing(false);
     }

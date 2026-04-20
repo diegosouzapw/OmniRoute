@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, Input, Select, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -8,14 +8,45 @@ interface CustomCliCardProps {
   apiKeys: { key: string; name: string }[];
 }
 
-export function CustomCliCard({ availableModels, baseUrl, apiKeys }: CustomCliCardProps) {
+export default function CustomCliCard({ availableModels, baseUrl, apiKeys }: CustomCliCardProps) {
   const t = useTranslations("cliTools");
+  const [customName, setCustomName] = useState("");
   const [selectedModel, setSelectedModel] = useState(availableModels[0]?.value || "");
   const [selectedKey, setSelectedKey] = useState(apiKeys[0]?.key || "");
+  const resolvedSelectedModel = useMemo(() => {
+    if (selectedModel && availableModels.some((model) => model.value === selectedModel)) {
+      return selectedModel;
+    }
 
-  const codeSnippet = `export OPENAI_BASE_URL="${baseUrl}/v1"
-export OPENAI_API_KEY="${selectedKey || "YOUR_OMNIROUTE_KEY"}"
-export OPENAI_MODEL_NAME="${selectedModel || "gpt-4o"}"`;
+    return availableModels[0]?.value || "";
+  }, [availableModels, selectedModel]);
+  const resolvedSelectedKey = useMemo(() => {
+    if (selectedKey && apiKeys.some((key) => key.key === selectedKey)) {
+      return selectedKey;
+    }
+
+    return apiKeys[0]?.key || "";
+  }, [apiKeys, selectedKey]);
+
+  const baseUrlWithApi = `${baseUrl}/v1`;
+  const chatCompletionsEndpoint = `${baseUrlWithApi}/chat/completions`;
+  const displayName = customName.trim() || t("custom");
+  const codeSnippet = useMemo(
+    () => `# ${displayName}
+export OPENAI_BASE_URL="${baseUrlWithApi}"
+export OPENAI_API_KEY="${resolvedSelectedKey || "YOUR_OMNIROUTE_KEY"}"
+export OPENAI_MODEL_NAME="${resolvedSelectedModel || "gpt-4o"}"
+
+# ${t("customEndpointLabel")}: ${chatCompletionsEndpoint}`,
+    [
+      baseUrlWithApi,
+      chatCompletionsEndpoint,
+      displayName,
+      resolvedSelectedKey,
+      resolvedSelectedModel,
+      t,
+    ]
+  );
 
   return (
     <Card className="p-6 flex flex-col gap-4 border-dashed border-2 border-primary/40">
@@ -27,10 +58,23 @@ export OPENAI_MODEL_NAME="${selectedModel || "gpt-4o"}"`;
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="rounded-xl border border-border/40 bg-surface/20 p-4 text-sm text-text-muted">
+        <p>{t("customSetupHint")}</p>
+        <p className="mt-2 font-mono text-xs text-primary/80">
+          {t("customEndpointLabel")}: {chatCompletionsEndpoint}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Input
+          label={t("customCliNameLabel")}
+          placeholder={t("customCliNamePlaceholder")}
+          value={customName}
+          onChange={(e) => setCustomName(e.target.value)}
+        />
         <div>
-          <label className="text-xs text-text-muted">Target Model to Route To</label>
-          <Select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+          <label className="text-xs text-text-muted">{t("customTargetModelLabel")}</label>
+          <Select value={resolvedSelectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
             {availableModels.map((m) => (
               <option key={m.value} value={m.value}>
                 {m.label}
@@ -39,9 +83,9 @@ export OPENAI_MODEL_NAME="${selectedModel || "gpt-4o"}"`;
           </Select>
         </div>
         <div>
-          <label className="text-xs text-text-muted">OmniRoute API Key (Auth)</label>
-          <Select value={selectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
-            <option value="">-- Choose Key --</option>
+          <label className="text-xs text-text-muted">{t("customApiKeyLabel")}</label>
+          <Select value={resolvedSelectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
+            <option value="">{t("chooseKeyPlaceholder")}</option>
             {apiKeys.map((k) => (
               <option key={k.key} value={k.key}>
                 {k.name}
@@ -58,7 +102,7 @@ export OPENAI_MODEL_NAME="${selectedModel || "gpt-4o"}"`;
             variant="secondary"
             onClick={() => navigator.clipboard.writeText(codeSnippet)}
           >
-            Copy
+            {t("copy")}
           </Button>
         </div>
         <pre className="text-sm text-green-400 overflow-x-auto font-mono">{codeSnippet}</pre>

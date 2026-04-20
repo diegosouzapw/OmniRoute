@@ -65,8 +65,6 @@ const AGGREGATOR_PROVIDER_IDS = new Set([
   "vercel-ai-gateway",
 ]);
 
-const CC_COMPATIBLE_LABEL = "CC Compatible";
-const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
@@ -224,7 +222,10 @@ export default function ProvidersPage() {
       if (res.ok && data.success) {
         if (data.count > 0) {
           notify.success(
-            `Imported ${data.count} credentials from Zed IDE (${data.providers.join(", ")}).`
+            t("zedImportSuccess", {
+              count: data.count,
+              providers: data.providers.join(", "),
+            })
           );
           // Refresh connections silently
           const connectionsRes = await fetch("/api/providers");
@@ -234,10 +235,10 @@ export default function ProvidersPage() {
           notify.info(t("zedImportNone"));
         }
       } else {
-        notify.error(data.error || "Failed to import from Zed IDE.");
+        notify.error(data.error || t("zedImportFailed"));
       }
     } catch (error) {
-      notify.error("Network error while trying to import from Zed.");
+      notify.error(t("zedImportNetworkError"));
     } finally {
       setImportingZed(false);
     }
@@ -416,7 +417,7 @@ export default function ProvidersPage() {
     )
     .map((node) => ({
       id: node.id,
-      name: node.name || CC_COMPATIBLE_LABEL,
+      name: node.name || t("ccCompatibleLabel"),
       color: "#B45309",
       textIcon: "CC",
     }));
@@ -562,7 +563,7 @@ export default function ProvidersPage() {
               onClick={handleZedImport}
               disabled={importingZed}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
-              title="Import credentials from Zed IDE"
+              title={t("zedImportTitle")}
             >
               <span
                 className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
@@ -669,7 +670,7 @@ export default function ProvidersPage() {
         {aggregatorEntries.length > 0 && (
           <>
             <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
-              {t("aggregatorsGateways") || "Aggregators / Gateways"}
+              {t("aggregatorsGateways")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {aggregatorEntries.map(
@@ -692,7 +693,7 @@ export default function ProvidersPage() {
         {imageProviderEntries.length > 0 && (
           <>
             <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
-              {t("imageProviders") || "Image Generation"}
+              {t("imageProviders")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {imageProviderEntries.map(
@@ -718,7 +719,10 @@ export default function ProvidersPage() {
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
               {t("webCookieProviders")}{" "}
-              <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
+              <span
+                className="size-2.5 rounded-full bg-purple-500"
+                title={t("webCookieProviders")}
+              />
               <ProviderCountBadge {...countConfigured(webCookieProviderEntries)} />
             </h2>
             <button
@@ -760,7 +764,7 @@ export default function ProvidersPage() {
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
               {t("searchProviders")}{" "}
-              <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+              <span className="size-2.5 rounded-full bg-teal-500" title={t("searchProviders")} />
               <ProviderCountBadge {...countConfigured(searchProviderEntries)} />
             </h2>
             <button
@@ -802,7 +806,7 @@ export default function ProvidersPage() {
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
               {t("audioProviders")}{" "}
-              <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+              <span className="size-2.5 rounded-full bg-rose-500" title={t("audioProviders")} />
               <ProviderCountBadge {...countConfigured(audioProviderEntries)} />
             </h2>
             <button
@@ -843,8 +847,8 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("localProviders") || "Local / Self-Hosted"}{" "}
-              <span className="size-2.5 rounded-full bg-emerald-500" title="Local" />
+              {t("localProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-emerald-500" title={t("localProviders")} />
               <ProviderCountBadge {...countConfigured(localProviderEntries)} />
             </h2>
             <button
@@ -885,8 +889,11 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("upstreamProxyProviders") || "Upstream Proxy"}{" "}
-              <span className="size-2.5 rounded-full bg-indigo-500" title="Upstream Proxy" />
+              {t("upstreamProxyProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-indigo-500"
+                title={t("upstreamProxyProviders")}
+              />
               <ProviderCountBadge {...countConfigured(upstreamProxyEntries)} />
             </h2>
           </div>
@@ -937,7 +944,7 @@ export default function ProvidersPage() {
             )}
             {ccCompatibleProviderEnabled && (
               <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
-                {ADD_CC_COMPATIBLE_LABEL}
+                {t("addCcCompatible")}
               </Button>
             )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
@@ -1702,6 +1709,7 @@ AddAnthropicCompatibleModal.propTypes = {
 
 function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   const t = useTranslations("providers");
+  const ccCompatibleLabel = t("ccCompatibleLabel");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -1781,13 +1789,13 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title={ADD_CC_COMPATIBLE_LABEL} onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("addCcCompatible")} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
           label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("compatibleProdPlaceholder", { type: CC_COMPATIBLE_LABEL })}
+          placeholder={t("compatibleProdPlaceholder", { type: ccCompatibleLabel })}
           hint={t("nameHint")}
         />
         <Input
@@ -1802,7 +1810,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
           placeholder="https://api.anthropic.com"
-          hint={t("compatibleBaseUrlHint", { type: CC_COMPATIBLE_LABEL })}
+          hint={t("compatibleBaseUrlHint", { type: ccCompatibleLabel })}
         />
         <button
           type="button"

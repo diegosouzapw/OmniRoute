@@ -211,6 +211,70 @@ export function createScorecard(runs: any[]) {
   };
 }
 
+function calculateAverageLatency(run: any, fallback?: number) {
+  if (typeof fallback === "number" && Number.isFinite(fallback)) {
+    return Math.round(fallback);
+  }
+
+  const results = Array.isArray(run?.results) ? run.results : [];
+  if (results.length === 0) {
+    return 0;
+  }
+
+  const totalDuration = results.reduce(
+    (sum: number, result: { durationMs?: number }) =>
+      sum + (typeof result.durationMs === "number" ? result.durationMs : 0),
+    0
+  );
+  return Math.round(totalDuration / results.length);
+}
+
+function getRunMetrics(run: any, fallbackLatency?: number) {
+  return {
+    suiteId: run.suiteId,
+    suiteName: run.suiteName,
+    totalCases: run.summary.total,
+    passedCases: run.summary.passed,
+    failedCases: run.summary.failed,
+    passRate: run.summary.passRate,
+    avgLatency: calculateAverageLatency(run, fallbackLatency),
+  };
+}
+
+/**
+ * Create a side-by-side comparison between two persisted eval runs.
+ */
+export function createComparisonScorecard(
+  runA: any,
+  runB: any,
+  options: { avgLatencyA?: number; avgLatencyB?: number } = {}
+) {
+  const aggregate = createScorecard([runA, runB]);
+  const metricsA = getRunMetrics(runA, options.avgLatencyA);
+  const metricsB = getRunMetrics(runB, options.avgLatencyB);
+
+  const passRateDelta = metricsA.passRate - metricsB.passRate;
+  const latencyDeltaMs = metricsA.avgLatency - metricsB.avgLatency;
+
+  let preferredTarget: "A" | "B" | "tie" = "tie";
+  if (metricsA.passRate !== metricsB.passRate) {
+    preferredTarget = metricsA.passRate > metricsB.passRate ? "A" : "B";
+  } else if (metricsA.avgLatency !== metricsB.avgLatency) {
+    preferredTarget = metricsA.avgLatency < metricsB.avgLatency ? "A" : "B";
+  }
+
+  return {
+    aggregate,
+    runA: metricsA,
+    runB: metricsB,
+    summary: {
+      passRateDelta,
+      latencyDeltaMs,
+      preferredTarget,
+    },
+  };
+}
+
 /**
  * Reset all suites (for testing).
  */

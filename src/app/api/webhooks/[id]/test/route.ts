@@ -5,10 +5,14 @@
 
 import { NextResponse } from "next/server";
 import { getWebhook, recordWebhookDelivery } from "@/lib/localDb";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { deliverWebhook } from "@/lib/webhookDispatcher";
 
-export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const webhook = getWebhook(id);
     if (!webhook) {

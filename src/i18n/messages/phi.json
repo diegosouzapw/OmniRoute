@@ -644,7 +644,10 @@
       "kiro": "Gamitin kapag isinasama ang Kiro at kinokontrol ang pagruruta ng modelo sa gitna mula sa OmniRoute.",
       "antigravity": "Gamitin kapag ang trapiko ng Antigravity/Kiro ay dapat ma-intercept sa MITM at iruta sa OmniRoute.",
       "copilot": "Gamitin kapag gusto mong Copilot chat style UX habang ipinapatupad ang mga OmniRoute key at mga panuntunan sa pagruruta.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE na may MITM",
@@ -660,7 +663,9 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -784,7 +789,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "Mga combo",
@@ -1143,7 +1159,35 @@
     "breakdown": "Pagkakasira ng Gastos",
     "noData": "Walang data ng gastos",
     "byModel": "Sa pamamagitan ng Modelo",
-    "byProvider": "Sa pamamagitan ng Provider"
+    "byProvider": "Sa pamamagitan ng Provider",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "Endpoint ng API",
@@ -1891,7 +1935,30 @@
     "deselectAllModels": "Deselect all",
     "repairEnvWorking": "Repairing...",
     "noModelsMatch": "No models match \"{filter}\"",
-    "repairEnvHint": "Restore missing OAuth defaults into .env without overwriting existing values."
+    "repairEnvHint": "Restore missing OAuth defaults into .env without overwriting existing values.",
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "Mga setting",
@@ -2489,7 +2556,9 @@
       "multi-turn": "Multi-turn",
       "thinking": "Nag-iisip",
       "system-prompt": "System Prompt",
-      "streaming": "Streaming"
+      "streaming": "Streaming",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Pangunahing text message",
@@ -2497,7 +2566,9 @@
       "multi-turn": "Pag-uusap sa kasaysayan",
       "thinking": "Pinalawak na pag-iisip / pangangatwiran",
       "system-prompt": "Mga kumplikadong tagubilin sa system",
-      "streaming": "kahilingan sa streaming ng SSE"
+      "streaming": "kahilingan sa streaming ng SSE",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2524,6 +2595,12 @@
       },
       "streaming": {
         "prompt": "Sabihin sa akin ang isang maikling kuwento tungkol sa isang robot na natutong magpinta."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "OpenAI Compatible",
@@ -2564,7 +2641,12 @@
     "requestFailed": "Nabigo ang kahilingan",
     "noTextExtracted": "(Walang na-extract na text)",
     "liveMonitorDescriptionPrefix": "Nagpapakita ng mga kaganapan sa pagsasalin habang dumadaloy ang mga tawag sa API sa pamamagitan ng OmniRoute. Ang mga kaganapan ay nagmumula sa in-memory na buffer (nagre-reset sa pag-restart). Gamitin",
-    "liveMonitorDescriptionSuffix": ", o mga external na API call para makabuo ng mga event."
+    "liveMonitorDescriptionSuffix": ", o mga external na API call para makabuo ng mga event.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Paggamit",
@@ -3051,7 +3133,30 @@
     "troubleshootingCodexFamily": "Para sa mga modelo ng pamilya ng GitHub Codex, panatilihing gh/codex-model ang modelo; awtomatikong pinipili /tugon ng router.",
     "troubleshootingTestConnection": "Gamitin ang Dashboard > Mga Provider > Subukan ang Koneksyon bago subukan mula sa mga IDE o external na kliyente.",
     "troubleshootingCircuitBreaker": "Kung ipinapakita ng provider na bukas ang circuit breaker, hintayin ang cooldown o tingnan ang page ng Health para sa mga detalye.",
-    "troubleshootingOAuth": "Para sa mga provider ng OAuth, muling i-authenticate kung mag-e-expire ang mga token. Suriin ang tagapagpahiwatig ng katayuan ng provider card."
+    "troubleshootingOAuth": "Para sa mga provider ng OAuth, muling i-authenticate kung mag-e-expire ang mga token. Suriin ang tagapagpahiwatig ng katayuan ng provider card.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Patakaran sa Privacy",
@@ -3142,7 +3247,9 @@
     "setupGuideCustomAgentTitle": "Register custom binary",
     "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
     "setupGuideCommandMissingTitle": "Fix 'command not found'",
-    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh.",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools."
   },
   "templateNames": {
     "simple-chat": "Simpleng Chat",

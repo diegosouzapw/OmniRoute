@@ -644,7 +644,10 @@
       "kiro": "Használja a Kiro integrálásához és a modell-útválasztás központi vezérléséhez az OmniRoute-ból.",
       "antigravity": "Akkor használja, ha az Antigravity/Kiro forgalmat MITM-en keresztül kell elfogni, és az OmniRoute-hoz kell irányítani.",
       "copilot": "Használja, ha másodpilóta csevegési stílusú UX-et szeretne, miközben betartja az OmniRoute kulcsokat és útválasztási szabályokat.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE MITM-mel",
@@ -660,7 +663,9 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -784,7 +789,18 @@
           }
         }
       }
-    }
+    },
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "Kombók",
@@ -1143,7 +1159,35 @@
     "breakdown": "Költségbontás",
     "noData": "Nincsenek költségadatok",
     "byModel": "Modell szerint",
-    "byProvider": "Szolgáltató által"
+    "byProvider": "Szolgáltató által",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "API végpont",
@@ -1891,7 +1935,30 @@
     "embeddings": "Embeddings",
     "imagesGenerations": "Images Generations",
     "audioTranscriptions": "Audio Transcriptions",
-    "selectAllModels": "Select all"
+    "selectAllModels": "Select all",
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "Beállítások elemre",
@@ -2489,7 +2556,9 @@
       "multi-turn": "Többfordulós",
       "thinking": "Gondolkodás",
       "system-prompt": "Rendszer Prompt",
-      "streaming": "Streaming"
+      "streaming": "Streaming",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Alapvető szöveges üzenet",
@@ -2497,7 +2566,9 @@
       "multi-turn": "Beszélgetés a történelemmel",
       "thinking": "Kiterjesztett gondolkodás / érvelés",
       "system-prompt": "Összetett rendszerutasítások",
-      "streaming": "SSE streaming kérés"
+      "streaming": "SSE streaming kérés",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2524,6 +2595,12 @@
       },
       "streaming": {
         "prompt": "Mesélj egy rövid történetet egy festeni tanuló robotról."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "OpenAI kompatibilis",
@@ -2564,7 +2641,12 @@
     "requestFailed": "A kérés sikertelen",
     "noTextExtracted": "(Nincs kivonatolva szöveg)",
     "liveMonitorDescriptionPrefix": "Megjeleníti a fordítási eseményeket, ahogy az API-hívások az OmniRoute-on keresztül áramlanak. Az események a memóriában lévő pufferből származnak (újraindításkor visszaáll). Használja",
-    "liveMonitorDescriptionSuffix": ", vagy külső API-hívások események generálásához."
+    "liveMonitorDescriptionSuffix": ", vagy külső API-hívások események generálásához.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Használat",
@@ -3051,7 +3133,30 @@
     "troubleshootingCodexFamily": "A GitHub Codex-családhoz tartozó modelleknél tartsa a modellt gh/codex-model; a router automatikusan kiválasztja a /válaszokat.",
     "troubleshootingTestConnection": "Az IDE-kből vagy külső kliensekből történő tesztelés előtt használja az Irányítópult > Szolgáltatók > Kapcsolat tesztelése menüpontot.",
     "troubleshootingCircuitBreaker": "Ha a szolgáltató azt mutatja, hogy az áramkör megszakítója nyitva van, várja meg a lehűlést, vagy nézze meg az Egészség oldalt a részletekért.",
-    "troubleshootingOAuth": "OAuth-szolgáltatók esetén hitelesítse újra, ha a tokenek lejárnak. Ellenőrizze a szolgáltatói kártya állapotjelzőjét."
+    "troubleshootingOAuth": "OAuth-szolgáltatók esetén hitelesítse újra, ha a tokenek lejárnak. Ellenőrizze a szolgáltatói kártya állapotjelzőjét.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Adatvédelmi szabályzat",
@@ -3142,7 +3247,9 @@
     "setupGuideCustomAgentTitle": "Register custom binary",
     "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
     "setupGuideCommandMissingTitle": "Fix 'command not found'",
-    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh.",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools."
   },
   "templateNames": {
     "simple-chat": "Egyszerű csevegés",

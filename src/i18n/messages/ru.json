@@ -644,7 +644,10 @@
       "kiro": "Используйте при интеграции Kiro и централизованном управлении маршрутизацией модели из OmniRoute.",
       "antigravity": "Используйте, когда трафик Антигравитации/Киро необходимо перехватить через MITM и направить в OmniRoute.",
       "copilot": "Используйте его, если вам нужен пользовательский интерфейс в стиле чата Copilot, одновременно обеспечивая соблюдение ключей OmniRoute и правил маршрутизации.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want to route local web apps powered by AMP through OmniRoute for traffic inspection.",
+      "custom": "Use when you need to configure an arbitrary CLI, script, or SDK to point to OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE с MITM",
@@ -660,7 +663,9 @@
       "kiro": "Amazon Kiro - IDE с ИИ",
       "windsurf": "Редактор кода Windsurf с ИИ",
       "copilot": "Ассистент GitHub Copilot с ИИ",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "AMP / Apache Web Server",
+      "custom": "Custom CLI / Any SDK"
     },
     "guides": {
       "cursor": {
@@ -808,7 +813,18 @@
     "guides.windsurf.steps.4.title": "API-ключ",
     "guides.windsurf.steps.4.desc": "Выберите ключ API OmniRoute",
     "guides.windsurf.steps.5.title": "Выберите модель",
-    "guides.windsurf.steps.5.desc": "Выберите модель из выпадающего списка"
+    "guides.windsurf.steps.5.desc": "Выберите модель из выпадающего списка",
+    "tabAutoConfigured": "Auto-Configured",
+    "tabGuidedSetup": "Guided Setup",
+    "tabMitmProxies": "MITM Proxies",
+    "tabCustomAny": "Custom / Any",
+    "customCliNameLabel": "Custom CLI Name",
+    "customCliNamePlaceholder": "e.g. My Internal Agent",
+    "customTargetModelLabel": "Target Model to Route To",
+    "customApiKeyLabel": "OmniRoute API Key (Auth)",
+    "chooseKeyPlaceholder": "-- Choose Key --",
+    "customSetupHint": "Point any OpenAI-compatible CLI, SDK, or script to OmniRoute's /v1 base URL. Chat requests will flow through /v1/chat/completions.",
+    "customEndpointLabel": "Chat completions endpoint"
   },
   "combos": {
     "title": "Комбо",
@@ -1167,7 +1183,35 @@
     "breakdown": "Распределение затрат",
     "noData": "Нет данных о стоимости",
     "byModel": "По модели",
-    "byProvider": "По поставщику"
+    "byProvider": "По поставщику",
+    "weeklyLimit": "Weekly Limit (USD)",
+    "resetTime": "Reset Time (UTC)",
+    "activePeriodSpend": "Active Period Spend",
+    "interval": "Interval",
+    "nextReset": "Next reset (UTC)",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "weeklyLimitLabel": "Weekly limit",
+    "notConfigured": "Not configured",
+    "resetInterval": "Reset Interval",
+    "overviewTab": "Overview",
+    "pricing": "Pricing",
+    "syncPricing": "Sync Pricing",
+    "totalSpendToday": "Total Spend Today",
+    "totalSpendThisMonth": "Total Spend This Month",
+    "spendByProvider": "Spend By Provider",
+    "lastSynced": "Last synced",
+    "modelsSynced": "models synced",
+    "syncing": "Syncing...",
+    "neverSynced": "Never synced",
+    "totalSpendThisWeek": "Total Spend This Week",
+    "loadingOverviewData": "Loading cost overview...",
+    "noCostDataAvailable": "No cost data available",
+    "amountPlaceholder": "e.g. 25.00",
+    "syncPricingSuccess": "Pricing sync completed",
+    "syncPricingFailed": "Sync failed: {message}",
+    "unknownError": "Unknown error"
   },
   "endpoint": {
     "title": "Конечная точка API",
@@ -1915,7 +1959,30 @@
     "noModelsMatch": "No models match \"{filter}\"",
     "modelsActiveCount": "{active}/{total} active",
     "audioTranscriptions": "Audio Transcriptions",
-    "selectAllModels": "Select all"
+    "selectAllModels": "Select all",
+    "expirationBannerExpired": "{count} Provider connection(s) expired",
+    "expirationBannerExpiringSoon": "{count} Provider connection(s) expiring soon",
+    "expirationBannerExpiredDesc": "Immediate action required. Expired connections will permanently fail.",
+    "expirationBannerExpiringSoonDesc": "Please review and renew expiring connections to avoid disruption.",
+    "zedImporting": "Importing...",
+    "zedImportButton": "Import from Zed",
+    "zedImportNone": "No supported OAuth credentials found in Zed IDE.",
+    "webCookieProviders": "Web / Cookie Providers",
+    "searchProviders": "Search Providers",
+    "audioProviders": "Audio Providers",
+    "perModelQuotaLabel": "Per-Model Quota",
+    "perModelQuotaDescription": "When enabled, 429/404 errors only lock the specific model, not the entire connection. Use for providers with per-model rate limits (e.g., ModelScope).",
+    "perModelQuotaToggle": "Per-Model Quota Toggle",
+    "zedImportTitle": "Import credentials from Zed IDE",
+    "zedImportSuccess": "Imported {count} credentials from Zed IDE ({providers}).",
+    "zedImportFailed": "Failed to import from Zed IDE.",
+    "zedImportNetworkError": "Network error while trying to import from Zed.",
+    "localProviders": "Local / Self-Hosted Providers",
+    "upstreamProxyProviders": "Upstream Proxy Providers",
+    "aggregatorsGateways": "Aggregators / Gateways",
+    "imageProviders": "Image Generation",
+    "ccCompatibleLabel": "CC Compatible",
+    "addCcCompatible": "Add CC Compatible"
   },
   "settings": {
     "title": "Настройки",
@@ -2513,7 +2580,9 @@
       "multi-turn": "Многооборотный",
       "thinking": "мышление",
       "system-prompt": "Системная подсказка",
-      "streaming": "Потоковое вещание"
+      "streaming": "Потоковое вещание",
+      "multi-modal": "Multi-Modal",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Основное текстовое сообщение",
@@ -2521,7 +2590,9 @@
       "multi-turn": "Разговор с историей",
       "thinking": "Расширенное мышление/рассуждение",
       "system-prompt": "Сложные системные инструкции",
-      "streaming": "Запрос потоковой передачи SSE"
+      "streaming": "Запрос потоковой передачи SSE",
+      "multi-modal": "Vision and multimodal capabilities",
+      "schema-coercion": "Structured output coercion"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -2548,6 +2619,12 @@
       },
       "streaming": {
         "prompt": "Расскажите мне короткую историю о роботе, который учится рисовать."
+      },
+      "multiModal": {
+        "userPrompt": "What is in this image?"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Extract user details: John Doe, 30 years old, john@example.com"
       }
     },
     "openaiCompatibleLabel": "Совместимость с OpenAI",
@@ -2588,7 +2665,12 @@
     "requestFailed": "Запрос не выполнен",
     "noTextExtracted": "(текст не извлечен)",
     "liveMonitorDescriptionPrefix": "Показывает события перевода, когда вызовы API проходят через OmniRoute. События поступают из буфера в памяти (сбрасывается при перезапуске). Использование",
-    "liveMonitorDescriptionSuffix": "или внешние вызовы API для генерации событий."
+    "liveMonitorDescriptionSuffix": "или внешние вызовы API для генерации событий.",
+    "scenarioMultiModal": "Multi-Modal",
+    "scenarioSchemaCoercion": "Schema Coercion",
+    "comboTarget": "Combo Target",
+    "cacheStatus": "Cache",
+    "reasoningTokens": "Reasoning"
   },
   "usage": {
     "title": "Использование",
@@ -3075,7 +3157,30 @@
     "troubleshootingCodexFamily": "Для моделей семейства GitHub Codex сохраните модель как gh/codex-model; Маршрутизатор выбирает / отвечает автоматически.",
     "troubleshootingTestConnection": "Используйте «Панель мониторинга» > «Поставщики» > «Проверить соединение» перед тестированием из IDE или внешних клиентов.",
     "troubleshootingCircuitBreaker": "Если поставщик услуг показывает, что автоматический выключатель разомкнут, дождитесь охлаждения или посетите страницу «Здоровье» для получения подробной информации.",
-    "troubleshootingOAuth": "Для поставщиков OAuth выполните повторную аутентификацию, если срок действия токенов истечет. Проверьте индикатор состояния карты провайдера."
+    "troubleshootingOAuth": "Для поставщиков OAuth выполните повторную аутентификацию, если срок действия токенов истечет. Проверьте индикатор состояния карты провайдера.",
+    "endpointVideosNote": "Generate AI videos (SD WebUI, ComfyUI, etc)",
+    "endpointMusicNote": "Generate AI music via workflows",
+    "endpointModerationsNote": "Check text for harmful content",
+    "endpointRerankNote": "Rerank documents by relevance",
+    "endpointSearchNote": "Web search via Exa, Brave, Serper, etc",
+    "featureAutoComboTitle": "AutoCombo",
+    "featureAutoComboText": "Dynamic, intention-based model routing via embeddings and zero-shot classification.",
+    "featureSkillsMemoryTitle": "Skills & Memory",
+    "featureSkillsMemoryText": "Persistent vector memory and extensible skill execution sandbox for autonomous agentic logic.",
+    "clientWindsurfTitle": "Windsurf",
+    "clientWindsurfBullet1": "Configure custom API URL pointing to the proxy.",
+    "clientWindsurfBullet2": "Supports deep context integrations and codebase awareness.",
+    "clientClineTitle": "Cline",
+    "clientClineBullet1": "Use OpenAI-compatible adapter in extension settings.",
+    "clientClineBullet2": "Directly supports complex tool calling through the proxy.",
+    "clientKimiTitle": "Kimi Coding",
+    "clientKimiBullet1": "Compatible with the main completions endpoint.",
+    "clientKimiBullet2": "Optimized long-context reasoning with seamless failover.",
+    "protocolAcpTitle": "ACP Protocol",
+    "protocolAcpDesc": "Agent Communication Protocol for cross-agent orchestration.",
+    "protocolAcpStep1": "Enable ACP in the proxy settings.",
+    "protocolAcpStep2": "Agents discover capabilities via registry.",
+    "protocolAcpStep3": "Execute remote skills securely over SSE."
   },
   "legal": {
     "privacyPolicy": "Политика конфиденциальности",
@@ -3166,7 +3271,9 @@
     "setupGuideCustomAgentTitle": "Регистрация пользовательского бинарника",
     "setupGuideCustomAgentDesc": "Используйте «Добавить пользовательский агент», если ваш CLI отсутствует в встроенном списке. Укажите имя бинарника и команду версии.",
     "setupGuideCommandMissingTitle": "Исправить 'command not found'",
-    "setupGuideCommandMissingDesc": "Убедитесь, что команда CLI есть в PATH, откройте новый терминал и снова нажмите «Обновить»."
+    "setupGuideCommandMissingDesc": "Убедитесь, что команда CLI есть в PATH, откройте новый терминал и снова нажмите «Обновить».",
+    "misplacedWarning": "Looking to configure your IDE or CLI to talk to OmniRoute?",
+    "misplacedWarningLink": "Go to CLI Tools."
   },
   "memory": {
     "title": "Память",

@@ -4,10 +4,13 @@
 
 ---
 
-## [3.7.0] — 2026-04-19
+## [3.7.0] — 2026-04-20
 
 ### ✨ New Features
 
+- **feat(logs):** Implement a rich "View Details" modal for the Audit Log dashboard, replacing truncated JSON with a full metadata grid (IP, actor, target) and pretty-printed details.
+- **feat(security):** Wire `detectStreamWarnings()` into the streaming pipeline to detect and log provider-side security warnings (e.g., [SANITIZER], [FILTER]) as audit events in real-time.
+- **feat(dashboard):** Enhance Health Dashboard rate-limit cards to decompose learned limits, displaying remaining capacity, throttle timing, and data freshness timestamps.
 - **feat(providers):** Add ModelScope provider (Chinese AI marketplace) with Kimi K2.5, GLM-5, and Step-3.5-Flash integration. (#1430)
 - **feat(core):** Implement provider-level Circuit Breaker to prevent cascading failures across connections, enforcing a 10-minute cooldown after 5 consecutive transient failures. (#1430)
 - **feat(core):** Add daily quota exhaustion lock to detect "quota exceeded" signals and lock the specific model until midnight. (#1430)
@@ -17,6 +20,10 @@
 
 - **fix(dashboard):** Correct TOML round-trip corruption in Codex config serializer by dequoting keys and preserving array/boolean structures properly. (#1438)
 - **fix(security):** Resolve CodeQL alert 164 (ReDoS in extraction) and 163 (incomplete URL sanitization) (#163, #164)
+
+### 🛠️ Maintenance
+
+- **chore(i18n):** Add missing `viewDetails` and `auditEntryDetails` keys to the logs namespace.
 
 ---
 

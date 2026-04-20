@@ -53,7 +53,8 @@ const STRATEGIES = [
 export default function EvalsTab() {
   const t = useTranslations("usage");
   const [suites, setSuites] = useState([]);
-  const [apiKey, setApiKey] = useState(null);
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
@@ -62,6 +63,7 @@ export default function EvalsTab() {
   const [expanded, setExpanded] = useState(null);
   const [selectedRunsForCompare, setSelectedRunsForCompare] = useState<string[]>([]);
   const [compareResult, setCompareResult] = useState<any>(null);
+  const [compareSuiteId, setCompareSuiteId] = useState<string | null>(null);
   const [suiteHistories, setSuiteHistories] = useState<Record<string, any[]>>({});
   const [evalTargetType, setEvalTargetType] = useState<"model" | "combo">("model");
   const [evalTargetId, setEvalTargetId] = useState<string>("");
@@ -88,8 +90,9 @@ export default function EvalsTab() {
       const res = await fetch("/api/keys");
       if (!res.ok) return;
       const data = await res.json();
-      const firstKey = data?.keys?.[0]?.key || null;
-      setApiKey(firstKey);
+      const keys = data?.keys || [];
+      setApiKeys(keys);
+      setApiKey((prev) => prev || keys[0]?.key || null);
     } catch {
       // silent
     }
@@ -294,6 +297,18 @@ export default function EvalsTab() {
 
       <div className="flex gap-4 items-center bg-surface/20 p-4 rounded-xl border border-border/30 flex-wrap">
         <div className="flex flex-col gap-1 w-48">
+          <label className="text-xs text-text-muted">{t("apiKey")}</label>
+          <Select value={apiKey || ""} onChange={(e: any) => setApiKey(e.target.value || null)}>
+            <option value="">-- {t("apiKey")} --</option>
+            {apiKeys.map((key: any) => (
+              <option key={key.id} value={key.key}>
+                {key.name || key.id}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1 w-48">
           <label className="text-xs text-text-muted">Target Type</label>
           <Select
             value={evalTargetType}
@@ -474,7 +489,8 @@ export default function EvalsTab() {
                       try {
                         const res = await fetch(`/api/evals/${suite.id}/history`);
                         if (res.ok) {
-                          setSuiteHistories((prev) => ({ ...prev, [suite.id]: await res.json() }));
+                          const historyData = await res.json();
+                          setSuiteHistories((prev) => ({ ...prev, [suite.id]: historyData }));
                         }
                       } catch {}
                     }
@@ -720,44 +736,45 @@ export default function EvalsTab() {
                           <div className="mt-8">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="text-sm font-semibold">Previous Runs (DB History)</h4>
-                              {selectedRunsForCompare.length === 2 && (
-                                <Button
-                                  variant="primary"
-                                  size="sm"
-                                  onClick={async () => {
-                                    try {
-                                      const res = await fetch("/api/evals/scorecard", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({
-                                          runIdA: selectedRunsForCompare[0],
-                                          runIdB: selectedRunsForCompare[1],
-                                        }),
-                                      });
-                                      if (res.ok) setCompareResult(await res.json());
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }}
-                                >
-                                  Compare Selected
-                                </Button>
-                              )}
+                              {selectedRunsForCompare.length === 2 &&
+                                compareSuiteId === suite.id && (
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const res = await fetch("/api/evals/scorecard", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            runIdA: selectedRunsForCompare[0],
+                                            runIdB: selectedRunsForCompare[1],
+                                          }),
+                                        });
+                                        if (res.ok) setCompareResult(await res.json());
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }}
+                                  >
+                                    Compare Selected
+                                  </Button>
+                                )}
                             </div>
 
-                            {compareResult && (
+                            {compareResult && compareSuiteId === suite.id && (
                               <div className="grid grid-cols-2 gap-4 mb-6 p-4 border border-border/30 rounded-lg bg-surface/20">
                                 <div>
                                   <h4 className="font-bold text-sky-500 mb-2">
                                     {compareResult.meta.targetA}
                                   </h4>
                                   <p className="text-sm">
-                                    <span className="text-text-muted">Win Rate:</span>{" "}
-                                    {compareResult.scorecard.winRateA}%
+                                    <span className="text-text-muted">Pass Rate:</span>{" "}
+                                    {compareResult.scorecard.runA.passRate}%
                                   </p>
                                   <p className="text-sm">
                                     <span className="text-text-muted">Avg Latency:</span>{" "}
-                                    {compareResult.scorecard.avgLatencyA}ms
+                                    {compareResult.scorecard.runA.avgLatency}ms
                                   </p>
                                 </div>
                                 <div>
@@ -765,12 +782,12 @@ export default function EvalsTab() {
                                     {compareResult.meta.targetB}
                                   </h4>
                                   <p className="text-sm">
-                                    <span className="text-text-muted">Win Rate:</span>{" "}
-                                    {compareResult.scorecard.winRateB}%
+                                    <span className="text-text-muted">Pass Rate:</span>{" "}
+                                    {compareResult.scorecard.runB.passRate}%
                                   </p>
                                   <p className="text-sm">
                                     <span className="text-text-muted">Avg Latency:</span>{" "}
-                                    {compareResult.scorecard.avgLatencyB}ms
+                                    {compareResult.scorecard.runB.avgLatency}ms
                                   </p>
                                 </div>
                               </div>
@@ -794,20 +811,35 @@ export default function EvalsTab() {
                                       checked={selectedRunsForCompare.includes(row.id)}
                                       onChange={(e) => {
                                         if (e.target.checked) {
+                                          if (compareSuiteId && compareSuiteId !== suite.id) {
+                                            setCompareSuiteId(suite.id);
+                                            setSelectedRunsForCompare([row.id]);
+                                            setCompareResult(null);
+                                            return;
+                                          }
+
                                           if (selectedRunsForCompare.length < 2) {
+                                            setCompareSuiteId(suite.id);
                                             setSelectedRunsForCompare([
                                               ...selectedRunsForCompare,
                                               row.id,
                                             ]);
+                                            setCompareResult(null);
                                           }
                                         } else {
-                                          setSelectedRunsForCompare(
-                                            selectedRunsForCompare.filter((id) => id !== row.id)
+                                          const nextSelection = selectedRunsForCompare.filter(
+                                            (id) => id !== row.id
                                           );
+                                          setSelectedRunsForCompare(nextSelection);
+                                          setCompareResult(null);
+                                          if (nextSelection.length === 0) {
+                                            setCompareSuiteId(null);
+                                          }
                                         }
                                       }}
                                       disabled={
                                         !selectedRunsForCompare.includes(row.id) &&
+                                        compareSuiteId === suite.id &&
                                         selectedRunsForCompare.length >= 2
                                       }
                                       className="rounded border-border text-primary focus:ring-primary bg-surface/30"
