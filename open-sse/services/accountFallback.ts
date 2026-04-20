@@ -167,7 +167,7 @@ function buildProviderProfile(
     transientCooldown: connectionCooldown.baseCooldownMs,
     rateLimitCooldown: connectionCooldown.useUpstreamRetryHints
       ? 0
-      : connectionCooldown.rateLimitCooldownMs,
+      : connectionCooldown.baseCooldownMs,
     maxBackoffLevel: connectionCooldown.maxBackoffSteps,
     circuitBreakerThreshold: providerBreaker.failureThreshold,
     circuitBreakerReset: providerBreaker.resetTimeoutMs,
@@ -228,13 +228,6 @@ function getModelLockBaseCooldown(
 ) {
   if (Number.isFinite(fallbackCooldownMs) && fallbackCooldownMs > 0) {
     return fallbackCooldownMs;
-  }
-  if (
-    status === HTTP_STATUS.RATE_LIMITED &&
-    typeof profile?.rateLimitCooldown === "number" &&
-    profile.rateLimitCooldown > 0
-  ) {
-    return profile.rateLimitCooldown;
   }
   if (typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0) {
     return profile.baseCooldownMs;
@@ -884,18 +877,10 @@ export function checkFallbackError(
   }
 
   function getScaledBaseCooldown(reason, level = backoffLevel) {
-    const rateLimitBaseCooldownMs =
-      reason === RateLimitReason.RATE_LIMIT_EXCEEDED &&
-      typeof profile?.rateLimitCooldown === "number" &&
-      profile.rateLimitCooldown > 0
-        ? profile.rateLimitCooldown
-        : null;
     const baseCooldownMs =
-      typeof rateLimitBaseCooldownMs === "number"
-        ? rateLimitBaseCooldownMs
-        : typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
-          ? profile.baseCooldownMs
-          : COOLDOWN_MS.transientInitial;
+      typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
+        ? profile.baseCooldownMs
+        : COOLDOWN_MS.transientInitial;
     return {
       baseCooldownMs,
       cooldownMs: getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),

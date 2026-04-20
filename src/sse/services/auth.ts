@@ -23,6 +23,10 @@ import {
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
+import {
+  classifyProviderError,
+  PROVIDER_ERROR_TYPES,
+} from "@omniroute/open-sse/services/errorClassifier.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
@@ -253,11 +257,26 @@ function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean
 
 function resolveTerminalConnectionStatus(
   status: number,
-  result: { permanent?: boolean; creditsExhausted?: boolean }
+  result: { permanent?: boolean; creditsExhausted?: boolean },
+  providerErrorType: string | null = null
 ): string | null {
   if (result.creditsExhausted || status === 402) return "credits_exhausted";
-  if (result.permanent || status === 403) return "banned";
-  if (status === 401) return "expired";
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR ||
+    providerErrorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN
+  ) {
+    return null;
+  }
+  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN || status === 403) {
+    return "banned";
+  }
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+    providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
+    status === 401
+  ) {
+    return "expired";
+  }
   return null;
 }
 
@@ -1248,7 +1267,8 @@ export async function markAccountUnavailable(
     const result = fallbackResult;
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
-    const terminalStatus = resolveTerminalConnectionStatus(status, result);
+    const providerErrorType = classifyProviderError(status, errorText);
+    const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
     // ── 404 model-only lockout: connection stays active ──
@@ -1320,6 +1340,7 @@ export async function markAccountUnavailable(
 
     const baseUpdate = {
       lastError: errorMsg,
+      lastErrorType: providerErrorType,
       errorCode: status,
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,

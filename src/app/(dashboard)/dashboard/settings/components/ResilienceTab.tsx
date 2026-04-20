@@ -15,7 +15,6 @@ type RequestQueueSettings = {
 
 type ConnectionCooldownProfileSettings = {
   baseCooldownMs: number;
-  rateLimitCooldownMs: number;
   useUpstreamRetryHints: boolean;
   maxBackoffSteps: number;
 };
@@ -350,15 +349,6 @@ function ConnectionCooldownCard({
                 setDraft((prev) => ({ ...prev, [key]: { ...prev[key], baseCooldownMs } }))
               }
             />
-            <NumberField
-              label="Rate-limit fallback"
-              value={current.rateLimitCooldownMs}
-              min={0}
-              suffix="ms"
-              onChange={(rateLimitCooldownMs) =>
-                setDraft((prev) => ({ ...prev, [key]: { ...prev[key], rateLimitCooldownMs } }))
-              }
-            />
             <BooleanField
               label="Use upstream retry hints"
               description="Use upstream retry-after/reset values when they are present."
@@ -384,12 +374,6 @@ function ConnectionCooldownCard({
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">Base cooldown</span>
               <span className="font-mono text-text-main">{formatMs(current.baseCooldownMs)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Rate-limit fallback</span>
-              <span className="font-mono text-text-main">
-                {formatMs(current.rateLimitCooldownMs)}
-              </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">Use upstream retry hints</span>
@@ -437,8 +421,8 @@ function ConnectionCooldownCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Base cooldown handles general transient failures. Rate-limit fallback is only used when a
-        429 arrives without upstream retry-after/reset hints.
+        Base cooldown covers retryable connection failures. When upstream retry hints are enabled,
+        explicit provider wait windows override the local base cooldown.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

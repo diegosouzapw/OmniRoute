@@ -23,8 +23,6 @@ const { handleChat } = await import("../../src/sse/handlers/chat.ts");
 const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
-const { resetAllAvailability, setModelUnavailable } =
-  await import("../../src/domain/modelAvailability.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 
@@ -295,7 +293,6 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   process.env.REQUIRE_API_KEY = "false";
   clearInflight();
-  resetAllAvailability();
   resetAllCircuitBreakers();
   apiKeysDb.resetApiKeyState();
   readCacheDb.invalidateDbCache();
@@ -442,7 +439,6 @@ test.after(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
   globalThis.fetch = originalFetch;
   clearInflight();
-  resetAllAvailability();
   resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -907,33 +903,6 @@ test("chat pipeline returns current no-credentials contract when no provider con
   const json = await response.json();
   assert.equal(response.status, 400);
   assert.match(json.error.message, /No credentials for provider: openai/);
-});
-
-test("chat pipeline ignores legacy model unavailability state and still routes the request", async () => {
-  await seedConnection("openai", { apiKey: "sk-openai-unavailable" });
-  setModelUnavailable("openai", "gpt-4o-mini", 60000, "test cooldown");
-  const fetchCalls = [];
-
-  globalThis.fetch = async (_url, init = {}) => {
-    fetchCalls.push(JSON.parse(String(init.body)));
-    return buildOpenAIResponse("Model lock ignored");
-  };
-
-  const response = await handleChat(
-    buildRequest({
-      body: {
-        model: "openai/gpt-4o-mini",
-        stream: false,
-        messages: [{ role: "user", content: "Provider unavailable" }],
-      },
-    })
-  );
-
-  const json = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].model, "gpt-4o-mini");
-  assert.equal(json.choices[0].message.content, "Model lock ignored");
 });
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {

@@ -43,41 +43,36 @@ function normalizeLegacyPatch(body: JsonRecord): ResilienceSettingsPatch {
   }
 
   if (Object.keys(oauth).length > 0 || Object.keys(apikey).length > 0) {
+    const buildLegacyCooldownPatch = (profile: JsonRecord) => {
+      const cooldownCandidates = [
+        typeof profile.transientCooldown === "number" ? profile.transientCooldown : null,
+        typeof profile.rateLimitCooldown === "number" && profile.rateLimitCooldown > 0
+          ? profile.rateLimitCooldown
+          : null,
+      ].filter((value): value is number => typeof value === "number");
+
+      return {
+        ...(cooldownCandidates.length > 0
+          ? { baseCooldownMs: Math.max(...cooldownCandidates) }
+          : {}),
+        ...(typeof profile.rateLimitCooldown === "number"
+          ? { useUpstreamRetryHints: profile.rateLimitCooldown === 0 }
+          : {}),
+        ...(typeof profile.maxBackoffLevel === "number"
+          ? { maxBackoffSteps: profile.maxBackoffLevel }
+          : {}),
+      };
+    };
+
     patch.connectionCooldown = {
       ...(Object.keys(oauth).length > 0
         ? {
-            oauth: {
-              ...(typeof oauth.transientCooldown === "number"
-                ? { baseCooldownMs: oauth.transientCooldown }
-                : {}),
-              ...(typeof oauth.rateLimitCooldown === "number"
-                ? { rateLimitCooldownMs: oauth.rateLimitCooldown }
-                : {}),
-              ...(typeof oauth.rateLimitCooldown === "number"
-                ? { useUpstreamRetryHints: oauth.rateLimitCooldown === 0 }
-                : {}),
-              ...(typeof oauth.maxBackoffLevel === "number"
-                ? { maxBackoffSteps: oauth.maxBackoffLevel }
-                : {}),
-            },
+            oauth: buildLegacyCooldownPatch(oauth),
           }
         : {}),
       ...(Object.keys(apikey).length > 0
         ? {
-            apikey: {
-              ...(typeof apikey.transientCooldown === "number"
-                ? { baseCooldownMs: apikey.transientCooldown }
-                : {}),
-              ...(typeof apikey.rateLimitCooldown === "number"
-                ? { rateLimitCooldownMs: apikey.rateLimitCooldown }
-                : {}),
-              ...(typeof apikey.rateLimitCooldown === "number"
-                ? { useUpstreamRetryHints: apikey.rateLimitCooldown === 0 }
-                : {}),
-              ...(typeof apikey.maxBackoffLevel === "number"
-                ? { maxBackoffSteps: apikey.maxBackoffLevel }
-                : {}),
-            },
+            apikey: buildLegacyCooldownPatch(apikey),
           }
         : {}),
     };

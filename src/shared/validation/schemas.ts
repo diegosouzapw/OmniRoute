@@ -616,11 +616,6 @@ export const updateModelAliasSchema = z.object({
   alias: z.string().trim().min(1, "Alias is required").max(200),
 });
 
-export const clearModelAvailabilitySchema = z.object({
-  provider: z.string().trim().min(1, "provider is required").max(120),
-  model: modelIdSchema,
-});
-
 /** Align with `sanitizeUpstreamHeadersMap` — allow non-ASCII names; reject Host / hop-by-hop / whitespace / ":". */
 const upstreamHeaderNameSchema = z
   .string()
@@ -738,7 +733,6 @@ const requestQueueSettingsSchema = z
 const connectionCooldownProfileSchema = z
   .object({
     baseCooldownMs: z.number().int().min(0).optional(),
-    rateLimitCooldownMs: z.number().int().min(0).optional(),
     useUpstreamRetryHints: z.boolean().optional(),
     maxBackoffSteps: z.number().int().min(0).optional(),
   })

@@ -129,7 +129,6 @@ describe("Pipeline Wiring — middleware proxy", () => {
 describe("API Routes — existence check", () => {
   const routes = [
     "src/app/api/cache/stats/route.ts",
-    "src/app/api/models/availability/route.ts",
     "src/app/api/telemetry/summary/route.ts",
     "src/app/api/usage/budget/route.ts",
     "src/app/api/usage/quota/route.ts",
@@ -150,10 +149,6 @@ describe("API Routes — existence check", () => {
 describe("API Routes — export HTTP methods", () => {
   it("/api/cache/stats should export GET and DELETE", () => {
     assertRouteMethods("src/app/api/cache/stats/route.ts", ["GET", "DELETE"]);
-  });
-
-  it("/api/models/availability should export GET and POST", () => {
-    assertRouteMethods("src/app/api/models/availability/route.ts", ["GET", "POST"]);
   });
 
   it("/api/telemetry/summary should export GET", () => {

@@ -18,13 +18,10 @@ const {
   safeLogEvents,
   withSessionHeader,
 } = await import("../../src/sse/handlers/chatHelpers.ts");
-const { setModelUnavailable, resetAllAvailability } =
-  await import("../../src/domain/modelAvailability.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
 async function resetStorage() {
-  resetAllAvailability();
   resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -90,13 +87,6 @@ test("resolveModelOrError rejects malformed model strings", async () => {
   assert.equal(result.error.status, 400);
   const json = await result.error.json();
   assert.match(json.error.message, /Invalid model format/i);
-});
-
-test("checkPipelineGates ignores legacy model availability quarantine state", async () => {
-  setModelUnavailable("openai", "gpt-4o-mini", 12_000, "cooldown");
-
-  const response = await checkPipelineGates("openai", "gpt-4o-mini");
-  assert.equal(response, null);
 });
 
 test("checkPipelineGates blocks providers with an open circuit breaker", async () => {

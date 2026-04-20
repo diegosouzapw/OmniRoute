@@ -26,7 +26,6 @@ import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
 import {
   buildMergedOAuthProviderEntries,
@@ -496,7 +495,6 @@ export default function ProvidersPage() {
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
           </h2>
           <div className="flex items-center gap-2">
-            <ModelAvailabilityBadge />
             <Toggle
               size="sm"
               checked={showConfiguredOnly}

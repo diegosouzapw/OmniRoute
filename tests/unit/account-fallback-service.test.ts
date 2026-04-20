@@ -209,7 +209,10 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
   const oauthProfile = getProviderProfile("claude");
   assert.equal(oauthProfile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
-  assert.equal(oauthProfile.rateLimitCooldown, PROVIDER_PROFILES.oauth.rateLimitCooldown);
+  assert.equal(
+    oauthProfile.rateLimitCooldown,
+    oauthProfile.useUpstreamRetryHints ? 0 : oauthProfile.baseCooldownMs
+  );
   assert.equal(oauthProfile.maxBackoffLevel, PROVIDER_PROFILES.oauth.maxBackoffLevel);
   assert.equal(
     oauthProfile.circuitBreakerThreshold,
@@ -222,7 +225,10 @@ test("getProviderProfile differentiates oauth and api-key providers", () => {
 
   const apiKeyProfile = getProviderProfile("openai");
   assert.equal(apiKeyProfile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
-  assert.equal(apiKeyProfile.rateLimitCooldown, PROVIDER_PROFILES.apikey.rateLimitCooldown);
+  assert.equal(
+    apiKeyProfile.rateLimitCooldown,
+    apiKeyProfile.useUpstreamRetryHints ? 0 : apiKeyProfile.baseCooldownMs
+  );
   assert.equal(apiKeyProfile.maxBackoffLevel, PROVIDER_PROFILES.apikey.maxBackoffLevel);
   assert.equal(
     apiKeyProfile.circuitBreakerThreshold,
@@ -252,11 +258,11 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     const compatibleProvider = "openai-compatible-custom-node";
     const compatibleModel = "custom-model-a";
     const profile = {
-      transientCooldown: 250,
-      rateLimitCooldown: 125,
-      maxBackoffLevel: 2,
-      circuitBreakerThreshold: 60,
-      circuitBreakerReset: 500,
+      baseCooldownMs: 125,
+      useUpstreamRetryHints: false,
+      maxBackoffSteps: 2,
+      failureThreshold: 60,
+      resetTimeoutMs: 500,
     };
 
     const first = recordModelLockoutFailure(

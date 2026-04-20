@@ -844,7 +844,7 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(Number(updated.errorCode), 429);
 });
 
-test("markAccountUnavailable honors configured api-key rate-limit cooldowns", async () => {
+test("markAccountUnavailable uses the unified configured api-key connection cooldown", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
@@ -870,7 +870,7 @@ test("markAccountUnavailable honors configured api-key rate-limit cooldowns", as
   );
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 125);
+  assert.equal(result.cooldownMs, 200);
 });
 
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {

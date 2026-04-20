@@ -13,7 +13,6 @@ export interface RequestQueueSettings {
 
 export interface ConnectionCooldownProfileSettings {
   baseCooldownMs: number;
-  rateLimitCooldownMs: number;
   useUpstreamRetryHints: boolean;
   maxBackoffSteps: number;
 }
@@ -89,13 +88,11 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
   connectionCooldown: {
     oauth: {
       baseCooldownMs: PROVIDER_PROFILES.oauth.transientCooldown,
-      rateLimitCooldownMs: PROVIDER_PROFILES.oauth.rateLimitCooldown,
       useUpstreamRetryHints: PROVIDER_PROFILES.oauth.rateLimitCooldown === 0,
       maxBackoffSteps: PROVIDER_PROFILES.oauth.maxBackoffLevel,
     },
     apikey: {
       baseCooldownMs: PROVIDER_PROFILES.apikey.transientCooldown,
-      rateLimitCooldownMs: PROVIDER_PROFILES.apikey.rateLimitCooldown,
       useUpstreamRetryHints: PROVIDER_PROFILES.apikey.rateLimitCooldown === 0,
       maxBackoffSteps: PROVIDER_PROFILES.apikey.maxBackoffLevel,
     },
@@ -163,12 +160,38 @@ function normalizeConnectionCooldownProfile(
       min: 0,
       max: 24 * 60 * 60 * 1000,
     }),
-    rateLimitCooldownMs: toInteger(record.rateLimitCooldownMs, fallback.rateLimitCooldownMs, {
-      min: 0,
-      max: 24 * 60 * 60 * 1000,
-    }),
     useUpstreamRetryHints: toBoolean(record.useUpstreamRetryHints, fallback.useUpstreamRetryHints),
     maxBackoffSteps: toInteger(record.maxBackoffSteps, fallback.maxBackoffSteps, {
+      min: 0,
+      max: 32,
+    }),
+  };
+}
+
+function normalizeLegacyConnectionCooldownProfile(
+  next: unknown,
+  fallback: ConnectionCooldownProfileSettings
+): ConnectionCooldownProfileSettings {
+  const record = asRecord(next);
+  const transientCooldown = toInteger(record.transientCooldown, fallback.baseCooldownMs, {
+    min: 0,
+    max: 24 * 60 * 60 * 1000,
+  });
+  const legacyRateLimitCooldown = toInteger(record.rateLimitCooldown, transientCooldown, {
+    min: 0,
+    max: 24 * 60 * 60 * 1000,
+  });
+  const useUpstreamRetryHints =
+    typeof record.rateLimitCooldown === "number"
+      ? record.rateLimitCooldown === 0
+      : fallback.useUpstreamRetryHints;
+
+  return {
+    baseCooldownMs: useUpstreamRetryHints
+      ? transientCooldown
+      : Math.max(transientCooldown, legacyRateLimitCooldown),
+    useUpstreamRetryHints,
+    maxBackoffSteps: toInteger(record.maxBackoffLevel, fallback.maxBackoffSteps, {
       min: 0,
       max: 32,
     }),
@@ -252,48 +275,14 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs,
     },
     connectionCooldown: {
-      oauth: {
-        baseCooldownMs: toInteger(
-          oauthLegacy.transientCooldown,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.oauth.baseCooldownMs,
-          { min: 0, max: 24 * 60 * 60 * 1000 }
-        ),
-        rateLimitCooldownMs: toInteger(
-          oauthLegacy.rateLimitCooldown,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.oauth.rateLimitCooldownMs,
-          { min: 0, max: 24 * 60 * 60 * 1000 }
-        ),
-        useUpstreamRetryHints:
-          typeof oauthLegacy.rateLimitCooldown === "number"
-            ? oauthLegacy.rateLimitCooldown === 0
-            : DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.oauth.useUpstreamRetryHints,
-        maxBackoffSteps: toInteger(
-          oauthLegacy.maxBackoffLevel,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.oauth.maxBackoffSteps,
-          { min: 0, max: 32 }
-        ),
-      },
-      apikey: {
-        baseCooldownMs: toInteger(
-          apikeyLegacy.transientCooldown,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.apikey.baseCooldownMs,
-          { min: 0, max: 24 * 60 * 60 * 1000 }
-        ),
-        rateLimitCooldownMs: toInteger(
-          apikeyLegacy.rateLimitCooldown,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.apikey.rateLimitCooldownMs,
-          { min: 0, max: 24 * 60 * 60 * 1000 }
-        ),
-        useUpstreamRetryHints:
-          typeof apikeyLegacy.rateLimitCooldown === "number"
-            ? apikeyLegacy.rateLimitCooldown === 0
-            : DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.apikey.useUpstreamRetryHints,
-        maxBackoffSteps: toInteger(
-          apikeyLegacy.maxBackoffLevel,
-          DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.apikey.maxBackoffSteps,
-          { min: 0, max: 32 }
-        ),
-      },
+      oauth: normalizeLegacyConnectionCooldownProfile(
+        oauthLegacy,
+        DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.oauth
+      ),
+      apikey: normalizeLegacyConnectionCooldownProfile(
+        apikeyLegacy,
+        DEFAULT_RESILIENCE_SETTINGS.connectionCooldown.apikey
+      ),
     },
     providerBreaker: {
       oauth: {
@@ -406,7 +395,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
         transientCooldown: settings.connectionCooldown.oauth.baseCooldownMs,
         rateLimitCooldown: settings.connectionCooldown.oauth.useUpstreamRetryHints
           ? 0
-          : settings.connectionCooldown.oauth.rateLimitCooldownMs,
+          : settings.connectionCooldown.oauth.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.oauth.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.oauth.failureThreshold,
         circuitBreakerReset: settings.providerBreaker.oauth.resetTimeoutMs,
@@ -415,7 +404,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
         transientCooldown: settings.connectionCooldown.apikey.baseCooldownMs,
         rateLimitCooldown: settings.connectionCooldown.apikey.useUpstreamRetryHints
           ? 0
-          : settings.connectionCooldown.apikey.rateLimitCooldownMs,
+          : settings.connectionCooldown.apikey.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.apikey.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.apikey.failureThreshold,
         circuitBreakerReset: settings.providerBreaker.apikey.resetTimeoutMs,
