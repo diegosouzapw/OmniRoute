@@ -50,6 +50,7 @@ import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTel
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { isDashboardSessionAuthenticated } from "../../shared/utils/apiAuth";
 import { resolveFallbackChain } from "../../domain/fallbackPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import {
@@ -396,7 +397,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Optional strict API key mode for /v1 endpoints (require key on every request).
   const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
-  if (process.env.REQUIRE_API_KEY === "true" && !isComboLiveTest) {
+  const hasDashboardSession =
+    !apiKey && !isComboLiveTest ? await isDashboardSessionAuthenticated(request) : false;
+  if (process.env.REQUIRE_API_KEY === "true" && !isComboLiveTest && !hasDashboardSession) {
     if (!apiKey) {
       log.warn("AUTH", "Missing API key while REQUIRE_API_KEY=true");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
@@ -413,6 +416,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       log.warn("AUTH", "API key not found or invalid (must be created in API Manager)");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
     }
+  } else if (hasDashboardSession) {
+    log.debug("AUTH", "Dashboard session authenticated internal chat request");
   }
 
   if (!modelStr) {

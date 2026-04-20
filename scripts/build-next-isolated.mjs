@@ -108,10 +108,10 @@ async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
   const standaloneRoot = path.join(rootDir, ".next", "standalone");
   if (!(await exists(standaloneRoot))) return;
 
-  const staleStandaloneBackup = path.join(backupRoot, "standalone-stale");
-
-  await movePath(standaloneRoot, staleStandaloneBackup, fsImpl);
-  console.log("[build-next-isolated] Moved stale standalone output out of the build path");
+  // This directory is a generated artifact. Removing it directly avoids Windows
+  // symlink-copy failures when Next traces native modules into standalone output.
+  await fsImpl.rm(standaloneRoot, { recursive: true, force: true });
+  console.log("[build-next-isolated] Removed stale standalone output from the build path");
 }
 
 export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
