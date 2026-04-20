@@ -1927,3 +1927,206 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
       result.status === 503
   );
 });
+
+test("handleComboChat returns 422 (not ALL_ACCOUNTS_INACTIVE) when all models fail quality check", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-check-laststatus",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      // Return 200 with invalid JSON — passes the ok check but fails validateResponseQuality
+      return new Response("{not valid json", {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  const payload = await result.json();
+  assert.equal(result.status, 422);
+  assert.ok(payload.error?.message?.includes("quality check failed"));
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+});
+
+test("handleComboChat accepts SSE responses starting with event: line as valid", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-sse-event-prefix",
+      strategy: "priority",
+      models: ["model-a"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async () =>
+      new Response('event: message_start\ndata: {"type":"message_start"}\n\n', {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      }),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test("handleComboChat accepts SSE responses with event and data on separate lines", async () => {
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "quality-sse-newline-data",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        return new Response(
+          'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_1"}}\n\nevent: content_block_start\ndata: {"type":"content_block_start"}\n\n',
+          { status: 200, headers: { "content-type": "text/event-stream" } }
+        );
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a"]);
+});
+
+test("handleComboChat skips retries and immediately falls back on 429 with cooling down", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "skip-retry-cooldown",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 2, retryDelayMs: 100 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: "All credentials for model X are cooling down",
+              type: "rate_limit_error",
+              code: "model_cooldown",
+            },
+          }),
+          { status: 429, headers: { "content-type": "application/json" } }
+        );
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.ok(calls.includes("model-b"), "should have tried model-b as fallback");
+  const modelACalls = calls.filter((c: string) => c === "model-a").length;
+  assert.equal(
+    modelACalls,
+    1,
+    `model-a should only be tried once (no retries on all-rate-limited 429), got ${modelACalls}`
+  );
+});
+
+test("handleComboChat skips retries and immediately falls back on 429 with model_cooldown code", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "skip-retry-model-cooldown",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 2, retryDelayMs: 100 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: "All credentials for the requested model are cooling down",
+              type: "rate_limit_error",
+              code: "model_cooldown",
+            },
+          }),
+          { status: 429, headers: { "content-type": "application/json" } }
+        );
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+  const modelACalls = calls.filter((c: string) => c === "model-a").length;
+  assert.equal(modelACalls, 1, `model-a should only be tried once, got ${modelACalls}`);
+});
+
+test("handleComboChat retries normal 429 (not all-rate-limited) before fallback", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "normal-429-retry",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 1, retryDelayMs: 100 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        return new Response(JSON.stringify({ error: { message: "Rate limit exceeded" } }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+  });
+
+  assert.equal(result.ok, true);
+  const modelACalls = calls.filter((c: string) => c === "model-a").length;
+  assert.equal(modelACalls, 2, `model-a should be retried once on normal 429, got ${modelACalls}`);
+});
