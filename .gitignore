@@ -103,6 +103,7 @@ docs/*
 !docs/UNINSTALL.md
 !docs/I18N.md
 !docs/FLY_IO_DEPLOYMENT_GUIDE.md
+!docs/CLOUDFLARE_ZERO_TRUST_GUIDE.md
 
 
 # open-sse tests
