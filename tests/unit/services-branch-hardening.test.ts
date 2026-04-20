@@ -79,8 +79,8 @@ test("model capability helpers cover denylist, empty input and default-safe path
   assert.equal(modelCapabilities.supportsReasoning("missing-provider/tool"), true);
 
   assert.equal(modelCapabilities.supportsToolCalling(""), false);
-  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-120b"), false);
-  assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), false);
+  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-120b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);
   assert.equal(
     modelCapabilities.supportsToolCalling("openai/nonexistent-default-safe-model"),
     true

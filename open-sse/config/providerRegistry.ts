@@ -1199,9 +1199,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
-      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
-      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
+      { id: "gpt-oss-120b", name: "GPT OSS 120B" },
+      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)" },
+      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B" },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
