@@ -2179,7 +2179,7 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
  * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
- * @deprecated 此函数将在 v4.0 中移除，请直接使用 REGISTRY.claude?.models
+ * @deprecated This function will be removed in v4.0, please use REGISTRY.claude?.models directly
  */
 export function getClaudeCodeDefaultModels(): {
   opus: string;

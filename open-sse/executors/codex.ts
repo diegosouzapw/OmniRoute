@@ -272,7 +272,7 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      preserved but the backend won't try to look it up
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
  *
- * @deprecated 此函数将在 v4.0 中移除，Codex executor 已更新处理逻辑
+ * @deprecated This function will be removed in v4.0, Codex executor has updated processing logic
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   // Always strip previous_response_id — the /codex/responses endpoint does not
