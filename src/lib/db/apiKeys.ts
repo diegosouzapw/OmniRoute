@@ -103,7 +103,10 @@ interface ApiKeyView extends JsonRecord {
 }
 
 // LRU cache for API key validation (valid keys only)
-const _keyValidationCache = new Map<string, { valid: boolean; timestamp: number }>();
+const _keyValidationCache = new Map<
+  string,
+  { valid: boolean; timestamp: number; expiresAt: number | null }
+>();
 const _keyMetadataCache = new Map<string, CacheEntry<ApiKeyMetadata>>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const MAX_CACHE_SIZE = 1000;
@@ -639,8 +642,15 @@ export async function validateApiKey(key: string | null | undefined) {
 
   // Check cache first
   const cached = _keyValidationCache.get(key);
-  if (cached && now - cached.timestamp < CACHE_TTL) {
-    return cached.valid;
+  if (cached) {
+    if (typeof cached.expiresAt === "number" && now > cached.expiresAt) {
+      _keyValidationCache.delete(key);
+      return false;
+    }
+
+    if (now - cached.timestamp < CACHE_TTL) {
+      return cached.valid;
+    }
   }
 
   const db = getDbInstance() as ApiKeysDbLike;
@@ -656,7 +666,11 @@ export async function validateApiKey(key: string | null | undefined) {
 
   // Only cache valid keys to prevent cache pollution
   evictIfNeeded(_keyValidationCache);
-  _keyValidationCache.set(key, { valid: true, timestamp: now });
+  _keyValidationCache.set(key, {
+    valid: true,
+    timestamp: now,
+    expiresAt: typeof expiresAt === "number" ? expiresAt : null,
+  });
 
   return true;
 }

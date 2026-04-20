@@ -24,6 +24,7 @@ interface ModelStatusContextValue {
 }
 
 const ModelStatusContext = createContext<ModelStatusContextValue | null>(null);
+const MODEL_KEY_SEPARATOR = "\u0000";
 
 // Global map of model key -> status
 let modelStatusMap = new Map<string, ModelStatus>();
@@ -33,7 +34,19 @@ let registeredModels = new Set<string>();
 let pollIntervalRef: NodeJS.Timeout | null = null;
 
 function getModelKey(provider: string, model: string): string {
-  return `${provider}/${model}`;
+  return `${provider}${MODEL_KEY_SEPARATOR}${model}`;
+}
+
+function parseModelKey(key: string): { provider: string; model: string } {
+  const separatorIndex = key.indexOf(MODEL_KEY_SEPARATOR);
+  if (separatorIndex === -1) {
+    return { provider: key, model: "" };
+  }
+
+  return {
+    provider: key.slice(0, separatorIndex),
+    model: key.slice(separatorIndex + MODEL_KEY_SEPARATOR.length),
+  };
 }
 
 async function fetchModelStatus(): Promise<void> {
@@ -45,9 +58,13 @@ async function fetchModelStatus(): Promise<void> {
     const models = json?.models || [];
 
     // Update all registered models with fresh data
-    const now = Date.now();
     registeredModels.forEach((key) => {
-      const [provider, model] = key.split("/");
+      const { provider, model } = parseModelKey(key);
+      if (!provider || !model) {
+        modelStatusMap.set(key, { status: "unknown" });
+        return;
+      }
+
       // Use exact matching first to avoid gpt-4 matching gpt-4-turbo incorrectly
       const modelEntry =
         models.find((m: any) => m.provider === provider && m.model === model) ||

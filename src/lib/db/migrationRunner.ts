@@ -65,6 +65,18 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "025",
     toName: "call_logs_summary_storage",
   },
+  {
+    fromVersion: "028",
+    fromName: "api_keys_expires",
+    toVersion: "031",
+    toName: "api_keys_expires",
+  },
+  {
+    fromVersion: "029",
+    fromName: "detailed_logs_warnings",
+    toVersion: "032",
+    toName: "detailed_logs_warnings",
+  },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [

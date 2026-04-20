@@ -20,7 +20,7 @@ process.env.OMNIROUTE_MIGRATIONS_DIR = TEST_MIGRATIONS_DIR;
 for (const migration of [
   "001_initial_schema.sql",
   "011_webhooks.sql",
-  "023_webhooks_templates.sql",
+  "029_webhooks_templates.sql",
 ]) {
   fs.copyFileSync(
     path.join(process.cwd(), "src/lib/db/migrations", migration),

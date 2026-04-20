@@ -15,12 +15,14 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.OMNIROUTE_MIGRATIONS_DIR = TEST_MIGRATIONS_DIR;
 
 fs.copyFileSync(
-  path.join(process.cwd(), "src/lib/db/migrations/022_evals_tables.sql"),
-  path.join(TEST_MIGRATIONS_DIR, "022_evals_tables.sql")
+  path.join(process.cwd(), "src/lib/db/migrations/028_evals_tables.sql"),
+  path.join(TEST_MIGRATIONS_DIR, "028_evals_tables.sql")
 );
 
 const core = await import("../../src/lib/db/core.ts");
 const evalsDb = await import("../../src/lib/db/evals.ts");
+const evalRunner = await import("../../src/lib/evals/evalRunner.ts");
+const evalsRoute = await import("../../src/app/api/evals/route.ts");
 const route = await import("../../src/app/api/evals/scorecard/route.ts");
 
 function createEvalSuite(id: string, name: string) {
@@ -102,6 +104,36 @@ test("eval scorecard route compares two persisted runs from the same suite", asy
   assert.equal(body.scorecard.runB.avgLatency, 95);
   assert.equal(body.scorecard.aggregate.overallPassRate, 75);
   assert.equal(body.scorecard.summary.preferredTarget, "B");
+});
+
+test("eval route persists the suite row before saving history", async () => {
+  const suite = evalRunner.listSuites().find((candidate) => candidate.id === "golden-set");
+
+  assert.ok(suite);
+
+  const outputs = Object.fromEntries(
+    (suite.cases || []).map((evalCase: { id: string }) => [evalCase.id, "placeholder output"])
+  );
+
+  const response = await evalsRoute.POST(
+    new Request("http://localhost/api/evals", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        suiteId: suite.id,
+        outputs,
+        targetId: "openai/gpt-4o",
+        targetType: "model",
+      }),
+    })
+  );
+  const body = await response.json();
+  const history = evalsDb.getEvalHistory(suite.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(typeof body.runId, "string");
+  assert.equal(history.length, 1);
+  assert.equal(history[0].suiteId, suite.id);
 });
 
 test("eval scorecard route rejects comparisons across different suites", async () => {

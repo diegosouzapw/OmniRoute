@@ -1,4 +1,4 @@
--- Migration 022: Evaluation Suites and Results
+-- Migration 028: Evaluation Suites and Results
 
 CREATE TABLE IF NOT EXISTS eval_suites (
     id TEXT PRIMARY KEY,

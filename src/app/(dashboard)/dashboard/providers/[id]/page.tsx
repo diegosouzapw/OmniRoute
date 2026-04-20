@@ -948,7 +948,7 @@ function ModelCompatPopover({
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const providerId = params.id as string;
+  const providerId = (params?.id as string) || "";
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [providerNode, setProviderNode] = useState(null);

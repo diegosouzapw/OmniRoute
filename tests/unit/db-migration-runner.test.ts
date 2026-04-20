@@ -532,6 +532,160 @@ test(
 );
 
 test(
+  "runMigrations rehomes legacy 028/029 tracking so eval and webhook migrations can still apply",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "028",
+        "api_keys_expires"
+      );
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "029",
+        "detailed_logs_warnings"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "028_evals_tables.sql": "CREATE TABLE eval_suites_shadow (id INTEGER);",
+          "029_webhooks_templates.sql": "CREATE TABLE webhook_templates_shadow (id INTEGER);",
+          "031_api_keys_expires.sql": "CREATE TABLE api_keys_expires_shadow (id INTEGER);",
+          "032_detailed_logs_warnings.sql":
+            "CREATE TABLE detailed_logs_warnings_shadow (id INTEGER);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 2);
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+        [
+          { version: "028", name: "evals_tables" },
+          { version: "029", name: "webhooks_templates" },
+          { version: "031", name: "api_keys_expires" },
+          { version: "032", name: "detailed_logs_warnings" },
+        ]
+      );
+      assert.ok(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("eval_suites_shadow")
+      );
+      assert.ok(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("webhook_templates_shadow")
+      );
+      assert.equal(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("api_keys_expires_shadow"),
+        undefined
+      );
+      assert.equal(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("detailed_logs_warnings_shadow"),
+        undefined
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations drops stale legacy 028/029 rows when 031/032 are already tracked",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "028",
+        "api_keys_expires"
+      );
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "029",
+        "detailed_logs_warnings"
+      );
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "031",
+        "api_keys_expires"
+      );
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "032",
+        "detailed_logs_warnings"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "028_evals_tables.sql": "CREATE TABLE eval_suites_shadow_dupe (id INTEGER);",
+          "029_webhooks_templates.sql": "CREATE TABLE webhook_templates_shadow_dupe (id INTEGER);",
+          "031_api_keys_expires.sql": "CREATE TABLE api_keys_expires_shadow_dupe (id INTEGER);",
+          "032_detailed_logs_warnings.sql":
+            "CREATE TABLE detailed_logs_warnings_shadow_dupe (id INTEGER);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 2);
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+        [
+          { version: "028", name: "evals_tables" },
+          { version: "029", name: "webhooks_templates" },
+          { version: "031", name: "api_keys_expires" },
+          { version: "032", name: "detailed_logs_warnings" },
+        ]
+      );
+      assert.ok(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("eval_suites_shadow_dupe")
+      );
+      assert.ok(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("webhook_templates_shadow_dupe")
+      );
+      assert.equal(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("api_keys_expires_shadow_dupe"),
+        undefined
+      );
+      assert.equal(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("detailed_logs_warnings_shadow_dupe"),
+        undefined
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
   "memory FTS migrations upgrade existing UUID memories without datatype mismatches",
   serial,
   async () => {

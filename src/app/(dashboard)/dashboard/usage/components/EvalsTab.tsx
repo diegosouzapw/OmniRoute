@@ -100,10 +100,10 @@ export default function EvalsTab() {
 
   const fetchCombos = useCallback(async () => {
     try {
-      const res = await fetch("/api/v1/management/combos");
+      const res = await fetch("/api/combos");
       if (res.ok) {
         const data = await res.json();
-        setCombos(data || []);
+        setCombos(data?.combos || []);
       }
     } catch {
       // silent

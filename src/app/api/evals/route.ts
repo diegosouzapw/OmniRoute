@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listSuites, runSuite } from "@/lib/evals/evalRunner";
+import { getSuite, listSuites, runSuite } from "@/lib/evals/evalRunner";
 import { evalRunSuiteSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { evalsDb } from "@/lib/localDb";
@@ -35,7 +35,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { suiteId, outputs, targetId = "unknown", targetType = "model" } = validation.data;
+    const suite = getSuite(suiteId);
+    if (!suite) {
+      return NextResponse.json({ error: `Suite not found: ${suiteId}` }, { status: 404 });
+    }
+
     const result = runSuite(suiteId, outputs);
+    evalsDb.upsertEvalSuite({
+      id: suite.id,
+      name: suite.name,
+      description: suite.description || "",
+    });
 
     let avgLatency = 0;
     if (result.results && result.results.length > 0) {

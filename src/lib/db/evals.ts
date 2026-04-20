@@ -7,6 +7,19 @@ export interface EvalSuite {
   createdAt: number;
 }
 
+export function upsertEvalSuite(suite: { id: string; name: string; description?: string }) {
+  const db = getDbInstance();
+  const stmt = db.prepare(`
+    INSERT INTO eval_suites (id, name, description, created_at)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      description = excluded.description
+  `);
+
+  stmt.run(suite.id, suite.name, suite.description || "", Date.now());
+}
+
 export function saveEvalResult(
   suiteId: string,
   targetId: string,
