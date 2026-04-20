@@ -180,6 +180,18 @@ function mergeProviderProfile(fallback: ProviderProfile, overrides: unknown): Pr
       typeof record.circuitBreakerReset === "number"
         ? record.circuitBreakerReset
         : fallback.circuitBreakerReset,
+    providerFailureThreshold:
+      typeof record.providerFailureThreshold === "number"
+        ? record.providerFailureThreshold
+        : fallback.providerFailureThreshold,
+    providerFailureWindowMs:
+      typeof record.providerFailureWindowMs === "number"
+        ? record.providerFailureWindowMs
+        : fallback.providerFailureWindowMs,
+    providerCooldownMs:
+      typeof record.providerCooldownMs === "number"
+        ? record.providerCooldownMs
+        : fallback.providerCooldownMs,
   };
 }
 
