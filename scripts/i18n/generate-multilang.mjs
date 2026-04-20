@@ -307,10 +307,82 @@ const LOCALE_SPECS = [
     readmeName: "Čeština",
     docsName: "Čeština",
   },
+  {
+    code: "bn",
+    googleTl: "bn",
+    label: "BN",
+    flag: "🇧🇩",
+    languageName: "Bengali",
+    readmeName: "বাংলা",
+    docsName: "বাংলা",
+  },
+  {
+    code: "ur",
+    googleTl: "ur",
+    label: "UR",
+    flag: "🇵🇰",
+    languageName: "Urdu",
+    readmeName: "اردو",
+    docsName: "اردو",
+  },
+  {
+    code: "sw",
+    googleTl: "sw",
+    label: "SW",
+    flag: "🇰🇪",
+    languageName: "Swahili",
+    readmeName: "Kiswahili",
+    docsName: "Kiswahili",
+  },
+  {
+    code: "fa",
+    googleTl: "fa",
+    label: "FA",
+    flag: "🇮🇷",
+    languageName: "Persian (Farsi)",
+    readmeName: "فارسی",
+    docsName: "فارسی",
+  },
+  {
+    code: "mr",
+    googleTl: "mr",
+    label: "MR",
+    flag: "🇮🇳",
+    languageName: "Marathi",
+    readmeName: "मराठी",
+    docsName: "मराठी",
+  },
+  {
+    code: "te",
+    googleTl: "te",
+    label: "TE",
+    flag: "🇮🇳",
+    languageName: "Telugu",
+    readmeName: "తెలుగు",
+    docsName: "తెలుగు",
+  },
+  {
+    code: "ta",
+    googleTl: "ta",
+    label: "TA",
+    flag: "🇮🇳",
+    languageName: "Tamil",
+    readmeName: "தமிழ்",
+    docsName: "தமிழ்",
+  },
+  {
+    code: "gu",
+    googleTl: "gu",
+    label: "GU",
+    flag: "🇮🇳",
+    languageName: "Gujarati",
+    readmeName: "ગુજરાતી",
+    docsName: "ગુજરાતી",
+  },
 ];
 
 const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN", "de"]);
-const RTL_LOCALES = new Set(["ar", "he"]);
+const RTL_LOCALES = new Set(["ar", "fa", "he", "ur"]);
 
 const URL_MAX_TEXT_LENGTH = 1800;
 const DELIMITER = "\n__OMNIROUTE_I18N_SEPARATOR__\n";

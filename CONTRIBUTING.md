@@ -216,7 +216,7 @@ src/                        # TypeScript (.ts / .tsx)
 open-sse/                   # @omniroute/open-sse workspace
 ├── executors/              # 14 provider-specific request executors
 ├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
+├── mcp-server/             # MCP server (34 tools, 3 transports, 10 scopes)
 ├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
 ├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Responses API transformer
@@ -237,7 +237,7 @@ docs/                       # Documentation
 ├── API_REFERENCE.md        # All endpoints
 ├── USER_GUIDE.md           # Provider setup, CLI integration
 ├── TROUBLESHOOTING.md      # Common issues
-├── MCP-SERVER.md           # MCP server (25 tools)
+├── MCP-SERVER.md           # MCP server (34 tools)
 ├── A2A-SERVER.md           # A2A agent protocol
 ├── AUTO-COMBO.md           # Auto-combo engine
 ├── CLI-TOOLS.md            # CLI tools integration
