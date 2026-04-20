@@ -61,8 +61,8 @@
   "homepage": "https://omniroute.online",
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",
-    "site:dev": "cd site && npm run dev",
-    "site:build": "cd site && npm run build",
+    "site:dev": "cd site && node ../node_modules/next/dist/bin/next dev -p 20132",
+    "site:build": "cd site && node ../node_modules/next/dist/bin/next build",
     "build": "node scripts/build-next-isolated.mjs",
     "build:cli": "node --import tsx/esm scripts/prepublish.ts",
     "start": "node scripts/run-next.mjs start",

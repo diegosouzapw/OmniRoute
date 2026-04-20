@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ../node_modules/next/dist/bin/next dev -p 20132",
-    "build": "node ../node_modules/next/dist/bin/next build",
-    "start": "node ../node_modules/next/dist/bin/next start -p 20132"
+    "dev": "next dev -p 20132",
+    "build": "next build",
+    "start": "next start -p 20132"
   },
   "dependencies": {
     "@next/env": "^16.2.3",
