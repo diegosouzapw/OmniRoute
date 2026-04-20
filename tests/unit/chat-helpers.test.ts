@@ -20,7 +20,7 @@ const {
 } = await import("../../src/sse/handlers/chatHelpers.ts");
 const { getModelCooldownInfo, setModelUnavailable, resetAllAvailability } =
   await import("../../src/domain/modelAvailability.ts");
-const { getCircuitBreaker, resetAllCircuitBreakers, CircuitBreakerOpenError, STATE } =
+const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
 async function resetStorage() {
@@ -116,8 +116,8 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
 
   const response = await checkPipelineGates("openai", "gpt-4o-mini", {
     providerProfile: {
-      circuitBreakerThreshold: 5,
-      circuitBreakerReset: 5_000,
+      failureThreshold: 5,
+      resetTimeoutMs: 5_000,
     },
   });
   const json = await response.json();
@@ -139,8 +139,8 @@ test("checkPipelineGates reapplies runtime breaker settings to existing breakers
 
   const response = await checkPipelineGates("openai", "gpt-4o-mini", {
     providerProfile: {
-      circuitBreakerThreshold: 60,
-      circuitBreakerReset: 5_000,
+      failureThreshold: 60,
+      resetTimeoutMs: 5_000,
     },
   });
 
@@ -233,60 +233,44 @@ test("safeResolveProxy returns the direct route when no proxy config is present"
   });
 });
 
-test("executeChatWithBreaker converts circuit-open and proxy-fast-fail errors", async () => {
-  const credentials = { connectionId: "conn_helper" };
-  const openResult = await executeChatWithBreaker({
-    bypassCircuitBreaker: false,
-    breaker: {
-      execute: async () => {
-        throw new CircuitBreakerOpenError("already open", "openai", 5_000);
-      },
-    },
-    body: { model: "openai/gpt-4o-mini" },
-    provider: "openai",
-    model: "gpt-4o-mini",
-    refreshedCredentials: credentials,
-    proxyInfo: null,
-    log: console,
-    clientRawRequest: null,
-    credentials,
-    apiKeyInfo: null,
-    userAgent: "",
-    comboName: null,
-    comboStrategy: null,
-    isCombo: false,
-    extendedContext: false,
-  });
+test("executeChatWithBreaker converts proxy fast-fail errors", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    const error = new Error("Proxy unreachable");
+    (error as Error & { code?: string }).code = "PROXY_UNREACHABLE";
+    throw error;
+  };
 
-  const proxyResult = await executeChatWithBreaker({
-    bypassCircuitBreaker: false,
-    breaker: {
-      execute: async () => {
-        const error = new Error("Proxy unreachable");
-        error.code = "PROXY_UNREACHABLE";
-        throw error;
-      },
-    },
-    body: { model: "openai/gpt-4o-mini" },
-    provider: "openai",
-    model: "gpt-4o-mini",
-    refreshedCredentials: credentials,
-    proxyInfo: null,
-    log: console,
-    clientRawRequest: null,
-    credentials,
-    apiKeyInfo: null,
-    userAgent: "",
-    comboName: null,
-    comboStrategy: null,
-    isCombo: false,
-    extendedContext: false,
-  });
+  try {
+    const credentials = {
+      connectionId: "conn_helper",
+      apiKey: "sk-openai-helper",
+      providerSpecificData: {},
+    };
+    const proxyResult = await executeChatWithBreaker({
+      body: { model: "openai/gpt-4o-mini" },
+      provider: "openai",
+      model: "gpt-4o-mini",
+      refreshedCredentials: credentials,
+      proxyInfo: null,
+      log: console,
+      clientRawRequest: null,
+      credentials,
+      apiKeyInfo: null,
+      userAgent: "",
+      comboName: null,
+      comboStrategy: null,
+      isCombo: false,
+      extendedContext: false,
+      comboStepId: null,
+      comboExecutionKey: null,
+    });
 
-  assert.equal(openResult.result.status, 503);
-  assert.equal(openResult.result.response.status, 503);
-  assert.equal(proxyResult.result.status, 503);
-  assert.equal(proxyResult.result.error, "Proxy unreachable");
+    assert.equal(proxyResult.result.status, 502);
+    assert.match(String(proxyResult.result.error || ""), /Proxy unreachable/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("safeLogEvents tolerates success and timeout payloads", () => {

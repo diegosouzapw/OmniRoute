@@ -23,7 +23,7 @@ import {
   isTlsFingerprintActive,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
-import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
+import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { getModelCooldownInfo, isModelAvailable } from "../../domain/modelAvailability";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
@@ -79,6 +79,8 @@ export async function checkPipelineGates(
     providerProfile?: {
       circuitBreakerThreshold?: number;
       circuitBreakerReset?: number;
+      failureThreshold?: number;
+      resetTimeoutMs?: number;
     } | null;
   } = {}
 ) {
@@ -101,8 +103,8 @@ export async function checkPipelineGates(
 
   const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: providerProfile.circuitBreakerThreshold,
-    resetTimeout: providerProfile.circuitBreakerReset,
+    failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
+    resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
@@ -123,8 +125,6 @@ export async function checkPipelineGates(
 }
 
 export async function executeChatWithBreaker({
-  bypassCircuitBreaker,
-  breaker,
   body,
   provider,
   model,
@@ -179,40 +179,14 @@ export async function executeChatWithBreaker({
         })
       );
 
-    if (bypassCircuitBreaker) {
-      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
-        const tracked = await runWithTlsTracking(chatFn);
-        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
-      }
-
-      const result = await chatFn();
-      return { result, tlsFingerprintUsed: false };
-    }
-
     if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
-      const tracked = await breaker.execute(async () => runWithTlsTracking(chatFn));
+      const tracked = await runWithTlsTracking(chatFn);
       return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
     }
 
-    const result = await breaker.execute(chatFn);
+    const result = await chatFn();
     return { result, tlsFingerprintUsed: false };
   } catch (cbErr: any) {
-    if (cbErr instanceof CircuitBreakerOpenError) {
-      log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
-      return {
-        result: {
-          success: false,
-          response: unavailableResponse(
-            HTTP_STATUS.SERVICE_UNAVAILABLE,
-            `Provider ${provider} circuit breaker is open`,
-            Math.ceil(cbErr.retryAfterMs / 1000)
-          ),
-          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
-        },
-        tlsFingerprintUsed: false,
-      };
-    }
-
     if (cbErr?.code === "PROXY_UNREACHABLE" || /proxy unreachable/i.test(cbErr?.message || "")) {
       const detail = cbErr?.message || "Proxy unreachable";
       log.warn("PROXY", detail);

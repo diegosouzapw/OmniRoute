@@ -107,6 +107,8 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
   return first || second || null;
 }
 
+const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
@@ -524,7 +526,7 @@ async function handleSingleModelChat(
       ? "fixed combo step connection"
       : undefined;
 
-  // 2. Pipeline gates (availability + circuit breaker)
+  // 2. Pipeline gates (availability + provider circuit breaker)
   const providerProfile = await getRuntimeProviderProfile(provider);
   const gate = await checkPipelineGates(provider, model, {
     ignoreCircuitBreaker: forceLiveComboTest || hasForcedConnection,
@@ -535,8 +537,8 @@ async function handleSingleModelChat(
   if (gate) return gate;
 
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: providerProfile.circuitBreakerThreshold,
-    resetTimeout: providerProfile.circuitBreakerReset,
+    failureThreshold: providerProfile.failureThreshold,
+    resetTimeout: providerProfile.resetTimeoutMs,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
@@ -549,9 +551,10 @@ async function handleSingleModelChat(
   const retrySettings = disableCooldownAwareRetry
     ? {
         ...baseRetrySettings,
-        requestRetry: 0,
-        maxRetryIntervalSec: 0,
-        maxRetryIntervalMs: 0,
+        enabled: false,
+        maxRetries: 0,
+        maxRetryWaitSec: 0,
+        maxRetryWaitMs: 0,
       }
     : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
@@ -616,7 +619,6 @@ async function handleSingleModelChat(
             );
           }
         }
-
         if (credentials?.allRateLimited) {
           const retryDecision = getCooldownAwareRetryDecision({
             retryAfter: credentials.retryAfter,
@@ -628,7 +630,7 @@ async function handleSingleModelChat(
             const waitSec = Math.max(Math.ceil(retryDecision.waitMs / 1000), 0);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} all accounts cooling down (${retryDecision.retryAfterHuman || `retry in ${waitSec}s`}) — waiting ${waitSec}s before retry ${requestRetryAttempt + 1}/${retrySettings.requestRetry}`
+              `${provider}/${model} all connections cooling down (${retryDecision.retryAfterHuman || `retry in ${waitSec}s`}) — waiting ${waitSec}s before retry ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
             );
 
             const completed = await waitForCooldownAwareRetry(retryDecision.waitMs, requestSignal);
@@ -643,10 +645,19 @@ async function handleSingleModelChat(
             requestRetryAttempt += 1;
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.requestRetry}`
+              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.maxRetries}`
             );
             continue requestAttemptLoop;
           }
+        }
+
+        const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
+        if (
+          !forceLiveComboTest &&
+          credentials?.allRateLimited &&
+          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+        ) {
+          breaker._onFailure();
         }
 
         return handleNoCredentials(
@@ -717,11 +728,9 @@ async function handleSingleModelChat(
       const proxyInfo = await safeResolveProxy(credentials.connectionId);
       const proxyStartTime = Date.now();
 
-      // 4. Execute chat via core (with circuit breaker + optional TLS)
+      // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
       const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
-        bypassCircuitBreaker: forceLiveComboTest,
-        breaker,
         body: requestBody,
         provider,
         model,
@@ -766,6 +775,9 @@ async function handleSingleModelChat(
       if (result.success) {
         clearModelLock(provider, credentials.connectionId, model);
         clearModelUnavailability(provider, model);
+        if (!forceLiveComboTest) {
+          breaker._onSuccess();
+        }
         if (injectedHandoff && runtimeOptions.sessionId && comboName) {
           deleteHandoff(runtimeOptions.sessionId, comboName);
         }
@@ -871,6 +883,10 @@ async function handleSingleModelChat(
         requestRetryLastError = result.error;
         requestRetryLastStatus = result.status;
         continue;
+      }
+
+      if (!forceLiveComboTest && PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))) {
+        breaker._onFailure();
       }
 
       return result.response;

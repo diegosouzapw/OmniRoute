@@ -207,8 +207,31 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
-  assert.deepEqual(getProviderProfile("claude"), PROVIDER_PROFILES.oauth);
-  assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
+  const oauthProfile = getProviderProfile("claude");
+  assert.equal(oauthProfile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(oauthProfile.rateLimitCooldown, PROVIDER_PROFILES.oauth.rateLimitCooldown);
+  assert.equal(oauthProfile.maxBackoffLevel, PROVIDER_PROFILES.oauth.maxBackoffLevel);
+  assert.equal(
+    oauthProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.oauth.circuitBreakerThreshold
+  );
+  assert.equal(oauthProfile.circuitBreakerReset, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+  assert.equal(oauthProfile.baseCooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(oauthProfile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(oauthProfile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+
+  const apiKeyProfile = getProviderProfile("openai");
+  assert.equal(apiKeyProfile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(apiKeyProfile.rateLimitCooldown, PROVIDER_PROFILES.apikey.rateLimitCooldown);
+  assert.equal(apiKeyProfile.maxBackoffLevel, PROVIDER_PROFILES.apikey.maxBackoffLevel);
+  assert.equal(
+    apiKeyProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.apikey.circuitBreakerThreshold
+  );
+  assert.equal(apiKeyProfile.circuitBreakerReset, PROVIDER_PROFILES.apikey.circuitBreakerReset);
+  assert.equal(apiKeyProfile.baseCooldownMs, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(apiKeyProfile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(apiKeyProfile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
 });
 
 test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatible providers", () => {

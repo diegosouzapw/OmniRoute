@@ -144,7 +144,7 @@ test("intelligent routing helpers normalize config and health state", () => {
   );
 
   const healthState = intelligentRouting.extractIntelligentHealthState({
-    circuitBreakers: [
+    providerBreakers: [
       { provider: "openai", state: "OPEN", lastFailure: "2026-04-12T12:00:00Z" },
       { provider: "anthropic", state: "OPEN", lastFailure: "2026-04-12T12:01:00Z" },
       { provider: "google", state: "CLOSED" },

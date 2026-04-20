@@ -51,7 +51,6 @@ export default function ModelAvailabilityBadge() {
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
-  // Close popover on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -90,7 +89,6 @@ export default function ModelAvailabilityBadge() {
     data?.unavailableCount || models.filter((m: any) => m.status !== "available").length;
   const isHealthy = unavailableCount === 0;
 
-  // Group unhealthy models by provider
   const byProvider: Record<string, any[]> = {};
   models.forEach((m: any) => {
     if (m.status === "available") return;
@@ -115,7 +113,6 @@ export default function ModelAvailabilityBadge() {
         {isHealthy ? t("allModelsOperational") : t("modelsWithIssues", { count: unavailableCount })}
       </button>
 
-      {/* Expanded popover */}
       {expanded && (
         <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg">

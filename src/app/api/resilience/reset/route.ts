@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
  */
 export async function POST() {
   try {
-    // Reset all circuit breakers
     const { getAllCircuitBreakerStatuses, getCircuitBreaker } =
       await import("@/shared/utils/circuitBreaker");
 

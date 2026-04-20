@@ -104,7 +104,6 @@ export default function ModelAvailabilityPanel() {
     );
   }
 
-  // Group by provider
   const byProvider: Record<string, any[]> = {};
   models.forEach((m: any) => {
     if (m.status === "available") return;
