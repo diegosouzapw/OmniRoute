@@ -909,9 +909,15 @@ test("chat pipeline returns current no-credentials contract when no provider con
   assert.match(json.error.message, /No credentials for provider: openai/);
 });
 
-test("chat pipeline returns 503 when the requested model is temporarily unavailable", async () => {
+test("chat pipeline ignores legacy model unavailability state and still routes the request", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-unavailable" });
   setModelUnavailable("openai", "gpt-4o-mini", 60000, "test cooldown");
+  const fetchCalls = [];
+
+  globalThis.fetch = async (_url, init = {}) => {
+    fetchCalls.push(JSON.parse(String(init.body)));
+    return buildOpenAIResponse("Model lock ignored");
+  };
 
   const response = await handleChat(
     buildRequest({
@@ -924,9 +930,10 @@ test("chat pipeline returns 503 when the requested model is temporarily unavaila
   );
 
   const json = await response.json();
-  assert.equal(response.status, 503);
-  assert.ok(Number(response.headers.get("Retry-After")) >= 1);
-  assert.match(json.error.message, /temporarily unavailable/i);
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].model, "gpt-4o-mini");
+  assert.equal(json.choices[0].message.content, "Model lock ignored");
 });
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {

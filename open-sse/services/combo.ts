@@ -1623,6 +1623,7 @@ export async function handleComboChat({
 
       // Extract error info from response
       let errorText = result.statusText || "";
+      let errorBody = null;
       let retryAfter = null;
       try {
         const cloned = result.clone();
@@ -1630,7 +1631,7 @@ export async function handleComboChat({
           const text = await cloned.text();
           if (text) {
             errorText = text.substring(0, 500);
-            const errorBody = JSON.parse(text);
+            errorBody = JSON.parse(text);
             errorText =
               errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
             retryAfter = errorBody?.retryAfter || null;
@@ -1659,7 +1660,11 @@ export async function handleComboChat({
         }
       }
 
-      if (/circuit breaker is open/i.test(errorText)) {
+      const providerBreakerOpen =
+        result.headers.get("x-omniroute-provider-breaker") === "open" ||
+        errorBody?.error?.code === "provider_circuit_open";
+
+      if (providerBreakerOpen) {
         lastError = errorText || String(result.status);
         if (!lastStatus) lastStatus = result.status;
         if (i > 0) fallbackCount++;

@@ -18,7 +18,7 @@ const {
   safeLogEvents,
   withSessionHeader,
 } = await import("../../src/sse/handlers/chatHelpers.ts");
-const { getModelCooldownInfo, setModelUnavailable, resetAllAvailability } =
+const { setModelUnavailable, resetAllAvailability } =
   await import("../../src/domain/modelAvailability.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
@@ -92,20 +92,11 @@ test("resolveModelOrError rejects malformed model strings", async () => {
   assert.match(json.error.message, /Invalid model format/i);
 });
 
-test("checkPipelineGates blocks models in cooldown", async () => {
+test("checkPipelineGates ignores legacy model availability quarantine state", async () => {
   setModelUnavailable("openai", "gpt-4o-mini", 12_000, "cooldown");
 
   const response = await checkPipelineGates("openai", "gpt-4o-mini");
-  const json = await response.json();
-  const cooldownInfo = getModelCooldownInfo("openai", "gpt-4o-mini");
-  const retryAfter = Number(response.headers.get("Retry-After"));
-
-  assert.equal(response.status, 503);
-  assert.ok(cooldownInfo);
-  assert.ok(retryAfter >= 1);
-  assert.ok(retryAfter <= 12);
-  assert.ok(retryAfter >= Math.ceil((cooldownInfo?.remainingMs || 0) / 1000) - 1);
-  assert.match(json.error.message, /temporarily unavailable/i);
+  assert.equal(response, null);
 });
 
 test("checkPipelineGates blocks providers with an open circuit breaker", async () => {
@@ -127,6 +118,8 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
   assert.ok(retryAfter >= 4);
   assert.ok(retryAfter <= 5);
   assert.match(json.error.message, /circuit breaker is open/i);
+  assert.equal(json.error.code, "provider_circuit_open");
+  assert.equal(response.headers.get("X-OmniRoute-Provider-Breaker"), "open");
 });
 
 test("checkPipelineGates reapplies runtime breaker settings to existing breakers", async () => {

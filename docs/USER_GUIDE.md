@@ -756,13 +756,13 @@ Chain: production-fallback
 
 Configure via **Dashboard → Settings → Resilience**.
 
-OmniRoute implements provider-level resilience with four components:
+OmniRoute implements provider-level resilience with five components:
 
 1. **Provider Profiles** — Per-provider configuration for:
    - **Transient Cooldown** — Base cooldown for transient upstream failures
    - **Rate Limit Cooldown** — Base cooldown for `429`-driven lockouts
    - **Max Backoff Level** — Maximum exponential backoff level for repeated failures
-   - **CB Threshold** — Failure count before model quarantine / provider circuit breaker escalates
+   - **CB Threshold** — Failure count before the provider circuit breaker opens after repeated end-to-end provider failures
    - **CB Reset Time** — Failure counting window and breaker reset timer
 
 2. **Editable Rate Limits** — System-level defaults configurable in the dashboard:
@@ -776,9 +776,9 @@ OmniRoute implements provider-level resilience with four components:
    - **OPEN** — Provider is temporarily blocked after repeated failures
    - **HALF_OPEN** — Testing if provider has recovered
 
-   The same provider profile also drives model-scoped lockouts:
-   - Account/model lockouts react immediately to authoritative `429` / `404` signals and use the configured cooldown + backoff values
-   - Global provider/model quarantine only activates after repeated exhaustion hits the configured **CB Threshold** within **CB Reset Time**
+   The same provider profile also drives connection and model-scoped cooldown handling:
+   - Connection/model cooldowns react immediately to authoritative `429` / `404` signals and use the configured cooldown + backoff values
+   - The provider circuit breaker only opens after fallback is exhausted and the provider still fails within the configured **CB Threshold** and **CB Reset Time**
 
 4. **Policies & Locked Identifiers** — Shows circuit breaker status and locked identifiers with force-unlock capability.
 

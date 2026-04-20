@@ -383,62 +383,16 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
   }
 });
 
-test("recordProviderFailure resets counter after failure window expires", () => {
-  const originalNow = Date.now;
-  let now = 1_700_000_000_000;
-  Date.now = () => now;
+test("checkFallbackError no longer mutates provider breaker state on per-connection failures", () => {
+  const provider = "test-provider-check";
+  clearProviderFailure(provider);
 
-  try {
-    const provider = "test-provider-window";
-    clearProviderFailure(provider);
-
-    // Record 3 failures
-    for (let i = 0; i < 3; i++) {
-      recordProviderFailure(provider);
-      now += 1000;
-    }
-    assert.equal(isProviderInCooldown(provider), false);
-
-    // Wait for failure window to expire (20 minutes + 1 second)
-    now += 20 * 60 * 1000 + 1000;
-
-    // Next failure should reset counter, not trigger cooldown
-    recordProviderFailure(provider);
-    assert.equal(isProviderInCooldown(provider), false);
-
-    // Need 4 more failures to trigger cooldown
-    for (let i = 0; i < 4; i++) {
-      recordProviderFailure(provider);
-      now += 1000;
-    }
-    assert.equal(isProviderInCooldown(provider), true);
-  } finally {
-    Date.now = originalNow;
-    clearProviderFailure("test-provider-window");
+  for (let i = 0; i < 5; i++) {
+    checkFallbackError(429, "rate limited", 0, null, provider);
   }
-});
 
-test("checkFallbackError records provider failure for transient errors", () => {
-  const originalNow = Date.now;
-  let now = 1_700_000_000_000;
-  Date.now = () => now;
-
-  try {
-    const provider = "test-provider-check";
-    clearProviderFailure(provider);
-
-    // Simulate 5 transient errors through checkFallbackError
-    for (let i = 0; i < 5; i++) {
-      checkFallbackError(429, "rate limited", 0, null, provider);
-      now += 1000;
-    }
-
-    // Provider should now be in cooldown
-    assert.equal(isProviderInCooldown(provider), true);
-  } finally {
-    Date.now = originalNow;
-    clearProviderFailure("test-provider-check");
-  }
+  assert.equal(isProviderInCooldown(provider), false);
+  clearProviderFailure(provider);
 });
 
 test("checkFallbackError does not record provider failure for non-transient errors", () => {

@@ -19,8 +19,6 @@ import {
   hasPerModelQuota,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
-  isProviderInCooldown,
-  getProviderCooldownRemainingMs,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
@@ -251,6 +249,16 @@ function normalizeStatus(value: string | null): string {
 function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean {
   const status = normalizeStatus(connection.testStatus);
   return status === "credits_exhausted" || status === "banned" || status === "expired";
+}
+
+function resolveTerminalConnectionStatus(
+  status: number,
+  result: { permanent?: boolean; creditsExhausted?: boolean }
+): string | null {
+  if (result.creditsExhausted || status === 402) return "credits_exhausted";
+  if (result.permanent || status === 403) return "banned";
+  if (status === 401) return "expired";
+  return null;
 }
 
 export function resolveQuotaLimitPolicy(
@@ -683,22 +691,6 @@ export async function getProviderCredentials(
       }
       return true;
     });
-
-    // Check if the entire provider is in cooldown (too many transient failures)
-    if (isProviderInCooldown(provider)) {
-      const cooldownRemaining = getProviderCooldownRemainingMs(provider);
-      log.warn(
-        "AUTH",
-        `${provider} | provider in cooldown for ${Math.ceil((cooldownRemaining || 0) / 1000)}s (${availableConnections.length} connections bypassed)`
-      );
-      return {
-        allRateLimited: true,
-        retryAfter: new Date(Date.now() + (cooldownRemaining || 0)).toISOString(),
-        retryAfterHuman: formatRetryAfter(
-          new Date(Date.now() + (cooldownRemaining || 0)).toISOString()
-        ),
-      };
-    }
 
     log.debug(
       "AUTH",
@@ -1254,8 +1246,10 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
     const result = fallbackResult;
-    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
+    const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
+    const terminalStatus = resolveTerminalConnectionStatus(status, result);
+    const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model
@@ -1341,6 +1335,7 @@ export async function markAccountUnavailable(
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: null,
+        ...(terminalStatus ? { testStatus: terminalStatus } : {}),
       });
     }
 

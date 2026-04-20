@@ -10,6 +10,11 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import {
+  getAllCircuitBreakerStatuses,
+  getCircuitBreaker,
+  STATE,
+} from "../../src/shared/utils/circuitBreaker";
 
 type ProviderProfile = {
   baseCooldownMs: number;
@@ -38,29 +43,8 @@ type ModelFailureState = {
   resetAfterMs: number;
 };
 
-// Provider-level failure tracking for circuit breaker behavior
-type ProviderFailureEntry = {
-  failureCount: number;
-  lastFailureAt: number;
-  resetAfterMs: number;
-  cooldownUntil: number | null;
-};
-
 // Error codes that count toward provider-level failure threshold
 const PROVIDER_FAILURE_ERROR_CODES = new Set([429, 408, 500, 502, 503, 504]);
-
-// Configuration for provider-level failure tracking
-const PROVIDER_FAILURE_THRESHOLD = 5;
-const PROVIDER_FAILURE_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
-const PROVIDER_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooling
-
-// Provider-level failure state map: providerId -> failure entry
-const providerFailureState = new Map<string, ProviderFailureEntry>();
-// Guard against synchronous re-entrant calls within the same event-loop tick.
-// NOT a true mutex — Node.js is single-threaded, so different SSE streams
-// can interleave across ticks. This Set prevents a single call from recursively
-// re-entering recordProviderFailure within the same synchronous call stack.
-const providerFailureLocks = new Set<string>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
@@ -495,113 +479,62 @@ export function getAllModelLockouts() {
   return active;
 }
 
-// ─── Provider-Level Failure Tracking ─────────────────────────────────────────
-// Track failures at provider level: when a provider has too many transient failures
-// across all its connections, cooldown the entire provider temporarily.
+// ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
+// Legacy helpers now delegate to the shared provider circuit breaker.
 
-/**
- * Check if a provider is currently in cooldown due to too many failures
- */
-export function isProviderInCooldown(provider: string | null | undefined): boolean {
-  if (!provider) return false;
-  const entry = providerFailureState.get(provider);
-  if (!entry) return false;
-
-  // If in cooldown, check if it has expired
-  if (entry.cooldownUntil !== null && Date.now() >= entry.cooldownUntil) {
-    providerFailureState.delete(provider);
-    return false;
-  }
-
-  return entry.cooldownUntil !== null;
+function getProviderBreaker(provider: string | null | undefined) {
+  if (!provider) return null;
+  const profile = getProviderProfile(provider);
+  return getCircuitBreaker(provider, {
+    failureThreshold: profile.failureThreshold ?? profile.circuitBreakerThreshold,
+    resetTimeout: profile.resetTimeoutMs ?? profile.circuitBreakerReset,
+  });
 }
 
 /**
- * Get remaining cooldown time for a provider
+ * Check if a provider is currently blocked by the shared circuit breaker.
+ */
+export function isProviderInCooldown(provider: string | null | undefined): boolean {
+  const breaker = getProviderBreaker(provider);
+  return breaker ? !breaker.canExecute() : false;
+}
+
+/**
+ * Get remaining retry-after time for a provider breaker.
  */
 export function getProviderCooldownRemainingMs(provider: string | null | undefined): number | null {
-  if (!provider) return null;
-  const entry = providerFailureState.get(provider);
-  if (!entry || entry.cooldownUntil === null) return null;
-
-  const remaining = entry.cooldownUntil - Date.now();
+  const breaker = getProviderBreaker(provider);
+  if (!breaker || breaker.canExecute()) return null;
+  const remaining = breaker.getRetryAfterMs();
   return remaining > 0 ? remaining : null;
 }
 
 /**
- * Record a failure for a provider. When threshold is reached within the window,
- * the provider enters cooldown.
+ * Record a provider failure against the shared circuit breaker.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
   log?: { warn?: (...args: unknown[]) => void }
 ): void {
-  if (!provider) return;
-
-  // Guard against concurrent re-entrant calls within the same tick
-  if (providerFailureLocks.has(provider)) return;
-  providerFailureLocks.add(provider);
-
-  try {
-    const now = Date.now();
-    const entry = providerFailureState.get(provider);
-
-    // Check if we're in cooldown period
-    if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
-      return; // Already in cooldown, don't record
-    }
-
-    // Check if failure window has expired
-    if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
-      // Window expired, reset count
-      providerFailureState.set(provider, {
-        failureCount: 1,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-      return;
-    }
-
-    // Increment failure count
-    const newCount = entry ? entry.failureCount + 1 : 1;
-
-    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
-      // Threshold reached, enter cooldown
-      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil,
-      });
-      log?.warn?.(
-        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
-      );
-    } else {
-      // Just increment counter
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-    }
-  } finally {
-    providerFailureLocks.delete(provider);
+  const breaker = getProviderBreaker(provider);
+  if (!breaker || !provider) return;
+  breaker._onFailure();
+  const status = breaker.getStatus();
+  if (status.state === STATE.OPEN) {
+    log?.warn?.(`[ProviderBreaker] ${provider}: OPEN after ${status.failureCount} final failures`);
   }
 }
 
 /**
- * Clear provider failure state (e.g., after successful request)
+ * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
-  if (!provider) return;
-  providerFailureState.delete(provider);
+  const breaker = getProviderBreaker(provider);
+  breaker?.reset();
 }
 
 /**
- * Get all providers currently in cooldown (for debugging/dashboard)
+ * Get all providers currently blocked by the shared breaker.
  */
 export function getProvidersInCooldown(): Array<{
   provider: string;
@@ -609,22 +542,17 @@ export function getProvidersInCooldown(): Array<{
   cooldownRemainingMs: number | null;
   lastFailureAt: number;
 }> {
-  const result = [];
-  for (const [provider, entry] of providerFailureState) {
-    if (entry.cooldownUntil === null) continue;
-    const remaining = entry.cooldownUntil - Date.now();
-    if (remaining <= 0) {
-      providerFailureState.delete(provider);
-      continue;
-    }
-    result.push({
-      provider,
-      failureCount: entry.failureCount,
-      cooldownRemainingMs: remaining,
-      lastFailureAt: entry.lastFailureAt,
-    });
-  }
-  return result;
+  return getAllCircuitBreakerStatuses()
+    .filter((status) => {
+      const breaker = getProviderBreaker(status.name);
+      return Boolean(breaker && !breaker.canExecute());
+    })
+    .map((status) => ({
+      provider: status.name,
+      failureCount: status.failureCount,
+      cooldownRemainingMs: status.retryAfterMs || null,
+      lastFailureAt: status.lastFailureTime,
+    }));
 }
 
 /**
@@ -905,12 +833,6 @@ export function checkFallbackError(
     HTTP_STATUS.SERVICE_UNAVAILABLE,
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ]);
-
-  // Track provider-level failures for circuit breaker behavior
-  // Only count transient errors that are likely to recover
-  if (isProviderFailureCode(status)) {
-    recordProviderFailure(provider);
-  }
 
   function parseResetFromHeaders(headers) {
     if (!headers) return null;

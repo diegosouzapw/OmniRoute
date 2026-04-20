@@ -12,15 +12,10 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
 function sanitizeComboRuntimeConfig(config?: Record<string, any> | null) {
   if (!config || typeof config !== "object") return {};
   return Object.fromEntries(
-    Object.entries(config).filter(([, value]) => value !== undefined && value !== null)
-  ).reduce(
-    (sanitized, [key, value]) => {
-      if (!LEGACY_COMBO_RESILIENCE_KEYS.has(key)) {
-        sanitized[key] = value;
-      }
-      return sanitized;
-    },
-    {} as Record<string, any>
+    Object.entries(config).filter(
+      ([key, value]) =>
+        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+    )
   );
 }
 

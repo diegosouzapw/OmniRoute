@@ -84,8 +84,8 @@ describe("Pipeline Wiring — sse chat handler", () => {
     assert.match(src, /getCircuitBreaker|CircuitBreakerOpenError/);
   });
 
-  it("should import model availability integration", () => {
-    assert.match(src, /isModelAvailable|setModelUnavailable/);
+  it("should use credential preflight instead of global model quarantine gates", () => {
+    assert.match(src, /getProviderCredentialsWithQuotaPreflight/);
   });
 
   it("should import request telemetry integration", () => {

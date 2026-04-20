@@ -19,7 +19,6 @@ const {
 } = harness;
 
 const { getCircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
-const { clearModelUnavailability } = await import("../../src/domain/modelAvailability.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 const { getDefaultTaskModelMap, resetTaskRoutingStats, setTaskRoutingConfig } =
   await import("../../open-sse/services/taskAwareRouter.ts");
@@ -381,6 +380,8 @@ test("handleChat returns 503 for cooled-down connections and 503 for open circui
   const breakerJson = await breakerBlocked.json();
 
   assert.equal(breakerBlocked.status, 503);
+  assert.equal(breakerBlocked.headers.get("X-OmniRoute-Provider-Breaker"), "open");
+  assert.equal(breakerJson.error.code, "provider_circuit_open");
   assert.match(breakerJson.error.message, /circuit breaker is open/i);
 });
 

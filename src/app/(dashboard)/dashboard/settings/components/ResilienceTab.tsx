@@ -94,7 +94,13 @@ function NumberField({
           type="number"
           min={min}
           value={value}
-          onChange={(event) => onChange(Number(event.target.value) || 0)}
+          onChange={(event) => {
+            if (event.target.value === "") return;
+            const nextValue = Number(event.target.value);
+            if (Number.isFinite(nextValue)) {
+              onChange(nextValue);
+            }
+          }}
           className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm"
         />
         {suffix ? <span className="text-xs text-text-muted">{suffix}</span> : null}

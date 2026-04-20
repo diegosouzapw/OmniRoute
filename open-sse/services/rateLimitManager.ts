@@ -28,7 +28,9 @@ interface LearnedLimitEntry {
 }
 
 interface LimiterUpdateSettings {
+  maxConcurrent?: number | null;
   minTime: number;
+  maxWait?: number | null;
   reservoir?: number | null;
   reservoirRefreshAmount?: number | null;
   reservoirRefreshInterval?: number | null;
@@ -157,6 +159,7 @@ export function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
     limiter.updateSettings({
       maxConcurrent: currentRequestQueueSettings.concurrentRequests,
       minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
+      maxWait: currentRequestQueueSettings.maxWaitMs,
       reservoir: currentRequestQueueSettings.requestsPerMinute,
       reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
       reservoirRefreshInterval: 60 * 1000,

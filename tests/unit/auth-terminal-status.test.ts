@@ -109,3 +109,75 @@ test("markAccountUnavailable does not overwrite terminal status", async () => {
   const after = await providersDb.getProviderConnectionById(conn.id);
   assert.equal(after.testStatus, "credits_exhausted");
 });
+
+test("markAccountUnavailable marks 401 connections as expired without adding cooldown", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-expired",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    401,
+    "unauthorized",
+    "openai",
+    "gpt-4.1"
+  );
+  const after = await providersDb.getProviderConnectionById(conn.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(after.testStatus, "expired");
+  assert.ok(!after.rateLimitedUntil);
+});
+
+test("markAccountUnavailable marks 402 connections as credits_exhausted without adding cooldown", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-credits",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    402,
+    "payment required",
+    "openai",
+    "gpt-4.1"
+  );
+  const after = await providersDb.getProviderConnectionById(conn.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(after.testStatus, "credits_exhausted");
+  assert.ok(!after.rateLimitedUntil);
+});
+
+test("markAccountUnavailable marks 403 connections as banned without adding cooldown", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-banned",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const result = await auth.markAccountUnavailable(conn.id, 403, "forbidden", "openai", "gpt-4.1");
+  const after = await providersDb.getProviderConnectionById(conn.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(after.testStatus, "banned");
+  assert.ok(!after.rateLimitedUntil);
+});
