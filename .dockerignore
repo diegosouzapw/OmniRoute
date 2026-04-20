@@ -37,8 +37,9 @@ test-results
 playwright-report
 blob-report
 
-# Documentation (not needed in container)
-docs
+# Documentation (only the OpenAPI spec is needed at runtime)
+docs/*
+!docs/openapi.yaml
 *.md
 !README.md
 
