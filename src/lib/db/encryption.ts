@@ -129,7 +129,17 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
+    try {
+      decrypted += decipher.final("utf8");
+    } catch (finalErr: unknown) {
+      const finalMessage = finalErr instanceof Error ? finalErr.message : String(finalErr);
+      console.error(
+        `[Encryption] Decryption final() failed: ${finalMessage}. ` +
+          `Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
+          `Auth tag validation likely failed.`
+      );
+      return ciphertext;
+    }
     return decrypted;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
