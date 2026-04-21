@@ -49,23 +49,8 @@ type ModelFailureState = {
 };
 
 // Provider-level failure tracking for circuit breaker behavior
-type ProviderFailureEntry = {
-  failureCount: number;
-  lastFailureAt: number;
-  resetAfterMs: number;
-  cooldownUntil: number | null;
-};
-
 // Error codes that count toward provider-level failure threshold
 const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
-
-// Provider-level failure state map: providerId -> failure entry
-const providerFailureState = new Map<string, ProviderFailureEntry>();
-// Guard against synchronous re-entrant calls within the same event-loop tick.
-// NOT a true mutex — Node.js is single-threaded, so different SSE streams
-// can interleave across ticks. This Set prevents a single call from recursively
-// re-entering recordProviderFailure within the same synchronous call stack.
-const providerFailureLocks = new Set<string>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
@@ -529,6 +514,8 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
 
 /**
  * Record a provider failure against the shared circuit breaker.
+ * Delegates to the existing CircuitBreaker utility which handles
+ * failure counting, threshold detection, and state transitions.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
@@ -536,57 +523,13 @@ export function recordProviderFailure(
 ): void {
   if (!provider) return;
 
-  // Guard against concurrent re-entrant calls within the same tick
-  if (providerFailureLocks.has(provider)) return;
-  providerFailureLocks.add(provider);
+  const breaker = getProviderBreaker(provider);
+  if (!breaker) return;
 
-  try {
-    const now = Date.now();
-    const entry = providerFailureState.get(provider);
+  breaker._onFailure();
 
-    // Check if we're in cooldown period
-    if (entry && entry.cooldownUntil !== null && now < entry.cooldownUntil) {
-      return; // Already in cooldown, don't record
-    }
-
-    // Check if failure window has expired
-    if (entry && now - entry.lastFailureAt > entry.resetAfterMs) {
-      // Window expired, reset count
-      providerFailureState.set(provider, {
-        failureCount: 1,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-      return;
-    }
-
-    // Increment failure count
-    const newCount = entry ? entry.failureCount + 1 : 1;
-
-    if (newCount >= PROVIDER_FAILURE_THRESHOLD) {
-      // Threshold reached, enter cooldown
-      const cooldownUntil = now + PROVIDER_COOLDOWN_MS;
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil,
-      });
-      log?.warn?.(
-        `[ProviderFailure] ${provider}: ${newCount} failures in ${PROVIDER_FAILURE_WINDOW_MS / 1000}s — entering ${PROVIDER_COOLDOWN_MS / 1000}s cooldown`
-      );
-    } else {
-      // Just increment counter
-      providerFailureState.set(provider, {
-        failureCount: newCount,
-        lastFailureAt: now,
-        resetAfterMs: PROVIDER_FAILURE_WINDOW_MS,
-        cooldownUntil: null,
-      });
-    }
-  } finally {
-    providerFailureLocks.delete(provider);
+  if (!breaker.canExecute()) {
+    log?.warn?.(`[ProviderFailure] ${provider}: circuit breaker opened after repeated failures`);
   }
 }
 
