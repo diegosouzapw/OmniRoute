@@ -86,7 +86,7 @@ export default function VisionBridgeTab() {
 
       {config.visionBridgeEnabled && (
         <div className="flex flex-col gap-4 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">Vision Model</label>
               <input
@@ -101,7 +101,7 @@ export default function VisionBridgeTab() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Max Images Per Request</label>
+              <label className="text-sm font-medium">Max Images</label>
               <input
                 type="number"
                 value={config.visionBridgeMaxImages}
@@ -116,6 +116,22 @@ export default function VisionBridgeTab() {
               <p className="text-xs text-text-muted">
                 Limits the number of images processed per payload.
               </p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Timeout (ms)</label>
+              <input
+                type="number"
+                value={config.visionBridgeTimeout}
+                onChange={(e) =>
+                  handleChange("visionBridgeTimeout", parseInt(e.target.value) || 30000)
+                }
+                className="w-full px-3 py-2 rounded-lg border border-border/50 bg-surface/30 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                disabled={loading}
+                min={1000}
+                step={1000}
+              />
+              <p className="text-xs text-text-muted">Maximum time to wait for vision extraction.</p>
             </div>
           </div>
 
