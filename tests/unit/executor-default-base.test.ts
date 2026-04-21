@@ -789,3 +789,51 @@ test("BaseExecutor.execute clears the startup timeout after headers arrive", asy
     globalThis.fetch = originalFetch;
   }
 });
+
+// Regression test for issue #1454: duplicate anthropic-version header when
+// Claude Code CLI headers are detected on the native `claude` provider.
+// The provider config seeds headers with Title-Case "Anthropic-Version" while
+// the Claude-Code patch injects lowercase "anthropic-version".  Before the fix,
+// both keys coexisted in the JS object and undici combined their values into
+// "2023-06-01, 2023-06-01", causing a 400 from Anthropic.
+test("DefaultExecutor.execute does not produce duplicate anthropic-version header when Claude Code CLI headers are present", async () => {
+  const executor = new DefaultExecutor("claude");
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders: Record<string, string> = {};
+
+  globalThis.fetch = async (_url, init = {}) => {
+    // Capture raw headers without normalisation so case-variant duplicate keys are visible.
+    capturedHeaders = (init.headers as Record<string, string>) || {};
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: { accessToken: "oauth-token" },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+        "anthropic-beta": "oauth-2025-04-20",
+      },
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Must be exactly one key — not multiple case variants that undici would combine
+  const versionKeys = Object.keys(capturedHeaders).filter(
+    (k) => k.toLowerCase() === "anthropic-version"
+  );
+  assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
+  assert.equal(capturedHeaders[versionKeys[0]], "2023-06-01");
+});

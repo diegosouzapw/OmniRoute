@@ -306,9 +306,10 @@ test("claudeHelper validates content, ordering and request preparation branches"
   assert.equal(prepared.messages[4].content[0].type, "tool_result");
   assert.deepEqual(
     prepared.messages[5].content.map((block) => block.type),
-    ["thinking", "text"]
+    ["redacted_thinking", "text"]
   );
   assert.ok(prepared.messages[5].content[0].signature);
+  assert.equal(prepared.messages[5].content[0].thinking, undefined);
   assert.equal(prepared.tools.length, 2);
   assert.equal(prepared.tools[0].cache_control, undefined);
   assert.deepEqual(prepared.tools[1].cache_control, { type: "ephemeral", ttl: "1h" });

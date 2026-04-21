@@ -112,97 +112,121 @@ interface BudgetGuardState {
 let activeBudgetGuard: BudgetGuardState | null = null;
 
 type ResilienceProfileConfig = {
-  profiles: {
+  requestQueue: {
+    requestsPerMinute: number;
+    minTimeBetweenRequestsMs: number;
+    concurrentRequests: number;
+  };
+  connectionCooldown: {
     oauth: {
-      transientCooldown: number;
-      rateLimitCooldown: number;
-      maxBackoffLevel: number;
-      circuitBreakerThreshold: number;
-      circuitBreakerReset: number;
+      baseCooldownMs: number;
+      useUpstreamRetryHints: boolean;
+      maxBackoffSteps: number;
     };
     apikey: {
-      transientCooldown: number;
-      rateLimitCooldown: number;
-      maxBackoffLevel: number;
-      circuitBreakerThreshold: number;
-      circuitBreakerReset: number;
+      baseCooldownMs: number;
+      useUpstreamRetryHints: boolean;
+      maxBackoffSteps: number;
     };
   };
-  defaults: {
-    requestsPerMinute: number;
-    minTimeBetweenRequests: number;
-    concurrentRequests: number;
+  providerBreaker: {
+    oauth: {
+      failureThreshold: number;
+      resetTimeoutMs: number;
+    };
+    apikey: {
+      failureThreshold: number;
+      resetTimeoutMs: number;
+    };
   };
 };
 
 const RESILIENCE_PROFILES = {
   aggressive: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 180,
+      minTimeBetweenRequestsMs: 100,
+      concurrentRequests: 16,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 3000,
-        rateLimitCooldown: 30000,
-        maxBackoffLevel: 4,
-        circuitBreakerThreshold: 2,
-        circuitBreakerReset: 30000,
+        baseCooldownMs: 30000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 4,
       },
       apikey: {
-        transientCooldown: 2000,
-        rateLimitCooldown: 0,
-        maxBackoffLevel: 3,
-        circuitBreakerThreshold: 3,
-        circuitBreakerReset: 15000,
+        baseCooldownMs: 2000,
+        useUpstreamRetryHints: true,
+        maxBackoffSteps: 3,
       },
     },
-    defaults: {
-      requestsPerMinute: 180,
-      minTimeBetweenRequests: 100,
-      concurrentRequests: 16,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 2,
+        resetTimeoutMs: 30000,
+      },
+      apikey: {
+        failureThreshold: 3,
+        resetTimeoutMs: 15000,
+      },
     },
   },
   balanced: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 100,
+      minTimeBetweenRequestsMs: 200,
+      concurrentRequests: 10,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 5000,
-        rateLimitCooldown: 60000,
-        maxBackoffLevel: 8,
-        circuitBreakerThreshold: 3,
-        circuitBreakerReset: 60000,
+        baseCooldownMs: 60000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 8,
       },
       apikey: {
-        transientCooldown: 3000,
-        rateLimitCooldown: 0,
-        maxBackoffLevel: 5,
-        circuitBreakerThreshold: 5,
-        circuitBreakerReset: 30000,
+        baseCooldownMs: 3000,
+        useUpstreamRetryHints: true,
+        maxBackoffSteps: 5,
       },
     },
-    defaults: {
-      requestsPerMinute: 100,
-      minTimeBetweenRequests: 200,
-      concurrentRequests: 10,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 3,
+        resetTimeoutMs: 60000,
+      },
+      apikey: {
+        failureThreshold: 5,
+        resetTimeoutMs: 30000,
+      },
     },
   },
   conservative: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 60,
+      minTimeBetweenRequestsMs: 350,
+      concurrentRequests: 6,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 8000,
-        rateLimitCooldown: 120000,
-        maxBackoffLevel: 10,
-        circuitBreakerThreshold: 8,
-        circuitBreakerReset: 120000,
+        baseCooldownMs: 120000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 10,
       },
       apikey: {
-        transientCooldown: 5000,
-        rateLimitCooldown: 30000,
-        maxBackoffLevel: 8,
-        circuitBreakerThreshold: 8,
-        circuitBreakerReset: 60000,
+        baseCooldownMs: 30000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 8,
       },
     },
-    defaults: {
-      requestsPerMinute: 60,
-      minTimeBetweenRequests: 350,
-      concurrentRequests: 6,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 8,
+        resetTimeoutMs: 120000,
+      },
+      apikey: {
+        failureThreshold: 8,
+        resetTimeoutMs: 60000,
+      },
     },
   },
 } satisfies Record<"aggressive" | "balanced" | "conservative", ResilienceProfileConfig>;
@@ -460,13 +484,10 @@ export async function handleSetResilienceProfile(args: {
       };
     }
 
-    // Apply to OmniRoute via API (contract: PATCH + { profiles, defaults })
+    // Apply to OmniRoute via API using the plan-aligned resilience structure.
     await apiFetch("/api/resilience", {
       method: "PATCH",
-      body: JSON.stringify({
-        profiles: settings.profiles,
-        defaults: settings.defaults,
-      }),
+      body: JSON.stringify(settings),
     });
 
     const result = { applied: true, profile: args.profile, settings };

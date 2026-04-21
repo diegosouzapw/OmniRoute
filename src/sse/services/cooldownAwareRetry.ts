@@ -1,14 +1,14 @@
 import { formatRetryAfter } from "@omniroute/open-sse/services/accountFallback.ts";
+import { resolveResilienceSettings } from "@/lib/resilience/settings";
 
-const DEFAULT_REQUEST_RETRY = 3;
-const DEFAULT_MAX_RETRY_INTERVAL_SEC = 30;
 const MAX_REQUEST_RETRY = 10;
 const MAX_RETRY_INTERVAL_SEC = 300;
 
 export interface CooldownAwareRetrySettings {
-  requestRetry: number;
-  maxRetryIntervalSec: number;
-  maxRetryIntervalMs: number;
+  enabled: boolean;
+  maxRetries: number;
+  maxRetryWaitSec: number;
+  maxRetryWaitMs: number;
 }
 
 function normalizeInteger(
@@ -35,20 +35,26 @@ function normalizeInteger(
 export function resolveCooldownAwareRetrySettings(
   settings: Record<string, unknown> | null | undefined
 ): CooldownAwareRetrySettings {
-  const requestRetry = normalizeInteger(settings?.requestRetry, DEFAULT_REQUEST_RETRY, {
+  const waitForCooldown = resolveResilienceSettings(settings).waitForCooldown;
+  const maxRetries = normalizeInteger(waitForCooldown.maxRetries, waitForCooldown.maxRetries, {
     min: 0,
     max: MAX_REQUEST_RETRY,
   });
-  const maxRetryIntervalSec = normalizeInteger(
-    settings?.maxRetryIntervalSec,
-    DEFAULT_MAX_RETRY_INTERVAL_SEC,
-    { min: 0, max: MAX_RETRY_INTERVAL_SEC }
+  const maxRetryWaitSec = normalizeInteger(
+    waitForCooldown.maxRetryWaitSec,
+    waitForCooldown.maxRetryWaitSec,
+    {
+      min: 0,
+      max: MAX_RETRY_INTERVAL_SEC,
+    }
   );
+  const enabled = Boolean(waitForCooldown.enabled) && maxRetries > 0 && maxRetryWaitSec > 0;
 
   return {
-    requestRetry,
-    maxRetryIntervalSec,
-    maxRetryIntervalMs: maxRetryIntervalSec * 1000,
+    enabled,
+    maxRetries,
+    maxRetryWaitSec,
+    maxRetryWaitMs: maxRetryWaitSec * 1000,
   };
 }
 
@@ -90,9 +96,10 @@ export function getCooldownAwareRetryDecision({
 } {
   const closest = computeClosestRetryAfter(retryAfter);
   if (
-    settings.requestRetry <= 0 ||
-    settings.maxRetryIntervalMs <= 0 ||
-    attempt >= settings.requestRetry ||
+    !settings.enabled ||
+    settings.maxRetries <= 0 ||
+    settings.maxRetryWaitMs <= 0 ||
+    attempt >= settings.maxRetries ||
     closest.waitMs === null
   ) {
     return {
@@ -103,7 +110,7 @@ export function getCooldownAwareRetryDecision({
     };
   }
 
-  if (closest.waitMs > settings.maxRetryIntervalMs) {
+  if (closest.waitMs > settings.maxRetryWaitMs) {
     return {
       shouldRetry: false,
       retryAfter: closest.retryAfter,

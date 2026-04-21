@@ -735,18 +735,45 @@ export class AntigravityExecutor extends BaseExecutor {
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
           let sseBuffer = "";
+          const decoder = new TextDecoder(); // Singleton for correct streaming decode
+          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
+
           const passThrough = new TransformStream({
             transform(chunk, controller) {
               controller.enqueue(chunk);
               // Accumulate text to scan for remainingCredits
               try {
-                const text = new TextDecoder().decode(chunk, { stream: true });
+                const text = decoder.decode(chunk, { stream: true });
                 sseBuffer += text;
+                // Limit buffer size to prevent unbounded growth
+                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                  const lastNewline = sseBuffer.lastIndexOf(
+                    "\n",
+                    sseBuffer.length - MAX_BUFFER_SIZE
+                  );
+                  if (lastNewline !== -1) {
+                    sseBuffer = sseBuffer.slice(lastNewline + 1);
+                  } else {
+                    // No newline found in discard region — buffer contains an incomplete SSE line.
+                    // Discard it entirely to avoid returning malformed data; the remainingCredits
+                    // parser won't find valid data in a truncated line anyway.
+                    sseBuffer = "";
+                  }
+                }
               } catch {
                 /* decoding best-effort */
               }
             },
             flush() {
+              // Final decode for any remaining bytes
+              try {
+                const text = decoder.decode(); // Flush pending bytes
+                sseBuffer += text;
+              } catch {
+                /* decoding best-effort */
+              }
+
               // Parse the accumulated SSE data for remainingCredits
               try {
                 const lines = sseBuffer.split("\n");

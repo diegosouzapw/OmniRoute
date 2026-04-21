@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.6.9
+  version: 3.7.0
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -459,22 +459,6 @@ paths:
       responses:
         "200":
           description: Complete catalog with all providers
-
-  /api/models/availability:
-    get:
-      tags: [Models]
-      summary: Get model availability status
-      description: Returns availability data for all configured models across providers.
-      responses:
-        "200":
-          description: Model availability map
-    post:
-      tags: [Models]
-      summary: Refresh model availability
-      description: Triggers a re-check of model availability across all providers.
-      responses:
-        "200":
-          description: Availability refreshed
 
   # ─── Management Endpoints ──────────────────────────────────────
 
@@ -1844,13 +1828,13 @@ paths:
   /api/resilience:
     get:
       tags: [System]
-      summary: Get resilience profiles and circuit breaker states
+      summary: Get resilience configuration
       responses:
         "200":
-          description: Resilience configuration and current states
-    put:
+          description: Request queue, connection cooldown, provider breaker, and wait settings
+    patch:
       tags: [System]
-      summary: Update resilience profiles
+      summary: Update resilience configuration
       requestBody:
         required: true
         content:
@@ -1859,7 +1843,7 @@ paths:
               type: object
       responses:
         "200":
-          description: Updated resilience profiles
+          description: Updated resilience configuration
 
   /api/resilience/reset:
     post:

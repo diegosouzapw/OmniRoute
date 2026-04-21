@@ -10,6 +10,7 @@ import {
   getRuntimeProviderProfile,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
+import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
@@ -40,6 +41,16 @@ import {
   getComboStepWeight,
   normalizeComboStep,
 } from "../../src/lib/combos/steps.ts";
+
+function isProviderBreakerOpenResponse(
+  result: Response,
+  errorBody?: { error?: { code?: string | null } } | null
+) {
+  return (
+    result.headers.get("x-omniroute-provider-breaker") === "open" ||
+    errorBody?.error?.code === "provider_circuit_open"
+  );
+}
 import {
   getConnectionRoutingTags,
   matchesRoutingTags,
@@ -47,9 +58,8 @@ import {
   type RoutingTagMatchMode,
 } from "../../src/domain/tagRouter.ts";
 
-// Status codes that should mark semaphore + record circuit breaker failures
-// 401, 403 added so Auth errors quickly open the circuit breaker to prevent background request leaks
-const TRANSIENT_FOR_BREAKER = [401, 403, 429, 500, 502, 503, 504];
+// Status codes that should mark round-robin target semaphores as cooling down.
+const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
 const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /\bprohibited_content\b/i,
   /request blocked by .*api/i,
@@ -59,14 +69,38 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
-  /\binput is too long\b/i,
-  /\binput too long\b/i,
-  /\btoo many tokens\b/i,
-  /\bmax.*token.*exceed\b/i,
-  /\brequest too large\b/i,
-  /\bcontext window\b/i,
-  /\bmaximum context\b/i,
-  /\btoken limit\b/i,
+  CONTEXT_OVERFLOW_REGEX,
+  // Model not supported/found — permanent model-level error, try next combo target
+  /no provider supported/i,
+  /model not found/i,
+  /model not available/i,
+  /unsupported model/i,
+  /model.*has no provider/i,
+  // Function calling format error — model doesn't support this capability
+  /function\.?arguments.*(must be|should be|必须).*(json|JSON)/i,
+  /tool.*arguments.*invalid/i,
+  /function.*parameter.*(invalid|format)/i,
+  // Input length range error — model-specific context limit
+  /range of input length/i,
+  /input length should be/i,
+  // Transient 400 errors from upstream — should fallback to next combo target
+  /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
+  /抱歉.*?敏感内容.*?请检查/i, // ModelScope/Qwen content moderation with context
+  /内容.*?敏感.*?(?:无法|过滤)/i, // Content sensitivity block
+  /无法响应.*?请求/i, // "unable to respond to request"
+  /稍后重试/i, // "retry later" in Chinese
+  /temporary.*error/i,
+  /transient.*error/i,
+  /service.*unavailable/i,
+  /please.*try.*again/i,
+  // Rate limit errors — some providers return 400 instead of 429
+  /\brate.?-?limit.?(?:exceeded|reached|hit)/i,
+  /too many requests/i,
+  /请求过于频繁/i, // Chinese rate limit message
+  // Tool call function name errors — model-specific, try next combo target
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
@@ -85,6 +119,7 @@ function isAllAccountsRateLimitedResponse(
 
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
+const MAX_GLOBAL_ATTEMPTS = 30;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -233,10 +268,6 @@ function normalizeModelEntry(entry) {
 function getTargetProvider(modelStr: string, providerId?: string | null): string {
   const parsed = parseModel(modelStr);
   return providerId || parsed.provider || parsed.providerAlias || "unknown";
-}
-
-function getComboBreakerKey(comboName: string, executionKey: string): string {
-  return `combo:${comboName}:${executionKey}`;
 }
 
 function toRecordedTarget(target: ResolvedComboTarget) {
@@ -834,9 +865,7 @@ async function buildAutoCandidates(targets, comboName) {
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
 
-      const breakerStateRaw = getCircuitBreaker(
-        getComboBreakerKey(comboName, target.executionKey)
-      )?.getStatus?.()?.state;
+      const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState =
         breakerStateRaw === "OPEN" || breakerStateRaw === "HALF_OPEN" ? breakerStateRaw : "CLOSED";
 
@@ -1459,6 +1488,7 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
@@ -1467,18 +1497,6 @@ export async function handleComboChat({
     const modelStr = target.modelStr;
     const provider = target.provider;
     const profile = await getRuntimeProviderProfile(provider);
-    const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
-    const breaker = getCircuitBreaker(breakerKey, {
-      failureThreshold: profile.circuitBreakerThreshold,
-      resetTimeout: profile.circuitBreakerReset,
-    });
-
-    // Skip model if circuit breaker is OPEN
-    if (!breaker.canExecute()) {
-      log.info("COMBO", `Skipping ${modelStr}: circuit breaker OPEN for ${provider}`);
-      if (i > 0) fallbackCount++;
-      continue;
-    }
 
     // Pre-check: skip models where all accounts are in cooldown
     if (isModelAvailable) {
@@ -1492,6 +1510,14 @@ export async function handleComboChat({
 
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
+      globalAttempts++;
+      if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
+        log.warn(
+          "COMBO",
+          `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
+        );
+        return errorResponse(503, "Maximum combo retry limit reached");
+      }
       if (retry > 0) {
         log.info(
           "COMBO",
@@ -1515,7 +1541,6 @@ export async function handleComboChat({
             "COMBO",
             `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
           );
-          breaker._onFailure();
           recordComboRequest(combo.name, modelStr, {
             success: false,
             latencyMs: Date.now() - startTime,
@@ -1532,7 +1557,6 @@ export async function handleComboChat({
           "COMBO",
           `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
         );
-        breaker._onSuccess();
         recordComboRequest(combo.name, modelStr, {
           success: true,
           latencyMs,
@@ -1601,6 +1625,7 @@ export async function handleComboChat({
 
       // Extract error info from response
       let errorText = result.statusText || "";
+      let errorBody = null;
       let retryAfter = null;
       try {
         const cloned = result.clone();
@@ -1608,7 +1633,7 @@ export async function handleComboChat({
           const text = await cloned.text();
           if (text) {
             errorText = text.substring(0, 500);
-            const errorBody = JSON.parse(text);
+            errorBody = JSON.parse(text);
             errorText =
               errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
             retryAfter = errorBody?.retryAfter || null;
@@ -1637,11 +1662,15 @@ export async function handleComboChat({
         }
       }
 
-      const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
-        result.status,
-        result.headers?.get("content-type") ?? null,
-        errorText
-      );
+      const providerBreakerOpen = isProviderBreakerOpenResponse(result, errorBody);
+
+      if (providerBreakerOpen) {
+        lastError = errorText || String(result.status);
+        if (!lastStatus) lastStatus = result.status;
+        if (i > 0) fallbackCount++;
+        log.info("COMBO", `Skipping ${modelStr}: provider circuit breaker OPEN for ${provider}`);
+        break;
+      }
 
       const { shouldFallback, cooldownMs } = checkFallbackError(
         result.status,
@@ -1654,14 +1683,7 @@ export async function handleComboChat({
       );
       const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
-      // Record failure in circuit breaker for transient errors
-      if (TRANSIENT_FOR_BREAKER.includes(result.status)) {
-        breaker._onFailure();
-      }
-
-      if (isAllAccountsRateLimited) {
-        log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
-      } else if (!shouldFallback && !comboBadRequestFallback) {
+      if (!shouldFallback && !comboBadRequestFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
         recordComboRequest(combo.name, modelStr, {
           success: false,
@@ -1714,23 +1736,10 @@ export async function handleComboChat({
     }
   }
 
-  // Early exit: check if all models have breaker OPEN
-  const allBreakersOpen = orderedTargets.every((target) => {
-    return !getCircuitBreaker(getComboBreakerKey(combo.name, target.executionKey)).canExecute();
-  });
-
   // All models failed
   const latencyMs = Date.now() - startTime;
   if (recordedAttempts === 0) {
     recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
-  }
-
-  if (allBreakersOpen) {
-    log.warn("COMBO", "All models have circuit breaker OPEN — aborting");
-    return unavailableResponse(
-      503,
-      "All providers temporarily unavailable (circuit breakers open)"
-    );
   }
 
   if (!lastStatus) {
@@ -1807,6 +1816,7 @@ async function handleRoundRobinCombo({
   let lastError = null;
   let lastStatus = null;
   let earliestRetryAfter = null;
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
@@ -1817,19 +1827,7 @@ async function handleRoundRobinCombo({
     const modelStr = target.modelStr;
     const provider = target.provider;
     const profile = await getRuntimeProviderProfile(provider);
-    const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
-    const breaker = getCircuitBreaker(breakerKey, {
-      failureThreshold: profile.circuitBreakerThreshold,
-      resetTimeout: profile.circuitBreakerReset,
-    });
-
-    // Skip model if circuit breaker is OPEN
-    if (!breaker.canExecute()) {
-      log.info("COMBO-RR", `Skipping ${modelStr}: circuit breaker OPEN for ${provider}`);
-      if (offset > 0) fallbackCount++;
-      continue;
-    }
 
     // Pre-check availability
     if (isModelAvailable) {
@@ -1860,6 +1858,14 @@ async function handleRoundRobinCombo({
     // Retry loop within this model
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
+        globalAttempts++;
+        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
+          log.warn(
+            "COMBO-RR",
+            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded. Terminating loop to prevent runaway requests.`
+          );
+          return errorResponse(503, "Maximum combo retry limit reached");
+        }
         if (retry > 0) {
           log.info(
             "COMBO-RR",
@@ -1883,7 +1889,6 @@ async function handleRoundRobinCombo({
               "COMBO-RR",
               `${modelStr} returned 200 but failed quality check: ${quality.reason}`
             );
-            breaker._onFailure();
             recordComboRequest(combo.name, modelStr, {
               success: false,
               latencyMs: Date.now() - startTime,
@@ -1900,7 +1905,6 @@ async function handleRoundRobinCombo({
             "COMBO-RR",
             `${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
           );
-          breaker._onSuccess();
           recordComboRequest(combo.name, modelStr, {
             success: true,
             latencyMs,
@@ -1932,13 +1936,14 @@ async function handleRoundRobinCombo({
         // Extract error info
         let errorText = result.statusText || "";
         let retryAfter = null;
+        let errorBody: { error?: { code?: string | null; message?: string | null } } | null = null;
         try {
           const cloned = result.clone();
           try {
             const text = await cloned.text();
             if (text) {
               errorText = text.substring(0, 500);
-              const errorBody = JSON.parse(text);
+              errorBody = JSON.parse(text);
               errorText =
                 errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
               retryAfter = errorBody?.retryAfter || null;
@@ -1965,6 +1970,17 @@ async function handleRoundRobinCombo({
           }
         }
 
+        if (isProviderBreakerOpenResponse(result, errorBody)) {
+          lastError = errorText || String(result.status);
+          if (!lastStatus) lastStatus = result.status;
+          if (offset > 0) fallbackCount++;
+          log.info(
+            "COMBO-RR",
+            `Skipping ${modelStr}: provider circuit breaker OPEN for ${provider}`
+          );
+          break;
+        }
+
         const { shouldFallback, cooldownMs } = checkFallbackError(
           result.status,
           errorText,
@@ -1982,14 +1998,10 @@ async function handleRoundRobinCombo({
           errorText
         );
 
-        // Transient errors → mark in semaphore AND record circuit breaker failure
-        if (TRANSIENT_FOR_BREAKER.includes(result.status) && cooldownMs > 0) {
+        // Transient errors → mark in semaphore so round-robin stops stampeding this target.
+        if (TRANSIENT_FOR_SEMAPHORE.includes(result.status) && cooldownMs > 0) {
           semaphore.markRateLimited(semaphoreKey, cooldownMs);
-          breaker._onFailure();
-          log.warn(
-            "COMBO-RR",
-            `${modelStr} error ${result.status}, cooldown ${cooldownMs}ms (breaker: ${breaker.getStatus().failureCount}/${profile.circuitBreakerThreshold})`
-          );
+          log.warn("COMBO-RR", `${modelStr} error ${result.status}, cooldown ${cooldownMs}ms`);
         }
 
         if (isAllAccountsRateLimited) {
@@ -2063,19 +2075,6 @@ async function handleRoundRobinCombo({
       fallbackCount,
       strategy: "round-robin",
     });
-  }
-
-  // Early exit: check if all models have breaker OPEN
-  const allBreakersOpen = orderedTargets.every((target) => {
-    return !getCircuitBreaker(getComboBreakerKey(combo.name, target.executionKey)).canExecute();
-  });
-
-  if (allBreakersOpen) {
-    log.warn("COMBO-RR", "All models have circuit breaker OPEN — aborting");
-    return unavailableResponse(
-      503,
-      "All providers temporarily unavailable (circuit breakers open)"
-    );
   }
 
   if (!lastStatus) {

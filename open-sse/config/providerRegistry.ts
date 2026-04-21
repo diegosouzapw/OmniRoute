@@ -1151,6 +1151,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen-3-32b", name: "Qwen3 32B" },
     ],
   },
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:1234/v1",
+    authType: "apikey", // Some setups may use proxy with api key
+    authHeader: "bearer",
+    models: [], // Usually dynamic based on local models downloaded
+  },
 
   "ollama-cloud": {
     id: "ollama-cloud",
@@ -1199,9 +1209,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
-      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
-      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
+      { id: "gpt-oss-120b", name: "GPT OSS 120B" },
+      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)" },
+      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B" },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
@@ -1398,6 +1408,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
     ],
     passthroughModels: true,
+  },
+
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api-inference.modelscope.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // ModelScope uses per-model quotas. Setting passthroughModels: true ensures 429/404
+    // only locks the specific model, not the entire connection. This allows fallback
+    // to other models on the same API key.
+    passthroughModels: true,
+    models: [
+      { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
+      { id: "ZhipuAI/GLM-5", name: "GLM-5" },
+      { id: "stepfun-ai/Step-3.5-Flash", name: "Step-3.5-Flash" },
+    ],
   },
 
   // ── New Free Providers (2026) ─────────────────────────────────────────────
@@ -2128,8 +2157,14 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   const cached = _unsupportedParamsMap.get(modelId);
   if (cached) return cached;
 
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3", "moonshotai/Kimi-K2.5" → "moonshotai/Kimi-K2.5")
+  // ModelScope models have slash in ID, check both full ID and bare ID
   if (modelId.includes("/")) {
+    // First check full model ID with provider prefix (e.g., "moonshotai/Kimi-K2.5")
+    const cachedWithPrefix = _unsupportedParamsMap.get(modelId);
+    if (cachedWithPrefix) return cachedWithPrefix;
+
+    // Fall back to bare ID (e.g., "Kimi-K2.5")
     const bareId = modelId.split("/").pop() || "";
     const bare = _unsupportedParamsMap.get(bareId);
     if (bare) return bare;
@@ -2154,6 +2189,7 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
  * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
+ * @deprecated This function will be removed in v4.0, please use REGISTRY.claude?.models directly
  */
 export function getClaudeCodeDefaultModels(): {
   opus: string;

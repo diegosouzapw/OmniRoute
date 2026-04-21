@@ -8,9 +8,9 @@
 
 ### Combo Routing Engine
 
-- **`combo.ts`** (800 LOC) — Entry point for multi-model routing. **`handleComboChat()`** iterates through targets in order until success or all fail. **`resolveComboTargets()`** expands combo config into ordered `ResolvedComboTarget[]` (provider + model + account + credentials). Enforces per-target circuit breaker and fallback logic.
+- **`combo.ts`** (800 LOC) — Entry point for multi-model routing. **`handleComboChat()`** iterates through targets in order until success or all fail. **`resolveComboTargets()`** expands combo config into ordered `ResolvedComboTarget[]` (provider + model + account + credentials). Enforces target retry, round-robin slot control, and provider-level resilience gates.
 - **Strategies** (13 total): `priority` (ordered list), `weighted` (probabilistic), `fill-first` (fill quota first), `round-robin`, `P2C` (power of two choices), `random`, `least-used`, `cost-optimized`, `strict-random`, `auto`, `lkgp` (last known good provider), `context-optimized`, `context-relay`.
-- **Circuit Breaker**: Per target, tracks consecutive failures; breaks after threshold, reopens on success or timeout.
+- **Provider Breaker Integration**: Combo targets respect the global provider circuit breaker and skip to the next target when a provider is already open.
 
 ### Quota & Rate Limiting
 
@@ -120,7 +120,7 @@ Each service requires unit and integration tests. For authoritative coverage req
 
 - **Combo-first design**: All routing decisions go through combo engine; fallback strategies are combo targets, not ad-hoc logic
 - **Service composition**: Small focused modules; combo.ts orchestrates them, not monolithic routing
-- **Circuit breaker per-target**: Failures isolated to specific provider+account combo; other targets unaffected
+- **Provider breaker is global**: Combo targets respect the shared provider circuit breaker; combo does not maintain a second target-local breaker
 - **Caching everywhere**: Models, providers, quotas, family fallbacks all pre-cached; invalidated on write
 - **13 strategies** over hardcoded logic: Strategy pattern allows new routing logic without touching combo.ts core
 
@@ -130,6 +130,6 @@ Each service requires unit and integration tests. For authoritative coverage req
 
 - New services must not add blocking I/O to routing hot path
 - Combo target resolution under 10ms (measure with benchmarks)
-- Circuit breaker state per-target, not global
+- Combo should not reintroduce a second breaker layer on top of the global provider breaker
 - All fallback chains tested (no infinite loops)
 - Coverage requirements: See [`CONTRIBUTING.md#running-tests`](../../CONTRIBUTING.md#running-tests) (60% gate enforced in CI)

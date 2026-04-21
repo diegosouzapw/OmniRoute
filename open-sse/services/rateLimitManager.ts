@@ -9,10 +9,14 @@
  */
 
 import Bottleneck from "bottleneck";
-import { parseRetryAfterFromBody, lockModel } from "./accountFallback.ts";
+import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
-import { DEFAULT_API_LIMITS } from "../config/constants.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
+import {
+  DEFAULT_RESILIENCE_SETTINGS,
+  resolveResilienceSettings,
+  type RequestQueueSettings,
+} from "../../src/lib/resilience/settings";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -24,7 +28,9 @@ interface LearnedLimitEntry {
 }
 
 interface LimiterUpdateSettings {
+  maxConcurrent?: number | null;
   minTime: number;
+  maxWait?: number | null;
   reservoir?: number | null;
   reservoirRefreshAmount?: number | null;
   reservoirRefreshInterval?: number | null;
@@ -61,20 +67,18 @@ const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max
 // Track initialization
 let initialized = false;
 
-// Max time (ms) a job can wait in queue before failing with a timeout error.
-// Prevents infinite queuing when all providers are exhausted after a 429.
-// Configurable via RATE_LIMIT_MAX_WAIT_MS env var (default: 2 minutes).
-const MAX_WAIT_MS = parseInt(process.env.RATE_LIMIT_MAX_WAIT_MS || "120000", 10);
+let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
 
-// Default conservative settings (before we learn from headers)
-const DEFAULT_SETTINGS = {
-  maxConcurrent: 10,
-  minTime: 0, // No throttle by default — let headers teach us
-  reservoir: null, // No initial reservoir — unlimited until we learn
-  reservoirRefreshAmount: null,
-  reservoirRefreshInterval: null,
-  maxWait: MAX_WAIT_MS, // Fail-fast: don't queue forever on 429 exhaustion
-};
+function buildLimiterDefaults() {
+  return {
+    maxConcurrent: currentRequestQueueSettings.concurrentRequests,
+    minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
+    reservoir: currentRequestQueueSettings.requestsPerMinute,
+    reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
+    reservoirRefreshInterval: 60 * 1000,
+    maxWait: currentRequestQueueSettings.maxWaitMs,
+  };
+}
 
 function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
   pendingAsyncOperations.add(promise);
@@ -93,11 +97,12 @@ export async function initializeRateLimits() {
   initialized = true;
 
   try {
-    const { getProviderConnections } = await import("@/lib/localDb");
-    const connections = await getProviderConnections();
+    const { getProviderConnections, getSettings } = await import("@/lib/localDb");
+    const [connections, settings] = await Promise.all([getProviderConnections(), getSettings()]);
+    const resilience = resolveResilienceSettings(settings);
+    applyRequestQueueSettings(resilience.requestQueue);
     let explicitCount = 0;
     let autoCount = 0;
-    let customCount = 0;
 
     for (const connRaw of connections as unknown[]) {
       const conn = toRecord(connRaw);
@@ -105,38 +110,17 @@ export async function initializeRateLimits() {
       const provider = typeof conn.provider === "string" ? conn.provider : "";
       const isActive = conn.isActive === true;
       const rateLimitProtection = conn.rateLimitProtection === true;
-      const customRpm = toNumber(conn.customRpm, 0);
-      const customTpm = toNumber(conn.customTpm, 0);
       if (!connectionId || !provider) continue;
 
-      // Custom rpm/tpm configured — enable rate limiting with user-defined values (#198)
-      if (customRpm > 0 || customTpm > 0) {
-        enabledConnections.add(connectionId);
-        customCount++;
-
-        const key = `${provider}:${connectionId}`;
-        const rpm = customRpm > 0 ? customRpm : DEFAULT_API_LIMITS.requestsPerMinute;
-        const minTime = Math.max(0, Math.floor(60000 / rpm) - 10);
-
-        if (!limiters.has(key)) {
-          limiters.set(
-            key,
-            new Bottleneck({
-              maxConcurrent: DEFAULT_API_LIMITS.concurrentRequests,
-              minTime,
-              reservoir: rpm,
-              reservoirRefreshAmount: rpm,
-              reservoirRefreshInterval: 60 * 1000,
-              maxWait: MAX_WAIT_MS,
-              id: key,
-            })
-          );
-        }
-      } else if (rateLimitProtection) {
+      if (rateLimitProtection) {
         // Explicitly enabled by user
         enabledConnections.add(connectionId);
         explicitCount++;
-      } else if (getProviderCategory(provider) === "apikey" && isActive) {
+      } else if (
+        resilience.requestQueue.autoEnableApiKeyProviders &&
+        getProviderCategory(provider) === "apikey" &&
+        isActive
+      ) {
         // Auto-enable for API key providers (safety net)
         enabledConnections.add(connectionId);
         autoCount++;
@@ -147,12 +131,7 @@ export async function initializeRateLimits() {
           limiters.set(
             key,
             new Bottleneck({
-              maxConcurrent: DEFAULT_API_LIMITS.concurrentRequests,
-              minTime: DEFAULT_API_LIMITS.minTimeBetweenRequests,
-              reservoir: DEFAULT_API_LIMITS.requestsPerMinute,
-              reservoirRefreshAmount: DEFAULT_API_LIMITS.requestsPerMinute,
-              reservoirRefreshInterval: 60 * 1000, // Refresh every minute
-              maxWait: MAX_WAIT_MS,
+              ...buildLimiterDefaults(),
               id: key,
             })
           );
@@ -160,9 +139,9 @@ export async function initializeRateLimits() {
       }
     }
 
-    if (explicitCount > 0 || autoCount > 0 || customCount > 0) {
+    if (explicitCount > 0 || autoCount > 0) {
       console.log(
-        `🛡️ [RATE-LIMIT] Loaded ${explicitCount} explicit + ${autoCount} auto-enabled + ${customCount} custom rpm/tpm protection(s)`
+        `🛡️ [RATE-LIMIT] Loaded ${explicitCount} explicit + ${autoCount} auto-enabled protection(s)`
       );
     }
 
@@ -170,6 +149,21 @@ export async function initializeRateLimits() {
     await loadPersistedLimits();
   } catch (err) {
     console.error("[RATE-LIMIT] Failed to load settings:", err.message);
+  }
+}
+
+export function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
+  currentRequestQueueSettings = { ...nextSettings };
+
+  for (const limiter of limiters.values()) {
+    limiter.updateSettings({
+      maxConcurrent: currentRequestQueueSettings.concurrentRequests,
+      minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
+      maxWait: currentRequestQueueSettings.maxWaitMs,
+      reservoir: currentRequestQueueSettings.requestsPerMinute,
+      reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
+      reservoirRefreshInterval: 60 * 1000,
+    });
   }
 }
 
@@ -222,7 +216,7 @@ function getLimiter(provider, connectionId, model = null) {
 
   if (!limiters.has(key)) {
     const limiter = new Bottleneck({
-      ...DEFAULT_SETTINGS,
+      ...buildLimiterDefaults(),
       id: key,
     });
 
@@ -648,10 +642,5 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
       reservoirRefreshAmount: 60,
       reservoirRefreshInterval: retryAfterMs,
     });
-
-    // Also apply model-level lockout if model is known
-    if (model) {
-      lockModel(provider, connectionId, model, reason, retryAfterMs);
-    }
   }
 }

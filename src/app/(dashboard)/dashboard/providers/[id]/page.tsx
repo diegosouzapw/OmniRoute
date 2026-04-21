@@ -326,6 +326,7 @@ function anyUpstreamHeadersBadge(
 interface ModelRowProps {
   model: { id: string; name?: string; source?: string; isHidden?: boolean };
   fullModel: string;
+  provider: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
@@ -2460,6 +2461,7 @@ export default function ProviderDetailPage() {
                 key={model.id}
                 model={model}
                 fullModel={`${providerDisplayAlias}/${model.id}`}
+                provider={providerId}
                 copied={copied}
                 onCopy={copy}
                 t={t}
@@ -3329,6 +3331,7 @@ export default function ProviderDetailPage() {
 function ModelRow({
   model,
   fullModel,
+  provider,
   copied,
   onCopy,
   t,
@@ -3407,6 +3410,7 @@ ModelRow.propTypes = {
     id: PropTypes.string.isRequired,
   }).isRequired,
   fullModel: PropTypes.string.isRequired,
+  provider: PropTypes.string.isRequired,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   t: PropTypes.func,
@@ -5402,6 +5406,7 @@ function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    passthroughModels: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5494,6 +5499,9 @@ function AddApiKeyModal({
       }
       if (formData.excludedModels.trim()) {
         providerSpecificData.excludedModels = parseExcludedModelsInput(formData.excludedModels);
+      }
+      if (formData.passthroughModels) {
+        providerSpecificData.passthroughModels = true;
       }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
@@ -5685,6 +5693,13 @@ function AddApiKeyModal({
               placeholder="gpt-5*, claude-opus-*, gemini-*-pro*"
               hint="Comma-separated wildcard patterns. This connection will never serve matching models."
             />
+            <Toggle
+              size="sm"
+              checked={formData.passthroughModels}
+              onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+              label={t("perModelQuotaLabel")}
+              description={t("perModelQuotaDescription")}
+            />
             {provider === "bailian-coding-plan" && (
               <Input
                 label="Console API Key (Oracle)"
@@ -5824,6 +5839,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5891,6 +5907,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -6031,6 +6048,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
+          // Only write when explicitly enabled; omit to let registry default take effect
+          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
         if (connection.provider === "bailian-coding-plan") {
           if (formData.consoleApiKey.trim()) {
@@ -6287,6 +6306,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
+                />
+                <Toggle
+                  size="sm"
+                  checked={formData.passthroughModels}
+                  onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+                  label={t("perModelQuotaLabel")}
+                  description={t("perModelQuotaDescription")}
                 />
                 {connection.provider === "bailian-coding-plan" && (
                   <Input

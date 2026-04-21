@@ -170,6 +170,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
     circuitBreakerThreshold: 3, // Opens fast (low limit providers)
     circuitBreakerReset: 60000, // 1min reset
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 3, // 3 transient failures trigger provider cooldown
+    providerFailureWindowMs: 600000, // 10min window for counting failures
+    providerCooldownMs: 300000, // 5min cooldown when threshold reached
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
@@ -177,6 +181,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
     circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
     circuitBreakerReset: 30000, // 30s reset
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 5, // 5 transient failures trigger provider cooldown
+    providerFailureWindowMs: 1200000, // 20min window for counting failures
+    providerCooldownMs: 600000, // 10min cooldown when threshold reached
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
   // Not yet wired into getProviderProfile() — will be used when local provider_nodes
@@ -187,6 +195,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 3, // Low ceiling (local either works or doesn't)
     circuitBreakerThreshold: 2, // Opens fast (if local is down, it's down)
     circuitBreakerReset: 15000, // 15s reset (check again quickly)
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 2, // 2 failures trigger provider cooldown
+    providerFailureWindowMs: 300000, // 5min window for counting failures
+    providerCooldownMs: 60000, // 1min cooldown when threshold reached
   },
 };
 

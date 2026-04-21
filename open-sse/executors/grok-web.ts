@@ -58,6 +58,11 @@ const MODEL_MAP: Record<string, GrokModelInfo> = {
     modelMode: "MODEL_MODE_GROK_4_THINKING",
     isThinking: true,
   },
+  "grok-4.3": {
+    grokModel: "grok-4-3-thinking-1129",
+    modelMode: "MODEL_MODE_GROK_4_3_THINKING",
+    isThinking: true,
+  },
   "grok-4-heavy": { grokModel: "grok-4", modelMode: "MODEL_MODE_HEAVY", isThinking: true },
   "grok-4.1-mini": {
     grokModel: "grok-4-1-thinking-1129",

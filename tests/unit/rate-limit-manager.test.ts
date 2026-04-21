@@ -157,9 +157,14 @@ test("rate limit manager parses retry hints from response bodies and locks model
     "gpt-4o"
   );
 
-  const lockout = accountFallback.getModelLockoutInfo("openai", "conn-body", "gpt-4o");
-  assert.equal(lockout.reason, "rate_limit_exceeded");
-  assert.ok(lockout.remainingMs > 0);
+  assert.equal(accountFallback.getModelLockoutInfo("openai", "conn-body", "gpt-4o"), null);
+  const limiterState = await rateLimitManager.__getLimiterStateForTests(
+    "openai",
+    "conn-body",
+    "gpt-4o"
+  );
+  assert.equal(limiterState?.key, "openai:conn-body");
+  assert.equal(rateLimitManager.getRateLimitStatus("openai", "conn-body").active, true);
 
   rateLimitManager.updateFromResponseBody(
     "openai",

@@ -33,8 +33,6 @@ export async function createChatPipelineHarness(prefix) {
   const { initTranslators } = await import("../../open-sse/translator/index.ts");
   const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
   const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
-  const { resetAllAvailability, setModelUnavailable } =
-    await import("../../src/domain/modelAvailability.ts");
   const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
   const originalFetch = globalThis.fetch;
@@ -209,7 +207,6 @@ export async function createChatPipelineHarness(prefix) {
     clearInflight();
     idempotencyLayerModule.clearIdempotency();
     semanticCacheModule.clearCache();
-    resetAllAvailability();
     resetAllCircuitBreakers();
     apiKeysDb.resetApiKeyState();
     readCacheDb.invalidateDbCache();
@@ -229,7 +226,6 @@ export async function createChatPipelineHarness(prefix) {
     idempotencyLayerModule.clearIdempotency();
     semanticCacheModule.clearCache();
     clearSkillState();
-    resetAllAvailability();
     resetAllCircuitBreakers();
     core.resetDbInstance();
     fs.rmSync(testDataDir, { recursive: true, force: true });
@@ -292,7 +288,6 @@ export async function createChatPipelineHarness(prefix) {
     semanticCacheModule,
     seedApiKey,
     seedConnection,
-    setModelUnavailable,
     settingsDb,
     skillByIdRouteModule,
     skillExecutor,

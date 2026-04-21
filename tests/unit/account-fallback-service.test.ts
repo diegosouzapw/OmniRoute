@@ -22,6 +22,12 @@ const {
   recordModelLockoutFailure,
   clearModelLock,
   shouldMarkAccountExhaustedFrom429,
+  recordProviderFailure,
+  isProviderInCooldown,
+  getProviderCooldownRemainingMs,
+  clearProviderFailure,
+  isProviderFailureCode,
+  getProvidersInCooldown,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -201,8 +207,37 @@ test("lockModelIfPerModelQuota only locks supported providers and real models", 
 });
 
 test("getProviderProfile differentiates oauth and api-key providers", () => {
-  assert.deepEqual(getProviderProfile("claude"), PROVIDER_PROFILES.oauth);
-  assert.deepEqual(getProviderProfile("openai"), PROVIDER_PROFILES.apikey);
+  const oauthProfile = getProviderProfile("claude");
+  assert.equal(oauthProfile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(
+    oauthProfile.rateLimitCooldown,
+    oauthProfile.useUpstreamRetryHints ? 0 : oauthProfile.baseCooldownMs
+  );
+  assert.equal(oauthProfile.maxBackoffLevel, PROVIDER_PROFILES.oauth.maxBackoffLevel);
+  assert.equal(
+    oauthProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.oauth.circuitBreakerThreshold
+  );
+  assert.equal(oauthProfile.circuitBreakerReset, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+  assert.equal(oauthProfile.baseCooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
+  assert.equal(oauthProfile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(oauthProfile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
+
+  const apiKeyProfile = getProviderProfile("openai");
+  assert.equal(apiKeyProfile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(
+    apiKeyProfile.rateLimitCooldown,
+    apiKeyProfile.useUpstreamRetryHints ? 0 : apiKeyProfile.baseCooldownMs
+  );
+  assert.equal(apiKeyProfile.maxBackoffLevel, PROVIDER_PROFILES.apikey.maxBackoffLevel);
+  assert.equal(
+    apiKeyProfile.circuitBreakerThreshold,
+    PROVIDER_PROFILES.apikey.circuitBreakerThreshold
+  );
+  assert.equal(apiKeyProfile.circuitBreakerReset, PROVIDER_PROFILES.apikey.circuitBreakerReset);
+  assert.equal(apiKeyProfile.baseCooldownMs, PROVIDER_PROFILES.apikey.transientCooldown);
+  assert.equal(apiKeyProfile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(apiKeyProfile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
 });
 
 test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatible providers", () => {
@@ -223,11 +258,11 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     const compatibleProvider = "openai-compatible-custom-node";
     const compatibleModel = "custom-model-a";
     const profile = {
-      transientCooldown: 250,
-      rateLimitCooldown: 125,
-      maxBackoffLevel: 2,
-      circuitBreakerThreshold: 60,
-      circuitBreakerReset: 500,
+      baseCooldownMs: 125,
+      useUpstreamRetryHints: false,
+      maxBackoffSteps: 2,
+      failureThreshold: 60,
+      resetTimeoutMs: 500,
     };
 
     const first = recordModelLockoutFailure(
@@ -289,4 +324,170 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
     Date.now = originalNow;
     clearModelLock("openai-compatible-custom-node", "conn-compatible", "custom-model-a");
   }
+});
+
+// Provider-level failure circuit breaker tests
+test("isProviderFailureCode correctly identifies provider-wide transient error codes", () => {
+  assert.equal(isProviderFailureCode(429), false);
+  assert.equal(isProviderFailureCode(408), true);
+  assert.equal(isProviderFailureCode(500), true);
+  assert.equal(isProviderFailureCode(502), true);
+  assert.equal(isProviderFailureCode(503), true);
+  assert.equal(isProviderFailureCode(504), true);
+  assert.equal(isProviderFailureCode(401), false);
+  assert.equal(isProviderFailureCode(403), false);
+  assert.equal(isProviderFailureCode(400), false);
+  assert.equal(isProviderFailureCode(404), false);
+  assert.equal(isProviderFailureCode(200), false);
+});
+
+test("recordProviderFailure tracks failures and triggers cooldown after threshold", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider";
+
+    // Clear any existing state
+    clearProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+
+    // Record 4 failures - should not trigger cooldown yet
+    for (let i = 0; i < 4; i++) {
+      recordProviderFailure(provider);
+      now += 1000; // 1 second between failures
+    }
+    assert.equal(isProviderInCooldown(provider), false);
+
+    // 5th failure - should trigger cooldown
+    recordProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), true);
+
+    const remaining = getProviderCooldownRemainingMs(provider);
+    assert.ok(remaining !== null);
+    assert.ok(remaining > 0);
+    assert.ok(remaining <= 10 * 60 * 1000); // 10 minutes max
+
+    // Check getProvidersInCooldown returns the provider
+    const inCooldown = getProvidersInCooldown();
+    assert.ok(inCooldown.some((p) => p.provider === provider));
+    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, 5);
+
+    // Simulate cooldown expiration
+    now += 11 * 60 * 1000; // 11 minutes later
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+    assert.equal(
+      getProvidersInCooldown().some((p) => p.provider === provider),
+      false
+    );
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider");
+  }
+});
+
+test("checkFallbackError no longer mutates provider breaker state on per-connection failures", () => {
+  const provider = "test-provider-check";
+  clearProviderFailure(provider);
+
+  for (let i = 0; i < 5; i++) {
+    checkFallbackError(429, "rate limited", 0, null, provider);
+  }
+
+  assert.equal(isProviderInCooldown(provider), false);
+  clearProviderFailure(provider);
+});
+
+test("checkFallbackError does not record provider failure for non-transient errors", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-no-record";
+    clearProviderFailure(provider);
+
+    // Simulate 5 auth errors (401) - should NOT trigger provider cooldown
+    for (let i = 0; i < 5; i++) {
+      checkFallbackError(401, "unauthorized", 0, null, provider);
+      now += 1000;
+    }
+
+    // Provider should NOT be in cooldown
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-no-record");
+  }
+});
+
+test("clearProviderFailure removes provider from cooldown", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-clear";
+    clearProviderFailure(provider);
+
+    // Trigger cooldown
+    for (let i = 0; i < 5; i++) {
+      recordProviderFailure(provider);
+      now += 1000;
+    }
+    assert.equal(isProviderInCooldown(provider), true);
+
+    // Clear the failure state
+    clearProviderFailure(provider);
+    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(getProviderCooldownRemainingMs(provider), null);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-clear");
+  }
+});
+
+// Daily quota exhausted detection tests
+test("isDailyQuotaExhausted detects today's quota errors", () => {
+  const { isDailyQuotaExhausted } = accountFallback;
+  assert.equal(isDailyQuotaExhausted("You have exceeded today's quota for model X"), true);
+  assert.equal(isDailyQuotaExhausted("exceeded your daily quota"), true);
+  assert.equal(isDailyQuotaExhausted("Please try again tomorrow"), true);
+  assert.equal(isDailyQuotaExhausted("rate limit exceeded"), false);
+  assert.equal(isDailyQuotaExhausted(""), false);
+  assert.equal(isDailyQuotaExhausted(null), false);
+});
+
+test("getMsUntilTomorrow returns positive value less than 24 hours", () => {
+  const { getMsUntilTomorrow } = accountFallback;
+  const ms = getMsUntilTomorrow();
+  assert.ok(ms > 0, "should be positive");
+  assert.ok(ms <= 24 * 60 * 60 * 1000, "should be <= 24 hours");
+});
+
+test("checkFallbackError locks model until tomorrow for daily quota exhaustion", () => {
+  const result = checkFallbackError(
+    429,
+    "You have exceeded today's quota for model moonshotai/Kimi-K2.5, please try again tomorrow"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.ok(result.cooldownMs > 0, "cooldown should be positive");
+  assert.ok(result.cooldownMs <= 24 * 60 * 60 * 1000, "cooldown should be <= 24 hours");
+});
+
+test("checkFallbackError detects daily quota with 'try again tomorrow'", () => {
+  const result = checkFallbackError(429, "Please try again tomorrow");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+test("checkFallbackError detects daily quota with 'daily quota'", () => {
+  const result = checkFallbackError(429, "You have exceeded your daily quota");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.dailyQuotaExhausted, true);
 });

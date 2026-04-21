@@ -23,6 +23,10 @@ import {
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
+import {
+  classifyProviderError,
+  PROVIDER_ERROR_TYPES,
+} from "@omniroute/open-sse/services/errorClassifier.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
@@ -249,6 +253,31 @@ function normalizeStatus(value: string | null): string {
 function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean {
   const status = normalizeStatus(connection.testStatus);
   return status === "credits_exhausted" || status === "banned" || status === "expired";
+}
+
+function resolveTerminalConnectionStatus(
+  status: number,
+  result: { permanent?: boolean; creditsExhausted?: boolean },
+  providerErrorType: string | null = null
+): string | null {
+  if (result.creditsExhausted || status === 402) return "credits_exhausted";
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR ||
+    providerErrorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN
+  ) {
+    return null;
+  }
+  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN || status === 403) {
+    return "banned";
+  }
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+    providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
+    status === 401
+  ) {
+    return "expired";
+  }
+  return null;
 }
 
 export function resolveQuotaLimitPolicy(
@@ -1188,22 +1217,39 @@ export async function markAccountUnavailable(
 
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+    const fallbackResult = checkFallbackError(
+      status,
+      errorText,
+      backoffLevel,
+      model,
+      provider,
+      null,
+      effectiveProviderProfile
+    );
 
-    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    // Read passthroughModels from connection config (user-configured per-model quota)
+    const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
+    const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
+      | boolean
+      | undefined;
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
-      const fallbackCooldown =
-        status === 404
-          ? (effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.notFoundLocal)
-          : 0;
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         reason,
         status,
-        fallbackCooldown,
-        effectiveProviderProfile
+        status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
+        effectiveProviderProfile,
+        {
+          exactCooldownMs:
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+        }
       );
       // Update last error for observability (without changing terminal status)
       updateProviderConnection(connectionId, {
@@ -1218,18 +1264,12 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
-
-    const result = checkFallbackError(
-      status,
-      errorText,
-      backoffLevel,
-      model,
-      provider,
-      null,
-      effectiveProviderProfile
-    );
-    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
+    const result = fallbackResult;
+    const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
+    const providerErrorType = classifyProviderError(status, errorText);
+    const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
+    const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model
@@ -1262,7 +1302,6 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
-    const rateLimitedUntil = getUnavailableUntil(cooldownMs);
     const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
 
     // T09: Codex per-scope lockout (do not block the whole account globally).
@@ -1270,7 +1309,7 @@ export async function markAccountUnavailable(
       const scope = getCodexModelScope(model);
       const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
       const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || rateLimitedUntil;
+      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
       await updateProviderConnection(connectionId, {
@@ -1299,14 +1338,27 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
     }
 
-    await updateProviderConnection(connectionId, {
-      rateLimitedUntil,
-      testStatus: "unavailable",
+    const baseUpdate = {
       lastError: errorMsg,
+      lastErrorType: providerErrorType,
       errorCode: status,
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
-    });
+    };
+
+    if (cooldownMs > 0) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: getUnavailableUntil(cooldownMs),
+        testStatus: "unavailable",
+      });
+    } else {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: null,
+        ...(terminalStatus ? { testStatus: terminalStatus } : {}),
+      });
+    }
 
     // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
     // mark account as inactive so it is never retried again.
@@ -1328,11 +1380,6 @@ export async function markAccountUnavailable(
       } catch (e) {
         log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
       }
-    }
-
-    // Per-model lockout: lock the specific model if known
-    if (provider && model && cooldownMs > 0) {
-      lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
     }
 
     if (provider && status && errorMsg) {
