@@ -159,7 +159,7 @@ export {
 } from "./db/backup";
 
 export {
-  // Read Cache (cached wrappers for hot read paths)
+  // Read Cache (cached wrappers for hot-read paths)
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
@@ -201,6 +201,29 @@ export {
   deleteModelComboMapping,
   resolveComboForModel,
 } from "./db/modelComboMappings";
+
+export {
+  // Files
+  createFile,
+  getFile,
+  getFileContent,
+  listFiles,
+  updateFileStatus,
+  formatFileResponse,
+  deleteFile,
+} from "./db/files";
+
+export {
+  // Batches
+  createBatch,
+  getBatch,
+  updateBatch,
+  listBatches,
+  getPendingBatches,
+} from "./db/batches";
+
+export type { FileRecord } from "./db/files";
+export type { BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
 

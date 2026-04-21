@@ -1744,3 +1744,28 @@ export const versionManagerToolSchema = z.object({
 export const versionManagerInstallSchema = versionManagerToolSchema.extend({
   version: z.string().trim().optional(),
 });
+
+export const v1BatchCreateSchema = z.object({
+  input_file_id: z.string().min(1),
+  endpoint: z.enum([
+    "/v1/responses",
+    "/v1/chat/completions",
+    "/v1/embeddings",
+    "/v1/completions",
+    "/v1/moderations",
+    "/v1/images/generations",
+    "/v1/images/edits",
+    "/v1/videos",
+  ]),
+  completion_window: z.enum(["24h"]),
+  metadata: z
+    .record(z.string().max(64), z.string().max(512))
+    .refine((m) => Object.keys(m).length <= 16, { message: "metadata may have at most 16 keys" })
+    .optional(),
+  output_expires_after: z
+    .object({
+      anchor: z.enum(["created_at"]),
+      seconds: z.number().int().min(3600).max(2592000),
+    })
+    .optional(),
+});

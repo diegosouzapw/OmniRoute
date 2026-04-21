@@ -176,3 +176,6 @@ bin/omniroute.mjs
 .omc/
 audit-report.json
 bun.lock
+
+# Private environment variables for .http-client
+http-client.private.env.json
