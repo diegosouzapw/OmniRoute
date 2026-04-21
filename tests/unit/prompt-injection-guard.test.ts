@@ -253,7 +253,7 @@ test("promptInjectionGuard: withInjectionGuard skips non-mutating methods", asyn
   assert.equal(response.status, 200);
 });
 
-test("promptInjectionGuard: withInjectionGuard fails open when the guard throws", async () => {
+test("promptInjectionGuard: withInjectionGuard fails closed when the guard throws", async () => {
   const wrapped = withInjectionGuard(async () => new Response("passed", { status: 202 }), {
     mode: "block",
   });
@@ -267,5 +267,5 @@ test("promptInjectionGuard: withInjectionGuard fails open when the guard throws"
 
   const response = await wrapped(request, {});
 
-  assert.equal(response.status, 202);
+  assert.equal(response.status, 500);
 });

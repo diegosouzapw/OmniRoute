@@ -139,6 +139,7 @@ import {
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
+import { interceptAndExtractVision } from "../services/visionBridge.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1227,8 +1228,10 @@ export async function handleChatCore({
         const { getComboByName } = await import("../../src/lib/localDb");
         const { parseModel } = await import("../services/model.ts");
         const { resolveComboTargets } = await import("../services/combo.ts");
-        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
-        const comboConfig = await getComboByName(comboToSearch);
+        let comboConfig = await getComboByName(comboName);
+        if (!comboConfig && comboName.startsWith("combo/")) {
+          comboConfig = await getComboByName(comboName.substring(6));
+        }
         if (comboConfig) {
           const targets = await resolveComboTargets(comboConfig, null);
           const limits = targets.map((t: { modelStr?: string }) => {
@@ -1310,6 +1313,7 @@ export async function handleChatCore({
   }
 
   let translatedBody = body;
+  translatedBody = await interceptAndExtractVision(translatedBody, model || "", provider || "");
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
