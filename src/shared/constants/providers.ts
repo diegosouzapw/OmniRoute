@@ -103,15 +103,20 @@ export const OAUTH_PROVIDERS = {
     icon: "edit_note",
     color: "#3B82F6",
     textIcon: "ZE",
+    website: "https://zed.dev",
+    authHint:
+      "Import a current Zed desktop access token plus the matching user ID. The runtime sends the Zed-native Authorization header format: <userId> <accessToken>.",
   },
-  trae: { id: "trae", alias: "trae", name: "Trae", icon: "code", color: "#8B5CF6", textIcon: "TR" },
-  amp: {
-    id: "amp",
-    alias: "amp",
-    name: "Amp/AmpCode",
-    icon: "terminal",
-    color: "#F97316",
-    textIcon: "AM",
+  trae: {
+    id: "trae",
+    alias: "trae",
+    name: "Trae",
+    icon: "code",
+    color: "#8B5CF6",
+    textIcon: "TR",
+    website: "https://www.trae.ai",
+    authHint:
+      "Import a Trae access or refresh token plus the login host. A verified chat base URL is also required because the public completions endpoint is not auto-discovered yet.",
   },
   "gitlab-duo-oauth": {
     id: "gitlab-duo-oauth",
@@ -198,6 +203,17 @@ export const APIKEY_PROVIDERS = {
     website: "https://www.codebuddy.ai",
     apiHint:
       "Use your CodeBuddy API key. OmniRoute will send it as both X-Api-Key and Authorization headers for compatibility with CodeBuddy model requests.",
+  },
+  amp: {
+    id: "amp",
+    alias: "amp",
+    name: "Amp/AmpCode",
+    icon: "terminal",
+    color: "#F97316",
+    textIcon: "AM",
+    website: "https://ampcode.com",
+    authHint:
+      "Use an Amp access token from ampcode.com/settings. Optional base URL defaults to https://api.ampcode.com/v1 and is normalized to /chat/completions.",
   },
   kimi: {
     id: "kimi",

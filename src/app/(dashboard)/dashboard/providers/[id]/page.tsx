@@ -18,6 +18,7 @@ import {
   OAuthModal,
   KiroOAuthWrapper,
   CursorAuthModal,
+  ImportTokenAuthModal,
   Toggle,
   Select,
   ProxyConfigModal,
@@ -52,7 +53,7 @@ import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
-import { resolveDashboardProviderInfo } from "../providerPageUtils";
+import { resolveDashboardProviderInfo, summarizeZedQuota } from "../providerPageUtils";
 import ModelStatusBadge from "@/app/(dashboard)/dashboard/providers/components/ModelStatusBadge";
 
 type CompatByProtocolMap = Partial<
@@ -3067,6 +3068,16 @@ export default function ProviderDetailPage() {
               setShowOAuthModal(false);
             }}
           />
+        ) : providerId === "zed" || providerId === "trae" ? (
+          <ImportTokenAuthModal
+            isOpen={showOAuthModal}
+            provider={providerId}
+            providerInfo={providerInfo}
+            onSuccess={handleOAuthSuccess}
+            onClose={() => {
+              setShowOAuthModal(false);
+            }}
+          />
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
@@ -4959,6 +4970,7 @@ function ConnectionRow({
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
   const cliproxyapiDeepMode = !!cliproxyapiEnabled;
+  const zedQuotaSummary = summarizeZedQuota(connection.providerSpecificData);
 
   return (
     <div
@@ -5129,6 +5141,37 @@ function ConnectionRow({
                 );
               })()}
           </div>
+          {zedQuotaSummary && (
+            <div className="mt-1 flex items-center gap-2 flex-wrap text-xs">
+              {zedQuotaSummary.planLabel && (
+                <span className="inline-flex items-center gap-1 rounded bg-sky-500/10 px-2 py-0.5 text-sky-600 dark:text-sky-300">
+                  <span className="material-symbols-outlined text-[12px]">workspace_premium</span>
+                  {zedQuotaSummary.planLabel}
+                </span>
+              )}
+              {zedQuotaSummary.spendLabel && (
+                <span className="text-text-muted">{zedQuotaSummary.spendLabel}</span>
+              )}
+              {zedQuotaSummary.editPredictionsLabel && (
+                <span className="text-text-muted">{zedQuotaSummary.editPredictionsLabel}</span>
+              )}
+              {zedQuotaSummary.isAccountTooYoung && (
+                <span className="rounded bg-red-500/10 px-2 py-0.5 text-red-500">
+                  AI unavailable for this account yet
+                </span>
+              )}
+              {zedQuotaSummary.billingPortalUrl && (
+                <a
+                  href={zedQuotaSummary.billingPortalUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sky-600 hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
+                >
+                  Billing portal
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -5273,18 +5316,23 @@ ConnectionRow.propTypes = {
 };
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
+  "amp",
   "bailian-coding-plan",
   "xiaomi-mimo",
   "heroku",
   "databricks",
   "snowflake",
   "searxng-search",
+  "zed",
+  "trae",
 ]);
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
+  amp: "https://api.ampcode.com/v1",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
+  zed: "https://ai.zed.dev/completion",
 };
 
 function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -5293,6 +5341,8 @@ function getProviderBaseUrlDefault(providerId?: string | null) {
 
 function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
+    case "amp":
+      return "Optional: Amp API base URL. Supports https://api.ampcode.com/v1 or https://ampcode.com; the app normalizes the host and appends /chat/completions.";
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
     case "xiaomi-mimo":
@@ -5305,6 +5355,10 @@ function getProviderBaseUrlHint(providerId?: string | null) {
       return "Required: paste the Snowflake account base URL. The app will append /api/v2/cortex/inference:complete.";
     case "searxng-search":
       return "Required: paste your SearXNG instance base URL. The app will use /search and request format=json. Local/private URLs require OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true for dashboard validation.";
+    case "zed":
+      return "Optional: override the Zed AI endpoint. Root hosts are normalized to /completion.";
+    case "trae":
+      return "Required: paste the verified Trae chat endpoint. Use the full /chat/completions URL, or an API root ending in /v1 if your gateway is OpenAI-compatible.";
     default:
       return undefined;
   }
@@ -5312,6 +5366,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
+    case "amp":
+      return getProviderBaseUrlDefault(providerId);
     case "bailian-coding-plan":
     case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
@@ -5323,6 +5379,10 @@ function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://example-account.snowflakecomputing.com";
     case "searxng-search":
       return "http://localhost:8888/search";
+    case "zed":
+      return getProviderBaseUrlDefault(providerId);
+    case "trae":
+      return "https://your-verified-trae-gateway.example/v1/chat/completions";
     default:
       return "";
   }

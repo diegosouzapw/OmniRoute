@@ -127,6 +127,65 @@ test("T28: gradient registry points to the official Gradient Cloud chat endpoint
   assert.equal(gradientModel.model, "gpt-oss-120b");
 });
 
+test("T28: amp registry exposes the planned Claude lineup and specialized base URL normalization", async () => {
+  const ampIds = REGISTRY.amp.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.amp.executor, "amp");
+  assert.equal(REGISTRY.amp.authType, "apikey");
+  assert.equal(REGISTRY.amp.baseUrl, "https://api.ampcode.com/v1");
+  assert.ok(ampIds.includes("claude-opus-4-5-20251101"));
+  assert.ok(ampIds.includes("claude-sonnet-4-5-20250929"));
+  assert.ok(ampIds.includes("claude-haiku-4-5-20251001"));
+
+  const ampCanonical = await getModelInfoCore("amp/claude-sonnet-4-5", {});
+  assert.equal(ampCanonical.provider, "amp");
+  assert.equal(ampCanonical.model, "claude-sonnet-4-5-20250929");
+});
+
+test("T28: nous registry follows the official Nous Portal inference base and specialized executor", async () => {
+  const nousIds = REGISTRY["nous-research"].models.map((m) => m.id);
+
+  assert.equal(REGISTRY["nous-research"].executor, "nous-research");
+  assert.equal(
+    REGISTRY["nous-research"].baseUrl,
+    "https://inference-api.nousresearch.com/v1/chat/completions"
+  );
+  assert.equal(
+    REGISTRY["nous-research"].modelsUrl,
+    "https://inference-api.nousresearch.com/v1/models"
+  );
+  assert.equal(REGISTRY["nous-research"].passthroughModels, true);
+  assert.equal(nousIds.length, 30);
+  assert.ok(nousIds.includes("anthropic/claude-sonnet-4.6"));
+  assert.ok(nousIds.includes("openai/gpt-5.4"));
+  assert.ok(nousIds.includes("google/gemini-3.1-pro-preview"));
+  assert.ok(nousIds.includes("openrouter/elephant-alpha"));
+
+  const nousModel = await getModelInfoCore("nous/anthropic/claude-sonnet-4.6", {});
+  assert.equal(nousModel.provider, "nous-research");
+  assert.equal(nousModel.model, "anthropic/claude-sonnet-4.6");
+});
+
+test("T28: zed and trae registries are wired to specialized OAuth executors", async () => {
+  assert.equal(REGISTRY.zed.executor, "zed");
+  assert.equal(REGISTRY.zed.authType, "oauth");
+  assert.equal(REGISTRY.zed.baseUrl, "https://ai.zed.dev/completion");
+  assert.ok(REGISTRY.zed.models.some((model) => model.id === "claude-3-5-sonnet"));
+
+  assert.equal(REGISTRY.trae.executor, "trae");
+  assert.equal(REGISTRY.trae.authType, "oauth");
+  assert.equal(REGISTRY.trae.baseUrl, undefined);
+  assert.ok(REGISTRY.trae.models.some((model) => model.id === "claude-3-5-sonnet"));
+
+  const zedModel = await getModelInfoCore("zed/claude-3-5-sonnet", {});
+  assert.equal(zedModel.provider, "zed");
+  assert.equal(zedModel.model, "claude-3-5-sonnet");
+
+  const traeModel = await getModelInfoCore("trae/claude-3-5-sonnet", {});
+  assert.equal(traeModel.provider, "trae");
+  assert.equal(traeModel.model, "claude-3-5-sonnet");
+});
+
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
 

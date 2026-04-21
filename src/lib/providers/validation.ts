@@ -21,6 +21,7 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { buildAmpChatUrl, getAmpBaseUrl } from "@omniroute/open-sse/executors/amp.ts";
 import {
   buildAzureAiHeaders,
   buildAzureAiUrl,
@@ -411,6 +412,27 @@ async function validateGradientProvider({ apiKey, providerSpecificData = {} }: a
       max_tokens: 1,
     },
     providerSpecificData,
+  });
+}
+
+async function validateAmpProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = {
+    apiKey,
+    providerSpecificData,
+  };
+
+  return validateDirectChatProvider({
+    url: buildAmpChatUrl(credentials),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "claude-sonnet-4-5-20250929",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData: {
+      ...providerSpecificData,
+      baseUrl: getAmpBaseUrl(credentials),
+    },
   });
 }
 
@@ -1954,6 +1976,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     codebuddy: validateCodeBuddyProvider,
+    amp: validateAmpProvider,
     gradient: validateGradientProvider,
     replicate: validateReplicateProvider,
     deepgram: validateDeepgramProvider,

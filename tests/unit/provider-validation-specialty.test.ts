@@ -165,6 +165,32 @@ test("Gradient validator probes the official chat completion endpoint directly",
   assert.equal(result.error, null);
 });
 
+test("Amp validator normalizes portal URLs to the API chat completion endpoint", async () => {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "amp",
+    apiKey: "sgamp-secret",
+    providerSpecificData: {
+      baseUrl: "https://ampcode.com",
+    },
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.ampcode.com/v1/chat/completions");
+  assert.equal(
+    (calls[0].init?.headers as Record<string, string>).Authorization,
+    "Bearer sgamp-secret"
+  );
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
 test("AWS Polly validator signs synth probes and accepts non-auth client errors", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);

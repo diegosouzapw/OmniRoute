@@ -3,6 +3,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { exchangeTraeRefreshToken, normalizeTraeLoginHost } from "@/lib/oauth/services/trae";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -742,6 +743,44 @@ export async function refreshCopilotToken(githubAccessToken, log, proxyConfig: u
   }
 }
 
+export async function refreshTraeToken(
+  refreshToken,
+  providerSpecificData = {},
+  accessToken,
+  log,
+  proxyConfig: unknown = null
+) {
+  try {
+    const result = await runWithProxyContext(proxyConfig, () =>
+      exchangeTraeRefreshToken({
+        loginHost: normalizeTraeLoginHost(providerSpecificData?.loginHost),
+        refreshToken,
+        accessToken,
+      })
+    );
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed Trae token", {
+      hasNewAccessToken: !!result.accessToken,
+      hasNewRefreshToken: !!result.refreshToken,
+      expiresIn: result.expiresIn,
+    });
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken || refreshToken,
+      expiresIn: result.expiresIn,
+      providerSpecificData: {
+        ...(providerSpecificData || {}),
+        loginHost: normalizeTraeLoginHost(providerSpecificData?.loginHost),
+        traeAuthRaw: result.exchangeRaw || null,
+      },
+    };
+  } catch (error) {
+    log?.error?.("TOKEN_REFRESH", `Error refreshing Trae token: ${error.message}`);
+    return null;
+  }
+}
+
 /**
  * Get access token for a specific provider (internal, does the actual work)
  */
@@ -787,6 +826,15 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "kimi-coding":
       return await refreshKimiCodingToken(credentials.refreshToken, log, proxyConfig);
 
+    case "trae":
+      return await refreshTraeToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        credentials.accessToken,
+        log,
+        proxyConfig
+      );
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -809,6 +857,7 @@ export function supportsTokenRefresh(provider) {
     "kiro",
     "cline",
     "kimi-coding",
+    "trae",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];

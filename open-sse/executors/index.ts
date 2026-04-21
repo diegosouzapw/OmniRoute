@@ -25,6 +25,10 @@ import { OciExecutor } from "./oci.ts";
 import { SapExecutor } from "./sap.ts";
 import { CodeBuddyExecutor } from "./codebuddy.ts";
 import { ReplicateExecutor } from "./replicate.ts";
+import { NousResearchExecutor } from "./nous-research.ts";
+import { AmpExecutor } from "./amp.ts";
+import { ZedExecutor } from "./zed.ts";
+import { TraeExecutor } from "./trae.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const executors = {
@@ -60,6 +64,10 @@ const executors = {
   sap: new SapExecutor("sap"),
   codebuddy: new CodeBuddyExecutor("codebuddy"),
   replicate: new ReplicateExecutor("replicate"),
+  "nous-research": new NousResearchExecutor("nous-research"),
+  amp: new AmpExecutor("amp"),
+  zed: new ZedExecutor("zed"),
+  trae: new TraeExecutor("trae"),
 };
 
 const executorFactories = {
@@ -89,6 +97,10 @@ const executorFactories = {
   sap: (provider) => new SapExecutor(provider),
   codebuddy: (provider) => new CodeBuddyExecutor(provider),
   replicate: (provider) => new ReplicateExecutor(provider),
+  "nous-research": (provider) => new NousResearchExecutor(provider),
+  amp: (provider) => new AmpExecutor(provider),
+  zed: (provider) => new ZedExecutor(provider),
+  trae: (provider) => new TraeExecutor(provider),
 };
 
 const defaultCache = new Map();
@@ -151,3 +163,7 @@ export { OciExecutor } from "./oci.ts";
 export { SapExecutor } from "./sap.ts";
 export { CodeBuddyExecutor } from "./codebuddy.ts";
 export { ReplicateExecutor } from "./replicate.ts";
+export { NousResearchExecutor } from "./nous-research.ts";
+export { AmpExecutor } from "./amp.ts";
+export { ZedExecutor } from "./zed.ts";
+export { TraeExecutor } from "./trae.ts";

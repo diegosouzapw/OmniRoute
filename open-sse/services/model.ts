@@ -40,6 +40,14 @@ const PROVIDER_MODEL_ALIASES = {
     "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
   },
   antigravity: ANTIGRAVITY_MODEL_ALIASES,
+  amp: {
+    "claude-opus-4-5": "claude-opus-4-5-20251101",
+    "claude-opus-4.5": "claude-opus-4-5-20251101",
+    "claude-sonnet-4-5": "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4.5": "claude-sonnet-4-5-20250929",
+    "claude-haiku-4-5": "claude-haiku-4-5-20251001",
+    "claude-haiku-4.5": "claude-haiku-4-5-20251001",
+  },
 };
 
 const CROSS_PROXY_MODEL_ALIASES = {
@@ -47,7 +55,12 @@ const CROSS_PROXY_MODEL_ALIASES = {
   "deepseek-v3.2-chat": "deepseek-v3.2",
   "deepseek-v3-2": "deepseek-v3.2",
   "qwen3-coder:480b": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+  "claude-opus-4-5": "claude-opus-4-5-20251101",
   "claude-opus-4.5": "claude-opus-4-5-20251101",
+  "claude-sonnet-4-5": "claude-sonnet-4-5-20250929",
+  "claude-sonnet-4.5": "claude-sonnet-4-5-20250929",
+  "claude-haiku-4-5": "claude-haiku-4-5-20251001",
+  "claude-haiku-4.5": "claude-haiku-4-5-20251001",
   "anthropic/claude-opus-4.5": "claude-opus-4-5-20251101",
 };
 

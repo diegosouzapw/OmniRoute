@@ -1184,6 +1184,30 @@ export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
 });
 
+export const zedImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Access token is required"),
+  userId: z.string().trim().min(1, "User ID is required"),
+  baseUrl: z.string().trim().optional(),
+  cloudBaseUrl: z.string().trim().optional(),
+});
+
+export const traeImportSchema = z
+  .object({
+    accessToken: z.string().trim().optional(),
+    refreshToken: z.string().trim().optional(),
+    loginHost: z.string().trim().min(1, "Login host is required"),
+    baseUrl: z.string().trim().min(1, "Chat base URL is required"),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.accessToken && !value.refreshToken) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Access token or refresh token is required",
+        path: ["accessToken"],
+      });
+    }
+  });
+
 export const kiroSocialExchangeSchema = z.object({
   code: z.string().trim().min(1, "Code is required"),
   codeVerifier: z.string().trim().min(1, "Code verifier is required"),
