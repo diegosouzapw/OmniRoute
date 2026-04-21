@@ -106,26 +106,28 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // 10. Limit images
     const limitedParts = imageParts.slice(0, config.maxImages);
 
-    // 11. Call vision model for each image (injectable for testing)
+    // 11. Call vision model for each image in parallel (injectable for testing)
     const callVision = this.deps.callVisionModel ?? defaultCallVisionModel;
     const logger = context.log;
-    const descriptions: string[] = [];
     const startTime = Date.now();
 
-    for (let i = 0; i < limitedParts.length; i++) {
-      const imagePart = limitedParts[i];
-      try {
+    // Process all images in parallel using Promise.allSettled for fail-partial behavior
+    const results = await Promise.allSettled(
+      limitedParts.map(async (imagePart, i) => {
         const description = await callVision(imagePart.imageUrl, config);
-        descriptions.push(`[Image ${i + 1}]: ${description}`);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger?.warn?.(
-          "VISION-BRIDGE",
-          `Failed to get description for image ${i + 1}: ${message}`
-        );
-        descriptions.push(`[Image ${i + 1}]: (unavailable)`);
+        return `[Image ${i + 1}]: ${description}`;
+      })
+    );
+
+    // Collect descriptions maintaining original order
+    const descriptions = results.map((result, i) => {
+      if (result.status === "fulfilled") {
+        return result.value;
       }
-    }
+      const message = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      logger?.warn?.("VISION-BRIDGE", `Failed to get description for image ${i + 1}: ${message}`);
+      return `[Image ${i + 1}]: (unavailable)`;
+    });
 
     // 12. Replace image parts with text descriptions
     const modifiedBody = replaceImageParts(
