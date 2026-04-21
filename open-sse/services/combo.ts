@@ -59,6 +59,14 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
+  /\binput is too long\b/i,
+  /\binput too long\b/i,
+  /\btoo many tokens\b/i,
+  /\bmax.*token.*exceed\b/i,
+  /\brequest too large\b/i,
+  /\bcontext window\b/i,
+  /\bmaximum context\b/i,
+  /\btoken limit\b/i,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
