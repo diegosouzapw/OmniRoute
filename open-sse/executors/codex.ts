@@ -334,6 +334,20 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     }
 
     const tool = toolValue as Record<string, unknown>;
+
+    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+    // Codex API supports them natively; register sub-tool names for tool_choice validation.
+    if (tool.type === "namespace" && Array.isArray(tool.tools)) {
+      for (const st of tool.tools as unknown[]) {
+        if (st && typeof st === "object" && !Array.isArray(st)) {
+          const subTool = st as Record<string, unknown>;
+          const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+          if (name) validToolNames.add(name);
+        }
+      }
+      return true;
+    }
+
     if (tool.type !== "function") {
       return false;
     }
