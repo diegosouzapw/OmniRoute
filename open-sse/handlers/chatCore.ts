@@ -1232,14 +1232,16 @@ export async function handleChatCore({
         const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
         const comboConfig = await getComboByName(comboToSearch);
         if (comboConfig) {
-          const targets = await resolveComboTargets(comboConfig, null);
+          const { getCombos } = await import("../../src/lib/localDb");
+          const allCombosData = await getCombos();
+          const targets = await resolveComboTargets(comboConfig, allCombosData);
           const limits = targets.map((t: { modelStr?: string }) => {
             const parsed = parseModel(t.modelStr);
             return getTokenLimit(parsed.provider, parsed.model);
           });
           if (limits.length > 0) {
-            contextLimit = Math.min(...limits);
-            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
+            contextLimit = Math.max(...limits);
+            log?.info?.("CONTEXT", `Combo context limit: ${contextLimit}`);
           }
         }
       } catch (err) {
