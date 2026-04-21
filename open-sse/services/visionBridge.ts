@@ -29,13 +29,19 @@ export function shouldApplyVisionBridge(
 ): boolean {
   if (!hasImageContent(body)) return false;
 
-  const capabilities = getResolvedModelCapabilities({
-    provider: targetProvider || null,
-    model: targetModel || null,
-  });
+  try {
+    const capabilities = getResolvedModelCapabilities({
+      provider: targetProvider || null,
+      model: targetModel || null,
+    });
 
-  if (capabilities.supportsVision === true) return false;
-  if (capabilities.supportsVision === false) return true;
+    if (capabilities.supportsVision === true) return false;
+    if (capabilities.supportsVision === false) return true;
+  } catch {
+    // Capability lookup can touch synced metadata backed by SQLite. If that path is
+    // temporarily unavailable, fall back to the legacy text-only heuristic instead
+    // of breaking the request path before Vision Bridge has a chance to fail open.
+  }
 
   return shouldUseLegacyTextOnlyHeuristic(targetModel, targetProvider);
 }

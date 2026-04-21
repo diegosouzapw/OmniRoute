@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { calculateBackoff, classifyError as classifyErrorRule } from "../config/errorConfig.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
@@ -268,7 +269,12 @@ export class BaseExecutor {
   }
 
   shouldRetry(status: number, urlIndex: number) {
-    return status === HTTP_STATUS.RATE_LIMITED && urlIndex + 1 < this.getFallbackCount();
+    const rule = classifyErrorRule(status, "");
+    return (
+      status === HTTP_STATUS.RATE_LIMITED &&
+      Boolean(rule?.backoff) &&
+      urlIndex + 1 < this.getFallbackCount()
+    );
   }
 
   // Intra-URL retry config: retry same URL before falling back to next node
@@ -590,11 +596,16 @@ export class BaseExecutor {
         ) {
           retryAttemptsByUrl[urlIndex] = (retryAttemptsByUrl[urlIndex] ?? 0) + 1;
           const attempt = retryAttemptsByUrl[urlIndex];
+          const retryRule = classifyErrorRule(response.status, response.statusText || "");
+          const retryDelayMs =
+            retryRule?.backoff === true
+              ? Math.max(BaseExecutor.RETRY_CONFIG.delayMs, calculateBackoff(attempt))
+              : BaseExecutor.RETRY_CONFIG.delayMs;
           log?.debug?.(
             "RETRY",
-            `429 intra-retry ${attempt}/${BaseExecutor.RETRY_CONFIG.maxAttempts} on ${url} — waiting ${BaseExecutor.RETRY_CONFIG.delayMs}ms`
+            `429 intra-retry ${attempt}/${BaseExecutor.RETRY_CONFIG.maxAttempts} on ${url} — waiting ${retryDelayMs}ms`
           );
-          await new Promise((resolve) => setTimeout(resolve, BaseExecutor.RETRY_CONFIG.delayMs));
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
           urlIndex--; // re-run this urlIndex on the next loop iteration
           continue;
         }

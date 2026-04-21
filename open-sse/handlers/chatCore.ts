@@ -1892,7 +1892,12 @@ export async function handleChatCore({
   };
 
   // Track pending request
-  trackPendingRequest(model, provider, connectionId, true);
+  trackPendingRequest(model, provider, connectionId, true, {
+    startedAt: startTime,
+    requestBody: body,
+    apiKeyId: apiKeyInfo?.id || null,
+    apiKeyName: apiKeyInfo?.name || null,
+  });
 
   // T5: track which models we've tried for intra-family fallback
   const triedModels = new Set<string>([effectiveModel]);

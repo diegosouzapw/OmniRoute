@@ -19,6 +19,7 @@ function clearPendingRequests() {
   const pending = usageHistory.getPendingRequests();
   for (const key of Object.keys(pending.byModel)) delete pending.byModel[key];
   for (const key of Object.keys(pending.byAccount)) delete pending.byAccount[key];
+  for (const key of Object.keys(pending.details || {})) delete pending.details[key];
 }
 
 async function resetStorage() {

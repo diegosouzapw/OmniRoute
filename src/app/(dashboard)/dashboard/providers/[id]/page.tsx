@@ -476,7 +476,7 @@ interface ConnectionRowConnection {
   displayName?: string;
   rateLimitedUntil?: string;
   rateLimitProtection?: boolean;
-  blockExtraUsage?: boolean;
+  blockExtraUsage?: boolean | number;
   testStatus?: string;
   isActive?: boolean;
   priority?: number;
@@ -5006,7 +5006,8 @@ function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
-  const blockExtraUsageEnabled = connection.blockExtraUsage !== false;
+  const blockExtraUsageEnabled =
+    connection.blockExtraUsage === false || connection.blockExtraUsage === 0 ? false : true;
   const codexPolicy =
     connection.providerSpecificData &&
     typeof connection.providerSpecificData === "object" &&

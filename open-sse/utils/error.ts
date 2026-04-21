@@ -1,5 +1,5 @@
 import { getCorsOrigin } from "./cors.ts";
-import { ERROR_TYPES, DEFAULT_ERROR_MESSAGES } from "../config/constants.ts";
+import { ERROR_TYPES, DEFAULT_ERROR_MESSAGES } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 

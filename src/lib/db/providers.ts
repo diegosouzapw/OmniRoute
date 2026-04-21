@@ -33,6 +33,26 @@ function toNumberOrZero(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
+function normalizeConnectionRecord(record: JsonRecord): JsonRecord {
+  const normalized: JsonRecord = { ...record };
+
+  if ("isActive" in normalized) {
+    normalized.isActive = normalized.isActive === false || normalized.isActive === 0 ? false : true;
+  }
+
+  if ("rateLimitProtection" in normalized) {
+    normalized.rateLimitProtection =
+      normalized.rateLimitProtection === true || normalized.rateLimitProtection === 1;
+  }
+
+  if ("blockExtraUsage" in normalized) {
+    normalized.blockExtraUsage =
+      normalized.blockExtraUsage === false || normalized.blockExtraUsage === 0 ? false : true;
+  }
+
+  return normalized;
+}
+
 // ──────────────── Provider Connections ────────────────
 
 export async function getProviderConnections(filter: JsonRecord = {}) {
@@ -56,13 +76,17 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   sql += " ORDER BY priority ASC, updated_at DESC";
 
   const rows = db.prepare(sql).all(params);
-  return rows.map((r) => decryptConnectionFields(cleanNulls(rowToCamel(r))));
+  return rows.map((r) =>
+    normalizeConnectionRecord(decryptConnectionFields(cleanNulls(rowToCamel(r))))
+  );
 }
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
-  return row ? decryptConnectionFields(cleanNulls(rowToCamel(row))) : null;
+  return row
+    ? normalizeConnectionRecord(decryptConnectionFields(cleanNulls(rowToCamel(row))))
+    : null;
 }
 
 export async function createProviderConnection(data: JsonRecord) {
@@ -133,7 +157,7 @@ export async function createProviderConnection(data: JsonRecord) {
     );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
-    return cleanNulls(merged);
+    return normalizeConnectionRecord(cleanNulls(merged));
   }
 
   // Generate name: prefer explicit name, then email, then a stable short-ID label.
@@ -165,6 +189,7 @@ export async function createProviderConnection(data: JsonRecord) {
     name: connectionName,
     priority: connectionPriority,
     isActive: data.isActive !== undefined ? data.isActive : true,
+    blockExtraUsage: data.blockExtraUsage !== false,
     createdAt: now,
     updatedAt: now,
   };
@@ -214,7 +239,7 @@ export async function createProviderConnection(data: JsonRecord) {
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
 
-  return cleanNulls(connection);
+  return normalizeConnectionRecord(cleanNulls(connection));
 }
 
 function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
@@ -382,7 +407,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
 
-  return cleanNulls(merged);
+  return normalizeConnectionRecord(cleanNulls(merged));
 }
 
 export async function deleteProviderConnection(id: string) {

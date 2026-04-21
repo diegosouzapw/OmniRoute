@@ -48,6 +48,7 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_explain_route: ["read:health", "read:usage"],
   omniroute_get_session_snapshot: ["read:usage"],
   omniroute_db_health_check: ["read:health", "write:resilience"],
+  omniroute_generate_client_config: ["read:models"],
 } as const;
 
 // ============ Scope Groups ============

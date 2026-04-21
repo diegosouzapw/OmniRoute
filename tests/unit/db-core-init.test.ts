@@ -583,6 +583,11 @@ test(
             .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
             .get("last_used_at")
         );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
+            .get("block_extra_usage")
+        );
 
         core.resetDbInstance();
       });
@@ -703,10 +708,10 @@ test(
           db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
         );
         assert.ok(
-          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("027")
         );
         assert.ok(
-          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("027")
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("033")
         );
         assert.equal(
           db

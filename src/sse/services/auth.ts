@@ -110,7 +110,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     id: toStringOrNull(row.id) || "",
     isActive: row.isActive === true,
     rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
-    blockExtraUsage: row.blockExtraUsage !== false,
+    blockExtraUsage: row.blockExtraUsage === false || row.blockExtraUsage === 0 ? false : true,
     testStatus: toStringOrNull(row.testStatus),
     apiKey: toStringOrNull(row.apiKey),
     accessToken: toStringOrNull(row.accessToken),

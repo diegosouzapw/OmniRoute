@@ -1,11 +1,16 @@
 import {
-  COOLDOWN_MS,
-  BACKOFF_CONFIG,
   BACKOFF_STEPS_MS,
   PROVIDER_PROFILES,
   RateLimitReason,
   HTTP_STATUS,
 } from "../config/constants.ts";
+import {
+  BACKOFF_CONFIG,
+  COOLDOWN_MS,
+  calculateBackoff,
+  classifyError as classifyConfiguredError,
+  type ErrorRuleReason,
+} from "../config/errorConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -156,6 +161,23 @@ export function isCreditsExhausted(errorText: string): boolean {
 export function isOAuthInvalidToken(errorText: string): boolean {
   const lower = String(errorText || "").toLowerCase();
   return OAUTH_INVALID_TOKEN_SIGNALS.some((sig) => lower.includes(sig));
+}
+
+function mapErrorRuleReason(reason?: ErrorRuleReason): string | null {
+  switch (reason) {
+    case "quota_exhausted":
+      return RateLimitReason.QUOTA_EXHAUSTED;
+    case "rate_limit_exceeded":
+      return RateLimitReason.RATE_LIMIT_EXCEEDED;
+    case "model_capacity":
+      return RateLimitReason.MODEL_CAPACITY;
+    case "server_error":
+      return RateLimitReason.SERVER_ERROR;
+    case "auth_error":
+      return RateLimitReason.AUTH_ERROR;
+    default:
+      return null;
+  }
 }
 
 // ─── Resilience Profile Helper ──────────────────────────────────────────────
@@ -756,6 +778,10 @@ export function classifyErrorText(errorText) {
   if (isAccountDeactivated(errorText)) {
     return RateLimitReason.AUTH_ERROR;
   }
+  const configuredReason = mapErrorRuleReason(classifyConfiguredError(0, lower)?.reason);
+  if (configuredReason) {
+    return configuredReason;
+  }
   if (
     lower.includes("rate limit") ||
     lower.includes("too many requests") ||
@@ -790,6 +816,11 @@ export function classifyError(status, errorText) {
   // Text classification takes priority (more specific)
   const textReason = classifyErrorText(errorText);
   if (textReason !== RateLimitReason.UNKNOWN) return textReason;
+
+  const configuredReason = mapErrorRuleReason(classifyConfiguredError(status, "")?.reason);
+  if (configuredReason) {
+    return configuredReason;
+  }
 
   // Fall back to status code
   if (status === HTTP_STATUS.UNAUTHORIZED || status === HTTP_STATUS.FORBIDDEN) {
@@ -865,8 +896,7 @@ export function getBackoffDuration(failureCount) {
  * @returns {number} Cooldown in milliseconds
  */
 export function getQuotaCooldown(backoffLevel = 0) {
-  const cooldown = BACKOFF_CONFIG.base * Math.pow(2, backoffLevel);
-  return Math.min(cooldown, BACKOFF_CONFIG.max);
+  return calculateBackoff(backoffLevel);
 }
 
 /**

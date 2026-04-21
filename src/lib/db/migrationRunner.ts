@@ -60,6 +60,12 @@ const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 50;
 
 const RENAMED_MIGRATION_COMPATIBILITY = [
   {
+    fromVersion: "015",
+    fromName: "create_skills",
+    toVersion: "016",
+    toName: "create_skills",
+  },
+  {
     fromVersion: "022",
     fromName: "call_logs_summary_storage",
     toVersion: "025",
