@@ -516,6 +516,11 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
  * Record a provider failure against the shared circuit breaker.
  * Delegates to the existing CircuitBreaker utility which handles
  * failure counting, threshold detection, and state transitions.
+ *
+ * IMPORTANT: If the breaker is already OPEN (in cooldown), we skip
+ * recording the failure to prevent resetting the cooldown timer.
+ * This matches the original behavior where failures during cooldown
+ * were ignored to avoid indefinite lockout.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
@@ -525,6 +530,9 @@ export function recordProviderFailure(
 
   const breaker = getProviderBreaker(provider);
   if (!breaker) return;
+
+  // Skip if already in cooldown to prevent timer reset (indefinite lockout bug)
+  if (!breaker.canExecute()) return;
 
   breaker._onFailure();
 
