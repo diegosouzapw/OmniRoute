@@ -15,6 +15,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import { AG_DECOY_TOOLS, AG_DEFAULT_TOOLS, AG_TOOL_SUFFIX } from "../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
@@ -106,9 +107,224 @@ function cleanModelName(model: string): string {
   return clean;
 }
 
+function cloneJsonLike<T>(value: T): T {
+  if (typeof globalThis.structuredClone === "function") {
+    return globalThis.structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function getToolNameMap(body: unknown): Map<string, string> | null {
+  if (!body || typeof body !== "object") return null;
+  const map = (body as { _toolNameMap?: unknown })._toolNameMap;
+  return map instanceof Map && map.size > 0 ? map : null;
+}
+
+function attachToolNameMap<T>(body: T, toolNameMap: Map<string, string> | null | undefined): T {
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !(toolNameMap instanceof Map) ||
+    toolNameMap.size === 0
+  ) {
+    return body;
+  }
+
+  Object.defineProperty(body, "_toolNameMap", {
+    configurable: true,
+    enumerable: false,
+    value: toolNameMap,
+    writable: true,
+  });
+  return body;
+}
+
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
+  }
+
+  static cloakTools(body: unknown): {
+    cloakedBody: unknown;
+    toolNameMap: Map<string, string> | null;
+  } {
+    if (!body || typeof body !== "object") {
+      return { cloakedBody: body, toolNameMap: null };
+    }
+
+    const cloakedBody = cloneJsonLike(body);
+    const request = (cloakedBody as { request?: Record<string, unknown> }).request;
+    if (!request || typeof request !== "object") {
+      return { cloakedBody, toolNameMap: null };
+    }
+
+    const toolNameMap = new Map<string, string>();
+    const cloakName = (name: unknown): string => {
+      if (typeof name !== "string" || !name.trim()) return "";
+      if (AG_DEFAULT_TOOLS.has(name)) return name;
+      const cloakedName = name.endsWith(AG_TOOL_SUFFIX) ? name : `${name}${AG_TOOL_SUFFIX}`;
+      toolNameMap.set(cloakedName, name);
+      return cloakedName;
+    };
+
+    const passthroughTools: Array<Record<string, unknown>> = [];
+    const clientDeclarations: Array<Record<string, unknown>> = [];
+    const requestTools = Array.isArray(request.tools) ? request.tools : [];
+
+    for (const toolEntry of requestTools) {
+      if (!toolEntry || typeof toolEntry !== "object") continue;
+      const functionDeclarations = Array.isArray(toolEntry.functionDeclarations)
+        ? toolEntry.functionDeclarations
+        : null;
+
+      if (!functionDeclarations) {
+        passthroughTools.push(toolEntry);
+        continue;
+      }
+
+      for (const declaration of functionDeclarations) {
+        if (!declaration || typeof declaration !== "object") continue;
+        const clonedDeclaration = {
+          ...declaration,
+          name: cloakName(declaration.name) || declaration.name,
+        };
+        clientDeclarations.push(clonedDeclaration);
+      }
+    }
+
+    if (clientDeclarations.length > 0 || requestTools.length > 0) {
+      const mergedDeclarations = new Map<string, Record<string, unknown>>();
+      for (const declaration of clientDeclarations) {
+        const name = typeof declaration.name === "string" ? declaration.name : "";
+        if (name) {
+          mergedDeclarations.set(name, declaration);
+        }
+      }
+      for (const decoy of AG_DECOY_TOOLS) {
+        if (!mergedDeclarations.has(decoy.name)) {
+          mergedDeclarations.set(decoy.name, cloneJsonLike(decoy));
+        }
+      }
+
+      request.tools = [
+        ...passthroughTools,
+        {
+          functionDeclarations: [...mergedDeclarations.values()],
+        },
+      ];
+    }
+
+    const contents = Array.isArray(request.contents) ? request.contents : [];
+    for (const content of contents) {
+      if (!content || typeof content !== "object" || !Array.isArray(content.parts)) continue;
+      for (const part of content.parts) {
+        if (!part || typeof part !== "object") continue;
+        if (part.functionCall && typeof part.functionCall === "object") {
+          const nextName = cloakName(part.functionCall.name);
+          if (nextName) {
+            part.functionCall.name = nextName;
+          }
+        }
+        if (part.functionResponse && typeof part.functionResponse === "object") {
+          const nextName = cloakName(part.functionResponse.name);
+          if (nextName) {
+            part.functionResponse.name = nextName;
+          }
+        }
+      }
+    }
+
+    if (toolNameMap.size > 0) {
+      attachToolNameMap(cloakedBody, toolNameMap);
+      return { cloakedBody, toolNameMap };
+    }
+
+    return { cloakedBody, toolNameMap: null };
+  }
+
+  static restoreToolNamesInGeminiPayload(
+    payload: unknown,
+    toolNameMap: Map<string, string> | null | undefined
+  ): void {
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      !(toolNameMap instanceof Map) ||
+      toolNameMap.size === 0
+    ) {
+      return;
+    }
+
+    const maybeWrapped = payload as { response?: Record<string, unknown> };
+    const response =
+      maybeWrapped.response && typeof maybeWrapped.response === "object"
+        ? maybeWrapped.response
+        : (payload as Record<string, unknown>);
+    const candidates = Array.isArray(response.candidates) ? response.candidates : [];
+
+    for (const candidate of candidates) {
+      if (!candidate || typeof candidate !== "object") continue;
+      const candidateRecord = candidate as { content?: { parts?: unknown[] } };
+      const parts = Array.isArray(candidateRecord.content?.parts)
+        ? candidateRecord.content.parts
+        : [];
+      for (const part of parts) {
+        if (!part || typeof part !== "object") continue;
+        const partRecord = part as {
+          functionCall?: { name?: string };
+          functionResponse?: { name?: string };
+        };
+        if (partRecord.functionCall?.name && toolNameMap.has(partRecord.functionCall.name)) {
+          partRecord.functionCall.name = toolNameMap.get(partRecord.functionCall.name);
+        }
+        if (
+          partRecord.functionResponse?.name &&
+          toolNameMap.has(partRecord.functionResponse.name)
+        ) {
+          partRecord.functionResponse.name = toolNameMap.get(partRecord.functionResponse.name);
+        }
+      }
+    }
+  }
+
+  static rewriteSseLine(
+    line: string,
+    toolNameMap: Map<string, string> | null | undefined,
+    onPayload?: (payload: unknown) => void
+  ): string {
+    if (!(toolNameMap instanceof Map) || toolNameMap.size === 0) {
+      if (onPayload) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("data:")) {
+          const payload = trimmed.slice(5).trim();
+          if (payload && payload !== "[DONE]") {
+            try {
+              onPayload(JSON.parse(payload));
+            } catch {
+              /* ignore malformed payloads */
+            }
+          }
+        }
+      }
+      return line;
+    }
+
+    const hasCarriageReturn = line.endsWith("\r");
+    const lineWithoutCR = hasCarriageReturn ? line.slice(0, -1) : line;
+    const trimmed = lineWithoutCR.trim();
+    if (!trimmed.startsWith("data:")) return line;
+
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") return line;
+
+    try {
+      const parsed = JSON.parse(payload);
+      AntigravityExecutor.restoreToolNamesInGeminiPayload(parsed, toolNameMap);
+      onPayload?.(parsed);
+      return `data: ${JSON.stringify(parsed)}${hasCarriageReturn ? "\r" : ""}`;
+    } catch {
+      return line;
+    }
   }
 
   buildUrl(model, stream, urlIndex = 0) {
@@ -347,6 +563,7 @@ export class AntigravityExecutor extends BaseExecutor {
   collectStreamToResponse(response, model, url, headers, transformedBody, log?, signal?) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    const toolNameMap = getToolNameMap(transformedBody);
 
     const SSE_COLLECT_TIMEOUT_MS = 120_000;
 
@@ -383,6 +600,7 @@ export class AntigravityExecutor extends BaseExecutor {
       let finishReason = "stop";
       let usage: Record<string, unknown> | null = null;
       let remainingCredits: Array<{ creditType: string; creditAmount: string }> | null = null;
+      const toolCalls: Array<Record<string, unknown>> = [];
       const lines = rawSSE.split("\n");
       for (const line of lines) {
         const trimmed = line.trim();
@@ -391,11 +609,25 @@ export class AntigravityExecutor extends BaseExecutor {
         if (!payload || payload === "[DONE]") continue;
         try {
           const parsed = JSON.parse(payload);
+          AntigravityExecutor.restoreToolNamesInGeminiPayload(parsed, toolNameMap);
           const candidate = parsed?.response?.candidates?.[0];
           if (candidate?.content?.parts) {
             for (const part of candidate.content.parts) {
               if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
                 textContent += part.text;
+              }
+              if (part.functionCall && typeof part.functionCall === "object") {
+                toolCalls.push({
+                  id:
+                    typeof part.functionCall.id === "string" && part.functionCall.id
+                      ? part.functionCall.id
+                      : `call_${Date.now()}_${toolCalls.length}`,
+                  type: "function",
+                  function: {
+                    name: part.functionCall.name,
+                    arguments: JSON.stringify(part.functionCall.args || {}),
+                  },
+                });
               }
             }
           }
@@ -430,8 +662,12 @@ export class AntigravityExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content: textContent },
-            finish_reason: timedOut ? "length" : finishReason,
+            message: {
+              role: "assistant",
+              content: textContent || (toolCalls.length > 0 ? null : ""),
+              ...(toolCalls.length > 0 && { tool_calls: toolCalls }),
+            },
+            finish_reason: timedOut ? "length" : toolCalls.length > 0 ? "tool_calls" : finishReason,
           },
         ],
         ...(usage && { usage }),
@@ -490,12 +726,17 @@ export class AntigravityExecutor extends BaseExecutor {
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
       let transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+      const { cloakedBody, toolNameMap } = AntigravityExecutor.cloakTools(transformedBody);
+      transformedBody = cloakedBody;
 
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
       // returns false and we fall back to the legacy retry-on-429 flow.
       if (useCreditsFirst) {
-        transformedBody = injectCreditsField(transformedBody);
+        transformedBody = attachToolNameMap(
+          injectCreditsField(transformedBody as Record<string, unknown>),
+          toolNameMap
+        );
         log?.debug?.("AG_CREDITS", "Credits-first enabled (ANTIGRAVITY_CREDITS=always)");
       }
 
@@ -557,7 +798,10 @@ export class AntigravityExecutor extends BaseExecutor {
                 shouldRetryWithCredits(credentials?.accessToken || "", creditsMode !== "off")
               ) {
                 log?.info?.("AG_CREDITS", "Retrying with Google One AI credits");
-                const creditsBody = injectCreditsField(transformedBody);
+                const creditsBody = attachToolNameMap(
+                  injectCreditsField(transformedBody as Record<string, unknown>),
+                  toolNameMap
+                );
                 try {
                   const creditsResp = await fetch(url, {
                     method: "POST",
@@ -734,48 +978,78 @@ export class AntigravityExecutor extends BaseExecutor {
         // that extracts remainingCredits from the final SSE chunk(s) without
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
-          let sseBuffer = "";
+          let sseLineBuffer = "";
+          const responseDecoder = new TextDecoder();
+          const responseEncoder = new TextEncoder();
+          const toolNameMap = getToolNameMap(transformedBody);
+
           const passThrough = new TransformStream({
             transform(chunk, controller) {
-              controller.enqueue(chunk);
-              // Accumulate text to scan for remainingCredits
               try {
-                const text = new TextDecoder().decode(chunk, { stream: true });
-                sseBuffer += text;
+                sseLineBuffer += responseDecoder.decode(chunk, { stream: true });
+                let rewritten = "";
+                let newlineIndex = sseLineBuffer.indexOf("\n");
+                while (newlineIndex !== -1) {
+                  const line = sseLineBuffer.slice(0, newlineIndex);
+                  sseLineBuffer = sseLineBuffer.slice(newlineIndex + 1);
+                  rewritten +=
+                    AntigravityExecutor.rewriteSseLine(line, toolNameMap, (parsed) => {
+                      if (
+                        Array.isArray(
+                          (parsed as { remainingCredits?: unknown[] })?.remainingCredits
+                        )
+                      ) {
+                        const googleCredit = (
+                          parsed as {
+                            remainingCredits: Array<{ creditType?: string; creditAmount?: string }>;
+                          }
+                        ).remainingCredits.find((c) => c?.creditType === "GOOGLE_ONE_AI");
+                        if (googleCredit) {
+                          const balance = parseInt(googleCredit.creditAmount ?? "", 10);
+                          if (!isNaN(balance)) {
+                            updateAntigravityRemainingCredits(accountId, balance);
+                          }
+                        }
+                      }
+                    }) + "\n";
+                  newlineIndex = sseLineBuffer.indexOf("\n");
+                }
+                if (rewritten) controller.enqueue(responseEncoder.encode(rewritten));
               } catch {
-                /* decoding best-effort */
+                controller.enqueue(chunk);
               }
             },
             flush() {
-              // Parse the accumulated SSE data for remainingCredits
               try {
-                const lines = sseBuffer.split("\n");
-                for (const line of lines) {
-                  const trimmed = line.trim();
-                  if (!trimmed.startsWith("data:")) continue;
-                  const payload = trimmed.slice(5).trim();
-                  if (!payload || payload === "[DONE]") continue;
-                  try {
-                    const parsed = JSON.parse(payload);
-                    if (Array.isArray(parsed?.remainingCredits)) {
-                      const googleCredit = parsed.remainingCredits.find(
-                        (c) => c?.creditType === "GOOGLE_ONE_AI"
-                      );
+                sseLineBuffer += responseDecoder.decode();
+              } catch {
+                /* decoding best-effort */
+              }
+              if (sseLineBuffer) {
+                const rewritten = AntigravityExecutor.rewriteSseLine(
+                  sseLineBuffer,
+                  toolNameMap,
+                  (parsed) => {
+                    if (
+                      Array.isArray((parsed as { remainingCredits?: unknown[] })?.remainingCredits)
+                    ) {
+                      const googleCredit = (
+                        parsed as {
+                          remainingCredits: Array<{ creditType?: string; creditAmount?: string }>;
+                        }
+                      ).remainingCredits.find((c) => c?.creditType === "GOOGLE_ONE_AI");
                       if (googleCredit) {
-                        const balance = parseInt(googleCredit.creditAmount, 10);
+                        const balance = parseInt(googleCredit.creditAmount ?? "", 10);
                         if (!isNaN(balance)) {
                           updateAntigravityRemainingCredits(accountId, balance);
                         }
                       }
                     }
-                  } catch {
-                    /* skip malformed lines */
                   }
-                }
-              } catch {
-                /* credits extraction is best-effort */
+                );
+                if (rewritten) controller.enqueue(responseEncoder.encode(rewritten));
               }
-              sseBuffer = "";
+              sseLineBuffer = "";
             },
           });
           const tappedBody = response.body.pipeThrough(passThrough);

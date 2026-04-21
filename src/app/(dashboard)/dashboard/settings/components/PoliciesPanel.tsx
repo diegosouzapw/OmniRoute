@@ -3,21 +3,15 @@
 /**
  * PoliciesPanel — Batch E
  *
- * Shows circuit breaker states and locked identifiers.
+ * Shows locked identifiers managed by policy-related safeguards.
  * Allows force-unlocking locked identifiers.
  * API: /api/policies
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, Button, EmptyState } from "@/shared/components";
+import { Card, Button } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
-
-const CB_STATUS = {
-  closed: { icon: "check_circle", color: "#22c55e", label: "Closed" },
-  "half-open": { icon: "pending", color: "#f59e0b", label: "Half-Open" },
-  open: { icon: "error", color: "#ef4444", label: "Open" },
-};
 
 export default function PoliciesPanel() {
   const [data, setData] = useState(null);
@@ -78,11 +72,9 @@ export default function PoliciesPanel() {
     );
   }
 
-  const circuitBreakers = data?.circuitBreakers || [];
   const lockedIds = data?.lockedIdentifiers || [];
-  const hasIssues = circuitBreakers.some((cb) => cb.state !== "closed") || lockedIds.length > 0;
 
-  if (!hasIssues) {
+  if (lockedIds.length === 0) {
     return (
       <Card className="p-6 mt-6">
         <div className="flex items-center gap-3">
@@ -90,7 +82,7 @@ export default function PoliciesPanel() {
             <span className="material-symbols-outlined text-[20px]">verified_user</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-main">{t("policiesCircuitBreakers")}</h3>
+            <h3 className="text-lg font-semibold text-text-main">{t("policiesLocked")}</h3>
             <p className="text-sm text-text-muted">{t("allOperational")}</p>
           </div>
         </div>
@@ -106,7 +98,7 @@ export default function PoliciesPanel() {
             <span className="material-symbols-outlined text-[20px]">gpp_maybe</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-main">{t("policiesCircuitBreakers")}</h3>
+            <h3 className="text-lg font-semibold text-text-main">{t("policiesLocked")}</h3>
             <p className="text-sm text-text-muted">{t("activeIssuesDetected")}</p>
           </div>
         </div>
@@ -114,50 +106,6 @@ export default function PoliciesPanel() {
           <span className="material-symbols-outlined text-[16px]">refresh</span>
         </Button>
       </div>
-
-      {/* Circuit Breakers */}
-      {circuitBreakers.filter((cb) => cb.state !== "closed").length > 0 && (
-        <div className="mb-4">
-          <p className="text-sm font-medium text-text-muted mb-2">{t("circuitBreakers")}</p>
-          <div className="flex flex-col gap-1.5">
-            {circuitBreakers
-              .filter((cb) => cb.state !== "closed")
-              .map((cb, i) => {
-                const status = CB_STATUS[cb.state] || CB_STATUS.open;
-                return (
-                  <div
-                    key={cb.name || i}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface/30 border border-border/20"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="material-symbols-outlined text-[16px]"
-                        style={{ color: status.color }}
-                      >
-                        {status.icon}
-                      </span>
-                      <span className="text-sm text-text-main font-medium">
-                        {cb.name || cb.provider || "Unknown"}
-                      </span>
-                      <span
-                        className="text-xs px-1.5 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: `${status.color}15`,
-                          color: status.color,
-                        }}
-                      >
-                        {status.label}
-                      </span>
-                      {cb.failures > 0 && (
-                        <span className="text-xs text-text-muted">{cb.failures} failures</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
 
       {/* Locked Identifiers */}
       {lockedIds.length > 0 && (

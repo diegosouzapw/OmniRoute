@@ -112,6 +112,32 @@ function getCacheSourceMeta(cacheSource: unknown) {
   };
 }
 
+function getActiveRequestPayloadPreview(requestBody: unknown): string {
+  if (requestBody === null || requestBody === undefined) return "—";
+
+  try {
+    const text =
+      typeof requestBody === "string" ? requestBody : JSON.stringify(requestBody, null, 0);
+    if (!text) return "—";
+    return text.length > 220 ? `${text.slice(0, 220)}…` : text;
+  } catch {
+    return "—";
+  }
+}
+
+function getActiveRequestRunningTimeMs(activeRequest: any, nowMs: number): number {
+  if (typeof activeRequest?.startedAt === "number" && Number.isFinite(activeRequest.startedAt)) {
+    return Math.max(0, nowMs - activeRequest.startedAt);
+  }
+  if (
+    typeof activeRequest?.runningTimeMs === "number" &&
+    Number.isFinite(activeRequest.runningTimeMs)
+  ) {
+    return Math.max(0, activeRequest.runningTimeMs);
+  }
+  return 0;
+}
+
 export default function RequestLoggerV2() {
   const t = useTranslations("requestLogger");
 
@@ -147,6 +173,7 @@ export default function RequestLoggerV2() {
   );
 
   const [logs, setLogs] = useState([]);
+  const [activeRequests, setActiveRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(true);
   const [search, setSearch] = useState("");
@@ -164,7 +191,9 @@ export default function RequestLoggerV2() {
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const logsSignatureRef = useRef("");
+  const activeRequestsSignatureRef = useRef("");
   const [providerNodes, setProviderNodes] = useState([]);
+  const [activeClockMs, setActiveClockMs] = useState(() => Date.now());
 
   // Column visibility with localStorage persistence
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -222,11 +251,38 @@ export default function RequestLoggerV2() {
     [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]
   );
 
+  const fetchActiveRequests = useCallback(async () => {
+    try {
+      const res = await fetch("/api/logs/active");
+      if (res.ok) {
+        const data = await res.json();
+        const nextActiveRequests = Array.isArray(data?.activeRequests) ? data.activeRequests : [];
+        const sig = JSON.stringify(
+          nextActiveRequests.map((request: any) => ({
+            provider: request.provider,
+            model: request.model,
+            account: request.account,
+            connectionId: request.connectionId,
+            count: request.count,
+            startedAt: request.startedAt,
+          }))
+        );
+        if (sig !== activeRequestsSignatureRef.current) {
+          activeRequestsSignatureRef.current = sig;
+          setActiveRequests(nextActiveRequests);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch active requests:", error);
+    }
+  }, []);
+
   useEffect(() => {
     const showLoading = !hasLoadedRef.current;
     hasLoadedRef.current = true;
     fetchLogs(showLoading);
-  }, [fetchLogs]);
+    fetchActiveRequests();
+  }, [fetchLogs, fetchActiveRequests]);
 
   // Fetch provider nodes for display labels
   useEffect(() => {
@@ -253,17 +309,59 @@ export default function RequestLoggerV2() {
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (recording) {
-      intervalRef.current = setInterval(() => fetchLogs(false), 3000);
+      intervalRef.current = setInterval(() => {
+        fetchLogs(false);
+        fetchActiveRequests();
+      }, 3000);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [recording, fetchLogs]);
+  }, [recording, fetchLogs, fetchActiveRequests]);
+
+  useEffect(() => {
+    if (activeRequests.length === 0) return;
+    const interval = setInterval(() => setActiveClockMs(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [activeRequests.length]);
 
   const filteredLogs = useMemo(() => {
     if (activeFilter === "combo") return logs.filter((l) => l.comboName);
     return logs;
   }, [activeFilter, logs]);
+
+  const filteredActiveRequests = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return activeRequests.filter((request: any) => {
+      if (selectedProvider && request.provider !== selectedProvider) return false;
+      if (selectedModel && request.model !== selectedModel) return false;
+      if (selectedAccount && request.account !== selectedAccount) return false;
+      if (
+        selectedApiKey &&
+        request.apiKeyId !== selectedApiKey &&
+        request.apiKeyName !== selectedApiKey
+      ) {
+        return false;
+      }
+
+      if (!normalizedSearch) return true;
+
+      const haystack = [
+        request.model,
+        request.provider,
+        request.account,
+        request.apiKeyId,
+        request.apiKeyName,
+        getActiveRequestPayloadPreview(request.requestBody),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+  }, [activeRequests, search, selectedProvider, selectedModel, selectedAccount, selectedApiKey]);
 
   const sortedLogs = useMemo(() => {
     const arr = [...filteredLogs];
@@ -612,6 +710,104 @@ export default function RequestLoggerV2() {
       </div>
 
       {/* Table */}
+      {filteredActiveRequests.length > 0 && (
+        <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-sm font-semibold text-text-primary">Running Requests</span>
+            </div>
+            <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-mono">
+              {filteredActiveRequests.length} active
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-border/50 bg-bg-subtle/60">
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                    Model
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                    Provider
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                    Account
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                    API Key
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
+                    Running
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
+                    Count
+                  </th>
+                  <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                    Request Preview
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {filteredActiveRequests.map((request: any) => {
+                  const compatLabel = getProviderDisplayLabel(request.provider, providerNodes);
+                  const providerColor = PROVIDER_COLORS[request.provider] || {
+                    bg: "#374151",
+                    text: "#fff",
+                    label: compatLabel || (request.provider || "-").toUpperCase(),
+                  };
+                  const providerLabel = compatLabel || providerColor.label;
+                  const payloadPreview = getActiveRequestPayloadPreview(request.requestBody);
+                  const runningTimeMs = getActiveRequestRunningTimeMs(request, activeClockMs);
+
+                  return (
+                    <tr key={`${request.provider}:${request.model}:${request.connectionId || "-"}`}>
+                      <td className="px-3 py-2 font-medium text-primary font-mono text-[11px]">
+                        {request.model}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase"
+                          style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
+                        >
+                          {providerLabel}
+                        </span>
+                      </td>
+                      <td
+                        className="px-3 py-2 text-text-muted truncate max-w-[140px]"
+                        title={request.account}
+                      >
+                        {maskAccount(request.account)}
+                      </td>
+                      <td
+                        className="px-3 py-2 text-text-muted truncate max-w-[160px]"
+                        title={request.apiKeyName || request.apiKeyId || "No API key"}
+                      >
+                        {formatApiKeyLabel(request.apiKeyName, request.apiKeyId)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-text-muted font-mono whitespace-nowrap">
+                        {formatDuration(runningTimeMs)}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <span className="inline-block px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">
+                          {request.count}
+                        </span>
+                      </td>
+                      <td
+                        className="px-3 py-2 text-text-muted font-mono text-[11px] max-w-[420px] truncate"
+                        title={payloadPreview}
+                      >
+                        {payloadPreview}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
       <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
         <div className="p-0 overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto">
           {loading && logs.length === 0 ? (

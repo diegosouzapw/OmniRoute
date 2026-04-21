@@ -23,6 +23,7 @@ export const providerConnectionSchema = z.object({
   defaultModel: z.string().optional(),
   globalPriority: z.number().int().min(0).optional().nullable(),
   rateLimitProtection: z.boolean().default(false),
+  blockExtraUsage: z.boolean().default(true),
   displayName: z.string().optional(),
 });
 

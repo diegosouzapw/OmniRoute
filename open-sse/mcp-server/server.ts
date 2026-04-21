@@ -40,6 +40,7 @@ import {
   getSessionSnapshotInput,
   dbHealthCheckInput,
   syncPricingInput,
+  generateClientConfigInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
@@ -63,6 +64,7 @@ import {
   handleDbHealthCheck,
   handleSyncPricing,
 } from "./tools/advancedTools.ts";
+import { generateClientConfig } from "./tools/clientConfigTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
@@ -801,6 +803,44 @@ export function createMcpServer(): McpServer {
     withScopeEnforcement("omniroute_web_search", (args) =>
       handleWebSearch(webSearchInput.parse(args))
     )
+  );
+
+  server.registerTool(
+    "omniroute_generate_client_config",
+    {
+      description:
+        "Generates ready-to-paste OmniRoute client config blocks for supported clients like OpenClaw and Hermes",
+      inputSchema: generateClientConfigInput,
+    },
+    withScopeEnforcement("omniroute_generate_client_config", async (args) => {
+      const parsed = generateClientConfigInput.parse(args);
+      const start = Date.now();
+      try {
+        const result = generateClientConfig(parsed);
+        await logToolCall(
+          "omniroute_generate_client_config",
+          parsed,
+          {
+            ...result,
+            config: "[redacted-config]",
+          },
+          Date.now() - start,
+          true
+        );
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await logToolCall(
+          "omniroute_generate_client_config",
+          parsed,
+          null,
+          Date.now() - start,
+          false,
+          msg
+        );
+        return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+      }
+    })
   );
 
   // ── Memory Tools ──────────────────────────────

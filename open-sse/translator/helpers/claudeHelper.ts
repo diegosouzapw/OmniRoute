@@ -247,10 +247,16 @@ export function prepareClaudeRequest(
           let hasToolUse = false;
           let hasThinking = false;
 
-          // Always replace signature for all thinking blocks
+          // Convert thinking blocks to redacted_thinking and replace signature.
+          // When requests cross provider boundaries (e.g., combo fallback), the
+          // original thinking signature is invalid for the new provider, causing
+          // "Invalid signature in thinking block" 400 errors. redacted_thinking
+          // blocks are accepted without signature validation.
           for (const block of content) {
             if (block.type === "thinking" || block.type === "redacted_thinking") {
+              block.type = "redacted_thinking";
               block.signature = DEFAULT_THINKING_CLAUDE_SIGNATURE;
+              delete block.thinking;
               hasThinking = true;
             }
             if (block.type === "tool_use") hasToolUse = true;

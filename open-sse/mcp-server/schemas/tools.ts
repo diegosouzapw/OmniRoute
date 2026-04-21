@@ -991,6 +991,44 @@ export const cacheFlushTool: McpToolDefinition<typeof cacheFlushInput, typeof ca
   sourceEndpoints: ["/api/cache"],
 };
 
+export const generateClientConfigInput = z.object({
+  target: z.enum(["openclaw", "hermes"]).describe("Client target to generate config for"),
+  model: z.string().min(1).describe("Model ID or alias to configure"),
+  apiKey: z
+    .string()
+    .optional()
+    .describe("Optional API key to embed. Defaults to a placeholder when omitted"),
+  baseUrl: z
+    .string()
+    .optional()
+    .describe("Optional OmniRoute base URL. Defaults to the local OmniRoute instance"),
+});
+
+export const generateClientConfigOutput = z.object({
+  target: z.enum(["openclaw", "hermes"]),
+  format: z.literal("json"),
+  baseUrl: z.string(),
+  model: z.string(),
+  usesPlaceholderApiKey: z.boolean(),
+  fileHint: z.string(),
+  config: z.string(),
+});
+
+export const generateClientConfigTool: McpToolDefinition<
+  typeof generateClientConfigInput,
+  typeof generateClientConfigOutput
+> = {
+  name: "omniroute_generate_client_config",
+  description:
+    "Generates a ready-to-paste OmniRoute client configuration block for supported agent clients such as OpenClaw and Hermes.",
+  inputSchema: generateClientConfigInput,
+  outputSchema: generateClientConfigOutput,
+  scopes: ["read:models"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/cli-tools/openclaw-settings", "/api/cli-tools/guide-settings/[toolId]"],
+};
+
 // ============ Tool Registry ============
 
 /** All MCP tool definitions, ordered by phase then name */
@@ -1017,6 +1055,7 @@ export const MCP_TOOLS = [
   syncPricingTool,
   cacheStatsTool,
   cacheFlushTool,
+  generateClientConfigTool,
 ] as const;
 
 /** Essential tools only (Phase 1) */

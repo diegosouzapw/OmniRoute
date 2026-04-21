@@ -218,9 +218,18 @@ export class DefaultExecutor extends BaseExecutor {
    */
   transformRequest(model, body, stream, credentials) {
     void model;
-    void stream;
     void credentials;
     const withDefaults = applyProviderRequestDefaults(body, this.config.requestDefaults);
+
+    if (stream && this.config.format === "openai") {
+      if (typeof withDefaults === "object" && withDefaults !== null) {
+        withDefaults.stream_options = {
+          ...(withDefaults.stream_options || {}),
+          include_usage: true,
+        };
+      }
+    }
+
     if (this.provider === "qwen" && typeof body === "object" && body !== null) {
       return sanitizeQwenThinkingToolChoice(withDefaults, "QwenExecutor");
     }

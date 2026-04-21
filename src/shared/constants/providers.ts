@@ -117,6 +117,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "GL",
     website: "https://open.bigmodel.cn",
   },
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    name: "GLM Coding (China)",
+    icon: "code",
+    color: "#DC2626",
+    textIcon: "GC",
+    website: "https://open.bigmodel.cn",
+    authHint: "Provide your GLM (Zhipu) API key for the China endpoint.",
+  },
   glmt: {
     id: "glmt",
     alias: "glmt",
@@ -198,6 +208,18 @@ export const APIKEY_PROVIDERS = {
     color: "#10A37F",
     textIcon: "OA",
     website: "https://platform.openai.com",
+  },
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    name: "Azure OpenAI",
+    icon: "cloud",
+    color: "#0078D4",
+    textIcon: "AZ",
+    passthroughModels: true,
+    website: "https://azure.microsoft.com/products/ai-services/openai-service",
+    authHint:
+      "Provide your Azure OpenAI API key and set Base URL to your resource endpoint, for example https://my-resource.openai.azure.com. Requests must use your deployment name as the model ID.",
   },
   anthropic: {
     id: "anthropic",
@@ -364,6 +386,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "NB",
     website: "https://nanobananaapi.ai",
   },
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    name: "LM Studio",
+    icon: "server",
+    color: "#4A148C",
+    textIcon: "LM",
+    website: "https://lmstudio.ai",
+  },
   "ollama-cloud": {
     id: "ollama-cloud",
     alias: "ollamacloud",
@@ -431,6 +462,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
     authHint: "Provide Service Account JSON or OAuth access_token",
+  },
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    name: "Vertex AI Partners",
+    icon: "cloud",
+    color: "#34A853",
+    textIcon: "VP",
+    website: "https://cloud.google.com/vertex-ai",
+    authHint: "Provide the same Service Account JSON used for Vertex AI partner models.",
   },
   zai: {
     id: "zai",

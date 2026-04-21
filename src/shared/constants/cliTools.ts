@@ -290,6 +290,41 @@ export const CLI_TOOLS = {
 }`,
     },
   },
+  hermes: {
+    id: "hermes",
+    name: "Hermes Agent",
+    image: "/providers/hermes.png",
+    icon: "smart_toy",
+    color: "#F97316",
+    description: "Hermes AI Agent",
+    docsUrl: "https://github.com/diegosouzapw/OmniRoute",
+    configType: "guide",
+    defaultCommand: "hermes",
+    notes: [
+      {
+        type: "info",
+        text: "Hermes supports OpenAI-compatible endpoints directly. OmniRoute works as a drop-in replacement.",
+      },
+    ],
+    guideSteps: [
+      { step: 1, title: "API Key", type: "apiKeySelector" },
+      { step: 2, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 3, title: "Select Model", type: "modelSelector" },
+      {
+        step: 4,
+        title: "Configure Hermes",
+        desc: "Add this to your Hermes configuration file or environment variables.",
+      },
+    ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "api_base": "{{baseUrl}}",
+  "api_key": "{{apiKey}}",
+  "model": "{{model}}"
+}`,
+    },
+  },
   amp: {
     id: "amp",
     name: "Amp CLI",

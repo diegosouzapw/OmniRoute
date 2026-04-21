@@ -28,6 +28,7 @@ const nextConfig = {
       "./playwright-report/**/*",
       "./app.__qa_backup/**/*",
       "./tests/**/*",
+      "./logs/**/*",
     ],
   },
   serverExternalPackages: [

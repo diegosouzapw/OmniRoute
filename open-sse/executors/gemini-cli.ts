@@ -158,7 +158,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
-              "User-Agent": "GeminiCLI/1.0.0",
+              "User-Agent": geminiCLIUserAgent(this._currentModel || "unknown"),
             },
             body: JSON.stringify(requestBody),
             signal: controller.signal,

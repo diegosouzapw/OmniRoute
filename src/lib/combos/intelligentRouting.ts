@@ -31,13 +31,6 @@ export type IntelligentProviderScore = {
   factors: IntelligentRoutingWeights;
 };
 
-export type IntelligentExclusionEntry = {
-  provider: string;
-  excludedAt: string;
-  cooldownMs: number;
-  reason: string;
-};
-
 export const DEFAULT_INTELLIGENT_WEIGHTS: IntelligentRoutingWeights = {
   quota: 0.2,
   health: 0.25,
@@ -160,51 +153,4 @@ export function buildIntelligentProviderScores(combo: {
     score: baseScore,
     factors: weights,
   }));
-}
-
-export function extractIntelligentHealthState(health: unknown): {
-  incidentMode: boolean;
-  exclusions: IntelligentExclusionEntry[];
-} {
-  const healthRecord = isRecord(health) ? health : {};
-  const providerHealth = isRecord(healthRecord.providerHealth) ? healthRecord.providerHealth : {};
-  const providerBreakers = Object.entries(providerHealth).map(([provider, status]) => {
-    const statusRecord = isRecord(status) ? status : {};
-    return {
-      provider,
-      state: typeof statusRecord.state === "string" ? statusRecord.state : "CLOSED",
-      lastFailure: typeof statusRecord.lastFailure === "string" ? statusRecord.lastFailure : null,
-    };
-  });
-  const breakersFromArray = Array.isArray(healthRecord.circuitBreakers)
-    ? healthRecord.circuitBreakers
-        .map((entry) => {
-          const breaker = isRecord(entry) ? entry : {};
-          const provider =
-            typeof breaker.provider === "string"
-              ? breaker.provider
-              : typeof breaker.name === "string"
-                ? breaker.name
-                : "unknown";
-          return {
-            provider,
-            state: typeof breaker.state === "string" ? breaker.state : "CLOSED",
-            lastFailure: typeof breaker.lastFailure === "string" ? breaker.lastFailure : null,
-          };
-        })
-        .filter((entry) => typeof entry.provider === "string")
-    : [];
-
-  const breakers = breakersFromArray.length > 0 ? breakersFromArray : providerBreakers;
-  const openBreakers = breakers.filter((breaker) => breaker.state === "OPEN");
-
-  return {
-    incidentMode: openBreakers.length / Math.max(breakers.length, 1) > 0.5,
-    exclusions: openBreakers.map((breaker) => ({
-      provider: breaker.provider,
-      excludedAt: breaker.lastFailure || new Date().toISOString(),
-      cooldownMs: 5 * 60 * 1000,
-      reason: "Circuit breaker OPEN",
-    })),
-  };
 }

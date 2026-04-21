@@ -214,6 +214,7 @@ export const createProviderSchema = z
     priority: z.number().int().min(1).max(100).optional(),
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
     defaultModel: z.string().max(200).nullable().optional(),
+    blockExtraUsage: z.boolean().optional(),
     testStatus: z.string().max(50).optional(),
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -616,11 +617,6 @@ export const updateModelAliasSchema = z.object({
   alias: z.string().trim().min(1, "Alias is required").max(200),
 });
 
-export const clearModelAvailabilitySchema = z.object({
-  provider: z.string().trim().min(1, "provider is required").max(120),
-  model: modelIdSchema,
-});
-
 /** Align with `sanitizeUpstreamHeadersMap` — allow non-ASCII names; reject Host / hop-by-hop / whitespace / ":". */
 const upstreamHeaderNameSchema = z
   .string()
@@ -709,7 +705,7 @@ export const toggleRateLimitSchema = z.object({
   enabled: z.boolean(),
 });
 
-const resilienceProfileSchema = z.object({
+const legacyResilienceProfileSchema = z.object({
   transientCooldown: z.number().min(0),
   rateLimitCooldown: z.number().min(0),
   maxBackoffLevel: z.number().int().min(0),
@@ -717,30 +713,87 @@ const resilienceProfileSchema = z.object({
   circuitBreakerReset: z.number().min(0),
 });
 
-const resilienceDefaultsSchema = z
+const legacyResilienceDefaultsSchema = z
   .object({
     requestsPerMinute: z.number().int().min(1).optional(),
-    minTimeBetweenRequests: z.number().int().min(1).optional(),
+    minTimeBetweenRequests: z.number().int().min(0).optional(),
     concurrentRequests: z.number().int().min(1).optional(),
+  })
+  .strict();
+
+const requestQueueSettingsSchema = z
+  .object({
+    autoEnableApiKeyProviders: z.boolean().optional(),
+    requestsPerMinute: z.number().int().min(1).optional(),
+    minTimeBetweenRequestsMs: z.number().int().min(0).optional(),
+    concurrentRequests: z.number().int().min(1).optional(),
+    maxWaitMs: z.number().int().min(1).optional(),
+  })
+  .strict();
+
+const connectionCooldownProfileSchema = z
+  .object({
+    baseCooldownMs: z.number().int().min(0).optional(),
+    useUpstreamRetryHints: z.boolean().optional(),
+    maxBackoffSteps: z.number().int().min(0).optional(),
+  })
+  .strict();
+
+const providerBreakerProfileSchema = z
+  .object({
+    failureThreshold: z.number().int().min(1).optional(),
+    resetTimeoutMs: z.number().int().min(1000).optional(),
+  })
+  .strict();
+
+const waitForCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    maxRetries: z.number().int().min(0).max(10).optional(),
+    maxRetryWaitSec: z.number().int().min(0).max(300).optional(),
   })
   .strict();
 
 export const updateResilienceSchema = z
   .object({
-    profiles: z
+    requestQueue: requestQueueSettingsSchema.optional(),
+    connectionCooldown: z
       .object({
-        oauth: resilienceProfileSchema.optional(),
-        apikey: resilienceProfileSchema.optional(),
+        oauth: connectionCooldownProfileSchema.optional(),
+        apikey: connectionCooldownProfileSchema.optional(),
       })
       .strict()
       .optional(),
-    defaults: resilienceDefaultsSchema.optional(),
+    providerBreaker: z
+      .object({
+        oauth: providerBreakerProfileSchema.optional(),
+        apikey: providerBreakerProfileSchema.optional(),
+      })
+      .strict()
+      .optional(),
+    waitForCooldown: waitForCooldownSettingsSchema.optional(),
+    profiles: z
+      .object({
+        oauth: legacyResilienceProfileSchema.optional(),
+        apikey: legacyResilienceProfileSchema.optional(),
+      })
+      .strict()
+      .optional(),
+    defaults: legacyResilienceDefaultsSchema.optional(),
   })
+  .strict()
   .superRefine((value, ctx) => {
-    if (!value.profiles && !value.defaults) {
+    if (
+      !value.requestQueue &&
+      !value.connectionCooldown &&
+      !value.providerBreaker &&
+      !value.waitForCooldown &&
+      !value.profiles &&
+      !value.defaults
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Must provide profiles or defaults",
+        message: "Must provide resilience settings to update",
         path: [],
       });
     }
@@ -1394,6 +1447,7 @@ export const updateProviderConnectionSchema = z
     priority: z.coerce.number().int().min(1).max(100).optional(),
     globalPriority: z.union([z.coerce.number().int().min(1).max(100), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
+    blockExtraUsage: z.boolean().optional(),
     isActive: z.boolean().optional(),
     apiKey: z.string().max(10000).optional(),
     testStatus: z.string().max(50).optional(),

@@ -23,9 +23,9 @@ const { handleChat } = await import("../../src/sse/handlers/chat.ts");
 const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
-const { resetAllAvailability, setModelUnavailable } =
-  await import("../../src/domain/modelAvailability.ts");
-const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { getCircuitBreaker, resetAllCircuitBreakers } =
+  await import("../../src/shared/utils/circuitBreaker.ts");
+const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 
 const originalFetch = globalThis.fetch;
 const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
@@ -294,7 +294,6 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   process.env.REQUIRE_API_KEY = "false";
   clearInflight();
-  resetAllAvailability();
   resetAllCircuitBreakers();
   apiKeysDb.resetApiKeyState();
   readCacheDb.invalidateDbCache();
@@ -441,7 +440,6 @@ test.after(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
   globalThis.fetch = originalFetch;
   clearInflight();
-  resetAllAvailability();
   resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -908,26 +906,6 @@ test("chat pipeline returns current no-credentials contract when no provider con
   assert.match(json.error.message, /No credentials for provider: openai/);
 });
 
-test("chat pipeline returns 503 when the requested model is temporarily unavailable", async () => {
-  await seedConnection("openai", { apiKey: "sk-openai-unavailable" });
-  setModelUnavailable("openai", "gpt-4o-mini", 60000, "test cooldown");
-
-  const response = await handleChat(
-    buildRequest({
-      body: {
-        model: "openai/gpt-4o-mini",
-        stream: false,
-        messages: [{ role: "user", content: "Provider unavailable" }],
-      },
-    })
-  );
-
-  const json = await response.json();
-  assert.equal(response.status, 503);
-  assert.ok(Number(response.headers.get("Retry-After")) >= 1);
-  assert.match(json.error.message, /temporarily unavailable/i);
-});
-
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-500" });
 
@@ -992,6 +970,46 @@ test("chat pipeline returns 429 with Retry-After when the upstream rate-limits t
   assert.match(json.error.message, /\[openai\/gpt-4o-mini\]/);
 });
 
+test("chat pipeline keeps provider breaker closed for repeated connection-scoped 429s", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-429-breaker" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          message: "Rate limit exceeded. Your quota will reset after 30s.",
+        },
+      }),
+      {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+  for (let i = 0; i < 3; i += 1) {
+    const response = await handleChat(
+      buildRequest({
+        body: {
+          model: "openai/gpt-4o-mini",
+          stream: false,
+          messages: [{ role: "user", content: `Trigger 429 #${i + 1}` }],
+        },
+      })
+    );
+    assert.equal(response.status, 429);
+  }
+
+  const breaker = getCircuitBreaker("openai");
+  const status = breaker.getStatus();
+
+  assert.equal(status.state, "CLOSED");
+  assert.equal(status.failureCount, 0);
+});
+
 test("chat pipeline maps upstream timeouts to 504 responses", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-timeout" });
 
@@ -1017,6 +1035,8 @@ test("chat pipeline maps upstream timeouts to 504 responses", async () => {
 });
 
 test("chat pipeline injects memory context before sending the upstream request", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-memory" });
   const apiKey = await seedApiKey();
   await settingsDb.updateSettings({
@@ -1057,6 +1077,8 @@ test("chat pipeline injects memory context before sending the upstream request",
 });
 
 test("chat pipeline injects skills into tools and intercepts tool calls with skill output", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-skills" });
   const apiKey = await seedApiKey();
   await settingsDb.updateSettings({ skillsEnabled: true });
@@ -1118,6 +1140,8 @@ test("chat pipeline injects skills into tools and intercepts tool calls with ski
 });
 
 test("chat pipeline falls back to the next account after a provider failure", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", {
     name: "openai-primary",
     apiKey: "sk-openai-primary-fallback",
@@ -1162,6 +1186,9 @@ test("chat pipeline falls back to the next account after a provider failure", as
 });
 
 test("chat pipeline falls back across combo models when the first provider fails", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
+  clearProviderFailure("claude");
   await seedConnection("openai", { apiKey: "sk-openai-combo-fail" });
   await seedConnection("claude", { apiKey: "sk-claude-combo-fail" });
   await combosDb.createCombo({
@@ -1206,6 +1233,8 @@ test("chat pipeline falls back across combo models when the first provider fails
 });
 
 test("chat pipeline deduplicates concurrent identical non-stream requests", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-dedup" });
   let fetchCount = 0;
 

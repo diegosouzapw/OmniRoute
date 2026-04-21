@@ -37,6 +37,7 @@ async function seedConnection(provider, overrides = {}) {
     apiKey: overrides.apiKey,
     accessToken: overrides.accessToken,
     projectId: overrides.projectId,
+    defaultModel: overrides.defaultModel,
     isActive: overrides.isActive ?? true,
     testStatus: overrides.testStatus || "active",
     providerSpecificData: overrides.providerSpecificData || {},
@@ -208,6 +209,30 @@ test("provider models route returns static catalog entries for providers with ha
   assert.equal(body.models.length, 8);
 });
 
+test("provider models route returns deployment-name hints and warning for Azure OpenAI", async () => {
+  const connection = await seedConnection("azure-openai", {
+    apiKey: "azure-key",
+    defaultModel: "gpt-4o-prod",
+    providerSpecificData: {
+      baseUrl: "https://my-resource.openai.azure.com",
+      validationModelId: "gpt-4o-staging",
+      deploymentNames: ["gpt-4o-prod", "gpt-4o-staging", "gpt-4o-mini-dev"],
+    },
+  });
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "azure-openai");
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /deployment names/i);
+  assert.deepEqual(
+    body.models.map((model: { id: string }) => model.id),
+    ["gpt-4o-prod", "gpt-4o-staging", "gpt-4o-mini-dev"]
+  );
+});
+
 test("provider models route returns the local catalog for built-in image providers", async () => {
   const connection = await seedConnection("topaz", {
     apiKey: "topaz-key",
@@ -294,7 +319,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     apiKey: null,
   });
   const seenUrls = [];
-  antigravityVersion.seedAntigravityVersionCache("1.22.2");
+  antigravityVersion.seedAntigravityVersionCache("1.107.0");
 
   globalThis.fetch = async (url, init = {}) => {
     seenUrls.push(String(url));

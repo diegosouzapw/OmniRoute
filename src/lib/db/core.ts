@@ -139,6 +139,7 @@ const SCHEMA_SQL = `
     token_type TEXT,
     consecutive_use_count INTEGER DEFAULT 0,
     rate_limit_protection INTEGER DEFAULT 0,
+    block_extra_usage INTEGER DEFAULT 1,
     last_used_at TEXT,
     "group" TEXT,
     created_at TEXT NOT NULL,
@@ -432,6 +433,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
         "ALTER TABLE provider_connections ADD COLUMN rate_limit_protection INTEGER DEFAULT 0"
       );
       console.log("[DB] Added provider_connections.rate_limit_protection column");
+    }
+    if (!columnNames.has("block_extra_usage")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN block_extra_usage INTEGER DEFAULT 1");
+      console.log("[DB] Added provider_connections.block_extra_usage column");
     }
     if (!columnNames.has("last_used_at")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
@@ -1354,7 +1359,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           rate_limited_until, health_check_interval, last_health_check_at,
           last_tested, api_key, id_token, provider_specific_data,
           expires_in, display_name, global_priority, default_model,
-          token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
+          token_type, consecutive_use_count, rate_limit_protection, block_extra_usage, last_used_at, created_at, updated_at
         ) VALUES (
           @id, @provider, @authType, @name, @email, @priority, @isActive,
           @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -1363,7 +1368,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
           @lastTested, @apiKey, @idToken, @providerSpecificData,
           @expiresIn, @displayName, @globalPriority, @defaultModel,
-          @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
+          @tokenType, @consecutiveUseCount, @rateLimitProtection, @blockExtraUsage, @lastUsedAt, @createdAt, @updatedAt
         )
       `);
 
@@ -1404,6 +1409,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           defaultModel: conn.defaultModel || null,
           tokenType: conn.tokenType || null,
           consecutiveUseCount: conn.consecutiveUseCount || 0,
+          blockExtraUsage: conn.blockExtraUsage === false || conn.blockExtraUsage === 0 ? 0 : 1,
           lastUsedAt: conn.lastUsedAt || null,
           rateLimitProtection:
             conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,

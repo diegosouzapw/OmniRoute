@@ -33,6 +33,26 @@ function toNumberOrZero(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
+function normalizeConnectionRecord(record: JsonRecord): JsonRecord {
+  const normalized: JsonRecord = { ...record };
+
+  if ("isActive" in normalized) {
+    normalized.isActive = normalized.isActive === false || normalized.isActive === 0 ? false : true;
+  }
+
+  if ("rateLimitProtection" in normalized) {
+    normalized.rateLimitProtection =
+      normalized.rateLimitProtection === true || normalized.rateLimitProtection === 1;
+  }
+
+  if ("blockExtraUsage" in normalized) {
+    normalized.blockExtraUsage =
+      normalized.blockExtraUsage === false || normalized.blockExtraUsage === 0 ? false : true;
+  }
+
+  return normalized;
+}
+
 // ──────────────── Provider Connections ────────────────
 
 export async function getProviderConnections(filter: JsonRecord = {}) {
@@ -56,13 +76,17 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   sql += " ORDER BY priority ASC, updated_at DESC";
 
   const rows = db.prepare(sql).all(params);
-  return rows.map((r) => decryptConnectionFields(cleanNulls(rowToCamel(r))));
+  return rows.map((r) =>
+    normalizeConnectionRecord(decryptConnectionFields(cleanNulls(rowToCamel(r))))
+  );
 }
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
-  return row ? decryptConnectionFields(cleanNulls(rowToCamel(row))) : null;
+  return row
+    ? normalizeConnectionRecord(decryptConnectionFields(cleanNulls(rowToCamel(row))))
+    : null;
 }
 
 export async function createProviderConnection(data: JsonRecord) {
@@ -133,7 +157,7 @@ export async function createProviderConnection(data: JsonRecord) {
     );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
-    return cleanNulls(merged);
+    return normalizeConnectionRecord(cleanNulls(merged));
   }
 
   // Generate name: prefer explicit name, then email, then a stable short-ID label.
@@ -165,6 +189,7 @@ export async function createProviderConnection(data: JsonRecord) {
     name: connectionName,
     priority: connectionPriority,
     isActive: data.isActive !== undefined ? data.isActive : true,
+    blockExtraUsage: data.blockExtraUsage !== false,
     createdAt: now,
     updatedAt: now,
   };
@@ -175,6 +200,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "email",
     "globalPriority",
     "defaultModel",
+    "blockExtraUsage",
     "accessToken",
     "refreshToken",
     "expiresAt",
@@ -213,7 +239,7 @@ export async function createProviderConnection(data: JsonRecord) {
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
 
-  return cleanNulls(connection);
+  return normalizeConnectionRecord(cleanNulls(connection));
 }
 
 function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
@@ -227,7 +253,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       rate_limited_until, health_check_interval, last_health_check_at,
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
-      token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", created_at, updated_at
+      token_type, consecutive_use_count, rate_limit_protection, block_extra_usage, last_used_at, "group", created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
       @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -236,7 +262,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
-      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @createdAt, @updatedAt
+      @tokenType, @consecutiveUseCount, @rateLimitProtection, @blockExtraUsage, @lastUsedAt, @group, @createdAt, @updatedAt
     )
   `
   ).run({
@@ -277,6 +303,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     consecutiveUseCount: conn.consecutiveUseCount || 0,
     rateLimitProtection:
       conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+    blockExtraUsage: conn.blockExtraUsage === false || conn.blockExtraUsage === 0 ? 0 : 1,
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     createdAt: conn.createdAt,
@@ -302,6 +329,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       default_model = @defaultModel, token_type = @tokenType,
       consecutive_use_count = @consecutiveUseCount,
       rate_limit_protection = @rateLimitProtection,
+      block_extra_usage = @blockExtraUsage,
       last_used_at = @lastUsedAt,
       "group" = @group,
       updated_at = @updatedAt
@@ -345,6 +373,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     consecutiveUseCount: data.consecutiveUseCount || 0,
     rateLimitProtection:
       data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
+    blockExtraUsage: data.blockExtraUsage === false || data.blockExtraUsage === 0 ? 0 : 1,
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
     updatedAt: now,
@@ -378,7 +407,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
 
-  return cleanNulls(merged);
+  return normalizeConnectionRecord(cleanNulls(merged));
 }
 
 export async function deleteProviderConnection(id: string) {

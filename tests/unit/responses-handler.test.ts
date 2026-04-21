@@ -175,6 +175,31 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
   assert.equal(call.body.stream, true);
 });
 
+test("handleResponsesCore injects include_usage for local OpenAI-compatible Responses requests", async () => {
+  const { call, result } = await invokeResponsesCore({
+    body: {
+      model: "llama-3.3-70b-instruct",
+      input: "hello from OpenClaw",
+    },
+    provider: "openai-compatible-openclaw",
+    model: "llama-3.3-70b-instruct",
+    credentials: {
+      apiKey: "sk-local",
+      providerSpecificData: {
+        apiType: "chat",
+        baseUrl: "http://localhost:8080/v1",
+        prefix: "openclaw",
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.match(call.url, /^http:\/\/localhost:8080\/v1\/chat\/completions$/);
+  assert.equal(call.body.stream, true);
+  assert.equal(call.body.stream_options?.include_usage, true);
+  assert.ok(Array.isArray(call.body.messages));
+});
+
 test("handleResponsesCore preserves store for Codex responses when connection opt-in is enabled", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {

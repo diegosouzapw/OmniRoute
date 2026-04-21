@@ -20,7 +20,7 @@ test("GeminiCLIExecutor.buildUrl and buildHeaders match the native Gemini CLI fi
   assert.equal(headers.Accept, "text/event-stream");
   assert.match(
     headers["User-Agent"],
-    /^GeminiCLI\/1\.0\.0\/gemini-2\.5-flash \((linux|macos|windows); (x64|arm64|x86)\)$/
+    /^GeminiCLI\/0\.31\.0\/gemini-2\.5-flash \((linux|darwin|windows); (x64|arm64|x86)\)$/
   );
   assert.match(headers["X-Goog-Api-Client"], /google-genai-sdk/);
 });

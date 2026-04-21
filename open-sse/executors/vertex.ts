@@ -87,11 +87,14 @@ const PARTNER_MODELS = new Set([
   "claude-3-haiku",
   "deepseek-v3",
   "deepseek-v3.2",
+  "deepseek-ai/",
   "deepseek-deepseek-r1",
   "qwen3-next-80b",
+  "qwen/",
   "llama-3.1",
   "mistral-",
   "glm-5",
+  "zai-org/",
   "meta/llama",
 ]);
 

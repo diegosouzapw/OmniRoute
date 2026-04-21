@@ -11,11 +11,13 @@ import { createStreamController, pipeWithDisconnect } from "../utils/streamHandl
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import {
+  getModelStrip,
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+} from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
-import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -141,6 +143,12 @@ import {
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
+import {
+  extractClaudeExtraUsage,
+  syncClaudeExtraUsageBlockState,
+} from "../services/claudeExtraUsage.ts";
+import { interceptAndExtractVision, shouldApplyVisionBridge } from "../services/visionBridge.ts";
+import { stripIncompatibleContent } from "../services/modelContentStrip.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1252,8 +1260,10 @@ export async function handleChatCore({
         const { getComboByName } = await import("../../src/lib/localDb");
         const { parseModel } = await import("../services/model.ts");
         const { resolveComboTargets } = await import("../services/combo.ts");
-        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
-        const comboConfig = await getComboByName(comboToSearch);
+        let comboConfig = await getComboByName(comboName);
+        if (!comboConfig && comboName.startsWith("combo/")) {
+          comboConfig = await getComboByName(comboName.substring(6));
+        }
         if (comboConfig) {
           const allCombosData = await getCombosCached();
           const targets = await resolveComboTargets(comboConfig, allCombosData);
@@ -1336,6 +1346,33 @@ export async function handleChatCore({
   }
 
   let translatedBody = body;
+  const stripTypes = getModelStrip(provider || "", effectiveModel || model || "");
+  const visionBridgeActive = shouldApplyVisionBridge(
+    translatedBody,
+    effectiveModel || model || "",
+    provider || ""
+  );
+
+  translatedBody = await interceptAndExtractVision(
+    translatedBody,
+    effectiveModel || model || "",
+    provider || ""
+  );
+
+  const stripTypesToApply = visionBridgeActive
+    ? stripTypes.filter((type) => type !== "image")
+    : stripTypes;
+  if (stripTypesToApply.length > 0) {
+    const stripped = stripIncompatibleContent(translatedBody, stripTypesToApply);
+    translatedBody = stripped.body;
+    if (stripped.strippedCount > 0) {
+      log?.debug?.(
+        "CONTENT",
+        `Stripped incompatible content for ${provider}/${effectiveModel}: ${stripTypesToApply.join(", ")} (${stripped.strippedCount} part(s))`
+      );
+    }
+  }
+
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
@@ -1879,7 +1916,12 @@ export async function handleChatCore({
   };
 
   // Track pending request
-  trackPendingRequest(model, provider, connectionId, true);
+  trackPendingRequest(model, provider, connectionId, true, {
+    startedAt: startTime,
+    requestBody: body,
+    apiKeyId: apiKeyInfo?.id || null,
+    apiKeyName: apiKeyInfo?.name || null,
+  });
 
   // T5: track which models we've tried for intra-family fallback
   const triedModels = new Set<string>([effectiveModel]);
@@ -2099,61 +2141,6 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
-        } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          // For providers with per-model quotas (passthrough providers, Gemini),
-          // each model has independent quota. A 429 on one model must NOT lock out
-          // the entire connection — other models may still have quota available.
-          const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
-          if (
-            lockModelIfPerModelQuota(
-              provider,
-              connectionId,
-              model,
-              "rate_limited",
-              rateLimitCooldownMs
-            )
-          ) {
-            console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(rateLimitCooldownMs / 1000)}s (connection stays active)`
-            );
-          } else {
-            const rateLimitedUntil = new Date(Date.now() + rateLimitCooldownMs).toISOString();
-            await updateProviderConnection(connectionId, {
-              rateLimitedUntil: rateLimitedUntil,
-              testStatus: "unavailable",
-              lastErrorType: errorType,
-              lastError: message,
-              errorCode: statusCode,
-              healthCheckInterval: null,
-              lastHealthCheckAt: null,
-            });
-            console.warn(
-              `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
-            );
-          }
-        } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
-          // Providers with per-model quotas — lock the model only, not the connection
-          if (
-            lockModelIfPerModelQuota(
-              provider,
-              connectionId,
-              model,
-              "quota_exhausted",
-              retryAfterMs || COOLDOWN_MS.rateLimit
-            )
-          ) {
-            console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
-            );
-          } else {
-            await updateProviderConnection(connectionId, {
-              testStatus: "credits_exhausted",
-              lastErrorType: errorType,
-              lastError: message,
-              errorCode: statusCode,
-            });
-            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
-          }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           await updateProviderConnection(connectionId, {
             isActive: false,
@@ -2587,6 +2574,18 @@ export async function handleChatCore({
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
     );
+    const claudeExtraUsage = extractClaudeExtraUsage(responseBody);
+    if (claudeExtraUsage && credentials?.blockExtraUsage === true) {
+      void syncClaudeExtraUsageBlockState({
+        provider,
+        connectionId,
+        accessToken: credentials?.accessToken,
+        providerSpecificData: credentials?.providerSpecificData,
+        blockExtraUsage: credentials?.blockExtraUsage === true,
+        extraUsage: claudeExtraUsage,
+        log,
+      });
+    }
 
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
@@ -2874,6 +2873,19 @@ export async function handleChatCore({
     ttft,
   }) => {
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+    const claudeExtraUsage =
+      extractClaudeExtraUsage(providerPayload) || extractClaudeExtraUsage(streamResponseBody);
+    if (claudeExtraUsage && credentials?.blockExtraUsage === true) {
+      void syncClaudeExtraUsageBlockState({
+        provider,
+        connectionId,
+        accessToken: credentials?.accessToken,
+        providerSpecificData: credentials?.providerSpecificData,
+        blockExtraUsage: credentials?.blockExtraUsage === true,
+        extraUsage: claudeExtraUsage,
+        log,
+      });
+    }
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {

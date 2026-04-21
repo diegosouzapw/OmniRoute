@@ -79,6 +79,8 @@ test("createProviderConnection assigns provider-scoped priorities and supports f
   );
   assert.deepEqual(await providersDb.getDistinctGroups(), ["team-a", "team-b"]);
   assert.equal(second.isActive, false);
+  assert.equal(first.blockExtraUsage, true);
+  assert.equal(second.blockExtraUsage, true);
 });
 
 test("oauth connections upsert by provider and email instead of duplicating rows", async () => {
@@ -166,12 +168,14 @@ test("updateProviderConnection reorders priorities and returns decrypted payload
     priority: 0,
     providerSpecificData: { region: "us-east-1" },
     rateLimitProtection: true,
+    blockExtraUsage: false,
   });
 
   const ordered = await providersDb.getProviderConnections({ provider: "openai" });
 
   assert.equal(updated.providerSpecificData.region, "us-east-1");
   assert.equal(updated.rateLimitProtection, true);
+  assert.equal(updated.blockExtraUsage, false);
   assert.deepEqual(
     ordered.map((connection) => ({
       id: connection.id,

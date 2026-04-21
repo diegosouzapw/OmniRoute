@@ -809,6 +809,9 @@ export default function HealthPage() {
                               {cb.failures === 1
                                 ? t("failures", { count: cb.failures })
                                 : t("failuresPlural", { count: cb.failures })}
+                              {Number(cb.retryAfterMs) > 0 && (
+                                <span className="ml-2">· retry in {fmtMs(cb.retryAfterMs)}</span>
+                              )}
                               {cb.lastFailure && (
                                 <span className="ml-2">
                                   · {t("lastFailure")}:{" "}

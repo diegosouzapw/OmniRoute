@@ -16,6 +16,12 @@ import {
   getPromptCacheReadTokens,
   getReasoningTokens,
 } from "./tokenAccounting";
+import {
+  cloneLogPayload,
+  parseStoredPayload,
+  protectPayloadForLog,
+  serializePayloadForStorage,
+} from "../logPayloads";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -52,12 +58,47 @@ function stdDev(values: number[], avg: number): number {
 
 // ──────────────── Pending Requests (in-memory) ────────────────
 
+export type PendingRequestMeta = {
+  startedAt?: number;
+  requestBody?: unknown;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+};
+
+export type PendingRequestDetail = {
+  model: string;
+  provider: string;
+  connectionId: string | null;
+  startedAt: number;
+  count: number;
+  requestBody?: unknown;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+};
+
+function buildPendingRequestDetailKey(
+  model: string,
+  provider: string,
+  connectionId: string | null
+): string {
+  return `${provider}\u0000${model}\u0000${connectionId || "-"}`;
+}
+
+function sanitizePendingRequestBody(requestBody: unknown): unknown {
+  if (requestBody === null || requestBody === undefined) return undefined;
+  const protectedPayload = protectPayloadForLog(requestBody);
+  const serialized = serializePayloadForStorage(protectedPayload, 4096);
+  return serialized ? (parseStoredPayload(serialized) ?? protectedPayload) : protectedPayload;
+}
+
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
+  details: Record<string, PendingRequestDetail>;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
+  details: Object.create(null) as Record<string, PendingRequestDetail>,
 };
 
 /**
@@ -67,9 +108,12 @@ export function trackPendingRequest(
   model: string,
   provider: string,
   connectionId: string | null,
-  started: boolean
+  started: boolean,
+  meta: PendingRequestMeta = {}
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
+  const detailKey = buildPendingRequestDetailKey(model, provider, connectionId);
+  const detail = pendingRequests.details[detailKey];
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
   if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
@@ -92,6 +136,44 @@ export function trackPendingRequest(
       pendingRequests.byAccount[connectionId][modelKey] + (started ? 1 : -1)
     );
   }
+
+  if (started) {
+    const sanitizedRequestBody = sanitizePendingRequestBody(meta.requestBody);
+    const startedAt =
+      typeof meta.startedAt === "number" && Number.isFinite(meta.startedAt)
+        ? meta.startedAt
+        : Date.now();
+
+    if (detail) {
+      detail.count += 1;
+      detail.startedAt = Math.min(detail.startedAt, startedAt);
+      if (detail.requestBody === undefined && sanitizedRequestBody !== undefined) {
+        detail.requestBody = sanitizedRequestBody;
+      }
+      if (!detail.apiKeyId && meta.apiKeyId) {
+        detail.apiKeyId = meta.apiKeyId;
+      }
+      if (!detail.apiKeyName && meta.apiKeyName) {
+        detail.apiKeyName = meta.apiKeyName;
+      }
+    } else {
+      pendingRequests.details[detailKey] = {
+        model,
+        provider,
+        connectionId,
+        startedAt,
+        count: 1,
+        requestBody: sanitizedRequestBody,
+        apiKeyId: meta.apiKeyId || null,
+        apiKeyName: meta.apiKeyName || null,
+      };
+    }
+  } else if (detail) {
+    detail.count = Math.max(0, detail.count - 1);
+    if (detail.count === 0) {
+      delete pendingRequests.details[detailKey];
+    }
+  }
 }
 
 /**
@@ -100,6 +182,17 @@ export function trackPendingRequest(
  */
 export function getPendingRequests() {
   return pendingRequests;
+}
+
+export function getPendingRequestDetails(): PendingRequestDetail[] {
+  return Object.values(pendingRequests.details)
+    .filter((detail) => detail.count > 0)
+    .sort((a, b) => a.startedAt - b.startedAt)
+    .map((detail) => ({
+      ...detail,
+      requestBody:
+        detail.requestBody !== undefined ? cloneLogPayload(detail.requestBody) : detail.requestBody,
+    }));
 }
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────

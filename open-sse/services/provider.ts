@@ -276,14 +276,21 @@ export function buildProviderUrl(
     if (entry.baseUrls) {
       const urlIndex = options?.baseUrlIndex || 0;
       const baseUrl = entry.baseUrls[urlIndex] || entry.baseUrls[0];
-      if (entry.urlBuilder) return entry.urlBuilder(baseUrl, model, stream);
+      if (entry.urlBuilder) {
+        return entry.urlBuilder(baseUrl, model, stream, options?.providerSpecificData || null);
+      }
       return baseUrl;
     }
     // Custom URL builder (e.g. gemini, gemini-cli)
     if (entry.urlBuilder) {
-      const baseUrl = entry.baseUrl || config.baseUrl;
+      const providerSpecificData = options?.providerSpecificData || null;
+      const baseUrl =
+        options?.baseUrl ||
+        (typeof providerSpecificData?.baseUrl === "string" ? providerSpecificData.baseUrl : null) ||
+        entry.baseUrl ||
+        config.baseUrl;
       if (baseUrl) {
-        return entry.urlBuilder(baseUrl, model, stream);
+        return entry.urlBuilder(baseUrl, model, stream, providerSpecificData);
       }
     }
     // URL suffix (e.g. claude: ?beta=true)
@@ -345,6 +352,11 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
       const token = credentials.apiKey || credentials.accessToken;
       if (token) {
         headers["x-api-key"] = token;
+      }
+    } else if (authHeader === "api-key") {
+      const token = credentials.apiKey || credentials.accessToken;
+      if (token) {
+        headers["api-key"] = token;
       }
     } else if (authHeader === "x-goog-api-key") {
       if (credentials.apiKey) {
