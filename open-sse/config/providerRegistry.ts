@@ -1151,6 +1151,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen-3-32b", name: "Qwen3 32B" },
     ],
   },
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:1234/v1",
+    authType: "apikey", // Some setups may use proxy with api key
+    authHeader: "bearer",
+    models: [], // Usually dynamic based on local models downloaded
+  },
 
   "ollama-cloud": {
     id: "ollama-cloud",

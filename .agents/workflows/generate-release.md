@@ -55,11 +55,13 @@ git checkout -b release/v2.x.y
 ### 2. Determine and sync version
 
 Check current version in `package.json`:
+
 ```bash
 grep '"version"' package.json
 ```
 
 > **🔴 BRANCH-VERSION PARITY RULE**: The logical version in `package.json` MUST exactly match the release branch name. For example, if you are on `release/v3.7.0`, the version in `package.json` MUST be `3.7.0`.
+>
 > - If this is the FIRST time generating a release for a new minor/major branch (e.g., bumping from 3.6.9 to 3.7.0), you MUST ensure the version is bumped to match the new branch logic.
 > - If you are just bumping a patch on the current branch (e.g., 3.6.9 to 3.6.10), use:
 >   `npm version patch --no-git-tag-version`
@@ -106,9 +108,13 @@ Keep an empty `## [Unreleased]` section above it, separated by a horizontal rule
 ---
 
 ## [3.7.0] — 2026-04-19
+
 ### ✨ New Features
+
 - ...
+
 ### 🐛 Bug Fixes
+
 - ...
 
 ---

@@ -1,13 +1,8 @@
-# 🚀 OmniRoute — The Free AI Gateway (Українська)
+# 🚀 OmniRoute — Безкоштовний AI Gateway
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇩🇪 [de](../de/README.md) · 🇮🇹 [it](../it/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇮🇳 [in](../in/README.md) · 🇹🇭 [th](../th/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇮🇩 [id](../id/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇳🇴 [no](../no/README.md) · 🇩🇰 [da](../da/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇮🇱 [he](../he/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇹🇷 [tr](../tr/README.md)
+### Ніколи не припиняйте кодувати. Розумна маршрутизація до **БЕЗКОШТОВНИХ та недорогих AI моделей** з автоматичним резервуванням.
 
----
-
-
-### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
-
-_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Ваш універсальний API проксі — одна кінцева точка, 100+ провайдерів, нульовий простій. Тепер з **MCP Server (34 інструменти)**, **A2A Protocol**, **Memory/Skills Systems** та **Electron Desktop App**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -42,26 +37,26 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
-[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[🌐 Веб-сайт](https://omniroute.online) • [🚀 Швидкий старт](#-швидкий-старт) • [💡 Функції](#-ключові-функції) • [📖 Документація](#-документація) • [💰 Ціни](#-ціни-загалом) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 </div>
 
-🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
+🌐 **Доступно мовами:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
 
 ---
 
-## 🖼️ Main Dashboard
+## 🖼️ Головна панель
 
 <div align="center">
-  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
+  <img src="../../../docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
 </div>
 
 ---
 
-## 📸 Dashboard Preview
+## 📸 Попередній перегляд панелі
 
 <details>
-<summary><b>Click to see dashboard screenshots</b></summary>
+<summary><b>Натисніть, щоб побачити скріншоти панелі</b></summary>
 
 | Page           | Screenshot                                        |
 | -------------- | ------------------------------------------------- |
@@ -79,43 +74,43 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 
 ---
 
-### 🤖 Free AI Provider for your favorite coding agents
+### 🤖 Безкоштовний AI провайдер для ваших улюблених агентів кодування
 
-_Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway for unlimited coding._
+_Підключіть будь-яку IDE або CLI інструмент з підтримкою AI через OmniRoute — безкоштовний API gateway для необмеженого кодування._
 
   <table>
     <tr>
       <td align="center" width="110">
         <a href="https://github.com/openclaw/openclaw">
-          <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
+          <img src="../../../public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
           <b>OpenClaw</b>
         </a><br/>
         <sub>⭐ 205K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/HKUDS/nanobot">
-          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+          <img src="../../../public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
           <b>NanoBot</b>
         </a><br/>
         <sub>⭐ 20.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/sipeed/picoclaw">
-          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+          <img src="../../../public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
           <b>PicoClaw</b>
         </a><br/>
         <sub>⭐ 14.6K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/zeroclaw-labs/zeroclaw">
-          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+          <img src="../../../public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
           <b>ZeroClaw</b>
         </a><br/>
         <sub>⭐ 9.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/nearai/ironclaw">
-          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+          <img src="../../../public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
           <b>IronClaw</b>
         </a><br/>
         <sub>⭐ 2.1K</sub>
@@ -124,35 +119,35 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     <tr>
       <td align="center" width="110">
         <a href="https://github.com/anomalyco/opencode">
-          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+          <img src="../../../public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
           <b>OpenCode</b>
         </a><br/>
         <sub>⭐ 106K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/openai/codex">
-          <img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
+          <img src="../../../public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
           <b>Codex CLI</b>
         </a><br/>
         <sub>⭐ 60.8K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/anthropics/claude-code">
-          <img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
+          <img src="../../../public/providers/claude.png" alt="Claude Code" width="48"/><br/>
           <b>Claude Code</b>
         </a><br/>
         <sub>⭐ 67.3K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/google-gemini/gemini-cli">
-          <img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
+          <img src="../../../public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
           <b>Gemini CLI</b>
         </a><br/>
         <sub>⭐ 94.7K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
-          <img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
+          <img src="../../../public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
         </a><br/>
         <sub>⭐ 15.5K</sub>
@@ -160,132 +155,133 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     </tr>
   </table>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
+<sub>📡 Всі агенти підключаються через <code>http://localhost:20128/v1</code> або <code>http://cloud.omniroute.online/v1</code> — одна конфігурація, необмежені моделі та квота</sub>
 
 ---
 
-## 🤔 Why OmniRoute?
+## 🤔 Навіщо OmniRoute?
 
-**Stop wasting money and hitting limits:**
+**Припиніть витрачати гроші та натикатися на ліміти:**
 
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Subscription quota expires unused every month
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Rate limits stop you mid-coding
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Expensive APIs ($20-50/month per provider)
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Manual switching between providers
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Квота підписки закінчується невикористаною щомісяця
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Обмеження швидкості зупиняють вас під час кодування
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Дорогі API ($20-50/місяць на провайдера)
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Ручне перемикання між провайдерами
 
-**OmniRoute solves this:**
+**OmniRoute вирішує це:**
 
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
+- ✅ **Максимізуйте підписки** - Відстежуйте квоту, використовуйте кожен біт до скидання
+- ✅ **Автоматичне резервування** - Підписка → API Key → Дешеві → Безкоштовні, нульовий простій
+- ✅ **Мультиакаунт** - Циклічне перемикання між акаунтами для кожного провайдера
+- ✅ **Універсальний** - Працює з Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, будь-яким CLI інструментом
 
 ---
 
-## 📧 Support
+## 📧 Підтримка
 
-> 💬 **Join our community!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Get help, share tips, and stay updated.
+> 💬 **Приєднуйтесь до нашої спільноти!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Отримайте допомогу, діліться порадами та будьте в курсі оновлень.
 
-- **Website**: [omniroute.online](https://omniroute.online)
+- **Веб-сайт**: [omniroute.online](https://omniroute.online)
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
-- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
+- **Внесок**: Див. [CONTRIBUTING.md](../../../CONTRIBUTING.md), відкрийте PR або виберіть `good first issue`
+- **Оригінальний проєкт**: [9router від decolua](https://github.com/decolua/9router)
 
-### 🐛 Reporting a Bug?
+### 🐛 Повідомляєте про помилку?
 
-When opening an issue, please run the system-info command and attach the generated file:
+Відкриваючи issue, будь ласка, запустіть команду system-info та прикріпіть згенерований файл:
 
 ```bash
 npm run system-info
 ```
 
-This generates a `system-info.txt` with your Node.js version, OmniRoute version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
+Це генерує `system-info.txt` з вашою версією Node.js, версією OmniRoute, деталями ОС, встановленими CLI інструментами (qoder, gemini, claude, codex, antigravity, droid тощо), статусом Docker/PM2 та системними пакетами — все, що нам потрібно для швидкого відтворення вашої проблеми. Прикріпіть файл безпосередньо до вашого GitHub issue.
 
 ---
 
-## 🔄 How It Works
+## 🔄 Як це працює
 
 ```
 ┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
-│   Tool      │
+│  Ваш CLI    │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
+│  інструмент │
 └──────┬──────┘
        │ http://localhost:20128/v1
        ↓
 ┌─────────────────────────────────────────┐
-│           OmniRoute (Smart Router)        │
-│  • Format translation (OpenAI ↔ Claude) │
-│  • Quota tracking + Embeddings + Images │
-│  • Auto token refresh                   │
+│        OmniRoute (Розумний роутер)      │
+│  • Переклад форматів (OpenAI ↔ Claude)  │
+│  • Відстеження квоти + Embeddings +     │
+│    Images                               │
+│  • Автоматичне оновлення токенів        │
 └──────┬──────────────────────────────────┘
        │
-       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, Gemini CLI
-       │   ↓ quota exhausted
-       ├─→ [Tier 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, etc.
-       │   ↓ budget limit
-       ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
-       │   ↓ budget limit
-       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
+       ├─→ [Рівень 1: ПІДПИСКА] Claude Code, Codex, Gemini CLI
+       │   ↓ квота вичерпана
+       ├─→ [Рівень 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM тощо
+       │   ↓ ліміт бюджету
+       ├─→ [Рівень 3: ДЕШЕВІ] GLM ($0.6/1M), MiniMax ($0.2/1M)
+       │   ↓ ліміт бюджету
+       └─→ [Рівень 4: БЕЗКОШТОВНІ] Qoder, Qwen, Kiro (необмежено)
 
-Result: Never stop coding, minimal cost
+Результат: Ніколи не припиняйте кодувати, мінімальні витрати
 ```
 
 ---
 
-## 🎯 What OmniRoute Solves — 30 Real Pain Points & Use Cases
+## 🎯 Що вирішує OmniRoute — 30 реальних проблем та випадків використання
 
-> **Every developer using AI tools faces these problems daily.** OmniRoute was built to solve them all — from cost overruns to regional blocks, from broken OAuth flows to protocol operations and enterprise observability.
+> **Кожен розробник, який використовує AI інструменти, стикається з цими проблемами щодня.** OmniRoute був створений для вирішення їх усіх — від перевитрат до регіональних блокувань, від зламаних OAuth потоків до протокольних операцій та корпоративної спостережуваності.
 
 <details>
-<summary><b>💸 1. "I pay for an expensive subscription but still get interrupted by limits"</b></summary>
+<summary><b>💸 1. "Я плачу за дорогу підписку, але все одно отримую переривання через ліміти"</b></summary>
 
-Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Even paying, quota has a ceiling — 5h of usage, weekly limits, or per-minute rate limits. Mid-coding session, the provider stops responding and the developer loses flow and productivity.
+Розробники платять $20–200/місяць за Claude Pro, Codex Pro або GitHub Copilot. Навіть платячи, квота має стелю — 5 годин використання, тижневі ліміти або обмеження швидкості за хвилину. Посеред сесії кодування провайдер припиняє відповідати, і розробник втрачає потік та продуктивність.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
-- **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
-- **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
-- **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
-- **Custom Combos** — Customizable fallback chains with 13 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, **context-relay**)
-- **Structured Combo Builder** — Build combos step-by-step with explicit provider + model + account selection, including repeated providers and fixed-account targets
-- **Quota-Aware P2C** — Power-of-two account selection now factors quota headroom, backoff, recent errors, and consecutive use
-- **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
+- **Розумне 4-рівневе резервування** — Якщо квота підписки закінчується, автоматично перенаправляє на API Key → Дешеві → Безкоштовні без ручного втручання
+- **Відстеження лімітів провайдера** — Кешовані знімки квоти оновлюються за серверним розкладом (за замовчуванням `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) з можливістю ручного оновлення в UI
+- **Підтримка мультиакаунтів** — Кілька акаунтів на провайдера з автоматичним циклічним перемиканням — коли один закінчується, перемикається на наступний
+- **Користувацькі комбо** — Налаштовувані ланцюги резервування з 13 стратегіями балансування (пріоритет, зважений, заповнення-спочатку, циклічний, P2C, випадковий, найменш-використовуваний, оптимізований-за-вартістю, строго-випадковий, авто, lkgp, оптимізований-за-контекстом, **context-relay**)
+- **Структурований конструктор комбо** — Створюйте комбо крок за кроком з явним вибором провайдера + моделі + акаунта, включаючи повторювані провайдери та фіксовані цілі акаунтів
+- **P2C з урахуванням квоти** — Вибір акаунта за принципом степеня двійки тепер враховує запас квоти, відкат, нещодавні помилки та послідовне використання
+- **Бізнес-квоти Codex** — Моніторинг квоти робочого простору Business/Team безпосередньо в панелі
 
 </details>
 
 <details>
-<summary><b>🔌 2. "I need to use multiple providers but each has a different API"</b></summary>
+<summary><b>🔌 2. "Мені потрібно використовувати кілька провайдерів, але кожен має різний API"</b></summary>
 
-OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If a dev wants to test models from different providers or fallback between them, they need to reconfigure SDKs, change endpoints, deal with incompatible formats. Custom providers (FriendLI, NIM) have non-standard model endpoints.
+OpenAI використовує один формат, Claude (Anthropic) використовує інший, Gemini ще інший. Якщо розробник хоче тестувати моделі від різних провайдерів або перемикатися між ними, йому потрібно переконфігурувати SDK, змінювати кінцеві точки, мати справу з несумісними форматами. Користувацькі провайдери (FriendLI, NIM) мають нестандартні кінцеві точки моделей.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
-- **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
-- **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
-- **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
-- **Think Tag Extraction** — Extracts `<think>` blocks from models like DeepSeek R1 into standardized `reasoning_content`
-- **Structured Output for Gemini** — `json_schema` → `responseMimeType`/`responseSchema` automatic conversion
-- **`stream` defaults to `false`** — Aligns with OpenAI spec, avoiding unexpected SSE in Python/Rust/Go SDKs
+- **Уніфікована кінцева точка** — Один `http://localhost:20128/v1` служить проксі для всіх 100+ провайдерів
+- **Переклад форматів** — Автоматичний та прозорий: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
+- **Санітизація відповідей** — Видаляє нестандартні поля (`x_groq`, `usage_breakdown`, `service_tier`), які ламають OpenAI SDK v1.83+
+- **Нормалізація ролей** — Конвертує `developer` → `system` для не-OpenAI провайдерів; `system` → `user` для GLM/ERNIE
+- **Вилучення тегів Think** — Витягує блоки `<think>` з моделей типу DeepSeek R1 у стандартизований `reasoning_content`
+- **Структурований вивід для Gemini** — Автоматична конвертація `json_schema` → `responseMimeType`/`responseSchema`
+- **`stream` за замовчуванням `false`** — Відповідає специфікації OpenAI, уникаючи несподіваного SSE в Python/Rust/Go SDK
 
 </details>
 
 <details>
-<summary><b>🌐 3. "My AI provider blocks my region/country"</b></summary>
+<summary><b>🌐 3. "Мій AI провайдер блокує мій регіон/країну"</b></summary>
 
-Providers like OpenAI/Codex block access from certain geographic regions. Users get errors like `unsupported_country_region_territory` during OAuth and API connections. This is especially frustrating for developers from developing countries.
+Провайдери типу OpenAI/Codex блокують доступ з певних географічних регіонів. Користувачі отримують помилки типу `unsupported_country_region_territory` під час OAuth та API з'єднань. Це особливо фруструє розробників з країн, що розвиваються.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
-- **3-Level Proxy Config** — Configurable proxy at 3 levels: global (all traffic), per-provider (one provider only), and per-connection/key
-- **Color-Coded Proxy Badges** — Visual indicators: 🟢 global proxy, 🟡 provider proxy, 🔵 connection proxy, always showing the IP
-- **OAuth Token Exchange Through Proxy** — OAuth flow also goes through the proxy, solving `unsupported_country_region_territory`
-- **Connection Tests via Proxy** — Connection tests use the configured proxy (no more direct bypass)
-- **SOCKS5 Support** — Full SOCKS5 proxy support for outbound routing
-- **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint via `wreq-js` to bypass bot detection
-- **🔏 CLI Fingerprint Matching** — Reorders headers and body fields to match native CLI binary signatures, drastically reducing account flagging risk. The proxy IP is preserved — you get both stealth **and** IP masking simultaneously
+- **3-рівнева конфігурація проксі** — Налаштовуваний проксі на 3 рівнях: глобальний (весь трафік), на провайдера (тільки один провайдер) та на з'єднання/ключ
+- **Кольорові значки проксі** — Візуальні індикатори: 🟢 глобальний проксі, 🟡 проксі провайдера, 🔵 проксі з'єднання, завжди показують IP
+- **Обмін OAuth токенами через проксі** — OAuth потік також проходить через проксі, вирішуючи `unsupported_country_region_territory`
+- **Тести з'єднання через проксі** — Тести з'єднання використовують налаштований проксі (більше немає прямого обходу)
+- **Підтримка SOCKS5** — Повна підтримка SOCKS5 проксі для вихідної маршрутизації
+- **Підробка TLS відбитка** — TLS відбиток, схожий на браузер, через `wreq-js` для обходу виявлення ботів
+- **🔏 Відповідність відбитку CLI** — Переупорядковує заголовки та поля тіла для відповідності нативним сигнатурам CLI бінарників, драстично зменшуючи ризик позначення акаунта. IP проксі зберігається — ви отримуєте і приховування **і** маскування IP одночасно
 
 </details>
 
@@ -294,7 +290,7 @@ Providers like OpenAI/Codex block access from certain geographic regions. Users 
 
 Not everyone can pay $20–200/month for AI subscriptions. Students, devs from emerging countries, hobbyists, and freelancers need access to quality models at zero cost.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Free Tier Providers Built-in** — Native support for 100% free providers: Qoder (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
@@ -309,7 +305,7 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the address can consume the developer's tokens/quota. Without protection, APIs are vulnerable to misuse, prompt injection, and abuse.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **API Key Management** — Generation, rotation, and scoping per provider with a dedicated `/dashboard/api-manager` page
 - **Model-Level Permissions** — Restrict API keys to specific models (`openai/*`, wildcard patterns), with Allow All/Restrict toggle
@@ -327,7 +323,7 @@ When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the a
 
 AI providers can become unstable, return 5xx errors, or hit temporary rate limits. If a dev depends on a single provider, they're interrupted. Without circuit breakers, repeated retries can crash the application.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Settings-Driven Lock Hierarchy** — Provider profiles control default account/model lockouts, global model quarantine, and provider circuit breakers from one control surface, while explicit upstream `Retry-After` windows still take priority
 - **Exponential Backoff** — Progressive retry delays for both account/model lockouts and higher-level quarantine
@@ -343,7 +339,7 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code... Each tool needs a different config (API endpoint, key, model). Reconfiguring when switching providers or models is a waste of time.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
@@ -357,7 +353,7 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 
 Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Auto Token Refresh** — OAuth tokens refresh in background before expiration
 - **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
@@ -373,7 +369,7 @@ Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring toke
 
 Developers use multiple paid providers but have no unified view of spending. Each provider has its own billing dashboard, but there's no consolidated view. Unexpected costs can pile up.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Cost Analytics Dashboard** — Per-token cost tracking and budget management per provider
 - **Budget Limits per Tier** — Spending ceiling per tier that triggers automatic fallback
@@ -388,7 +384,7 @@ Developers use multiple paid providers but have no unified view of spending. Eac
 
 When a call fails, the dev doesn't know if it was a rate limit, expired token, wrong format, or provider error. Fragmented logs across different terminals. Without observability, debugging is trial-and-error.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Unified Logs Dashboard** — 4 tabs: Request Logs, Proxy Logs, Audit Logs, Console
 - **Console Log Viewer** — Real-time terminal-style viewer with color-coded levels, auto-scroll, search, filter
@@ -405,7 +401,7 @@ When a call fails, the dev doesn't know if it was a rate limit, expired token, w
 
 Installing, configuring, and maintaining an AI proxy across different environments (local, VPS, Docker, cloud) is labor-intensive. Problems like hardcoded paths, `EACCES` on directories, port conflicts, and cross-platform builds add friction.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **npm global install** — `npm install -g omniroute && omniroute` — done
 - **Docker Multi-Platform** — AMD64 + ARM64 native (Apple Silicon, AWS Graviton, Raspberry Pi)
@@ -422,7 +418,7 @@ Installing, configuring, and maintaining an AI proxy across different environmen
 
 Teams in non-English-speaking countries, especially in Latin America, Asia, and Europe, struggle with English-only interfaces. Language barriers reduce adoption and increase configuration errors.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
 - **RTL Support** — Right-to-left support for Arabic and Hebrew
@@ -436,7 +432,7 @@ Teams in non-English-speaking countries, especially in Latin America, Asia, and 
 
 AI isn't just chat completion. Devs need to generate images, transcribe audio, create embeddings for RAG, rerank documents, and moderate content. Each API has a different endpoint and format.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Embeddings** — `/v1/embeddings` with 6 providers and 9+ models
 - **Image Generation** — `/v1/images/generations` with 10 providers and 20+ models (OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, Antigravity, SD WebUI, ComfyUI)
@@ -455,7 +451,7 @@ AI isn't just chat completion. Devs need to generate images, transcribe audio, c
 
 Developers want to know which model is best for their use case — code, translation, reasoning — but comparing manually is slow. No integrated eval tools exist.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **LLM Evaluations** — Golden set testing with 10 pre-loaded cases covering greetings, math, geography, code generation, JSON compliance, translation, markdown, safety refusal
 - **4 Match Strategies** — `exact`, `contains`, `regex`, `custom` (JS function)
@@ -470,7 +466,7 @@ Developers want to know which model is best for their use case — code, transla
 
 As request volume grows, without caching the same questions generate duplicate costs. Without idempotency, duplicate requests waste processing. Per-provider rate limits must be respected.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Semantic Cache** — Two-tier cache (signature + semantic) reduces cost and latency
 - **Request Idempotency** — 5s deduplication window for identical requests
@@ -486,7 +482,7 @@ As request volume grows, without caching the same questions generate duplicate c
 
 Developers who want all responses in a specific language, with a specific tone, or want to limit reasoning tokens. Configuring this in every tool/request is impractical.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **System Prompt Injection** — Global prompt applied to all requests
 - **Thinking Budget Validation** — Reasoning token allocation control per request (passthrough, auto, custom, adaptive)
@@ -504,7 +500,7 @@ Developers who want all responses in a specific language, with a specific tone, 
 
 Many AI gateways expose MCP only as a hidden implementation detail. Teams need a visible, manageable operation layer.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - MCP appears in the dashboard navigation and endpoint protocol tab
 - Dedicated MCP management page with process, tools, scopes, and audit
@@ -517,7 +513,7 @@ Many AI gateways expose MCP only as a hidden implementation detail. Teams need a
 
 Agent workflows need both direct replies and long-running streamed execution with lifecycle control.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - A2A JSON-RPC endpoint (`POST /a2a`) with `message/send` and `message/stream`
 - SSE streaming with terminal state propagation
@@ -530,7 +526,7 @@ Agent workflows need both direct replies and long-running streamed execution wit
 
 Operational teams need to know if MCP is actually alive, not just whether an API is reachable.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Runtime heartbeat file with PID, timestamps, transport, tool count, and scope mode
 - MCP status API combining heartbeat + recent activity
@@ -543,7 +539,7 @@ Operational teams need to know if MCP is actually alive, not just whether an API
 
 When tools mutate config or trigger ops actions, teams need forensic traceability.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - SQLite-backed audit logging for MCP tool calls
 - Filters by tool, success/failure, API key, and pagination
@@ -556,7 +552,7 @@ When tools mutate config or trigger ops actions, teams need forensic traceabilit
 
 Different clients should have least-privilege access to tool categories.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - 10 granular MCP scopes for controlled tool access
 - Scope enforcement and visibility in MCP management UI
@@ -569,7 +565,7 @@ Different clients should have least-privilege access to tool categories.
 
 Teams need quick runtime changes during incidents or cost events.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Switch combo activation directly from MCP dashboard
 - Apply resilience profiles from pre-defined policy packs
@@ -582,7 +578,7 @@ Teams need quick runtime changes during incidents or cost events.
 
 Without lifecycle visibility, task incidents become hard to triage.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Task listing/filtering by state/skill with pagination
 - Drill-down on task metadata, events, and artifacts
@@ -595,7 +591,7 @@ Without lifecycle visibility, task incidents become hard to triage.
 
 Streaming workflows require operational insight into concurrency and live connections.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Active stream counters integrated into A2A status
 - Last task timestamp and per-state counts
@@ -608,7 +604,7 @@ Streaming workflows require operational insight into concurrency and live connec
 
 External clients and orchestrators need machine-readable metadata for onboarding.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Agent Card exposed at `/.well-known/agent.json`
 - Capabilities and skills shown in management UI
@@ -621,7 +617,7 @@ External clients and orchestrators need machine-readable metadata for onboarding
 
 If users cannot discover protocol surfaces, adoption and support quality drop.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Consolidated **Endpoints** page with tabs for Proxy, MCP, A2A, and API Endpoints
 - Inline service status toggles (Online/Offline) for MCP and A2A
@@ -634,7 +630,7 @@ If users cannot discover protocol surfaces, adoption and support quality drop.
 
 Mock tests are not enough to validate protocol compatibility before release.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - E2E suite that boots app and uses real MCP SDK client transport
 - A2A client tests for discovery, send, stream, get, and cancel flows
@@ -647,7 +643,7 @@ Mock tests are not enough to validate protocol compatibility before release.
 
 Splitting observability by protocol creates blind spots and longer MTTR.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Unified dashboards/logs/analytics in one product
 - Health + audit + request telemetry across OpenAI, MCP, and A2A layers
@@ -660,7 +656,7 @@ Splitting observability by protocol creates blind spots and longer MTTR.
 
 Running many separate services increases operational cost and failure modes.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - OpenAI-compatible proxy, MCP server, and A2A server in one stack
 - Shared auth, resilience, data store, and observability
@@ -673,7 +669,7 @@ Running many separate services increases operational cost and failure modes.
 
 Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - Unified endpoint strategy for clients and agents
 - Built-in protocol management UIs and smoke validation paths
@@ -686,7 +682,7 @@ Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
 During deep debugging, long histories with tool results quickly exceed provider token windows, causing failed requests and orphaned context.
 
-**How OmniRoute solves it:**
+**Як OmniRoute це вирішує:**
 
 - **Proactive Context Compression** — Evaluates token budgets before the request hits upstream and proactively prunes old conversation history with a smart binary-search mechanism.
 - **Structural Integrity Guards** — Automatically tracks explicit `tool_use` definitions and ensures that if a tool input is truncated, its corresponding `tool_result` is also safely removed, preventing API validation errors.
@@ -744,25 +740,25 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 ---
 
-## 🆓 Start Free — Zero Configuration Cost
+## 🆓 Почніть безкоштовно — нульова вартість конфігурації
 
-> Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
+> Налаштуйте AI кодування за хвилини за **$0/місяць**. Підключіть ці безкоштовні акаунти та використовуйте вбудоване комбо **Free Stack**.
 
-| Step | Action                                             | Providers Unlocked                                                 |
-| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | Connect **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/mo free**                  |
-| 5    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
+| Крок | Дія                                              | Розблоковані провайдери                                             |
+| ---- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| 1    | Підключіть **Kiro** (AWS Builder ID OAuth)       | Claude Sonnet 4.5, Haiku 4.5 — **необмежено**                       |
+| 2    | Підключіть **Qoder** (Google OAuth)              | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **необмежено** |
+| 3    | Підключіть **Qwen** (Device Code)                | qwen3-coder-plus, qwen3-coder-flash... — **необмежено**             |
+| 4    | Підключіть **Gemini CLI** (Google OAuth)         | gemini-3-flash, gemini-2.5-pro — **180K/міс безкоштовно**           |
+| 5    | `/dashboard/combos` → шаблон **Free Stack ($0)** | Циклічне перемикання всіх безкоштовних провайдерів автоматично      |
 
-**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
+**Налаштуйте будь-яку IDE/CLI на:** `http://localhost:20128/v1` · API Key: `any-string` · Готово.
 
-> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
+> **Додаткове покриття (також безкоштовно):** Groq API key (30 RPM безкоштовно), NVIDIA NIM (40 RPM безкоштовно, 70+ моделей), Cerebras (1M токенів/день), LongCat API key (50M токенів/день!), Cloudflare Workers AI (10K Neurons/день, 50+ моделей).
 
-## Швидкий старт
+## ⚡ Швидкий старт
 
-### 1) Install and run
+### 1) Встановлення та запуск
 
 ```bash
 npm install -g omniroute
@@ -777,43 +773,43 @@ omniroute
 > omniroute
 > ```
 
-Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
+Панель відкривається за адресою `http://localhost:20128`, а базовий URL API — `http://localhost:20128/v1`.
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
-| `omniroute --port 3000` | Set canonical/API port to 3000                              |
-| `omniroute --mcp`       | Start MCP server (stdio transport)                          |
-| `omniroute --no-open`   | Don't auto-open browser                                     |
-| `omniroute --help`      | Show help                                                   |
+| Команда                 | Опис                                                           |
+| ----------------------- | -------------------------------------------------------------- |
+| `omniroute`             | Запустити сервер (`PORT=20128`, API та панель на одному порту) |
+| `omniroute --port 3000` | Встановити канонічний/API порт на 3000                         |
+| `omniroute --mcp`       | Запустити MCP сервер (stdio транспорт)                         |
+| `omniroute --no-open`   | Не відкривати браузер автоматично                              |
+| `omniroute --help`      | Показати довідку                                               |
 
-Optional split-port mode:
+Опціональний режим роздільних портів:
 
 ```bash
 PORT=20128 DASHBOARD_PORT=20129 omniroute
 # API:       http://localhost:20128/v1
-# Dashboard: http://localhost:20129
+# Панель:    http://localhost:20129
 ```
 
-### 2) Uninstalling
+### 2) Видалення
 
-When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+Коли вам більше не потрібен OmniRoute, ми надаємо два швидкі скрипти для чистого видалення:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+| Команда                  | Дія                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Видаляє системний застосунок, але **зберігає вашу БД та конфігурації** в `~/.omniroute`. |
+| `npm run uninstall:full` | Видаляє застосунок І назавжди **стирає всі конфігурації, ключі та бази даних**.          |
 
-> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+> Примітка: Щоб виконати ці команди, перейдіть до папки проєкту OmniRoute (якщо ви його клонували) та запустіть їх. Альтернативно, якщо встановлено глобально, ви можете просто запустити `npm uninstall -g omniroute`.
 
-### Long-Running Streaming Timeouts
+### Тайм-аути довготривалого стрімінгу
 
-For most deployments, you only need:
+Для більшості розгортань вам потрібно лише:
 
-| Variable                 | Default                       | Purpose                                                                                                                                      |
-| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream response-start timeout, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                                  |
+| Змінна                   | За замовчуванням                | Призначення                                                                                                                                              |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`     | `600000`                        | Спільна базова лінія для тайм-ауту початку відповіді upstream, прихованих тайм-аутів Undici, запитів TLS відбитка та тайм-аутів запиту/проксі API bridge |
+| `STREAM_IDLE_TIMEOUT_MS` | успадковує `REQUEST_TIMEOUT_MS` | Максимальний проміжок між частинами стрімінгу, перш ніж OmniRoute перериває SSE потік                                                                    |
 
 Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
 
@@ -1013,9 +1009,9 @@ post_install() {
 
 ## 🐳 Docker
 
-OmniRoute is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
+OmniRoute доступний як публічний Docker образ на [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
 
-**Quick run:**
+**Швидкий запуск:**
 
 ```bash
 docker run -d \
@@ -1027,10 +1023,10 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-**With environment file:**
+**З файлом середовища:**
 
 ```bash
-# Copy and edit .env first
+# Спочатку скопіюйте та відредагуйте .env
 cp .env.example .env
 
 docker run -d \
@@ -1043,26 +1039,26 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-**Using Docker Compose:**
+**Використання Docker Compose:**
 
 ```bash
-# Base profile (no CLI tools)
+# Базовий профіль (без CLI інструментів)
 docker compose --profile base up -d
 
-# CLI profile (Claude Code, Codex, OpenClaw built-in)
+# CLI профіль (Claude Code, Codex, OpenClaw вбудовані)
 docker compose --profile cli up -d
 ```
 
-Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL.
+Підтримка панелі для Docker розгортань тепер включає **Cloudflare Quick Tunnel** в один клік на `Dashboard → Endpoints`. Перше увімкнення завантажує `cloudflared` тільки коли потрібно, запускає тимчасовий тунель до вашої поточної кінцевої точки `/v1` та показує згенерований URL `https://*.trycloudflare.com/v1` безпосередньо під вашим звичайним публічним URL.
 
-Notes:
+Примітки:
 
-- Quick Tunnel URLs are temporary and change after every restart.
-- Quick Tunnels are not auto-restored after an OmniRoute or container restart. Re-enable them from the dashboard when needed.
-- Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
+- URL Quick Tunnel тимчасові та змінюються після кожного перезапуску.
+- Quick Tunnels не відновлюються автоматично після перезапуску OmniRoute або контейнера. Увімкніть їх знову з панелі, коли потрібно.
+- Керована установка наразі підтримує Linux, macOS та Windows на `x64` / `arm64`.
 - Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained container environments. Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want a different transport.
 - Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
-- SQLite runs in WAL mode. `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`.
+- SQLite працює в режимі WAL. `docker stop` слід дозволити завершитися, щоб OmniRoute міг зберегти останні зміни назад у `storage.sqlite`.
 - The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40` (or similar) so manual stops do not cut off shutdown cleanup.
 - Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
 
@@ -1095,79 +1091,79 @@ volumes:
   omniroute-data:
 ```
 
-| Image                    | Tag      | Size   | Description           |
-| ------------------------ | -------- | ------ | --------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Current version       |
+| Образ                    | Тег      | Розмір | Опис                      |
+| ------------------------ | -------- | ------ | ------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Останній стабільний реліз |
+| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Поточна версія            |
 
 ---
 
-## 🖥️ Desktop App — Offline & Always-On
+## 🖥️ Десктопний застосунок — Офлайн та завжди увімкнений
 
-> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
+> 🆕 **НОВИНКА!** OmniRoute тепер доступний як **нативний десктопний застосунок** для Windows, macOS та Linux.
 
-Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
+Запускайте OmniRoute як окремий десктопний застосунок — без терміналу, без браузера, без інтернету для локальних моделей. Застосунок на базі Electron включає:
 
-- 🖥️ **Native Window** — Dedicated app window with system tray integration
-- 🔄 **Auto-Start** — Launch OmniRoute on system login
-- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
-- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
-- 🌐 **Offline Mode** — Works fully offline with bundled server
+- 🖥️ **Нативне вікно** — Виділене вікно застосунку з інтеграцією в системний трей
+- 🔄 **Автозапуск** — Запуск OmniRoute при вході в систему
+- 🔔 **Нативні сповіщення** — Отримуйте сповіщення про вичерпання квоти або проблеми з провайдером
+- ⚡ **Установка в один клік** — NSIS (Windows), DMG (macOS), AppImage (Linux)
+- 🌐 **Офлайн режим** — Працює повністю офлайн з вбудованим сервером
 
 ### Швидкий старт
 
 ```bash
-# Development mode
+# Режим розробки
 npm run electron:dev
 
-# Build for your platform
-npm run electron:build         # Current platform
+# Збірка для вашої платформи
+npm run electron:build         # Поточна платформа
 npm run electron:build:win     # Windows (.exe)
 npm run electron:build:mac     # macOS (.dmg) — x64 & arm64
 npm run electron:build:linux   # Linux (.AppImage)
 ```
 
-### System Tray
+### Системний трей
 
-When minimized, OmniRoute lives in your system tray with quick actions:
+При згортанні OmniRoute знаходиться в системному треї з швидкими діями:
 
-- Open dashboard
-- Change server port
-- Quit application
+- Відкрити панель
+- Змінити порт сервера
+- Вийти з застосунку
 
 📖 Full documentation: [`electron/README.md`](electron/README.md)
 
 ---
 
-## 💰 Pricing at a Glance
+## 💰 Ціни загалом
 
-| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
-|                     | Gemini CLI                  | **FREE**                  | 180K/mo + 1K/day | Everyone!                         |
-|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
-|                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
-|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Рівень             | Провайдер                   | Вартість                          | Скидання квоти     | Найкраще для                        |
+| ------------------ | --------------------------- | --------------------------------- | ------------------ | ----------------------------------- |
+| **💳 ПІДПИСКА**    | Claude Code (Pro)           | $20/міс                           | 5год + тижнева     | Вже підписані                       |
+|                    | Codex (Plus/Pro)            | $20-200/міс                       | 5год + тижнева     | Користувачі OpenAI                  |
+|                    | Gemini CLI                  | **БЕЗКОШТОВНО**                   | 180K/міс + 1K/день | Всім!                               |
+|                    | GitHub Copilot              | $10-19/міс                        | Щомісяця           | Користувачі GitHub                  |
+| **🔑 API KEY**     | NVIDIA NIM                  | **БЕЗКОШТОВНО** (назавжди)        | ~40 RPM            | 70+ відкритих моделей               |
+|                    | Cerebras                    | **БЕЗКОШТОВНО** (1M токенів/день) | 60K TPM / 30 RPM   | Найшвидший у світі                  |
+|                    | Groq                        | **БЕЗКОШТОВНО** (30 RPM)          | 14.4K RPD          | Ультрашвидкий Llama/Gemma           |
+|                    | DeepSeek V3.2               | $0.27/$1.10 за 1M                 | Немає              | Найкраще співвідношення ціна/якість |
+|                    | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕         | None               | Fastest + tool calling, ultralow    |
+|                    | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕             | None               | Reasoning flagship from xAI         |
+|                    | Mistral                     | Безкоштовна пробна + платна       | Обмежена швидкість | Європейський AI                     |
+|                    | OpenRouter                  | Оплата за використання            | Немає              | 100+ моделей агрегація              |
+| **💰 CHEAP**       | GLM-5 (via Z.AI) 🆕         | $0.5/1M                           | Daily 10AM         | 128K output, newest flagship        |
+|                    | GLM-4.7                     | $0.6/1M                           | Daily 10AM         | Budget backup                       |
+|                    | MiniMax M2.5 🆕             | $0.3/1M input                     | 5-hour rolling     | Reasoning + agentic tasks           |
+|                    | MiniMax M2.1                | $0.2/1M                           | 5-годинний         | Найдешевший варіант                 |
+|                    | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use                       | None               | Direct Moonshot API access          |
+|                    | Kimi K2                     | $9/міс фіксовано                  | 10M токенів/міс    | Передбачувана вартість              |
+| **🆓 БЕЗКОШТОВНІ** | Qoder                       | **$0**                            | Необмежено         | 5 моделей необмежено                |
+|                    | Qwen                        | **$0**                            | Необмежено         | 4 моделі необмежено                 |
+|                    | Kiro                        | **$0**                            | Необмежено         | Claude Sonnet/Haiku (AWS Builder)   |
+|                    | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)           | 1 RPS              | Largest free quota on Earth         |
+|                    | Pollinations AI 🆕          | **$0** (no key needed)            | 1 req/15s          | GPT-5, Claude, DeepSeek, Llama 4    |
+|                    | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)          | ~150 resp/day      | 50+ models, global edge             |
+|                    | Scaleway AI 🆕              | **$0** (1M tokens total)          | Rate limited       | EU/GDPR, Qwen3 235B, Llama 70B      |
 
 > 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
@@ -1194,46 +1190,46 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ---
 
-## 🆓 Free Models — What You Actually Get
+## 🆓 Безкоштовні моделі — що ви насправді отримуєте
 
-> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+> Всі моделі нижче **100% безкоштовні без потреби кредитної картки**. OmniRoute автоматично перемикається між ними, коли одна квота закінчується — об'єднайте їх усі для незламного комбо за $0.
 
-### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
+### 🔵 МОДЕЛІ CLAUDE (через Kiro — AWS Builder ID)
 
-| Model               | Prefix | Limit         | Rate Limit            |
-| ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
+| Модель              | Префікс | Ліміт          | Обмеження швидкості                |
+| ------------------- | ------- | -------------- | ---------------------------------- |
+| `claude-sonnet-4.5` | `kr/`   | **Необмежено** | Немає повідомлень про денний ліміт |
+| `claude-haiku-4.5`  | `kr/`   | **Необмежено** | Немає повідомлень про денний ліміт |
+| `claude-opus-4.6`   | `kr/`   | **Необмежено** | Останній Opus через Kiro           |
 
-### 🟢 QODER MODELS (Free PAT via qodercli)
+### 🟢 МОДЕЛІ QODER (Безкоштовний PAT через qodercli)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| Model              | Prefix | Limit          | Rate Limit                  |
+| ------------------ | ------ | -------------- | --------------------------- |
+| `kimi-k2-thinking` | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `qwen3-coder-plus` | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `deepseek-r1`      | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `minimax-m2.1`     | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `kimi-k2`          | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
 
-> Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
-> experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
+> Рекомендований метод підключення: **Personal Access Token + `qodercli`**. OAuth через браузер є
+> експериментальним та вимкнений за замовчуванням, якщо не налаштовані змінні середовища `QODER_OAUTH_*`.
 
-### 🟡 QWEN MODELS (Device Code Auth)
+### 🟡 МОДЕЛІ QWEN (Авторизація через Device Code)
 
-| Model               | Prefix | Limit         | Rate Limit          |
-| ------------------- | ------ | ------------- | ------------------- |
-| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
-| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
+| Model               | Prefix | Limit          | Rate Limit                  |
+| ------------------- | ------ | -------------- | --------------------------- |
+| `qwen3-coder-plus`  | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `qwen3-coder-flash` | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `qwen3-coder-next`  | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `vision-model`      | `qw/`  | **Необмежено** | Мультимодальна (зображення) |
 
 ### 🟣 GEMINI CLI (Google OAuth)
 
-| Model                    | Prefix | Limit                       | Rate Limit    |
-| ------------------------ | ------ | --------------------------- | ------------- |
-| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
-| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
+| Model                    | Prefix | Limit                          | Rate Limit         |
+| ------------------------ | ------ | ------------------------------ | ------------------ |
+| `gemini-3-flash-preview` | `gc/`  | **180K токенів/міс** + 1K/день | Щомісячне скидання |
+| `gemini-2.5-pro`         | `gc/`  | 180K/міс (спільний пул)        | Висока якість      |
 
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
@@ -1343,34 +1339,34 @@ Nodes:
 
 Then in `/dashboard/media` → **Transcription** tab: upload any audio or video file → select your combo endpoint → get transcription in supported formats.
 
-## 💡 Key Features
+## 💡 Ключові функції
 
-OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
+OmniRoute v3.6 побудований як операційна платформа, а не просто проксі-ретранслятор.
 
-### 🆕 New — v3.6.x Highlights (Apr 2026)
+### 🆕 Новинки — основні моменти v3.6.x (квітень 2026)
 
-| Feature                            | What It Does                                                                                                                                      |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🌐 **V1 WebSocket Bridge**         | OpenAI-compatible WebSocket traffic upgraded and proxied via `/v1/ws` — full streaming over WS with session auth (API key or session cookie)      |
-| 🔑 **Sync Tokens & Config Bundle** | Issue/revoke sync tokens for config sync endpoints. Config bundles versioned with ETag for bandwidth-efficient polling                            |
-| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API        |
-| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                   |
-| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
-| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection |
-| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                     |
-| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                  |
-| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                    |
-| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
-| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
-| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
-| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
-| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
-| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
-| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
-| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
-| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                     |
-| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                         |
-| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                      |
+| Функція                            | Що вона робить                                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌐 **V1 WebSocket Bridge**         | OpenAI-сумісний WebSocket трафік оновлений та проксійований через `/v1/ws` — повний стрімінг через WS з сесійною авторизацією (API ключ або сесійна кука) |
+| 🔑 **Sync Tokens & Config Bundle** | Видача/відкликання sync токенів для кінцевих точок синхронізації конфігурації. Пакети конфігурації версіоновані з ETag для ефективного опитування         |
+| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API                |
+| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                           |
+| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                        |
+| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection         |
+| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                             |
+| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                          |
+| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                            |
+| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                         |
+| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                                       |
+| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                                   |
+| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                               |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                          |
+| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                          |
+| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                                       |
+| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                                      |
+| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                             |
+| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                                 |
+| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                              |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -1570,27 +1566,27 @@ The pre-loaded "OmniRoute Golden Set" contains test cases for:
 
 ---
 
-## 📖 Setup Guide
+## 📖 Посібник з налаштування
 
-### Protocol Setup (MCP + A2A)
+### Налаштування протоколів (MCP + A2A)
 
 <details>
-<summary><b>🧩 MCP Setup (Model Context Protocol)</b></summary>
+<summary><b>🧩 Налаштування MCP (Model Context Protocol)</b></summary>
 
-Start MCP transport in stdio mode:
+Запустіть MCP транспорт в режимі stdio:
 
 ```bash
 omniroute --mcp
 ```
 
-Recommended validation flow:
+Рекомендований потік валідації:
 
-1. Connect your MCP client over stdio.
-2. Run `omniroute_get_health`.
-3. Run `omniroute_list_combos`.
-4. Open `/dashboard/mcp` to confirm heartbeat, activity, and audit.
+1. Підключіть ваш MCP клієнт через stdio.
+2. Запустіть `omniroute_get_health`.
+3. Запустіть `omniroute_list_combos`.
+4. Відкрийте `/dashboard/mcp` для підтвердження heartbeat, активності та аудиту.
 
-Useful APIs for automation:
+Корисні API для автоматизації:
 
 - `GET /api/mcp/status`
 - `GET /api/mcp/tools`
@@ -1600,15 +1596,15 @@ Useful APIs for automation:
 </details>
 
 <details>
-<summary><b>🤝 A2A Setup (Agent2Agent)</b></summary>
+<summary><b>🤝 Налаштування A2A (Agent2Agent)</b></summary>
 
-Discover the agent:
+Виявіть агента:
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Send a task:
+Надішліть завдання:
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -1616,105 +1612,105 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
 ```
 
-Manage lifecycle:
+Керуйте життєвим циклом:
 
 - `GET /api/a2a/status`
 - `GET /api/a2a/tasks`
 - `GET /api/a2a/tasks/:id`
 - `POST /api/a2a/tasks/:id/cancel`
 
-Operational UI:
+Операційний UI:
 
-- `/dashboard/a2a` for task/state/stream observability and smoke actions
+- `/dashboard/a2a` для спостережуваності завдань/стану/потоку та smoke дій
 
 </details>
 
 <details>
-<summary><b>🧪 End-to-end protocol validation</b></summary>
+<summary><b>🧪 Наскрізна валідація протоколів</b></summary>
 
-Validate both protocols with real clients:
+Валідуйте обидва протоколи з реальними клієнтами:
 
 ```bash
 npm run test:protocols:e2e
 ```
 
-This verifies:
+Це перевіряє:
 
-- MCP SDK client connect/list/call
+- MCP SDK клієнт connect/list/call
 - A2A discovery/send/stream/get/cancel
-- Cross-check data in MCP audit and A2A task management APIs
+- Перехресну перевірку даних в MCP аудиті та API керування завданнями A2A
 
 </details>
 
 <details>
-<summary><b>💳 Subscription Providers</b></summary>
+<summary><b>💳 Провайдери підписок</b></summary>
 
 ### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+Панель → Провайдери → Підключити Claude Code
+→ OAuth вхід → Автоматичне оновлення токена
+→ Відстеження 5-годинної + тижневої квоти
 
-Models:
+Моделі:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-5-20250929
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
+**Порада:** Використовуйте Opus для складних завдань, Sonnet для швидкості. OmniRoute відстежує квоту для кожної моделі!
 
 ### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+Панель → Провайдери → Підключити Codex
+→ OAuth вхід (порт 1455)
+→ 5-годинне + тижневе скидання
 
-Models:
+Моделі:
   cx/gpt-5.2-codex
   cx/gpt-5.1-codex-max
 ```
 
-#### Codex Account Limit Management (5h + Weekly)
+#### Керування лімітами акаунта Codex (5год + Тижнева)
 
-Each Codex account now has policy toggles in `Dashboard -> Providers`:
+Кожен акаунт Codex тепер має перемикачі політики в `Панель -> Провайдери`:
 
-- `5h` (ON/OFF): enforce the 5-hour window threshold policy.
-- `Weekly` (ON/OFF): enforce the weekly window threshold policy.
-- Threshold behavior: when an enabled window reaches >=90% usage, that account is skipped.
-- Rotation behavior: OmniRoute routes to the next eligible Codex account automatically.
-- Reset behavior: when the provider `resetAt` time passes, the account becomes eligible again automatically.
+- `5h` (ВКЛ/ВИКЛ): застосовувати політику порогу 5-годинного вікна.
+- `Weekly` (ВКЛ/ВИКЛ): застосовувати політику порогу тижневого вікна.
+- Поведінка порогу: коли увімкнене вікно досягає >=90% використання, цей акаунт пропускається.
+- Поведінка ротації: OmniRoute автоматично маршрутизує до наступного придатного акаунта Codex.
+- Поведінка скидання: коли час `resetAt` провайдера минає, акаунт знову стає придатним автоматично.
 
-Scenarios:
+Сценарії:
 
-- `5h ON` + `Weekly ON`: account is skipped when either window reaches threshold.
-- `5h OFF` + `Weekly ON`: only weekly usage can block the account.
-- `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
-- `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
+- `5h ВКЛ` + `Weekly ВКЛ`: акаунт пропускається, коли будь-яке вікно досягає порогу.
+- `5h ВИКЛ` + `Weekly ВКЛ`: тільки тижневе використання може заблокувати акаунт.
+- `5h ВКЛ` + `Weekly ВИКЛ`: тільки 5-годинне використання може заблокувати акаунт.
+- `resetAt` минув: акаунт повертається в ротацію автоматично (без ручного повторного увімкнення).
 
-### Gemini CLI (FREE 180K/month!)
+### Gemini CLI (БЕЗКОШТОВНО 180K/місяць!)
 
 ```bash
-Dashboard → Providers → Connect Gemini CLI
+Панель → Провайдери → Підключити Gemini CLI
 → Google OAuth
-→ 180K completions/month + 1K/day
+→ 180K завершень/місяць + 1K/день
 
-Models:
+Моделі:
   gc/gemini-3-flash-preview
   gc/gemini-2.5-pro
 ```
 
-**Best Value:** Huge free tier! Use this before paid tiers.
+**Найкраща цінність:** Величезний безкоштовний рівень! Використовуйте це перед платними рівнями.
 
 ### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+Панель → Провайдери → Підключити GitHub
+→ OAuth через GitHub
+→ Щомісячне скидання (1-го числа місяця)
 
-Models:
+Моделі:
   gh/gpt-5
   gh/claude-4.5-sonnet
   gh/gemini-3.1-pro-preview
@@ -1723,97 +1719,97 @@ Models:
 </details>
 
 <details>
-<summary><b>🔑 API Key Providers</b></summary>
+<summary><b>🔑 Провайдери API ключів</b></summary>
 
-### NVIDIA NIM (FREE developer access — 70+ models)
+### NVIDIA NIM (БЕЗКОШТОВНИЙ доступ для розробників — 70+ моделей)
 
-1. Sign up: [build.nvidia.com](https://build.nvidia.com)
-2. Get free API key (1000 inference credits included)
-3. Dashboard → Add Provider → NVIDIA NIM:
-   - API Key: `nvapi-your-key`
+1. Зареєструйтесь: [build.nvidia.com](https://build.nvidia.com)
+2. Отримайте безкоштовний API ключ (включено 1000 кредитів інференсу)
+3. Панель → Додати провайдера → NVIDIA NIM:
+   - API Key: `nvapi-ваш-ключ`
 
-**Models:** `nvidia/llama-3.3-70b-instruct`, `nvidia/mistral-7b-instruct`, and 50+ more
+**Моделі:** `nvidia/llama-3.3-70b-instruct`, `nvidia/mistral-7b-instruct`, and 50+ more
 
-**Pro Tip:** OpenAI-compatible API — works seamlessly with OmniRoute's format translation!
+**Порада:** OpenAI-сумісний API — працює безперешкодно з перекладом форматів OmniRoute!
 
 ### DeepSeek
 
-1. Sign up: [platform.deepseek.com](https://platform.deepseek.com)
-2. Get API key
-3. Dashboard → Add Provider → DeepSeek
+1. Зареєструйтесь: [platform.deepseek.com](https://platform.deepseek.com)
+2. Отримайте API ключ
+3. Панель → Додати провайдера → DeepSeek
 
-**Models:** `deepseek/deepseek-chat`, `deepseek/deepseek-coder`
+**Моделі:** `deepseek/deepseek-chat`, `deepseek/deepseek-coder`
 
-### Groq (Free Tier Available!)
+### Groq (Доступний безкоштовний рівень!)
 
-1. Sign up: [console.groq.com](https://console.groq.com)
-2. Get API key (free tier included)
-3. Dashboard → Add Provider → Groq
+1. Зареєструйтесь: [console.groq.com](https://console.groq.com)
+2. Отримайте API ключ (free tier included)
+3. Панель → Додати провайдера → Groq
 
-**Models:** `groq/llama-3.3-70b`, `groq/mixtral-8x7b`
+**Моделі:** `groq/llama-3.3-70b`, `groq/mixtral-8x7b`
 
-**Pro Tip:** Ultra-fast inference — best for real-time coding!
+**Порада:** Ультрашвидкий інференс — найкраще для кодування в реальному часі!
 
-### OpenRouter (100+ Models)
+### OpenRouter (100+ моделей)
 
-1. Sign up: [openrouter.ai](https://openrouter.ai)
-2. Get API key
-3. Dashboard → Add Provider → OpenRouter
+1. Зареєструйтесь: [openrouter.ai](https://openrouter.ai)
+2. Отримайте API ключ
+3. Панель → Додати провайдера → OpenRouter
 
-**Models:** Access 100+ models from all major providers through a single API key.
+**Моделі:** Доступ до 100+ моделей від усіх основних провайдерів через один API ключ.
 
-**Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
-
-</details>
-
-<details>
-<summary><b>💰 Cheap Providers (Backup)</b></summary>
-
-### GLM-4.7 (Daily reset, $0.6/1M)
-
-1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
-2. Get API key from Coding Plan
-3. Dashboard → Add API Key:
-   - Provider: `glm`
-   - API Key: `your-key`
-
-**Use:** `glm/glm-4.7`
-
-**Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
-
-### MiniMax M2.1 (5h reset, $0.20/1M)
-
-1. Sign up: [MiniMax](https://www.minimax.io/)
-2. Get API key
-3. Dashboard → Add API Key
-
-**Use:** `minimax/MiniMax-M2.1`
-
-**Pro Tip:** Cheapest option for long context (1M tokens)!
-
-### Kimi K2 ($9/month flat)
-
-1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
-2. Get API key
-3. Dashboard → Add API Key
-
-**Use:** `kimi/kimi-latest`
-
-**Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+**Поведінка панелі:** Моделі OpenRouter керуються з **Доступних моделей**. Ручне додавання, імпорт та автосинхронізація оновлюють той самий список.
 
 </details>
 
 <details>
-<summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
+<summary><b>💰 Дешеві провайдери (Резервні)</b></summary>
 
-### Qoder (5 FREE models via OAuth)
+### GLM-4.7 (Щоденне скидання, $0.6/1M)
+
+1. Зареєструйтесь: [Zhipu AI](https://open.bigmodel.cn/)
+2. Отримайте API ключ from Coding Plan
+3. Панель → Додати API ключ:
+   - Провайдер: `glm`
+   - API Key: `ваш-ключ`
+
+**Використання:** `glm/glm-4.7`
+
+**Порада:** Coding Plan пропонує 3× квоту за 1/7 вартості! Скидання щодня о 10:00.
+
+### MiniMax M2.1 (5год скидання, $0.20/1M)
+
+1. Зареєструйтесь: [MiniMax](https://www.minimax.io/)
+2. Отримайте API ключ
+3. Панель → Додати API ключ
+
+**Використання:** `minimax/MiniMax-M2.1`
+
+**Порада:** Найдешевший варіант для довгого контексту (1M токенів)!
+
+### Kimi K2 ($9/місяць фіксовано)
+
+1. Підпишіться: [Moonshot AI](https://platform.moonshot.ai/)
+2. Отримайте API ключ
+3. Панель → Додати API ключ
+
+**Використання:** `kimi/kimi-latest`
+
+**Порада:** Фіксовано $9/місяць за 10M токенів = $0.90/1M ефективна вартість!
+
+</details>
+
+<details>
+<summary><b>🆓 БЕЗКОШТОВНІ провайдери (Аварійне резервування)</b></summary>
+
+### Qoder (5 БЕЗКОШТОВНИХ моделей через OAuth)
 
 ```bash
-Dashboard → Connect Qoder
-→ Qoder OAuth login
-→ Unlimited usage
+Панель → Підключити Qoder
+→ Qoder OAuth вхід
+→ Необмежене використання
 
-Models:
+Моделі:
   if/kimi-k2-thinking
   if/qwen3-coder-plus
   if/glm-4.7
@@ -1821,26 +1817,26 @@ Models:
   if/deepseek-r1
 ```
 
-### Qwen (4 FREE models via Device Code)
+### Qwen (4 БЕЗКОШТОВНІ моделі через Device Code)
 
 ```bash
-Dashboard → Connect Qwen
-→ Device code authorization
-→ Unlimited usage
+Панель → Підключити Qwen
+→ Авторизація через device code
+→ Необмежене використання
 
-Models:
+Моделі:
   qw/qwen3-coder-plus
   qw/qwen3-coder-flash
 ```
 
-### Kiro (Claude FREE)
+### Kiro (Claude БЕЗКОШТОВНО)
 
 ```bash
-Dashboard → Connect Kiro
-→ AWS Builder ID or Google/GitHub
-→ Unlimited usage
+Панель → Підключити Kiro
+→ AWS Builder ID або Google/GitHub
+→ Необмежене використання
 
-Models:
+Моделі:
   kr/claude-sonnet-4.5
   kr/claude-haiku-4.5
 ```
@@ -1848,51 +1844,51 @@ Models:
 </details>
 
 <details>
-<summary><b>🎨 Create Combos</b></summary>
+<summary><b>🎨 Створення комбо</b></summary>
 
-### Example 1: Maximize Subscription → Cheap Backup
-
-```
-Dashboard → Combos → Create New
-
-Name: premium-coding
-Models:
-  1. cc/claude-opus-4-7 (Subscription primary)
-  2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
-
-Use in CLI: premium-coding
-```
-
-### Example 2: Free-Only (Zero Cost)
+### Приклад 1: Максимізація підписки → Дешеве резервування
 
 ```
-Name: free-combo
-Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+Панель → Комбо → Створити нове
 
-Cost: $0 forever!
+Назва: premium-coding
+Моделі:
+  1. cc/claude-opus-4-7 (Основна підписка)
+  2. glm/glm-4.7 (Дешеве резервування, $0.6/1M)
+  3. minimax/MiniMax-M2.1 (Найдешевше резервування, $0.20/1M)
+
+Використання в CLI: premium-coding
+```
+
+### Приклад 2: Тільки безкоштовні (Нульова вартість)
+
+```
+Назва: free-combo
+Моделі:
+  1. gc/gemini-3-flash-preview (180K безкоштовно/місяць)
+  2. if/kimi-k2-thinking (необмежено)
+  3. qw/qwen3-coder-plus (необмежено)
+
+Вартість: $0 назавжди!
 ```
 
 </details>
 
 <details>
-<summary><b>🔧 CLI Integration</b></summary>
+<summary><b>🔧 Інтеграція CLI</b></summary>
 
 ### Cursor IDE
 
 ```
-Settings → Models → Advanced:
+Налаштування → Моделі → Розширені:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [from OmniRoute dashboard]
-  Model: cc/claude-opus-4-7
+  OpenAI API Key: [з панелі OmniRoute]
+  Модель: cc/claude-opus-4-7
 ```
 
 ### Claude Code
 
-Use the **CLI Tools** page in the dashboard for one-click configuration, or edit `~/.claude/settings.json` manually.
+Використовуйте сторінку **CLI Tools** в панелі для конфігурації в один клік або відредагуйте `~/.claude/settings.json` вручну.
 
 ### Codex CLI
 
@@ -1905,13 +1901,13 @@ codex "your prompt"
 
 ### OpenClaw
 
-**Option 1 — Dashboard (recommended):**
+**Варіант 1 — Панель (рекомендовано):**
 
 ```
-Dashboard → CLI Tools → OpenClaw → Select Model → Apply
+Панель → CLI Tools → OpenClaw → Вибрати модель → Застосувати
 ```
 
-**Option 2 — Manual:** Edit `~/.openclaw/openclaw.json`:
+**Варіант 2 — Вручну:** Відредагуйте `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -1927,16 +1923,16 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 }
 ```
 
-> **Note:** OpenClaw only works with local OmniRoute. Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues.
+> **Примітка:** OpenClaw працює тільки з локальним OmniRoute. Використовуйте `127.0.0.1` замість `localhost`, щоб уникнути проблем з розв'язанням IPv6.
 
 ### Cline / Continue / RooCode
 
 ```
-Settings → API Configuration:
-  Provider: OpenAI Compatible
+Налаштування → Конфігурація API:
+  Провайдер: OpenAI Compatible
   Base URL: http://localhost:20128/v1
-  API Key: [from OmniRoute dashboard]
-  Model: if/kimi-k2-thinking
+  API Key: [з панелі OmniRoute]
+  Модель: if/kimi-k2-thinking
 ```
 
 ### OpenCode
@@ -1984,25 +1980,25 @@ opencode
 
 ---
 
-## Усунення несправностей
+## 🐛 Усунення несправностей
 
 <details>
-<summary><b>Click to expand troubleshooting guide</b></summary>
+<summary><b>Натисніть, щоб розгорнути посібник з усунення несправностей</b></summary>
 
-**"Language model did not provide messages"**
+**"Мовна модель не надала повідомлень"**
 
-- Provider quota exhausted → Check dashboard quota tracker
-- Solution: Use combo fallback or switch to cheaper tier
+- Квота провайдера вичерпана → Перевірте трекер квоти на панелі
+- Рішення: Використовуйте резервування комбо або перейдіть на дешевший рівень
 
-**Rate limiting**
+**Обмеження швидкості**
 
-- Subscription quota out → Fallback to GLM/MiniMax
-- Add combo: `cc/claude-opus-4-7 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Квота підписки закінчилась → Резервування на GLM/MiniMax
+- Додайте комбо: `cc/claude-opus-4-7 → glm/glm-4.7 → if/kimi-k2-thinking`
 
-**OAuth token expired**
+**OAuth токен закінчився**
 
-- Auto-refreshed by OmniRoute
-- If issues persist: Dashboard → Provider → Reconnect
+- Автоматично оновлюється OmniRoute
+- Якщо проблеми залишаються: Панель → Провайдер → Перепідключити
 
 **High costs**
 
@@ -2246,7 +2242,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
 - **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
+- **Веб-сайт**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
@@ -2255,7 +2251,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ---
 
-## Документація
+## 📖 Документація
 
 | Document                                                 | Description                                         |
 | -------------------------------------------------------- | --------------------------------------------------- |
@@ -2355,7 +2351,7 @@ Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)*
 
 ---
 
-## Ліцензія
+## 📄 Ліцензія
 
 MIT License - see [LICENSE](LICENSE) for details.
 
