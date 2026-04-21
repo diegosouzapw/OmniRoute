@@ -776,7 +776,7 @@ Dashboard opens at `http://localhost:20128` and API base URL is `http://localhos
 
 #### Arch Linux (AUR)
 
-Arch Linux users can install the community-maintained AUR package, which installs OmniRoute and provides a systemd user service:
+Arch Linux users can install the [AUR package](https://aur.archlinux.org/packages/omniroute-bin), which installs OmniRoute and provides a systemd user service:
 
 ```bash
 yay -S omniroute-bin
