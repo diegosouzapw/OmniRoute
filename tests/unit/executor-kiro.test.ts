@@ -99,20 +99,15 @@ test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () =>
 test("Executor index resolves Kiro-based providers from registry executor aliases", () => {
   assert.ok(hasSpecializedExecutor("kiro"));
   assert.ok(hasSpecializedExecutor("amazon-q"));
-  assert.ok(hasSpecializedExecutor("codebuddy"));
 
   const kiro = getExecutor("kiro");
   const amazonQ = getExecutor("amazon-q");
-  const codebuddy = getExecutor("codebuddy");
 
   assert.ok(kiro instanceof KiroExecutor);
   assert.ok(amazonQ instanceof KiroExecutor);
-  assert.ok(codebuddy instanceof KiroExecutor);
   assert.equal(kiro.getProvider(), "kiro");
   assert.equal(amazonQ.getProvider(), "amazon-q");
-  assert.equal(codebuddy.getProvider(), "codebuddy");
   assert.equal(getExecutor("amazon-q"), amazonQ);
-  assert.equal(getExecutor("codebuddy"), codebuddy);
 });
 
 test("KiroExecutor.transformRequest removes the top-level model field", () => {

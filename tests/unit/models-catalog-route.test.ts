@@ -241,10 +241,10 @@ test("v1 models catalog exposes expanded GitHub, Amazon Q and CodeBuddy model ca
     accessToken: "amazon-q-access",
   });
   await seedConnection("codebuddy", {
-    authType: "oauth",
+    authType: "apikey",
     name: "codebuddy-expanded",
-    apiKey: null,
-    accessToken: "codebuddy-access",
+    apiKey: "codebuddy-key",
+    accessToken: null,
   });
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(

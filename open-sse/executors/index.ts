@@ -19,6 +19,11 @@ import { AzureAIExecutor } from "./azure-ai.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
 import { BedrockExecutor } from "./bedrock.ts";
 import { SagemakerExecutor } from "./sagemaker.ts";
+import { DataRobotExecutor } from "./datarobot.ts";
+import { WatsonxExecutor } from "./watsonx.ts";
+import { OciExecutor } from "./oci.ts";
+import { SapExecutor } from "./sap.ts";
+import { CodeBuddyExecutor } from "./codebuddy.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const executors = {
@@ -48,6 +53,11 @@ const executors = {
   "azure-openai": new AzureOpenAIExecutor("azure-openai"),
   bedrock: new BedrockExecutor("bedrock"),
   sagemaker: new SagemakerExecutor("sagemaker"),
+  datarobot: new DataRobotExecutor("datarobot"),
+  watsonx: new WatsonxExecutor("watsonx"),
+  oci: new OciExecutor("oci"),
+  sap: new SapExecutor("sap"),
+  codebuddy: new CodeBuddyExecutor("codebuddy"),
 };
 
 const executorFactories = {
@@ -71,6 +81,11 @@ const executorFactories = {
   "azure-openai": (provider) => new AzureOpenAIExecutor(provider),
   bedrock: (provider) => new BedrockExecutor(provider),
   sagemaker: (provider) => new SagemakerExecutor(provider),
+  datarobot: (provider) => new DataRobotExecutor(provider),
+  watsonx: (provider) => new WatsonxExecutor(provider),
+  oci: (provider) => new OciExecutor(provider),
+  sap: (provider) => new SapExecutor(provider),
+  codebuddy: (provider) => new CodeBuddyExecutor(provider),
 };
 
 const defaultCache = new Map();
@@ -127,3 +142,8 @@ export { AzureAIExecutor } from "./azure-ai.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
 export { BedrockExecutor } from "./bedrock.ts";
 export { SagemakerExecutor } from "./sagemaker.ts";
+export { DataRobotExecutor } from "./datarobot.ts";
+export { WatsonxExecutor } from "./watsonx.ts";
+export { OciExecutor } from "./oci.ts";
+export { SapExecutor } from "./sap.ts";
+export { CodeBuddyExecutor } from "./codebuddy.ts";

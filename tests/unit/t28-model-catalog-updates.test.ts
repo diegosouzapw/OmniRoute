@@ -62,6 +62,8 @@ test("T28: kiro-family registries expose the expanded Kiro, Amazon Q and CodeBud
   assert.ok(amazonIds.includes("amazonq-claude-opus-4.5"));
   assert.ok(codebuddyIds.includes("glm-5.1"));
   assert.ok(codebuddyIds.includes("kimi-k2-thinking"));
+  assert.equal(REGISTRY.codebuddy.executor, "codebuddy");
+  assert.equal(REGISTRY.codebuddy.authType, "apikey");
 
   const kiro = await getModelInfoCore("kiro/kiro-claude-sonnet-4-6", {});
   assert.equal(kiro.provider, "kiro");
@@ -186,6 +188,63 @@ test("T28: sagemaker catalog exposes the planned endpoint models and specialized
   const sagemakerModel = await getModelInfoCore("sagemaker/meta-textgeneration-llama-2-7b-f", {});
   assert.equal(sagemakerModel.provider, "sagemaker");
   assert.equal(sagemakerModel.model, "meta-textgeneration-llama-2-7b-f");
+});
+
+test("T28: datarobot uses a specialized executor with passthrough deployments", async () => {
+  assert.equal(REGISTRY.datarobot.executor, "datarobot");
+  assert.equal(REGISTRY.datarobot.passthroughModels, true);
+
+  const datarobotModel = await getModelInfoCore("datarobot/customer-deployment", {});
+  assert.equal(datarobotModel.provider, "datarobot");
+  assert.equal(datarobotModel.model, "customer-deployment");
+});
+
+test("T28: watsonx catalog exposes the planned model set and specialized executor", async () => {
+  const watsonxIds = REGISTRY.watsonx.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.watsonx.executor, "watsonx");
+  assert.equal(REGISTRY.watsonx.passthroughModels, true);
+  assert.equal(watsonxIds.length, 29);
+  assert.ok(watsonxIds.includes("ibm/granite-3-8b-instruct"));
+  assert.ok(watsonxIds.includes("meta-llama/llama-3-2-90b-vision-instruct"));
+  assert.ok(watsonxIds.includes("openai/gpt-oss-120b"));
+
+  const watsonxModel = await getModelInfoCore("watsonx/ibm/granite-3-8b-instruct", {});
+  assert.equal(watsonxModel.provider, "watsonx");
+  assert.equal(watsonxModel.model, "ibm/granite-3-8b-instruct");
+
+  const deploymentModel = await getModelInfoCore("watsonx/deployment/custom-serving-name", {});
+  assert.equal(deploymentModel.provider, "watsonx");
+  assert.equal(deploymentModel.model, "deployment/custom-serving-name");
+});
+
+test("T28: oci catalog exposes the planned chat model set and specialized executor", async () => {
+  const ociIds = REGISTRY.oci.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.oci.executor, "oci");
+  assert.equal(REGISTRY.oci.passthroughModels, true);
+  assert.equal(ociIds.length, 29);
+  assert.ok(ociIds.includes("meta.llama-4-maverick-17b-128e-instruct-fp8"));
+  assert.ok(ociIds.includes("cohere.command-r-plus-08-2024"));
+  assert.ok(ociIds.includes("google.gemini-2.5-pro"));
+
+  const ociModel = await getModelInfoCore("oci/meta.llama-3.1-70b-instruct", {});
+  assert.equal(ociModel.provider, "oci");
+  assert.equal(ociModel.model, "meta.llama-3.1-70b-instruct");
+});
+
+test("T28: sap catalog exposes deployment-backed starter models and specialized executor", async () => {
+  const sapIds = REGISTRY.sap.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.sap.executor, "sap");
+  assert.equal(REGISTRY.sap.passthroughModels, true);
+  assert.ok(sapIds.includes("gpt-5.4"));
+  assert.ok(sapIds.includes("claude-4-sonnet"));
+  assert.ok(sapIds.includes("gemini-2.5-pro"));
+
+  const sapModel = await getModelInfoCore("sap/gpt-5.4", {});
+  assert.equal(sapModel.provider, "sap");
+  assert.equal(sapModel.model, "gpt-5.4");
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {

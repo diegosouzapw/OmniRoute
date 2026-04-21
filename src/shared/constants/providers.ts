@@ -111,14 +111,6 @@ export const OAUTH_PROVIDERS = {
     color: "#F97316",
     textIcon: "AM",
   },
-  codebuddy: {
-    id: "codebuddy",
-    alias: "codebuddy",
-    name: "CodeBuddy",
-    icon: "code",
-    color: "#6366F1",
-    textIcon: "CB",
-  },
   "gitlab-duo-oauth": {
     id: "gitlab-duo-oauth",
     alias: "gitlab-oauth",
@@ -193,6 +185,17 @@ export const APIKEY_PROVIDERS = {
     color: "#FF6A00",
     textIcon: "BCP",
     website: "https://www.alibabacloud.com/help/en/model-studio/coding-plan",
+  },
+  codebuddy: {
+    id: "codebuddy",
+    alias: "codebuddy",
+    name: "CodeBuddy",
+    icon: "code",
+    color: "#6366F1",
+    textIcon: "CB",
+    website: "https://www.codebuddy.ai",
+    apiHint:
+      "Use your CodeBuddy API key. OmniRoute will send it as both X-Api-Key and Authorization headers for compatibility with CodeBuddy model requests.",
   },
   kimi: {
     id: "kimi",
@@ -1124,6 +1127,9 @@ export const APIKEY_PROVIDERS = {
     color: "#C74634",
     textIcon: "OR",
     website: "https://www.oracle.com/artificial-intelligence/generative-ai/instances/",
+    passthroughModels: true,
+    apiHint:
+      "Set API key as JSON with user, fingerprint, tenancy, compartmentId and privateKey PEM, and optionally add region, baseUrl or ociServingMode for dedicated endpoints.",
   },
   watsonx: {
     id: "watsonx",
@@ -1133,6 +1139,9 @@ export const APIKEY_PROVIDERS = {
     color: "#0F62FE",
     textIcon: "WX",
     website: "https://www.ibm.com/watsonx",
+    passthroughModels: true,
+    apiHint:
+      "Set API key as your IBM Cloud API key, add projectId or spaceId in provider-specific data, and optionally override Base URL or IAM token URL for custom WatsonX regions.",
   },
   sagemaker: {
     id: "sagemaker",
@@ -1154,6 +1163,9 @@ export const APIKEY_PROVIDERS = {
     color: "#008FD3",
     textIcon: "SP",
     website: "https://www.sap.com/ai",
+    passthroughModels: true,
+    apiHint:
+      "Set API key as SAP service-key JSON or explicit client credentials, then provide deploymentId or deploymentUrl plus resourceGroup in provider-specific data.",
   },
   datarobot: {
     id: "datarobot",
@@ -1163,6 +1175,9 @@ export const APIKEY_PROVIDERS = {
     color: "#00A8E1",
     textIcon: "DR",
     website: "https://www.datarobot.com",
+    passthroughModels: true,
+    apiHint:
+      "Set Base URL to your DataRobot host or full deployment path. Root hosts are normalized to /api/v2/genai/llmgw/chat/completions/, while deployment paths under /api/v2/deployments are preserved as-is.",
   },
   "gitlab-duo": {
     id: "gitlab-duo",
