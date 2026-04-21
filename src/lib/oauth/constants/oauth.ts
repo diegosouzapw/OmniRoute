@@ -188,6 +188,46 @@ export const GITHUB_CONFIG = {
   editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
 };
 
+const GITLAB_OAUTH_BASE_URL =
+  (process.env.GITLAB_OAUTH_BASE_URL || "https://gitlab.com").trim().replace(/\/+$/, "") ||
+  "https://gitlab.com";
+
+// GitLab Duo OAuth Configuration (Authorization Code Flow with PKCE)
+export const GITLAB_DUO_CONFIG = {
+  clientId: process.env.GITLAB_OAUTH_CLIENT_ID || "",
+  clientSecret: process.env.GITLAB_OAUTH_CLIENT_SECRET || "",
+  baseUrl: GITLAB_OAUTH_BASE_URL,
+  authorizeUrl: `${GITLAB_OAUTH_BASE_URL}/oauth/authorize`,
+  tokenUrl: `${GITLAB_OAUTH_BASE_URL}/oauth/token`,
+  scope: "api read_user",
+  codeChallengeMethod: "S256",
+};
+
+const NOUS_RESEARCH_PORTAL_BASE_URL =
+  (process.env.NOUS_RESEARCH_PORTAL_URL || "https://portal.nousresearch.com")
+    .trim()
+    .replace(/\/+$/, "") || "https://portal.nousresearch.com";
+const NOUS_RESEARCH_INFERENCE_BASE_URL =
+  (process.env.NOUS_RESEARCH_INFERENCE_URL || "https://inference-api.nousresearch.com/v1")
+    .trim()
+    .replace(/\/+$/, "") || "https://inference-api.nousresearch.com/v1";
+const NOUS_RESEARCH_AGENT_KEY_MIN_TTL_SECONDS = Math.max(
+  60,
+  Number.parseInt(process.env.NOUS_RESEARCH_AGENT_KEY_MIN_TTL_SECONDS || "1800", 10) || 1800
+);
+
+// Nous Research / Hermes Agent OAuth configuration (device code + agent key minting)
+export const NOUS_RESEARCH_CONFIG = {
+  clientId: process.env.NOUS_RESEARCH_OAUTH_CLIENT_ID || "hermes-cli",
+  deviceCodeUrl: `${NOUS_RESEARCH_PORTAL_BASE_URL}/api/oauth/device/code`,
+  tokenUrl: `${NOUS_RESEARCH_PORTAL_BASE_URL}/api/oauth/token`,
+  agentKeyUrl: `${NOUS_RESEARCH_PORTAL_BASE_URL}/api/oauth/agent-key`,
+  portalBaseUrl: NOUS_RESEARCH_PORTAL_BASE_URL,
+  inferenceBaseUrl: NOUS_RESEARCH_INFERENCE_BASE_URL,
+  scope: process.env.NOUS_RESEARCH_OAUTH_SCOPE || "inference:mint_agent_key",
+  minAgentKeyTtlSeconds: NOUS_RESEARCH_AGENT_KEY_MIN_TTL_SECONDS,
+};
+
 // Kiro OAuth Configuration
 // Supports multiple auth methods:
 // 1. AWS Builder ID (Device Code Flow)
@@ -215,6 +255,29 @@ export const KIRO_CONFIG = {
   socialRefreshUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
   // Auth methods
   authMethods: ["builder-id", "idc", "google", "github", "import"],
+};
+
+export const AMAZON_Q_CONFIG = KIRO_CONFIG;
+
+export const ZED_CONFIG = {
+  signInUrl: "https://zed.dev/native_app_signin",
+  cloudBaseUrl: "https://cloud.zed.dev",
+  aiBaseUrl: "https://ai.zed.dev/completion",
+};
+
+export const TRAE_CONFIG = {
+  loginGuidanceUrls: [
+    "https://api.marscode.com/cloudide/api/v3/trae/GetLoginGuidance",
+    "https://api.trae.ai/cloudide/api/v3/trae/GetLoginGuidance",
+    "https://www.trae.ai/cloudide/api/v3/trae/GetLoginGuidance",
+  ],
+  defaultLoginHost: "https://www.trae.ai",
+  defaultApiOrigin: "https://api.trae.ai",
+  suggestedChatBaseUrl: "https://api.trae.ai/v1/chat/completions",
+  requiresExplicitChatBaseUrl: true,
+  tokenUrl: "https://api.trae.ai/cloudide/api/v3/trae/oauth/ExchangeToken",
+  exchangeTokenPath: "/cloudide/api/v3/trae/oauth/ExchangeToken",
+  userInfoPath: "/cloudide/api/v3/trae/GetUserInfo",
 };
 
 // Cursor OAuth Configuration (Import Token from Cursor IDE)
@@ -260,7 +323,12 @@ export const PROVIDERS = {
   OPENAI: "openai",
   GITHUB: "github",
   KIRO: "kiro",
+  AMAZON_Q: "amazon-q",
+  NOUS_RESEARCH: "nous-research",
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  ZED: "zed",
+  TRAE: "trae",
+  GITLAB_DUO: "gitlab-duo-oauth",
 };

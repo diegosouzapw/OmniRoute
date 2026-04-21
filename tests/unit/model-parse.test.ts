@@ -47,4 +47,14 @@ test("normalizeCrossProxyModelId maps supported external dialects to canonical i
     applied: true,
     original: "qwen3-coder:480b",
   });
+  assert.deepEqual(normalizeCrossProxyModelId("claude-sonnet-4-5"), {
+    modelId: "claude-sonnet-4-5-20250929",
+    applied: true,
+    original: "claude-sonnet-4-5",
+  });
+  assert.deepEqual(normalizeCrossProxyModelId("claude-opus-4-5"), {
+    modelId: "claude-opus-4-5-20251101",
+    applied: true,
+    original: "claude-opus-4-5",
+  });
 });

@@ -23,7 +23,7 @@ export default function ProvidersError({
         {_error?.digest && (
           <p className="text-xs text-text-muted font-mono">Error ID: {_error.digest}</p>
         )}
-        {process.env.NODE_ENV === "development" && _error?.message && (
+        {_error?.message && (
           <p className="text-xs text-red-600 dark:text-red-400 font-mono">{_error.message}</p>
         )}
         <button

@@ -14,7 +14,12 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import {
+  hasPerModelQuota,
+  lockModelIfPerModelQuota,
+  isDailyQuotaExhausted,
+  getMsUntilTomorrow,
+} from "../services/accountFallback.ts";
 import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
@@ -28,8 +33,9 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
+import { detectWarnings, detectStreamWarnings } from "../../src/lib/warningDetector.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
-import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
@@ -168,6 +174,78 @@ function extractMemoryTextFromResponse(
   }
 
   return "";
+}
+
+function extractMemoryTextFromRequestBody(
+  body: Record<string, unknown> | null | undefined
+): string {
+  if (!body || typeof body !== "object") return "";
+
+  const messages = Array.isArray(body.messages) ? body.messages : null;
+  if (messages && messages.length > 0) {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const msg = messages[i] as Record<string, unknown>;
+      if (msg?.role !== "user") continue;
+
+      if (typeof msg.content === "string" && msg.content.trim().length > 0) {
+        return msg.content.trim();
+      }
+
+      if (Array.isArray(msg.content)) {
+        const text = msg.content
+          .map((part: Record<string, unknown>) => {
+            if (typeof part?.text === "string") return part.text.trim();
+            if (part?.type === "input_text" && typeof part?.text === "string")
+              return part.text.trim();
+            return "";
+          })
+          .filter(Boolean)
+          .join("\n")
+          .trim();
+        if (text) return text;
+      }
+    }
+  }
+
+  const input = Array.isArray(body.input) ? body.input : null;
+  if (input && input.length > 0) {
+    const chunks = input
+      .map((item: Record<string, unknown>) => {
+        const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
+        const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
+        if (role && role !== "user") return "";
+        if (itemType && itemType !== "message") return "";
+
+        if (typeof item?.content === "string") return item.content.trim();
+        if (Array.isArray(item?.content)) {
+          return item.content
+            .map((part: Record<string, unknown>) => {
+              if (typeof part?.text === "string") return part.text.trim();
+              if (part?.type === "input_text" && typeof part?.text === "string")
+                return part.text.trim();
+              return "";
+            })
+            .filter(Boolean)
+            .join("\n")
+            .trim();
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+    if (chunks) return chunks;
+  }
+
+  return "";
+}
+
+function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): string | null {
+  const rawId = apiKeyInfo?.id;
+  if (typeof rawId === "string" && rawId.trim().length > 0) {
+    return rawId;
+  }
+  return null;
 }
 
 export function shouldUseNativeCodexPassthrough({
@@ -369,6 +447,11 @@ function buildClaudePromptCacheLogMeta(
   const systemBreakpoints = Array.isArray(finalBody.system)
     ? finalBody.system.flatMap((block, index) => {
         if (!block || typeof block !== "object") return [];
+        const text =
+          typeof block.text === "string" && block.text.trim().length > 0 ? block.text.trim() : "";
+        if (text.startsWith("x-anthropic-billing-header:")) {
+          return [];
+        }
         const cacheControl =
           block.cache_control && typeof block.cache_control === "object"
             ? block.cache_control
@@ -530,6 +613,33 @@ async function getUpstreamProxyConfigCached(providerId: string) {
   return result;
 }
 
+function buildExecutorClientHeaders(
+  headers: Headers | Record<string, unknown> | null | undefined,
+  userAgent?: string | null
+) {
+  const normalized: Record<string, string> = {};
+
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      normalized[key] = value;
+    });
+  } else if (headers && typeof headers === "object") {
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === "string") {
+        normalized[key] = value;
+      }
+    }
+  }
+
+  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
+  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
+    normalized["user-agent"] = normalizedUserAgent;
+    normalized["User-Agent"] = normalizedUserAgent;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
 export async function handleChatCore({
   body,
   modelInfo,
@@ -552,6 +662,7 @@ export async function handleChatCore({
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
+  let hasWarnings = false;
   const startTime = Date.now();
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
@@ -776,6 +887,13 @@ export async function handleChatCore({
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
   const skillRequestId = generateRequestId();
+  const pipelineSessionId =
+    (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
+      ? clientRawRequest.headers.get("x-omniroute-session-id")
+      : getHeaderValueCaseInsensitive(
+          clientRawRequest?.headers ?? null,
+          "x-omniroute-session-id"
+        )) || skillRequestId;
   const persistAttemptLogs = ({
     status,
     tokens,
@@ -801,6 +919,23 @@ export async function handleChatCore({
   }) => {
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
+
+    if (detailedLoggingEnabled && hasWarnings) {
+      saveRequestDetailLog({
+        call_log_id: callLogId,
+        has_warnings: true,
+        client_request: clientRawRequest?.body ?? body,
+        translated_request: providerRequest ?? null,
+        provider_response: providerResponse ?? null,
+        client_response: clientResponse ?? null,
+        provider: provider ?? null,
+        model: effectiveModel ?? null,
+        source_format: sourceFormat ?? null,
+        target_format: targetFormat ?? null,
+        duration_ms: Date.now() - startTime,
+        api_key_id: apiKeyInfo?.id || null,
+      });
+    }
 
     if (pipelinePayloads) {
       if (providerResponse !== undefined) {
@@ -1042,12 +1177,13 @@ export async function handleChatCore({
     });
   }
 
-  const memorySettings = apiKeyInfo?.id
+  const memoryOwnerId = resolveMemoryOwnerId(apiKeyInfo as Record<string, unknown> | null);
+  const memorySettings = memoryOwnerId
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
     : null;
 
   if (
-    apiKeyInfo?.id &&
+    memoryOwnerId &&
     memorySettings &&
     shouldInjectMemory(body as Parameters<typeof shouldInjectMemory>[0], {
       enabled: memorySettings.enabled && memorySettings.maxTokens > 0,
@@ -1055,7 +1191,7 @@ export async function handleChatCore({
   ) {
     try {
       const memories = await retrieveMemories(
-        apiKeyInfo.id,
+        memoryOwnerId,
         toMemoryRetrievalConfig(memorySettings)
       );
       if (memories.length > 0) {
@@ -1065,7 +1201,7 @@ export async function handleChatCore({
           provider
         );
         body = injected as typeof body;
-        log?.debug?.("MEMORY", `Injected ${memories.length} memories for key=${apiKeyInfo.id}`);
+        log?.debug?.("MEMORY", `Injected ${memories.length} memories for key=${memoryOwnerId}`);
       }
     } catch (memErr) {
       log?.debug?.(
@@ -1075,12 +1211,21 @@ export async function handleChatCore({
     }
   }
 
-  if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+  if (memoryOwnerId && memorySettings?.skillsEnabled) {
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),
       existingTools,
-      apiKeyId: apiKeyInfo.id,
+      apiKeyId: memoryOwnerId,
+      model: typeof effectiveModel === "string" ? effectiveModel : undefined,
+      sourceFormat,
+      targetFormat,
+      backgroundReason,
+      messages: Array.isArray(body.messages)
+        ? body.messages
+        : Array.isArray(body.input)
+          ? body.input
+          : undefined,
     });
 
     if (mergedTools.length > existingTools.length) {
@@ -1093,7 +1238,119 @@ export async function handleChatCore({
   }
 
   // Translate request (pass reqLogger for intermediate logging)
+  // ── Proactive Context Compression (Phase 4) ──
+  // Check if context exceeds 70% of limit and compress proactively before sending to provider.
+  // This prevents "prompt too long" errors for large-but-not-full contexts.
+  const allMessages =
+    body?.messages || body?.input || body?.contents || body?.request?.contents || [];
+  if (body && Array.isArray(allMessages) && allMessages.length > 0) {
+    const estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let contextLimit = getTokenLimit(provider, effectiveModel);
+
+    if (isCombo && comboName) {
+      log?.info?.("CONTEXT", `Attempting to resolve combo limits for comboName=${comboName}`);
+      try {
+        const { getComboByName } = await import("../../src/lib/localDb");
+        const { parseModel } = await import("../services/model.ts");
+        const { resolveComboTargets } = await import("../services/combo.ts");
+        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
+        const comboConfig = await getComboByName(comboToSearch);
+        if (comboConfig) {
+          const targets = await resolveComboTargets(comboConfig, null);
+          const limits = targets.map((t: { modelStr?: string }) => {
+            const parsed = parseModel(t.modelStr);
+            return getTokenLimit(parsed.provider, parsed.model);
+          });
+          if (limits.length > 0) {
+            contextLimit = Math.min(...limits);
+            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
+          }
+        }
+      } catch (err) {
+        log?.warn?.("CONTEXT", "Failed to resolve combo limits for compression: " + err);
+      }
+    }
+
+    const COMPRESSION_THRESHOLD = 0.7;
+    let reservedTokens = 0;
+    if (Array.isArray(body.tools)) {
+      reservedTokens = estimateTokens(JSON.stringify(body.tools));
+    }
+    const threshold = Math.max(
+      1,
+      Math.floor((Math.max(1, contextLimit) - reservedTokens) * COMPRESSION_THRESHOLD)
+    );
+
+    log?.debug?.(
+      "CONTEXT",
+      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
+    );
+
+    if (estimatedTokens > threshold) {
+      log?.info?.(
+        "CONTEXT",
+        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
+      );
+
+      const compressionResult = compressContext(body, {
+        provider,
+        model: effectiveModel,
+        maxTokens: threshold,
+        reserveTokens: 0,
+      });
+
+      if (compressionResult.compressed) {
+        body = compressionResult.body;
+        const stats = compressionResult.stats;
+        const layersInfo =
+          stats && "layers" in stats && Array.isArray(stats.layers)
+            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
+            : "";
+
+        log?.info?.(
+          "CONTEXT",
+          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
+        );
+
+        logAuditEvent({
+          action: "context.proactive_compression",
+          actor: apiKeyInfo?.name || "system",
+          target: connectionId || provider || "chat",
+          details: {
+            provider,
+            model: effectiveModel,
+            original_tokens: stats.original,
+            final_tokens: stats.final,
+            layers: "layers" in stats ? stats.layers : undefined,
+          },
+        });
+      } else {
+        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
+      }
+    }
+  } else {
+    log?.debug?.(
+      "CONTEXT",
+      `Skipping compression check: body=${!!body}, hasMessages=${Array.isArray(allMessages)}`
+    );
+  }
+
   let translatedBody = body;
+
+  if (Array.isArray(body?.messages) && detectWarnings(body.messages)) {
+    hasWarnings = true;
+    log?.warn?.("SECURITY", "Prompt injection warning detected in user messages");
+    logAuditEvent({
+      action: "security.prompt_injection",
+      actor: apiKeyInfo?.name || "system",
+      target: provider || "chat",
+      details: {
+        message: "Prompt injection warning detected in user messages",
+        model: effectiveModel,
+      },
+    });
+  }
+
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
@@ -1117,6 +1374,84 @@ export async function handleChatCore({
       `Preserving client cache_control (client=${userAgent?.substring(0, 20)}, combo=${isCombo}, strategy=${comboStrategy}, provider=${provider})`
     );
   }
+
+  type ClaudeContentBlock = Record<string, unknown>;
+  type ClaudeMessage = {
+    role?: unknown;
+    content?: unknown;
+  };
+
+  const normalizeClaudeUpstreamMessages = (payload: Record<string, unknown>) => {
+    if (!Array.isArray(payload.messages)) return;
+    const messages = payload.messages as ClaudeMessage[];
+
+    // Anthropic rejects empty text blocks in native Messages payloads.
+    for (const msg of messages) {
+      if (Array.isArray(msg.content)) {
+        msg.content = msg.content.filter(
+          (block: ClaudeContentBlock) =>
+            block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+        );
+      }
+    }
+
+    // Normalize unsupported content types without reintroducing the Claude -> OpenAI round-trip.
+    for (const msg of messages) {
+      if (msg.role !== "user" || !Array.isArray(msg.content)) continue;
+      msg.content = (msg.content as ClaudeContentBlock[]).flatMap((block: ClaudeContentBlock) => {
+        if (
+          block.type === "text" ||
+          block.type === "image_url" ||
+          block.type === "image" ||
+          block.type === "file_url" ||
+          block.type === "file" ||
+          block.type === "document"
+        ) {
+          const fileData = (block.file_url ?? block.file ?? block.document) as
+            | Record<string, unknown>
+            | undefined;
+          if (
+            (block.type === "file" || block.type === "document") &&
+            !fileData?.url &&
+            !fileData?.data
+          ) {
+            const fileContent =
+              (block.file as ClaudeContentBlock)?.content ??
+              (block.file as ClaudeContentBlock)?.text ??
+              block.content ??
+              block.text;
+            const fileName =
+              (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
+            if (typeof fileContent === "string" && fileContent.length > 0) {
+              return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+            }
+          }
+          return [block];
+        }
+
+        if (block.type === "tool_result") {
+          const toolId = block.tool_use_id ?? block.id ?? "unknown";
+          const resultContent = block.content ?? block.text ?? block.output ?? "";
+          const resultText =
+            typeof resultContent === "string"
+              ? resultContent
+              : Array.isArray(resultContent)
+                ? resultContent
+                    .filter((c: Record<string, unknown>) => c.type === "text")
+                    .map((c: Record<string, unknown>) => c.text)
+                    .join("\n")
+                : JSON.stringify(resultContent);
+          if (resultText.length > 0) {
+            return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
+          }
+          return [];
+        }
+
+        log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
+        return [];
+      });
+    }
+  };
 
   try {
     if (nativeCodexPassthrough) {
@@ -1172,6 +1507,7 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
+      normalizeClaudeUpstreamMessages(translatedBody);
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
     } else {
@@ -1184,89 +1520,7 @@ export async function handleChatCore({
       // "proxy_Bash", which Claude rejects ("No such tool available: proxy_Bash").
       if (targetFormat === FORMATS.CLAUDE) {
         translatedBody._disableToolPrefix = true;
-      }
-
-      // Strip empty text content blocks from messages.
-      // Anthropic API rejects {"type":"text","text":""} with 400 "text content blocks must be non-empty".
-      // Some clients (LiteLLM passthrough, @ai-sdk/anthropic) may forward these empty blocks as-is.
-      if (Array.isArray(translatedBody.messages)) {
-        for (const msg of translatedBody.messages) {
-          if (Array.isArray(msg.content)) {
-            msg.content = msg.content.filter(
-              (block: Record<string, unknown>) =>
-                block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
-            );
-          }
-        }
-      }
-
-      // ── #409: Normalize unsupported content part types ──
-      // Cursor and other clients send {type:"file"} when attaching .md or other files.
-      // Providers (Copilot, OpenAI) only accept "text" and "image_url" in content arrays.
-      // Convert: file → text (extract content), drop unrecognized types with a warning.
-      if (Array.isArray(translatedBody.messages)) {
-        for (const msg of translatedBody.messages) {
-          if (msg.role === "user" && Array.isArray(msg.content)) {
-            msg.content = (msg.content as Record<string, unknown>[]).flatMap(
-              (block: Record<string, unknown>) => {
-                if (
-                  block.type === "text" ||
-                  block.type === "image_url" ||
-                  block.type === "image" ||
-                  block.type === "file_url" ||
-                  block.type === "file" ||
-                  block.type === "document"
-                ) {
-                  // Only extract text if it's explicitly a text-only representation without data
-                  const fileData = (block.file_url ?? block.file ?? block.document) as
-                    | Record<string, unknown>
-                    | undefined;
-                  if (
-                    (block.type === "file" || block.type === "document") &&
-                    !fileData?.url &&
-                    !fileData?.data
-                  ) {
-                    const fileContent =
-                      (block.file as Record<string, unknown>)?.content ??
-                      (block.file as Record<string, unknown>)?.text ??
-                      block.content ??
-                      block.text;
-                    const fileName =
-                      (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
-                    if (typeof fileContent === "string" && fileContent.length > 0) {
-                      return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
-                    }
-                  }
-                  return [block];
-                }
-                // (#527) tool_result → convert to text instead of dropping.
-                // When Claude Code + superpowers routes through Codex, it sends tool_result
-                // blocks in user messages. Silently dropping them causes Codex to loop
-                // because it never receives the tool response and keeps re-requesting it.
-                if (block.type === "tool_result") {
-                  const toolId = block.tool_use_id ?? block.id ?? "unknown";
-                  const resultContent = block.content ?? block.text ?? block.output ?? "";
-                  const resultText =
-                    typeof resultContent === "string"
-                      ? resultContent
-                      : Array.isArray(resultContent)
-                        ? resultContent
-                            .filter((c: Record<string, unknown>) => c.type === "text")
-                            .map((c: Record<string, unknown>) => c.text)
-                            .join("\n")
-                        : JSON.stringify(resultContent);
-                  if (resultText.length > 0) {
-                    return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
-                  }
-                  return [];
-                }
-                // Unknown types: drop silently
-                log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
-                return [];
-              }
-            );
-          }
-        }
+        normalizeClaudeUpstreamMessages(translatedBody);
       }
 
       // OpenAI-compatible providers only support function tools.
@@ -1414,69 +1668,6 @@ export async function handleChatCore({
         translatedBody[field] = providerCap;
       }
     }
-  }
-
-  // ── Proactive Context Compression (Phase 4) ──
-  // Check if context exceeds 85% of limit and compress proactively before sending to provider.
-  // This prevents "prompt too long" errors for large-but-not-full contexts.
-  if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
-    const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
-    const contextLimit = getTokenLimit(provider, effectiveModel);
-    const COMPRESSION_THRESHOLD = 0.85;
-    const threshold = Math.floor(contextLimit * COMPRESSION_THRESHOLD);
-
-    log?.debug?.(
-      "CONTEXT",
-      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit)`
-    );
-
-    if (estimatedTokens > threshold) {
-      log?.info?.(
-        "CONTEXT",
-        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
-      );
-
-      const compressionResult = compressContext(translatedBody, {
-        provider,
-        model: effectiveModel,
-        maxTokens: contextLimit,
-        reserveTokens: 0,
-      });
-
-      if (compressionResult.compressed) {
-        translatedBody = compressionResult.body;
-        const stats = compressionResult.stats;
-        const layersInfo =
-          stats && "layers" in stats && Array.isArray(stats.layers)
-            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
-            : "";
-
-        log?.info?.(
-          "CONTEXT",
-          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
-        );
-
-        logAuditEvent({
-          action: "context.proactive_compression",
-          actor: apiKeyInfo?.name || "system",
-          target: connectionId || provider || "chat",
-          details: {
-            provider,
-            model: effectiveModel,
-            original_tokens: stats.original,
-            final_tokens: stats.final,
-            layers: "layers" in stats ? stats.layers : undefined,
-          },
-        });
-      } else {
-        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
-      }
-    }
-  } else {
-    log?.debug?.(
-      "CONTEXT",
-      `Skipping compression check: translatedBody=${!!translatedBody}, messages=${!!translatedBody?.messages}, isArray=${Array.isArray(translatedBody?.messages)}`
-    );
   }
 
   // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
@@ -1649,7 +1840,8 @@ export async function handleChatCore({
             log,
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-            clientHeaders: clientRawRequest?.headers ?? null,
+            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            onCredentialsRefreshed,
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1851,7 +2043,8 @@ export async function handleChatCore({
           log,
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
-          clientHeaders: clientRawRequest?.headers ?? null,
+          clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+          onCredentialsRefreshed,
         });
 
         if (retryResult.response.ok) {
@@ -1955,17 +2148,22 @@ export async function handleChatCore({
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
+          // Daily quota exhausted: lock until tomorrow; otherwise use default cooldown
+          const isDailyQuota = isDailyQuotaExhausted(message);
+          const quotaCooldownMs = isDailyQuota
+            ? getMsUntilTomorrow()
+            : retryAfterMs || COOLDOWN_MS.rateLimit;
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
-              "quota_exhausted",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              isDailyQuota ? "daily_quota_exhausted" : "quota_exhausted",
+              quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} ${isDailyQuota ? "daily " : ""}quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {
@@ -2513,23 +2711,20 @@ export async function handleChatCore({
       }
     }
 
-    const pipelineSessionId =
-      (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
-        ? clientRawRequest.headers.get("x-omniroute-session-id")
-        : getHeaderValueCaseInsensitive(
-            clientRawRequest?.headers ?? null,
-            "x-omniroute-session-id"
-          )) || skillRequestId;
+    if (memoryOwnerId && memorySettings?.enabled && memorySettings.maxTokens > 0) {
+      const requestMemoryText = extractMemoryTextFromRequestBody(body as Record<string, unknown>);
+      if (requestMemoryText) {
+        extractFacts(requestMemoryText, memoryOwnerId, pipelineSessionId);
+      }
 
-    if (apiKeyInfo?.id && memorySettings?.enabled && memorySettings.maxTokens > 0) {
       const memoryText = extractMemoryTextFromResponse(memoryExtractionResponse);
       if (memoryText) {
-        extractFacts(memoryText, apiKeyInfo.id, pipelineSessionId);
+        extractFacts(memoryText, memoryOwnerId, pipelineSessionId);
       }
     }
 
     const customSkillExecutionEnabled =
-      Boolean(apiKeyInfo?.id) && memorySettings?.skillsEnabled === true;
+      Boolean(memoryOwnerId) && memorySettings?.skillsEnabled === true;
     const builtinToolNames = webSearchFallbackPlan.toolName ? [webSearchFallbackPlan.toolName] : [];
     if (customSkillExecutionEnabled || builtinToolNames.length > 0) {
       const skillSessionId = pipelineSessionId;
@@ -2538,7 +2733,7 @@ export async function handleChatCore({
         translatedResponse,
         getSkillsModelIdForFormat(sourceFormat),
         {
-          apiKeyId: apiKeyInfo?.id || "local",
+          apiKeyId: memoryOwnerId || "local",
           sessionId: skillSessionId,
           requestId: skillRequestId,
           builtinToolNames,
@@ -2739,6 +2934,31 @@ export async function handleChatCore({
       });
     }
 
+    // Stream-level warning detection must happen before persistence so the
+    // warning detail log is attached to the same attempt.
+    if (streamResponseBody && typeof streamResponseBody === "object") {
+      try {
+        const responseText = JSON.stringify(streamResponseBody);
+        if (detectStreamWarnings(responseText)) {
+          hasWarnings = true;
+          log?.warn?.("SECURITY", `Provider stream warning detected from ${provider}/${model}`);
+          logAuditEvent({
+            action: "provider.warning",
+            actor: apiKeyInfo?.name || "system",
+            target: provider || "unknown",
+            details: {
+              message: "Provider stream warning pattern detected in response",
+              model: model || effectiveModel,
+              provider,
+              connectionId,
+            },
+          });
+        }
+      } catch {
+        // Non-critical — don't break stream completion
+      }
+    }
+
     persistAttemptLogs({
       status: streamStatus || 200,
       tokens: streamUsage || {},
@@ -2757,6 +2977,25 @@ export async function handleChatCore({
           if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
         })
         .catch(() => {});
+    }
+
+    if (
+      memoryOwnerId &&
+      memorySettings?.enabled &&
+      memorySettings.maxTokens > 0 &&
+      streamStatus === 200
+    ) {
+      const requestMemoryText = extractMemoryTextFromRequestBody(body as Record<string, unknown>);
+      if (requestMemoryText) {
+        extractFacts(requestMemoryText, memoryOwnerId, pipelineSessionId);
+      }
+
+      const streamedMemoryText = extractMemoryTextFromResponse(
+        (streamResponseBody ?? null) as Record<string, unknown> | null
+      );
+      if (streamedMemoryText) {
+        extractFacts(streamedMemoryText, memoryOwnerId, pipelineSessionId);
+      }
     }
 
     // Semantic cache: store assembled streaming response for future cache hits

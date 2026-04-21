@@ -42,6 +42,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "sdwebui-video",
     models: [{ id: "animatediff-webui", name: "AnimateDiff (WebUI)" }],
   },
+
+  runwayml: {
+    id: "runwayml",
+    baseUrl: "https://api.dev.runwayml.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "runwayml",
+    models: [
+      { id: "gen-3-alpha", name: "Gen-3 Alpha" },
+      { id: "gen-3-alpha-turbo", name: "Gen-3 Alpha Turbo" },
+      { id: "gen-2", name: "Gen-2" },
+    ],
+  },
 };
 
 /**

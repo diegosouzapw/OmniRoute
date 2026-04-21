@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, Button, EmptyState, DataTable, FilterBar } from "@/shared/components";
+import { Card, Button, EmptyState, DataTable, FilterBar, Select, Input } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
 // ── Strategy config for visual legend ──────────────────────────────────
@@ -53,13 +53,21 @@ const STRATEGIES = [
 export default function EvalsTab() {
   const t = useTranslations("usage");
   const [suites, setSuites] = useState([]);
-  const [apiKey, setApiKey] = useState(null);
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [results, setResults] = useState({});
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
+  const [selectedRunsForCompare, setSelectedRunsForCompare] = useState<string[]>([]);
+  const [compareResult, setCompareResult] = useState<any>(null);
+  const [compareSuiteId, setCompareSuiteId] = useState<string | null>(null);
+  const [suiteHistories, setSuiteHistories] = useState<Record<string, any[]>>({});
+  const [evalTargetType, setEvalTargetType] = useState<"model" | "combo">("model");
+  const [evalTargetId, setEvalTargetId] = useState<string>("");
+  const [combos, setCombos] = useState([]);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const notify = useNotificationStore();
 
@@ -82,8 +90,21 @@ export default function EvalsTab() {
       const res = await fetch("/api/keys");
       if (!res.ok) return;
       const data = await res.json();
-      const firstKey = data?.keys?.[0]?.key || null;
-      setApiKey(firstKey);
+      const keys = data?.keys || [];
+      setApiKeys(keys);
+      setApiKey((prev) => prev || keys[0]?.key || null);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  const fetchCombos = useCallback(async () => {
+    try {
+      const res = await fetch("/api/combos");
+      if (res.ok) {
+        const data = await res.json();
+        setCombos(data?.combos || []);
+      }
     } catch {
       // silent
     }
@@ -92,7 +113,8 @@ export default function EvalsTab() {
   useEffect(() => {
     fetchSuites();
     fetchApiKey();
-  }, [fetchSuites, fetchApiKey]);
+    fetchCombos();
+  }, [fetchSuites, fetchApiKey, fetchCombos]);
 
   /**
    * Call the proxy LLM endpoint for a single eval case.
@@ -103,11 +125,17 @@ export default function EvalsTab() {
       const headers: any = { "Content-Type": "application/json" };
       if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
+      // Inject Combo Routing if selected
+      if (evalTargetType === "combo" && evalTargetId) {
+        headers["omniroute-combo-id"] = evalTargetId;
+      }
+
       const res = await fetch("/v1/chat/completions", {
         method: "POST",
         headers,
         body: JSON.stringify({
-          model: evalCase.model || "gpt-4o",
+          model:
+            evalTargetType === "model" && evalTargetId ? evalTargetId : evalCase.model || "gpt-4o",
           messages: evalCase.input?.messages || [],
           max_tokens: 512,
           stream: false,
@@ -138,7 +166,8 @@ export default function EvalsTab() {
 
     try {
       // Step 1: Call LLM for each case and collect outputs
-      const outputs = {};
+      const outputs: any = {};
+      const evalCaseModelFallback = cases[0]?.model || "gpt-4o";
       for (let i = 0; i < cases.length; i++) {
         setProgress({ current: i + 1, total: cases.length });
         const response = await callLLM(cases[i]);
@@ -151,6 +180,8 @@ export default function EvalsTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           suiteId: suite.id,
+          targetId: evalTargetId || evalCaseModelFallback,
+          targetType: evalTargetType,
           outputs,
         }),
       });
@@ -262,6 +293,56 @@ export default function EvalsTab() {
             {t("statsStrategiesCount", { count: STRATEGIES.length })}
           </div>
         </Card>
+      </div>
+
+      <div className="flex gap-4 items-center bg-surface/20 p-4 rounded-xl border border-border/30 flex-wrap">
+        <div className="flex flex-col gap-1 w-48">
+          <label className="text-xs text-text-muted">{t("apiKey")}</label>
+          <Select value={apiKey || ""} onChange={(e: any) => setApiKey(e.target.value || null)}>
+            <option value="">-- {t("apiKey")} --</option>
+            {apiKeys.map((key: any) => (
+              <option key={key.id} value={key.key}>
+                {key.name || key.id}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1 w-48">
+          <label className="text-xs text-text-muted">Target Type</label>
+          <Select
+            value={evalTargetType}
+            onChange={(e: any) => setEvalTargetType(e.target.value as "model" | "combo")}
+          >
+            <option value="model">Direct Model</option>
+            <option value="combo">OmniRoute Combo</option>
+          </Select>
+        </div>
+
+        {evalTargetType === "combo" && (
+          <div className="flex flex-col gap-1 w-64">
+            <label className="text-xs text-text-muted">Select Combo</label>
+            <Select value={evalTargetId} onChange={(e: any) => setEvalTargetId(e.target.value)}>
+              <option value="">-- Select Combo --</option>
+              {combos.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+
+        {evalTargetType === "model" && (
+          <div className="flex flex-col gap-1 w-64">
+            <label className="text-xs text-text-muted">Override Model (Optional)</label>
+            <Input
+              placeholder="e.g. gpt-4-turbo"
+              value={evalTargetId}
+              onChange={(e: any) => setEvalTargetId(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       {/* {t("howItWorks")} — Collapsible */}
@@ -401,7 +482,19 @@ export default function EvalsTab() {
               <div key={suite.id} className="border border-border/30 rounded-lg overflow-hidden">
                 <div
                   className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface/30 transition-colors"
-                  onClick={() => setExpanded(isExpanded ? null : suite.id)}
+                  onClick={async () => {
+                    const expanding = isExpanded ? null : suite.id;
+                    setExpanded(expanding);
+                    if (expanding && !suiteHistories[suite.id]) {
+                      try {
+                        const res = await fetch(`/api/evals/${suite.id}/history`);
+                        if (res.ok) {
+                          const historyData = await res.json();
+                          setSuiteHistories((prev) => ({ ...prev, [suite.id]: historyData }));
+                        }
+                      } catch {}
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[16px] text-text-muted">
@@ -638,6 +731,160 @@ export default function EvalsTab() {
                           <span className="material-symbols-outlined text-[14px]">info</span>
                           {t("runEvalHint")}
                         </p>
+                        {/* Historical Runs */}
+                        {suiteHistories[suite.id] && suiteHistories[suite.id].length > 0 && (
+                          <div className="mt-8">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold">Previous Runs (DB History)</h4>
+                              {selectedRunsForCompare.length === 2 &&
+                                compareSuiteId === suite.id && (
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const res = await fetch("/api/evals/scorecard", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            runIdA: selectedRunsForCompare[0],
+                                            runIdB: selectedRunsForCompare[1],
+                                          }),
+                                        });
+                                        if (res.ok) setCompareResult(await res.json());
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }}
+                                  >
+                                    Compare Selected
+                                  </Button>
+                                )}
+                            </div>
+
+                            {compareResult && compareSuiteId === suite.id && (
+                              <div className="grid grid-cols-2 gap-4 mb-6 p-4 border border-border/30 rounded-lg bg-surface/20">
+                                <div>
+                                  <h4 className="font-bold text-sky-500 mb-2">
+                                    {compareResult.meta.targetA}
+                                  </h4>
+                                  <p className="text-sm">
+                                    <span className="text-text-muted">Pass Rate:</span>{" "}
+                                    {compareResult.scorecard.runA.passRate}%
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="text-text-muted">Avg Latency:</span>{" "}
+                                    {compareResult.scorecard.runA.avgLatency}ms
+                                  </p>
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-violet-500 mb-2">
+                                    {compareResult.meta.targetB}
+                                  </h4>
+                                  <p className="text-sm">
+                                    <span className="text-text-muted">Pass Rate:</span>{" "}
+                                    {compareResult.scorecard.runB.passRate}%
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="text-text-muted">Avg Latency:</span>{" "}
+                                    {compareResult.scorecard.runB.avgLatency}ms
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            <DataTable
+                              columns={[
+                                { key: "compare", label: "Compare" },
+                                { key: "runDate", label: "Date" },
+                                { key: "targetId", label: "Target" },
+                                { key: "targetType", label: "Type" },
+                                { key: "passRate", label: "Pass Rate" },
+                                { key: "avgLatency", label: "Avg Latency" },
+                              ]}
+                              data={suiteHistories[suite.id]}
+                              renderCell={(row: any, col) => {
+                                if (col.key === "compare") {
+                                  return (
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedRunsForCompare.includes(row.id)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          if (compareSuiteId && compareSuiteId !== suite.id) {
+                                            setCompareSuiteId(suite.id);
+                                            setSelectedRunsForCompare([row.id]);
+                                            setCompareResult(null);
+                                            return;
+                                          }
+
+                                          if (selectedRunsForCompare.length < 2) {
+                                            setCompareSuiteId(suite.id);
+                                            setSelectedRunsForCompare([
+                                              ...selectedRunsForCompare,
+                                              row.id,
+                                            ]);
+                                            setCompareResult(null);
+                                          }
+                                        } else {
+                                          const nextSelection = selectedRunsForCompare.filter(
+                                            (id) => id !== row.id
+                                          );
+                                          setSelectedRunsForCompare(nextSelection);
+                                          setCompareResult(null);
+                                          if (nextSelection.length === 0) {
+                                            setCompareSuiteId(null);
+                                          }
+                                        }
+                                      }}
+                                      disabled={
+                                        !selectedRunsForCompare.includes(row.id) &&
+                                        compareSuiteId === suite.id &&
+                                        selectedRunsForCompare.length >= 2
+                                      }
+                                      className="rounded border-border text-primary focus:ring-primary bg-surface/30"
+                                    />
+                                  );
+                                }
+                                if (col.key === "runDate")
+                                  return (
+                                    <span className="text-xs text-text-muted">
+                                      {new Date(row.runDate).toLocaleString()}
+                                    </span>
+                                  );
+                                if (col.key === "targetId")
+                                  return (
+                                    <span className="text-sm font-mono text-primary/80">
+                                      {row.targetId}
+                                    </span>
+                                  );
+                                if (col.key === "targetType")
+                                  return (
+                                    <span className="text-xs text-text-muted uppercase">
+                                      {row.targetType}
+                                    </span>
+                                  );
+                                if (col.key === "passRate")
+                                  return (
+                                    <span
+                                      className={`text-sm font-semibold ${row.passRate === 100 ? "text-emerald-400" : row.passRate >= 80 ? "text-amber-400" : "text-red-400"}`}
+                                    >
+                                      {row.passRate}%
+                                    </span>
+                                  );
+                                if (col.key === "avgLatency")
+                                  return (
+                                    <span className="text-sm text-text-muted font-mono">
+                                      {row.avgLatency}ms
+                                    </span>
+                                  );
+                                return <span className="text-sm">{(row as any)[col.key]}</span>;
+                              }}
+                              maxHeight="300px"
+                              emptyMessage="No historical runs found."
+                            />
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

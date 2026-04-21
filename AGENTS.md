@@ -3,19 +3,19 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **100+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (34 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js ≥18 <24, ES Modules (`"type": "module"`)
+- **Runtime**: Next.js 16 (App Router), Node.js ≥20, ES Modules (`"type": "module"`)
 - **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
-- **i18n**: next-intl with 30 languages
+- **i18n**: next-intl with 40 languages
 - **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
 - **Schemas**: Zod v4 for all API / MCP input validation
 
@@ -211,9 +211,10 @@ Zod schemas, and unit tests aligned when editing.
 
 ### Provider Categories
 
-- **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
-- **OAuth** (8): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline
-- **API Key** (91): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
+- **Free** (5): Qoder AI, Qwen Code (deprecated), Gemini CLI (deprecated), Kiro AI, Gradient Network
+- **OAuth** (15): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline,
+  Amazon Q, Amp/AmpCode, Trae/ByteDance, Zed, Reka AI, GitLab Duo OAuth, Poe
+- **API Key** (113): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
   HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
   Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
@@ -224,8 +225,18 @@ Zod schemas, and unit tests aligned when editing.
   Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate,
   Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai,
   Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase,
-  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), and more.
-- **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
+  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), Nous Research,
+  Replicate, Voyage AI, Jina AI, Modal, Vertex Partner, RunwayML, NLP Cloud,
+  You.com, OCI Oracle, IBM WatsonX, AWS SageMaker, SAP GenAI Hub, DataRobot,
+  GitLab Duo, Chutes.ai, Petals, BlockRun, Manus, Pydantic AI, LangGraph,
+  Lemonade AI, Clarifai, Empower, AWS Polly, and more.
+- **Local/Self-Hosted** (9): Ollama Cloud, vLLM, LM Studio, Llamafile, NVIDIA Triton,
+  Docker Model Runner, Xinference, Oobabooga, SD WebUI
+- **Search** (9): Perplexity Search, Serper, Brave, Exa, Tavily, Google PSE, SearchAPI,
+  SearXNG, Linkup
+- **Audio** (7): Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, AWS Polly
+- **Custom**: OpenAI-compatible (`openai-compatible-*`), Anthropic-compatible (`anthropic-compatible-*`),
+  and Claude Code-compatible (`claude-code-compatible-*`) prefixes
 
 Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.
 
@@ -303,12 +314,13 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-25 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
+34 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
-**Core tools** (18): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
+**Core tools** (22): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
 set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
+best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing,
+cache_stats, cache_flush.
 
 **Memory tools** (3): memory_search, memory_add, memory_clear.
 
@@ -383,6 +395,18 @@ MITM proxy capability with certificate management, DNS handling, and target rout
 ### Middleware (`src/middleware/`)
 
 Request middleware including `promptInjectionGuard.ts`.
+
+### Observability & Security
+
+#### Security Interception (`open-sse/handlers/chatCore.ts`)
+
+- **`detectStreamWarnings()`**: Integrated into the `onStreamComplete` lifecycle. Scans the final accumulated response body for security markers (e.g., `[SANITIZER]`, `[FILTER]`, `[CONTENT_BLOCKED]`).
+- **Audit Integration**: Detections trigger high-priority `provider.warning` audit events, providing real-time observability into upstream provider-side safety filters.
+
+#### Dashboard Observability (`src/app/(dashboard)/dashboard/`)
+
+- **Audit Logs Modal**: Full metadata grid (Request ID, IP, Actor, Target) with a recursive JSON viewer for complex audit payloads.
+- **Enhanced Health Metrics**: Decomposes `LearnedLimitEntry` objects to render rich rate-limit cards with RPM capacity, throttle windows, and data freshness telemetry.
 
 ### Adding a New Provider
 

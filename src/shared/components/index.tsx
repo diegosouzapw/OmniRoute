@@ -25,6 +25,7 @@ export { default as KiroAuthModal } from "./KiroAuthModal";
 export { default as KiroOAuthWrapper } from "./KiroOAuthWrapper";
 export { default as KiroSocialOAuthModal } from "./KiroSocialOAuthModal";
 export { default as CursorAuthModal } from "./CursorAuthModal";
+export { default as ImportTokenAuthModal } from "./ImportTokenAuthModal";
 export { default as SegmentedControl } from "./SegmentedControl";
 export { default as Breadcrumbs } from "./Breadcrumbs";
 export { default as EmptyState } from "./EmptyState";

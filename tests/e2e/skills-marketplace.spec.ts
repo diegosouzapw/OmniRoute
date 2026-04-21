@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 const NAVIGATION_TIMEOUT_MS = 300_000;
 
@@ -25,29 +26,6 @@ async function fulfillJson(route: Route, body: unknown, status = 200) {
     contentType: "application/json",
     body: JSON.stringify(body),
   });
-}
-
-async function gotoOrSkip(page: Page, url: string) {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      await page.goto(url, { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    } catch (error) {
-      lastError = error;
-    }
-    try {
-      await page.waitForURL(/\/(login|dashboard)(\/.*)?$/, { timeout: NAVIGATION_TIMEOUT_MS });
-      await page.locator("body").waitFor({ state: "visible", timeout: NAVIGATION_TIMEOUT_MS });
-      lastError = null;
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-    await page.waitForTimeout(1000);
-  }
-  if (lastError) throw lastError;
-  const redirectedToLogin = page.url().includes("/login");
-  test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 }
 
 test.describe("Skills marketplace", () => {
@@ -159,7 +137,9 @@ test.describe("Skills marketplace", () => {
       });
     });
 
-    await gotoOrSkip(page, "/dashboard/skills");
+    await gotoDashboardRoute(page, "/dashboard/skills", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
 
     await expect(page.getByText("lookupWeather")).toBeVisible({ timeout: 15000 });
     const weatherCard = page
@@ -173,15 +153,16 @@ test.describe("Skills marketplace", () => {
     await expect.poll(() => state.toggleCalls).toBe(1);
 
     await page.getByRole("button", { name: /marketplace/i }).click();
-    await expect(page.getByPlaceholder("Search skills...")).toBeVisible({ timeout: 15000 });
+    const marketplaceSearch = page.getByPlaceholder(/Search SkillsMP\.\.\./i);
+    await expect(marketplaceSearch).toBeVisible({ timeout: 15000 });
 
-    await page.getByPlaceholder("Search skills...").fill("weather");
+    await marketplaceSearch.fill("weather");
     await page.getByRole("button", { name: /search skillsmp/i }).click();
     await expect(page.getByText("Weather Pro")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /^install$/i }).click();
     await expect.poll(() => state.marketplaceInstalls).toBe(1);
 
-    await page.getByPlaceholder("Search skills...").fill("");
+    await marketplaceSearch.fill("");
     await page.getByRole("button", { name: /search skillsmp/i }).click();
     const lastMarketplaceSkill = page.getByText("Skill Page 12").last();
     await lastMarketplaceSkill.scrollIntoViewIfNeeded();

@@ -227,6 +227,41 @@ test("v1 models catalog keeps only visible combos when no providers are active",
   );
 });
 
+test("v1 models catalog exposes expanded GitHub, Amazon Q and CodeBuddy model catalogs when accounts are active", async () => {
+  await seedConnection("github", {
+    authType: "oauth",
+    name: "github-expanded",
+    apiKey: null,
+    accessToken: "github-access",
+  });
+  await seedConnection("amazon-q", {
+    authType: "oauth",
+    name: "amazon-q-expanded",
+    apiKey: null,
+    accessToken: "amazon-q-access",
+  });
+  await seedConnection("codebuddy", {
+    authType: "apikey",
+    name: "codebuddy-expanded",
+    apiKey: "codebuddy-key",
+    accessToken: null,
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = await response.json();
+  const ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.has("gh/gpt-5.4"));
+  assert.ok(ids.has("github/gpt-5.4"));
+  assert.ok(ids.has("amz-q/amazonq-auto"));
+  assert.ok(ids.has("amazon-q/amazonq-auto"));
+  assert.ok(ids.has("codebuddy/glm-5.1"));
+  assert.ok(ids.has("codebuddy/kimi-k2-thinking"));
+});
+
 test("v1 models catalog exposes claude alias and provider-prefixed built-in models with vision metadata", async () => {
   await seedConnection("claude", {
     authType: "oauth",

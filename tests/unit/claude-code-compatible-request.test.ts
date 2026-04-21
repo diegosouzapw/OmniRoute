@@ -114,8 +114,10 @@ test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, 
       content: [{ type: "text", text: "draft answer\nalternate answer" }],
     },
   ]);
-  assert.equal(payload.system[3].text, "system note");
-  assert.equal(payload.system[4].text, "developer note");
+  assert.equal(payload.system.length, 3);
+  assert.match(payload.system[0].text, /Claude Agent SDK/);
+  assert.equal(payload.system[1].text, "system note");
+  assert.equal(payload.system[2].text, "developer note");
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_account",
@@ -157,6 +159,8 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
         { name: "toolA", input_schema: { type: "object" }, cache_control: { type: "ephemeral" } },
       ],
       thinking: { type: "enabled", budget_tokens: 12 },
+      output_config: { format: "compact" },
+      metadata: { foo: "bar" },
     },
     model: "claude-sonnet-4-6",
     preserveCacheControl: false,
@@ -194,11 +198,12 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
   assert.equal(stripped.messages.at(-1).role, "user");
   assert.equal(stripped.system[0].cache_control, undefined);
   assert.equal(stripped.messages[0].content[0].cache_control, undefined);
-  assert.equal(stripped.system.at(-1).cache_control, undefined);
   assert.equal(stripped.tools[0].cache_control, undefined);
-  assert.equal(preserved.system[0].cache_control, undefined);
+  assert.deepEqual(stripped.thinking, { type: "enabled", budget_tokens: 12 });
+  assert.deepEqual(stripped.output_config, { effort: "high", format: "compact" });
+  assert.equal(stripped.metadata.foo, "bar");
+  assert.deepEqual(preserved.system[0].cache_control, { type: "ephemeral" });
   assert.equal(preserved.messages[0].content[0].cache_control.type, "ephemeral");
-  assert.equal(preserved.system.at(-1).cache_control.type, "ephemeral");
   assert.equal(preserved.tools[0].cache_control.type, "ephemeral");
 });
 
@@ -217,6 +222,8 @@ test("buildClaudeCodeCompatibleRequest omits tool choice when there are no tools
   assert.equal(payload.tools.length, 0);
   assert.equal("tool_choice" in payload, false);
   assert.equal(payload.output_config.effort, "high");
+  assert.equal(payload.system.length, 1);
+  assert.match(payload.system[0].text, /Claude Agent SDK/);
 });
 
 test("buildClaudeCodeCompatibleRequest covers string system input, non-array Claude fields and tool choice variants", () => {

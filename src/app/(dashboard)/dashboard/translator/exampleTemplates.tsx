@@ -20,6 +20,8 @@ export function getExampleTemplates(t: TranslatorMessage) {
   const systemPromptInstruction = t("templatePayloads.systemPrompt.systemInstruction");
   const systemPromptQuestion = t("templatePayloads.systemPrompt.question");
   const streamingPrompt = t("templatePayloads.streaming.prompt");
+  const multiModalUser = t("templatePayloads.multiModal.userPrompt");
+  const schemaCoercionUser = t("templatePayloads.schemaCoercion.userPrompt");
 
   return [
     {
@@ -291,6 +293,138 @@ export function getExampleTemplates(t: TranslatorMessage) {
         },
       },
     },
+    {
+      id: "multi-modal",
+      name: t("templateNames.multi-modal"),
+      icon: "image",
+      description: t("templateDescriptions.multi-modal"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: multiModalUser },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP...",
+                  },
+                },
+              ],
+            },
+          ],
+          stream: true,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1024,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: multiModalUser },
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: "image/jpeg",
+                    data: "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP...",
+                  },
+                },
+              ],
+            },
+          ],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: multiModalUser },
+                {
+                  inlineData: {
+                    mimeType: "image/jpeg",
+                    data: "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP...",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    {
+      id: "schema-coercion",
+      name: t("templateNames.schema-coercion"),
+      icon: "data_object",
+      description: t("templateDescriptions.schema-coercion"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [{ role: "user", content: schemaCoercionUser }],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "user_details",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  age: { type: "integer" },
+                  email: { type: "string" },
+                },
+                required: ["name", "age", "email"],
+                additionalProperties: false,
+              },
+            },
+          },
+          stream: false,
+        },
+        claude: {
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: schemaCoercionUser }],
+          tool_choice: { type: "tool", name: "extract_user" },
+          tools: [
+            {
+              name: "extract_user",
+              description: "Extract user details",
+              input_schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  age: { type: "integer" },
+                  email: { type: "string" },
+                },
+                required: ["name", "age", "email"],
+              },
+            },
+          ],
+          stream: false,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: schemaCoercionUser }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                age: { type: "integer" },
+                email: { type: "string" },
+              },
+              required: ["name", "age", "email"],
+            },
+          },
+        },
+      },
+    },
   ];
 }
 
@@ -300,8 +434,10 @@ export function getExampleTemplates(t: TranslatorMessage) {
 export const FORMAT_META = {
   openai: { label: "OpenAI", color: "emerald", icon: "smart_toy" },
   "openai-responses": { label: "OpenAI Responses", color: "amber", icon: "swap_horiz" },
+  "openai-response": { label: "OpenAI Response", color: "amber", icon: "swap_horiz" },
   claude: { label: "Claude", color: "orange", icon: "psychology" },
   gemini: { label: "Gemini", color: "blue", icon: "auto_awesome" },
+  "gemini-cli": { label: "Gemini CLI", color: "blue", icon: "terminal" },
   antigravity: { label: "Antigravity", color: "purple", icon: "rocket_launch" },
   kiro: { label: "Kiro", color: "cyan", icon: "terminal" },
   cursor: { label: "Cursor", color: "pink", icon: "edit" },

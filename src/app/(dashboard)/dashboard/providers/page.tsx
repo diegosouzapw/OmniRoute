@@ -34,9 +34,82 @@ import {
   filterConfiguredProviderEntries,
 } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
+import ProviderCountBadge from "./components/ProviderCountBadge";
 
-const CC_COMPATIBLE_LABEL = "CC Compatible";
-const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
+function countConfigured(entries: any[]): { configured: number; total: number } {
+  const total = entries.length;
+  // A connection counts as configured if stats says total > 0 (it has credentials saved)
+  const configured = entries.filter((e) => Number(e.stats?.total || 0) > 0).length;
+  return { configured, total };
+}
+
+const MEDIA_PROVIDER_IDS = new Set([
+  "nanobanana",
+  "fal-ai",
+  "stability-ai",
+  "black-forest-labs",
+  "recraft",
+  "topaz",
+  "runwayml",
+  "modal",
+  "sdwebui",
+  "comfyui",
+]);
+
+const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
+  "oci",
+  "watsonx",
+  "sagemaker",
+  "sap",
+  "datarobot",
+  "bedrock",
+  "azure",
+  "azure-openai",
+  "azure-ai",
+  "vertex",
+  "vertex-partner",
+  "cloudflare-ai",
+  "ovhcloud-ai",
+  "heroku-ai",
+  "databricks",
+  "snowflake",
+  "sambanova",
+  "nscale",
+  "baseten",
+  "predibase",
+  "bytez",
+]);
+
+const AGENT_FRAMEWORKS_PROVIDER_IDS = new Set([
+  "manus",
+  "pydantic-ai",
+  "langgraph",
+  "blockrun",
+  "galadriel",
+  "venice",
+]);
+
+const IDE_CODING_PROVIDER_IDS = new Set([
+  "gitlab-duo",
+  "opencode",
+  "bailian-coding",
+  "codestral",
+  "chutes",
+  "morph",
+]);
+
+const AGGREGATOR_PROVIDER_IDS = new Set([
+  "openrouter",
+  "synthetic",
+  "kilo-gateway",
+  "aimlapi",
+  "novita",
+  "piapi",
+  "getgoapi",
+  "laozhang",
+  "vercel-ai-gateway",
+]);
+
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
@@ -194,20 +267,23 @@ export default function ProvidersPage() {
       if (res.ok && data.success) {
         if (data.count > 0) {
           notify.success(
-            `Imported ${data.count} credentials from Zed IDE (${data.providers.join(", ")}).`
+            t("zedImportSuccess", {
+              count: data.count,
+              providers: data.providers.join(", "),
+            })
           );
           // Refresh connections silently
           const connectionsRes = await fetch("/api/providers");
           const connectionsData = await connectionsRes.json();
           if (connectionsRes.ok) setConnections(connectionsData.connections || []);
         } else {
-          notify.info("No supported OAuth credentials found in Zed IDE.");
+          notify.info(t("zedImportNone"));
         }
       } else {
-        notify.error(data.error || "Failed to import from Zed IDE.");
+        notify.error(data.error || t("zedImportFailed"));
       }
     } catch (error) {
-      notify.error("Network error while trying to import from Zed.");
+      notify.error(t("zedImportNetworkError"));
     } finally {
       setImportingZed(false);
     }
@@ -386,7 +462,7 @@ export default function ProvidersPage() {
     )
     .map((node) => ({
       id: node.id,
-      name: node.name || CC_COMPATIBLE_LABEL,
+      name: node.name || t("ccCompatibleLabel"),
       color: "#B45309",
       textIcon: "CC",
     }));
@@ -401,6 +477,36 @@ export default function ProvidersPage() {
     showConfiguredOnly
   );
 
+  // Sub-categorization
+  const enterpriseCloudEntries = apiKeyProviderEntries.filter((e) =>
+    ENTERPRISE_CLOUD_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const agentFrameworkEntries = apiKeyProviderEntries.filter((e) =>
+    AGENT_FRAMEWORKS_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const ideCodingEntries = apiKeyProviderEntries.filter((e) =>
+    IDE_CODING_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const mediaProviderEntries = apiKeyProviderEntries.filter((e) =>
+    MEDIA_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const aggregatorEntries = apiKeyProviderEntries.filter((e) =>
+    AGGREGATOR_PROVIDER_IDS.has(e.providerId)
+  );
+
+  const llmProviderEntries = apiKeyProviderEntries.filter(
+    (e) =>
+      !MEDIA_PROVIDER_IDS.has(e.providerId) &&
+      !AGGREGATOR_PROVIDER_IDS.has(e.providerId) &&
+      !ENTERPRISE_CLOUD_PROVIDER_IDS.has(e.providerId) &&
+      !AGENT_FRAMEWORKS_PROVIDER_IDS.has(e.providerId) &&
+      !IDE_CODING_PROVIDER_IDS.has(e.providerId)
+  );
+
   const webCookieProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("web-cookie", getProviderStats),
     showConfiguredOnly
@@ -413,6 +519,16 @@ export default function ProvidersPage() {
 
   const audioProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("audio", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const localProviderEntries = filterConfiguredProviderEntries(
+    buildStaticProviderEntries("local", getProviderStats),
+    showConfiguredOnly
+  );
+
+  const upstreamProxyEntries = filterConfiguredProviderEntries(
+    buildStaticProviderEntries("upstream-proxy", getProviderStats),
     showConfiguredOnly
   );
 
@@ -476,13 +592,13 @@ export default function ProvidersPage() {
                 className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
               >
                 {expirations.summary.expired > 0
-                  ? `${expirations.summary.expired} Provider connection(s) expired`
-                  : `${expirations.summary.expiringSoon} Provider connection(s) expiring soon`}
+                  ? t("expirationBannerExpired", { count: expirations.summary.expired })
+                  : t("expirationBannerExpiringSoon", { count: expirations.summary.expiringSoon })}
               </h3>
               <p className="text-sm mt-1 opacity-80 text-text-main">
                 {expirations.summary.expired > 0
-                  ? "Immediate action required. Expired connections will permanently fail."
-                  : "Please review and renew expiring connections to avoid disruption."}
+                  ? t("expirationBannerExpiredDesc")
+                  : t("expirationBannerExpiringSoonDesc")}
               </p>
             </div>
           </div>
@@ -494,6 +610,7 @@ export default function ProvidersPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
+            <ProviderCountBadge {...countConfigured(oauthProviderEntries)} />
           </h2>
           <div className="flex items-center gap-2">
             <ModelAvailabilityBadge />
@@ -508,14 +625,14 @@ export default function ProvidersPage() {
               onClick={handleZedImport}
               disabled={importingZed}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
-              title="Import credentials from Zed IDE"
+              title={t("zedImportTitle")}
             >
               <span
                 className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
               >
                 {importingZed ? "sync" : "download"}
               </span>
-              {importingZed ? "Importing..." : "Import from Zed"}
+              {importingZed ? t("zedImporting") : t("zedImportButton")}
             </button>
             {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
               <button
@@ -569,12 +686,13 @@ export default function ProvidersPage() {
         </div>
       </div>
 
-      {/* API Key Providers — fixed list */}
+      {/* API Key Providers — LLMs & Core */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("apiKeyProviders")}{" "}
             <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
+            <ProviderCountBadge {...countConfigured(apiKeyProviderEntries)} />
           </h2>
           <button
             onClick={() => handleBatchTest("apikey")}
@@ -593,20 +711,139 @@ export default function ProvidersPage() {
             {testingMode === "apikey" ? t("testing") : t("testAll")}
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {apiKeyProviderEntries.map(
-            ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-              <ApiKeyProviderCard
-                key={providerId}
-                providerId={providerId}
-                provider={provider}
-                stats={stats}
-                authType={displayAuthType}
-                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-              />
-            )
-          )}
-        </div>
+
+        {/* LLM Providers */}
+        {llmProviderEntries.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {llmProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {/* Enterprise Cloud sub-section */}
+        {enterpriseCloudEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("enterpriseCloudProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {enterpriseCloudEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Agent Frameworks sub-section */}
+        {agentFrameworkEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("agentFrameworks")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {agentFrameworkEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* IDE & Coding sub-section */}
+        {ideCodingEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("ideCodingProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {ideCodingEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Aggregators / Gateways sub-section */}
+        {aggregatorEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("aggregatorsGateways")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {aggregatorEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Media Generation sub-section */}
+        {mediaProviderEntries.length > 0 && (
+          <>
+            <h3 className="text-sm font-medium text-text-muted uppercase tracking-wider mt-4 mb-2">
+              {t("mediaProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {mediaProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Web / Cookie Providers */}
@@ -614,8 +851,12 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Web / Cookie Providers{" "}
-              <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
+              {t("webCookieProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-purple-500"
+                title={t("webCookieProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(webCookieProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("web-cookie")}
@@ -655,7 +896,9 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Search Providers <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+              {t("searchProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-teal-500" title={t("searchProviders")} />
+              <ProviderCountBadge {...countConfigured(searchProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("search")}
@@ -695,7 +938,9 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Audio Providers <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+              {t("audioProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-rose-500" title={t("audioProviders")} />
+              <ProviderCountBadge {...countConfigured(audioProviderEntries)} />
             </h2>
             <button
               onClick={() => handleBatchTest("audio")}
@@ -730,12 +975,85 @@ export default function ProvidersPage() {
         </div>
       )}
 
+      {/* Local / Self-Hosted Providers */}
+      {localProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("localProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-emerald-500" title={t("localProviders")} />
+              <ProviderCountBadge {...countConfigured(localProviderEntries)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("local")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "local"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "local" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "local" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {localProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Upstream Proxy Providers */}
+      {upstreamProxyEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("upstreamProxyProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-indigo-500"
+                title={t("upstreamProxyProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(upstreamProxyEntries)} />
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {upstreamProxyEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("compatibleProviders")}{" "}
             <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
+            <ProviderCountBadge {...countConfigured(compatibleProviderEntries)} />
           </h2>
           <div className="flex flex-wrap gap-2">
             {(compatibleProviders.length > 0 ||
@@ -759,7 +1077,7 @@ export default function ProvidersPage() {
             )}
             {ccCompatibleProviderEnabled && (
               <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
-                {ADD_CC_COMPATIBLE_LABEL}
+                {t("addCcCompatible")}
               </Button>
             )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
@@ -1524,6 +1842,7 @@ AddAnthropicCompatibleModal.propTypes = {
 
 function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   const t = useTranslations("providers");
+  const ccCompatibleLabel = t("ccCompatibleLabel");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -1603,13 +1922,13 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title={ADD_CC_COMPATIBLE_LABEL} onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("addCcCompatible")} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
           label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("compatibleProdPlaceholder", { type: CC_COMPATIBLE_LABEL })}
+          placeholder={t("compatibleProdPlaceholder", { type: ccCompatibleLabel })}
           hint={t("nameHint")}
         />
         <Input
@@ -1624,7 +1943,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
           placeholder="https://api.anthropic.com"
-          hint={t("compatibleBaseUrlHint", { type: CC_COMPATIBLE_LABEL })}
+          hint={t("compatibleBaseUrlHint", { type: ccCompatibleLabel })}
         />
         <button
           type="button"

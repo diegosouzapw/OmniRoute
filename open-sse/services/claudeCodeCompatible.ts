@@ -1,18 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
-import {
-  ANTHROPIC_BETA_FULL,
-  ANTHROPIC_VERSION_HEADER,
-  CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
-  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
-  CLAUDE_CLI_USER_AGENT,
-  CLAUDE_CLI_VERSION,
-} from "../config/anthropicHeaders.ts";
+import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
-import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
 import {
   enforceThinkingTemperature,
@@ -26,20 +18,32 @@ import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
  * traffic which looks like the official Claude Code client, often because those
  * gateways resell the same models at materially lower prices than the direct API.
  *
- * This bridge is intentionally compatibility-first, not lossless. We normalize
- * requests into the smallest Claude Code-shaped surface that consistently passes
- * provider-side client checks, instead of trying to preserve every original
- * field one-to-one.
+ * This bridge is intentionally compatibility-first while still preserving as
+ * much Claude-native structure as possible. Third-party relays are sensitive to
+ * wire-image details, so we only synthesize the minimum required defaults when
+ * the caller did not already provide Claude-shaped fields.
  */
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
-export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
+export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 64000;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER;
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = ANTHROPIC_BETA_FULL;
-export const CLAUDE_CODE_COMPATIBLE_VERSION = CLAUDE_CLI_VERSION;
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = CLAUDE_CLI_USER_AGENT;
+export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
+  "claude-code-20250219",
+  "interleaved-thinking-2025-05-14",
+  "effort-2025-11-24",
+].join(",");
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.113";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.113 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
+export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
+const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
+  {
+    type: "text",
+    text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+  },
+];
 const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -47,18 +51,6 @@ const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-sonnet-4-5",
   "claude-sonnet-4",
 ];
-/**
- * Build the billing header dynamically with fingerprint and CCH placeholder.
- * The cch=00000 placeholder is later replaced by signRequestBody().
- */
-export function buildBillingHeader(messages?: Array<{ role?: string; content?: unknown }>): string {
-  const msgText = extractFirstUserMessageText(messages);
-  const fp = computeFingerprint(msgText, CLAUDE_CODE_COMPATIBLE_VERSION);
-  return `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.${fp}; cc_entrypoint=cli; cch=00000;`;
-}
-
-/** @deprecated Use buildBillingHeader() for dynamic fingerprint */
-export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER = `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.000; cc_entrypoint=cli; cch=00000;`;
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
@@ -172,13 +164,14 @@ export function buildClaudeCodeCompatibleHeaders(
   stream = false,
   sessionId?: string | null
 ): Record<string, string> {
+  void stream;
   // These headers intentionally mirror Claude Code's wire image closely.
   // For CC-compatible relays, passing the upstream's client-gating checks is
   // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
-    Accept: stream ? "text/event-stream" : "application/json",
-    "x-api-key": apiKey,
+    Accept: "application/json",
+    Authorization: `Bearer ${apiKey}`,
     "anthropic-version": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
     "anthropic-beta": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
     "anthropic-dangerous-direct-browser-access": "true",
@@ -187,16 +180,13 @@ export function buildClaudeCodeCompatibleHeaders(
     "X-Stainless-Retry-Count": "0",
     "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+    "X-Stainless-Package-Version": CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION,
     "X-Stainless-OS": "MacOS",
     "X-Stainless-Arch": "arm64",
     "X-Stainless-Runtime": "node",
-    "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
-    "accept-language": "*",
-    "sec-fetch-mode": "cors",
-    "accept-encoding": "identity",
+    "X-Stainless-Runtime-Version": CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION,
+    "accept-encoding": "gzip, deflate, br, zstd",
     ...(sessionId ? { "X-Claude-Code-Session-Id": sessionId } : {}),
-    "x-client-request-id": randomUUID(),
   };
 }
 
@@ -234,7 +224,6 @@ export function buildClaudeCodeCompatibleRequest({
   model,
   stream = false,
   cwd = process.cwd(),
-  now = new Date(),
   sessionId,
   preserveCacheControl = false,
 }: BuildRequestOptions) {
@@ -250,18 +239,11 @@ export function buildClaudeCodeCompatibleRequest({
     : Array.isArray(normalized.messages)
       ? buildClaudeCodeCompatibleMessages(normalized.messages as MessageLike[])
       : [];
-  const allMessages = (preparedClaudeBody?.messages || normalized.messages || []) as Array<{
-    role?: string;
-    content?: unknown;
-  }>;
-  const billingHeader = buildBillingHeader(allMessages);
   const system = buildClaudeCodeCompatibleSystemBlocks({
     messages: normalized.messages as MessageLike[],
     systemBlocks: preparedClaudeBody?.system as Record<string, unknown>[] | undefined,
-    cwd,
-    now,
     preserveCacheControl,
-    billingHeader,
+    injectDefaultSkeleton: !preparedClaudeBody,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
@@ -278,37 +260,35 @@ export function buildClaudeCodeCompatibleRequest({
           normalizedBody?.["tool_choice"] ?? sourceBody?.["tool_choice"]
         )
       : undefined;
+  const metadata = resolveClaudeCodeCompatibleMetadata({
+    claudeBody,
+    sourceBody,
+    normalizedBody,
+    cwd,
+    sessionId: resolvedSessionId,
+  });
+  const thinking = resolveClaudeCodeCompatibleThinking({
+    claudeBody: preparedClaudeBody ?? claudeBody,
+    sourceBody,
+    normalizedBody,
+  });
+  const outputConfig = resolveClaudeCodeCompatibleOutputConfig({
+    claudeBody,
+    sourceBody,
+    normalizedBody,
+    model,
+    effort,
+  });
 
   return {
     model,
     messages,
     system,
     tools,
-    metadata: {
-      user_id: JSON.stringify({
-        device_id: createHash("sha256")
-          .update(String(cwd || ""))
-          .digest("hex")
-          .slice(0, 24),
-        account_uuid: "",
-        session_id: resolvedSessionId,
-      }),
-    },
+    metadata,
     max_tokens: maxTokens,
-    thinking: {
-      type: "adaptive",
-    },
-    context_management: {
-      edits: [
-        {
-          type: "clear_thinking_20251015",
-          keep: "all",
-        },
-      ],
-    },
-    output_config: {
-      effort,
-    },
+    thinking,
+    output_config: outputConfig,
     ...(toolChoice ? { tool_choice: toolChoice } : {}),
     ...(stream ? { stream: true } : {}),
   };
@@ -394,7 +374,9 @@ export function resolveClaudeCodeCompatibleEffort(
 
   const normalizedEffort = raw.toLowerCase();
 
-  if (!normalizedEffort) return "high";
+  if (!normalizedEffort) {
+    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+  }
   if (normalizedEffort === "low") return "low";
   if (normalizedEffort === "medium") return "medium";
   if (normalizedEffort === "high") return "high";
@@ -403,9 +385,9 @@ export function resolveClaudeCodeCompatibleEffort(
     return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
   }
   if (normalizedEffort === "max") {
-    return "high";
+    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
   }
-  return "high";
+  return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
 }
 
 export function resolveClaudeCodeCompatibleMaxTokens(
@@ -544,48 +526,35 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
 function buildClaudeCodeCompatibleSystemBlocks({
   messages,
   systemBlocks,
-  cwd,
-  now,
   preserveCacheControl,
-  billingHeader,
+  injectDefaultSkeleton,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
-  cwd: string;
-  now: Date;
   preserveCacheControl: boolean;
-  billingHeader: string;
+  injectDefaultSkeleton: boolean;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
       ? systemBlocks.map((block) => ({ ...block }))
       : extractCustomSystemBlocks(messages);
 
-  const dateText = formatDate(now);
-  const blocks: Array<Record<string, unknown>> = [
-    {
-      type: "text",
-      text: billingHeader,
-    },
-    {
-      type: "text",
-      text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
-    },
-    {
-      type: "text",
-      text: `You are Claude Code, Anthropic's official CLI for Claude.\n\nCWD: ${cwd}\nDate: ${dateText}`,
-    },
-  ];
-
-  for (const systemBlock of customSystemBlocks) {
+  const preparedCustomSystemBlocks = customSystemBlocks.map((systemBlock) => {
     const preparedBlock = { ...systemBlock } as Record<string, unknown>;
     if (!preserveCacheControl) {
       delete preparedBlock["cache_control"];
     }
-    blocks.push(preparedBlock);
+    return preparedBlock;
+  });
+
+  if (!injectDefaultSkeleton) {
+    return preparedCustomSystemBlocks;
   }
 
-  return blocks;
+  return [
+    ...CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS.map((block) => ({ ...block })),
+    ...preparedCustomSystemBlocks,
+  ];
 }
 
 function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefined) {
@@ -838,6 +807,86 @@ function stripCacheControlFromContentBlocks(content: Array<Record<string, unknow
   }
 }
 
+function resolveClaudeCodeCompatibleMetadata({
+  claudeBody,
+  sourceBody,
+  normalizedBody,
+  cwd,
+  sessionId,
+}: {
+  claudeBody?: Record<string, unknown> | null;
+  sourceBody?: Record<string, unknown> | null;
+  normalizedBody?: Record<string, unknown> | null;
+  cwd: string;
+  sessionId: string;
+}) {
+  const metadata =
+    readRecord(cloneValue(claudeBody?.metadata)) ||
+    readRecord(cloneValue(sourceBody?.metadata)) ||
+    readRecord(cloneValue(normalizedBody?.metadata)) ||
+    {};
+
+  if (!toNonEmptyString(metadata.user_id)) {
+    metadata.user_id = JSON.stringify({
+      device_id: createHash("sha256")
+        .update(String(cwd || ""))
+        .digest("hex"),
+      account_uuid: "",
+      session_id: sessionId,
+    });
+  }
+
+  return metadata;
+}
+
+function resolveClaudeCodeCompatibleThinking({
+  claudeBody,
+  sourceBody,
+  normalizedBody,
+}: {
+  claudeBody?: Record<string, unknown> | null;
+  sourceBody?: Record<string, unknown> | null;
+  normalizedBody?: Record<string, unknown> | null;
+}) {
+  const thinking =
+    readRecord(cloneValue(claudeBody?.thinking)) ||
+    readRecord(cloneValue(sourceBody?.thinking)) ||
+    readRecord(cloneValue(normalizedBody?.thinking));
+
+  if (thinking) {
+    return thinking;
+  }
+
+  return {
+    type: "adaptive",
+  };
+}
+
+function resolveClaudeCodeCompatibleOutputConfig({
+  claudeBody,
+  sourceBody,
+  normalizedBody,
+  model,
+  effort,
+}: {
+  claudeBody?: Record<string, unknown> | null;
+  sourceBody?: Record<string, unknown> | null;
+  normalizedBody?: Record<string, unknown> | null;
+  model?: string | null;
+  effort: "low" | "medium" | "high" | "xhigh";
+}) {
+  const outputConfig =
+    readRecord(cloneValue(claudeBody?.output_config)) ||
+    readRecord(cloneValue(sourceBody?.output_config)) ||
+    readRecord(cloneValue(normalizedBody?.output_config)) ||
+    {};
+
+  return {
+    ...outputConfig,
+    effort: resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model) || effort,
+  };
+}
+
 function cloneValue<T>(value: T): T {
   if (typeof structuredClone === "function") {
     return structuredClone(value);
@@ -891,20 +940,6 @@ function getHeader(headers: HeaderLike, name: string): string | null {
     }
   }
   return null;
-}
-
-function formatDate(date: Date): string {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  const parts = formatter.formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value || "1970";
-  const month = parts.find((part) => part.type === "month")?.value || "01";
-  const day = parts.find((part) => part.type === "day")?.value || "01";
-  return `${year}-${month}-${day}`;
 }
 
 function toNonEmptyString(value: unknown): string | null {

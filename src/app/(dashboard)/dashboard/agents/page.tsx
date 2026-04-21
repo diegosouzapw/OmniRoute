@@ -62,8 +62,7 @@ export default function AgentsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [settings, setSettings] = useState<Record<string, any>>({});
-  const [opencodeConfigLoading, setOpencodeConfigLoading] = useState(false);
-  const [opencodeConfigDone, setOpencodeConfigDone] = useState(false);
+
   const [newAgent, setNewAgent] = useState({
     name: "",
     binary: "",
@@ -187,6 +186,20 @@ export default function AgentsPage() {
           <span className="material-symbols-outlined text-[16px] mr-1">refresh</span>
           {t("refresh")}
         </Button>
+      </div>
+
+      {/* Banner de redirecionamento */}
+      <div className="bg-blue-500/10 border-l-4 border-blue-500 p-4 rounded-r-lg flex items-center justify-between mb-2">
+        <p className="text-sm text-text-main flex items-center gap-2">
+          <span className="material-symbols-outlined text-blue-500 text-lg">info</span>
+          {t("misplacedWarning")}
+        </p>
+        <Link
+          href="/dashboard/cli-tools"
+          className="text-sm font-bold text-blue-500 hover:text-blue-400 hover:underline transition-colors"
+        >
+          {t("misplacedWarningLink")}
+        </Link>
       </div>
 
       {/* Summary Cards */}
@@ -385,92 +398,6 @@ export default function AgentsPage() {
           </Card>
         ))}
       </div>
-
-      {/* OpenCode Config Generator — shown only when opencode is detected */}
-      {agents.find((a) => a.id === "opencode" && a.installed) && (
-        <Card>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500 shrink-0">
-              <span className="material-symbols-outlined text-[20px]">code_blocks</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-base font-semibold">{t("opencodeIntegration")}</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
-                  {t("opencodeDetected", {
-                    version: agents.find((a) => a.id === "opencode")?.version || "",
-                  })}
-                </span>
-              </div>
-              <p className="text-sm text-text-muted mb-3">
-                {t("opencodeDesc", {
-                  configFile: "opencode.json",
-                  command: "opencode",
-                })}
-              </p>
-              <Button
-                variant="secondary"
-                loading={opencodeConfigLoading}
-                onClick={async () => {
-                  setOpencodeConfigLoading(true);
-                  setOpencodeConfigDone(false);
-                  try {
-                    // Fetch available models
-                    const modelsRes = await fetch("/v1/models");
-                    const modelsData = modelsRes.ok ? await modelsRes.json() : { data: [] };
-                    const models: Record<string, { name: string }> = {};
-                    for (const m of modelsData.data || []) {
-                      models[m.id] = { name: m.id };
-                    }
-                    // Build opencode.json
-                    const baseURL = window.location.origin + "/v1";
-                    const config = {
-                      $schema: "https://opencode.ai/config.json",
-                      provider: {
-                        omniroute: {
-                          npm: "@ai-sdk/openai-compatible",
-                          name: "OmniRoute",
-                          options: {
-                            baseURL,
-                            apiKey: "YOUR_OMNIROUTE_API_KEY",
-                          },
-                          models:
-                            Object.keys(models).length > 0
-                              ? models
-                              : { "gpt-4o": { name: "gpt-4o" } },
-                        },
-                      },
-                    };
-                    // Download as file
-                    const blob = new Blob([JSON.stringify(config, null, 2)], {
-                      type: "application/json",
-                    });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "opencode.json";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    setOpencodeConfigDone(true);
-                    setTimeout(() => setOpencodeConfigDone(false), 3000);
-                  } catch (err) {
-                    console.error("Failed to generate opencode.json:", err);
-                  } finally {
-                    setOpencodeConfigLoading(false);
-                  }
-                }}
-              >
-                <span className="material-symbols-outlined text-[16px] mr-1">
-                  {opencodeConfigDone ? "check" : "download"}
-                </span>
-                {opencodeConfigDone
-                  ? t("downloaded")
-                  : t("downloadConfig", { file: "opencode.json" })}
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
 
       {/* Add Custom Agent */}
       <Card>

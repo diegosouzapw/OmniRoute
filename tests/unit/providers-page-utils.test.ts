@@ -42,6 +42,12 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   );
 });
 
+test("free providers can explicitly opt into API key flows", () => {
+  assert.equal(providers.supportsApiKeyOnFreeProvider("qoder"), true);
+  assert.equal(providers.supportsApiKeyOnFreeProvider("gradient"), true);
+  assert.equal(providers.supportsApiKeyOnFreeProvider("kiro"), false);
+});
+
 test("configured-only filter keeps only providers with saved connections", () => {
   const entries = [
     {
@@ -163,6 +169,52 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
     webCookieEntries.some((entry) => entry.providerId === "grok-web"),
     true
   );
+});
+
+test("amp taxonomy stays API key only and resolves as a managed provider entry", () => {
+  assert.equal("amp" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("amp" in providers.OAUTH_PROVIDERS, false);
+
+  const ampProvider = providerPageUtils.resolveDashboardProviderInfo("amp");
+
+  assert.equal(ampProvider?.category, "apikey");
+  assert.equal(ampProvider?.displayAuthType, "apikey");
+  assert.equal(ampProvider?.toggleAuthType, "apikey");
+});
+
+test("zed and trae stay in the OAuth taxonomy with dashboard metadata", () => {
+  assert.equal("zed" in providers.OAUTH_PROVIDERS, true);
+  assert.equal("trae" in providers.OAUTH_PROVIDERS, true);
+  assert.equal("zed" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("trae" in providers.APIKEY_PROVIDERS, false);
+
+  const zedProvider = providerPageUtils.resolveDashboardProviderInfo("zed");
+  const traeProvider = providerPageUtils.resolveDashboardProviderInfo("trae");
+
+  assert.equal(zedProvider?.category, "oauth");
+  assert.equal(zedProvider?.displayAuthType, "oauth");
+  assert.equal(traeProvider?.category, "oauth");
+  assert.equal(traeProvider?.displayAuthType, "oauth");
+});
+
+test("zed quota summary keeps billing data compact for the dashboard row", () => {
+  const summary = providerPageUtils.summarizeZedQuota({
+    zedQuota: {
+      planRaw: "token_based_zed_student",
+      tokenSpendUsedCents: 1000,
+      tokenSpendLimitCents: 2500,
+      editPredictionsUsed: 26,
+      billingPortalUrl: "https://portal.withorb.com/view?token=zed",
+    },
+  });
+
+  assert.deepEqual(summary, {
+    planLabel: "token based zed student",
+    spendLabel: "Spend $10.00 / $25.00",
+    editPredictionsLabel: "Edits 26 used",
+    isAccountTooYoung: false,
+    billingPortalUrl: "https://portal.withorb.com/view?token=zed",
+  });
 });
 
 test("compatible catalog entries keep dynamic compatible metadata", () => {

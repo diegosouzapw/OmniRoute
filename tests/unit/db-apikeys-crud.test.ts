@@ -113,6 +113,19 @@ test("validateApiKey and deleteApiKey stay consistent after cache invalidation",
   assert.equal(await apiKeysDb.getApiKeyMetadata(created.key), null);
 });
 
+test("validateApiKey rejects expired temporary keys even while the cache entry is still warm", async () => {
+  const created = await apiKeysDb.createApiKey("Temporary", "machine-303");
+  const db = core.getDbInstance();
+
+  db.prepare("UPDATE api_keys SET expires_at = ? WHERE id = ?").run(Date.now() + 25, created.id);
+
+  assert.equal(await apiKeysDb.validateApiKey(created.key), true);
+
+  await new Promise((resolve) => setTimeout(resolve, 60));
+
+  assert.equal(await apiKeysDb.validateApiKey(created.key), false);
+});
+
 test("isModelAllowedForKey supports exact, prefix and wildcard rules", async () => {
   const unrestricted = await apiKeysDb.createApiKey("Unrestricted", "machine-303");
   const restricted = await apiKeysDb.createApiKey("Restricted", "machine-303");

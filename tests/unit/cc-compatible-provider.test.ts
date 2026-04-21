@@ -120,12 +120,12 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   assert.equal(payload.messages[0].content.at(-1).cache_control, undefined);
   assert.equal(payload.messages[1].content.at(-1).cache_control, undefined);
   assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
-  assert.equal(payload.system.length, 4);
-  assert.equal(payload.system.at(-1).text, "sys");
+  assert.equal(payload.system.length, 2);
+  assert.match(payload.system[0].text, /Claude Agent SDK/);
   assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.system[2].cache_control, undefined);
-  assert.equal(payload.system[3].cache_control, undefined);
+  assert.equal(payload.system[1].text, "sys");
+  assert.equal(payload.system[1].cache_control, undefined);
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_weather",
@@ -139,7 +139,7 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
     },
   });
   assert.deepEqual(payload.tool_choice, { type: "any" });
-  assert.equal(payload.context_management.edits[0].type, "clear_thinking_20251015");
+  assert.equal(payload.context_management, undefined);
   assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
 });
 
@@ -212,8 +212,7 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     preserveCacheControl: true,
   });
 
-  assert.equal(payload.system[0].cache_control, undefined);
-  assert.deepEqual(payload.system.at(-1).cache_control, { type: "ephemeral", ttl: "5m" });
+  assert.deepEqual(payload.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
   assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content[0].cache_control, {
     type: "ephemeral",
@@ -294,11 +293,8 @@ test("buildClaudeCodeCompatibleRequest keeps built-in system blocks untagged whe
     preserveCacheControl: true,
   });
 
-  assert.equal(payload.system[0].cache_control, undefined);
-  assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.system[2].cache_control, undefined);
-  assert.deepEqual(payload.system[3].cache_control, { type: "ephemeral" });
-  assert.deepEqual(payload.system[4].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual(payload.system[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.system[1].cache_control, { type: "ephemeral", ttl: "1h" });
 });
 
 test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserve mode", () => {
@@ -325,10 +321,9 @@ test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserv
     preserveCacheControl: false,
   });
 
+  assert.equal(payload.system.length, 2);
   assert.equal(payload.system[0].cache_control, undefined);
   assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.system[2].cache_control, undefined);
-  assert.equal(payload.system[3].cache_control, undefined);
   assert.equal(payload.messages[0].content[0].cache_control, undefined);
   assert.equal(payload.messages[1].content[0].cache_control, undefined);
   assert.equal(payload.messages[2].content[0].cache_control, undefined);
@@ -436,10 +431,10 @@ test("DefaultExecutor uses CC-compatible path and headers", () => {
   );
 
   const headers = executor.buildHeaders(credentials, true);
-  assert.equal(headers["x-api-key"], "sk-test");
+  assert.equal(headers.Authorization, "Bearer sk-test");
+  assert.equal(headers["x-api-key"], undefined);
   assert.equal(headers["X-Claude-Code-Session-Id"], "session-3");
-  assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers.Authorization, undefined);
+  assert.equal(headers.Accept, "application/json");
 });
 
 test("validateProviderApiKey uses CC skeleton request after /models fallback", async () => {
@@ -478,8 +473,9 @@ test("validateProviderApiKey uses CC skeleton request after /models fallback", a
   assert.equal(calls[1].body.model, "claude-sonnet-4-6");
   assert.equal(calls[1].body.messages[0].role, "user");
   assert.equal(calls[1].body.stream, true);
-  assert.equal(calls[1].headers["x-api-key"], "sk-test");
-  assert.equal(calls[1].headers.Accept, "text/event-stream");
+  assert.equal(calls[1].headers.Authorization, "Bearer sk-test");
+  assert.equal(calls[1].headers["x-api-key"], undefined);
+  assert.equal(calls[1].headers.Accept, "application/json");
 });
 
 test("handleChatCore forces SSE upstream for CC compatible providers while returning JSON to non-stream clients", async () => {
@@ -557,7 +553,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].headers.Accept, "text/event-stream");
+  assert.equal(calls[0].headers.Accept, "application/json");
   assert.equal(calls[0].body.stream, true);
   assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
 
@@ -671,8 +667,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].body.system[0].cache_control, undefined);
-  assert.deepEqual(calls[0].body.system.at(-1).cache_control, {
+  assert.deepEqual(calls[0].body.system[0].cache_control, {
     type: "ephemeral",
     ttl: "5m",
   });

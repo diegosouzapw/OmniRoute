@@ -246,6 +246,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "Play3.0-mini", name: "Play3.0 Mini" },
     ],
   },
+
+  "aws-polly": {
+    id: "aws-polly",
+    baseUrl: "https://polly.us-east-1.amazonaws.com/v1/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "aws-polly",
+    models: [
+      { id: "standard", name: "AWS Polly Standard" },
+      { id: "neural", name: "AWS Polly Neural" },
+      { id: "long-form", name: "AWS Polly Long Form" },
+      { id: "generative", name: "AWS Polly Generative" },
+    ],
+  },
 };
 
 /**

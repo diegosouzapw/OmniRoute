@@ -40,6 +40,8 @@ import {
   getSessionSnapshotInput,
   dbHealthCheckInput,
   syncPricingInput,
+  cacheStatsInput,
+  cacheFlushInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
@@ -62,6 +64,8 @@ import {
   handleGetSessionSnapshot,
   handleDbHealthCheck,
   handleSyncPricing,
+  handleCacheStats,
+  handleCacheFlush,
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
@@ -800,6 +804,29 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_web_search", (args) =>
       handleWebSearch(webSearchInput.parse(args))
+    )
+  );
+
+  // ── Cache Tools ──────────────────────────────
+  server.registerTool(
+    "omniroute_cache_stats",
+    {
+      description:
+        "Returns cache statistics including semantic cache hit rate, prompt cache metrics by provider, and idempotency layer stats.",
+      inputSchema: cacheStatsInput,
+    },
+    withScopeEnforcement("omniroute_cache_stats", () => handleCacheStats())
+  );
+
+  server.registerTool(
+    "omniroute_cache_flush",
+    {
+      description:
+        "Flush cache entries. Provide signature to invalidate a single entry, model to invalidate all entries for a model, or omit both to clear all.",
+      inputSchema: cacheFlushInput,
+    },
+    withScopeEnforcement("omniroute_cache_flush", (args) =>
+      handleCacheFlush(cacheFlushInput.parse(args))
     )
   );
 

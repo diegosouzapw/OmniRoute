@@ -52,19 +52,19 @@ Before creating the release, you must ensure the codebase and supply chain are s
 git checkout -b release/v2.x.y
 ```
 
-### 2. Determine new version
+### 2. Determine and sync version
 
-Check current version in `package.json` and increment the **patch** number only:
+Check current version in `package.json`:
 
 ```bash
 grep '"version"' package.json
 ```
 
-Version format: `2.x.y` — examples:
-
-- `2.1.2` → `2.1.3` (patch)
-- `2.1.9` → `2.1.10` (patch)
-- `2.1.10` → `2.2.0` (minor threshold — do manually with `sed`)
+> **🔴 BRANCH-VERSION PARITY RULE**: The logical version in `package.json` MUST exactly match the release branch name. For example, if you are on `release/v3.7.0`, the version in `package.json` MUST be `3.7.0`.
+>
+> - If this is the FIRST time generating a release for a new minor/major branch (e.g., bumping from 3.6.9 to 3.7.0), you MUST ensure the version is bumped to match the new branch logic.
+> - If you are just bumping a patch on the current branch (e.g., 3.6.9 to 3.6.10), use:
+>   `npm version patch --no-git-tag-version`
 
 > **⚠️ ATOMIC COMMIT RULE — Version bump MUST happen before committing feature files.**
 >
@@ -97,15 +97,29 @@ npm install
 
 ### 4. Finalize CHANGELOG.md
 
-Replace `[Unreleased]` header with the new version and date.
-Keep an empty `## [Unreleased]` section above it.
+> **🔴 NO MIXUPS RULE**: Ensure you do NOT mix the backlog of the previous version with the new one. The new version section must ONLY contain the features and fixes for the current release.
+
+Replace the `[Unreleased]` header with the new version and date.
+Keep an empty `## [Unreleased]` section above it, separated by a horizontal rule (`---`).
 
 ```markdown
 ## [Unreleased]
 
 ---
 
-## [2.x.y] — YYYY-MM-DD
+## [3.7.0] — 2026-04-19
+
+### ✨ New Features
+
+- ...
+
+### 🐛 Bug Fixes
+
+- ...
+
+---
+
+## [3.6.9] — 2026-04-19
 ```
 
 ### 5. Update openapi.yaml version ⚠️ MANDATORY
@@ -159,21 +173,29 @@ git push origin release/v2.x.y
 
 ### 9. Open PR to main
 
+### 9. Open PR to main
+
+// turbo
+
 ```bash
+VERSION=$(node -p "require('./package.json').version")
+
+# Extract the exact changelog entry for this version from the root CHANGELOG.md
+awk "/^## \\[$VERSION\\]/{flag=1; print; next} /^---/{if(flag) {flag=0; exit}} flag" CHANGELOG.md > /tmp/changelog_body.txt
+
+# Append test status and next steps
+echo "" >> /tmp/changelog_body.txt
+echo "### Tests" >> /tmp/changelog_body.txt
+echo "- All tests pass" >> /tmp/changelog_body.txt
+echo "" >> /tmp/changelog_body.txt
+echo "### ⚠️ After merging: run Phase 2 steps to tag, publish, and deploy." >> /tmp/changelog_body.txt
+
 gh pr create \
   --repo diegosouzapw/OmniRoute \
   --base main \
-  --head release/v2.x.y \
-  --title "chore(release): v2.x.y — summary" \
-  --body "## 🚀 Release v2.x.y
-
-### Changes
-...
-
-### Tests
-- X/X tests pass
-
-### ⚠️ After merging: run Phase 2 steps to tag, publish, and deploy."
+  --head release/v$VERSION \
+  --title "Release v$VERSION" \
+  --body-file /tmp/changelog_body.txt
 ```
 
 ### 10. 🛑 STOP — Notify User & Await PR Confirmation
@@ -258,10 +280,10 @@ curl -s -o /dev/null -w "LOCAL:  HTTP %{http_code}\n" http://192.168.0.15:20128/
 curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
 ```
 
-### 16. Clean up release branch
+### 16. Preserve release branch
 
 ```bash
-git branch -d release/v2.x.y
+# Branch is kept for historical purposes. Do not delete.
 ```
 
 ---

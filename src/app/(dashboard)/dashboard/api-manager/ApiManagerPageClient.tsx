@@ -71,6 +71,8 @@ interface ApiKey {
   isActive?: boolean;
   maxSessions?: number;
   accessSchedule?: AccessSchedule | null;
+  mcpScopes?: string[];
+  expiresAt?: number | null;
   createdAt: string;
 }
 
@@ -103,6 +105,7 @@ export default function ApiManagerPageClient() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [expirationHours, setExpirationHours] = useState<number>(0);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -183,15 +186,12 @@ export default function ApiManagerPageClient() {
 
       for (const key of apiKeys) {
         // Match analytics entry by key name (reliable across both systems)
-        const analyticsMatch = byApiKey.find(
-          (entry: any) => entry.apiKeyName === key.name
-        );
+        const analyticsMatch = byApiKey.find((entry: any) => entry.apiKeyName === key.name);
 
         // The call-logs endpoint returns entries sorted by timestamp DESC,
         // so the first match is the most recent one.
-        const lastUsed = (logs || []).find(
-          (log: any) => log.apiKeyName === key.name
-        )?.timestamp || null;
+        const lastUsed =
+          (logs || []).find((log: any) => log.apiKeyName === key.name)?.timestamp || null;
 
         stats[key.id] = {
           totalRequests: analyticsMatch?.requests ?? 0,
@@ -248,7 +248,10 @@ export default function ApiManagerPageClient() {
       const res = await fetch("/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: sanitizedName }),
+        body: JSON.stringify({
+          name: sanitizedName,
+          expiresInHours: expirationHours > 0 ? expirationHours : null,
+        }),
       });
       const data = await res.json();
 
@@ -256,6 +259,7 @@ export default function ApiManagerPageClient() {
         setCreatedKey(data.key);
         await fetchData();
         setNewKeyName("");
+        setExpirationHours(0);
         setShowAddModal(false);
       } else {
         setError(data.error || t("failedCreateKey"));
@@ -328,7 +332,8 @@ export default function ApiManagerPageClient() {
     autoResolve: boolean,
     isActive: boolean,
     maxSessions: number,
-    accessSchedule: AccessSchedule | null
+    accessSchedule: AccessSchedule | null,
+    mcpScopes: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -373,6 +378,7 @@ export default function ApiManagerPageClient() {
           isActive,
           maxSessions: normalizedMaxSessions,
           accessSchedule,
+          mcpScopes,
         }),
       });
 
@@ -675,6 +681,20 @@ export default function ApiManagerPageClient() {
                           {t("scheduleActive")}
                         </span>
                       )}
+                      {key.expiresAt && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${
+                            Date.now() > key.expiresAt
+                              ? "bg-red-500/10 text-red-500"
+                              : "bg-blue-500/10 text-blue-500"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">timer</span>
+                          {Date.now() > key.expiresAt
+                            ? "Expired"
+                            : new Date(key.expiresAt).toLocaleDateString()}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="col-span-2 flex flex-col justify-center">
@@ -753,6 +773,7 @@ export default function ApiManagerPageClient() {
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
+          setExpirationHours(0);
         }}
       >
         <div className="flex flex-col gap-4">
@@ -768,11 +789,30 @@ export default function ApiManagerPageClient() {
             />
             <p className="text-xs text-text-muted mt-1.5">{t("keyNameDesc")}</p>
           </div>
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1.5 block">
+              Expiration Time
+            </label>
+            <select
+              value={expirationHours}
+              onChange={(e) => setExpirationHours(Number(e.target.value))}
+              className="w-full h-10 px-3 bg-surface border border-border rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+            >
+              <option value={0}>Never Expires</option>
+              <option value={24}>24 Hours</option>
+              <option value={168}>7 Days</option>
+              <option value={720}>30 Days</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1.5">
+              Temporary tokens are perfect for giving A2A agents safe access.
+            </p>
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={() => {
                 setShowAddModal(false);
                 setNewKeyName("");
+                setExpirationHours(0);
               }}
               variant="ghost"
               fullWidth
@@ -868,7 +908,8 @@ const PermissionsModal = memo(function PermissionsModal({
     autoResolve: boolean,
     isActive: boolean,
     maxSessions: number,
-    accessSchedule: AccessSchedule | null
+    accessSchedule: AccessSchedule | null,
+    mcpScopes: string[]
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -898,6 +939,9 @@ const PermissionsModal = memo(function PermissionsModal({
   );
   const [selectedConnections, setSelectedConnections] = useState<string[]>(initialConnections);
   const [allowAllConnections, setAllowAllConnections] = useState(initialConnections.length === 0);
+  const [selectedMcpScopes, setSelectedMcpScopes] = useState<string[]>(
+    Array.isArray(apiKey?.mcpScopes) ? apiKey.mcpScopes : []
+  );
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => {
     // Expand all providers by default when in restrict mode with existing selections
     if (initialModels.length > 0) {
@@ -999,7 +1043,8 @@ const PermissionsModal = memo(function PermissionsModal({
       autoResolveEnabled,
       keyIsActive,
       maxSessions,
-      schedule
+      schedule,
+      selectedMcpScopes
     );
   }, [
     onSave,
@@ -1016,6 +1061,7 @@ const PermissionsModal = memo(function PermissionsModal({
     scheduleUntil,
     scheduleDays,
     scheduleTz,
+    selectedMcpScopes,
   ]);
 
   const selectedCount = selectedModels.length;
@@ -1221,6 +1267,38 @@ const PermissionsModal = memo(function PermissionsModal({
               </div>
             </div>
           )}
+        </div>
+
+        {/* MCP Server Scopes */}
+        <div className="mt-6 border-t border-border pt-4">
+          <h4 className="font-semibold text-sm mb-3 text-text-main flex items-center gap-2">
+            <span className="material-symbols-outlined text-purple-500 text-lg">extension</span>
+            MCP Server Scopes
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { id: "mcp:core", label: "Core MCP Functions" },
+              { id: "mcp:memory", label: "Memory Storage" },
+              { id: "mcp:skills", label: "Agent Skills" },
+              { id: "mcp:advanced", label: "Advanced Routing" },
+            ].map((scope) => (
+              <label
+                key={scope.id}
+                className="flex items-center gap-2 p-3 border border-border rounded-lg hover:bg-surface/50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedMcpScopes.includes(scope.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelectedMcpScopes([...selectedMcpScopes, scope.id]);
+                    else setSelectedMcpScopes(selectedMcpScopes.filter((s) => s !== scope.id));
+                  }}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-surface border-border"
+                />
+                <span className="text-sm font-medium">{scope.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Privacy Toggle */}

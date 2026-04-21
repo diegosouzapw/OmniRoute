@@ -28,6 +28,7 @@ export default function AuditLogTab() {
   const [actorFilter, setActorFilter] = useState("");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
   const t = useTranslations("logs");
 
   const fetchEntries = useCallback(async () => {
@@ -71,6 +72,8 @@ export default function AuditLogTab() {
   };
 
   const actionBadgeColor = (action: string) => {
+    if (action.includes("security") || action.includes("warning"))
+      return "bg-yellow-500/15 text-yellow-400 border-yellow-500/20 font-bold";
     if (action.includes("delete") || action.includes("remove"))
       return "bg-red-500/15 text-red-400 border-red-500/20";
     if (action.includes("create") || action.includes("add"))
@@ -194,8 +197,20 @@ export default function AuditLogTab() {
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[200px] truncate">
                     {entry.target || t("notAvailable")}
                   </td>
-                  <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[300px] truncate font-mono text-xs">
-                    {entry.details ? JSON.stringify(entry.details) : t("notAvailable")}
+                  <td className="px-4 py-3">
+                    {entry.details ? (
+                      <button
+                        onClick={() => setSelectedEntry(entry)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-accent)] hover:bg-[var(--color-bg-alt)] transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">visibility</span>
+                        {t("viewDetails")}
+                      </button>
+                    ) : (
+                      <span className="text-[var(--color-text-muted)] text-xs">
+                        {t("notAvailable")}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">
                     {entry.ip_address || t("notAvailable")}
@@ -229,6 +244,103 @@ export default function AuditLogTab() {
           </button>
         </div>
       </div>
+
+      {/* View Details Modal */}
+      {selectedEntry && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setSelectedEntry(null)}
+        >
+          <div
+            className="bg-[var(--color-bg)] border border-[var(--color-border)] rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[20px] text-[var(--color-accent)]">
+                  policy
+                </span>
+                <div>
+                  <h3 className="text-base font-semibold text-[var(--color-text-main)]">
+                    {t("auditEntryDetails")}
+                  </h3>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                    ID: {selectedEntry.id}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedEntry(null)}
+                className="p-1.5 rounded-lg hover:bg-[var(--color-surface)] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px] text-[var(--color-text-muted)]">
+                  close
+                </span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4">
+              {/* Meta Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-[var(--color-surface)] p-3 border border-[var(--color-border)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                    {t("action")}
+                  </p>
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${actionBadgeColor(selectedEntry.action)}`}
+                  >
+                    {selectedEntry.action}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-[var(--color-surface)] p-3 border border-[var(--color-border)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                    {t("timestamp")}
+                  </p>
+                  <p className="text-sm text-[var(--color-text-main)] font-mono">
+                    {formatTimestamp(selectedEntry.timestamp)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-[var(--color-surface)] p-3 border border-[var(--color-border)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                    {t("actor")}
+                  </p>
+                  <p className="text-sm text-[var(--color-text-main)]">{selectedEntry.actor}</p>
+                </div>
+                <div className="rounded-lg bg-[var(--color-surface)] p-3 border border-[var(--color-border)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                    {t("target")}
+                  </p>
+                  <p className="text-sm text-[var(--color-text-main)]">
+                    {selectedEntry.target || t("notAvailable")}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-[var(--color-surface)] p-3 border border-[var(--color-border)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                    {t("ipAddress")}
+                  </p>
+                  <p className="text-sm text-[var(--color-text-main)] font-mono">
+                    {selectedEntry.ip_address || t("notAvailable")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Details JSON */}
+              {selectedEntry.details && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
+                    {t("details")}
+                  </p>
+                  <pre className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] p-4 overflow-x-auto text-xs font-mono text-[var(--color-text-main)] leading-relaxed max-h-[40vh]">
+                    {JSON.stringify(selectedEntry.details, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

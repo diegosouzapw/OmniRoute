@@ -1,6 +1,7 @@
 import {
   isAccountDeactivated,
   isCreditsExhausted,
+  isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
 
@@ -100,7 +101,11 @@ export function classifyProviderError(statusCode: number, responseBody: unknown)
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
+  // 429: Check if it's a daily quota exhaustion (lock until tomorrow) vs regular rate limit
   if (statusCode === 429) {
+    if (isDailyQuotaExhausted(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+    }
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
   }
 

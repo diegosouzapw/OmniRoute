@@ -71,6 +71,7 @@ interface BuildHealthPayloadOptions {
   connections: Array<{ provider?: string; isActive?: boolean | null }>;
   circuitBreakers: CircuitBreakerStatus[];
   rateLimitStatus: JsonRecord;
+  learnedLimits?: JsonRecord;
   lockouts: JsonRecord;
   localProviders: JsonRecord;
   inflightRequests: number;
@@ -137,6 +138,7 @@ export function buildHealthPayload({
   connections,
   circuitBreakers,
   rateLimitStatus,
+  learnedLimits,
   lockouts,
   localProviders,
   inflightRequests,
@@ -206,6 +208,7 @@ export function buildHealthPayload({
     },
     localProviders,
     rateLimitStatus,
+    learnedLimits,
     lockouts,
     quotaMonitor: {
       ...quotaMonitorSummary,

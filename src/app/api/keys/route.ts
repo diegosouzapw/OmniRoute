@@ -61,11 +61,11 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, noLog } = validation.data;
+    const { name, noLog, expiresInHours } = validation.data;
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
-    const apiKey = await createApiKey(name, machineId);
+    const apiKey = await createApiKey(name, machineId, expiresInHours);
     if (noLog === true) {
       await updateApiKeyPermissions(apiKey.id, { noLog: true });
     }

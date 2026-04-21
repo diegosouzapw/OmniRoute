@@ -109,9 +109,21 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "openai/text-embedding-3-small", name: "Text Embedding 3 Small (OpenRouter)", dimensions: 1536 },
-      { id: "openai/text-embedding-3-large", name: "Text Embedding 3 Large (OpenRouter)", dimensions: 3072 },
-      { id: "openai/text-embedding-ada-002", name: "Text Embedding Ada 002 (OpenRouter)", dimensions: 1536 },
+      {
+        id: "openai/text-embedding-3-small",
+        name: "Text Embedding 3 Small (OpenRouter)",
+        dimensions: 1536,
+      },
+      {
+        id: "openai/text-embedding-3-large",
+        name: "Text Embedding 3 Large (OpenRouter)",
+        dimensions: 3072,
+      },
+      {
+        id: "openai/text-embedding-ada-002",
+        name: "Text Embedding Ada 002 (OpenRouter)",
+        dimensions: 1536,
+      },
     ],
   },
 
@@ -123,6 +135,19 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     models: [
       { id: "text-embedding-3-small", name: "Text Embedding 3 Small (GitHub)", dimensions: 1536 },
       { id: "text-embedding-3-large", name: "Text Embedding 3 Large (GitHub)", dimensions: 3072 },
+    ],
+  },
+
+  voyage: {
+    id: "voyage",
+    baseUrl: "https://api.voyageai.com/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "voyage-3-large", name: "Voyage 3 Large" },
+      { id: "voyage-3", name: "Voyage 3" },
+      { id: "voyage-3-lite", name: "Voyage 3 Lite" },
+      { id: "voyage-code-3", name: "Voyage Code 3" },
     ],
   },
 };

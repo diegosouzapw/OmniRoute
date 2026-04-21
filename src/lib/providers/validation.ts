@@ -21,6 +21,57 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { buildAmpChatUrl, getAmpBaseUrl } from "@omniroute/open-sse/executors/amp.ts";
+import {
+  buildAzureAiHeaders,
+  buildAzureAiUrl,
+  getAzureAiApiVersion,
+  getAzureAiBaseUrl,
+} from "@omniroute/open-sse/executors/azure-ai.ts";
+import {
+  buildAzureOpenAIHeaders,
+  buildAzureOpenAIUrl,
+  getAzureOpenAIApiVersion,
+  getAzureOpenAIBaseUrl,
+  resolveAzureOpenAIDeployment,
+  stripAzureOpenAIRegionalPrefix,
+} from "@omniroute/open-sse/executors/azure-openai.ts";
+import { buildBedrockUrl, getBedrockBaseUrl } from "@omniroute/open-sse/executors/bedrock.ts";
+import {
+  buildCodeBuddyHeaders,
+  buildCodeBuddyUrl,
+  getCodeBuddyBaseUrl,
+} from "@omniroute/open-sse/executors/codebuddy.ts";
+import { buildDataRobotUrl, getDataRobotBaseUrl } from "@omniroute/open-sse/executors/datarobot.ts";
+import {
+  buildOciChatPayload,
+  buildOciUrl,
+  getOciBaseUrl,
+  parseOciCredentialInput,
+  signOciRequest,
+} from "@omniroute/open-sse/executors/oci.ts";
+import {
+  buildReplicateAccountUrl,
+  buildReplicateHeaders,
+  getReplicateBaseUrl,
+} from "@omniroute/open-sse/executors/replicate.ts";
+import {
+  buildSapCompletionRequest,
+  buildSapCompletionUrl,
+  exchangeSapAccessToken,
+  getSapBaseUrl,
+  parseSapCredentialInput,
+} from "@omniroute/open-sse/executors/sap.ts";
+import { buildSagemakerUrl, getSagemakerBaseUrl } from "@omniroute/open-sse/executors/sagemaker.ts";
+import {
+  buildWatsonxIamRequestBody,
+  buildWatsonxRequestBody,
+  buildWatsonxUrl,
+  getWatsonxApiVersion,
+  getWatsonxBaseUrl,
+  getWatsonxIamUrl,
+} from "@omniroute/open-sse/executors/watsonx.ts";
+import { parseAwsCredentialInput, signAwsRequest } from "@omniroute/open-sse/services/awsSigV4.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
@@ -284,6 +335,141 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
   }
 }
 
+async function validateCodeBuddyProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const credentialValue =
+      (typeof providerSpecificData?.authToken === "string" && providerSpecificData.authToken) ||
+      apiKey;
+    const baseUrl = getCodeBuddyBaseUrl({
+      apiKey: credentialValue,
+      providerSpecificData,
+    });
+    const headers = buildCodeBuddyHeaders(
+      {
+        apiKey: credentialValue,
+        providerSpecificData,
+      },
+      false
+    );
+    const modelsUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/models`;
+
+    const modelsRes = await validationRead(modelsUrl, {
+      method: "GET",
+      headers,
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    const chatRes = await validationWrite(
+      buildCodeBuddyUrl({
+        apiKey: credentialValue,
+        providerSpecificData,
+      }),
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          model: providerSpecificData?.validationModelId || "auto",
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        }),
+      }
+    );
+
+    if (chatRes.status === 401 || chatRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (chatRes.ok || chatRes.status === 400 || chatRes.status === 422 || chatRes.status === 429) {
+      return { valid: true, error: null };
+    }
+
+    if (chatRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${chatRes.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${chatRes.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateGradientProvider({ apiKey, providerSpecificData = {} }: any) {
+  return validateDirectChatProvider({
+    url:
+      normalizeBaseUrl(providerSpecificData.baseUrl) ||
+      "https://apis.gradient.network/api/v1/ai/chat/completions",
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "gpt-oss-120b",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
+}
+
+async function validateAmpProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = {
+    apiKey,
+    providerSpecificData,
+  };
+
+  return validateDirectChatProvider({
+    url: buildAmpChatUrl(credentials),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "claude-sonnet-4-5-20250929",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData: {
+      ...providerSpecificData,
+      baseUrl: getAmpBaseUrl(credentials),
+    },
+  });
+}
+
+async function validateReplicateProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const baseUrl = getReplicateBaseUrl(providerSpecificData);
+    const headers = buildReplicateHeaders(
+      {
+        apiKey,
+        providerSpecificData,
+      },
+      false
+    );
+
+    const response = await validationRead(buildReplicateAccountUrl(baseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || response.status === 429) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 async function validateAnthropicLikeProvider({
   apiKey,
   baseUrl,
@@ -528,6 +714,515 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
 
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateAwsPollyProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseAwsCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error: "AWS Polly credentials must include access key and secret key",
+    };
+  }
+
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) ||
+    `https://polly.${credentials.region}.amazonaws.com/v1/speech`;
+  const body = JSON.stringify({
+    Engine: "standard",
+    OutputFormat: "mp3",
+    Text: "test",
+    TextType: "text",
+    VoiceId: "Joanna",
+  });
+
+  try {
+    const headers = signAwsRequest({
+      method: "POST",
+      url: baseUrl,
+      body,
+      service: "polly",
+      region: credentials.region,
+      credentials,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+      },
+    });
+
+    const response = await validationWrite(baseUrl, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateAzureAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = getAzureAiBaseUrl(providerSpecificData, "https://example.models.ai.azure.com");
+  const url = buildAzureAiUrl(baseUrl, getAzureAiApiVersion(providerSpecificData));
+  const model = providerSpecificData.validationModelId || "gpt-oss-120b";
+  const isClaudeModel = typeof model === "string" && model.toLowerCase().includes("claude");
+  const headers = buildAzureAiHeaders({
+    apiKey,
+    baseUrl,
+    stream: false,
+    model: isClaudeModel ? model : null,
+  });
+  const body = isClaudeModel
+    ? {
+        model,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      }
+    : {
+        model,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      };
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+function isAzureOpenAIResponsesModel(modelId: string): boolean {
+  const normalized = stripAzureOpenAIRegionalPrefix(
+    String(modelId || "")
+      .trim()
+      .toLowerCase()
+  );
+  return (
+    normalized.includes("codex") ||
+    normalized.includes("deep-research") ||
+    normalized.endsWith("-pro")
+  );
+}
+
+async function validateAzureOpenAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = getAzureOpenAIBaseUrl(providerSpecificData, "https://example.openai.azure.com");
+  const model = providerSpecificData.validationModelId || "gpt-4.1";
+  const apiType =
+    providerSpecificData.validationApiType === "responses" ||
+    providerSpecificData.apiType === "responses" ||
+    isAzureOpenAIResponsesModel(model)
+      ? "responses"
+      : "chat";
+  const deployment = resolveAzureOpenAIDeployment(model, providerSpecificData);
+  const url = buildAzureOpenAIUrl({
+    baseUrl,
+    deployment,
+    apiType,
+    apiVersion: getAzureOpenAIApiVersion(providerSpecificData, apiType),
+  });
+  const headers = buildAzureOpenAIHeaders({
+    apiKey,
+    accessToken: providerSpecificData.accessToken || null,
+    baseUrl,
+    stream: false,
+  });
+  const body =
+    apiType === "responses"
+      ? {
+          input: "test",
+          max_output_tokens: 1,
+        }
+      : {
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        };
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateBedrockProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseAwsCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error: "AWS Bedrock credentials must include access key and secret key",
+    };
+  }
+
+  const model = providerSpecificData.validationModelId || "amazon.nova-lite-v1:0";
+  const baseUrl = getBedrockBaseUrl(providerSpecificData, credentials.region);
+  const url = buildBedrockUrl({ baseUrl, model });
+  const body = JSON.stringify({
+    messages: [
+      {
+        role: "user",
+        content: [{ text: "test" }],
+      },
+    ],
+    inferenceConfig: {
+      maxTokens: 1,
+    },
+  });
+
+  try {
+    const headers = signAwsRequest({
+      method: "POST",
+      url,
+      body,
+      service: "bedrock",
+      region: credentials.region,
+      credentials,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateSagemakerProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseAwsCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error: "AWS SageMaker credentials must include access key and secret key",
+    };
+  }
+
+  const model = providerSpecificData.validationModelId || "meta-textgeneration-llama-2-7b-f";
+  const baseUrl = getSagemakerBaseUrl(providerSpecificData, credentials.region);
+  const url = buildSagemakerUrl({
+    baseUrl,
+    endpointName: providerSpecificData.endpointName || model,
+    stream: false,
+  });
+  const body = JSON.stringify({
+    messages: [{ role: "user", content: "test" }],
+    max_tokens: 1,
+  });
+
+  try {
+    const headers = signAwsRequest({
+      method: "POST",
+      url,
+      body,
+      service: "sagemaker",
+      region: credentials.region,
+      credentials,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateDataRobotProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = getDataRobotBaseUrl(providerSpecificData, "https://app.datarobot.com");
+  const url = buildDataRobotUrl(baseUrl);
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        buildBearerHeaders(apiKey, providerSpecificData),
+        providerSpecificData
+      ),
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "deployment-default",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateWatsonxProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = getWatsonxBaseUrl(
+    providerSpecificData,
+    "https://us-south.ml.cloud.ibm.com/ml/v1/text/chat"
+  );
+  const tokenUrl = getWatsonxIamUrl(providerSpecificData);
+
+  try {
+    const tokenResponse = await validationWrite(tokenUrl, {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        providerSpecificData
+      ),
+      body: buildWatsonxIamRequestBody(apiKey),
+    });
+
+    if (tokenResponse.status === 401 || tokenResponse.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (!tokenResponse.ok) {
+      return { valid: false, error: `Validation failed: ${tokenResponse.status}` };
+    }
+
+    const tokenPayload = await tokenResponse.json().catch(() => null);
+    const accessToken =
+      typeof tokenPayload?.access_token === "string" ? tokenPayload.access_token : "";
+    if (!accessToken) {
+      return { valid: false, error: "Validation failed: WatsonX token exchange returned no token" };
+    }
+
+    const model = providerSpecificData.validationModelId || "ibm/granite-3-8b-instruct";
+    const url = buildWatsonxUrl({
+      baseUrl,
+      model,
+      stream: false,
+      apiVersion: getWatsonxApiVersion(providerSpecificData),
+    });
+    const body = JSON.stringify(
+      buildWatsonxRequestBody(
+        model,
+        {
+          model,
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        },
+        providerSpecificData
+      )
+    );
+
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        providerSpecificData
+      ),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateOciProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseOciCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error:
+        "OCI credentials must include user, fingerprint, tenancy, compartmentId, and a PEM private key",
+    };
+  }
+
+  const baseUrl = getOciBaseUrl(providerSpecificData, credentials.region);
+  const url = buildOciUrl(baseUrl);
+  const model = providerSpecificData.validationModelId || "meta.llama-3.1-70b-instruct";
+  const body = JSON.stringify(
+    buildOciChatPayload(
+      model,
+      {
+        model,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      },
+      credentials
+    )
+  );
+
+  try {
+    const headers = signOciRequest({
+      method: "POST",
+      url,
+      body,
+      credentials,
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        providerSpecificData
+      ),
+    });
+
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateSapProvider({ apiKey, providerSpecificData = {} }: any) {
+  const credentials = parseSapCredentialInput(apiKey, providerSpecificData);
+  if (!credentials) {
+    return {
+      valid: false,
+      error:
+        "SAP credentials must include clientId, authUrl, baseUrl and either clientSecret or certificate credentials",
+    };
+  }
+
+  try {
+    const token = await exchangeSapAccessToken(credentials);
+    const baseUrl =
+      credentials.deploymentUrl || getSapBaseUrl(providerSpecificData, credentials.baseUrl);
+    const url = buildSapCompletionUrl({
+      baseUrl,
+      deploymentId: credentials.deploymentId || providerSpecificData.deploymentId,
+    });
+    const model = providerSpecificData.validationModelId || "gpt-5.4";
+    const body = JSON.stringify(
+      buildSapCompletionRequest(
+        model,
+        {
+          model,
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        },
+        providerSpecificData
+      )
+    );
+
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Authorization: token.accessToken,
+          "AI-Resource-Group": credentials.resourceGroup,
+          "AI-Client-Type": "OmniRoute",
+        },
+        providerSpecificData
+      ),
+      body,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -1280,11 +1975,24 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const SPECIALTY_VALIDATORS = {
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
+    codebuddy: validateCodeBuddyProvider,
+    amp: validateAmpProvider,
+    gradient: validateGradientProvider,
+    replicate: validateReplicateProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    "aws-polly": validateAwsPollyProvider,
+    bedrock: validateBedrockProvider,
+    sagemaker: validateSagemakerProvider,
+    datarobot: validateDataRobotProvider,
+    watsonx: validateWatsonxProvider,
+    oci: validateOciProvider,
+    sap: validateSapProvider,
+    "azure-ai": validateAzureAIProvider,
+    "azure-openai": validateAzureOpenAIProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
@@ -1298,6 +2006,17 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           await import("@omniroute/open-sse/executors/vertex.ts");
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
+    "vertex-partner": async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };
       } catch (error: any) {

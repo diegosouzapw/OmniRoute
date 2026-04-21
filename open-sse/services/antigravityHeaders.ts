@@ -1,4 +1,3 @@
-import os from "node:os";
 import {
   ANTIGRAVITY_FALLBACK_VERSION,
   getCachedAntigravityVersion,
@@ -39,7 +38,7 @@ function withOptionalBearerAuth(
 }
 
 function getPlatform(): string {
-  const p = os.platform();
+  const p = typeof process !== "undefined" ? process.platform : "unknown";
   switch (p) {
     case "win32":
       return "windows";
@@ -51,7 +50,7 @@ function getPlatform(): string {
 }
 
 function getArch(): string {
-  const a = os.arch();
+  const a = typeof process !== "undefined" ? process.arch : "unknown";
   switch (a) {
     case "x64":
       return "x64";

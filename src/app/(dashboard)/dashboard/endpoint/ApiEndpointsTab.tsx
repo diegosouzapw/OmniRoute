@@ -35,6 +35,7 @@ interface WebhookItem {
   last_triggered_at: string | null;
   last_status: number | null;
   failure_count: number;
+  payload_template: string | null;
 }
 
 interface TryItResult {
@@ -85,6 +86,7 @@ export default function ApiEndpointsTab() {
   const [whUrl, setWhUrl] = useState("");
   const [whEvents, setWhEvents] = useState<string[]>(["*"]);
   const [whDesc, setWhDesc] = useState("");
+  const [whPayloadTemplate, setWhPayloadTemplate] = useState("");
   const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
 
   // Load catalog
@@ -221,11 +223,17 @@ export default function ApiEndpointsTab() {
       await fetch("/api/webhooks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: whUrl, events: whEvents, description: whDesc }),
+        body: JSON.stringify({
+          url: whUrl,
+          events: whEvents,
+          description: whDesc,
+          payloadTemplate: whPayloadTemplate.trim() || undefined,
+        }),
       });
       setWhUrl("");
       setWhEvents(["*"]);
       setWhDesc("");
+      setWhPayloadTemplate("");
       setShowAddWebhook(false);
       await loadWebhooks();
     } catch {}
@@ -707,6 +715,23 @@ export default function ApiEndpointsTab() {
                     ))}
                   </div>
                 </div>
+                <div className="mt-2">
+                  <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+                    Payload Template (Optional)
+                  </label>
+                  <p className="text-[9px] text-text-muted mb-1">
+                    Customize JSON payload using tags like {"{{"}event_type{"}}"}, {"{{"}api_key
+                    {"}}"}, {"{{"}payload{"}}"}. Leave empty for default.
+                  </p>
+                  <textarea
+                    value={whPayloadTemplate}
+                    onChange={(e) => setWhPayloadTemplate(e.target.value)}
+                    placeholder={'{\n  "event": "{{event_type}}",\n  "data": {{payload}}\n}'}
+                    className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
+                               bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-y"
+                    rows={4}
+                  />
+                </div>
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={addWebhook}
@@ -757,6 +782,14 @@ export default function ApiEndpointsTab() {
                         {wh.failure_count > 0 && (
                           <span className="text-[9px] px-1 py-0.5 rounded bg-red-500/10 text-red-500">
                             {wh.failure_count} failures
+                          </span>
+                        )}
+                        {wh.payload_template && (
+                          <span
+                            className="text-[9px] px-1 py-0.5 rounded bg-blue-500/10 text-blue-500"
+                            title="Custom Payload Template configured"
+                          >
+                            custom payload
                           </span>
                         )}
                       </div>

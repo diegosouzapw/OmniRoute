@@ -19,9 +19,13 @@ import { qwen } from "./qwen";
 import { kimiCoding } from "./kimi-coding";
 import { github } from "./github";
 import { kiro } from "./kiro";
+import { nousResearch } from "./nous-research";
 import { cursor } from "./cursor";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
+import { zed } from "./zed";
+import { trae } from "./trae";
+import { gitlabDuo } from "./gitlab-duo";
 
 export const PROVIDERS = {
   claude,
@@ -33,9 +37,14 @@ export const PROVIDERS = {
   "kimi-coding": kimiCoding,
   github,
   kiro,
+  "amazon-q": kiro,
+  "nous-research": nousResearch,
   cursor,
   kilocode,
   cline,
+  zed,
+  trae,
+  "gitlab-duo-oauth": gitlabDuo,
 };
 
 export default PROVIDERS;

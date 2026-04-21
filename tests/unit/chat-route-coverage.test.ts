@@ -21,6 +21,7 @@ const {
 
 const { getCircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { clearModelUnavailability } = await import("../../src/domain/modelAvailability.ts");
+const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 const { getDefaultTaskModelMap, resetTaskRoutingStats, setTaskRoutingConfig } =
   await import("../../open-sse/services/taskAwareRouter.ts");
 
@@ -409,6 +410,8 @@ test("handleChat maps upstream timeouts to HTTP 504", async () => {
 });
 
 test("handleChat uses the emergency fallback model on budget exhaustion", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-billing" });
   await seedConnection("nvidia", { apiKey: "sk-nvidia-fallback" });
   const seenBodies = [];
@@ -448,6 +451,8 @@ test("handleChat uses the emergency fallback model on budget exhaustion", async 
 });
 
 test("handleChat returns the primary budget error when emergency fallback also fails", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-billing-fail" });
   await seedConnection("nvidia", { apiKey: "sk-nvidia-fallback-fail" });
   const seenModels = [];

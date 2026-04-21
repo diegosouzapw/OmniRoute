@@ -3,6 +3,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { exchangeTraeRefreshToken, normalizeTraeLoginHost } from "@/lib/oauth/services/trae";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -439,26 +440,33 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
     if (!response.ok) {
       const errorText = await response.text();
 
-      // Detect unrecoverable "refresh_token_reused" error from OpenAI
-      // This means the token was already consumed and a new one was issued.
+      // Detect unrecoverable "refresh_token_reused" or "invalid_grant" error from OpenAI
+      // This means the token was already consumed or has expired.
       // Retrying with the same token will never succeed.
       let errorCode = null;
       try {
         const parsed = JSON.parse(errorText);
-        errorCode = parsed?.error?.code;
+        errorCode =
+          parsed?.error?.code || (typeof parsed?.error === "string" ? parsed.error : null);
       } catch {
         // not JSON, ignore
       }
 
-      if (errorCode === "refresh_token_reused") {
+      if (
+        errorCode === "refresh_token_reused" ||
+        errorCode === "invalid_grant" ||
+        errorCode === "token_expired" ||
+        errorCode === "invalid_token"
+      ) {
         log?.error?.(
           "TOKEN_REFRESH",
-          "Codex refresh token already used (rotating token consumed). Re-authentication required.",
+          "Codex refresh token already used or invalid. Re-authentication required.",
           {
             status: response.status,
+            errorCode,
           }
         );
-        return { error: "refresh_token_reused" };
+        return { error: "unrecoverable_refresh_error", code: errorCode };
       }
 
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
@@ -735,6 +743,44 @@ export async function refreshCopilotToken(githubAccessToken, log, proxyConfig: u
   }
 }
 
+export async function refreshTraeToken(
+  refreshToken,
+  providerSpecificData = {},
+  accessToken,
+  log,
+  proxyConfig: unknown = null
+) {
+  try {
+    const result = await runWithProxyContext(proxyConfig, () =>
+      exchangeTraeRefreshToken({
+        loginHost: normalizeTraeLoginHost(providerSpecificData?.loginHost),
+        refreshToken,
+        accessToken,
+      })
+    );
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed Trae token", {
+      hasNewAccessToken: !!result.accessToken,
+      hasNewRefreshToken: !!result.refreshToken,
+      expiresIn: result.expiresIn,
+    });
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken || refreshToken,
+      expiresIn: result.expiresIn,
+      providerSpecificData: {
+        ...(providerSpecificData || {}),
+        loginHost: normalizeTraeLoginHost(providerSpecificData?.loginHost),
+        traeAuthRaw: result.exchangeRaw || null,
+      },
+    };
+  } catch (error) {
+    log?.error?.("TOKEN_REFRESH", `Error refreshing Trae token: ${error.message}`);
+    return null;
+  }
+}
+
 /**
  * Get access token for a specific provider (internal, does the actual work)
  */
@@ -780,6 +826,15 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "kimi-coding":
       return await refreshKimiCodingToken(credentials.refreshToken, log, proxyConfig);
 
+    case "trae":
+      return await refreshTraeToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        credentials.accessToken,
+        log,
+        proxyConfig
+      );
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -802,6 +857,7 @@ export function supportsTokenRefresh(provider) {
     "kiro",
     "cline",
     "kimi-coding",
+    "trae",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];
@@ -817,7 +873,10 @@ export function isUnrecoverableRefreshError(result) {
   return (
     result &&
     typeof result === "object" &&
-    (result.error === "refresh_token_reused" || result.error === "invalid_request")
+    (result.error === "unrecoverable_refresh_error" ||
+      result.error === "refresh_token_reused" ||
+      result.error === "invalid_request" ||
+      result.error === "invalid_grant")
   );
 }
 

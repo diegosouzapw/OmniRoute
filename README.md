@@ -2,9 +2,9 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now with **MCP Server (34 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
 
-**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
+**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • Web Search • MCP Server • A2A Protocol • 100% TypeScript**
 
 ---
 
@@ -257,7 +257,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How OmniRoute solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 160+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -343,7 +343,7 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 100+ providers
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 160+ providers
 
 </details>
 
@@ -419,9 +419,9 @@ Teams in non-English-speaking countries, especially in Latin America, Asia, and 
 
 **How OmniRoute solves it:**
 
-- **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
+- **Dashboard i18n — 40 Languages** — All 500+ keys translated including Arabic, Bengali, Bulgarian, Czech, Danish, German, Spanish, Persian (Farsi), Finnish, French, Gujarati, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Marathi, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Swahili, Tamil, Telugu, Thai, Turkish, Ukrainian, Urdu, Vietnamese, Chinese, Filipino, English
 - **RTL Support** — Right-to-left support for Arabic and Hebrew
-- **Multi-Language READMEs** — 30 complete documentation translations
+- **Multi-Language READMEs** — 40 complete documentation translations
 - **Language Selector** — Globe icon in header for real-time switching
 
 </details>
@@ -1093,7 +1093,7 @@ volumes:
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `3.7.0`  | ~250MB | Current version       |
 
 ---
 
@@ -1340,7 +1340,7 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
+OmniRoute v3.7 is built as an operational platform, not just a relay proxy.
 
 ### 🆕 New — v3.6.x Highlights (Apr 2026)
 
@@ -1394,19 +1394,19 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
-| Feature                               | What It Does                                                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **MCP Server (25 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                            |
-| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                           |
-| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                               |
-| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                         |
-| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                               |
-| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
-| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Switch combo, apply resilience profiles, reset breakers from one control surface                                                       |
+| Feature                               | What It Does                                                                                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔧 **MCP Server (34 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 22 core + 3 memory + 4 skill + 5 advanced tools |
+| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                                         |
+| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                                        |
+| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                                            |
+| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                             |
+| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                                      |
+| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                                            |
+| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                                   |
+| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                                 |
+| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                             |
+| ⚙️ **Operational Controls**           | Switch combo, apply resilience profiles, reset breakers from one control surface                                                                    |
 
 ### 🧠 Routing & Intelligence
 
@@ -1448,7 +1448,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 | Feature                             | What It Does                                                                            |
 | ----------------------------------- | --------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                          |
+| 🔌 **Circuit Breakers**             | Per-provider and per-model trip/recover with 10-minute cooldowns                        |
+| 🔒 **Daily Quota Lock** 🆕          | Detects exhaustion signals and locks routing for the specific model until midnight      |
 | 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                  |
 | 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                      |
 | 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                            |
@@ -1474,7 +1475,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | Feature                          | What It Does                                          |
 | -------------------------------- | ----------------------------------------------------- |
 | 📝 **Request + Proxy Logging**   | Full request/response and proxy logging               |
-| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI  |
+| 📉 **Streamed Detailed Logs**    | Reconstructs SSE payload streams cleanly into the UI  |
+| 🏷️ **Real-Time Model Badges** 🆕 | Live model status and daily quota countdown timers    |
 | 📋 **Unified Logs Dashboard**    | Request, proxy, audit, and console views in one page  |
 | 🔍 **Request Telemetry**         | p50/p95/p99 latency and request tracing               |
 | 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |
@@ -1497,7 +1499,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
 | 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
 | 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
-| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
+| 🌐 **i18n (40 languages)**     | Full dashboard + docs language support with RTL coverage              |
 | 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
 | 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
 | 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
@@ -2229,7 +2231,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 <details>
 <summary><b>Click to expand tech stack details</b></summary>
 
-- **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
+- **Runtime**: Node.js ≥20 LTS (20.x, 22.x, 24.x supported — see `engines` in package.json for exact ranges)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
@@ -2237,7 +2239,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
 - **Streaming**: Server-Sent Events (SSE)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
-- **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
+- **Testing**: Node.js test runner + Vitest (3,250+ tests including unit, integration, E2E)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
 - **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
@@ -2254,7 +2256,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | -------------------------------------------------------- | --------------------------------------------------- |
 | [User Guide](docs/USER_GUIDE.md)                         | Providers, combos, CLI integration, deployment      |
 | [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [MCP Server](open-sse/mcp-server/README.md)              | 34 MCP tools, IDE configs, Python/TS/Go clients     |
 | [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
 | [Auto-Combo Engine](docs/auto-combo.md)                  | 6-factor scoring, mode packs, self-healing          |
 | [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |

@@ -169,6 +169,9 @@ export default function LiveMonitorMode() {
                     <th className="pb-2 pr-4"></th>
                     <th className="pb-2 pr-4">{t("target")}</th>
                     <th className="pb-2 pr-4">{t("model")}</th>
+                    <th className="pb-2 pr-4">{t("comboTarget")}</th>
+                    <th className="pb-2 pr-4">{t("cacheStatus")}</th>
+                    <th className="pb-2 pr-4">{t("reasoningTokens")}</th>
                     <th className="pb-2 pr-4">{t("status")}</th>
                     <th className="pb-2 text-right">{t("latency")}</th>
                   </tr>
@@ -214,6 +217,33 @@ export default function LiveMonitorMode() {
                         </td>
                         <td className="py-2 pr-4 text-xs font-mono text-text-muted break-all">
                           {event.model || notAvailable}
+                        </td>
+                        <td className="py-2 pr-4 text-xs font-mono text-text-muted">
+                          {event.comboTarget ? (
+                            <Badge variant="outline" size="sm">
+                              {event.comboTarget}
+                            </Badge>
+                          ) : (
+                            notAvailable
+                          )}
+                        </td>
+                        <td className="py-2 pr-4 text-xs">
+                          {event.cacheStatus === "hit" ? (
+                            <Badge variant="success" size="sm" icon="bolt">
+                              HIT
+                            </Badge>
+                          ) : event.cacheStatus === "miss" ? (
+                            <Badge variant="default" size="sm">
+                              MISS
+                            </Badge>
+                          ) : (
+                            notAvailable
+                          )}
+                        </td>
+                        <td className="py-2 pr-4 text-xs text-text-muted font-mono">
+                          {event.reasoningTokens !== undefined
+                            ? event.reasoningTokens
+                            : notAvailable}
                         </td>
                         <td className="py-2 pr-4">
                           {event.status === "success" ? (

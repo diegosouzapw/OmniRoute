@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
+import type { SkillsProvider } from "@/lib/skills/providerSettings";
 
 interface Skill {
   id: string;
@@ -10,6 +11,10 @@ interface Skill {
   version: string;
   description: string;
   enabled: boolean;
+  mode?: "on" | "off" | "auto";
+  sourceProvider?: "skillsmp" | "skillssh" | "local";
+  tags?: string[];
+  installCount?: number;
   createdAt: string;
 }
 
@@ -29,14 +34,17 @@ export default function SkillsPage() {
   const [skillsPage, setSkillsPage] = useState(1);
   const [skillsTotal, setSkillsTotal] = useState(0);
   const [skillsTotalPages, setSkillsTotalPages] = useState(1);
+  const [popularDefaults, setPopularDefaults] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modeFilter, setModeFilter] = useState<"all" | "on" | "off" | "auto">("all");
 
   const [execPage, setExecPage] = useState(1);
   const [execTotal, setExecTotal] = useState(0);
   const [execTotalPages, setExecTotalPages] = useState(1);
 
-  const [activeTab, setActiveTab] = useState<
-    "skills" | "executions" | "sandbox" | "marketplace" | "skillssh"
-  >("skills");
+  const [activeTab, setActiveTab] = useState<"skills" | "executions" | "sandbox" | "marketplace">(
+    "skills"
+  );
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [installJson, setInstallJson] = useState("");
   const [installStatus, setInstallStatus] = useState<{
@@ -65,13 +73,19 @@ export default function SkillsPage() {
   const [shLoading, setShLoading] = useState(false);
   const [shError, setShError] = useState("");
   const [shInstallingId, setShInstallingId] = useState<string | null>(null);
+  const [skillsProvider, setSkillsProvider] = useState<SkillsProvider>("skillsmp");
   const t = useTranslations("skills");
 
   const fetchSkills = async (page: number) => {
-    const res = await fetch(`/api/skills?page=${page}&limit=20`).then((r) => r.json());
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (searchTerm.trim()) params.set("q", searchTerm.trim());
+    if (modeFilter !== "all") params.set("mode", modeFilter);
+
+    const res = await fetch(`/api/skills?${params.toString()}`).then((r) => r.json());
     setSkills(res.data || []);
     setSkillsTotal(res.total || 0);
     setSkillsTotalPages(res.totalPages || 1);
+    setPopularDefaults(Array.isArray(res.popularDefaults) ? res.popularDefaults : []);
   };
 
   const fetchExecutions = async (page: number) => {
@@ -85,15 +99,26 @@ export default function SkillsPage() {
     Promise.all([
       fetch("/api/skills?page=1&limit=20").then((r) => r.json()),
       fetch("/api/skills/executions?page=1&limit=20").then((r) => r.json()),
+      fetch("/api/settings").then((r) => (r.ok ? r.json() : null)),
     ])
-      .then(([skillsData, executionsData]) => {
+      .then(([skillsData, executionsData, settingsData]) => {
         setSkills(skillsData.data || []);
         setSkillsTotal(skillsData.total || 0);
         setSkillsTotalPages(skillsData.totalPages || 1);
+        setPopularDefaults(
+          Array.isArray(skillsData.popularDefaults) ? skillsData.popularDefaults : []
+        );
 
         setExecutions(executionsData.data || []);
         setExecTotal(executionsData.total || 0);
         setExecTotalPages(executionsData.totalPages || 1);
+
+        if (
+          settingsData?.skillsProvider === "skillsmp" ||
+          settingsData?.skillsProvider === "skillssh"
+        ) {
+          setSkillsProvider(settingsData.skillsProvider);
+        }
 
         setLoading(false);
       })
@@ -112,6 +137,16 @@ export default function SkillsPage() {
       body: JSON.stringify({ enabled: !enabled }),
     });
     setSkills(skills.map((s) => (s.id === skillId ? { ...s, enabled: !enabled } : s)));
+  };
+
+  const setSkillMode = async (skillId: string, mode: "on" | "off" | "auto") => {
+    await fetch(`/api/skills/${skillId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    });
+
+    setSkills(skills.map((s) => (s.id === skillId ? { ...s, mode, enabled: mode !== "off" } : s)));
   };
 
   const deleteSkill = async (skillId: string) => {
@@ -331,20 +366,59 @@ export default function SkillsPage() {
         >
           Marketplace
         </button>
-        <button
-          onClick={() => setActiveTab("skillssh")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "skillssh"
-              ? "border-violet-500 text-violet-400"
-              : "border-transparent text-text-muted hover:text-text-main"
-          }`}
-        >
-          skills.sh
-        </button>
       </div>
 
       {activeTab === "skills" && (
         <div className="grid gap-4">
+          <Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Filter skills by name, description, or tag"
+                className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+              />
+              <select
+                value={modeFilter}
+                onChange={(e) => setModeFilter(e.target.value as "all" | "on" | "off" | "auto")}
+                className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+              >
+                <option value="all">All modes</option>
+                <option value="on">On</option>
+                <option value="auto">Auto</option>
+                <option value="off">Off</option>
+              </select>
+              <button
+                onClick={() => {
+                  setSkillsPage(1);
+                  void fetchSkills(1);
+                }}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 transition-colors"
+              >
+                Apply filters
+              </button>
+            </div>
+
+            {popularDefaults.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs text-text-muted mb-2">
+                  Popular by default for selected provider:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {popularDefaults.map((name) => (
+                    <span
+                      key={name}
+                      className="text-xs px-2 py-1 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+
           {skills.length === 0 ? (
             <Card>
               <div className="text-center py-8 text-text-muted">{t("noSkills")}</div>
@@ -359,15 +433,65 @@ export default function SkillsPage() {
                       <span className="text-xs px-2 py-0.5 rounded bg-surface/50 text-text-muted">
                         v{skill.version}
                       </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-surface/50 text-text-muted">
+                        {(skill.sourceProvider || "local").toUpperCase()}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400">
+                        mode: {skill.mode || (skill.enabled ? "on" : "off")}
+                      </span>
                     </div>
                     <p className="text-sm text-text-muted mt-1">{skill.description}</p>
+                    {Array.isArray(skill.tags) && skill.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {skill.tags.map((tag) => (
+                          <span
+                            key={`${skill.id}-${tag}`}
+                            className="text-[11px] px-1.5 py-0.5 rounded bg-surface/60 text-text-muted"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setSkillMode(skill.id, "on")}
+                        className={`text-xs px-2 py-1 rounded border ${
+                          (skill.mode || (skill.enabled ? "on" : "off")) === "on"
+                            ? "border-emerald-500 text-emerald-400"
+                            : "border-border text-text-muted"
+                        }`}
+                      >
+                        ON
+                      </button>
+                      <button
+                        onClick={() => setSkillMode(skill.id, "auto")}
+                        className={`text-xs px-2 py-1 rounded border ${
+                          (skill.mode || (skill.enabled ? "on" : "off")) === "auto"
+                            ? "border-amber-500 text-amber-400"
+                            : "border-border text-text-muted"
+                        }`}
+                      >
+                        AUTO
+                      </button>
+                      <button
+                        onClick={() => setSkillMode(skill.id, "off")}
+                        className={`text-xs px-2 py-1 rounded border ${
+                          (skill.mode || (skill.enabled ? "on" : "off")) === "off"
+                            ? "border-red-500 text-red-400"
+                            : "border-border text-text-muted"
+                        }`}
+                      >
+                        OFF
+                      </button>
+                    </div>
                     <button
                       onClick={() => deleteSkill(skill.id)}
                       className="text-xs px-2 py-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
                     >
-                      Delete
+                      Uninstall
                     </button>
                     <button
                       onClick={() => toggleSkill(skill.id, skill.enabled)}
@@ -539,31 +663,56 @@ export default function SkillsPage() {
       {activeTab === "marketplace" && (
         <div className="grid gap-4">
           <Card>
-            <h3 className="font-semibold mb-4">SkillsMP Marketplace</h3>
+            <h3 className="font-semibold mb-2">Skills Marketplace</h3>
+            <p className="text-sm text-text-muted mb-4">
+              Active provider:{" "}
+              <span className="font-medium">
+                {skillsProvider === "skillsmp" ? "SkillsMP" : "skills.sh"}
+              </span>
+              . Change this in Settings → Memory & Skills.
+            </p>
             <div className="flex gap-2 mb-4">
               <input
                 type="text"
-                value={mpQuery}
-                onChange={(e) => setMpQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && searchMarketplace()}
-                placeholder="Search skills..."
+                value={skillsProvider === "skillsmp" ? mpQuery : shQuery}
+                onChange={(e) =>
+                  skillsProvider === "skillsmp"
+                    ? setMpQuery(e.target.value)
+                    : setShQuery(e.target.value)
+                }
+                onKeyDown={(e) =>
+                  e.key === "Enter" &&
+                  (skillsProvider === "skillsmp" ? searchMarketplace() : searchSkillsSh())
+                }
+                placeholder={
+                  skillsProvider === "skillsmp" ? "Search SkillsMP..." : "Search skills.sh..."
+                }
                 className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
               <button
-                onClick={searchMarketplace}
-                disabled={mpLoading}
+                onClick={() =>
+                  skillsProvider === "skillsmp" ? searchMarketplace() : searchSkillsSh()
+                }
+                disabled={skillsProvider === "skillsmp" ? mpLoading : shLoading}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
               >
-                {mpLoading ? "Searching..." : "Search SkillsMP"}
+                {skillsProvider === "skillsmp"
+                  ? mpLoading
+                    ? "Searching..."
+                    : "Search SkillsMP"
+                  : shLoading
+                    ? "Searching..."
+                    : "Search skills.sh"}
               </button>
             </div>
-            {mpError && (
+            {(skillsProvider === "skillsmp" ? mpError : shError) && (
               <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm mb-4">
-                {mpError}
+                {skillsProvider === "skillsmp" ? mpError : shError}
               </div>
             )}
           </Card>
-          {mpResults.length > 0 && (
+
+          {skillsProvider === "skillsmp" && mpResults.length > 0 && (
             <div className="grid gap-3">
               {mpResults.map((skill) => (
                 <Card key={skill.name}>
@@ -584,44 +733,8 @@ export default function SkillsPage() {
               ))}
             </div>
           )}
-          {!mpLoading && mpResults.length === 0 && !mpError && (
-            <Card>
-              <div className="text-center py-8 text-text-muted">
-                Configure your SkillsMP API key in Settings to browse the marketplace.
-              </div>
-            </Card>
-          )}
-        </div>
-      )}
 
-      {activeTab === "skillssh" && (
-        <div className="grid gap-4">
-          <Card>
-            <h3 className="font-semibold mb-4">skills.sh Directory</h3>
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={shQuery}
-                onChange={(e) => setShQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && searchSkillsSh()}
-                placeholder="Search skills.sh..."
-                className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-              />
-              <button
-                onClick={searchSkillsSh}
-                disabled={shLoading}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
-              >
-                {shLoading ? "Searching..." : "Search skills.sh"}
-              </button>
-            </div>
-            {shError && (
-              <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm mb-4">
-                {shError}
-              </div>
-            )}
-          </Card>
-          {shResults.length > 0 && (
+          {skillsProvider === "skillssh" && shResults.length > 0 && (
             <div className="grid gap-3">
               {shResults.map((skill) => (
                 <Card key={skill.id}>
@@ -644,7 +757,15 @@ export default function SkillsPage() {
               ))}
             </div>
           )}
-          {!shLoading && shResults.length === 0 && !shError && (
+
+          {skillsProvider === "skillsmp" && !mpLoading && mpResults.length === 0 && !mpError && (
+            <Card>
+              <div className="text-center py-8 text-text-muted">
+                Configure your SkillsMP API key in Settings to browse the marketplace.
+              </div>
+            </Card>
+          )}
+          {skillsProvider === "skillssh" && !shLoading && shResults.length === 0 && !shError && (
             <Card>
               <div className="text-center py-8 text-text-muted">
                 Search the skills.sh open directory to discover and install agent skills.

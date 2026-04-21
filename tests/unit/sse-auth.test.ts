@@ -14,6 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
+const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -413,6 +414,29 @@ test("getProviderCredentials retains terminal accounts for combo live tests", as
   assert.equal(blocked, null);
   assert.equal(bypassed.connectionId, connection.id);
   assert.equal(updated.testStatus, "banned");
+});
+
+test("getProviderCredentials ignores provider cooldown for explicit live-test probes", async () => {
+  accountFallback.clearProviderFailure("openai");
+  for (let i = 0; i < 5; i += 1) {
+    accountFallback.recordProviderFailure("openai");
+  }
+
+  const connection = await seedConnection("openai", {
+    name: "provider-cooldown-bypass",
+    apiKey: "sk-provider-cooldown-bypass",
+  });
+
+  const blocked = await auth.getProviderCredentials("openai");
+  const bypassed = await auth.getProviderCredentials("openai", null, null, null, {
+    allowSuppressedConnections: true,
+    forcedConnectionId: connection.id,
+  });
+
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(bypassed.connectionId, connection.id);
+
+  accountFallback.clearProviderFailure("openai");
 });
 
 test("getProviderCredentials skips codex scope-limited accounts unless suppression is allowed", async () => {

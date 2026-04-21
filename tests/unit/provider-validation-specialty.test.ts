@@ -1,10 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 
 const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
   await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;
+const { privateKey: vertexPrivateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  publicKeyEncoding: { type: "spki", format: "pem" },
+});
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
@@ -81,6 +87,409 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(eleven.error, "Validation failed: 500");
   assert.equal(inworld.error, "Invalid API key");
   assert.equal(longcat.error, "longcat offline");
+});
+
+test("CodeBuddy validator probes models/chat with dual auth headers", async () => {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+
+    if (calls.length === 1) {
+      return new Response(JSON.stringify({ error: "missing models route" }), { status: 404 });
+    }
+
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "codebuddy",
+    apiKey: "codebuddy-secret",
+    providerSpecificData: {
+      baseUrl: "https://api.codebuddy.ai/v2/chat/completions",
+      validationModelId: "glm-5.1",
+    },
+  });
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "https://api.codebuddy.ai/v2/models");
+  assert.equal(calls[1].url, "https://api.codebuddy.ai/v2/chat/completions");
+  assert.equal((calls[1].init?.headers as Record<string, string>)["X-Api-Key"], "codebuddy-secret");
+  assert.equal(
+    (calls[1].init?.headers as Record<string, string>).Authorization,
+    "Bearer codebuddy-secret"
+  );
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Replicate validator probes account endpoint with bearer auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.replicate.com/v1/account");
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers?.Authorization, "Bearer replicate-secret");
+    return new Response(JSON.stringify({ type: "organization", username: "acme" }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "replicate",
+    apiKey: "replicate-secret",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Gradient validator probes the official chat completion endpoint directly", async () => {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gradient",
+    apiKey: "gradient-access-key",
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://apis.gradient.network/api/v1/ai/chat/completions");
+  assert.equal(
+    (calls[0].init?.headers as Record<string, string>).Authorization,
+    "Bearer gradient-access-key"
+  );
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Amp validator normalizes portal URLs to the API chat completion endpoint", async () => {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "amp",
+    apiKey: "sgamp-secret",
+    providerSpecificData: {
+      baseUrl: "https://ampcode.com",
+    },
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.ampcode.com/v1/chat/completions");
+  assert.equal(
+    (calls[0].init?.headers as Record<string, string>).Authorization,
+    "Bearer sgamp-secret"
+  );
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("AWS Polly validator signs synth probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    assert.equal(target, "https://polly.ap-south-1.amazonaws.com/v1/speech");
+    assert.equal(init.method, "POST");
+    assert.match(
+      String(init.headers?.Authorization || ""),
+      /^AWS4-HMAC-SHA256 Credential=AKIA_TEST\//
+    );
+    assert.match(String(init.headers?.Authorization || ""), /\/ap-south-1\/polly\/aws4_request,/);
+    assert.equal(init.headers?.Accept, "*/*");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "AKIA_TEST:secret-test",
+    providerSpecificData: { baseUrl: "https://polly.ap-south-1.amazonaws.com/v1/speech" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("AWS Polly validator rejects malformed credential payloads without fetching", async () => {
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "AKIA_ONLY",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "AWS Polly credentials must include access key and secret key");
+  assert.equal(called, false);
+});
+
+test("Bedrock validator signs Converse probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://bedrock-runtime.us-west-2.amazonaws.com/model/amazon.nova-lite-v1%3A0/converse"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(typeof init.headers?.Authorization, "string");
+    assert.equal(init.headers?.["X-Amz-Date"]?.length, 16);
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "AKIA_TEST:secret-test::us-west-2",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("SageMaker validator signs invocations probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://runtime.sagemaker.us-west-2.amazonaws.com/endpoints/meta-textgeneration-llama-2-7b-f/invocations"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(typeof init.headers?.Authorization, "string");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "sagemaker",
+    apiKey: "AKIA_TEST:secret-test::us-west-2",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Azure AI validator uses the Azure chat endpoint and api-key auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://demo.models.ai.azure.com/models/chat/completions?api-version=2024-10-21"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.["api-key"], "azure-ai-key");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "azure-ai",
+    apiKey: "azure-ai-key",
+    providerSpecificData: {
+      baseUrl: "https://demo.models.ai.azure.com",
+      apiVersion: "2024-10-21",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Azure OpenAI validator uses deployment URLs and api-key auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://demo.openai.azure.com/openai/deployments/gpt54-prod/chat/completions?api-version=2024-10-21"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.["api-key"], "azure-openai-key");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "azure-openai",
+    apiKey: "azure-openai-key",
+    providerSpecificData: {
+      baseUrl: "https://demo.openai.azure.com",
+      apiVersion: "2024-10-21",
+      deploymentMap: {
+        "gpt-4.1": "gpt54-prod",
+      },
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Vertex Partner validator reuses Vertex service-account validation flow", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://oauth2.googleapis.com/token");
+    assert.equal(init.method, "POST");
+    return new Response(JSON.stringify({ access_token: "vertex-partner-token" }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "vertex-partner",
+    apiKey: JSON.stringify({
+      type: "service_account",
+      project_id: "vertex-project-123",
+      private_key_id: "test-key-id",
+      private_key: vertexPrivateKey,
+      client_email: "vertex@test-project.iam.gserviceaccount.com",
+    }),
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("DataRobot validator normalizes root hosts to the LLM gateway endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://app.datarobot.com/api/v2/genai/llmgw/chat/completions/");
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.Authorization, "Bearer dr-key");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "datarobot",
+    apiKey: "dr-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("WatsonX validator exchanges an IAM token and probes the text/chat endpoint", async () => {
+  let callCount = 0;
+
+  globalThis.fetch = async (url, init = {}) => {
+    callCount += 1;
+
+    if (callCount === 1) {
+      assert.equal(String(url), "https://iam.cloud.ibm.com/identity/token");
+      assert.equal(init.method, "POST");
+      assert.equal(init.headers?.["Content-Type"], "application/x-www-form-urlencoded");
+      assert.match(
+        String(init.body || ""),
+        /grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey/
+      );
+      assert.match(String(init.body || ""), /apikey=watsonx-api-key/);
+      return new Response(JSON.stringify({ access_token: "ibm-iam-token", expires_in: 3600 }), {
+        status: 200,
+      });
+    }
+
+    assert.equal(
+      String(url),
+      "https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2024-05-31"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.Authorization, "Bearer ibm-iam-token");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    const body = JSON.parse(String(init.body || "{}"));
+    assert.equal(body.model_id, "ibm/granite-3-8b-instruct");
+    assert.equal(body.project_id, "project-123");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "watsonx",
+    apiKey: "watsonx-api-key",
+    providerSpecificData: {
+      baseUrl: "https://us-south.ml.cloud.ibm.com",
+      projectId: "project-123",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("OCI validator signs a chat probe with manual RSA credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com/20231130/actions/chat"
+    );
+    assert.equal(init.method, "POST");
+    assert.match(String(init.headers?.Authorization || ""), /^Signature version="1"/);
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    const body = JSON.parse(String(init.body || "{}"));
+    assert.equal(body.compartmentId, "ocid1.compartment.oc1..oci");
+    assert.equal(body.chatRequest.apiFormat, "GENERIC");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "oci",
+    apiKey: JSON.stringify({
+      user: "ocid1.user.oc1..oci",
+      fingerprint: "11:22:33:44",
+      tenancy: "ocid1.tenancy.oc1..oci",
+      compartmentId: "ocid1.compartment.oc1..oci",
+      privateKey: vertexPrivateKey,
+      region: "us-chicago-1",
+    }),
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("SAP validator exchanges a client-credentials token and probes the deployment completion URL", async () => {
+  let callCount = 0;
+
+  globalThis.fetch = async (url, init = {}) => {
+    callCount += 1;
+
+    if (callCount === 1) {
+      assert.equal(String(url), "https://auth.sap.example.com/oauth/token");
+      assert.equal(init.method, "POST");
+      assert.match(String(init.body || ""), /grant_type=client_credentials/);
+      assert.match(String(init.body || ""), /client_id=sap-client-id/);
+      return new Response(JSON.stringify({ access_token: "sap-access-token", expires_in: 3600 }), {
+        status: 200,
+      });
+    }
+
+    assert.equal(
+      String(url),
+      "https://api.sap.example.com/v2/inference/deployments/deployment-123/v2/completion"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.Authorization, "Bearer sap-access-token");
+    assert.equal(init.headers?.["AI-Resource-Group"], "rg-prod");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "sap",
+    apiKey: JSON.stringify({
+      clientid: "sap-client-id",
+      clientsecret: "sap-client-secret",
+      url: "https://auth.sap.example.com/oauth/token",
+      serviceurls: {
+        AI_API_URL: "https://api.sap.example.com/v2/inference/deployments",
+      },
+      resource_group: "rg-prod",
+    }),
+    providerSpecificData: {
+      deploymentId: "deployment-123",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
 });
 
 test("web-cookie provider validators accept valid Grok and Perplexity session cookies", async () => {

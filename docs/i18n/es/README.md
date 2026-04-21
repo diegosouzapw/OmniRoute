@@ -1452,7 +1452,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 | Feature                             | What It Does                                                                            |
 | ----------------------------------- | --------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                          |
+| 🔌 **Circuit Breakers**             | Per-provider and per-model trip/recover with 10-minute cooldowns                        |
+| 🔒 **Daily Quota Lock** 🆕          | Detects exhaustion signals and locks routing for the specific model until midnight      |
 | 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                  |
 | 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                      |
 | 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                            |
@@ -1478,7 +1479,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | Feature                          | What It Does                                          |
 | -------------------------------- | ----------------------------------------------------- |
 | 📝 **Request + Proxy Logging**   | Full request/response and proxy logging               |
-| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI  |
+| 📉 **Streamed Detailed Logs**    | Reconstructs SSE payload streams cleanly into the UI  |
+| 🏷️ **Real-Time Model Badges** 🆕 | Live model status and daily quota countdown timers    |
 | 📋 **Unified Logs Dashboard**    | Request, proxy, audit, and console views in one page  |
 | 🔍 **Request Telemetry**         | p50/p95/p99 latency and request tracing               |
 | 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |

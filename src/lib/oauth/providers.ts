@@ -38,6 +38,8 @@ export function generateAuthData(providerName, redirectUri) {
   let authUrl;
   if (provider.flowType === "device_code") {
     authUrl = null;
+  } else if (provider.flowType === "import_token") {
+    authUrl = null;
   } else if (provider.flowType === "authorization_code_pkce") {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
   } else {

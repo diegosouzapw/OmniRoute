@@ -59,31 +59,66 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
+  // Context overflow — model-specific, may succeed on a model with larger context window
+  /context overflow/i,
+  /context length exceeded/i,
+  /prompt too large/i,
+  /token limit/i,
+  /too many tokens/i,
+  /exceeds? context/i,
+  /maximum context/i,
+  /input too long/i,
+  /messages? exceed/i,
+  // Model not supported/found — permanent model-level error, try next combo target
+  /no provider supported/i,
+  /model not found/i,
+  /model not available/i,
+  /unsupported model/i,
+  /model.*has no provider/i,
+  // Function calling format error — model doesn't support this capability
+  /function\.?arguments.*(must be|should be|必须).*(json|JSON)/i,
+  /tool.*arguments.*invalid/i,
+  /function.*parameter.*(invalid|format)/i,
+  // Input length range error — model-specific context limit
+  /range of input length/i,
+  /input length should be/i,
+  // Transient 400 errors from upstream — should fallback to next combo target
+  /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
+  /抱歉.*?敏感内容.*?请检查/i, // ModelScope/Qwen content moderation with context
+  /内容.*?敏感.*?(?:无法|过滤)/i, // Content sensitivity block
+  /无法响应.*?请求/i, // "unable to respond to request"
+  /稍后重试/i, // "retry later" in Chinese
+  /temporary.*error/i,
+  /transient.*error/i,
+  /service.*unavailable/i,
+  /please.*try.*again/i,
+  // Rate limit errors — some providers return 400 instead of 429
+  /\brate.?-?limit.?(?:exceeded|reached|hit)/i,
+  /too many requests/i,
+  /请求过于频繁/i, // Chinese rate limit message
+  // Tool call function name errors — model-specific, try next combo target
+  /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
+  /function.*name.*(?:blank|empty|missing)/i,
+  /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
-// Used to detect 503/429 responses from handleNoCredentials so combo can fallback.
-const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [
-  /unavailable/i,
-  /service temporarily unavailable/i,
-  /cooling down/i,
-  /model_cooldown/i,
-];
+// Used to detect 503 responses from handleNoCredentials so combo can fallback.
+const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
 
 function isAllAccountsRateLimitedResponse(
   status: number,
   contentType: string | null,
   errorText: string
 ): boolean {
-  // 503: handleNoCredentials allRateLimited path (unavailable)
-  // 429: modelCooldownResponse (cooling down / model_cooldown)
-  if (status !== 503 && status !== 429) return false;
+  if (status !== 503) return false;
   if (!contentType?.includes("application/json")) return false;
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
 }
 
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
+const MAX_GLOBAL_ATTEMPTS = 30;
 
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
@@ -179,8 +214,7 @@ async function validateResponseQuality(
   try {
     json = JSON.parse(text);
   } catch {
-    if (text.startsWith("data:") || text.startsWith("event:") || text.includes("\ndata:"))
-      return { valid: true };
+    if (text.startsWith("data:")) return { valid: true };
     return { valid: false, reason: "response is not valid JSON" };
   }
 
@@ -1051,7 +1085,6 @@ export async function handleComboChat({
   const strategy = combo.strategy || "priority";
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
-  let globalAttempts = 0;
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
@@ -1460,6 +1493,7 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
@@ -1494,14 +1528,13 @@ export async function handleComboChat({
     // Retry loop for transient errors
     for (let retry = 0; retry <= maxRetries; retry++) {
       globalAttempts++;
-      if (globalAttempts > 30) {
+      if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
         log.warn(
           "COMBO",
-          `Maximum combo attempts (30) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
+          `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
         );
         return errorResponse(503, "Maximum combo retry limit reached");
       }
-
       if (retry > 0) {
         log.info(
           "COMBO",
@@ -1534,8 +1567,6 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
-          if (!lastStatus) lastStatus = 422;
-          lastError = lastError || `quality check failed: ${quality.reason}`;
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
@@ -1693,11 +1724,9 @@ export async function handleComboChat({
         );
       }
 
-      // Check if this is a transient error worth retrying on same model.
-      // Skip retries when all accounts are already rate-limited — retrying
-      // a provider with no available credentials is pointless and wastes time.
+      // Check if this is a transient error worth retrying on same model
       const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
-      if (retry < maxRetries && isTransient && !isAllAccountsRateLimited) {
+      if (retry < maxRetries && isTransient) {
         continue; // Retry same model
       }
 
@@ -1821,9 +1850,9 @@ async function handleRoundRobinCombo({
   let lastError = null;
   let lastStatus = null;
   let earliestRetryAfter = null;
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
-  let globalAttempts = 0;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -1876,14 +1905,13 @@ async function handleRoundRobinCombo({
     try {
       for (let retry = 0; retry <= maxRetries; retry++) {
         globalAttempts++;
-        if (globalAttempts > 30) {
+        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
           log.warn(
             "COMBO-RR",
-            `Maximum combo attempts (30) exceeded. Terminating loop to prevent runaway requests.`
+            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded. Terminating loop to prevent runaway requests.`
           );
           return errorResponse(503, "Maximum combo retry limit reached");
         }
-
         if (retry > 0) {
           log.info(
             "COMBO-RR",
@@ -1916,8 +1944,6 @@ async function handleRoundRobinCombo({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
-            if (!lastStatus) lastStatus = 422;
-            lastError = lastError || `quality check failed: ${quality.reason}`;
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }
@@ -2043,9 +2069,9 @@ async function handleRoundRobinCombo({
           );
         }
 
-        // Transient error → retry same model (skip if all accounts rate-limited)
+        // Transient error → retry same model
         const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
-        if (retry < maxRetries && isTransient && !isAllAccountsRateLimited) {
+        if (retry < maxRetries && isTransient) {
           continue;
         }
 

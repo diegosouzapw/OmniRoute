@@ -253,6 +253,7 @@ export const createProviderSchema = z
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+  expiresInHours: z.union([z.number().int().min(1), z.null()]).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -1183,6 +1184,30 @@ export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
 });
 
+export const zedImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Access token is required"),
+  userId: z.string().trim().min(1, "User ID is required"),
+  baseUrl: z.string().trim().optional(),
+  cloudBaseUrl: z.string().trim().optional(),
+});
+
+export const traeImportSchema = z
+  .object({
+    accessToken: z.string().trim().optional(),
+    refreshToken: z.string().trim().optional(),
+    loginHost: z.string().trim().min(1, "Login host is required"),
+    baseUrl: z.string().trim().min(1, "Chat base URL is required"),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.accessToken && !value.refreshToken) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Access token or refresh token is required",
+        path: ["accessToken"],
+      });
+    }
+  });
+
 export const kiroSocialExchangeSchema = z.object({
   code: z.string().trim().min(1, "Code is required"),
   codeVerifier: z.string().trim().min(1, "Code verifier is required"),
@@ -1289,6 +1314,8 @@ export const dbBackupRestoreSchema = z.object({
 
 export const evalRunSuiteSchema = z.object({
   suiteId: z.string().trim().min(1, "suiteId is required"),
+  targetId: z.string().optional(),
+  targetType: z.enum(["model", "combo"]).optional(),
   outputs: z.record(z.string(), z.string()),
 });
 
@@ -1310,6 +1337,7 @@ export const updateKeyPermissionsSchema = z
     isActive: z.boolean().optional(),
     maxSessions: z.number().int().min(0).max(10000).optional(),
     accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
+    mcpScopes: z.array(z.string().trim().min(1)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1320,7 +1348,8 @@ export const updateKeyPermissionsSchema = z
       value.autoResolve === undefined &&
       value.isActive === undefined &&
       value.maxSessions === undefined &&
-      value.accessSchedule === undefined
+      value.accessSchedule === undefined &&
+      value.mcpScopes === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -65,3 +65,21 @@ test("classifyProviderError: 403 with project string as plain string body => PRO
   const result = classifyProviderError(403, body);
   assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);
 });
+
+test("classifyProviderError: 429 with daily quota signal => QUOTA_EXHAUSTED", () => {
+  const body = JSON.stringify({
+    error: {
+      message:
+        "You have exceeded today's quota for model moonshotai/Kimi-K2.5, please try again tomorrow",
+    },
+  });
+  const result = classifyProviderError(429, body);
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+});
+
+test("classifyProviderError: 429 with 'daily quota' signal => QUOTA_EXHAUSTED", () => {
+  const result = classifyProviderError(429, {
+    error: { message: "You have reached your daily quota limit" },
+  });
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+});

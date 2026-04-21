@@ -192,7 +192,18 @@ export default function APIPageClient({ machineId }) {
     );
     const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
     const music = allModels.filter((m) => m.type === "music" && !m.parent);
-    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation, music };
+    const video = allModels.filter((m) => m.type === "video" && !m.parent);
+    return {
+      chat,
+      embeddings,
+      images,
+      rerank,
+      audioTranscription,
+      audioSpeech,
+      moderation,
+      music,
+      video,
+    };
   }, [allModels]);
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
@@ -720,6 +731,7 @@ export default function APIPageClient({ machineId }) {
                       endpointData.audioSpeech,
                       endpointData.moderation,
                       endpointData.music,
+                      endpointData.video,
                     ].filter((a) => a.length > 0).length + 2,
                 })}
               </p>
@@ -898,6 +910,25 @@ export default function APIPageClient({ machineId }) {
                 copied={copied}
                 baseUrl={currentEndpoint}
               />
+
+              {/* Video Generation */}
+              <EndpointSection
+                icon="videocam"
+                iconColor="text-red-500"
+                iconBg="bg-red-500/10"
+                title={t("videoGeneration") || "Video Generation"}
+                path="/v1/videos/generations"
+                description={
+                  t("videoDesc") ||
+                  "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
+                }
+                models={endpointData.video}
+                expanded={expandedEndpoint === "video"}
+                onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+              />
             </div>
           </div>
 
@@ -1046,7 +1077,7 @@ export default function APIPageClient({ machineId }) {
                 <div className="mt-3 text-xs text-text-muted space-y-1">
                   <p>
                     {t("protocolToolsLabel") || "Tools"}:{" "}
-                    <span className="text-text-main font-semibold">{mcpToolCount || 16}</span>
+                    <span className="text-text-main font-semibold">{mcpToolCount || 29}</span>
                   </p>
                   <p>
                     {t("protocolLastActivity") || "Last activity"}:{" "}
@@ -1124,19 +1155,55 @@ export default function APIPageClient({ machineId }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border border-border p-4 bg-bg-subtle">
                 <h4 className="font-semibold mb-2">
-                  {t("mcpQuickStartTitle") || "MCP Quick Start"}
+                  {t("mcpQuickStartTitle") || "MCP Client Configuration"}
                 </h4>
-                <ol className="text-sm text-text-muted space-y-1 list-decimal list-inside">
-                  <li>{t("mcpQuickStartStep1") || "Run the MCP server via `omniroute --mcp`."}</li>
-                  <li>
-                    {t("mcpQuickStartStep2") ||
-                      "Configure your MCP client to connect over stdio transport."}
-                  </li>
-                  <li>
-                    {t("mcpQuickStartStep3") ||
-                      "Invoke tools such as `omniroute_get_health` and `omniroute_list_combos`."}
-                  </li>
-                </ol>
+                <p className="text-sm text-text-muted mb-3">
+                  {t("mcpQuickStartDesc") ||
+                    "Add this to your Claude Code, Cursor, or Cline MCP configuration file:"}
+                </p>
+                <div className="relative group rounded-lg bg-bg p-3 border border-border/70 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      const json = JSON.stringify(
+                        {
+                          mcpServers: {
+                            omniroute: {
+                              command: "npx",
+                              args: ["-y", "omniroute@latest", "--mcp"],
+                              env: { OMNI_API_KEY: "sua-chave-aqui" },
+                            },
+                          },
+                        },
+                        null,
+                        2
+                      );
+                      copy(json, "mcp_config");
+                    }}
+                    className="absolute top-2 right-2 p-1.5 hover:bg-surface rounded-lg text-text-muted hover:text-primary transition-colors z-10 bg-bg/80 backdrop-blur"
+                    title={tc("copy")}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      {copied === "mcp_config" ? "check" : "content_copy"}
+                    </span>
+                  </button>
+                  <pre className="text-xs font-mono text-text-main overflow-x-auto whitespace-pre">
+                    <code>
+                      {JSON.stringify(
+                        {
+                          mcpServers: {
+                            omniroute: {
+                              command: "npx",
+                              args: ["-y", "omniroute@latest", "--mcp"],
+                              env: { OMNI_API_KEY: "sua-chave-aqui" },
+                            },
+                          },
+                        },
+                        null,
+                        2
+                      )}
+                    </code>
+                  </pre>
+                </div>
               </div>
               <div className="rounded-xl border border-border p-4 bg-bg-subtle">
                 <h4 className="font-semibold mb-2">

@@ -26,6 +26,7 @@ const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
 const { resetAllAvailability, setModelUnavailable } =
   await import("../../src/domain/modelAvailability.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
 
 const originalFetch = globalThis.fetch;
 const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
@@ -1017,6 +1018,8 @@ test("chat pipeline maps upstream timeouts to 504 responses", async () => {
 });
 
 test("chat pipeline injects memory context before sending the upstream request", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-memory" });
   const apiKey = await seedApiKey();
   await settingsDb.updateSettings({
@@ -1057,6 +1060,8 @@ test("chat pipeline injects memory context before sending the upstream request",
 });
 
 test("chat pipeline injects skills into tools and intercepts tool calls with skill output", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-skills" });
   const apiKey = await seedApiKey();
   await settingsDb.updateSettings({ skillsEnabled: true });
@@ -1118,6 +1123,8 @@ test("chat pipeline injects skills into tools and intercepts tool calls with ski
 });
 
 test("chat pipeline falls back to the next account after a provider failure", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", {
     name: "openai-primary",
     apiKey: "sk-openai-primary-fallback",
@@ -1162,6 +1169,9 @@ test("chat pipeline falls back to the next account after a provider failure", as
 });
 
 test("chat pipeline falls back across combo models when the first provider fails", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
+  clearProviderFailure("claude");
   await seedConnection("openai", { apiKey: "sk-openai-combo-fail" });
   await seedConnection("claude", { apiKey: "sk-claude-combo-fail" });
   await combosDb.createCombo({
@@ -1206,6 +1216,8 @@ test("chat pipeline falls back across combo models when the first provider fails
 });
 
 test("chat pipeline deduplicates concurrent identical non-stream requests", async () => {
+  // Reset provider failure state to avoid circuit breaker interference
+  clearProviderFailure("openai");
   await seedConnection("openai", { apiKey: "sk-openai-dedup" });
   let fetchCount = 0;
 
