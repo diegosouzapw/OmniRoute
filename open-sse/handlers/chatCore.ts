@@ -588,6 +588,29 @@ function attachLogMeta(
 const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
 const PROXY_CONFIG_CACHE_TTL = 10_000;
 
+/**
+ * Module-level cache for all combos data (shared across all requests).
+ * 10s TTL prevents per-request DB lookups while staying fresh enough for combo changes.
+ */
+const _combosCache: { data: unknown[] | null; ts: number } = { data: null, ts: 0 };
+const COMBOS_CACHE_TTL = 10_000;
+
+async function getCombosCached(): Promise<unknown[]> {
+  if (_combosCache.data && Date.now() - _combosCache.ts < COMBOS_CACHE_TTL) {
+    return _combosCache.data;
+  }
+  const { getCombos } = await import("@/lib/localDb");
+  const data = await getCombos();
+  _combosCache.data = data;
+  _combosCache.ts = Date.now();
+  return data;
+}
+
+export function clearCombosCache() {
+  _combosCache.data = null;
+  _combosCache.ts = 0;
+}
+
 export function clearUpstreamProxyConfigCache(providerId?: string) {
   if (providerId) {
     _proxyConfigCache.delete(providerId);
@@ -1232,8 +1255,7 @@ export async function handleChatCore({
         const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
         const comboConfig = await getComboByName(comboToSearch);
         if (comboConfig) {
-          const { getCombos } = await import("@/lib/localDb");
-          const allCombosData = await getCombos();
+          const allCombosData = await getCombosCached();
           const targets = await resolveComboTargets(comboConfig, allCombosData);
           const limits = targets.map((t: { modelStr?: string }) => {
             const parsed = parseModel(t.modelStr);

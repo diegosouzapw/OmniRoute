@@ -20,6 +20,7 @@ import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuf
 import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
+import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
@@ -59,14 +60,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
-  /\binput is too long\b/i,
-  /\binput too long\b/i,
-  /\btoo many tokens\b/i,
-  /\bmax.*token.*exceed\b/i,
-  /\brequest too large\b/i,
-  /\bcontext window\b/i,
-  /\bmaximum context\b/i,
-  /\btoken limit\b/i,
+  CONTEXT_OVERFLOW_REGEX,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
