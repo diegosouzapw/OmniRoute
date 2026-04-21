@@ -772,6 +772,27 @@ omniroute
 > omniroute
 > ```
 
+#### Arch Linux (AUR)
+
+Arch Linux users can install the community-maintained AUR package, which installs OmniRoute and provides a systemd user service:
+
+```bash
+yay -S omniroute-bin
+systemctl --user enable --now omniroute.service
+```
+
+The service runs OmniRoute at `http://localhost:20128` and reads optional overrides from `~/.config/omniroute/.env`.
+
+Useful service commands:
+
+```bash
+systemctl --user restart omniroute.service
+systemctl --user status omniroute.service
+journalctl --user -u omniroute.service -f
+```
+
+When editing `~/.config/omniroute/.env`, use absolute paths for file-system settings. The file is read by systemd as an `EnvironmentFile`, so shell variables such as `$HOME` are not expanded. Leave `DATA_DIR` unset to use the package default, or set it explicitly, for example `DATA_DIR=/home/your-user/.config/omniroute`.
+
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
 | Command                 | Description                                                 |
