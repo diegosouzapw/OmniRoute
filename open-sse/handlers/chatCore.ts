@@ -1240,8 +1240,8 @@ export async function handleChatCore({
             return getTokenLimit(parsed.provider, parsed.model);
           });
           if (limits.length > 0) {
-            contextLimit = Math.max(...limits);
-            log?.info?.("CONTEXT", `Combo context limit: ${contextLimit}`);
+            contextLimit = Math.min(...limits);
+            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
           }
         }
       } catch (err) {
