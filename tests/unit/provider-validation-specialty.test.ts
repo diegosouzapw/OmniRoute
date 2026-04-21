@@ -123,6 +123,48 @@ test("CodeBuddy validator probes models/chat with dual auth headers", async () =
   assert.equal(result.error, null);
 });
 
+test("Replicate validator probes account endpoint with bearer auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.replicate.com/v1/account");
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers?.Authorization, "Bearer replicate-secret");
+    return new Response(JSON.stringify({ type: "organization", username: "acme" }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "replicate",
+    apiKey: "replicate-secret",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Gradient validator probes the official chat completion endpoint directly", async () => {
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gradient",
+    apiKey: "gradient-access-key",
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://apis.gradient.network/api/v1/ai/chat/completions");
+  assert.equal(
+    (calls[0].init?.headers as Record<string, string>).Authorization,
+    "Bearer gradient-access-key"
+  );
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
 test("AWS Polly validator signs synth probes and accepts non-auth client errors", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);

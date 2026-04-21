@@ -32,10 +32,12 @@ export const FREE_PROVIDERS = {
     color: "#10B981",
     textIcon: "GN",
     website: "https://gradient.network",
+    apiHint:
+      "Use a Gradient Cloud access key. Gradient still offers starter credits, but the official API now requires Authorization: Bearer <access-key>.",
   },
 };
 
-export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
+export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder", "gradient"]);
 
 export function supportsApiKeyOnFreeProvider(providerId) {
   return FREE_APIKEY_PROVIDER_IDS.has(providerId);

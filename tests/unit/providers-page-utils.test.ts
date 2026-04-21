@@ -42,6 +42,12 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   );
 });
 
+test("free providers can explicitly opt into API key flows", () => {
+  assert.equal(providers.supportsApiKeyOnFreeProvider("qoder"), true);
+  assert.equal(providers.supportsApiKeyOnFreeProvider("gradient"), true);
+  assert.equal(providers.supportsApiKeyOnFreeProvider("kiro"), false);
+});
+
 test("configured-only filter keeps only providers with saved connections", () => {
   const entries = [
     {

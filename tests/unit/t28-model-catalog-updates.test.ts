@@ -110,6 +110,23 @@ test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
   );
 });
 
+test("T28: gradient registry points to the official Gradient Cloud chat endpoint", async () => {
+  const gradientIds = REGISTRY.gradient.models.map((m) => m.id);
+
+  assert.equal(
+    REGISTRY.gradient.baseUrl,
+    "https://apis.gradient.network/api/v1/ai/chat/completions"
+  );
+  assert.equal(REGISTRY.gradient.modelsUrl, "https://apis.gradient.network/api/v1/ai/models");
+  assert.ok(gradientIds.includes("gpt-oss-120b"));
+  assert.ok(gradientIds.includes("qwen3-235b-a22b"));
+  assert.ok(gradientIds.includes("qwen/qwen3-coder-480b-instruct-fp8"));
+
+  const gradientModel = await getModelInfoCore("gradient/gpt-oss-120b", {});
+  assert.equal(gradientModel.provider, "gradient");
+  assert.equal(gradientModel.model, "gpt-oss-120b");
+});
+
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
 
@@ -197,6 +214,22 @@ test("T28: datarobot uses a specialized executor with passthrough deployments", 
   const datarobotModel = await getModelInfoCore("datarobot/customer-deployment", {});
   assert.equal(datarobotModel.provider, "datarobot");
   assert.equal(datarobotModel.model, "customer-deployment");
+});
+
+test("T28: replicate catalog exposes the LiteLLM-backed model set and specialized executor", async () => {
+  const replicateIds = REGISTRY.replicate.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.replicate.executor, "replicate");
+  assert.equal(REGISTRY.replicate.baseUrl, "https://api.replicate.com/v1");
+  assert.equal(replicateIds.length, 40);
+  assert.ok(replicateIds.includes("meta/llama-2-70b-chat"));
+  assert.ok(replicateIds.includes("openai/gpt-5"));
+  assert.ok(replicateIds.includes("anthropic/claude-4.5-sonnet"));
+  assert.ok(replicateIds.includes("deepseek-ai/deepseek-v3.1"));
+
+  const replicateModel = await getModelInfoCore("replicate/openai/gpt-5", {});
+  assert.equal(replicateModel.provider, "replicate");
+  assert.equal(replicateModel.model, "openai/gpt-5");
 });
 
 test("T28: watsonx catalog exposes the planned model set and specialized executor", async () => {

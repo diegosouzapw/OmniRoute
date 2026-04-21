@@ -50,6 +50,11 @@ import {
   signOciRequest,
 } from "@omniroute/open-sse/executors/oci.ts";
 import {
+  buildReplicateAccountUrl,
+  buildReplicateHeaders,
+  getReplicateBaseUrl,
+} from "@omniroute/open-sse/executors/replicate.ts";
+import {
   buildSapCompletionRequest,
   buildSapCompletionUrl,
   exchangeSapAccessToken,
@@ -389,6 +394,55 @@ async function validateCodeBuddyProvider({ apiKey, providerSpecificData = {} }: 
     }
 
     return { valid: false, error: `Validation failed: ${chatRes.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateGradientProvider({ apiKey, providerSpecificData = {} }: any) {
+  return validateDirectChatProvider({
+    url:
+      normalizeBaseUrl(providerSpecificData.baseUrl) ||
+      "https://apis.gradient.network/api/v1/ai/chat/completions",
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "gpt-oss-120b",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
+}
+
+async function validateReplicateProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const baseUrl = getReplicateBaseUrl(providerSpecificData);
+    const headers = buildReplicateHeaders(
+      {
+        apiKey,
+        providerSpecificData,
+      },
+      false
+    );
+
+    const response = await validationRead(buildReplicateAccountUrl(baseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok || response.status === 429) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -1900,6 +1954,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     codebuddy: validateCodeBuddyProvider,
+    gradient: validateGradientProvider,
+    replicate: validateReplicateProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,

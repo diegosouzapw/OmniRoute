@@ -24,6 +24,7 @@ import { WatsonxExecutor } from "./watsonx.ts";
 import { OciExecutor } from "./oci.ts";
 import { SapExecutor } from "./sap.ts";
 import { CodeBuddyExecutor } from "./codebuddy.ts";
+import { ReplicateExecutor } from "./replicate.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const executors = {
@@ -58,6 +59,7 @@ const executors = {
   oci: new OciExecutor("oci"),
   sap: new SapExecutor("sap"),
   codebuddy: new CodeBuddyExecutor("codebuddy"),
+  replicate: new ReplicateExecutor("replicate"),
 };
 
 const executorFactories = {
@@ -86,6 +88,7 @@ const executorFactories = {
   oci: (provider) => new OciExecutor(provider),
   sap: (provider) => new SapExecutor(provider),
   codebuddy: (provider) => new CodeBuddyExecutor(provider),
+  replicate: (provider) => new ReplicateExecutor(provider),
 };
 
 const defaultCache = new Map();
@@ -147,3 +150,4 @@ export { WatsonxExecutor } from "./watsonx.ts";
 export { OciExecutor } from "./oci.ts";
 export { SapExecutor } from "./sap.ts";
 export { CodeBuddyExecutor } from "./codebuddy.ts";
+export { ReplicateExecutor } from "./replicate.ts";
