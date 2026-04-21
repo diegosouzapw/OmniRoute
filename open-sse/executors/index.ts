@@ -14,6 +14,7 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { AzureOpenAIExecutor } from "./azure-openai.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -38,6 +39,8 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
+  "azure-openai": new AzureOpenAIExecutor(),
+  azure: new AzureOpenAIExecutor(),
 };
 
 const defaultCache = new Map();
@@ -69,3 +72,4 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { AzureOpenAIExecutor } from "./azure-openai.ts";

@@ -175,6 +175,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "email",
     "globalPriority",
     "defaultModel",
+    "blockExtraUsage",
     "accessToken",
     "refreshToken",
     "expiresAt",
@@ -227,7 +228,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       rate_limited_until, health_check_interval, last_health_check_at,
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
-      token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", created_at, updated_at
+      token_type, consecutive_use_count, rate_limit_protection, block_extra_usage, last_used_at, "group", created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
       @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -236,7 +237,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
-      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @createdAt, @updatedAt
+      @tokenType, @consecutiveUseCount, @rateLimitProtection, @blockExtraUsage, @lastUsedAt, @group, @createdAt, @updatedAt
     )
   `
   ).run({
@@ -277,6 +278,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     consecutiveUseCount: conn.consecutiveUseCount || 0,
     rateLimitProtection:
       conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+    blockExtraUsage: conn.blockExtraUsage === false || conn.blockExtraUsage === 0 ? 0 : 1,
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     createdAt: conn.createdAt,
@@ -302,6 +304,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       default_model = @defaultModel, token_type = @tokenType,
       consecutive_use_count = @consecutiveUseCount,
       rate_limit_protection = @rateLimitProtection,
+      block_extra_usage = @blockExtraUsage,
       last_used_at = @lastUsedAt,
       "group" = @group,
       updated_at = @updatedAt
@@ -345,6 +348,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     consecutiveUseCount: data.consecutiveUseCount || 0,
     rateLimitProtection:
       data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
+    blockExtraUsage: data.blockExtraUsage === false || data.blockExtraUsage === 0 ? 0 : 1,
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
     updatedAt: now,

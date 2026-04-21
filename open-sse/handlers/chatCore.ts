@@ -11,7 +11,11 @@ import { createStreamController, pipeWithDisconnect } from "../utils/streamHandl
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import {
+  getModelStrip,
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+} from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import {
@@ -139,7 +143,12 @@ import {
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
-import { interceptAndExtractVision } from "../services/visionBridge.ts";
+import {
+  extractClaudeExtraUsage,
+  syncClaudeExtraUsageBlockState,
+} from "../services/claudeExtraUsage.ts";
+import { interceptAndExtractVision, shouldApplyVisionBridge } from "../services/visionBridge.ts";
+import { stripIncompatibleContent } from "../services/modelContentStrip.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1313,7 +1322,33 @@ export async function handleChatCore({
   }
 
   let translatedBody = body;
-  translatedBody = await interceptAndExtractVision(translatedBody, model || "", provider || "");
+  const stripTypes = getModelStrip(provider || "", effectiveModel || model || "");
+  const visionBridgeActive = shouldApplyVisionBridge(
+    translatedBody,
+    effectiveModel || model || "",
+    provider || ""
+  );
+
+  translatedBody = await interceptAndExtractVision(
+    translatedBody,
+    effectiveModel || model || "",
+    provider || ""
+  );
+
+  const stripTypesToApply = visionBridgeActive
+    ? stripTypes.filter((type) => type !== "image")
+    : stripTypes;
+  if (stripTypesToApply.length > 0) {
+    const stripped = stripIncompatibleContent(translatedBody, stripTypesToApply);
+    translatedBody = stripped.body;
+    if (stripped.strippedCount > 0) {
+      log?.debug?.(
+        "CONTENT",
+        `Stripped incompatible content for ${provider}/${effectiveModel}: ${stripTypesToApply.join(", ")} (${stripped.strippedCount} part(s))`
+      );
+    }
+  }
+
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
@@ -2510,6 +2545,18 @@ export async function handleChatCore({
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
     );
+    const claudeExtraUsage = extractClaudeExtraUsage(responseBody);
+    if (claudeExtraUsage && credentials?.blockExtraUsage === true) {
+      void syncClaudeExtraUsageBlockState({
+        provider,
+        connectionId,
+        accessToken: credentials?.accessToken,
+        providerSpecificData: credentials?.providerSpecificData,
+        blockExtraUsage: credentials?.blockExtraUsage === true,
+        extraUsage: claudeExtraUsage,
+        log,
+      });
+    }
 
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
@@ -2797,6 +2844,19 @@ export async function handleChatCore({
     ttft,
   }) => {
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+    const claudeExtraUsage =
+      extractClaudeExtraUsage(providerPayload) || extractClaudeExtraUsage(streamResponseBody);
+    if (claudeExtraUsage && credentials?.blockExtraUsage === true) {
+      void syncClaudeExtraUsageBlockState({
+        provider,
+        connectionId,
+        accessToken: credentials?.accessToken,
+        providerSpecificData: credentials?.providerSpecificData,
+        blockExtraUsage: credentials?.blockExtraUsage === true,
+        extraUsage: claudeExtraUsage,
+        log,
+      });
+    }
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {

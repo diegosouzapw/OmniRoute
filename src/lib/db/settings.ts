@@ -44,6 +44,10 @@ export async function getSettings() {
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
   const settings: Record<string, unknown> = {
     cloudEnabled: false,
+    tunnelEnabled: false,
+    tunnelUrl: "",
+    tailscaleEnabled: false,
+    tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
     requestRetry: 3,
     maxRetryIntervalSec: 30,

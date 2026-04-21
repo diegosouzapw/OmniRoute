@@ -214,6 +214,7 @@ export const createProviderSchema = z
     priority: z.number().int().min(1).max(100).optional(),
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
     defaultModel: z.string().max(200).nullable().optional(),
+    blockExtraUsage: z.boolean().optional(),
     testStatus: z.string().max(50).optional(),
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -1446,6 +1447,7 @@ export const updateProviderConnectionSchema = z
     priority: z.coerce.number().int().min(1).max(100).optional(),
     globalPriority: z.union([z.coerce.number().int().min(1).max(100), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
+    blockExtraUsage: z.boolean().optional(),
     isActive: z.boolean().optional(),
     apiKey: z.string().max(10000).optional(),
     testStatus: z.string().max(50).optional(),

@@ -21,19 +21,22 @@ test("resolveAntigravityVersion uses the official release feed and caches the re
   let calls = 0;
   const fetchMock = async () => {
     calls += 1;
-    return new Response(JSON.stringify([{ version: "1.22.2", execution_id: "4781536860569600" }]), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify([{ version: "1.107.0", execution_id: "4781536860569600" }]),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   };
 
   const first = await resolveAntigravityVersion(fetchMock as typeof fetch);
   const second = await resolveAntigravityVersion(fetchMock as typeof fetch);
 
-  assert.equal(first, "1.22.2");
-  assert.equal(second, "1.22.2");
+  assert.equal(first, "1.107.0");
+  assert.equal(second, "1.107.0");
   assert.equal(calls, 1);
-  assert.equal(getCachedAntigravityVersion(), "1.22.2");
+  assert.equal(getCachedAntigravityVersion(), "1.107.0");
 });
 
 test("resolveAntigravityVersion refreshes the cache after the TTL elapses", async () => {
@@ -41,7 +44,7 @@ test("resolveAntigravityVersion refreshes the cache after the TTL elapses", asyn
   Date.now = () => now;
 
   const firstFetch = async () =>
-    new Response(JSON.stringify([{ version: "1.22.2" }]), {
+    new Response(JSON.stringify([{ version: "1.107.0" }]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -51,7 +54,7 @@ test("resolveAntigravityVersion refreshes the cache after the TTL elapses", asyn
       headers: { "Content-Type": "application/json" },
     });
 
-  assert.equal(await resolveAntigravityVersion(firstFetch as typeof fetch), "1.22.2");
+  assert.equal(await resolveAntigravityVersion(firstFetch as typeof fetch), "1.107.0");
 
   now += ANTIGRAVITY_VERSION_CACHE_TTL_MS + 1;
 

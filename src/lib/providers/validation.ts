@@ -23,6 +23,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
+import { buildAzureOpenAIModelsUrl } from "@omniroute/open-sse/services/azureOpenAI.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -272,6 +273,45 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
       response.status === 429
     ) {
       return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateAzureOpenAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = providerSpecificData?.baseUrl;
+  if (!baseUrl || typeof baseUrl !== "string" || !baseUrl.trim()) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  try {
+    const response = await validationRead(
+      buildAzureOpenAIModelsUrl(baseUrl, providerSpecificData),
+      {
+        method: "GET",
+        headers: applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "api-key": apiKey,
+          },
+          providerSpecificData
+        ),
+      }
+    );
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
     }
 
     if (response.status >= 500) {
@@ -1290,6 +1330,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     databricks: validateDatabricksProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    "azure-openai": validateAzureOpenAIProvider,
     "grok-web": validateGrokWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     vertex: async ({ apiKey }: any) => {
@@ -1298,6 +1339,17 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           await import("@omniroute/open-sse/executors/vertex.ts");
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
+    "vertex-partner": async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };
       } catch (error: any) {

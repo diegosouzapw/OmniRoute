@@ -476,6 +476,7 @@ interface ConnectionRowConnection {
   displayName?: string;
   rateLimitedUntil?: string;
   rateLimitProtection?: boolean;
+  blockExtraUsage?: boolean;
   testStatus?: string;
   isActive?: boolean;
   priority?: number;
@@ -492,6 +493,7 @@ interface ConnectionRowConnection {
 interface ConnectionRowProps {
   connection: ConnectionRowConnection;
   isOAuth: boolean;
+  isClaude?: boolean;
   isCodex?: boolean;
   isFirst: boolean;
   isLast: boolean;
@@ -499,6 +501,7 @@ interface ConnectionRowProps {
   onMoveDown: () => void;
   onToggleActive: (isActive?: boolean) => void | Promise<void>;
   onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleBlockExtraUsage?: (enabled?: boolean) => void | Promise<void>;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
   isCcCompatible?: boolean;
@@ -1435,6 +1438,53 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+  const handleToggleBlockExtraUsage = async (connectionId, enabled) => {
+    const currentConnection = connections.find((connection) => connection.id === connectionId);
+    if (!currentConnection) return;
+
+    const nextProviderSpecificData =
+      enabled === false &&
+      currentConnection.providerSpecificData &&
+      typeof currentConnection.providerSpecificData === "object" &&
+      "claudeExtraUsageState" in currentConnection.providerSpecificData
+        ? Object.fromEntries(
+            Object.entries(currentConnection.providerSpecificData).filter(
+              ([key]) => key !== "claudeExtraUsageState"
+            )
+          )
+        : undefined;
+
+    const payload =
+      enabled === false && currentConnection.lastErrorSource === "claude_extra_usage"
+        ? {
+            blockExtraUsage: false,
+            testStatus: "active",
+            lastError: null,
+            lastErrorAt: null,
+            lastErrorType: null,
+            lastErrorSource: null,
+            errorCode: null,
+            rateLimitedUntil: null,
+            providerSpecificData: nextProviderSpecificData,
+          }
+        : {
+            blockExtraUsage: enabled,
+          };
+
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        await fetchConnections();
+      }
+    } catch (error) {
+      console.error("Error toggling Claude extra usage block:", error);
     }
   };
 
@@ -2762,6 +2812,7 @@ export default function ProviderDetailPage() {
                         key={conn.id}
                         connection={conn}
                         isOAuth={conn.authType === "oauth"}
+                        isClaude={providerId === "claude"}
                         isFirst={index === 0}
                         isLast={index === sorted.length - 1}
                         onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
@@ -2770,6 +2821,9 @@ export default function ProviderDetailPage() {
                           handleUpdateConnectionStatus(conn.id, isActive)
                         }
                         onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                        onToggleBlockExtraUsage={(enabled) =>
+                          handleToggleBlockExtraUsage(conn.id, enabled)
+                        }
                         isCodex={providerId === "codex"}
                         isCcCompatible={isCcCompatible}
                         cliproxyapiEnabled={cpaProviderEnabled}
@@ -2874,6 +2928,7 @@ export default function ProviderDetailPage() {
                               key={conn.id}
                               connection={conn}
                               isOAuth={conn.authType === "oauth"}
+                              isClaude={providerId === "claude"}
                               isFirst={gi === 0 && index === 0}
                               isLast={
                                 gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -2889,6 +2944,9 @@ export default function ProviderDetailPage() {
                               }
                               onToggleRateLimit={(enabled) =>
                                 handleToggleRateLimit(conn.id, enabled)
+                              }
+                              onToggleBlockExtraUsage={(enabled) =>
+                                handleToggleBlockExtraUsage(conn.id, enabled)
                               }
                               isCodex={providerId === "codex"}
                               onToggleCodex5h={(enabled) =>
@@ -4853,6 +4911,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
 function ConnectionRow({
   connection,
   isOAuth,
+  isClaude,
   isCodex,
   isCcCompatible,
   cliproxyapiEnabled,
@@ -4862,6 +4921,7 @@ function ConnectionRow({
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleBlockExtraUsage,
   onToggleCodex5h,
   onToggleCodexWeekly,
   onToggleCliproxyapiMode,
@@ -4946,6 +5006,7 @@ function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
+  const blockExtraUsageEnabled = connection.blockExtraUsage !== false;
   const codexPolicy =
     connection.providerSpecificData &&
     typeof connection.providerSpecificData === "object" &&
@@ -5046,6 +5107,27 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isClaude && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleBlockExtraUsage?.(!blockExtraUsageEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    blockExtraUsageEnabled
+                      ? "bg-rose-500/15 text-rose-500 hover:bg-rose-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={
+                    blockExtraUsageEnabled
+                      ? "Prevent pay-as-you-go extra usage by routing away when the Claude plan limit is hit"
+                      : "Allow Claude extra usage charges after the plan limit is hit"
+                  }
+                >
+                  <span className="material-symbols-outlined text-[13px]">money_off</span>
+                  Extra Usage {blockExtraUsageEnabled ? "Block ON" : "Block OFF"}
+                </button>
+              </>
+            )}
             {isCcCompatible && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -5236,6 +5318,7 @@ ConnectionRow.propTypes = {
     displayName: PropTypes.string,
     rateLimitedUntil: PropTypes.string,
     rateLimitProtection: PropTypes.bool,
+    blockExtraUsage: PropTypes.bool,
     testStatus: PropTypes.string,
     isActive: PropTypes.bool,
     priority: PropTypes.number,
@@ -5247,6 +5330,7 @@ ConnectionRow.propTypes = {
     providerSpecificData: PropTypes.object,
   }).isRequired,
   isOAuth: PropTypes.bool.isRequired,
+  isClaude: PropTypes.bool,
   isCodex: PropTypes.bool,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired,
@@ -5254,6 +5338,7 @@ ConnectionRow.propTypes = {
   onMoveDown: PropTypes.func.isRequired,
   onToggleActive: PropTypes.func.isRequired,
   onToggleRateLimit: PropTypes.func.isRequired,
+  onToggleBlockExtraUsage: PropTypes.func,
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
   isCcCompatible: PropTypes.bool,

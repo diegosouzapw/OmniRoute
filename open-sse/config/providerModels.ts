@@ -47,6 +47,23 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   return found?.targetFormat || null;
 }
 
+export function getModelStrip(aliasOrId: string, modelId: string): string[] {
+  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+  const normalizedModelId = typeof modelId === "string" ? modelId.trim() : "";
+  const candidateIds = new Set<string>([normalizedModelId]);
+
+  if (normalizedModelId.startsWith(`${alias}/`)) {
+    candidateIds.add(normalizedModelId.slice(alias.length + 1));
+  }
+  if (normalizedModelId.startsWith(`${aliasOrId}/`)) {
+    candidateIds.add(normalizedModelId.slice(aliasOrId.length + 1));
+  }
+
+  const models = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId] || [];
+  const found = models.find((model) => candidateIds.has(model.id));
+  return Array.isArray(found?.strip) ? [...found.strip] : [];
+}
+
 export function getModelsByProviderId(providerId: string): RegistryModel[] {
   const alias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
   return PROVIDER_MODELS[alias] || [];

@@ -585,6 +585,47 @@ export async function GET(
       });
     }
 
+    if (provider === "azure-openai") {
+      const baseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      if (!baseUrl) {
+        return NextResponse.json(
+          { error: "No base URL configured for Azure OpenAI provider" },
+          { status: 400 }
+        );
+      }
+
+      const psd = asRecord(connection.providerSpecificData);
+      const deploymentCandidates = new Set<string>();
+      const defaultModel = toNonEmptyString(connection.defaultModel);
+      const validationModelId = toNonEmptyString(psd.validationModelId);
+
+      if (defaultModel) deploymentCandidates.add(defaultModel);
+      if (validationModelId) deploymentCandidates.add(validationModelId);
+
+      const deploymentNames = Array.isArray(psd.deploymentNames)
+        ? psd.deploymentNames
+            .map((value) => toNonEmptyString(value))
+            .filter((value): value is string => Boolean(value))
+        : [];
+
+      for (const deploymentName of deploymentNames) {
+        deploymentCandidates.add(deploymentName);
+      }
+
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [...deploymentCandidates].map((deploymentName) => ({
+          id: deploymentName,
+          name: deploymentName,
+          owned_by: provider,
+        })),
+        source: "local_catalog",
+        warning:
+          "Azure OpenAI uses deployment names as model IDs. Add your deployment names manually because the inference API does not expose deployment aliases.",
+      });
+    }
+
     if (provider === "glm" || provider === "glmt") {
       const url = getGlmModelsUrl(connection.providerSpecificData);
       const token = apiKey || accessToken;

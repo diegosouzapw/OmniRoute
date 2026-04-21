@@ -34,6 +34,10 @@ import {
   getQwenOauthHeaders,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import {
+  buildAzureOpenAIChatUrl,
+  DEFAULT_AZURE_OPENAI_API_VERSION,
+} from "../services/azureOpenAI.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -45,6 +49,7 @@ export interface RegistryModel {
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
   targetFormat?: string;
+  strip?: readonly string[];
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
@@ -85,7 +90,12 @@ export interface RegistryEntry {
   testKeyBaseUrl?: string;
   responsesBaseUrl?: string;
   urlSuffix?: string;
-  urlBuilder?: (base: string, model: string, stream: boolean) => string;
+  urlBuilder?: (
+    base: string,
+    model: string,
+    stream: boolean,
+    providerSpecificData?: Record<string, unknown> | null
+  ) => string;
   authType: string;
   authHeader: string;
   authPrefix?: string;
@@ -596,6 +606,26 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    format: "openai",
+    executor: "azure-openai",
+    baseUrl: "https://example-resource.openai.azure.com",
+    urlBuilder: (base, model, _stream, providerSpecificData) =>
+      buildAzureOpenAIChatUrl(base, model, {
+        apiVersion:
+          typeof providerSpecificData?.apiVersion === "string"
+            ? providerSpecificData.apiVersion
+            : DEFAULT_AZURE_OPENAI_API_VERSION,
+      }),
+    authType: "apikey",
+    authHeader: "api-key",
+    defaultContextLength: 128000,
+    passthroughModels: true,
+    models: [],
+  },
+
   anthropic: {
     id: "anthropic",
     alias: "anthropic",
@@ -694,6 +724,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [...GLM_SHARED_MODELS],
   },
 
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+    modelsUrl: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 200000,
+    models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-4.7", name: "GLM-4.7" },
+      { id: "glm-4.6", name: "GLM-4.6" },
+      { id: "glm-4.5-air", name: "GLM-4.5-Air" },
+    ],
+  },
+
   glmt: {
     id: "glmt",
     alias: "glmt",
@@ -727,7 +776,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      {
+        id: "qwen3-coder-next",
+        name: "Qwen3 Coder Next",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "glm-5", name: "GLM 5" },
@@ -821,8 +875,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
       { id: "google/gemini-2.0-flash", name: "Gemini 2.0 Flash" },
       { id: "google/gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
-      { id: "deepseek/deepseek-chat-v3.1", name: "DeepSeek V3.1" },
-      { id: "deepseek/deepseek-v3.2", name: "DeepSeek V3.2" },
+      {
+        id: "deepseek/deepseek-chat-v3.1",
+        name: "DeepSeek V3.1",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
+      {
+        id: "deepseek/deepseek-v3.2",
+        name: "DeepSeek V3.2",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
       { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "meta-llama/llama-4-scout", name: "Llama 4 Scout" },
       { id: "meta-llama/llama-4-maverick", name: "Llama 4 Maverick" },
@@ -930,7 +994,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-5", name: "GLM 5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      {
+        id: "qwen3-coder-next",
+        name: "Qwen3 Coder Next",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "glm-4.7", name: "GLM 4.7" },
     ],
@@ -950,7 +1019,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-5", name: "GLM 5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      {
+        id: "qwen3-coder-next",
+        name: "Qwen3 Coder Next",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "glm-4.7", name: "GLM 4.7" },
     ],
@@ -965,8 +1039,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat" },
-      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner" },
+      {
+        id: "deepseek-chat",
+        name: "DeepSeek V3.2 Chat",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
+      {
+        id: "deepseek-reasoner",
+        name: "DeepSeek V3.2 Reasoner",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
     ],
   },
 
@@ -1322,7 +1406,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "hf:zai-org/GLM-4.7-Flash", name: "GLM 4.7 Flash" },
       { id: "hf:zai-org/GLM-4.7", name: "GLM 4.7" },
       { id: "hf:moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
-      { id: "hf:deepseek-ai/DeepSeek-V3.2", name: "DeepSeek V3.2" },
+      {
+        id: "hf:deepseek-ai/DeepSeek-V3.2",
+        name: "DeepSeek V3.2",
+        supportsVision: false,
+        strip: ["image", "audio"],
+      },
     ],
     passthroughModels: true,
   },
@@ -1378,6 +1467,22 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
       { id: "claude-opus-4-5@20251101", name: "Claude Opus 4.5 (Vertex)" },
       { id: "claude-sonnet-4-5@20251101", name: "Claude Sonnet 4.5 (Vertex)" },
+    ],
+  },
+
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    format: "openai",
+    executor: "vertex",
+    baseUrl: "https://aiplatform.googleapis.com",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "deepseek-ai/deepseek-v3.2-maas", name: "DeepSeek V3.2 (Vertex)" },
+      { id: "qwen/qwen3-next-80b-a3b-thinking-maas", name: "Qwen3 Next 80B Thinking (Vertex)" },
+      { id: "qwen/qwen3-next-80b-a3b-instruct-maas", name: "Qwen3 Next 80B Instruct (Vertex)" },
+      { id: "zai-org/glm-5-maas", name: "GLM-5 (Vertex)" },
     ],
   },
 

@@ -76,6 +76,7 @@ export async function POST(request: Request) {
       priority,
       globalPriority,
       defaultModel,
+      blockExtraUsage,
       testStatus,
       providerSpecificData: incomingPsd,
     } = validation.data;
@@ -162,6 +163,7 @@ export async function POST(request: Request) {
       priority: priority || 1,
       globalPriority: globalPriority || null,
       defaultModel: defaultModel || null,
+      blockExtraUsage: blockExtraUsage !== false,
       providerSpecificData,
       isActive: true,
       testStatus: testStatus || "unknown",

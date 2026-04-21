@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
@@ -10,6 +10,9 @@ import { useTranslations } from "next-intl";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
+const TAILSCALE_POLL_INTERVAL_MS = 3000;
+const TAILSCALE_POLL_ATTEMPTS = 40;
+const TAILSCALE_REACHABILITY_TIMEOUT_MS = 60000;
 
 type TranslationValues = Record<string, string | number | boolean | Date>;
 type CloudflaredTunnelPhase =
@@ -37,8 +40,34 @@ type CloudflaredTunnelStatus = {
 };
 
 type TunnelNotice = {
-  type: "success" | "error" | "info";
+  type: "success" | "error" | "info" | "warning";
   message: string;
+};
+
+type TailscaleTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "needs_daemon"
+  | "needs_login"
+  | "stopped"
+  | "running"
+  | "error";
+
+type TailscaleTunnelStatus = {
+  supported: boolean;
+  platform: "darwin" | "linux" | "win32" | string;
+  installed: boolean;
+  binaryPath: string | null;
+  brewAvailable: boolean;
+  daemonRunning: boolean;
+  loggedIn: boolean;
+  running: boolean;
+  tunnelUrl: string | null;
+  apiUrl: string | null;
+  targetUrl: string;
+  phase: TailscaleTunnelPhase;
+  enabled: boolean;
+  lastError: string | null;
 };
 
 export default function APIPageClient({ machineId }) {
@@ -69,6 +98,16 @@ export default function APIPageClient({ machineId }) {
   const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
   const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
   const [cloudflaredNotice, setCloudflaredNotice] = useState<TunnelNotice | null>(null);
+  const [tailscaleStatus, setTailscaleStatus] = useState<TailscaleTunnelStatus | null>(null);
+  const [tailscaleBusy, setTailscaleBusy] = useState(false);
+  const [tailscaleInstallBusy, setTailscaleInstallBusy] = useState(false);
+  const [tailscaleProgress, setTailscaleProgress] = useState("");
+  const [tailscaleNotice, setTailscaleNotice] = useState<TunnelNotice | null>(null);
+  const [tailscaleInstallLog, setTailscaleInstallLog] = useState<string[]>([]);
+  const [tailscaleSudoPassword, setTailscaleSudoPassword] = useState("");
+  const [showTailscaleModal, setShowTailscaleModal] = useState(false);
+  const [showDisableTailscaleModal, setShowDisableTailscaleModal] = useState(false);
+  const tailscaleLogRef = useRef<HTMLDivElement | null>(null);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -135,6 +174,165 @@ export default function APIPageClient({ machineId }) {
     [translateOrFallback]
   );
 
+  const fetchTailscaleStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnel/status", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status")
+          );
+        }
+
+        setTailscaleStatus(data?.tailscale || null);
+        return (data?.tailscale || null) as TailscaleTunnelStatus | null;
+      } catch (error) {
+        if (!silent) {
+          setTailscaleNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status"),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
+  const openTailscaleAuthWindow = useCallback((message: string) => {
+    if (typeof window === "undefined") return null;
+
+    const authWindow = window.open("", "tailscale_auth", "width=640,height=760");
+    if (authWindow) {
+      authWindow.document.write(
+        `<p style="font-family:sans-serif;text-align:center;margin-top:40px">${message}</p>`
+      );
+    }
+
+    return authWindow;
+  }, []);
+
+  const closeTailscaleAuthWindow = useCallback((authWindow: Window | null) => {
+    if (!authWindow || authWindow.closed) return;
+
+    try {
+      authWindow.close();
+    } catch {
+      // Ignore browser close failures.
+    }
+  }, []);
+
+  const waitForTailscaleReachability = useCallback(async (url: string) => {
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < TAILSCALE_REACHABILITY_TIMEOUT_MS) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      try {
+        const response = await fetch(url, { mode: "no-cors", cache: "no-store" });
+        if (response.ok || response.type === "opaque") {
+          return true;
+        }
+      } catch {
+        // Keep polling until the timeout is hit.
+      }
+    }
+
+    return false;
+  }, []);
+
+  const requestTailscaleEnable = useCallback(async () => {
+    const res = await fetch("/api/tunnel/tailscale-enable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sudoPassword: tailscaleSudoPassword || undefined }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(
+        data?.error ||
+          translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+      );
+    }
+
+    return data;
+  }, [tailscaleSudoPassword, translateOrFallback]);
+
+  const pollForTailscaleLogin = useCallback(async () => {
+    for (let attempt = 0; attempt < TAILSCALE_POLL_ATTEMPTS; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, TAILSCALE_POLL_INTERVAL_MS));
+      const status = await fetchTailscaleStatus(true);
+      if (status?.loggedIn) {
+        return status;
+      }
+    }
+
+    return null;
+  }, [fetchTailscaleStatus]);
+
+  const pollForTailscaleFunnel = useCallback(
+    async (enableUrl: string, authWindow: Window | null) => {
+      if (authWindow && !authWindow.closed) {
+        authWindow.location.href = enableUrl;
+      } else if (typeof window !== "undefined") {
+        window.open(enableUrl, "tailscale_auth", "width=640,height=760");
+      }
+
+      setTailscaleProgress(
+        translateOrFallback(
+          "tailscaleWaitingForFunnel",
+          "Enable Funnel in the browser, then return here"
+        )
+      );
+
+      for (let attempt = 0; attempt < TAILSCALE_POLL_ATTEMPTS; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, TAILSCALE_POLL_INTERVAL_MS));
+        const result = await requestTailscaleEnable();
+        if (result?.success) {
+          return result;
+        }
+        if (result?.funnelNotEnabled) {
+          continue;
+        }
+        throw new Error(
+          result?.error ||
+            translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+        );
+      }
+
+      throw new Error(
+        translateOrFallback(
+          "tailscaleFunnelTimeout",
+          "Timed out waiting for Tailscale Funnel to be enabled"
+        )
+      );
+    },
+    [requestTailscaleEnable, translateOrFallback]
+  );
+
+  const finalizeTailscaleSuccess = useCallback(
+    async (tunnelUrl: string, successMessage: string) => {
+      const status = await fetchTailscaleStatus(true);
+      const reachable = await waitForTailscaleReachability(tunnelUrl);
+      setTailscaleStatus(status);
+      setTailscaleNotice({
+        type: reachable ? "success" : "warning",
+        message: reachable
+          ? successMessage
+          : translateOrFallback(
+              "tailscaleReachabilityPending",
+              "Tailscale is connected, but the public URL is still warming up"
+            ),
+      });
+      setShowTailscaleModal(false);
+    },
+    [fetchTailscaleStatus, translateOrFallback, waitForTailscaleReachability]
+  );
+
   useEffect(() => {
     Promise.allSettled([
       loadCloudSettings(),
@@ -142,10 +340,11 @@ export default function APIPageClient({ machineId }) {
       fetchProtocolStatus(),
       fetchSearchProviders(),
       fetchCloudflaredStatus(true),
+      fetchTailscaleStatus(true),
     ]).finally(() => {
       setLoading(false);
     });
-  }, [fetchCloudflaredStatus]);
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
 
   const fetchModels = async () => {
     try {
@@ -269,12 +468,26 @@ export default function APIPageClient({ machineId }) {
   }, [cloudflaredNotice]);
 
   useEffect(() => {
+    if (tailscaleNotice) {
+      const timer = setTimeout(() => setTailscaleNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [tailscaleNotice]);
+
+  useEffect(() => {
+    if (tailscaleLogRef.current) {
+      tailscaleLogRef.current.scrollTop = tailscaleLogRef.current.scrollHeight;
+    }
+  }, [tailscaleInstallLog]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       void fetchProtocolStatus();
       void fetchCloudflaredStatus(true);
+      void fetchTailscaleStatus(true);
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchCloudflaredStatus]);
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -414,6 +627,240 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  const handleOpenTailscaleModal = async () => {
+    setShowTailscaleModal(true);
+    setTailscaleProgress("");
+    setTailscaleInstallLog([]);
+    setTailscaleNotice(null);
+    await fetchTailscaleStatus(true);
+  };
+
+  const handleInstallTailscale = async () => {
+    setTailscaleInstallBusy(true);
+    setTailscaleNotice(null);
+    setTailscaleInstallLog([]);
+
+    try {
+      const res = await fetch("/api/tunnel/tailscale-install", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sudoPassword: tailscaleSudoPassword || undefined }),
+      });
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+        );
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          const lines = part.split("\n");
+          let eventName = "progress";
+          let payload: Record<string, unknown> | null = null;
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventName = line.slice(7).trim();
+            }
+            if (line.startsWith("data: ")) {
+              try {
+                payload = JSON.parse(line.slice(6)) as Record<string, unknown>;
+              } catch {
+                payload = null;
+              }
+            }
+          }
+
+          if (!payload) continue;
+
+          if (eventName === "progress" && typeof payload.message === "string") {
+            setTailscaleInstallLog((previous) => [
+              ...previous.slice(-49),
+              payload.message as string,
+            ]);
+            continue;
+          }
+
+          if (eventName === "done") {
+            await fetchTailscaleStatus(true);
+            setTailscaleNotice({
+              type: "success",
+              message: translateOrFallback("tailscaleInstalled", "Tailscale installed"),
+            });
+            setTailscaleSudoPassword("");
+            return;
+          }
+
+          if (eventName === "error") {
+            throw new Error(
+              typeof payload.error === "string"
+                ? payload.error
+                : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+            );
+          }
+        }
+      }
+
+      await fetchTailscaleStatus(true);
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale"),
+      });
+    } finally {
+      setTailscaleInstallBusy(false);
+    }
+  };
+
+  const handleEnableTailscale = async () => {
+    const authWindow = openTailscaleAuthWindow(
+      translateOrFallback("tailscaleBrowserConnecting", "Connecting to Tailscale...")
+    );
+
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+    setTailscaleProgress(translateOrFallback("tailscaleConnecting", "Connecting..."));
+
+    try {
+      let result = await requestTailscaleEnable();
+
+      if (result?.success) {
+        closeTailscaleAuthWindow(authWindow);
+        const tunnelUrl = result.tunnelUrl || result.status?.tunnelUrl;
+        if (!tunnelUrl) {
+          throw new Error(
+            translateOrFallback("tailscaleMissingUrl", "Tailscale did not return a public URL")
+          );
+        }
+        await finalizeTailscaleSuccess(
+          tunnelUrl,
+          translateOrFallback("tailscaleEnabled", "Tailscale Funnel enabled")
+        );
+        return;
+      }
+
+      if (result?.needsLogin && result?.authUrl) {
+        if (authWindow && !authWindow.closed) {
+          authWindow.location.href = result.authUrl;
+        } else if (typeof window !== "undefined") {
+          window.open(result.authUrl, "tailscale_auth", "width=640,height=760");
+        }
+
+        setTailscaleProgress(
+          translateOrFallback("tailscaleWaitingLogin", "Waiting for Tailscale login...")
+        );
+        const loggedInStatus = await pollForTailscaleLogin();
+        if (!loggedInStatus?.loggedIn) {
+          throw new Error(
+            translateOrFallback("tailscaleLoginTimeout", "Timed out waiting for Tailscale login")
+          );
+        }
+
+        setTailscaleProgress(
+          translateOrFallback("tailscaleStartingFunnel", "Starting Tailscale Funnel...")
+        );
+        result = await requestTailscaleEnable();
+      }
+
+      if (result?.funnelNotEnabled && result?.enableUrl) {
+        result = await pollForTailscaleFunnel(result.enableUrl, authWindow);
+      }
+
+      if (result?.success) {
+        closeTailscaleAuthWindow(authWindow);
+        const tunnelUrl = result.tunnelUrl || result.status?.tunnelUrl;
+        if (!tunnelUrl) {
+          throw new Error(
+            translateOrFallback("tailscaleMissingUrl", "Tailscale did not return a public URL")
+          );
+        }
+        await finalizeTailscaleSuccess(
+          tunnelUrl,
+          translateOrFallback("tailscaleEnabled", "Tailscale Funnel enabled")
+        );
+        return;
+      }
+
+      throw new Error(
+        result?.error ||
+          translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+      );
+    } catch (error) {
+      closeTailscaleAuthWindow(authWindow);
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      setTailscaleProgress("");
+      setTailscaleSudoPassword("");
+      await fetchTailscaleStatus(true);
+    }
+  };
+
+  const handleDisableTailscale = async () => {
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnel/tailscale-disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sudoPassword: tailscaleSudoPassword || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel")
+        );
+      }
+
+      if (data?.status) {
+        setTailscaleStatus(data.status);
+      }
+      setShowDisableTailscaleModal(false);
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleDisabled", "Tailscale Funnel disabled"),
+      });
+      setTailscaleSudoPassword("");
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      await fetchTailscaleStatus(true);
+    }
+  };
+
   const [baseUrl, setBaseUrl] = useState("/v1");
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
@@ -481,6 +928,49 @@ export default function APIPageClient({ machineId }) {
     "cloudflaredUrlNotice",
     "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
   );
+  const tailscalePhase = tailscaleStatus?.phase || "not_installed";
+  const tailscalePhaseMeta: Record<TailscaleTunnelPhase, { label: string; className: string }> = {
+    running: {
+      label: translateOrFallback("tailscaleRunning", "Running"),
+      className: "bg-green-500/10 border-green-500/30 text-green-400",
+    },
+    stopped: {
+      label: translateOrFallback("tailscaleStopped", "Stopped"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    not_installed: {
+      label: translateOrFallback("tailscaleNotInstalled", "Not installed"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    needs_daemon: {
+      label: translateOrFallback("tailscaleNeedsDaemon", "Needs daemon"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    needs_login: {
+      label: translateOrFallback("tailscaleNeedsLogin", "Needs login"),
+      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    },
+    unsupported: {
+      label: translateOrFallback("tailscaleUnsupported", "Unsupported"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    error: {
+      label: translateOrFallback("tailscaleError", "Error"),
+      className: "bg-red-500/10 border-red-500/30 text-red-400",
+    },
+  };
+  const tailscaleActionLabel = tailscaleStatus?.running
+    ? translateOrFallback("tailscaleDisable", "Disable Funnel")
+    : tailscaleStatus?.installed
+      ? translateOrFallback("tailscaleConnect", "Connect Tailscale")
+      : translateOrFallback("tailscaleInstallAndConnect", "Install & Connect");
+  const tailscaleUrlNotice = translateOrFallback(
+    "tailscaleUrlNotice",
+    "Uses your tailnet and can keep a stable .ts.net address after restarts."
+  );
+  const tailscaleNeedsSudo =
+    tailscaleStatus?.platform === "linux" ||
+    (tailscaleStatus?.platform === "darwin" && !tailscaleStatus?.brewAvailable);
 
   return (
     <div className="flex flex-col gap-8">
@@ -584,96 +1074,208 @@ export default function APIPageClient({ machineId }) {
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
-                  </h3>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
-                  >
-                    {cloudflaredPhaseMeta[cloudflaredPhase].label}
-                  </span>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
+                    >
+                      {cloudflaredPhaseMeta[cloudflaredPhase].label}
+                    </span>
+                  </div>
                 </div>
+
+                {cloudflaredStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={cloudflaredStatus?.running ? "secondary" : "primary"}
+                    icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
+                    onClick={() =>
+                      handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
+                    }
+                    loading={cloudflaredBusy}
+                    className={
+                      cloudflaredStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
+                    }
+                  >
+                    {cloudflaredActionLabel}
+                  </Button>
+                )}
               </div>
 
-              {cloudflaredStatus?.supported !== false && (
-                <Button
-                  size="sm"
-                  variant={cloudflaredStatus?.running ? "secondary" : "primary"}
-                  icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
-                  onClick={() =>
-                    handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
-                  }
-                  loading={cloudflaredBusy}
-                  className={
-                    cloudflaredStatus?.running
-                      ? "border-border/70! text-text-muted! hover:text-text!"
-                      : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
-                  }
+              {cloudflaredNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    cloudflaredNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : cloudflaredNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : cloudflaredNotice.type === "warning"
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                          : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
                 >
-                  {cloudflaredActionLabel}
+                  <span className="material-symbols-outlined text-[18px]">
+                    {cloudflaredNotice.type === "success"
+                      ? "check_circle"
+                      : cloudflaredNotice.type === "info"
+                        ? "info"
+                        : cloudflaredNotice.type === "warning"
+                          ? "warning"
+                          : "error"}
+                  </span>
+                  <span className="flex-1">{cloudflaredNotice.message}</span>
+                  <button
+                    onClick={() => setCloudflaredNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={cloudflaredStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://*.trycloudflare.com/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "cloudflared_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
+                  }
+                  disabled={!cloudflaredStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
                 </Button>
+              </div>
+              {cloudflaredStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                    error: cloudflaredStatus.lastError,
+                  })}
+                </p>
               )}
             </div>
+          </div>
 
-            {cloudflaredNotice && (
-              <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                  cloudflaredNotice.type === "success"
-                    ? "border-green-500/30 bg-green-500/10 text-green-400"
-                    : cloudflaredNotice.type === "info"
-                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                      : "border-red-500/30 bg-red-500/10 text-red-400"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {cloudflaredNotice.type === "success"
-                    ? "check_circle"
-                    : cloudflaredNotice.type === "info"
-                      ? "info"
-                      : "error"}
-                </span>
-                <span className="flex-1">{cloudflaredNotice.message}</span>
-                <button
-                  onClick={() => setCloudflaredNotice(null)}
-                  className="rounded p-0.5 transition-colors hover:bg-white/10"
-                >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
+          <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
+                    >
+                      {tailscalePhaseMeta[tailscalePhase].label}
+                    </span>
+                  </div>
+                </div>
+
+                {tailscaleStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={tailscaleStatus?.running ? "secondary" : "primary"}
+                    icon={tailscaleStatus?.running ? "vpn_key_off" : "vpn_lock"}
+                    onClick={() =>
+                      tailscaleStatus?.running
+                        ? setShowDisableTailscaleModal(true)
+                        : void handleOpenTailscaleModal()
+                    }
+                    loading={tailscaleBusy}
+                    className={
+                      tailscaleStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+                    }
+                  >
+                    {tailscaleActionLabel}
+                  </Button>
+                )}
               </div>
-            )}
 
-            <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={cloudflaredStatus?.apiUrl || ""}
-                readOnly
-                placeholder="https://*.trycloudflare.com/v1"
-                className="flex-1 min-w-0 font-mono text-sm"
-              />
-              <Button
-                variant="secondary"
-                icon={copied === "cloudflared_url" ? "check" : "content_copy"}
-                onClick={() =>
-                  cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
-                }
-                disabled={!cloudflaredStatus?.apiUrl}
-                className="shrink-0 self-start sm:self-auto"
-              >
-                {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
-              </Button>
+              {tailscaleNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    tailscaleNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : tailscaleNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : tailscaleNotice.type === "warning"
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                          : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {tailscaleNotice.type === "success"
+                      ? "check_circle"
+                      : tailscaleNotice.type === "info"
+                        ? "info"
+                        : tailscaleNotice.type === "warning"
+                          ? "warning"
+                          : "error"}
+                  </span>
+                  <span className="flex-1">{tailscaleNotice.message}</span>
+                  <button
+                    onClick={() => setTailscaleNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={tailscaleStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://your-device.your-tailnet.ts.net/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "tailscale_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
+                  }
+                  disabled={!tailscaleStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "tailscale_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {tailscaleStatus?.binaryPath && (
+                <p className="text-xs text-text-muted">
+                  {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
+                    path: tailscaleStatus.binaryPath,
+                  })}
+                </p>
+              )}
+              {tailscaleStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("tailscaleLastError", "Last error: {error}", {
+                    error: tailscaleStatus.lastError,
+                  })}
+                </p>
+              )}
             </div>
-            {cloudflaredStatus?.lastError && (
-              <p className="text-xs text-red-400">
-                {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
-                  error: cloudflaredStatus.lastError,
-                })}
-              </p>
-            )}
           </div>
         </div>
       </Card>
@@ -1314,6 +1916,223 @@ export default function APIPageClient({ machineId }) {
               variant="ghost"
               fullWidth
               disabled={cloudSyncing}
+            >
+              {tc("cancel")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showTailscaleModal}
+        title={translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+        onClose={() => {
+          if (!tailscaleBusy && !tailscaleInstallBusy) {
+            setShowTailscaleModal(false);
+            setTailscaleProgress("");
+            setTailscaleInstallLog([]);
+            setTailscaleSudoPassword("");
+          }
+        }}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 p-4">
+            <p className="text-sm font-medium text-indigo-300">
+              {translateOrFallback("tailscaleModalTitle", "Expose OmniRoute through your tailnet")}
+            </p>
+            <p className="mt-1 text-sm text-text-muted">
+              {translateOrFallback(
+                "tailscaleModalBody",
+                "Install Tailscale if needed, log this machine into your tailnet, then enable Funnel for a stable remote HTTPS URL."
+              )}
+            </p>
+          </div>
+
+          {tailscaleNeedsSudo && (
+            <Input
+              type="password"
+              label={translateOrFallback("tailscaleSudoPassword", "Sudo password")}
+              value={tailscaleSudoPassword}
+              onChange={(event) => setTailscaleSudoPassword(event.target.value)}
+              placeholder={translateOrFallback(
+                "tailscaleSudoPasswordPlaceholder",
+                "Required for install/start on this platform"
+              )}
+              disabled={tailscaleBusy || tailscaleInstallBusy}
+            />
+          )}
+
+          {!tailscaleStatus ? (
+            <div className="flex items-center gap-2 rounded-lg border border-border/70 px-3 py-2 text-sm text-text-muted">
+              <span className="material-symbols-outlined animate-spin text-sm">
+                progress_activity
+              </span>
+              {translateOrFallback("tailscaleChecking", "Checking Tailscale status...")}
+            </div>
+          ) : (
+            <>
+              <div className="rounded-lg border border-border/70 bg-surface/60 p-3 text-sm text-text-muted">
+                <div className="flex items-center justify-between gap-2">
+                  <span>{translateOrFallback("tailscalePlatform", "Platform")}</span>
+                  <span className="font-mono uppercase">{tailscaleStatus.platform}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span>{translateOrFallback("tailscaleInstalledLabel", "Installed")}</span>
+                  <span>{tailscaleStatus.installed ? "Yes" : "No"}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span>{translateOrFallback("tailscaleLoggedInLabel", "Logged in")}</span>
+                  <span>{tailscaleStatus.loggedIn ? "Yes" : "No"}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span>{translateOrFallback("tailscaleDaemonLabel", "Daemon running")}</span>
+                  <span>{tailscaleStatus.daemonRunning ? "Yes" : "No"}</span>
+                </div>
+              </div>
+
+              {tailscaleProgress && (
+                <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 p-3">
+                  <span className="material-symbols-outlined animate-spin text-primary">
+                    progress_activity
+                  </span>
+                  <p className="text-sm font-medium text-primary">{tailscaleProgress}</p>
+                </div>
+              )}
+
+              {tailscaleInstallBusy && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-sm text-text-muted">
+                    <span className="material-symbols-outlined animate-spin text-sm">
+                      progress_activity
+                    </span>
+                    {translateOrFallback("tailscaleInstalling", "Installing Tailscale...")}
+                  </div>
+                  <div
+                    ref={tailscaleLogRef}
+                    className="max-h-40 overflow-y-auto rounded-lg bg-black/20 p-3 font-mono text-xs text-text-muted"
+                  >
+                    {tailscaleInstallLog.length > 0 ? (
+                      tailscaleInstallLog.map((line, index) => (
+                        <div key={`${line}-${index}`}>{line}</div>
+                      ))
+                    ) : (
+                      <div>
+                        {translateOrFallback("tailscaleInstallPreparing", "Preparing installer...")}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!tailscaleInstallBusy && !tailscaleStatus.installed && (
+                <p className="text-sm text-text-muted">
+                  {translateOrFallback(
+                    "tailscaleInstallHint",
+                    "Tailscale is not installed on this machine yet."
+                  )}
+                </p>
+              )}
+            </>
+          )}
+
+          <div className="flex gap-2">
+            {!tailscaleStatus?.installed ? (
+              <Button
+                onClick={handleInstallTailscale}
+                fullWidth
+                disabled={tailscaleInstallBusy || tailscaleBusy}
+                className="bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+              >
+                {tailscaleInstallBusy
+                  ? translateOrFallback("tailscaleInstalling", "Installing Tailscale...")
+                  : translateOrFallback("tailscaleInstallAction", "Install Tailscale")}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleEnableTailscale}
+                fullWidth
+                disabled={tailscaleBusy || tailscaleInstallBusy}
+                className="bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+              >
+                {tailscaleBusy
+                  ? translateOrFallback("tailscaleConnecting", "Connecting...")
+                  : translateOrFallback("tailscaleConnect", "Connect Tailscale")}
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                setShowTailscaleModal(false);
+                setTailscaleSudoPassword("");
+              }}
+              variant="ghost"
+              fullWidth
+              disabled={tailscaleBusy || tailscaleInstallBusy}
+            >
+              {tc("cancel")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showDisableTailscaleModal}
+        title={translateOrFallback("tailscaleDisable", "Disable Funnel")}
+        onClose={() => {
+          if (!tailscaleBusy) {
+            setShowDisableTailscaleModal(false);
+            setTailscaleSudoPassword("");
+          }
+        }}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+            <p className="text-sm font-medium text-red-400">
+              {translateOrFallback("tailscaleDisableWarningTitle", "Disable Tailscale Funnel")}
+            </p>
+            <p className="mt-1 text-sm text-text-muted">
+              {translateOrFallback(
+                "tailscaleDisableWarningBody",
+                "Remote access through the Tailscale URL will stop working until Funnel is enabled again."
+              )}
+            </p>
+          </div>
+
+          {tailscaleNeedsSudo && (
+            <Input
+              type="password"
+              label={translateOrFallback(
+                "tailscaleSudoPasswordOptional",
+                "Sudo password (optional)"
+              )}
+              value={tailscaleSudoPassword}
+              onChange={(event) => setTailscaleSudoPassword(event.target.value)}
+              placeholder={translateOrFallback(
+                "tailscaleSudoPasswordDisablePlaceholder",
+                "Use if you want to stop the local tailscaled daemon too"
+              )}
+              disabled={tailscaleBusy}
+            />
+          )}
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleDisableTailscale}
+              fullWidth
+              disabled={tailscaleBusy}
+              className="bg-red-500! text-white! hover:bg-red-600!"
+            >
+              {tailscaleBusy
+                ? translateOrFallback("tailscaleDisabling", "Disabling...")
+                : translateOrFallback("tailscaleDisable", "Disable Funnel")}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowDisableTailscaleModal(false);
+                setTailscaleSudoPassword("");
+              }}
+              variant="ghost"
+              fullWidth
+              disabled={tailscaleBusy}
             >
               {tc("cancel")}
             </Button>

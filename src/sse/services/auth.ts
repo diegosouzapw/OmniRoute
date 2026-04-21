@@ -39,6 +39,7 @@ interface ProviderConnectionView {
   id: string;
   isActive: boolean;
   rateLimitedUntil: string | null;
+  blockExtraUsage: boolean;
   testStatus: string | null;
   apiKey: string | null;
   accessToken: string | null;
@@ -109,6 +110,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     id: toStringOrNull(row.id) || "",
     isActive: row.isActive === true,
     rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
+    blockExtraUsage: row.blockExtraUsage !== false,
     testStatus: toStringOrNull(row.testStatus),
     apiKey: toStringOrNull(row.apiKey),
     accessToken: toStringOrNull(row.accessToken),
@@ -1050,6 +1052,7 @@ export async function getProviderCredentials(
           : null,
       providerSpecificData: connection.providerSpecificData,
       connectionId: connection.id,
+      blockExtraUsage: connection.blockExtraUsage,
       // Include current status for optimization check
       testStatus: connection.testStatus,
       lastError: connection.lastError,

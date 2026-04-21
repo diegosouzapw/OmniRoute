@@ -1,13 +1,45 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 
 const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
   await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;
+const { privateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  publicKeyEncoding: { type: "spki", format: "pem" },
+});
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+});
+
+test("vertex and vertex-partner validators accept a valid Service Account JSON", async () => {
+  const serviceAccountJson = JSON.stringify({
+    project_id: "vertex-project-123",
+    private_key_id: "kid-123",
+    private_key: privateKey,
+    client_email: "svc@example.iam.gserviceaccount.com",
+  });
+
+  globalThis.fetch = async (url) => {
+    assert.match(String(url), /oauth2\.googleapis\.com\/token$/);
+    return new Response(JSON.stringify({ access_token: "ya29.valid", expires_in: 3600 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  const vertex = await validateProviderApiKey({ provider: "vertex", apiKey: serviceAccountJson });
+  const vertexPartner = await validateProviderApiKey({
+    provider: "vertex-partner",
+    apiKey: serviceAccountJson,
+  });
+
+  assert.equal(vertex.valid, true);
+  assert.equal(vertexPartner.valid, true);
 });
 
 test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, ElevenLabs and Inworld branches", async () => {
@@ -592,6 +624,32 @@ test("specialty validators cover Heroku, Databricks, Snowflake and GigaChat succ
   );
 });
 
+test("specialty validator accepts Azure OpenAI resource endpoints with api-key auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    if (
+      target === "https://my-resource.openai.azure.com/openai/models?api-version=2025-04-01-preview"
+    ) {
+      assert.equal(init.method, "GET");
+      assert.equal(init.headers["api-key"], "azure-key");
+      return Response.json({ data: [{ id: "gpt-4o" }] });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "azure-openai",
+    apiKey: "azure-key",
+    providerSpecificData: {
+      baseUrl: "https://my-resource.openai.azure.com/",
+      apiVersion: "2025-04-01-preview",
+    },
+  });
+
+  assert.equal(result.valid, true);
+});
+
 test("specialty validators surface missing base URLs and invalid auth for Heroku, Databricks, Snowflake and GigaChat", async () => {
   const missingHerokuBase = await validateProviderApiKey({
     provider: "heroku",
@@ -658,4 +716,32 @@ test("specialty validators surface missing base URLs and invalid auth for Heroku
   assert.equal(databricksInvalid.error, "Invalid API key");
   assert.equal(snowflakeInvalid.error, "Invalid API key");
   assert.equal(gigachatInvalid.error, "Invalid API key");
+});
+
+test("specialty validator surfaces missing base URLs and invalid auth for Azure OpenAI", async () => {
+  const missingBaseUrl = await validateProviderApiKey({
+    provider: "azure-openai",
+    apiKey: "azure-key",
+    providerSpecificData: {},
+  });
+
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target === "https://my-resource.openai.azure.com/openai/models?api-version=2024-10-21") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const invalidAuth = await validateProviderApiKey({
+    provider: "azure-openai",
+    apiKey: "azure-key",
+    providerSpecificData: {
+      baseUrl: "https://my-resource.openai.azure.com",
+    },
+  });
+
+  assert.equal(missingBaseUrl.error, "Missing base URL");
+  assert.equal(invalidAuth.error, "Invalid API key");
 });

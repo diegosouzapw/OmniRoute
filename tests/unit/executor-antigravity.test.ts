@@ -183,6 +183,45 @@ test("AntigravityExecutor.transformRequest allows body project overrides when th
   });
 });
 
+test("AntigravityExecutor.cloakTools renames client tools, preserves native tools and injects decoys", () => {
+  const originalBody = {
+    request: {
+      tools: [
+        {
+          functionDeclarations: [
+            { name: "view_file", description: "native" },
+            { name: "custom_lookup", description: "custom" },
+          ],
+        },
+      ],
+      contents: [
+        {
+          role: "model",
+          parts: [
+            { functionCall: { name: "custom_lookup", args: { q: "hello" } } },
+            { functionResponse: { name: "custom_lookup", response: { ok: true } } },
+            { functionCall: { name: "view_file", args: { path: "/tmp/a" } } },
+          ],
+        },
+      ],
+    },
+  };
+
+  const { cloakedBody, toolNameMap } = AntigravityExecutor.cloakTools(originalBody);
+  const declarations = cloakedBody.request.tools[0].functionDeclarations;
+  const declarationNames = declarations.map((entry) => entry.name);
+
+  assert.notEqual(cloakedBody, originalBody);
+  assert.equal(toolNameMap.get("custom_lookup_ide"), "custom_lookup");
+  assert.ok(declarationNames.includes("view_file"));
+  assert.ok(declarationNames.includes("custom_lookup_ide"));
+  assert.ok(declarationNames.includes("mcp_sequential-thinking_sequentialthinking"));
+  assert.equal(cloakedBody.request.contents[0].parts[0].functionCall.name, "custom_lookup_ide");
+  assert.equal(cloakedBody.request.contents[0].parts[1].functionResponse.name, "custom_lookup_ide");
+  assert.equal(cloakedBody.request.contents[0].parts[2].functionCall.name, "view_file");
+  assert.equal(originalBody.request.tools[0].functionDeclarations[1].name, "custom_lookup");
+});
+
 test("AntigravityExecutor parses retry timing from headers and error strings", () => {
   const executor = new AntigravityExecutor();
   const headers = new Headers({
@@ -242,6 +281,38 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
     completion_tokens: 3,
     total_tokens: 8,
   });
+});
+
+test("AntigravityExecutor.collectStreamToResponse restores cloaked tool names in tool call responses", async () => {
+  const executor = new AntigravityExecutor();
+  const { cloakedBody } = AntigravityExecutor.cloakTools({
+    request: {
+      tools: [{ functionDeclarations: [{ name: "custom_lookup" }] }],
+    },
+  });
+  const response = new Response(
+    [
+      'data: {"response":{"candidates":[{"content":{"parts":[{"functionCall":{"name":"custom_lookup_ide","args":{"city":"Sao Paulo"}}}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":3,"candidatesTokenCount":2,"totalTokenCount":5}}}\n\n',
+    ].join(""),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await executor.collectStreamToResponse(
+    response,
+    "gemini-2.5-flash",
+    "https://example.com",
+    { Authorization: "Bearer ag-token" },
+    cloakedBody
+  );
+  const payload = await result.response.json();
+
+  assert.equal(payload.choices[0].finish_reason, "tool_calls");
+  assert.equal(payload.choices[0].message.content, null);
+  assert.equal(payload.choices[0].message.tool_calls[0].function.name, "custom_lookup");
+  assert.equal(payload.choices[0].message.tool_calls[0].function.arguments, '{"city":"Sao Paulo"}');
 });
 
 test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", async () => {
@@ -362,6 +433,51 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
 
     assert.equal(result.response.status, 429);
     assert.equal(payload.retryAfterMs, 7_200_000);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("AntigravityExecutor.execute cloaks upstream tools and restores names in streamed SSE", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const upstreamBodies = [];
+  seedAntigravityVersionCache("1.107.0");
+
+  globalThis.fetch = async (url, init = {}) => {
+    upstreamBodies.push(JSON.parse(String(init.body)));
+    assert.match(String(url), /streamGenerateContent/);
+    return new Response(
+      'data: {"response":{"candidates":[{"content":{"parts":[{"functionCall":{"name":"custom_lookup_ide","args":{"path":"/tmp/a"}}}]},"finishReason":"STOP"}]}}\n\ndata: [DONE]\n\n',
+      {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      }
+    );
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-2.5-flash",
+      body: {
+        request: {
+          tools: [{ functionDeclarations: [{ name: "custom_lookup" }] }],
+          contents: [{ role: "user", parts: [{ text: "hi" }] }],
+        },
+      },
+      stream: true,
+      credentials: { accessToken: "token", projectId: "project-1", connectionId: "conn-1" },
+      log: { debug() {}, warn() {}, info() {} },
+    });
+    const text = await result.response.text();
+    const upstreamDeclarations = upstreamBodies[0].request.tools[0].functionDeclarations.map(
+      (entry) => entry.name
+    );
+
+    assert.ok(upstreamDeclarations.includes("custom_lookup_ide"));
+    assert.ok(upstreamDeclarations.includes("mcp_sequential-thinking_sequentialthinking"));
+    assert.match(text, /"name":"custom_lookup"/);
+    assert.equal(text.includes("custom_lookup_ide"), false);
   } finally {
     globalThis.fetch = originalFetch;
   }

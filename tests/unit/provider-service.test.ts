@@ -101,6 +101,30 @@ test("Registry-driven headers support x-goog-api-key and bearer fallback", () =>
   assert.equal(accessTokenHeaders.Authorization, "Bearer gemini-access-token");
 });
 
+test("Azure OpenAI provider resolves deployment URLs and api-key headers from providerSpecificData", () => {
+  const url = buildProviderUrl("azure-openai", "gpt-4o-deploy", false, {
+    providerSpecificData: {
+      baseUrl: "https://my-resource.openai.azure.com/",
+      apiVersion: "2025-04-01-preview",
+    },
+  });
+  const headers = buildProviderHeaders(
+    "azure-openai",
+    {
+      apiKey: "azure-key",
+    },
+    true
+  );
+
+  assert.equal(
+    url,
+    "https://my-resource.openai.azure.com/openai/deployments/gpt-4o-deploy/chat/completions?api-version=2025-04-01-preview"
+  );
+  assert.equal(headers["api-key"], "azure-key");
+  assert.equal(headers.Accept, "text/event-stream");
+  assert.equal(getTargetFormat("azure-openai"), "openai");
+});
+
 test("Unknown providers fall back to bearer auth and OpenAI format", () => {
   const headers = buildProviderHeaders(
     "custom-provider",
