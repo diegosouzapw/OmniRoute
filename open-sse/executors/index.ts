@@ -16,6 +16,9 @@ import { PollinationsExecutor } from "./pollinations.ts";
 import { PuterExecutor } from "./puter.ts";
 import { GitLabExecutor } from "./gitlab.ts";
 import { AzureAIExecutor } from "./azure-ai.ts";
+import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { BedrockExecutor } from "./bedrock.ts";
+import { SagemakerExecutor } from "./sagemaker.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 const executors = {
@@ -42,6 +45,9 @@ const executors = {
   "gitlab-duo": new GitLabExecutor("gitlab-duo"),
   "gitlab-duo-oauth": new GitLabExecutor("gitlab-duo-oauth"),
   "azure-ai": new AzureAIExecutor("azure-ai"),
+  "azure-openai": new AzureOpenAIExecutor("azure-openai"),
+  bedrock: new BedrockExecutor("bedrock"),
+  sagemaker: new SagemakerExecutor("sagemaker"),
 };
 
 const executorFactories = {
@@ -62,6 +68,9 @@ const executorFactories = {
   puter: (provider) => executors.puter,
   gitlab: (provider) => new GitLabExecutor(provider),
   "azure-ai": (provider) => new AzureAIExecutor(provider),
+  "azure-openai": (provider) => new AzureOpenAIExecutor(provider),
+  bedrock: (provider) => new BedrockExecutor(provider),
+  sagemaker: (provider) => new SagemakerExecutor(provider),
 };
 
 const defaultCache = new Map();
@@ -115,3 +124,6 @@ export { PollinationsExecutor } from "./pollinations.ts";
 export { PuterExecutor } from "./puter.ts";
 export { GitLabExecutor } from "./gitlab.ts";
 export { AzureAIExecutor } from "./azure-ai.ts";
+export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { BedrockExecutor } from "./bedrock.ts";
+export { SagemakerExecutor } from "./sagemaker.ts";

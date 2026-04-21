@@ -1036,6 +1036,18 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "$30/mo free serverless GPU compute",
   },
+  bedrock: {
+    id: "bedrock",
+    alias: "bedrock",
+    name: "AWS Bedrock",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "BR",
+    website: "https://aws.amazon.com/bedrock",
+    passthroughModels: true,
+    apiHint:
+      "Set API key as AWS credentials (AKIA...:secret[:session][:region]) or JSON/env-style credentials, and optionally override Base URL with your bedrock-runtime endpoint.",
+  },
   "vertex-partner": {
     id: "vertex-partner",
     alias: "vpartner",
@@ -1056,6 +1068,17 @@ export const APIKEY_PROVIDERS = {
     website: "https://ai.azure.com",
     apiHint:
       "Set Base URL to your Azure Foundry endpoint, e.g. https://{endpoint}.{region}.models.ai.azure.com",
+  },
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure-openai",
+    name: "Azure OpenAI",
+    icon: "cloud",
+    color: "#0078D4",
+    textIcon: "AO",
+    website: "https://azure.microsoft.com/products/ai-services/openai-service",
+    apiHint:
+      "Set Base URL to your Azure OpenAI resource, e.g. https://{resource}.openai.azure.com, and configure deploymentName or deploymentMap when deployment names differ from model IDs.",
   },
   runwayml: {
     id: "runwayml",
@@ -1119,6 +1142,9 @@ export const APIKEY_PROVIDERS = {
     color: "#FF9900",
     textIcon: "SM",
     website: "https://aws.amazon.com/sagemaker/",
+    passthroughModels: true,
+    apiHint:
+      "Set API key as AWS credentials (AKIA...:secret[:session][:region]) and optionally override Base URL or endpointName for your SageMaker inference endpoint.",
   },
   sap: {
     id: "sap",

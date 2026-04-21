@@ -136,6 +136,58 @@ test("T28: azure ai catalog exposes Foundry chat models and Claude target format
   assert.equal(azureGrok.model, "grok-4");
 });
 
+test("T28: azure openai catalog exposes deployment-backed chat and responses models", async () => {
+  const azureIds = REGISTRY["azure-openai"].models.map((m) => m.id);
+  const codexModel = REGISTRY["azure-openai"].models.find((m) => m.id === "gpt-5.1-codex");
+  const gpt54Model = REGISTRY["azure-openai"].models.find((m) => m.id === "gpt-5.4");
+
+  assert.ok(azureIds.includes("gpt-5.4"));
+  assert.ok(azureIds.includes("gpt-5.1-codex"));
+  assert.ok(azureIds.includes("o3"));
+  assert.equal(gpt54Model?.targetFormat, undefined);
+  assert.equal(codexModel?.targetFormat, "openai-responses");
+
+  const azureGpt54 = await getModelInfoCore("azure-openai/gpt-5.4", {});
+  assert.equal(azureGpt54.provider, "azure-openai");
+  assert.equal(azureGpt54.model, "gpt-5.4");
+
+  const azureCodex = await getModelInfoCore("azure-openai/gpt-5.1-codex", {});
+  assert.equal(azureCodex.provider, "azure-openai");
+  assert.equal(azureCodex.model, "gpt-5.1-codex");
+});
+
+test("T28: bedrock catalog exposes managed chat models and passthrough support", async () => {
+  const bedrockIds = REGISTRY.bedrock.models.map((m) => m.id);
+
+  assert.ok(bedrockIds.includes("amazon.nova-lite-v1:0"));
+  assert.ok(bedrockIds.includes("anthropic.claude-sonnet-4-6"));
+  assert.ok(bedrockIds.includes("meta.llama4-maverick-17b-instruct-v1:0"));
+  assert.equal(REGISTRY.bedrock.passthroughModels, true);
+
+  const bedrockClaude = await getModelInfoCore("bedrock/anthropic.claude-sonnet-4-6", {});
+  assert.equal(bedrockClaude.provider, "bedrock");
+  assert.equal(bedrockClaude.model, "anthropic.claude-sonnet-4-6");
+});
+
+test("T28: vertex partner catalog is wired to the specialized Vertex executor", async () => {
+  assert.equal(REGISTRY["vertex-partner"].executor, "vertex");
+  const vertexPartner = await getModelInfoCore("vertex-partner/anthropic/claude-3-5-sonnet", {});
+  assert.equal(vertexPartner.provider, "vertex-partner");
+  assert.equal(vertexPartner.model, "anthropic/claude-3-5-sonnet");
+});
+
+test("T28: sagemaker catalog exposes the planned endpoint models and specialized executor", async () => {
+  const sagemakerIds = REGISTRY.sagemaker.models.map((m) => m.id);
+
+  assert.equal(REGISTRY.sagemaker.executor, "sagemaker");
+  assert.ok(sagemakerIds.includes("meta-textgeneration-llama-2-7b-f"));
+  assert.ok(sagemakerIds.includes("meta-textgeneration-llama-2-70b-b-f"));
+
+  const sagemakerModel = await getModelInfoCore("sagemaker/meta-textgeneration-llama-2-7b-f", {});
+  assert.equal(sagemakerModel.provider, "sagemaker");
+  assert.equal(sagemakerModel.model, "meta-textgeneration-llama-2-7b-f");
+});
+
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
   const minimax = await getModelInfoCore("minimax/minimax-m2.7", {});
   assert.equal(minimax.provider, "minimax");

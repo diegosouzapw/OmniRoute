@@ -1,10 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 
 const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
   await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;
+const { privateKey: vertexPrivateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  publicKeyEncoding: { type: "spki", format: "pem" },
+});
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
@@ -125,6 +131,49 @@ test("AWS Polly validator rejects malformed credential payloads without fetching
   assert.equal(called, false);
 });
 
+test("Bedrock validator signs Converse probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://bedrock-runtime.us-west-2.amazonaws.com/model/amazon.nova-lite-v1%3A0/converse"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(typeof init.headers?.Authorization, "string");
+    assert.equal(init.headers?.["X-Amz-Date"]?.length, 16);
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "AKIA_TEST:secret-test::us-west-2",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("SageMaker validator signs invocations probes and accepts non-auth client errors", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://runtime.sagemaker.us-west-2.amazonaws.com/endpoints/meta-textgeneration-llama-2-7b-f/invocations"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(typeof init.headers?.Authorization, "string");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "sagemaker",
+    apiKey: "AKIA_TEST:secret-test::us-west-2",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
 test("Azure AI validator uses the Azure chat endpoint and api-key auth", async () => {
   globalThis.fetch = async (url, init = {}) => {
     assert.equal(
@@ -144,6 +193,56 @@ test("Azure AI validator uses the Azure chat endpoint and api-key auth", async (
       baseUrl: "https://demo.models.ai.azure.com",
       apiVersion: "2024-10-21",
     },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Azure OpenAI validator uses deployment URLs and api-key auth", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://demo.openai.azure.com/openai/deployments/gpt54-prod/chat/completions?api-version=2024-10-21"
+    );
+    assert.equal(init.method, "POST");
+    assert.equal(init.headers?.["api-key"], "azure-openai-key");
+    assert.equal(init.headers?.["Content-Type"], "application/json");
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "azure-openai",
+    apiKey: "azure-openai-key",
+    providerSpecificData: {
+      baseUrl: "https://demo.openai.azure.com",
+      apiVersion: "2024-10-21",
+      deploymentMap: {
+        "gpt-4.1": "gpt54-prod",
+      },
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("Vertex Partner validator reuses Vertex service-account validation flow", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://oauth2.googleapis.com/token");
+    assert.equal(init.method, "POST");
+    return new Response(JSON.stringify({ access_token: "vertex-partner-token" }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "vertex-partner",
+    apiKey: JSON.stringify({
+      type: "service_account",
+      project_id: "vertex-project-123",
+      private_key_id: "test-key-id",
+      private_key: vertexPrivateKey,
+      client_email: "vertex@test-project.iam.gserviceaccount.com",
+    }),
   });
 
   assert.equal(result.valid, true);
