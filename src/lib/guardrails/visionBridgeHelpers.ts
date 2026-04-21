@@ -2,6 +2,28 @@
  * Vision Bridge helper functions for image processing.
  */
 
+/**
+ * Provider to environment variable mapping for API key resolution.
+ */
+const PROVIDER_API_KEY_MAP: Record<string, string> = {
+  anthropic: "ANTHROPIC_API_KEY",
+  google: "GOOGLE_API_KEY",
+  openai: "OPENAI_API_KEY",
+};
+
+/**
+ * Resolve API key based on model provider.
+ * @param model - Model identifier (e.g., "anthropic/claude-3-haiku", "openai/gpt-4o-mini")
+ * @param explicitKey - Explicit API key passed as argument (takes precedence)
+ * @returns Resolved API key string
+ */
+export function resolveProviderApiKey(model: string, explicitKey?: string): string {
+  if (explicitKey) return explicitKey;
+  const provider = model.includes("/") ? model.split("/")[0] : "";
+  const envVar = PROVIDER_API_KEY_MAP[provider] || "OPENAI_API_KEY";
+  return process.env[envVar] || "";
+}
+
 export interface ImagePart {
   messageIndex: number;
   partIndex: number;
@@ -97,7 +119,7 @@ export interface VisionModelConfig {
 
 /**
  * Call the vision model to get an image description.
- * Uses OpenAI-compatible /v1/chat/completions format.
+ * Supports both OpenAI-compatible and Anthropic API formats.
  */
 export async function callVisionModel(
   imageDataUri: string,
@@ -107,44 +129,98 @@ export async function callVisionModel(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
 
+  // Resolve API key based on provider
+  const resolvedApiKey = resolveProviderApiKey(config.model, apiKey);
+
+  // Detect provider from model identifier
+  const isAnthropic = config.model.startsWith("anthropic/");
+
   try {
     // Extract model name from provider/model format
     const modelName = config.model.includes("/")
       ? config.model.split("/")[1]
       : config.model;
 
-    // Determine API endpoint
-    const baseUrl = config.model.startsWith("anthropic/")
-      ? process.env.ANTHROPIC_API_URL || "https://api.anthropic.com"
-      : process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+    let response: Response;
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey || process.env.OPENAI_API_KEY || ""}`,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageDataUri,
-                  detail: "low",
+    if (isAnthropic) {
+      // Anthropic API path
+      const anthropicBaseUrl = process.env.ANTHROPIC_API_URL || "https://api.anthropic.com";
+
+      // Parse data URI to extract media type and base64 data
+      const matches = imageDataUri.match(/^data:([^;]+);base64,(.+)$/);
+      let mediaType = "image/png";
+      let base64Data = imageDataUri;
+
+      if (matches) {
+        mediaType = matches[1];
+        base64Data = matches[2];
+      }
+
+      response = await fetch(`${anthropicBaseUrl}/v1/messages`, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "x-api-key": resolvedApiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: mediaType,
+                    data: base64Data,
+                  },
                 },
-              },
-              { type: "text", text: config.prompt },
-            ],
-          },
-        ],
-        max_tokens: 300,
-      }),
-    });
+                {
+                  type: "text",
+                  text: config.prompt,
+                },
+              ],
+            },
+          ],
+          max_tokens: 300,
+        }),
+      });
+    } else {
+      // OpenAI-compatible path (default)
+      const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+
+      response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${resolvedApiKey}`,
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: imageDataUri,
+                    detail: "low",
+                  },
+                },
+                { type: "text", text: config.prompt },
+              ],
+            },
+          ],
+          max_tokens: 300,
+        }),
+      });
+    }
 
     clearTimeout(timeoutId);
 
@@ -153,21 +229,44 @@ export async function callVisionModel(
       throw new Error(`Vision API error ${response.status}: ${errorText}`);
     }
 
-    const data = await response.json() as {
-      choices?: Array<{ message?: { content?: string } }>;
-      error?: { message?: string };
-    };
+    const data = await response.json();
 
-    if (data.error) {
-      throw new Error(`Vision API error: ${data.error.message || JSON.stringify(data.error)}`);
+    if (isAnthropic) {
+      // Anthropic response format: { content: [{ type: "text", text: "..." }] }
+      const anthropicData = data as {
+        content?: Array<{ type?: string; text?: string }>;
+        error?: { message?: string };
+      };
+
+      if (anthropicData.error) {
+        throw new Error(`Vision API error: ${anthropicData.error.message || JSON.stringify(anthropicData.error)}`);
+      }
+
+      const textContent = anthropicData.content?.find((c) => c.type === "text");
+      const content = textContent?.text;
+      if (!content || typeof content !== "string") {
+        throw new Error("Vision API returned empty or invalid response");
+      }
+
+      return content.trim();
+    } else {
+      // OpenAI-compatible response format: { choices: [{ message: { content: "..." } }] }
+      const openaiData = data as {
+        choices?: Array<{ message?: { content?: string } }>;
+        error?: { message?: string };
+      };
+
+      if (openaiData.error) {
+        throw new Error(`Vision API error: ${openaiData.error.message || JSON.stringify(openaiData.error)}`);
+      }
+
+      const content = openaiData.choices?.[0]?.message?.content;
+      if (!content || typeof content !== "string") {
+        throw new Error("Vision API returned empty or invalid response");
+      }
+
+      return content.trim();
     }
-
-    const content = data.choices?.[0]?.message?.content;
-    if (!content || typeof content !== "string") {
-      throw new Error("Vision API returned empty or invalid response");
-    }
-
-    return content.trim();
   } catch (error) {
     clearTimeout(timeoutId);
 
@@ -194,7 +293,7 @@ export function replaceImageParts(body: RequestBody, descriptions: string[]): Re
     return body;
   }
 
-  const result = deepClone(body) as RequestBody;
+  const result = structuredClone(body) as RequestBody;
 
   if (!Array.isArray(result.messages)) {
     return result;
@@ -228,23 +327,4 @@ export function replaceImageParts(body: RequestBody, descriptions: string[]): Re
   }
 
   return result;
-}
-
-/**
- * Deep clone an object (for immutability).
- */
-function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== "object") {
-    return obj;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => deepClone(item)) as T;
-  }
-
-  const cloned = {} as Record<string, unknown>;
-  for (const [key, value] of Object.entries(obj)) {
-    cloned[key] = deepClone(value);
-  }
-  return cloned as T;
 }
