@@ -13,6 +13,8 @@
 - **feat(core):** Add daily quota exhaustion lock to detect "quota exceeded" signals and lock the specific model until midnight. (#1430)
 - **feat(core):** Auto-inject `stream_options.include_usage = true` for OpenAI format streams to guarantee token usage is reported correctly during streaming. (#1423)
 - **feat(dashboard):** Introduce real-time model status badges with countdown timers in the provider detail and combo panel interfaces. (#1430)
+- **feat(core):** Add `VisionBridgeService` middleware to intercept image payloads and perform text-description fallback for text-only models, preventing crashes on natively non-multimodal upstream providers. (#1424)
+- **feat(cli-tools):** Add Hermes Agent quick-configuration code generation and tool definitions to the UI. (#1475)
 
 ### 🐛 Bug Fixes
 
