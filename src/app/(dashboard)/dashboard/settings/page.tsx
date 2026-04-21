@@ -22,6 +22,7 @@ import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
+import VisionBridgeTab from "./components/VisionBridgeTab";
 
 const tabs = [
   { id: "general", labelKey: "general", icon: "settings" },
@@ -94,6 +95,7 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-6">
               <ThinkingBudgetTab />
               <SystemPromptTab />
+              <VisionBridgeTab />
               <CacheSettingsTab />
               <MemorySkillsTab />
               <ModelsDevSyncTab />
