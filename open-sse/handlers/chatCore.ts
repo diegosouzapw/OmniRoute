@@ -920,7 +920,7 @@ export async function handleChatCore({
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
 
-    if (hasWarnings) {
+    if (detailedLoggingEnabled && hasWarnings) {
       saveRequestDetailLog({
         call_log_id: callLogId,
         has_warnings: true,
@@ -2934,19 +2934,8 @@ export async function handleChatCore({
       });
     }
 
-    persistAttemptLogs({
-      status: streamStatus || 200,
-      tokens: streamUsage || {},
-      responseBody: streamResponseBody ?? undefined,
-      providerRequest: finalBody || translatedBody,
-      providerResponse: providerPayload,
-      clientResponse: clientPayload ?? streamResponseBody ?? undefined,
-      claudeCacheMeta: claudePromptCacheLogMeta,
-      claudeCacheUsageMeta: cacheUsageLogMeta,
-      cacheSource: "upstream",
-    });
-
-    // Stream-level warning detection: scan assembled response for provider warnings
+    // Stream-level warning detection must happen before persistence so the
+    // warning detail log is attached to the same attempt.
     if (streamResponseBody && typeof streamResponseBody === "object") {
       try {
         const responseText = JSON.stringify(streamResponseBody);
@@ -2969,6 +2958,18 @@ export async function handleChatCore({
         // Non-critical — don't break stream completion
       }
     }
+
+    persistAttemptLogs({
+      status: streamStatus || 200,
+      tokens: streamUsage || {},
+      responseBody: streamResponseBody ?? undefined,
+      providerRequest: finalBody || translatedBody,
+      providerResponse: providerPayload,
+      clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+      claudeCacheMeta: claudePromptCacheLogMeta,
+      claudeCacheUsageMeta: cacheUsageLogMeta,
+      cacheSource: "upstream",
+    });
 
     if (apiKeyInfo?.id && streamUsage) {
       calculateCost(provider, model, streamUsage)

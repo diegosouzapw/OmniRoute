@@ -685,7 +685,7 @@ export async function getProviderCredentials(
     });
 
     // Check if the entire provider is in cooldown (too many transient failures)
-    if (isProviderInCooldown(provider)) {
+    if (!allowSuppressedConnections && !forcedConnectionId && isProviderInCooldown(provider)) {
       const cooldownRemaining = getProviderCooldownRemainingMs(provider);
       log.warn(
         "AUTH",
