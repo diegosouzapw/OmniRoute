@@ -1635,6 +1635,7 @@
     "errorOccurred": "אירעה שגיאה. אנא נסה שוב.",
     "modelStatus": "סטטוס דגם",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "חיפוש ספקים...",
     "allModelsOperational": "כל הדגמים מבצעיים",
     "modelsWithIssues": "{count} דגמים עם בעיות",
     "allModelsNormal": "כל הדגמים מגיבים כרגיל.",

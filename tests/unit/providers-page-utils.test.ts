@@ -76,6 +76,112 @@ test("configured-only filter keeps only providers with saved connections", () =>
   assert.equal(providerPageUtils.filterConfiguredProviderEntries(entries, false).length, 3);
 });
 
+test("search filter matches provider name and id case-insensitively", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude", name: "Claude" },
+      stats: { total: 2 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "openai",
+      provider: { id: "openai", name: "OpenAI" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "gemini",
+      provider: { id: "gemini", name: "Google Gemini" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+  ];
+
+  const byName = providerPageUtils.filterConfiguredProviderEntries(entries, false, "claude");
+  assert.deepEqual(
+    byName.map((e) => e.providerId),
+    ["claude"]
+  );
+
+  const byNameCaseInsensitive = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    false,
+    "OPENAI"
+  );
+  assert.deepEqual(
+    byNameCaseInsensitive.map((e) => e.providerId),
+    ["openai"]
+  );
+
+  const byPartialName = providerPageUtils.filterConfiguredProviderEntries(entries, false, "google");
+  assert.deepEqual(
+    byPartialName.map((e) => e.providerId),
+    ["gemini"]
+  );
+
+  const byId = providerPageUtils.filterConfiguredProviderEntries(entries, false, "gem");
+  assert.deepEqual(
+    byId.map((e) => e.providerId),
+    ["gemini"]
+  );
+
+  const noMatch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "xyz");
+  assert.equal(noMatch.length, 0);
+
+  const emptySearch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "");
+  assert.equal(emptySearch.length, 3);
+
+  const whitespaceSearch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "   ");
+  assert.equal(whitespaceSearch.length, 3);
+});
+
+test("search and configured-only filters work together", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude", name: "Claude" },
+      stats: { total: 2 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "openai",
+      provider: { id: "openai", name: "OpenAI" },
+      stats: { total: 0 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "gemini",
+      provider: { id: "gemini", name: "Google Gemini" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+  ];
+
+  const configuredAndSearched = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    true,
+    "claude"
+  );
+  assert.deepEqual(
+    configuredAndSearched.map((e) => e.providerId),
+    ["claude"]
+  );
+
+  const configuredButNoMatch = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    true,
+    "openai"
+  );
+  assert.equal(configuredButNoMatch.length, 0);
+});
+
 test("configured-only preference parser only enables explicit true values", () => {
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference("true"), true);
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference("false"), false);

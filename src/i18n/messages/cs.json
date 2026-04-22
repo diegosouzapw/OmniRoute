@@ -1635,6 +1635,7 @@
     "errorOccurred": "Došlo k chybě. Zkuste to prosím znovu.",
     "modelStatus": "Status modelu",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Hledat poskytovatele...",
     "allModelsOperational": "Všechny modely funkční",
     "modelsWithIssues": "{count} model(y) s problémy",
     "allModelsNormal": "Všechny modely reagují normálně.",

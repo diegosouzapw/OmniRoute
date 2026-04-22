@@ -1635,6 +1635,7 @@
     "errorOccurred": "エラーが発生しました。もう一度試してください。",
     "modelStatus": "モデルステータス",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "プロバイダーを検索...",
     "allModelsOperational": "全モデル稼働中",
     "modelsWithIssues": "{count} モデルに問題があります",
     "allModelsNormal": "全機種正常に反応しております。",

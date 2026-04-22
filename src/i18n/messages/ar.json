@@ -1635,6 +1635,7 @@
     "errorOccurred": "حدث خطأ. يرجى المحاولة مرة أخرى.",
     "modelStatus": "حالة النموذج",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "البحث عن موفري الخدمة...",
     "allModelsOperational": "جميع الموديلات شغالة",
     "modelsWithIssues": "{count} الطراز (النماذج) الذي به مشكلات",
     "allModelsNormal": "جميع النماذج تستجيب بشكل طبيعي.",
