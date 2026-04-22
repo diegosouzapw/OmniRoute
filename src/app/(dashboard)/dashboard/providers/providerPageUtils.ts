@@ -79,7 +79,7 @@ export function filterConfiguredProviderEntries<TProvider>(
   }
 
   if (searchQuery && searchQuery.trim()) {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     filtered = filtered.filter((entry) => {
       const provider = entry.provider as Record<string, unknown>;
       const name = String(provider.name || "").toLowerCase();
