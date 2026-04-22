@@ -2,7 +2,7 @@
  * Log Rotation & Cleanup — manages application log file rotation.
  *
  * Handles:
- *   - Rotating log files when they exceed max size
+ *   - Rotating log files when they exceed max size (startup + periodic during runtime)
  *   - Cleaning up old log files past retention period
  *   - Capping the number of rotated log files kept on disk
  *   - Creating the log directory on startup
@@ -13,6 +13,7 @@
  *   - APP_LOG_MAX_FILE_SIZE: max file size before rotation (default: 50MB)
  *   - APP_LOG_RETENTION_DAYS: days to keep old logs (default: 7)
  *   - APP_LOG_MAX_FILES: max number of rotated log files to keep (default: 20)
+ *   - APP_LOG_ROTATION_CHECK_INTERVAL_MS: how often to check log size at runtime (default: 60000ms)
  */
 
 import { existsSync, mkdirSync, statSync, renameSync, readdirSync, unlinkSync } from "fs";
@@ -24,6 +25,25 @@ import {
   getAppLogRetentionDays,
   getAppLogToFile,
 } from "./logEnv";
+
+const DEFAULT_ROTATION_CHECK_INTERVAL_MS = 60_000;
+
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/** Interval between runtime rotation checks (default: 60s). */
+export function getAppLogRotationCheckInterval(): number {
+  return parsePositiveInt(
+    process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS,
+    DEFAULT_ROTATION_CHECK_INTERVAL_MS
+  );
+}
+
+/** Module-level timer handle — cleared by closeLogRotation(). */
+let rotationTimer: ReturnType<typeof setInterval> | null = null;
 
 export function getLogConfig() {
   const logToFile = getAppLogToFile();
@@ -144,7 +164,12 @@ export function cleanupOverflowLogs(logFilePath: string, maxFiles: number): void
 
 /**
  * Initialize log rotation — call once at application startup.
- * Creates directories, rotates if needed, and cleans up old files.
+ * Creates directories, rotates if needed, cleans up old files, and starts
+ * a background timer that re-checks rotation at APP_LOG_ROTATION_CHECK_INTERVAL_MS
+ * (defaults to every 60 s). This catches log growth that happens during runtime
+ * — without this timer, rotation only runs once at startup.
+ *
+ * Call closeLogRotation() during application shutdown to clear the timer.
  */
 export function initLogRotation(): void {
   const config = getLogConfig();
@@ -154,4 +179,27 @@ export function initLogRotation(): void {
   rotateIfNeeded(config.logFilePath, config.maxFileSize);
   cleanupOldLogs(config.logFilePath, config.retentionDays);
   cleanupOverflowLogs(config.logFilePath, config.maxFiles);
+
+  const intervalMs = getAppLogRotationCheckInterval();
+  rotationTimer = setInterval(
+    (filePath: string, maxSize: number, maxFiles: number) => {
+      rotateIfNeeded(filePath, maxSize);
+      cleanupOverflowLogs(filePath, maxFiles);
+    },
+    intervalMs,
+    config.logFilePath,
+    config.maxFileSize,
+    config.maxFiles
+  );
+}
+
+/**
+ * Stop the background rotation timer started by initLogRotation().
+ * Idempotent — safe to call multiple times.
+ */
+export function closeLogRotation(): void {
+  if (rotationTimer !== null) {
+    clearInterval(rotationTimer);
+    rotationTimer = null;
+  }
 }
