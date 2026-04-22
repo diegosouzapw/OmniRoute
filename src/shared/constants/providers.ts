@@ -1165,6 +1165,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "kimi-coding",
   "glm",
   "glmt",
+  "minimax",
+  "minimax-cn",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

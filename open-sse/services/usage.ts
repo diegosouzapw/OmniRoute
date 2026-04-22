@@ -71,6 +71,21 @@ const CURSOR_USAGE_CONFIG = {
   clientVersion: CURSOR_REGISTRY_VERSION,
 };
 
+const MINIMAX_USAGE_CONFIG = {
+  minimax: {
+    usageUrls: [
+      "https://www.minimax.io/v1/token_plan/remains",
+      "https://api.minimax.io/v1/api/openplatform/coding_plan/remains",
+    ],
+  },
+  "minimax-cn": {
+    usageUrls: [
+      "https://www.minimaxi.com/v1/api/openplatform/coding_plan/remains",
+      "https://api.minimaxi.com/v1/api/openplatform/coding_plan/remains",
+    ],
+  },
+} as const;
+
 type JsonRecord = Record<string, unknown>;
 type UsageQuota = {
   used: number;
@@ -124,6 +139,257 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   if (!quota) return false;
   if (quota.unlimited && quota.total <= 0) return false;
   return quota.total > 0 || quota.remainingPercentage !== undefined;
+}
+
+function createQuotaFromUsage(
+  usedValue: unknown,
+  totalValue: unknown,
+  resetValue: unknown
+): UsageQuota {
+  const total = Math.max(0, toNumber(totalValue, 0));
+  const used = total > 0 ? Math.min(Math.max(0, toNumber(usedValue, 0)), total) : 0;
+  const remaining = total > 0 ? Math.max(total - used, 0) : 0;
+
+  return {
+    used,
+    total,
+    remaining,
+    remainingPercentage: total > 0 ? clampPercentage((remaining / total) * 100) : 0,
+    resetAt: parseResetTime(resetValue),
+    unlimited: false,
+  };
+}
+
+function getMiniMaxQuotaResetAt(
+  model: JsonRecord,
+  capturedAtMs: number,
+  remainsTimeSnakeKey: string,
+  remainsTimeCamelKey: string,
+  endTimeSnakeKey: string,
+  endTimeCamelKey: string
+): string | null {
+  const remainsMs = toNumber(getFieldValue(model, remainsTimeSnakeKey, remainsTimeCamelKey), 0);
+  if (remainsMs > 0) {
+    return new Date(capturedAtMs + remainsMs).toISOString();
+  }
+
+  return parseResetTime(getFieldValue(model, endTimeSnakeKey, endTimeCamelKey));
+}
+
+function isMiniMaxTextQuotaModel(modelName: string): boolean {
+  const normalized = modelName.trim().toLowerCase();
+  return normalized.startsWith("minimax-m") || normalized.startsWith("coding-plan");
+}
+
+function getMiniMaxSessionTotal(model: JsonRecord): number {
+  return Math.max(
+    0,
+    toNumber(getFieldValue(model, "current_interval_total_count", "currentIntervalTotalCount"), 0)
+  );
+}
+
+function getMiniMaxWeeklyTotal(model: JsonRecord): number {
+  return Math.max(
+    0,
+    toNumber(getFieldValue(model, "current_weekly_total_count", "currentWeeklyTotalCount"), 0)
+  );
+}
+
+function pickMiniMaxRepresentativeModel(
+  models: JsonRecord[],
+  getTotal: (model: JsonRecord) => number
+): JsonRecord | null {
+  const withQuota = models.filter((model) => getTotal(model) > 0);
+  const pool = withQuota.length > 0 ? withQuota : models;
+  if (pool.length === 0) return null;
+
+  return pool.reduce((best, current) => (getTotal(current) > getTotal(best) ? current : best));
+}
+
+function getMiniMaxAuthErrorMessage(message: string): string {
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("token plan") ||
+    normalized.includes("coding plan") ||
+    normalized.includes("active period") ||
+    normalized.includes("invalid api key") ||
+    normalized.includes("invalid key") ||
+    normalized.includes("subscription")
+  ) {
+    return "MiniMax Token Plan API key invalid or inactive. Use an active Token Plan key.";
+  }
+
+  return "MiniMax access denied. Confirm the key is an active Token Plan API key.";
+}
+
+function getMiniMaxErrorSummary(status: number, message: string): string {
+  const compact = message.replace(/\s+/g, " ").trim();
+  if (!compact) {
+    return `MiniMax usage endpoint error (${status}).`;
+  }
+  if (compact.length <= 160) {
+    return `MiniMax usage endpoint error (${status}): ${compact}`;
+  }
+  return `MiniMax usage endpoint error (${status}): ${compact.slice(0, 157)}...`;
+}
+
+async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn") {
+  if (!apiKey) {
+    return { message: "MiniMax API key not available. Add a Token Plan API key." };
+  }
+
+  const usageUrls = MINIMAX_USAGE_CONFIG[provider].usageUrls;
+  let lastErrorMessage = "";
+
+  for (let index = 0; index < usageUrls.length; index += 1) {
+    const usageUrl = usageUrls[index];
+    const canFallback = index < usageUrls.length - 1;
+
+    try {
+      const response = await fetch(usageUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const rawText = await response.text();
+      let payload: JsonRecord = {};
+      if (rawText) {
+        try {
+          payload = toRecord(JSON.parse(rawText));
+        } catch {
+          payload = {};
+        }
+      }
+
+      const baseResp = toRecord(getFieldValue(payload, "base_resp", "baseResp"));
+      const apiStatusCode = toNumber(getFieldValue(baseResp, "status_code", "statusCode"), 0);
+      const apiStatusMessage = String(
+        getFieldValue(baseResp, "status_msg", "statusMsg") ?? ""
+      ).trim();
+      const combinedMessage = `${apiStatusMessage} ${rawText}`.trim();
+      const authLikeMessage =
+        /token plan|coding plan|invalid api key|invalid key|unauthorized|inactive/i;
+
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        apiStatusCode === 1004 ||
+        authLikeMessage.test(combinedMessage)
+      ) {
+        return { message: getMiniMaxAuthErrorMessage(combinedMessage) };
+      }
+
+      if (!response.ok) {
+        lastErrorMessage = getMiniMaxErrorSummary(response.status, combinedMessage);
+        if (
+          (response.status === 404 || response.status === 405 || response.status >= 500) &&
+          canFallback
+        ) {
+          continue;
+        }
+        return { message: `MiniMax connected. ${lastErrorMessage}` };
+      }
+
+      if (rawText && Object.keys(payload).length === 0) {
+        return { message: "MiniMax connected. Unable to parse usage response." };
+      }
+
+      if (apiStatusCode !== 0) {
+        if (apiStatusMessage) {
+          return { message: `MiniMax connected. ${apiStatusMessage}` };
+        }
+        return { message: "MiniMax connected. Upstream quota API returned an error." };
+      }
+
+      const capturedAtMs = Date.now();
+      const modelRemains = getFieldValue(payload, "model_remains", "modelRemains");
+      const allModels = Array.isArray(modelRemains)
+        ? modelRemains.map((item) => toRecord(item))
+        : [];
+      const textModels = allModels.filter((model) => {
+        const modelName = String(getFieldValue(model, "model_name", "modelName") ?? "");
+        return isMiniMaxTextQuotaModel(modelName);
+      });
+
+      if (textModels.length === 0) {
+        return { message: "MiniMax connected. No text quota data was returned." };
+      }
+
+      const quotas: Record<string, UsageQuota> = {};
+      const sessionModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxSessionTotal);
+      if (sessionModel) {
+        const total = getMiniMaxSessionTotal(sessionModel);
+        const remain = Math.max(
+          0,
+          toNumber(
+            getFieldValue(
+              sessionModel,
+              "current_interval_usage_count",
+              "currentIntervalUsageCount"
+            ),
+            0
+          )
+        );
+        quotas["session (5h)"] = createQuotaFromUsage(
+          Math.max(total - remain, 0),
+          total,
+          getMiniMaxQuotaResetAt(
+            sessionModel,
+            capturedAtMs,
+            "remains_time",
+            "remainsTime",
+            "end_time",
+            "endTime"
+          )
+        );
+      }
+
+      const weeklyModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxWeeklyTotal);
+      if (weeklyModel && getMiniMaxWeeklyTotal(weeklyModel) > 0) {
+        const total = getMiniMaxWeeklyTotal(weeklyModel);
+        const remain = Math.max(
+          0,
+          toNumber(
+            getFieldValue(weeklyModel, "current_weekly_usage_count", "currentWeeklyUsageCount"),
+            0
+          )
+        );
+        quotas["weekly (7d)"] = createQuotaFromUsage(
+          Math.max(total - remain, 0),
+          total,
+          getMiniMaxQuotaResetAt(
+            weeklyModel,
+            capturedAtMs,
+            "weekly_remains_time",
+            "weeklyRemainsTime",
+            "weekly_end_time",
+            "weeklyEndTime"
+          )
+        );
+      }
+
+      if (Object.keys(quotas).length === 0) {
+        return { message: "MiniMax connected. Unable to extract text quota usage." };
+      }
+
+      return { quotas };
+    } catch (error) {
+      lastErrorMessage = (error as Error).message;
+      if (!canFallback) {
+        break;
+      }
+    }
+  }
+
+  return {
+    message: lastErrorMessage
+      ? `MiniMax connected. Unable to fetch usage: ${lastErrorMessage}`
+      : "MiniMax connected. Unable to fetch usage.",
+  };
 }
 
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
@@ -240,6 +506,9 @@ export async function getUsageForProvider(connection) {
     case "glm":
     case "glmt":
       return await getGlmUsage(apiKey, providerSpecificData);
+    case "minimax":
+    case "minimax-cn":
+      return await getMiniMaxUsage(apiKey, provider);
     case "cursor":
       return await getCursorUsage(accessToken);
     case "bailian-coding-plan":

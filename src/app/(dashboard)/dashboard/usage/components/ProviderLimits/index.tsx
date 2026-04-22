@@ -37,6 +37,8 @@ const PROVIDER_CONFIG = {
   glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
   glmt: { label: "GLM Thinking", color: "#2563EB" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
+  minimax: { label: "MiniMax", color: "#7C3AED" },
+  "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
 };
 
 const TIER_FILTERS = [
@@ -293,6 +295,8 @@ export default function ProviderLimits() {
       glm: 7,
       glmt: 8,
       "kimi-coding": 9,
+      minimax: 10,
+      "minimax-cn": 11,
     };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)
