@@ -52,6 +52,7 @@ const nextConfig = {
     "stream",
     "buffer",
     "util",
+    "process",
   ],
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
@@ -110,6 +111,7 @@ const nextConfig = {
         "stream",
         "buffer",
         "util",
+        "process",
       ]);
 
       const prev = config.externals ?? [];
@@ -144,6 +146,7 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+        process: false,
       };
     }
     return config;
