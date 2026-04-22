@@ -188,10 +188,24 @@ async function dispatchBatchItem(
   headers: Headers,
   body: Record<string, unknown>
 ): Promise<Response> {
+  // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses.
+  // This is primarily relevant for chat/completion endpoints.
+  const isChatEndpoint = ![
+    "/v1/embeddings",
+    "/v1/moderations",
+    "/v1/images/generations",
+    "/v1/images/edits",
+    "/v1/videos",
+    "/v1/videos/generations",
+  ].includes(url);
+
   const request = new Request(`http://localhost${url}`, {
     method: "POST",
     headers,
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      ...body,
+      ...(isChatEndpoint ? { stream: false } : {}),
+    }),
   });
 
   switch (url) {
@@ -200,25 +214,11 @@ async function dispatchBatchItem(
     case "/v1/moderations":
       return handleModerationsRoute(request);
     case "/v1/images/generations":
-    case "/v1/images/edits":
       return handleImagesGenerationsRoute(request);
-    case "/v1/videos":
     case "/v1/videos/generations":
       return handleVideosGenerationsRoute(request);
-      // /v1/chat/completions, /v1/completions, /v1/responses
-    default: {
-      return handleChat(
-        new Request(`http://localhost${url}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            ...body,
-            // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
-            stream: body.stream ?? false,
-          }),
-        })
-      );
-    }
+    default:
+      return handleChat(request);
   }
 }
 
