@@ -15,10 +15,10 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
 
 test("T25: anthropic API-key config includes the full Anthropic beta header set", () => {
   const anthropic = REGISTRY.anthropic;
-  assert.equal(anthropic.headers["Anthropic-Version"], "2023-06-01");
-  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("advanced-tool-use-2025-11-20"));
-  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("structured-outputs-2025-12-15"));
-  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("token-efficient-tools-2026-03-28"));
+  assert.equal(anthropic.headers["anthropic-version"], "2023-06-01");
+  assert.ok(anthropic.headers["anthropic-beta"]?.includes("advanced-tool-use-2025-11-20"));
+  assert.ok(anthropic.headers["anthropic-beta"]?.includes("structured-outputs-2025-12-15"));
+  assert.ok(anthropic.headers["anthropic-beta"]?.includes("token-efficient-tools-2026-03-28"));
 });
 
 test("T22: github headers include updated editor/plugin versions and required fields", () => {
