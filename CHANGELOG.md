@@ -25,6 +25,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** Resolve 400 errors for GLM and Antigravity Claude adapter during request translation by scoping prompt caching to compatible Anthropic endpoints and flattening system instructions. (#1514, #1520, #1522)
 - **fix(core):** Strip `reasoning_content` from OpenAI format messages for non-reasoning models to prevent upstream HTTP 400 validation errors. (#1505)
 - **fix(ui):** Add missing UI wiring for "Add Memory" and "Import" buttons on the `/dashboard/memory` page. (#1506)
 - **fix(core):** Add periodic runtime log rotation checks to prevent disk exhaustion in long-running instances. (#1504 — thanks @ether-btc)

@@ -1,38 +1,38 @@
-# Документація A2A сервера OmniRoute
+# OmniRoute A2A Server Documentation (Українська)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/A2A-SERVER.md) · 🇪🇸 [es](../../es/docs/A2A-SERVER.md) · 🇫🇷 [fr](../../fr/docs/A2A-SERVER.md) · 🇩🇪 [de](../../de/docs/A2A-SERVER.md) · 🇮🇹 [it](../../it/docs/A2A-SERVER.md) · 🇷🇺 [ru](../../ru/docs/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/A2A-SERVER.md) · 🇯🇵 [ja](../../ja/docs/A2A-SERVER.md) · 🇰🇷 [ko](../../ko/docs/A2A-SERVER.md) · 🇸🇦 [ar](../../ar/docs/A2A-SERVER.md) · 🇮🇳 [hi](../../hi/docs/A2A-SERVER.md) · 🇮🇳 [in](../../in/docs/A2A-SERVER.md) · 🇹🇭 [th](../../th/docs/A2A-SERVER.md) · 🇻🇳 [vi](../../vi/docs/A2A-SERVER.md) · 🇮🇩 [id](../../id/docs/A2A-SERVER.md) · 🇲🇾 [ms](../../ms/docs/A2A-SERVER.md) · 🇳🇱 [nl](../../nl/docs/A2A-SERVER.md) · 🇵🇱 [pl](../../pl/docs/A2A-SERVER.md) · 🇸🇪 [sv](../../sv/docs/A2A-SERVER.md) · 🇳🇴 [no](../../no/docs/A2A-SERVER.md) · 🇩🇰 [da](../../da/docs/A2A-SERVER.md) · 🇫🇮 [fi](../../fi/docs/A2A-SERVER.md) · 🇵🇹 [pt](../../pt/docs/A2A-SERVER.md) · 🇷🇴 [ro](../../ro/docs/A2A-SERVER.md) · 🇭🇺 [hu](../../hu/docs/A2A-SERVER.md) · 🇧🇬 [bg](../../bg/docs/A2A-SERVER.md) · 🇸🇰 [sk](../../sk/docs/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/A2A-SERVER.md) · 🇮🇱 [he](../../he/docs/A2A-SERVER.md) · 🇵🇭 [phi](../../phi/docs/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/A2A-SERVER.md) · 🇨🇿 [cs](../../cs/docs/A2A-SERVER.md) · 🇹🇷 [tr](../../tr/docs/A2A-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../docs/A2A-SERVER.md) · 🇸🇦 [ar](../../ar/docs/A2A-SERVER.md) · 🇧🇬 [bg](../../bg/docs/A2A-SERVER.md) · 🇧🇩 [bn](../../bn/docs/A2A-SERVER.md) · 🇨🇿 [cs](../../cs/docs/A2A-SERVER.md) · 🇩🇰 [da](../../da/docs/A2A-SERVER.md) · 🇩🇪 [de](../../de/docs/A2A-SERVER.md) · 🇪🇸 [es](../../es/docs/A2A-SERVER.md) · 🇮🇷 [fa](../../fa/docs/A2A-SERVER.md) · 🇫🇮 [fi](../../fi/docs/A2A-SERVER.md) · 🇫🇷 [fr](../../fr/docs/A2A-SERVER.md) · 🇮🇳 [gu](../../gu/docs/A2A-SERVER.md) · 🇮🇱 [he](../../he/docs/A2A-SERVER.md) · 🇮🇳 [hi](../../hi/docs/A2A-SERVER.md) · 🇭🇺 [hu](../../hu/docs/A2A-SERVER.md) · 🇮🇩 [id](../../id/docs/A2A-SERVER.md) · 🇮🇹 [it](../../it/docs/A2A-SERVER.md) · 🇯🇵 [ja](../../ja/docs/A2A-SERVER.md) · 🇰🇷 [ko](../../ko/docs/A2A-SERVER.md) · 🇮🇳 [mr](../../mr/docs/A2A-SERVER.md) · 🇲🇾 [ms](../../ms/docs/A2A-SERVER.md) · 🇳🇱 [nl](../../nl/docs/A2A-SERVER.md) · 🇳🇴 [no](../../no/docs/A2A-SERVER.md) · 🇵🇭 [phi](../../phi/docs/A2A-SERVER.md) · 🇵🇱 [pl](../../pl/docs/A2A-SERVER.md) · 🇵🇹 [pt](../../pt/docs/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/A2A-SERVER.md) · 🇷🇴 [ro](../../ro/docs/A2A-SERVER.md) · 🇷🇺 [ru](../../ru/docs/A2A-SERVER.md) · 🇸🇰 [sk](../../sk/docs/A2A-SERVER.md) · 🇸🇪 [sv](../../sv/docs/A2A-SERVER.md) · 🇰🇪 [sw](../../sw/docs/A2A-SERVER.md) · 🇮🇳 [ta](../../ta/docs/A2A-SERVER.md) · 🇮🇳 [te](../../te/docs/A2A-SERVER.md) · 🇹🇭 [th](../../th/docs/A2A-SERVER.md) · 🇹🇷 [tr](../../tr/docs/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/A2A-SERVER.md) · 🇵🇰 [ur](../../ur/docs/A2A-SERVER.md) · 🇻🇳 [vi](../../vi/docs/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/A2A-SERVER.md)
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute як інтелектуальний агент маршрутизації
+> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
 
-## Виявлення агента
+## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Повертає Agent Card, що описує можливості OmniRoute, навички та вимоги до автентифікації.
+Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
 
 ---
 
-## Автентифікація
+## Authentication
 
-Всі запити до `/a2a` вимагають API ключ через заголовок `Authorization`:
+All `/a2a` requests require an API key via the `Authorization` header:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-Якщо на сервері не налаштовано API ключ, автентифікація пропускається.
+If no API key is configured on the server, authentication is bypassed.
 
 ---
 
-## Методи JSON-RPC 2.0
+## JSON-RPC 2.0 Methods
 
-### `message/send` — Синхронне виконання
+### `message/send` — Synchronous Execution
 
-Надсилає повідомлення до навички та чекає на повну відповідь.
+Sends a message to a skill and waits for the complete response.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +50,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Відповідь:**
+**Response:**
 
 ```json
 {
@@ -71,9 +71,9 @@ curl -X POST http://localhost:20128/a2a \
 }
 ```
 
-### `message/stream` — SSE потокова передача
+### `message/stream` — SSE Streaming
 
-Те саме, що й `message/send`, але повертає Server-Sent Events для потокової передачі в реальному часі.
+Same as `message/send` but returns Server-Sent Events for real-time streaming.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +90,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE події:**
+**SSE Events:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +100,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Запит статусу завдання
+### `tasks/get` — Query Task Status
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +109,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Скасування завдання
+### `tasks/cancel` — Cancel a Task
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,16 +120,16 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Доступні навички
+## Available Skills
 
-| Навичка            | Опис                                                                                                                            |
+| Skill              | Description                                                                                                                     |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Маршрутизує промпти через інтелектуальний конвеєр OmniRoute. Повертає відповідь з поясненням маршрутизації, вартістю та трасуванням стійкості. |
-| `quota-management` | Відповідає на запити природною мовою про квоти провайдерів, пропонує безкоштовні комбо та надає рейтинги квот.                  |
+| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
+| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
 
 ---
 
-## Життєвий цикл завдання
+## Task Lifecycle
 
 ```
 submitted → working → completed
@@ -137,25 +137,25 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Завдання закінчуються через 5 хвилин (налаштовується)
-- Термінальні стани: `completed`, `failed`, `cancelled`
-- Журнал подій відстежує кожен перехід стану
+- Tasks expire after 5 minutes (configurable)
+- Terminal states: `completed`, `failed`, `cancelled`
+- Event log tracks every state transition
 
 ---
 
-## Коди помилок
+## Error Codes
 
-| Код    | Значення                       |
+| Code   | Meaning                        |
 | :----- | :----------------------------- |
-| -32700 | Помилка парсингу (невалідний JSON) |
-| -32600 | Невалідний запит / Неавторизовано |
-| -32601 | Метод або навичка не знайдені  |
-| -32602 | Невалідні параметри            |
-| -32603 | Внутрішня помилка              |
+| -32700 | Parse error (invalid JSON)     |
+| -32600 | Invalid request / Unauthorized |
+| -32601 | Method or skill not found      |
+| -32602 | Invalid params                 |
+| -32603 | Internal error                 |
 
 ---
 
-## Приклади інтеграції
+## Integration Examples
 
 ### Python (requests)
 
