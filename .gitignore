@@ -116,6 +116,7 @@ test-results/
 playwright-report/
 blob-report/
 cloud/
+.tmp/
 
 # Security Analysis (standalone project with own git)
 security-analysis/
