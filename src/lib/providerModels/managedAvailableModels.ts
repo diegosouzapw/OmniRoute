@@ -34,7 +34,11 @@ async function getProviderDisplayPrefix(providerId: string): Promise<string> {
   return typeof prefix === "string" && prefix.trim().length > 0 ? prefix.trim() : providerId;
 }
 
-export async function syncManagedAvailableModelAliases(providerId: string, modelIds: string[]) {
+export async function syncManagedAvailableModelAliases(
+  providerId: string,
+  modelIds: string[],
+  { pruneMissing = true }: { pruneMissing?: boolean } = {}
+) {
   const storagePrefix = getProviderStoragePrefix(providerId);
   const displayPrefix = await getProviderDisplayPrefix(providerId);
   const existingAliasesRaw = await getModelAliases();
@@ -53,13 +57,15 @@ export async function syncManagedAvailableModelAliases(providerId: string, model
   const targetFullModels = new Set(targetModelIds.map((modelId) => `${storagePrefix}/${modelId}`));
   const removedAliases: string[] = [];
 
-  for (const [alias, value] of Object.entries(workingAliases)) {
-    if (!value.startsWith(`${storagePrefix}/`)) continue;
-    if (targetFullModels.has(value)) continue;
+  if (pruneMissing) {
+    for (const [alias, value] of Object.entries(workingAliases)) {
+      if (!value.startsWith(`${storagePrefix}/`)) continue;
+      if (targetFullModels.has(value)) continue;
 
-    await deleteModelAlias(alias);
-    delete workingAliases[alias];
-    removedAliases.push(alias);
+      await deleteModelAlias(alias);
+      delete workingAliases[alias];
+      removedAliases.push(alias);
+    }
   }
 
   const assignedAliases: string[] = [];

@@ -352,7 +352,7 @@ test("model sync route writes synced available models for Gemini connections", a
     {
       id: "gemini-custom-preview",
       name: "Gemini Custom Preview",
-      source: "auto-sync",
+      source: "api-sync",
       apiFormat: "chat-completions",
       supportedEndpoints: ["chat", "embeddings"],
       inputTokenLimit: 32768,
@@ -426,6 +426,59 @@ test("model sync route writes synced available models for non-Gemini providers t
       inputTokenLimit: 262144,
     },
   ]);
+});
+
+test("model sync route import mode merges discovered models without deleting manual models", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openrouter",
+    authType: "apikey",
+    name: "OpenRouter Import",
+    apiKey: "test-key",
+  });
+
+  await modelsDb.addCustomModel("openrouter", "manual-only", "Manual Only", "manual");
+  await localDb.setModelAlias("manual-only", "openrouter/manual-only");
+
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
+    return Response.json({
+      models: [{ id: "router-v4", name: "Router V4" }],
+    });
+  };
+
+  const response = await modelSyncRoute.POST(
+    new Request(`http://localhost/api/providers/${connection.id}/sync-models?mode=import`, {
+      method: "POST",
+      headers: scheduler.buildModelSyncInternalHeaders(),
+    }),
+    { params: { id: connection.id } }
+  );
+  const body = (await response.json()) as any;
+  const aliases = await localDb.getModelAliases();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.mode, "merge");
+  assert.equal(body.importedCount, 1);
+  assert.equal(body.syncedAliases, 1);
+  assert.deepEqual(body.modelChanges, { added: 1, removed: 0, updated: 0, total: 1 });
+  assert.deepEqual(
+    body.models.map((model) => ({ id: model.id, source: model.source })),
+    [
+      { id: "manual-only", source: "manual" },
+      { id: "router-v4", source: "api-sync" },
+    ]
+  );
+  assert.deepEqual(
+    body.importedModels.map((model) => ({ id: model.id, source: model.source })),
+    [{ id: "router-v4", source: "api-sync" }]
+  );
+  assert.equal(aliases["manual-only"], "openrouter/manual-only");
+  assert.equal(aliases["router-v4"], "openrouter/router-v4");
 });
 
 test("model sync route records added, removed, and updated model diffs with fallback identifiers", async () => {

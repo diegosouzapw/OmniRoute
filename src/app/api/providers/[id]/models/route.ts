@@ -986,9 +986,14 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
+    const config =
+      provider in PROVIDER_MODELS_CONFIG
+        ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
+        : undefined;
+
     // Static model providers (no remote /models API)
     const staticModels = getStaticModelsForProvider(provider);
-    if (staticModels) {
+    if (!config && staticModels) {
       return buildResponse({
         provider,
         connectionId,
@@ -1011,11 +1016,10 @@ export async function GET(
       });
     }
 
-    const config =
-      provider in PROVIDER_MODELS_CONFIG
-        ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
-        : undefined;
-    const localCatalog = getStaticModelsForProvider(provider) || PROVIDER_MODELS[provider] || [];
+    const localCatalog =
+      (config
+        ? PROVIDER_MODELS[provider] || staticModels
+        : staticModels || PROVIDER_MODELS[provider]) || [];
     if (!config && localCatalog.length > 0) {
       return buildResponse({
         provider,

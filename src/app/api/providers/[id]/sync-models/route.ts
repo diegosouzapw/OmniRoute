@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
+import { getCustomModels } from "@/lib/db/models";
 import {
-  getCustomModels,
-  replaceCustomModels,
-  replaceSyncedAvailableModelsForConnection,
-} from "@/lib/db/models";
-import {
-  syncManagedAvailableModelAliases,
-  usesManagedAvailableModels,
-} from "@/lib/providerModels/managedAvailableModels";
-import { normalizeDiscoveredModels } from "@/lib/providerModels/modelDiscovery";
+  importManagedModels,
+  type ManagedModelImportMode,
+} from "@/lib/providerModels/managedModelImport";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
   buildModelSyncInternalHeaders,
   isModelSyncInternalRequest,
 } from "@/shared/services/modelSyncScheduler";
-import { getModelsByProviderId } from "@/shared/constants/models";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -32,7 +26,11 @@ function normalizeModelForComparison(model: unknown) {
   const record = asRecord(model);
   const id = toNonEmptyString(record.id) || "";
   const name = toNonEmptyString(record.name) || id;
-  const source = toNonEmptyString(record.source) || "auto-sync";
+  const rawSource = toNonEmptyString(record.source)?.toLowerCase();
+  const source =
+    rawSource === "api-sync" || rawSource === "auto-sync" || rawSource === "imported"
+      ? "api-sync"
+      : rawSource || "auto-sync";
   const apiFormat = toNonEmptyString(record.apiFormat) || "chat-completions";
   const supportedEndpoints = Array.isArray(record.supportedEndpoints)
     ? Array.from(
@@ -129,6 +127,9 @@ function getModelSyncChannelLabel(connection: unknown) {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const start = Date.now();
   const { id } = await params;
+  const mode = (
+    new URL(request.url).searchParams.get("mode") === "import" ? "merge" : "sync"
+  ) as ManagedModelImportMode;
   let logProvider = "unknown";
   let channelLabel: string | null = null;
 
@@ -192,48 +193,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const fetchedModels = modelsData.models || [];
-
-    // Filter out models already in the built-in registry
-    const registryIds = new Set(getModelsByProviderId(logProvider).map((m: any) => m.id));
-
-    // Replace the full model list
-    const models = fetchedModels
-      .map((m: any) => ({
-        id: m.id || m.name || m.model,
-        name: m.name || m.displayName || m.id || m.model,
-        source: "auto-sync",
-        ...(Array.isArray(m.supportedEndpoints) && m.supportedEndpoints.length > 0
-          ? { supportedEndpoints: m.supportedEndpoints }
-          : {}),
-        ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
-        ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
-        ...(typeof m.description === "string" ? { description: m.description } : {}),
-        ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
-      }))
-      .filter((m: any) => m.id && !registryIds.has(m.id));
-
     const previousModels = await getCustomModels(logProvider);
-    const replaced = await replaceCustomModels(logProvider, models);
+    const { persistedModels, importedModels, discoveredModels, syncedAliases, importedChanges } =
+      await importManagedModels({
+        providerId: logProvider,
+        connectionId: id,
+        fetchedModels,
+        mode,
+      });
 
-    try {
-      const syncedModels = normalizeDiscoveredModels(fetchedModels);
-      if (syncedModels.length > 0) {
-        await replaceSyncedAvailableModelsForConnection(logProvider, id, syncedModels);
-      }
-    } catch (e) {
-      console.error(`Failed to union synced available models for ${logProvider}:`, e);
-    }
-
-    const modelChanges = summarizeModelChanges(previousModels, replaced);
-
-    let syncedAliases = 0;
-    if (usesManagedAvailableModels(logProvider)) {
-      const aliasSync = await syncManagedAvailableModelAliases(
-        logProvider,
-        models.map((model: any) => model.id)
-      );
-      syncedAliases = aliasSync.assignedAliases.length;
-    }
+    const modelChanges = summarizeModelChanges(previousModels, persistedModels);
+    const syncedModelsCount =
+      persistedModels.length > 0
+        ? persistedModels.length
+        : importedModels.length > 0
+          ? importedModels.length
+          : discoveredModels.length;
 
     if (modelChanges.total > 0) {
       await saveCallLog({
@@ -247,11 +222,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         duration: Date.now() - start,
         requestType: "model-sync",
         responseBody: {
-          syncedModels: models.length,
+          syncedModels: syncedModelsCount,
           syncedAliases,
           provider: logProvider,
           channel: channelLabel,
           modelChanges,
+          mode,
         },
       });
     }
@@ -259,11 +235,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({
       ok: true,
       provider: logProvider,
-      syncedModels: replaced.length,
+      mode,
+      syncedModels: syncedModelsCount,
       syncedAliases,
       modelChanges,
+      importedCount: importedChanges.total,
+      importedChanges,
       logged: modelChanges.total > 0,
-      models: replaced,
+      models: persistedModels,
+      importedModels,
     });
   } catch (error: any) {
     // Log error

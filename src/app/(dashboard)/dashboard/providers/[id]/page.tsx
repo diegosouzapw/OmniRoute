@@ -412,10 +412,7 @@ interface CompatibleModelsSectionProps {
   onDeleteAlias: (alias: string) => void;
   connections: { id?: string; isActive?: boolean }[];
   isAnthropic?: boolean;
-  onImportWithProgress: (
-    fetchModels: () => Promise<{ models: unknown[] }>,
-    processModel: (model: unknown) => Promise<boolean>
-  ) => Promise<void>;
+  onImportWithProgress: (connectionId: string) => Promise<void>;
   t: (key: string, values?: Record<string, unknown>) => string;
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
@@ -2004,10 +2001,7 @@ export default function ProviderDetailPage() {
   };
 
   // Shared import handler for CompatibleModelsSection
-  const handleCompatibleImportWithProgress = async (
-    fetchModels: () => Promise<{ models: any[] }>,
-    processModel: (model: any) => Promise<boolean>
-  ) => {
+  const handleCompatibleImportWithProgress = async (connectionId: string) => {
     setShowImportModal(true);
     setImportProgress({
       current: 0,
@@ -2020,53 +2014,51 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const data = await fetchModels();
-      const models = data.models || [];
-      if (models.length === 0) {
+      const response = await fetch(`/api/providers/${connectionId}/sync-models?mode=import`, {
+        method: "POST",
+        signal: AbortSignal.timeout(60_000),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || t("failedImportModels"));
+      }
+
+      const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];
+      const importedCount =
+        typeof data.importedCount === "number" ? data.importedCount : importedModels.length;
+
+      if (importedModels.length === 0) {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
+          status:
+            importedCount > 0
+              ? t("importSuccessCount", { count: importedCount })
+              : t("noNewModelsAdded"),
+          logs: [
+            importedCount > 0
+              ? t("importDoneCount", { count: importedCount })
+              : t("noNewModelsAdded"),
+          ],
+          importedCount,
         }));
         return;
       }
 
       setImportProgress((prev) => ({
         ...prev,
-        phase: "importing",
-        total: models.length,
-        status: t("importingModelsProgress", { current: 0, total: models.length }),
-        logs: [t("foundModelsStartingImport", { count: models.length })],
-      }));
-
-      let importedCount = 0;
-      for (let i = 0; i < models.length; i++) {
-        const model = models[i];
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
-
-        setImportProgress((prev) => ({
-          ...prev,
-          current: i + 1,
-          status: t("importingModelsProgress", { current: i + 1, total: models.length }),
-          logs: [...prev.logs, t("importingModelById", { modelId })],
-        }));
-
-        const added = await processModel(model);
-        if (added) importedCount += 1;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
         phase: "done",
-        current: models.length,
+        total: importedModels.length,
+        current: importedModels.length,
         status:
           importedCount > 0
             ? t("importSuccessCount", { count: importedCount })
             : t("noNewModelsAdded"),
         logs: [
-          ...prev.logs,
+          t("foundModelsStartingImport", { count: importedModels.length }),
+          ...importedModels.map((model: any) =>
+            t("importingModelById", { modelId: model.id || model.name || model.model })
+          ),
           importedCount > 0
             ? t("importDoneCount", { count: importedCount })
             : t("noNewModelsAdded"),
@@ -4493,49 +4485,11 @@ function CompatibleModelsSection({
   const handleImport = async () => {
     if (!allowImport || importing) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) return;
+    if (!activeConnection?.id) return;
 
     setImporting(true);
     try {
-      const workingAliases = { ...modelAliases };
-      await onImportWithProgress(
-        // fetchModels callback
-        async () => {
-          const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || t("failedImportModels"));
-          return data;
-        },
-        // processModel callback
-        async (model: any) => {
-          const modelId = model.id || model.name || model.model;
-          if (!modelId) return false;
-          const resolvedAlias = resolveAlias(modelId, workingAliases);
-          if (!resolvedAlias) return false;
-
-          // Save to customModels DB FIRST - only create alias if this succeeds
-          const customModelRes = await fetch("/api/provider-models", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              provider: providerStorageAlias,
-              modelId,
-              modelName: model.name || modelId,
-              source: "imported",
-            }),
-          });
-
-          if (!customModelRes.ok) {
-            notify.error(t("failedSaveImportedModel"));
-            return false;
-          }
-
-          // Only create alias after customModel is saved successfully
-          await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
-          workingAliases[resolvedAlias] = `${providerStorageAlias}/${modelId}`;
-          return true;
-        }
-      );
+      await onImportWithProgress(activeConnection.id);
     } catch (error) {
       console.error("Error importing models:", error);
       notify.error(t("failedImportModelsTryAgain"));

@@ -222,6 +222,30 @@ test("provider models route returns the local catalog for built-in image provide
   assert.deepEqual(body.models, [{ id: "topaz-enhance", name: "topaz-enhance" }]);
 });
 
+test("provider models route prefers the remote OpenRouter /models API over static image models", async () => {
+  const connection = await seedConnection("openrouter", {
+    apiKey: "openrouter-key",
+  });
+  const seenUrls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    seenUrls.push(String(url));
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers.Authorization, "Bearer openrouter-key");
+    return Response.json({
+      data: [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
+  assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
+});
+
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
   const connection = await seedConnection("deepinfra", {
     apiKey: "deepinfra-key",
