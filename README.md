@@ -2256,7 +2256,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
 | [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
 | [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)                  | 6-factor scoring, mode packs, self-healing          |
+| [Auto-Combo Engine](docs/AUTO-COMBO.md)                  | 6-factor scoring, mode packs, self-healing          |
 | [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |
 | [Troubleshooting](docs/TROUBLESHOOTING.md)               | Common problems and solutions                       |
 | [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |

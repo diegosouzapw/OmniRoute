@@ -94,6 +94,8 @@ docs/*
 !docs/screenshots/
 !docs/i18n/
 !docs/i18n/**
+!docs/features/
+!docs/features/**
 !docs/A2A-SERVER.md
 !docs/AUTO-COMBO.md
 !docs/MCP-SERVER.md
