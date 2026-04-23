@@ -481,6 +481,67 @@ test("model sync route import mode merges discovered models without deleting man
   assert.equal(aliases["router-v4"], "openrouter/router-v4");
 });
 
+test("model sync route import mode ignores supported endpoint ordering changes", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openrouter",
+    authType: "apikey",
+    name: "OpenRouter Import Stable",
+    apiKey: "test-key",
+  });
+
+  await modelsDb.replaceCustomModels("openrouter", [
+    {
+      id: "router-v4",
+      name: "Router V4",
+      source: "api-sync",
+      apiFormat: "chat-completions",
+      supportedEndpoints: ["chat", "embeddings"],
+    },
+  ]);
+
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
+    return Response.json({
+      models: [
+        {
+          id: "router-v4",
+          name: "Router V4",
+          supportedEndpoints: ["embeddings", "chat"],
+        },
+      ],
+    });
+  };
+
+  const response = await modelSyncRoute.POST(
+    new Request(`http://localhost/api/providers/${connection.id}/sync-models?mode=import`, {
+      method: "POST",
+      headers: scheduler.buildModelSyncInternalHeaders(),
+    }),
+    { params: { id: connection.id } }
+  );
+  const body = (await response.json()) as any;
+  const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.importedCount, 0);
+  assert.deepEqual(body.importedChanges, { added: 0, updated: 0, unchanged: 1, total: 0 });
+  assert.deepEqual(body.modelChanges, { added: 0, removed: 0, updated: 0, total: 0 });
+  assert.equal(body.logged, false);
+  assert.deepEqual(
+    body.models.map((model) => ({
+      id: model.id,
+      supportedEndpoints: model.supportedEndpoints,
+    })),
+    [{ id: "router-v4", supportedEndpoints: ["chat", "embeddings"] }]
+  );
+  assert.equal(logs.length, 0);
+});
+
 test("model sync route records added, removed, and updated model diffs with fallback identifiers", async () => {
   await resetStorage();
 

@@ -50,7 +50,7 @@ function normalizeSupportedEndpoints(value: unknown): string[] | undefined {
         .map((entry) => toNonEmptyString(entry))
         .filter((entry): entry is string => Boolean(entry))
     )
-  );
+  ).sort();
   return endpoints.length > 0 ? endpoints : undefined;
 }
 
