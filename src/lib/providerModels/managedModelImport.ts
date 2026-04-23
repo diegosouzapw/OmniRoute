@@ -8,13 +8,14 @@ import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
 } from "@/lib/providerModels/managedAvailableModels";
+import { normalizeDiscoveredModels } from "@/lib/providerModels/modelDiscovery";
 import { getModelsByProviderId } from "@/shared/constants/models";
 
 type JsonRecord = Record<string, unknown>;
 
 export type ManagedModelImportMode = "merge" | "sync";
 
-type ManagedImportedModel = {
+export type ManagedImportedModel = {
   id: string;
   name: string;
   source: "api-sync";
@@ -26,10 +27,6 @@ type ManagedImportedModel = {
   supportsThinking?: boolean;
 };
 
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
 function toNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
@@ -40,56 +37,6 @@ function normalizeManagedSource(source: unknown): string {
     return "api-sync";
   }
   return normalized || "manual";
-}
-
-function normalizeSupportedEndpoints(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const endpoints = Array.from(
-    new Set(
-      value
-        .map((entry) => toNonEmptyString(entry))
-        .filter((entry): entry is string => Boolean(entry))
-    )
-  ).sort();
-  return endpoints.length > 0 ? endpoints : undefined;
-}
-
-function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel[] {
-  const items = Array.isArray(models) ? models : [];
-  const deduped = new Map<string, SyncedAvailableModel>();
-
-  for (const item of items) {
-    const record = asRecord(item);
-    const id =
-      toNonEmptyString(record.id) ||
-      toNonEmptyString(record.name) ||
-      toNonEmptyString(record.model);
-    if (!id) continue;
-
-    const name =
-      toNonEmptyString(record.name) ||
-      toNonEmptyString(record.displayName) ||
-      toNonEmptyString(record.model) ||
-      id;
-    const supportedEndpoints = normalizeSupportedEndpoints(record.supportedEndpoints);
-
-    deduped.set(id, {
-      id,
-      name,
-      source: "api-sync",
-      ...(supportedEndpoints ? { supportedEndpoints } : {}),
-      ...(typeof record.inputTokenLimit === "number"
-        ? { inputTokenLimit: record.inputTokenLimit }
-        : {}),
-      ...(typeof record.outputTokenLimit === "number"
-        ? { outputTokenLimit: record.outputTokenLimit }
-        : {}),
-      ...(typeof record.description === "string" ? { description: record.description } : {}),
-      ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
-    });
-  }
-
-  return Array.from(deduped.values());
 }
 
 function normalizeImportedModels(
@@ -168,6 +115,16 @@ function summarizeImportedChanges(
   };
 }
 
+function collectAddedImportedModels(
+  previousModels: JsonRecord[],
+  importedModels: ManagedImportedModel[]
+): ManagedImportedModel[] {
+  const previousIds = new Set(
+    previousModels.map((model) => toNonEmptyString(model.id)).filter(Boolean)
+  );
+  return importedModels.filter((model) => !previousIds.has(model.id));
+}
+
 export async function importManagedModels({
   providerId,
   connectionId,
@@ -180,8 +137,8 @@ export async function importManagedModels({
   mode: ManagedModelImportMode;
 }) {
   const previousModels = (await getCustomModels(providerId)) as JsonRecord[];
-  const importedModels = normalizeImportedModels(providerId, fetchedModels);
-  const importedIds = new Set(importedModels.map((model) => model.id));
+  const candidateImportedModels = normalizeImportedModels(providerId, fetchedModels);
+  const importedIds = new Set(candidateImportedModels.map((model) => model.id));
 
   const nextModelsMap = new Map<string, JsonRecord>();
 
@@ -197,7 +154,7 @@ export async function importManagedModels({
     }
   }
 
-  for (const model of importedModels) {
+  for (const model of candidateImportedModels) {
     nextModelsMap.set(model.id, model);
   }
 
@@ -234,13 +191,14 @@ export async function importManagedModels({
         ? persistedModels
             .map((model) => toNonEmptyString(model.id))
             .filter((modelId): modelId is string => Boolean(modelId))
-        : importedModels.map((model) => model.id),
+        : candidateImportedModels.map((model) => model.id),
       { pruneMissing: mode === "sync" }
     );
     syncedAliases = aliasSync.assignedAliases.length;
   }
 
   const importedChanges = summarizeImportedChanges(previousModels, persistedModels, importedIds);
+  const importedModels = collectAddedImportedModels(previousModels, candidateImportedModels);
 
   return {
     previousModels,

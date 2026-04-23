@@ -1353,10 +1353,16 @@ export default function ProviderDetailPage() {
             }
 
             const syncedCount = syncData.syncedModels || 0;
+            const availableCount =
+              typeof syncData.availableModelsCount === "number"
+                ? syncData.availableModelsCount
+                : Array.isArray(syncData.models)
+                  ? syncData.models.length
+                  : syncedCount;
             const syncedModelList: Array<{ id: string; name?: string }> = syncData.models || [];
             const logs: string[] = [];
             if (syncedModelList.length > 0) {
-              logs.push(`✓ ${syncedCount} models available`);
+              logs.push(`✓ ${availableCount} models available`);
               logs.push("");
               for (const m of syncedModelList) {
                 logs.push(`  ${m.name || m.id}`);
@@ -1366,10 +1372,10 @@ export default function ProviderDetailPage() {
             setImportProgress((prev) => ({
               ...prev,
               phase: "done",
-              status: t("modelsImported", { count: syncedCount }),
-              total: syncedCount,
-              current: syncedCount,
-              importedCount: syncedCount,
+              status: t("modelsImported", { count: availableCount }),
+              total: availableCount,
+              current: availableCount,
+              importedCount: availableCount,
               logs,
             }));
 
@@ -2026,6 +2032,10 @@ export default function ProviderDetailPage() {
       const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];
       const importedCount =
         typeof data.importedCount === "number" ? data.importedCount : importedModels.length;
+      const changedCount =
+        typeof data.importedChanges?.total === "number"
+          ? data.importedChanges.total
+          : importedCount;
 
       if (importedModels.length === 0) {
         setImportProgress((prev) => ({
@@ -2042,6 +2052,11 @@ export default function ProviderDetailPage() {
           ],
           importedCount,
         }));
+        if (changedCount > 0) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
         return;
       }
 
@@ -2066,7 +2081,7 @@ export default function ProviderDetailPage() {
         importedCount,
       }));
 
-      if (importedCount > 0) {
+      if (changedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);

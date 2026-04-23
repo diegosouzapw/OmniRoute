@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
-import { getCustomModels } from "@/lib/db/models";
 import {
   importManagedModels,
   type ManagedModelImportMode,
@@ -49,6 +48,12 @@ function normalizeModelForComparison(model: unknown) {
     apiFormat,
     supportedEndpoints,
   };
+}
+
+function isManagedSyncedModel(model: unknown) {
+  const record = asRecord(model);
+  const source = toNonEmptyString(record.source)?.toLowerCase();
+  return source === "api-sync" || source === "auto-sync" || source === "imported";
 }
 
 function summarizeModelChanges(previousModels: unknown, nextModels: unknown) {
@@ -193,22 +198,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const fetchedModels = modelsData.models || [];
-    const previousModels = await getCustomModels(logProvider);
-    const { persistedModels, importedModels, discoveredModels, syncedAliases, importedChanges } =
-      await importManagedModels({
-        providerId: logProvider,
-        connectionId: id,
-        fetchedModels,
-        mode,
-      });
+    const {
+      previousModels,
+      persistedModels,
+      importedModels,
+      discoveredModels,
+      syncedAliases,
+      importedChanges,
+    } = await importManagedModels({
+      providerId: logProvider,
+      connectionId: id,
+      fetchedModels,
+      mode,
+    });
 
     const modelChanges = summarizeModelChanges(previousModels, persistedModels);
     const syncedModelsCount =
-      persistedModels.length > 0
-        ? persistedModels.length
-        : importedModels.length > 0
-          ? importedModels.length
-          : discoveredModels.length;
+      discoveredModels.length > 0
+        ? discoveredModels.length
+        : persistedModels.filter((model) => isManagedSyncedModel(model)).length;
+    const availableModelsCount = new Set(
+      [...persistedModels, ...discoveredModels]
+        .map((model) => toNonEmptyString(asRecord(model).id))
+        .filter((modelId): modelId is string => Boolean(modelId))
+    ).size;
+    const importedCount = importedChanges.added;
+    const updatedCount = importedChanges.updated;
 
     if (modelChanges.total > 0) {
       await saveCallLog({
@@ -223,10 +238,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         requestType: "model-sync",
         responseBody: {
           syncedModels: syncedModelsCount,
+          availableModelsCount,
           syncedAliases,
           provider: logProvider,
           channel: channelLabel,
           modelChanges,
+          importedCount,
+          updatedCount,
           mode,
         },
       });
@@ -237,9 +255,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       provider: logProvider,
       mode,
       syncedModels: syncedModelsCount,
+      availableModelsCount,
       syncedAliases,
       modelChanges,
-      importedCount: importedChanges.total,
+      importedCount,
+      updatedCount,
       importedChanges,
       logged: modelChanges.total > 0,
       models: persistedModels,

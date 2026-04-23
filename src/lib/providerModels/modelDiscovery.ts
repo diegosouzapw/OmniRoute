@@ -42,7 +42,7 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
               .map((endpoint) => toNonEmptyString(endpoint))
               .filter((endpoint): endpoint is string => Boolean(endpoint))
           )
-        )
+        ).sort()
       : undefined;
 
     deduped.set(id, {
