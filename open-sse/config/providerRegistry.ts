@@ -1059,8 +1059,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "mistral-large-latest", name: "Mistral Large 3" },
+      { id: "mistral-medium-latest", name: "Mistral Medium 3.1" },
+      { id: "mistral-small-latest", name: "Mistral Small 4" },
+      { id: "devstral-latest", name: "Devstral 2" },
       { id: "codestral-latest", name: "Codestral" },
-      { id: "mistral-medium-latest", name: "Mistral Medium 3" },
     ],
   },
 
