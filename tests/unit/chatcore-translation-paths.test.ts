@@ -797,6 +797,55 @@ test("chatCore strips unsupported reasoning params and caps provider token field
   assert.equal(call.body.max_completion_tokens, 16384);
 });
 
+test("chatCore preserves reasoning_effort for assistant-prefill OpenAI-compatible requests", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openai-compatible-aio",
+    model: "glm-5.1",
+    endpoint: "/v1/chat/completions",
+    body: {
+      model: "aio/glm-5.1",
+      messages: [
+        { role: "user", content: "draft the answer" },
+        { role: "assistant", content: "<thinking>" },
+      ],
+      reasoning_effort: "xhigh",
+      stream: true,
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.model, "glm-5.1");
+  assert.equal(call.body.reasoning_effort, "xhigh");
+});
+
+test("chatCore logs chat completions endpoint as OpenAI protocol", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openrouter",
+    model: "deepseek/deepseek-v4-pro",
+    endpoint: "/v1/chat/completions",
+    body: {
+      model: "openrouter/deepseek/deepseek-v4-pro",
+      messages: [{ role: "user", content: "Human: Hi" }],
+      temperature: 1,
+      max_tokens: 64000,
+      stream: false,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      top_p: 0.9,
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.model, "deepseek/deepseek-v4-pro");
+
+  const logEntry = await waitFor(getLatestCallLog);
+  assert.ok(logEntry, "expected call log to be persisted");
+  assert.equal(logEntry.path, "/v1/chat/completions");
+  assert.equal(logEntry.sourceFormat, FORMATS.OPENAI);
+});
+
 test("chatCore surfaces translation errors with explicit status codes", async () => {
   register(
     FORMATS.OPENAI_RESPONSES,

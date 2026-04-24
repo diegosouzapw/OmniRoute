@@ -396,12 +396,13 @@ test("detectFormat identifies OpenAI Responses by max_output_tokens without inpu
   assert.equal(format, FORMATS.OPENAI_RESPONSES);
 });
 
-test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
+test("detectFormatFromEndpoint uses chat completions endpoint for OpenAI chat protocol", () => {
   const format = detectFormatFromEndpoint(
     {
-      model: "cc/claude-opus-4-6",
+      model: "test-model",
       messages: [{ role: "user", content: "hi" }],
-      max_tokens: 16,
+      input: "ignored for endpoint protocol detection",
+      max_output_tokens: 16,
       stream: false,
     },
     "/v1/chat/completions"
