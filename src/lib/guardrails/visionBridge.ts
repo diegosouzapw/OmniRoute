@@ -15,6 +15,7 @@ import {
 import {
   VISION_BRIDGE_DEFAULTS,
   getVisionBridgeConfig,
+  isVisionBridgeForcedModel,
 } from "@/shared/constants/visionBridgeDefaults";
 
 export interface VisionBridgeDependencies {
@@ -55,9 +56,11 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
+    const forceVisionBridge = isVisionBridgeForcedModel(model);
+
     // 4. Check if model supports vision
     const capabilities = getResolvedModelCapabilities(model);
-    if (capabilities.supportsVision === true) {
+    if (capabilities.supportsVision === true && !forceVisionBridge) {
       return { block: false };
     }
 

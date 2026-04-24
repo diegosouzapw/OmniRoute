@@ -2,6 +2,14 @@
  * Vision Bridge default configuration values.
  */
 
+const NORMALIZED_GPT_MODEL_PATTERN = /^gpt-/i;
+
+export function isVisionBridgeForcedModel(model: string | null | undefined): boolean {
+  if (!model) return false;
+  const normalizedModel = model.includes("/") ? model.split("/").pop() || model : model;
+  return NORMALIZED_GPT_MODEL_PATTERN.test(normalizedModel);
+}
+
 export const VISION_BRIDGE_DEFAULTS = {
   enabled: true,
   model: "openai/gpt-4o-mini",

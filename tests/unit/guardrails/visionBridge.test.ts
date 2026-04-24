@@ -164,6 +164,37 @@ test("VB-S02: passthroughs for vision-capable model (gpt-4o)", async () => {
   }
 });
 
+test("VB-S02b: forces Vision Bridge for GPT-family models even when model capabilities advertise vision", async () => {
+  const guardrail = createGuardrail();
+
+  for (const model of ["gpt-5.4", "gpt-5.4-mini", "gpt-4o", "openai/gpt-4o-mini"]) {
+    mockVisionResponse = `Forced bridge description for ${model}`;
+    visionCallCount = 0;
+
+    const payload = createPayload({
+      model,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What is this?" },
+            {
+              type: "image_url",
+              image_url: { url: "https://example.com/image.png" },
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await guardrail.preCall(payload, createContext({ model }));
+
+    assert.strictEqual(result.block, false, `expected passthrough=false for ${model}`);
+    assert.ok(result.modifiedPayload, `expected modified payload for ${model}`);
+    assert.strictEqual(visionCallCount, 1, `expected one forced bridge call for ${model}`);
+  }
+});
+
 test("VB-S02: model capabilities returns supportsVision for known models", () => {
   const gpt4oCaps = getResolvedModelCapabilities("openai/gpt-4o");
   // supportsVision may be true (if sync data exists) or null (if not synced)
