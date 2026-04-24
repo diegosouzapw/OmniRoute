@@ -750,6 +750,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
       { id: "glm-5", name: "GLM 5" },
       { id: "glm-5-turbo", name: "GLM 5 Turbo" },
     ],
