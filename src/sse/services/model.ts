@@ -105,13 +105,21 @@ export async function getModelInfo(modelStr) {
  * @returns {Promise<Object|null>} Full combo object or null if not a combo
  */
 export async function getCombo(modelStr) {
-  // Check combo DB first (supports names with /)
-  // Strip combo/ prefix if present
-  const nameToSearch = modelStr.startsWith("combo/") ? modelStr.substring(6) : modelStr;
-  const combo = await getComboByName(nameToSearch);
+  // Try exact match first (supports combos actually named "combo/ANY")
+  let combo = await getComboByName(modelStr);
   if (combo && combo.models && combo.models.length > 0) {
     return combo;
   }
+
+  // Fallback: Strip combo/ prefix if present
+  if (modelStr.startsWith("combo/")) {
+    const nameToSearch = modelStr.substring(6);
+    combo = await getComboByName(nameToSearch);
+    if (combo && combo.models && combo.models.length > 0) {
+      return combo;
+    }
+  }
+
   return null;
 }
 

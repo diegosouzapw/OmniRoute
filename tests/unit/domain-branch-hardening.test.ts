@@ -11,7 +11,6 @@ const core = await import("../../src/lib/db/core.ts");
 const costRules = await import("../../src/domain/costRules.ts");
 const fallbackPolicy = await import("../../src/domain/fallbackPolicy.ts");
 const lockoutPolicy = await import("../../src/domain/lockoutPolicy.ts");
-const modelAvailability = await import("../../src/domain/modelAvailability.ts");
 const providerExpiration = await import("../../src/domain/providerExpiration.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
 const comboResolver = await import("../../src/domain/comboResolver.ts");
@@ -28,7 +27,6 @@ function isoFromNow(offsetMs) {
 async function resetStorage() {
   costRules.resetCostData();
   fallbackPolicy.resetAllFallbacks();
-  modelAvailability.resetAllAvailability();
   providerExpiration.resetExpirations();
   quotaCache.stopBackgroundRefresh();
   core.resetDbInstance();
@@ -39,7 +37,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -63,7 +61,6 @@ test.after(async () => {
   quotaCache.stopBackgroundRefresh();
   costRules.resetCostData();
   fallbackPolicy.resetAllFallbacks();
-  modelAvailability.resetAllAvailability();
   providerExpiration.resetExpirations();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -190,30 +187,6 @@ test("resolveComboModel also covers implicit defaults and missing optional field
   );
 
   assert.deepEqual(comboResolver.getComboFallbacks({}, 0), []);
-});
-
-test("modelAvailability tracks missing, active and expired cooldowns", () => {
-  let now = 1_000;
-  Date.now = () => now;
-
-  assert.equal(modelAvailability.isModelAvailable("openai", "gpt-4o"), true);
-
-  modelAvailability.setModelUnavailable("openai", "gpt-4o", 100, undefined);
-  modelAvailability.setModelUnavailable("anthropic", "claude-sonnet", 500, "capacity");
-
-  assert.equal(modelAvailability.isModelAvailable("openai", "gpt-4o"), false);
-  assert.equal(modelAvailability.getUnavailableCount(), 2);
-
-  const report = modelAvailability.getAvailabilityReport();
-  assert.equal(report.length, 2);
-  assert.equal(report[0].reason, "unknown");
-  assert.equal(report[1].reason, "capacity");
-
-  now += 150;
-  assert.equal(modelAvailability.isModelAvailable("openai", "gpt-4o"), true);
-  assert.equal(modelAvailability.clearModelUnavailability("openai", "gpt-4o"), false);
-  assert.equal(modelAvailability.clearModelUnavailability("anthropic", "claude-sonnet"), true);
-  assert.equal(modelAvailability.getUnavailableCount(), 0);
 });
 
 test("providerExpiration derives status, sorting, summary and header-based expiration hints", () => {

@@ -26,10 +26,10 @@ async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
 }
 
-function makeCookieRequest(token) {
+function makeCookieRequest(token: string) {
   return {
     cookies: {
-      get(name) {
+      get(name: string) {
         return name === "auth_token" && token ? { value: token } : undefined;
       },
     },
@@ -195,4 +195,31 @@ test("isAuthRequired stays enabled when INITIAL_PASSWORD is present", async () =
   const result = await apiAuth.isAuthRequired();
 
   assert.equal(result, true);
+
+  delete process.env.INITIAL_PASSWORD;
+});
+
+test("getApiKeyMetadata recognizes OMNIROUTE_API_KEY environment variable", async () => {
+  const envKey = "sk-test-env-key-" + Date.now();
+  process.env.OMNIROUTE_API_KEY = envKey;
+
+  const metadata = await apiKeysDb.getApiKeyMetadata(envKey);
+
+  assert.ok(metadata);
+  assert.equal(metadata.id, "env-key");
+  assert.equal(metadata.name, "Environment Key");
+
+  delete process.env.OMNIROUTE_API_KEY;
+});
+
+test("getApiKeyMetadata recognizes ROUTER_API_KEY environment variable", async () => {
+  const envKey = "sk-test-router-key-" + Date.now();
+  process.env.ROUTER_API_KEY = envKey;
+
+  const metadata = await apiKeysDb.getApiKeyMetadata(envKey);
+
+  assert.ok(metadata);
+  assert.equal(metadata.id, "env-key");
+
+  delete process.env.ROUTER_API_KEY;
 });

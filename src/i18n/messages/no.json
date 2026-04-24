@@ -1635,6 +1635,7 @@
     "errorOccurred": "Det oppsto en feil. Vennligst prøv igjen.",
     "modelStatus": "Modellstatus",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Søk etter leverandører...",
     "allModelsOperational": "Alle modeller i drift",
     "modelsWithIssues": "{count} modell(er) med problemer",
     "allModelsNormal": "Alle modellene reagerer normalt.",

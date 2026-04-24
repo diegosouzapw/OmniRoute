@@ -1659,6 +1659,7 @@
     "errorOccurred": "Произошла ошибка. Пожалуйста, попробуйте еще раз.",
     "modelStatus": "Статус модели",
     "showConfiguredOnly": "Только настроенные",
+    "searchProviders": "Поиск поставщиков...",
     "allModelsOperational": "Все модели в рабочем состоянии",
     "modelsWithIssues": "{count} модели с проблемами",
     "allModelsNormal": "Все модели реагируют нормально.",

@@ -159,7 +159,7 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
       },
     })
   );
-  const firstJson = await firstResponse.json();
+  const firstJson = (await firstResponse.json()) as any;
 
   assert.equal(firstResponse.status, 200);
   assert.equal(firstJson.choices[0].message.content, "relay-success");
@@ -171,7 +171,7 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
   assert.equal(summaryBodies.length, 1);
   assert.match(summaryBodies[0].serializedBody, /You are a context summarizer/);
 
-  await providersDb.updateProviderConnection(primary.id, {
+  await providersDb.updateProviderConnection((primary as any).id, {
     rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
   });
 
@@ -185,7 +185,7 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
       },
     })
   );
-  const secondJson = await secondResponse.json();
+  const secondJson = (await secondResponse.json()) as any;
 
   assert.equal(secondResponse.status, 200);
   assert.equal(secondJson.choices[0].message.content, "relay-success");

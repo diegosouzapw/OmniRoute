@@ -46,7 +46,7 @@ test("provider-models PATCH updates hidden flag for custom models", async () => 
       isHidden: true,
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
@@ -62,7 +62,7 @@ test("provider-models PATCH persists visibility overrides for catalog models", a
       { isHidden: true }
     )
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
@@ -85,7 +85,7 @@ test("provider-models PATCH supports bulk visibility updates", async () => {
       modelIds: ["claude-opus-4-6", "claude-sonnet-4-6"],
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.updated, 2);
@@ -101,7 +101,7 @@ test("provider-models PATCH validates required fields", async () => {
       modelIds: ["claude-sonnet-4-6"],
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.message, "isHidden boolean is required");

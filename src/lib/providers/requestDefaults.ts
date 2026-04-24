@@ -108,6 +108,14 @@ export function normalizeProviderSpecificData(
     delete normalized.openaiStoreEnabled;
   }
 
+  if ("blockExtraUsage" in normalized && typeof normalized.blockExtraUsage !== "boolean") {
+    delete normalized.blockExtraUsage;
+  }
+
+  if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
+    delete normalized.autoFetchModels;
+  }
+
   if ("tag" in normalized) {
     if (typeof normalized.tag === "string") {
       const trimmedTag = normalized.tag.trim();

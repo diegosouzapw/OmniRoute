@@ -1635,6 +1635,7 @@
     "errorOccurred": "Terjadi kesalahan. Silakan coba lagi.",
     "modelStatus": "Status Model",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Penyedia pencarian...",
     "allModelsOperational": "Semua model beroperasi",
     "modelsWithIssues": "{count} model yang bermasalah",
     "allModelsNormal": "Semua model merespons secara normal.",

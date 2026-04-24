@@ -103,7 +103,7 @@ test("v1 management proxies supports create/list/pagination", async () => {
     new Request("http://localhost/api/v1/management/proxies?limit=1&offset=0")
   );
   assert.equal(listRes.status, 200);
-  const listPayload = await listRes.json();
+  const listPayload = (await listRes.json()) as any;
   assert.equal(Array.isArray(listPayload.items), true);
   assert.equal(listPayload.items.length, 1);
   assert.equal(listPayload.page.total >= 2, true);
@@ -172,13 +172,13 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     })
   );
   assert.equal(createdRes.status, 201);
-  const created = await createdRes.json();
+  const created = (await createdRes.json()) as any;
 
   const defaultListRes = await proxyV1Route.GET(
     new Request("http://localhost/api/v1/management/proxies")
   );
   assert.equal(defaultListRes.status, 200);
-  const defaultListBody = await defaultListRes.json();
+  const defaultListBody = (await defaultListRes.json()) as any;
   assert.equal(defaultListBody.page.limit, 50);
   assert.equal(defaultListBody.page.offset, 0);
   assert.equal(defaultListBody.items.length, 1);
@@ -187,7 +187,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     new Request(`http://localhost/api/v1/management/proxies?id=${created.id}`)
   );
   assert.equal(byIdRes.status, 200);
-  const byIdBody = await byIdRes.json();
+  const byIdBody = (await byIdRes.json()) as any;
   assert.equal(byIdBody.id, created.id);
 
   const assignRes = await proxyAssignmentsV1Route.PUT(
@@ -207,7 +207,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     new Request(`http://localhost/api/v1/management/proxies?id=${created.id}&where_used=1`)
   );
   assert.equal(whereUsedRes.status, 200);
-  const whereUsedBody = await whereUsedRes.json();
+  const whereUsedBody = (await whereUsedRes.json()) as any;
   assert.equal(whereUsedBody.count, 1);
   assert.equal(whereUsedBody.assignments[0].scopeId, providerConn.id);
 
@@ -229,7 +229,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     })
   );
   assert.equal(updatedRes.status, 200);
-  const updatedBody = await updatedRes.json();
+  const updatedBody = (await updatedRes.json()) as any;
   assert.equal(updatedBody.host, "updated.local");
   assert.equal(updatedBody.port, 9090);
 
@@ -265,7 +265,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     })
   );
   assert.equal(inUseDeleteRes.status, 409);
-  const inUseDeleteBody = await inUseDeleteRes.json();
+  const inUseDeleteBody = (await inUseDeleteRes.json()) as any;
   assert.match(inUseDeleteBody.error.message, /remove assignments first/i);
 
   const forceDeleteRes = await proxyV1Route.DELETE(
@@ -369,7 +369,7 @@ test("v1 management proxies main route returns server errors when persistence fa
     })
   );
   assert.equal(createdRes.status, 201);
-  const created = await createdRes.json();
+  const created = (await createdRes.json()) as any;
 
   await withPrepareFailure("UPDATE proxy_registry", "update proxy failure", async () => {
     const response = await proxyV1Route.PATCH(
@@ -419,7 +419,7 @@ test("v1 management assignments supports put and filtered get", async () => {
       }),
     })
   );
-  const created = await createdRes.json();
+  const created = (await createdRes.json()) as any;
 
   const assignRes = await proxyAssignmentsV1Route.PUT(
     new Request("http://localhost/api/v1/management/proxies/assignments", {
@@ -440,7 +440,7 @@ test("v1 management assignments supports put and filtered get", async () => {
     )
   );
   assert.equal(filteredRes.status, 200);
-  const payload = await filteredRes.json();
+  const payload = (await filteredRes.json()) as any;
   assert.equal(payload.items.length, 1);
   assert.equal(payload.items[0].proxyId, created.id);
 });
@@ -452,7 +452,7 @@ test("v1 management assignments covers unfiltered listing and error branches", a
     new Request("http://localhost/api/v1/management/proxies/assignments?limit=5&offset=0")
   );
   assert.equal(listRes.status, 200);
-  const listPayload = await listRes.json();
+  const listPayload = (await listRes.json()) as any;
   assert.deepEqual(listPayload.items, []);
   assert.equal(listPayload.page.limit, 5);
   assert.equal(listPayload.page.offset, 0);
@@ -490,7 +490,7 @@ test("v1 management assignments covers unfiltered listing and error branches", a
     })
   );
   assert.equal(invalidPayloadRes.status, 400);
-  const invalidPayloadBody = await invalidPayloadRes.json();
+  const invalidPayloadBody = (await invalidPayloadRes.json()) as any;
   assert.equal(invalidPayloadBody.error.type, "invalid_request");
   assert.equal(Array.isArray(invalidPayloadBody.error.details), true);
 
@@ -536,7 +536,7 @@ test("v1 management health endpoint aggregates proxy log metrics", async () => {
       }),
     })
   );
-  const created = await createdRes.json();
+  const created = (await createdRes.json()) as any;
 
   proxyLogger.logProxyEvent({
     status: "success",
@@ -559,7 +559,7 @@ test("v1 management health endpoint aggregates proxy log metrics", async () => {
     new Request("http://localhost/api/v1/management/proxies/health?hours=24")
   );
   assert.equal(healthRes.status, 200);
-  const healthPayload = await healthRes.json();
+  const healthPayload = (await healthRes.json()) as any;
   const row = healthPayload.items.find((item) => item.proxyId === created.id);
   assert.ok(row);
   assert.equal(row.totalRequests >= 2, true);
@@ -587,7 +587,7 @@ test("v1 management health endpoint covers default window and error handling", a
     new Request("http://localhost/api/v1/management/proxies/health")
   );
   assert.equal(defaultRes.status, 200);
-  const defaultBody = await defaultRes.json();
+  const defaultBody = (await defaultRes.json()) as any;
   assert.equal(defaultBody.windowHours, 24);
   assert.equal(defaultBody.total, 1);
 
@@ -615,7 +615,7 @@ test("v1 bulk assignment updates multiple scope IDs in one request", async () =>
       }),
     })
   );
-  const proxy = await proxyRes.json();
+  const proxy = (await proxyRes.json()) as any;
 
   const bulkRes = await proxyBulkAssignV1Route.PUT(
     new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
@@ -629,13 +629,13 @@ test("v1 bulk assignment updates multiple scope IDs in one request", async () =>
     })
   );
   assert.equal(bulkRes.status, 200);
-  const bulkPayload = await bulkRes.json();
+  const bulkPayload = (await bulkRes.json()) as any;
   assert.equal(bulkPayload.updated, 2);
 
   const checkRes = await proxyAssignmentsV1Route.GET(
     new Request("http://localhost/api/v1/management/proxies/assignments?scope=provider")
   );
-  const checkPayload = await checkRes.json();
+  const checkPayload = (await checkRes.json()) as any;
   assert.equal(checkPayload.items.length >= 2, true);
 });
 
@@ -708,7 +708,7 @@ test("v1 assignments route resolves connection proxies and bulk assignment cover
       }),
     })
   );
-  const proxy = await proxyRes.json();
+  const proxy = (await proxyRes.json()) as any;
 
   const assignRes = await proxyAssignmentsV1Route.PUT(
     new Request("http://localhost/api/v1/management/proxies/assignments", {
@@ -729,7 +729,7 @@ test("v1 assignments route resolves connection proxies and bulk assignment cover
     )
   );
   assert.equal(resolveRes.status, 200);
-  const resolvePayload = await resolveRes.json();
+  const resolvePayload = (await resolveRes.json()) as any;
   assert.equal(resolvePayload.level, "account");
   assert.equal(resolvePayload.proxy.host, "resolve.local");
 
@@ -766,7 +766,7 @@ test("v1 assignments route resolves connection proxies and bulk assignment cover
     })
   );
   assert.equal(normalizedRes.status, 200);
-  const normalizedPayload = await normalizedRes.json();
+  const normalizedPayload = (await normalizedRes.json()) as any;
   assert.equal(normalizedPayload.scope, "account");
   assert.equal(normalizedPayload.requested, 2);
   assert.equal(normalizedPayload.updated, 1);
@@ -782,7 +782,7 @@ test("v1 assignments route resolves connection proxies and bulk assignment cover
     })
   );
   assert.equal(globalRes.status, 200);
-  const globalPayload = await globalRes.json();
+  const globalPayload = (await globalRes.json()) as any;
   assert.equal(globalPayload.scope, "global");
   assert.equal(globalPayload.requested, 1);
   assert.equal(globalPayload.updated, 1);

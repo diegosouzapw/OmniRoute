@@ -21,6 +21,26 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
+function withNullableMaxConcurrent(
+  record: JsonRecord,
+  source: JsonRecord | null | undefined
+): JsonRecord {
+  if (!source || !Object.hasOwn(source, "maxConcurrent")) {
+    return record;
+  }
+
+  const sourceMaxConcurrent = source.maxConcurrent;
+  const normalizedMaxConcurrent =
+    typeof sourceMaxConcurrent === "number" || sourceMaxConcurrent === null
+      ? sourceMaxConcurrent
+      : record.maxConcurrent;
+
+  return {
+    ...record,
+    maxConcurrent: normalizedMaxConcurrent,
+  };
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
 }
@@ -56,13 +76,19 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   sql += " ORDER BY priority ASC, updated_at DESC";
 
   const rows = db.prepare(sql).all(params);
-  return rows.map((r) => decryptConnectionFields(cleanNulls(rowToCamel(r))));
+  return rows.map((r) => {
+    const camelRow = rowToCamel(r);
+    return decryptConnectionFields(withNullableMaxConcurrent(cleanNulls(camelRow), camelRow));
+  });
 }
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
-  return row ? decryptConnectionFields(cleanNulls(rowToCamel(row))) : null;
+  if (!row) return null;
+
+  const camelRow = rowToCamel(row);
+  return decryptConnectionFields(withNullableMaxConcurrent(cleanNulls(camelRow), camelRow));
 }
 
 export async function createProviderConnection(data: JsonRecord) {
@@ -133,7 +159,7 @@ export async function createProviderConnection(data: JsonRecord) {
     );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
-    return cleanNulls(merged);
+    return withNullableMaxConcurrent(cleanNulls(merged), merged);
   }
 
   // Generate name: prefer explicit name, then email, then a stable short-ID label.
@@ -195,6 +221,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "consecutiveUseCount",
     "rateLimitProtection",
     "group",
+    "maxConcurrent",
   ];
   for (const field of optionalFields) {
     if (data[field] !== undefined && data[field] !== null) {
@@ -213,7 +240,7 @@ export async function createProviderConnection(data: JsonRecord) {
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
 
-  return cleanNulls(connection);
+  return withNullableMaxConcurrent(cleanNulls(connection), connection);
 }
 
 function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
@@ -227,7 +254,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       rate_limited_until, health_check_interval, last_health_check_at,
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
-      token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", created_at, updated_at
+      token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
+      created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
       @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -236,7 +264,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
-      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @createdAt, @updatedAt
+      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
+      @createdAt, @updatedAt
     )
   `
   ).run({
@@ -279,6 +308,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
+    maxConcurrent: conn.maxConcurrent ?? null,
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -304,6 +334,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       rate_limit_protection = @rateLimitProtection,
       last_used_at = @lastUsedAt,
       "group" = @group,
+      max_concurrent = @maxConcurrent,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -347,6 +378,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
+    maxConcurrent: data.maxConcurrent ?? null,
     updatedAt: now,
   });
 }
@@ -378,7 +410,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
 
-  return cleanNulls(merged);
+  return withNullableMaxConcurrent(cleanNulls(merged), merged);
 }
 
 export async function deleteProviderConnection(id: string) {

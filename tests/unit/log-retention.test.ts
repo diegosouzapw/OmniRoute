@@ -127,12 +127,12 @@ test("cleanupExpiredLogs uses separate APP and CALL retention windows", () => {
   assert.equal(result.deletedMcpAuditLogs, 1);
   assert.deepEqual(compliance.getRetentionDays(), { app: 2, call: 1 });
 
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM usage_history").get().cnt, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get().cnt, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get().cnt, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM request_detail_logs").get().cnt, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM audit_log").get().cnt, 2);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM mcp_tool_audit").get().cnt, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM usage_history").get() as any).cnt, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as any).cnt, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get() as any).cnt, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM request_detail_logs").get() as any).cnt, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM audit_log").get() as any).cnt, 2);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM mcp_tool_audit").get() as any).cnt, 1);
 });
 
 test("cleanupExpiredLogs enforces row count limits", () => {
@@ -166,8 +166,8 @@ test("cleanupExpiredLogs enforces row count limits", () => {
     ).run(`proxy-${i}`, now, "success", "direct", 1);
   }
 
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get().cnt, 10);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get().cnt, 10);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as any).cnt, 10);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get() as any).cnt, 10);
 
   const result = compliance.cleanupExpiredLogs();
 
@@ -176,8 +176,8 @@ test("cleanupExpiredLogs enforces row count limits", () => {
   assert.equal(result.callLogsMaxRows, 5);
   assert.equal(result.proxyLogsMaxRows, 5);
 
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get().cnt, 5);
-  assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get().cnt, 5);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as any).cnt, 5);
+  assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get() as any).cnt, 5);
 });
 
 test("getCallLogsTableMaxRows returns configured value", async () => {

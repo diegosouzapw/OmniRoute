@@ -231,7 +231,7 @@ describe("Performance: memory API route handler (1000 records)", () => {
 
     assert.equal(response.status, 200, "Response should be 200 OK");
 
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.data.length, 50, "Should return 50 items");
     assert.equal(body.total, MEMORY_COUNT, "Total should be 1000");
     assert.ok(body.stats, "Response should include stats");

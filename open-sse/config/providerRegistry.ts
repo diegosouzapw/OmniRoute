@@ -24,6 +24,13 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
+import { DATAROBOT_DEFAULT_BASE_URL } from "./datarobot.ts";
+import { AZURE_AI_DEFAULT_BASE_URL } from "./azureAi.ts";
+import { BEDROCK_DEFAULT_BASE_URL } from "./bedrock.ts";
+import { WATSONX_DEFAULT_BASE_URL } from "./watsonx.ts";
+import { OCI_DEFAULT_BASE_URL } from "./oci.ts";
+import { SAP_DEFAULT_BASE_URL } from "./sap.ts";
+import { PETALS_DEFAULT_BASE_URL } from "./petals.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -46,6 +53,8 @@ export interface RegistryModel {
   supportsXHighEffort?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
+  /** Content types to remove before translation/upstream dispatch. */
+  strip?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
 }
@@ -126,8 +135,8 @@ const KIMI_CODING_SHARED = {
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
   headers: {
-    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+    "anthropic-version": ANTHROPIC_VERSION_HEADER,
+    "anthropic-beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -135,6 +144,9 @@ const KIMI_CODING_SHARED = {
     { id: "kimi-latest", name: "Kimi Latest" },
   ] as RegistryModel[],
 } as const;
+
+const GITLAB_DUO_BASE_URL =
+  process.env.GITLAB_DUO_BASE_URL || process.env.GITLAB_BASE_URL || "https://gitlab.com";
 
 const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
@@ -180,6 +192,49 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "allenai/Olmo-3-32B-Think",
   ]),
+  glhf: buildModels([
+    "hf:meta-llama/Llama-3.3-70B-Instruct",
+    "hf:Qwen/Qwen2.5-72B-Instruct",
+    "hf:deepseek-ai/DeepSeek-V3",
+  ]),
+  cablyai: buildModels(["gpt-4o", "gpt-4o-mini", "deepseek-chat"]),
+  thebai: buildModels(["gpt-4o", "claude-3.5-sonnet", "llama-3.3-70b"]),
+  fenayai: buildModels(["gpt-4o", "claude-3.5-sonnet", "deepseek-chat"]),
+  empower: buildModels([
+    "empower-functions",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "meta-llama/Meta-Llama-3-8B-Instruct",
+    "meta-llama/Meta-Llama-3-70B-Instruct",
+  ]),
+  "nous-research": [
+    { id: "nousresearch/hermes-4-70b", name: "Nous: Hermes 4 70B", contextLength: 131072 },
+    { id: "nousresearch/hermes-4-405b", name: "Nous: Hermes 4 405B", contextLength: 131072 },
+    {
+      id: "nousresearch/hermes-3-llama-3.1-70b",
+      name: "Nous: Hermes 3 70B Instruct",
+      contextLength: 131072,
+    },
+    {
+      id: "nousresearch/hermes-3-llama-3.1-405b",
+      name: "Nous: Hermes 3 405B Instruct",
+      contextLength: 131072,
+    },
+    {
+      id: "nousresearch/hermes-2-pro-llama-3-8b",
+      name: "NousResearch: Hermes 2 Pro - Llama-3 8B",
+      contextLength: 8192,
+    },
+  ],
+  petals: [{ id: "stabilityai/StableBeluga2", name: "Stable Beluga 2 (70B)", contextLength: 8192 }],
+  poe: buildModels(["Claude-Sonnet-4.5", "GPT-5-Pro", "GPT-5-Codex", "Gemini-2.5-Pro"]),
+  gitlab: [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  "gitlab-duo": [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  chutes: buildModels([
+    "Qwen/Qwen3-32B-TEE",
+    "deepseek-ai/DeepSeek-V3.2-TEE",
+    "openai/gpt-oss-120b-TEE",
+    "moonshotai/Kimi-K2.6-TEE",
+  ]),
   moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
@@ -198,6 +253,47 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "databricks-meta-llama-3-3-70b-instruct",
     "databricks-claude-sonnet-4",
     "databricks-gemini-2-5-pro",
+  ]),
+  datarobot: [
+    { id: "azure/gpt-5-mini-2025-08-07", name: "Azure GPT-5 Mini" },
+    { id: "azure/gpt-4o-mini", name: "Azure GPT-4o Mini" },
+  ],
+  clarifai: [
+    { id: "openai/chat-completion/models/gpt-oss-120b", name: "GPT-OSS 120B" },
+    { id: "openai/chat-completion/models/gpt-4o", name: "GPT-4o" },
+    { id: "openai/chat-completion/models/o4-mini", name: "o4-mini" },
+    { id: "anthropic/completion/models/claude-sonnet-4", name: "Claude Sonnet 4" },
+    {
+      id: "deepseek-ai/deepseek-chat/models/DeepSeek-R1-0528-Qwen3-8B",
+      name: "DeepSeek R1 Qwen3 8B",
+    },
+    { id: "gcp/generate/models/gemini-2_5-flash", name: "Gemini 2.5 Flash" },
+  ],
+  watsonx: buildModels([
+    "ibm/granite-3-3-8b-instruct",
+    "meta-llama/llama-3-3-70b-instruct",
+    "openai/gpt-4o",
+  ]),
+  oci: buildModels([
+    "openai.gpt-oss-20b",
+    "openai.gpt-oss-120b",
+    "google.gemini-2.5-pro",
+    "xai.grok-4",
+  ]),
+  sap: buildModels(["gpt-4o", "gpt-5-mini", "mistralai--mistral-medium-instruct"]),
+  modal: buildModels([
+    "Qwen/Qwen3-4B-Thinking-2507-FP8",
+    "google/gemma-4-26B-A4B-it",
+    "gpt-oss-20B",
+  ]),
+  reka: buildModels(["reka-core", "reka-flash", "reka-edge-2603"]),
+  nlpcloud: buildModels([
+    "gpt-oss-120b",
+    "llama-3-1-405b",
+    "finetuned-llama-3-70b",
+    "chatdolphin",
+    "dolphin-yi-34b",
+    "dolphin-mixtral-8x7b",
   ]),
   snowflake: buildModels(["llama3.1-70b", "llama3.3-70b", "deepseek-r1", "claude-3-5-sonnet"]),
   wandb: buildModels([
@@ -273,11 +369,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
-      "Anthropic-Dangerous-Direct-Browser-Access": "true",
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
+      "anthropic-dangerous-direct-browser-access": "true",
       "User-Agent": CLAUDE_CLI_USER_AGENT,
-      "X-App": "cli",
+      "x-app": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
       "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
@@ -384,6 +480,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
+      { id: "codex-auto-review", name: "Codex Auto Review" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT 5.3 Codex" },
@@ -497,26 +594,22 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     headers: getGitHubCopilotChatHeaders(),
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
-      { id: "gpt-4o", name: "GPT-4o" },
-      { id: "gpt-4o-mini", name: "GPT-4o Mini" },
-      { id: "gpt-4", name: "GPT-4" },
-      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
-      { id: "gpt-5", name: "GPT-5" },
       { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "gpt-5-codex", name: "GPT-5 Codex", targetFormat: "openai-responses" },
-      { id: "gpt-5.1", name: "GPT-5.1" },
-      { id: "gpt-5.1-codex", name: "GPT-5.1 Codex", targetFormat: "openai-responses" },
-      { id: "gpt-5.1-codex-mini", name: "GPT-5.1 Codex Mini", targetFormat: "openai-responses" },
-      { id: "gpt-5.1-codex-max", name: "GPT-5.1 Codex Max", targetFormat: "openai-responses" },
       { id: "gpt-5.2", name: "GPT-5.2" },
       { id: "gpt-5.2-codex", name: "GPT-5.2 Codex", targetFormat: "openai-responses" },
+      { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
+      { id: "gpt-5.4", name: "GPT-5.4" },
+      { id: "gpt-5.4-mini", name: "GPT-5.4 Mini" },
+      { id: "gpt-5.4-nano", name: "GPT-5.4 Nano" },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      { id: "claude-opus-4.1", name: "Claude Opus 4.1" },
+      { id: "claude-opus-4.5", name: "Claude Opus 4.5" },
       { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
-      { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (Full ID)" },
+      { id: "claude-opus-4.7", name: "Claude Opus 4.7" },
       { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
+      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "grok-code-fast-1", name: "Grok Code Fast 1" },
@@ -539,8 +632,40 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
     },
     models: [
+      { id: "auto", name: "Auto" },
+      { id: "claude-opus-4.7", name: "Claude Opus 4.7", contextLength: 1000000 },
+      { id: "claude-opus-4.6", name: "Claude Opus 4.6", contextLength: 1000000 },
+      { id: "claude-opus-4.5", name: "Claude Opus 4.5", contextLength: 200000 },
+      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6", contextLength: 1000000 },
+      { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5", contextLength: 200000 },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4.0", contextLength: 200000 },
+      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", contextLength: 200000 },
+      { id: "minimax-m2.5", name: "MiniMax M2.5", contextLength: 200000 },
+      { id: "glm-5", name: "GLM-5", contextLength: 200000 },
+      { id: "deepseek-3.2", name: "DeepSeek 3.2", contextLength: 128000 },
+      { id: "minimax-m2.1", name: "MiniMax M2.1", contextLength: 200000 },
+      { id: "qwen3-coder-next", name: "Qwen3 Coder Next", contextLength: 256000 },
+    ],
+  },
+
+  "amazon-q": {
+    id: "amazon-q",
+    alias: "aq",
+    format: "kiro",
+    executor: "kiro",
+    baseUrl: "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse",
+    authType: "oauth",
+    authHeader: "bearer",
+    defaultContextLength: 200000,
+    headers: getKiroServiceHeaders(),
+    oauth: {
+      tokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
+      authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
+    },
+    models: [
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
-      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
+      { id: "claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
     ],
   },
 
@@ -596,6 +721,55 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    format: "openai",
+    executor: "azure-openai",
+    baseUrl: "https://example-resource.openai.azure.com",
+    authType: "apikey",
+    authHeader: "api-key",
+    defaultContextLength: 128000,
+    models: [],
+    passthroughModels: true,
+  },
+
+  "azure-ai": {
+    id: "azure-ai",
+    alias: "azure-ai",
+    format: "openai",
+    executor: "default",
+    baseUrl: AZURE_AI_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "api-key",
+    models: [
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
+      { id: "grok-4", name: "Grok 4" },
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+    ],
+    passthroughModels: true,
+  },
+
+  bedrock: {
+    id: "bedrock",
+    alias: "bedrock",
+    format: "openai",
+    executor: "default",
+    baseUrl: BEDROCK_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: buildModels([
+      "openai.gpt-oss-20b",
+      "openai.gpt-oss-120b",
+      "openai.gpt-oss-safeguard-20b",
+      "openai.gpt-oss-safeguard-120b",
+      "mistral.mistral-large-3-675b-instruct",
+    ]),
+    passthroughModels: true,
+  },
+
   anthropic: {
     id: "anthropic",
     alias: "anthropic",
@@ -607,8 +781,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
@@ -628,6 +802,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "opencode",
     baseUrl: "https://opencode.ai/zen/go/v1",
+    modelsUrl: "https://opencode.ai/zen/go/v1/models",
     // (#532) Key validation must hit the main zen endpoint (same key works for both tiers)
     testKeyBaseUrl: "https://opencode.ai/zen/v1",
     authType: "apikey",
@@ -635,8 +810,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authPrefix: "Bearer",
     defaultContextLength: 200000,
     models: [
+      { id: "glm-5.1", name: "GLM-5.1", contextLength: 204800 },
       { id: "glm-5", name: "GLM-5" },
+      { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "mimo-v2-pro", name: "MiMo V2 Pro" },
+      { id: "mimo-v2-omni", name: "MiMo V2 Omni" },
+      { id: "qwen3.6-plus", name: "Qwen 3.6 Plus" },
+      { id: "qwen3.5-plus", name: "Qwen 3.5 Plus" },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
     ],
@@ -710,6 +891,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [...GLM_SHARED_MODELS],
   },
 
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+    modelsUrl: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 200000,
+    models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-4.7", name: "GLM 4.7" },
+      { id: "glm-4.6", name: "GLM 4.6" },
+      { id: "glm-4.5-air", name: "GLM 4.5 Air" },
+    ],
+  },
+
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
@@ -721,13 +921,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      { id: "qwen3-coder-next", name: "Qwen3 Coder Next", strip: ["image", "audio"] },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "glm-5", name: "GLM 5" },
@@ -746,8 +946,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5", name: "GLM 5" },
@@ -878,8 +1078,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -902,8 +1102,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION_HEADER,
+      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
@@ -965,8 +1165,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat" },
-      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner" },
+      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat", strip: ["image", "audio"] },
+      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner", strip: ["image", "audio"] },
     ],
   },
 
@@ -1002,6 +1202,53 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "deepseek-v3", name: "DeepSeek V3" },
       { id: "blackboxai", name: "Blackbox AI" },
       { id: "blackboxai-pro", name: "Blackbox AI Pro" },
+    ],
+  },
+
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    format: "openai",
+    executor: "blackbox-web",
+    baseUrl: "https://app.blackbox.ai/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "minimax/minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "anthropic/claude-opus-4.7", name: "Claude Opus 4.7" },
+      { id: "anthropic/claude-opus-4.6", name: "Claude Opus 4.6" },
+      { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      { id: "openai/gpt-5.4", name: "GPT-5.4" },
+      { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
+      { id: "z-ai/glm-5", name: "GLM-5" },
+      { id: "x-ai/grok-4.1-fast", name: "Grok 4.1 Fast" },
+      { id: "blackbox/encrypted", name: "Blackbox Encrypted" },
+    ],
+  },
+
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    format: "openai",
+    executor: "muse-spark-web",
+    baseUrl: "https://www.meta.ai/api/graphql",
+    authType: "apikey",
+    authHeader: "cookie",
+    defaultContextLength: 262000,
+    models: [
+      { id: "muse-spark", name: "Muse Spark", contextLength: 262000 },
+      {
+        id: "muse-spark-thinking",
+        name: "Muse Spark Thinking",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
+      {
+        id: "muse-spark-contemplating",
+        name: "Muse Spark Contemplating",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
     ],
   },
 
@@ -1151,6 +1398,83 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen-3-32b", name: "Qwen3 32B" },
     ],
   },
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:1234/v1",
+    authType: "apikey", // Some setups may use proxy with api key
+    authHeader: "bearer",
+    models: [], // Usually dynamic based on local models downloaded
+    passthroughModels: true,
+  },
+  vllm: {
+    id: "vllm",
+    alias: "vllm",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:8000/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
+  llamafile: {
+    id: "llamafile",
+    alias: "llamafile",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://127.0.0.1:8080/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
+  triton: {
+    id: "triton",
+    alias: "triton",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:8000/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
+  "docker-model-runner": {
+    id: "docker-model-runner",
+    alias: "dmr",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:12434/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
+  xinference: {
+    id: "xinference",
+    alias: "xinference",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:9997/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
+  oobabooga: {
+    id: "oobabooga",
+    alias: "ooba",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:5000/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
 
   "ollama-cloud": {
     id: "ollama-cloud",
@@ -1199,9 +1523,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
-      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
-      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
+      { id: "gpt-oss-120b", name: "GPT OSS 120B" },
+      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)" },
+      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B" },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
@@ -1243,8 +1567,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-ai/DeepSeek-V3.2", name: "DeepSeek V3.2" },
-      { id: "deepseek-ai/DeepSeek-V3.1", name: "DeepSeek V3.1" },
+      {
+        id: "deepseek-ai/DeepSeek-V3.2",
+        name: "DeepSeek V3.2",
+        strip: ["image", "audio"],
+      },
+      {
+        id: "deepseek-ai/DeepSeek-V3.1",
+        name: "DeepSeek V3.1",
+        strip: ["image", "audio"],
+      },
       { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
       { id: "Qwen/Qwen3-235B-A22B-Instruct-2507", name: "Qwen3 235B" },
       { id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder 480B" },
@@ -1371,6 +1703,21 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    format: "gemini",
+    executor: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2 (Vertex Partner)" },
+      { id: "qwen3-next-80b", name: "Qwen3 Next 80B (Vertex Partner)" },
+      { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
+    ],
+  },
+
   alibaba: {
     id: "alibaba",
     alias: "ali",
@@ -1398,6 +1745,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
     ],
     passthroughModels: true,
+  },
+
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api-inference.modelscope.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // ModelScope uses per-model quotas. Setting passthroughModels: true ensures 429/404
+    // only locks the specific model, not the entire connection. This allows fallback
+    // to other models on the same API key.
+    passthroughModels: true,
+    models: [
+      { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
+      { id: "ZhipuAI/GLM-5", name: "GLM-5" },
+      { id: "stepfun-ai/Step-3.5-Flash", name: "Step-3.5-Flash" },
+    ],
   },
 
   // ── New Free Providers (2026) ─────────────────────────────────────────────
@@ -1665,6 +2031,152 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: CHAT_OPENAI_COMPAT_MODELS.publicai,
   },
 
+  glhf: {
+    id: "glhf",
+    alias: "glhf",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://glhf.chat/api/openai/v1/chat/completions",
+    modelsUrl: "https://glhf.chat/api/openai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.glhf,
+    passthroughModels: true,
+  },
+
+  cablyai: {
+    id: "cablyai",
+    alias: "cablyai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://cablyai.com/v1/chat/completions",
+    modelsUrl: "https://cablyai.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.cablyai,
+    passthroughModels: true,
+  },
+
+  thebai: {
+    id: "thebai",
+    alias: "thebai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.theb.ai/v1/chat/completions",
+    modelsUrl: "https://api.theb.ai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.thebai,
+    passthroughModels: true,
+  },
+
+  fenayai: {
+    id: "fenayai",
+    alias: "fenayai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://fenayai.com/v1/chat/completions",
+    modelsUrl: "https://fenayai.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.fenayai,
+    passthroughModels: true,
+  },
+
+  empower: {
+    id: "empower",
+    alias: "empower",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://app.empower.dev/api/v1",
+    modelsUrl: "https://app.empower.dev/api/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.empower,
+    passthroughModels: true,
+  },
+
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference-api.nousresearch.com/v1",
+    modelsUrl: "https://inference-api.nousresearch.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["nous-research"],
+    passthroughModels: true,
+  },
+
+  petals: {
+    id: "petals",
+    alias: "petals",
+    format: "openai",
+    executor: "petals",
+    baseUrl: PETALS_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.petals,
+  },
+
+  poe: {
+    id: "poe",
+    alias: "poe",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.poe.com/v1",
+    modelsUrl: "https://api.poe.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.poe,
+    passthroughModels: true,
+  },
+
+  gitlab: {
+    id: "gitlab",
+    alias: "gitlab",
+    format: "openai",
+    executor: "gitlab",
+    baseUrl: "https://gitlab.com/api/v4/code_suggestions/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.gitlab,
+  },
+
+  "gitlab-duo": {
+    id: "gitlab-duo",
+    alias: "gitlab-duo",
+    format: "openai",
+    executor: "gitlab-duo",
+    baseUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/api/v4/code_suggestions/completions`,
+    authType: "oauth",
+    authHeader: "bearer",
+    oauth: {
+      clientIdEnv: "GITLAB_DUO_OAUTH_CLIENT_ID",
+      clientIdDefault: process.env.GITLAB_OAUTH_CLIENT_ID || "",
+      clientSecretEnv: "GITLAB_DUO_OAUTH_CLIENT_SECRET",
+      clientSecretDefault: process.env.GITLAB_OAUTH_CLIENT_SECRET || "",
+      tokenUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/token`,
+      refreshUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/token`,
+      authUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/authorize`,
+    },
+    models: CHAT_OPENAI_COMPAT_MODELS["gitlab-duo"],
+  },
+
+  chutes: {
+    id: "chutes",
+    alias: "chutes",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://llm.chutes.ai/v1/chat/completions",
+    modelsUrl: "https://llm.chutes.ai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.chutes,
+    passthroughModels: true,
+  },
+
   moonshot: {
     id: "moonshot",
     alias: "moonshot",
@@ -1773,6 +2285,103 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.databricks,
+  },
+
+  datarobot: {
+    id: "datarobot",
+    alias: "datarobot",
+    format: "openai",
+    executor: "default",
+    baseUrl: DATAROBOT_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.datarobot,
+    passthroughModels: true,
+  },
+
+  clarifai: {
+    id: "clarifai",
+    alias: "clarifai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.clarifai.com/v2/ext/openai/v1/chat/completions",
+    modelsUrl: "https://api.clarifai.com/v2/ext/openai/v1/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Key ",
+    models: CHAT_OPENAI_COMPAT_MODELS.clarifai,
+    passthroughModels: true,
+  },
+
+  watsonx: {
+    id: "watsonx",
+    alias: "watsonx",
+    format: "openai",
+    executor: "default",
+    baseUrl: WATSONX_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.watsonx,
+    passthroughModels: true,
+  },
+
+  oci: {
+    id: "oci",
+    alias: "oci",
+    format: "openai",
+    executor: "default",
+    baseUrl: OCI_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.oci,
+    passthroughModels: true,
+  },
+
+  sap: {
+    id: "sap",
+    alias: "sap",
+    format: "openai",
+    executor: "default",
+    baseUrl: SAP_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.sap,
+    passthroughModels: true,
+  },
+
+  modal: {
+    id: "modal",
+    alias: "modal",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://example-user--example-app.modal.run/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.modal,
+    passthroughModels: true,
+  },
+
+  reka: {
+    id: "reka",
+    alias: "reka",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.reka.ai/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.reka,
+    passthroughModels: true,
+  },
+
+  nlpcloud: {
+    id: "nlpcloud",
+    alias: "nlpc",
+    format: "openai",
+    executor: "nlpcloud",
+    baseUrl: "https://api.nlpcloud.io/v1/gpu",
+    authType: "apikey",
+    authHeader: "token",
+    models: CHAT_OPENAI_COMPAT_MODELS.nlpcloud,
   },
 
   snowflake: {
@@ -2128,8 +2737,14 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   const cached = _unsupportedParamsMap.get(modelId);
   if (cached) return cached;
 
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3", "moonshotai/Kimi-K2.5" → "moonshotai/Kimi-K2.5")
+  // ModelScope models have slash in ID, check both full ID and bare ID
   if (modelId.includes("/")) {
+    // First check full model ID with provider prefix (e.g., "moonshotai/Kimi-K2.5")
+    const cachedWithPrefix = _unsupportedParamsMap.get(modelId);
+    if (cachedWithPrefix) return cachedWithPrefix;
+
+    // Fall back to bare ID (e.g., "Kimi-K2.5")
     const bareId = modelId.split("/").pop() || "";
     const bare = _unsupportedParamsMap.get(bareId);
     if (bare) return bare;
@@ -2154,6 +2769,7 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
  * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
+ * @deprecated This function will be removed in v4.0, please use REGISTRY.claude?.models directly
  */
 export function getClaudeCodeDefaultModels(): {
   opus: string;

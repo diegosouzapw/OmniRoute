@@ -26,18 +26,43 @@ import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
 import {
   buildMergedOAuthProviderEntries,
   buildStaticProviderEntries,
   filterConfiguredProviderEntries,
 } from "./providerPageUtils";
+import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
+import ProviderCountBadge from "./components/ProviderCountBadge";
 
-const CC_COMPATIBLE_LABEL = "CC Compatible";
-const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
+const IMAGE_ONLY_PROVIDER_IDS = new Set([
+  "nanobanana",
+  "fal-ai",
+  "stability-ai",
+  "black-forest-labs",
+  "recraft",
+  "topaz",
+]);
+const AGGREGATOR_PROVIDER_IDS = new Set([
+  "openrouter",
+  "synthetic",
+  "kilo-gateway",
+  "aimlapi",
+  "novita",
+  "piapi",
+  "getgoapi",
+  "laozhang",
+  "vercel-ai-gateway",
+]);
+
+function countConfigured<T>(entries: ProviderEntry<T>[]) {
+  return {
+    configured: entries.filter((entry) => Number(entry.stats?.total || 0) > 0).length,
+    total: entries.length,
+  };
+}
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
 function getStatusDisplay(connected, error, errorCode, t) {
@@ -124,9 +149,12 @@ export default function ProvidersPage() {
     missingCount: number;
   } | null>(null);
   const [repairingEnv, setRepairingEnv] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+  const ccCompatibleLabel = t("ccCompatibleLabel");
+  const addCcCompatibleLabel = t("addCcCompatible");
 
   useEffect(() => {
     setShowConfiguredOnly(readConfiguredOnlyPreference());
@@ -194,20 +222,20 @@ export default function ProvidersPage() {
       if (res.ok && data.success) {
         if (data.count > 0) {
           notify.success(
-            `Imported ${data.count} credentials from Zed IDE (${data.providers.join(", ")}).`
+            t("zedImportSuccess", { count: data.count, providers: data.providers.join(", ") })
           );
           // Refresh connections silently
           const connectionsRes = await fetch("/api/providers");
           const connectionsData = await connectionsRes.json();
           if (connectionsRes.ok) setConnections(connectionsData.connections || []);
         } else {
-          notify.info("No supported OAuth credentials found in Zed IDE.");
+          notify.info(t("zedImportNone"));
         }
       } else {
-        notify.error(data.error || "Failed to import from Zed IDE.");
+        notify.error(data.error || t("zedImportFailed"));
       }
     } catch (error) {
-      notify.error("Network error while trying to import from Zed.");
+      notify.error(t("zedImportNetworkError"));
     } finally {
       setImportingZed(false);
     }
@@ -386,61 +414,105 @@ export default function ProvidersPage() {
     )
     .map((node) => ({
       id: node.id,
-      name: node.name || CC_COMPATIBLE_LABEL,
+      name: node.name || ccCompatibleLabel,
       color: "#B45309",
       textIcon: "CC",
     }));
 
+  const oauthProviderEntriesAll = buildMergedOAuthProviderEntries(
+    OAUTH_PROVIDERS,
+    FREE_PROVIDERS,
+    getProviderStats
+  );
   const oauthProviderEntries = filterConfiguredProviderEntries(
-    buildMergedOAuthProviderEntries(OAUTH_PROVIDERS, FREE_PROVIDERS, getProviderStats),
-    showConfiguredOnly
+    oauthProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
   );
 
-  const apiKeyProviderEntries = filterConfiguredProviderEntries(
-    buildStaticProviderEntries("apikey", getProviderStats),
-    showConfiguredOnly
+  const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
+  const llmProviderEntries = filterConfiguredProviderEntries(
+    apiKeyProviderEntriesAll.filter(
+      (entry) =>
+        !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
+        !AGGREGATOR_PROVIDER_IDS.has(entry.providerId)
+    ),
+    showConfiguredOnly,
+    searchQuery
+  );
+  const aggregatorProviderEntries = filterConfiguredProviderEntries(
+    apiKeyProviderEntriesAll.filter((entry) => AGGREGATOR_PROVIDER_IDS.has(entry.providerId)),
+    showConfiguredOnly,
+    searchQuery
+  );
+  const imageProviderEntries = filterConfiguredProviderEntries(
+    apiKeyProviderEntriesAll.filter((entry) => IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)),
+    showConfiguredOnly,
+    searchQuery
   );
 
+  const webCookieProviderEntriesAll = buildStaticProviderEntries("web-cookie", getProviderStats);
   const webCookieProviderEntries = filterConfiguredProviderEntries(
-    buildStaticProviderEntries("web-cookie", getProviderStats),
-    showConfiguredOnly
+    webCookieProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
   );
 
+  const localProviderEntriesAll = buildStaticProviderEntries("local", getProviderStats);
+  const localProviderEntries = filterConfiguredProviderEntries(
+    localProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
+  );
+
+  const searchProviderEntriesAll = buildStaticProviderEntries("search", getProviderStats);
   const searchProviderEntries = filterConfiguredProviderEntries(
-    buildStaticProviderEntries("search", getProviderStats),
-    showConfiguredOnly
+    searchProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
   );
 
+  const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
   const audioProviderEntries = filterConfiguredProviderEntries(
-    buildStaticProviderEntries("audio", getProviderStats),
-    showConfiguredOnly
+    audioProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
   );
 
+  const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
+  const upstreamProxyEntries = filterConfiguredProviderEntries(
+    upstreamProxyEntriesAll,
+    showConfiguredOnly,
+    searchQuery
+  );
+
+  const compatibleProviderEntriesAll = [
+    ...compatibleProviders.map((provider) => ({
+      providerId: provider.id,
+      provider,
+      stats: getProviderStats(provider.id, "apikey"),
+      displayAuthType: "compatible" as const,
+      toggleAuthType: "apikey" as const,
+    })),
+    ...anthropicCompatibleProviders.map((provider) => ({
+      providerId: provider.id,
+      provider,
+      stats: getProviderStats(provider.id, "apikey"),
+      displayAuthType: "compatible" as const,
+      toggleAuthType: "apikey" as const,
+    })),
+    ...ccCompatibleProviders.map((provider) => ({
+      providerId: provider.id,
+      provider,
+      stats: getProviderStats(provider.id, "apikey"),
+      displayAuthType: "compatible" as const,
+      toggleAuthType: "apikey" as const,
+    })),
+  ];
   const compatibleProviderEntries = filterConfiguredProviderEntries(
-    [
-      ...compatibleProviders.map((provider) => ({
-        providerId: provider.id,
-        provider,
-        stats: getProviderStats(provider.id, "apikey"),
-        displayAuthType: "compatible" as const,
-        toggleAuthType: "apikey" as const,
-      })),
-      ...anthropicCompatibleProviders.map((provider) => ({
-        providerId: provider.id,
-        provider,
-        stats: getProviderStats(provider.id, "apikey"),
-        displayAuthType: "compatible" as const,
-        toggleAuthType: "apikey" as const,
-      })),
-      ...ccCompatibleProviders.map((provider) => ({
-        providerId: provider.id,
-        provider,
-        stats: getProviderStats(provider.id, "apikey"),
-        displayAuthType: "compatible" as const,
-        toggleAuthType: "apikey" as const,
-      })),
-    ],
-    showConfiguredOnly
+    compatibleProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
   );
 
   if (loading) {
@@ -454,6 +526,31 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Search Bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
+            search
+          </span>
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("searchProviders")}
+            aria-label={t("searchProviders")}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-primary transition-colors"
+              aria-label={tc("clear")}
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Expiration Banner */}
       {expirations?.summary &&
         (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
@@ -476,13 +573,15 @@ export default function ProvidersPage() {
                 className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
               >
                 {expirations.summary.expired > 0
-                  ? `${expirations.summary.expired} Provider connection(s) expired`
-                  : `${expirations.summary.expiringSoon} Provider connection(s) expiring soon`}
+                  ? t("expirationBannerExpired", { count: expirations.summary.expired })
+                  : t("expirationBannerExpiringSoon", {
+                      count: expirations.summary.expiringSoon,
+                    })}
               </h3>
               <p className="text-sm mt-1 opacity-80 text-text-main">
                 {expirations.summary.expired > 0
-                  ? "Immediate action required. Expired connections will permanently fail."
-                  : "Please review and renew expiring connections to avoid disruption."}
+                  ? t("expirationBannerExpiredDesc")
+                  : t("expirationBannerExpiringSoonDesc")}
               </p>
             </div>
           </div>
@@ -494,9 +593,9 @@ export default function ProvidersPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
+            <ProviderCountBadge {...countConfigured(oauthProviderEntriesAll)} />
           </h2>
           <div className="flex items-center gap-2">
-            <ModelAvailabilityBadge />
             <Toggle
               size="sm"
               checked={showConfiguredOnly}
@@ -508,14 +607,14 @@ export default function ProvidersPage() {
               onClick={handleZedImport}
               disabled={importingZed}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
-              title="Import credentials from Zed IDE"
+              title={t("zedImportHint")}
             >
               <span
                 className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
               >
                 {importingZed ? "sync" : "download"}
               </span>
-              {importingZed ? "Importing..." : "Import from Zed"}
+              {importingZed ? t("zedImporting") : t("zedImportButton")}
             </button>
             {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
               <button
@@ -575,6 +674,7 @@ export default function ProvidersPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("apiKeyProviders")}{" "}
             <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
+            <ProviderCountBadge {...countConfigured(apiKeyProviderEntriesAll)} />
           </h2>
           <button
             onClick={() => handleBatchTest("apikey")}
@@ -593,20 +693,71 @@ export default function ProvidersPage() {
             {testingMode === "apikey" ? t("testing") : t("testAll")}
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {apiKeyProviderEntries.map(
-            ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-              <ApiKeyProviderCard
-                key={providerId}
-                providerId={providerId}
-                provider={provider}
-                stats={stats}
-                authType={displayAuthType}
-                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-              />
-            )
-          )}
-        </div>
+        {llmProviderEntries.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+              {t("llmProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {llmProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {aggregatorProviderEntries.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+              {t("aggregatorsGateways")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {aggregatorProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {imageProviderEntries.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+              {t("imageProviders")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {imageProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ApiKeyProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Web / Cookie Providers */}
@@ -614,8 +765,12 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Web / Cookie Providers{" "}
-              <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
+              {t("webCookieProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-purple-500"
+                title={t("webCookieProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(webCookieProviderEntriesAll)} />
             </h2>
             <button
               onClick={() => handleBatchTest("web-cookie")}
@@ -655,7 +810,12 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Search Providers <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
+              {t("searchProvidersHeading")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-teal-500"
+                title={t("searchProvidersHeading")}
+              />
+              <ProviderCountBadge {...countConfigured(searchProviderEntriesAll)} />
             </h2>
             <button
               onClick={() => handleBatchTest("search")}
@@ -695,7 +855,12 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              Audio Providers <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
+              {t("audioProvidersHeading")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-rose-500"
+                title={t("audioProvidersHeading")}
+              />
+              <ProviderCountBadge {...countConfigured(audioProviderEntriesAll)} />
             </h2>
             <button
               onClick={() => handleBatchTest("audio")}
@@ -730,12 +895,70 @@ export default function ProvidersPage() {
         </div>
       )}
 
+      {/* Local / Self-Hosted Providers */}
+      {localProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("localProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-emerald-500" title={t("localProviders")} />
+              <ProviderCountBadge {...countConfigured(localProviderEntriesAll)} />
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {localProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Upstream Proxy Providers */}
+      {upstreamProxyEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("upstreamProxyProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-indigo-500"
+                title={t("upstreamProxyProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(upstreamProxyEntriesAll)} />
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {upstreamProxyEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ApiKeyProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("compatibleProviders")}{" "}
             <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
+            <ProviderCountBadge {...countConfigured(compatibleProviderEntriesAll)} />
           </h2>
           <div className="flex flex-wrap gap-2">
             {(compatibleProviders.length > 0 ||
@@ -759,7 +982,7 @@ export default function ProvidersPage() {
             )}
             {ccCompatibleProviderEnabled && (
               <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
-                {ADD_CC_COMPATIBLE_LABEL}
+                {addCcCompatibleLabel}
               </Button>
             )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
@@ -816,6 +1039,8 @@ export default function ProvidersPage() {
       {ccCompatibleProviderEnabled && (
         <AddCcCompatibleModal
           isOpen={showAddCcCompatibleModal}
+          addLabel={addCcCompatibleLabel}
+          compatibleLabel={ccCompatibleLabel}
           onClose={() => setShowAddCcCompatibleModal(false)}
           onCreated={(node) => {
             setProviderNodes((prev) => [...prev, node]);
@@ -1522,7 +1747,7 @@ AddAnthropicCompatibleModal.propTypes = {
   onCreated: PropTypes.func.isRequired,
 };
 
-function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
+function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCreated }) {
   const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
@@ -1603,13 +1828,13 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title={ADD_CC_COMPATIBLE_LABEL} onClose={onClose}>
+    <Modal isOpen={isOpen} title={addLabel} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
           label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("compatibleProdPlaceholder", { type: CC_COMPATIBLE_LABEL })}
+          placeholder={t("compatibleProdPlaceholder", { type: compatibleLabel })}
           hint={t("nameHint")}
         />
         <Input
@@ -1624,7 +1849,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
           placeholder="https://api.anthropic.com"
-          hint={t("compatibleBaseUrlHint", { type: CC_COMPATIBLE_LABEL })}
+          hint={t("compatibleBaseUrlHint", { type: compatibleLabel })}
         />
         <button
           type="button"
@@ -1702,6 +1927,8 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
 
 AddCcCompatibleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
+  addLabel: PropTypes.string.isRequired,
+  compatibleLabel: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
   onCreated: PropTypes.func.isRequired,
 };

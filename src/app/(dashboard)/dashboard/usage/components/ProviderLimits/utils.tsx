@@ -5,6 +5,7 @@ const PROVIDER_PLAN_FALLBACKS = new Set([
   "claude code",
   "kimi coding",
   "kiro",
+  "amazon q",
   "openai codex",
   "codex",
   "github copilot",
@@ -247,6 +248,7 @@ export function parseQuotaData(provider, data) {
         break;
 
       case "kiro":
+      case "amazon-q":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
             normalizedQuotas.push(normalizeQuotaEntry(quotaType, quota));

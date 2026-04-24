@@ -28,7 +28,7 @@ describe("Context pinning — tool call responses (#721)", () => {
     assert.equal(result.length, 3, "Should have 3 messages (original 2 + synthetic)");
     assert.equal(result[2].role, "assistant");
     assert.ok(
-      result[2].content.includes("<omniModel>ollamacloud/glm-5</omniModel>"),
+      (result[2].content as any).includes("<omniModel>ollamacloud/glm-5</omniModel>"),
       "Synthetic message should contain the pin tag"
     );
   });
@@ -50,7 +50,7 @@ describe("Context pinning — tool call responses (#721)", () => {
     // Array content → should append synthetic message
     assert.equal(result.length, 3);
     assert.equal(result[2].role, "assistant");
-    assert.ok(result[2].content.includes("<omniModel>nvidia/llama-3.4-70b</omniModel>"));
+    assert.ok((result[2] as any).content.includes("<omniModel>nvidia/llama-3.4-70b</omniModel>"));
   });
 
   test("extractPinnedModel finds tag in synthetic message after tool_calls", () => {
@@ -79,8 +79,8 @@ describe("Context pinning — tool call responses (#721)", () => {
     const result = injectModelTag(messages, "openai/gpt-4o");
 
     assert.equal(result.length, 2, "Should not add a new message");
-    assert.ok(result[1].content.includes("<omniModel>openai/gpt-4o</omniModel>"));
-    assert.ok(result[1].content.startsWith("Hi there!"));
+    assert.ok((result as any)[1].content.includes("<omniModel>openai/gpt-4o</omniModel>"));
+    (assert as any).ok((result[1].content as any).startsWith("Hi there!"));
   });
 
   test("roundtrip: inject → extract works for tool-call messages", () => {

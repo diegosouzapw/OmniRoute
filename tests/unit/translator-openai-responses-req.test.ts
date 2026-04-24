@@ -45,7 +45,7 @@ test("Responses -> Chat converts instructions, inputs, function calls, outputs, 
     null
   );
 
-  assert.deepEqual(result.messages, [
+  assert.deepEqual((result as any).messages, [
     { role: "system", content: "Rules" },
     {
       role: "user",
@@ -68,7 +68,7 @@ test("Responses -> Chat converts instructions, inputs, function calls, outputs, 
     },
     { role: "tool", tool_call_id: "call_1", content: '{"ok":true}' },
   ]);
-  assert.deepEqual(result.tools, [
+  (assert as any).deepEqual((result as any).tools, [
     {
       type: "function",
       function: {
@@ -79,7 +79,10 @@ test("Responses -> Chat converts instructions, inputs, function calls, outputs, 
       },
     },
   ]);
-  assert.deepEqual(result.tool_choice, { type: "function", function: { name: "read_file" } });
+  (assert as any).deepEqual((result as any).tool_choice, {
+    type: "function",
+    function: { name: "read_file" },
+  });
 });
 
 test("Responses -> Chat filters orphan tool outputs and supports role-based message items", () => {
@@ -97,10 +100,10 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
     null
   );
 
-  assert.equal(result.messages.length, 3);
-  assert.equal(result.messages[0].role, "user");
-  assert.equal(result.messages[1].tool_calls[0].id, "call_2");
-  assert.deepEqual(result.messages[2], {
+  assert.equal((result as any).messages.length, 3);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.equal((result as any).messages[1].tool_calls[0].id, "call_2");
+  (assert as any).deepEqual((result as any).messages[2], {
     role: "tool",
     tool_call_id: "call_2",
     content: "found",
@@ -119,7 +122,7 @@ test("Responses -> Chat rejects unsupported built-in tools and background mode",
         false,
         null
       ),
-    (error) => error.statusCode === 400 && error.errorType === "unsupported_feature"
+    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
 
   assert.throws(
@@ -133,7 +136,7 @@ test("Responses -> Chat rejects unsupported built-in tools and background mode",
         false,
         null
       ),
-    (error) => error.statusCode === 400 && error.errorType === "unsupported_feature"
+    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
 });
 
@@ -188,11 +191,11 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
     null
   );
 
-  assert.equal(result.instructions, "Rules");
-  assert.equal(result.stream, true);
-  assert.equal(result.store, false);
-  assert.equal(result.previous_response_id, "resp_prev_123");
-  assert.deepEqual(result.input, [
+  assert.equal((result as any).instructions, "Rules");
+  assert.equal((result as any).stream, true);
+  assert.equal((result as any).store, false);
+  assert.equal((result as any).previous_response_id, "resp_prev_123");
+  assert.deepEqual((result as any).input, [
     {
       type: "message",
       role: "user",
@@ -219,7 +222,7 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
       output: [{ type: "input_text", text: "ok" }],
     },
   ]);
-  assert.deepEqual(result.tools, [
+  assert.deepEqual((result as any).tools, [
     {
       type: "function",
       name: "read_file",
@@ -228,10 +231,10 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
       strict: true,
     },
   ]);
-  assert.deepEqual(result.tool_choice, { type: "function", name: "read_file" });
-  assert.equal(result.temperature, 0.2);
-  assert.equal(result.max_output_tokens, 100);
-  assert.equal(result.top_p, 0.9);
+  assert.deepEqual((result as any).tool_choice, { type: "function", name: "read_file" });
+  assert.equal((result as any).temperature, 0.2);
+  assert.equal((result as any).max_output_tokens, 100);
+  assert.equal((result as any).top_p, 0.9);
 });
 
 test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {
@@ -255,9 +258,9 @@ test("Responses round-trip preserves store and previous_response_id when opt-in 
 
   const result = openaiToOpenAIResponsesRequest("gpt-4o", chatBody, false, credentials);
 
-  assert.equal(result.previous_response_id, "resp_prev_store");
-  assert.equal(result.store, true);
-  assert.equal(result.instructions, "Rules");
+  assert.equal((result as any).previous_response_id, "resp_prev_store");
+  assert.equal((result as any).store, true);
+  assert.equal((result as any).instructions, "Rules");
 });
 
 test("Chat -> Responses preserves prompt_cache_key and session affinity fields", () => {
@@ -273,10 +276,10 @@ test("Chat -> Responses preserves prompt_cache_key and session affinity fields",
     { providerSpecificData: { openaiStoreEnabled: true } }
   );
 
-  assert.equal(result.prompt_cache_key, "cache-key-1");
-  assert.equal(result.session_id, "omniroute-session-abc");
-  assert.equal(result.conversation_id, "conv-123");
-  assert.equal(result.store, undefined);
+  (assert as any).equal((result as any).prompt_cache_key, "cache-key-1");
+  (assert as any).equal((result as any).session_id, "omniroute-session-abc");
+  assert.equal((result as any).conversation_id, "conv-123");
+  assert.equal((result as any).store, undefined);
 });
 
 test("Chat -> Responses preserves explicit reasoning objects", () => {
@@ -290,8 +293,8 @@ test("Chat -> Responses preserves explicit reasoning objects", () => {
     null
   );
 
-  assert.deepEqual(result.reasoning, { effort: "low" });
-  assert.equal(result.store, false);
+  assert.deepEqual((result as any).reasoning, { effort: "low" });
+  assert.equal((result as any).store, false);
 });
 
 test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
@@ -305,9 +308,9 @@ test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
     null
   );
 
-  assert.deepEqual(result.reasoning, { effort: "low" });
-  assert.equal(result.reasoning_effort, undefined);
-  assert.equal(result.store, false);
+  assert.deepEqual((result as any).reasoning, { effort: "low" });
+  assert.equal((result as any).reasoning_effort, undefined);
+  assert.equal((result as any).store, false);
 });
 
 test("Chat -> Responses filters orphan function_call_output items and leaves empty instructions when absent", () => {
@@ -334,13 +337,19 @@ test("Chat -> Responses filters orphan function_call_output items and leaves emp
     null
   );
 
-  assert.equal(result.instructions, "");
+  assert.equal((result as any).instructions, "");
   assert.equal(
-    result.input.some((item) => item.call_id === "orphan"),
+    (result as any).input.some((item) => item.call_id === "orphan"),
     false
   );
-  assert.equal(result.input.filter((item) => item.type === "function_call_output").length, 1);
-  assert.equal(result.input.find((item) => item.type === "function_call_output").call_id, "call_2");
+  assert.equal(
+    (result as any).input.filter((item) => item.type === "function_call_output").length,
+    1
+  );
+  assert.equal(
+    (result as any).input.find((item) => item.type === "function_call_output").call_id,
+    "call_2"
+  );
 });
 
 test("Chat -> Responses maps max_completion_tokens to max_output_tokens", () => {
@@ -354,9 +363,9 @@ test("Chat -> Responses maps max_completion_tokens to max_output_tokens", () => 
     null
   );
 
-  assert.equal(result.max_output_tokens, 2048);
-  assert.equal(result.max_tokens, undefined);
-  assert.equal(result.max_completion_tokens, undefined);
+  (assert as any).equal((result as any).max_output_tokens, 2048);
+  assert.equal((result as any).max_tokens, undefined);
+  assert.equal((result as any).max_completion_tokens, undefined);
 });
 
 test("Chat -> Responses maps legacy max_tokens to max_output_tokens when max_completion_tokens is absent", () => {
@@ -370,8 +379,8 @@ test("Chat -> Responses maps legacy max_tokens to max_output_tokens when max_com
     null
   );
 
-  assert.equal(result.max_output_tokens, 512);
-  assert.equal(result.max_tokens, undefined);
+  assert.equal((result as any).max_output_tokens, 512);
+  assert.equal((result as any).max_tokens, undefined);
 });
 
 test("Chat -> Responses prefers max_completion_tokens over max_tokens when both are present", () => {
@@ -386,7 +395,7 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
     null
   );
 
-  assert.equal(result.max_output_tokens, 4096);
-  assert.equal(result.max_tokens, undefined);
-  assert.equal(result.max_completion_tokens, undefined);
+  (assert as any).equal((result as any).max_output_tokens, 4096);
+  assert.equal((result as any).max_tokens, undefined);
+  assert.equal((result as any).max_completion_tokens, undefined);
 });

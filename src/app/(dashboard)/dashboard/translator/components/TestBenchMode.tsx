@@ -25,10 +25,20 @@ const SCENARIOS = [
   { id: "thinking", icon: "psychology", templateId: "thinking" },
   { id: "system-prompt", icon: "settings", templateId: "system-prompt" },
   { id: "streaming", icon: "stream", templateId: "streaming" },
+  { id: "vision", icon: "image", templateId: "vision" },
+  { id: "schema-coercion", icon: "schema", templateId: "schema-coercion" },
 ];
 
 export default function TestBenchMode() {
   const t = useTranslations("translator");
+  const translateOrFallback = (key: string, fallback: string) => {
+    try {
+      const translated = t(key);
+      return translated === key || translated === `translator.${key}` ? fallback : translated;
+    } catch {
+      return fallback;
+    }
+  };
   const scenarioLabels: Record<string, string> = {
     "simple-chat": t("scenarioSimpleChat"),
     "tool-calling": t("scenarioToolCalling"),
@@ -36,6 +46,8 @@ export default function TestBenchMode() {
     thinking: t("scenarioThinking"),
     "system-prompt": t("scenarioSystemPrompt"),
     streaming: t("scenarioStreaming"),
+    vision: translateOrFallback("scenarioVision", "Vision"),
+    "schema-coercion": translateOrFallback("scenarioSchemaCoercion", "Schema Coercion"),
   };
   const templates = useMemo(() => getExampleTemplates(t), [t]);
   const [sourceFormat, setSourceFormat] = useState("claude");
@@ -178,9 +190,7 @@ export default function TestBenchMode() {
                   setSourceFormat(e.target.value);
                   setResults({});
                 }}
-                options={FORMAT_OPTIONS.filter((o) =>
-                  ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
-                )}
+                options={FORMAT_OPTIONS}
               />
             </div>
             <div className="flex items-center justify-center px-2">

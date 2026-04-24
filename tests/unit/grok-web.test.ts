@@ -93,7 +93,7 @@ test("Non-streaming: simple response", async () => {
       log: null,
     });
     assert.equal(result.response.status, 200);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.equal(json.object, "chat.completion");
     assert.equal(json.choices[0].message.role, "assistant");
     assert.equal(json.choices[0].message.content, "Hello world!");
@@ -152,7 +152,7 @@ test("Error: 401 returns auth error", async () => {
       log: null,
     });
     assert.equal(result.response.status, 401);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("sso"));
   } finally {
@@ -173,7 +173,7 @@ test("Error: 429 returns rate limit message", async () => {
       log: null,
     });
     assert.equal(result.response.status, 429);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("rate limited"));
   } finally {
     restore();
@@ -206,7 +206,7 @@ test("Error: Grok stream error returns 502", async () => {
       log: null,
     });
     assert.equal(result.response.status, 502);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("Internal error"));
   } finally {
     restore();

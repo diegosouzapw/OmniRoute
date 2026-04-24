@@ -1,13 +1,17 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import {
   CLI_TOOL_IDS,
   getCliPrimaryConfigPath,
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const { toolId } = await params;
     const normalizedToolId = String(toolId || "")

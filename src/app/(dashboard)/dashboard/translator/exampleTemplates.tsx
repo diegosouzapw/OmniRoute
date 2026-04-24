@@ -20,6 +20,12 @@ export function getExampleTemplates(t: TranslatorMessage) {
   const systemPromptInstruction = t("templatePayloads.systemPrompt.systemInstruction");
   const systemPromptQuestion = t("templatePayloads.systemPrompt.question");
   const streamingPrompt = t("templatePayloads.streaming.prompt");
+  const visionSystem = t("templatePayloads.vision.system");
+  const visionUserPrompt = t("templatePayloads.vision.userPrompt");
+  const visionImageUrl = t("templatePayloads.vision.imageUrl");
+  const schemaCoercionPrompt = t("templatePayloads.schemaCoercion.userPrompt");
+  const schemaCoercionDescription = t("templatePayloads.schemaCoercion.toolDescription");
+  const schemaCoercionFieldDescription = t("templatePayloads.schemaCoercion.cityDescription");
 
   return [
     {
@@ -291,6 +297,97 @@ export function getExampleTemplates(t: TranslatorMessage) {
         },
       },
     },
+    {
+      id: "vision",
+      name: t("templateNames.vision"),
+      icon: "image",
+      description: t("templateDescriptions.vision"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: visionSystem },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: visionUserPrompt },
+                {
+                  type: "image_url",
+                  image_url: { url: visionImageUrl },
+                },
+              ],
+            },
+          ],
+          stream: true,
+        },
+        gemini: {
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: visionUserPrompt },
+                { fileData: { mimeType: "image/jpeg", fileUri: visionImageUrl } },
+              ],
+            },
+          ],
+          systemInstruction: {
+            parts: [{ text: visionSystem }],
+          },
+        },
+        "openai-responses": {
+          model: "gpt-4o",
+          instructions: visionSystem,
+          input: [
+            {
+              role: "user",
+              content: [
+                { type: "input_text", text: visionUserPrompt },
+                { type: "input_image", image_url: visionImageUrl },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    {
+      id: "schema-coercion",
+      name: t("templateNames.schema-coercion"),
+      icon: "schema",
+      description: t("templateDescriptions.schema-coercion"),
+      formats: {
+        openai: {
+          model: "gpt-4o",
+          messages: [{ role: "user", content: schemaCoercionPrompt }],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "lookup_city_weather",
+                description: schemaCoercionDescription,
+                parameters: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    city: { type: "string", description: schemaCoercionFieldDescription },
+                    options: {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {
+                        units: { type: "string", enum: ["metric", "imperial"] },
+                        includeHourly: { type: "boolean" },
+                      },
+                    },
+                  },
+                  required: ["city"],
+                },
+              },
+            },
+          ],
+          stream: true,
+        },
+      },
+    },
   ];
 }
 
@@ -302,6 +399,7 @@ export const FORMAT_META = {
   "openai-responses": { label: "OpenAI Responses", color: "amber", icon: "swap_horiz" },
   claude: { label: "Claude", color: "orange", icon: "psychology" },
   gemini: { label: "Gemini", color: "blue", icon: "auto_awesome" },
+  "gemini-cli": { label: "Gemini CLI", color: "sky", icon: "terminal" },
   antigravity: { label: "Antigravity", color: "purple", icon: "rocket_launch" },
   kiro: { label: "Kiro", color: "cyan", icon: "terminal" },
   cursor: { label: "Cursor", color: "pink", icon: "edit" },

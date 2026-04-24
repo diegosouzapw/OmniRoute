@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
+import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
+import { isLocalProvider } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
@@ -57,6 +60,24 @@ function validateProviderSpecificData(
       code: z.ZodIssueCode.custom,
       message: "providerSpecificData.openaiStoreEnabled must be a boolean",
       path: ["openaiStoreEnabled"],
+    });
+  }
+
+  const blockExtraUsage = data.blockExtraUsage;
+  if (blockExtraUsage !== undefined && typeof blockExtraUsage !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.blockExtraUsage must be a boolean",
+      path: ["blockExtraUsage"],
+    });
+  }
+
+  const autoFetchModels = data.autoFetchModels;
+  if (autoFetchModels !== undefined && typeof autoFetchModels !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.autoFetchModels must be a boolean",
+      path: ["autoFetchModels"],
     });
   }
 
@@ -224,7 +245,11 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    if (data.provider !== "searxng-search" && apiKey.length === 0) {
+    const apiKeyOptional =
+      data.provider === "searxng-search" ||
+      data.provider === "petals" ||
+      isLocalProvider(data.provider);
+    if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "API key is required",
@@ -413,6 +438,7 @@ export const updateSettingsSchema = z.object({
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   // Routing settings (#134)
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -616,11 +642,6 @@ export const updateModelAliasSchema = z.object({
   alias: z.string().trim().min(1, "Alias is required").max(200),
 });
 
-export const clearModelAvailabilitySchema = z.object({
-  provider: z.string().trim().min(1, "provider is required").max(120),
-  model: modelIdSchema,
-});
-
 /** Align with `sanitizeUpstreamHeadersMap` — allow non-ASCII names; reject Host / hop-by-hop / whitespace / ":". */
 const upstreamHeaderNameSchema = z
   .string()
@@ -709,7 +730,7 @@ export const toggleRateLimitSchema = z.object({
   enabled: z.boolean(),
 });
 
-const resilienceProfileSchema = z.object({
+const legacyResilienceProfileSchema = z.object({
   transientCooldown: z.number().min(0),
   rateLimitCooldown: z.number().min(0),
   maxBackoffLevel: z.number().int().min(0),
@@ -717,30 +738,87 @@ const resilienceProfileSchema = z.object({
   circuitBreakerReset: z.number().min(0),
 });
 
-const resilienceDefaultsSchema = z
+const legacyResilienceDefaultsSchema = z
   .object({
     requestsPerMinute: z.number().int().min(1).optional(),
-    minTimeBetweenRequests: z.number().int().min(1).optional(),
+    minTimeBetweenRequests: z.number().int().min(0).optional(),
     concurrentRequests: z.number().int().min(1).optional(),
+  })
+  .strict();
+
+const requestQueueSettingsSchema = z
+  .object({
+    autoEnableApiKeyProviders: z.boolean().optional(),
+    requestsPerMinute: z.number().int().min(1).optional(),
+    minTimeBetweenRequestsMs: z.number().int().min(0).optional(),
+    concurrentRequests: z.number().int().min(1).optional(),
+    maxWaitMs: z.number().int().min(1).optional(),
+  })
+  .strict();
+
+const connectionCooldownProfileSchema = z
+  .object({
+    baseCooldownMs: z.number().int().min(0).optional(),
+    useUpstreamRetryHints: z.boolean().optional(),
+    maxBackoffSteps: z.number().int().min(0).optional(),
+  })
+  .strict();
+
+const providerBreakerProfileSchema = z
+  .object({
+    failureThreshold: z.number().int().min(1).optional(),
+    resetTimeoutMs: z.number().int().min(1000).optional(),
+  })
+  .strict();
+
+const waitForCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    maxRetries: z.number().int().min(0).max(10).optional(),
+    maxRetryWaitSec: z.number().int().min(0).max(300).optional(),
   })
   .strict();
 
 export const updateResilienceSchema = z
   .object({
-    profiles: z
+    requestQueue: requestQueueSettingsSchema.optional(),
+    connectionCooldown: z
       .object({
-        oauth: resilienceProfileSchema.optional(),
-        apikey: resilienceProfileSchema.optional(),
+        oauth: connectionCooldownProfileSchema.optional(),
+        apikey: connectionCooldownProfileSchema.optional(),
       })
       .strict()
       .optional(),
-    defaults: resilienceDefaultsSchema.optional(),
+    providerBreaker: z
+      .object({
+        oauth: providerBreakerProfileSchema.optional(),
+        apikey: providerBreakerProfileSchema.optional(),
+      })
+      .strict()
+      .optional(),
+    waitForCooldown: waitForCooldownSettingsSchema.optional(),
+    profiles: z
+      .object({
+        oauth: legacyResilienceProfileSchema.optional(),
+        apikey: legacyResilienceProfileSchema.optional(),
+      })
+      .strict()
+      .optional(),
+    defaults: legacyResilienceDefaultsSchema.optional(),
   })
+  .strict()
   .superRefine((value, ctx) => {
-    if (!value.profiles && !value.defaults) {
+    if (
+      !value.requestQueue &&
+      !value.connectionCooldown &&
+      !value.providerBreaker &&
+      !value.waitForCooldown &&
+      !value.profiles &&
+      !value.defaults
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Must provide profiles or defaults",
+        message: "Must provide resilience settings to update",
         path: [],
       });
     }
@@ -1287,9 +1365,74 @@ export const dbBackupRestoreSchema = z.object({
   backupId: z.string().trim().min(1, "backupId is required"),
 });
 
-export const evalRunSuiteSchema = z.object({
-  suiteId: z.string().trim().min(1, "suiteId is required"),
-  outputs: z.record(z.string(), z.string()),
+const evalTargetSchema = z
+  .object({
+    type: z.enum(["suite-default", "model", "combo"]),
+    id: z.string().trim().min(1).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.type === "suite-default") {
+      return;
+    }
+
+    if (typeof value.id !== "string" || value.id.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "target.id is required for model and combo targets",
+        path: ["id"],
+      });
+    }
+  });
+
+const evalMessageSchema = z.object({
+  role: z.string().trim().min(1, "message.role is required").max(50),
+  content: z.string().trim().min(1, "message.content is required").max(20000),
+});
+
+const evalCaseBuilderSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  name: z.string().trim().min(1, "case.name is required").max(200),
+  model: z.string().trim().min(1).max(300).optional().nullable(),
+  input: z.object({
+    messages: z.array(evalMessageSchema).min(1, "At least one message is required").max(32),
+    max_tokens: z.number().int().min(1).max(8192).optional(),
+  }),
+  expected: z.object({
+    strategy: z.enum(["contains", "exact", "regex"]),
+    value: z.string().trim().min(1, "expected.value is required").max(20000),
+  }),
+  tags: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+});
+
+export const evalRunSuiteSchema = z
+  .object({
+    suiteId: z.string().trim().min(1, "suiteId is required"),
+    outputs: z.record(z.string(), z.string()).optional(),
+    target: evalTargetSchema.optional(),
+    compareTarget: evalTargetSchema.optional(),
+    apiKeyId: z.string().trim().min(1, "apiKeyId must not be empty").optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.compareTarget) {
+      const primaryType = value.target?.type || "suite-default";
+      const primaryId = value.target?.id?.trim() || "";
+      const compareId = value.compareTarget.id?.trim() || "";
+
+      if (primaryType === value.compareTarget.type && primaryId === compareId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "compareTarget must differ from target",
+          path: ["compareTarget"],
+        });
+      }
+    }
+  });
+
+export const evalSuiteSaveSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  name: z.string().trim().min(1, "name is required").max(200),
+  description: z.string().trim().max(2000).optional(),
+  cases: z.array(evalCaseBuilderSchema).min(1, "At least one case is required").max(200),
 });
 
 const accessScheduleSchema = z.object({
@@ -1406,6 +1549,7 @@ export const updateProviderConnectionSchema = z
     lastTested: z.union([z.string(), z.null()]).optional(),
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
+    maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -1608,6 +1752,7 @@ export const v1SearchSchema = z
         "google-pse-search",
         "linkup-search",
         "searchapi-search",
+        "youcom-search",
         "searxng-search",
       ])
       .optional(),
@@ -1743,4 +1888,20 @@ export const versionManagerToolSchema = z.object({
 
 export const versionManagerInstallSchema = versionManagerToolSchema.extend({
   version: z.string().trim().optional(),
+});
+
+export const v1BatchCreateSchema = z.object({
+  input_file_id: z.string().min(1),
+  endpoint: z.enum(SUPPORTED_BATCH_ENDPOINTS),
+  completion_window: z.enum(["24h"]),
+  metadata: z
+    .record(z.string().max(64), z.string().max(512))
+    .refine((m) => Object.keys(m).length <= 16, { message: "metadata may have at most 16 keys" })
+    .optional(),
+  output_expires_after: z
+    .object({
+      anchor: z.enum(["created_at"]),
+      seconds: z.number().int().min(3600).max(2592000),
+    })
+    .optional(),
 });

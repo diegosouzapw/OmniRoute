@@ -62,8 +62,6 @@ export default function AgentsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [settings, setSettings] = useState<Record<string, any>>({});
-  const [opencodeConfigLoading, setOpencodeConfigLoading] = useState(false);
-  const [opencodeConfigDone, setOpencodeConfigDone] = useState(false);
   const [newAgent, setNewAgent] = useState({
     name: "",
     binary: "",
@@ -188,6 +186,46 @@ export default function AgentsPage() {
           {t("refresh")}
         </Button>
       </div>
+
+      <Card className="border-blue-500/20 bg-blue-500/5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-sm font-semibold text-text-main">{t("architectureTitle")}</h2>
+              <p className="text-sm text-text-muted mt-1">{t("architectureDescription")}</p>
+            </div>
+            <Link
+              href="/dashboard/cli-tools"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/20 px-3 py-1.5 text-xs text-blue-500 hover:bg-blue-500/10 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+              {t("cliToolsRedirectCta")}
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+              {t("flowOmniRoute")}
+            </span>
+            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+              {t("flowSpawn")}
+            </span>
+            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+              {t("flowLocalBinary")}
+            </span>
+            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+              {t("flowExecute")}
+            </span>
+          </div>
+          <div className="rounded-lg border border-blue-500/15 bg-surface/40 p-3 text-sm text-text-muted">
+            <span className="font-medium text-text-main">{t("cliToolsRedirectTitle")}</span>{" "}
+            {t("cliToolsRedirectDesc")}{" "}
+            <Link href="/dashboard/cli-tools" className="text-blue-500 hover:underline">
+              {t("openCliTools")}
+            </Link>
+            .
+          </div>
+        </div>
+      </Card>
 
       {/* Summary Cards */}
       {summary && (
@@ -386,92 +424,6 @@ export default function AgentsPage() {
         ))}
       </div>
 
-      {/* OpenCode Config Generator — shown only when opencode is detected */}
-      {agents.find((a) => a.id === "opencode" && a.installed) && (
-        <Card>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500 shrink-0">
-              <span className="material-symbols-outlined text-[20px]">code_blocks</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-base font-semibold">{t("opencodeIntegration")}</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
-                  {t("opencodeDetected", {
-                    version: agents.find((a) => a.id === "opencode")?.version || "",
-                  })}
-                </span>
-              </div>
-              <p className="text-sm text-text-muted mb-3">
-                {t("opencodeDesc", {
-                  configFile: "opencode.json",
-                  command: "opencode",
-                })}
-              </p>
-              <Button
-                variant="secondary"
-                loading={opencodeConfigLoading}
-                onClick={async () => {
-                  setOpencodeConfigLoading(true);
-                  setOpencodeConfigDone(false);
-                  try {
-                    // Fetch available models
-                    const modelsRes = await fetch("/v1/models");
-                    const modelsData = modelsRes.ok ? await modelsRes.json() : { data: [] };
-                    const models: Record<string, { name: string }> = {};
-                    for (const m of modelsData.data || []) {
-                      models[m.id] = { name: m.id };
-                    }
-                    // Build opencode.json
-                    const baseURL = window.location.origin + "/v1";
-                    const config = {
-                      $schema: "https://opencode.ai/config.json",
-                      provider: {
-                        omniroute: {
-                          npm: "@ai-sdk/openai-compatible",
-                          name: "OmniRoute",
-                          options: {
-                            baseURL,
-                            apiKey: "YOUR_OMNIROUTE_API_KEY",
-                          },
-                          models:
-                            Object.keys(models).length > 0
-                              ? models
-                              : { "gpt-4o": { name: "gpt-4o" } },
-                        },
-                      },
-                    };
-                    // Download as file
-                    const blob = new Blob([JSON.stringify(config, null, 2)], {
-                      type: "application/json",
-                    });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "opencode.json";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    setOpencodeConfigDone(true);
-                    setTimeout(() => setOpencodeConfigDone(false), 3000);
-                  } catch (err) {
-                    console.error("Failed to generate opencode.json:", err);
-                  } finally {
-                    setOpencodeConfigLoading(false);
-                  }
-                }}
-              >
-                <span className="material-symbols-outlined text-[16px] mr-1">
-                  {opencodeConfigDone ? "check" : "download"}
-                </span>
-                {opencodeConfigDone
-                  ? t("downloaded")
-                  : t("downloadConfig", { file: "opencode.json" })}
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
       {/* Add Custom Agent */}
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -499,14 +451,14 @@ export default function AgentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t("agentName")}
-                placeholder="e.g. My Custom CLI"
+                placeholder={t("agentNamePlaceholder")}
                 value={newAgent.name}
                 onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
                 required
               />
               <Input
                 label={t("binaryName")}
-                placeholder="e.g. mycli"
+                placeholder={t("binaryNamePlaceholder")}
                 value={newAgent.binary}
                 onChange={(e) => setNewAgent({ ...newAgent, binary: e.target.value })}
                 required
@@ -515,13 +467,13 @@ export default function AgentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t("versionCommand")}
-                placeholder="e.g. mycli --version"
+                placeholder={t("versionCommandPlaceholder")}
                 value={newAgent.versionCommand}
                 onChange={(e) => setNewAgent({ ...newAgent, versionCommand: e.target.value })}
               />
               <Input
                 label={t("spawnArgs")}
-                placeholder="e.g. --quiet, --json"
+                placeholder={t("spawnArgsPlaceholder")}
                 value={newAgent.spawnArgs}
                 onChange={(e) => setNewAgent({ ...newAgent, spawnArgs: e.target.value })}
               />

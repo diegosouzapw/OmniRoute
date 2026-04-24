@@ -376,3 +376,152 @@ test("handleVideoGeneration returns provider errors for ComfyUI failures and log
     globalThis.setTimeout = originalSetTimeout;
   }
 });
+
+test("handleVideoGeneration submits, polls and downloads Runway text-to-video tasks", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const seen = [];
+  let pollCount = 0;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    seen.push({ url: target, init });
+
+    if (target === "https://api.dev.runwayml.com/v1/text_to_video") {
+      const headers = init.headers as Record<string, string>;
+      const body = JSON.parse(String(init.body || "{}"));
+      assert.equal(headers.Authorization, "Bearer runway-key");
+      assert.equal(headers["X-Runway-Version"], "2024-11-06");
+      assert.equal(body.model, "gen4.5");
+      assert.equal(body.promptText, "cinematic sunrise");
+      assert.equal(body.ratio, "1280:720");
+      assert.equal(body.duration, 6);
+      return new Response(JSON.stringify({ id: "task-runway-1" }), { status: 200 });
+    }
+
+    if (target === "https://api.dev.runwayml.com/v1/tasks/task-runway-1") {
+      pollCount += 1;
+      if (pollCount === 1) {
+        return new Response(JSON.stringify({ id: "task-runway-1", status: "RUNNING" }), {
+          status: 200,
+        });
+      }
+      return new Response(
+        JSON.stringify({
+          id: "task-runway-1",
+          status: "SUCCEEDED",
+          output: ["https://cdn.runway.dev/output-1.mp4"],
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (target === "https://cdn.runway.dev/output-1.mp4") {
+      return new Response(new Uint8Array([9, 8, 7, 6]), { status: 200 });
+    }
+
+    throw new Error(`Unexpected URL: ${target}`);
+  };
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "runwayml/gen4.5",
+        prompt: "cinematic sunrise",
+        size: "1280x720",
+        duration: 6,
+      },
+      credentials: { apiKey: "runway-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.deepEqual(result.data.data, [{ b64_json: "CQgHBg==", format: "mp4" }]);
+    assert.deepEqual(
+      seen.map((entry) => entry.url),
+      [
+        "https://api.dev.runwayml.com/v1/text_to_video",
+        "https://api.dev.runwayml.com/v1/tasks/task-runway-1",
+        "https://api.dev.runwayml.com/v1/tasks/task-runway-1",
+        "https://cdn.runway.dev/output-1.mp4",
+      ]
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleVideoGeneration routes Runway image-to-video requests and can return output URLs", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  let submittedBody;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.dev.runwayml.com/v1/image_to_video") {
+      submittedBody = JSON.parse(String(init.body || "{}"));
+      return new Response(JSON.stringify({ id: "task-runway-2" }), { status: 200 });
+    }
+
+    if (target === "https://api.dev.runwayml.com/v1/tasks/task-runway-2") {
+      return new Response(
+        JSON.stringify({
+          id: "task-runway-2",
+          status: "SUCCEEDED",
+          output: ["https://cdn.runway.dev/output-2.mp4"],
+        }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${target}`);
+  };
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "runwayml/gen4_turbo",
+        prompt: "make the frame move",
+        prompt_image: "https://assets.example.com/frame.png",
+        response_format: "url",
+        size: "720x1280",
+      },
+      credentials: { apiKey: "runway-key" },
+      log: null,
+    });
+
+    assert.deepEqual(submittedBody, {
+      model: "gen4_turbo",
+      promptText: "make the frame move",
+      ratio: "720:1280",
+      duration: 5,
+      promptImage: "https://assets.example.com/frame.png",
+    });
+    assert.equal(result.success, true);
+    assert.deepEqual(result.data.data, [
+      { url: "https://cdn.runway.dev/output-2.mp4", format: "mp4" },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleVideoGeneration rejects Runway models that require promptImage", async () => {
+  const result = await handleVideoGeneration({
+    body: {
+      model: "runwayml/gen4_turbo",
+      prompt: "animate this",
+    },
+    credentials: { apiKey: "runway-key" },
+    log: null,
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 400);
+  assert.match(result.error, /requires promptImage/i);
+});

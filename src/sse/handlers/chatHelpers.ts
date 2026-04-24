@@ -14,6 +14,7 @@ import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
 import {
   errorResponse,
   modelCooldownResponse,
+  providerCircuitOpenResponse,
   unavailableResponse,
 } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -23,8 +24,7 @@ import {
   isTlsFingerprintActive,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
-import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
-import { getModelCooldownInfo, isModelAvailable } from "../../domain/modelAvailability";
+import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
@@ -76,30 +76,16 @@ export async function checkPipelineGates(
     providerProfile?: {
       circuitBreakerThreshold?: number;
       circuitBreakerReset?: number;
+      failureThreshold?: number;
+      resetTimeoutMs?: number;
     } | null;
   } = {}
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
-  const modelAvailable = isModelAvailable(provider, model);
-  if (!modelAvailable && options.ignoreModelCooldown) {
-    log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed (${bypassReason})`);
-  } else if (!modelAvailable) {
-    const cooldownInfo = getModelCooldownInfo(provider, model);
-    const retryAfterSec = cooldownInfo
-      ? Math.max(Math.ceil(cooldownInfo.remainingMs / 1000), 1)
-      : 1;
-    log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
-    return unavailableResponse(
-      HTTP_STATUS.SERVICE_UNAVAILABLE,
-      `Model ${provider}/${model} is temporarily unavailable (cooldown)`,
-      retryAfterSec
-    );
-  }
-
   const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: providerProfile.circuitBreakerThreshold,
-    resetTimeout: providerProfile.circuitBreakerReset,
+    failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
+    resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
@@ -109,11 +95,7 @@ export async function checkPipelineGates(
     const retryAfterMs = breaker.getRetryAfterMs();
     const retryAfterSec = Math.max(Math.ceil(retryAfterMs / 1000), 1);
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
-    return unavailableResponse(
-      HTTP_STATUS.SERVICE_UNAVAILABLE,
-      `Provider ${provider} circuit breaker is open`,
-      retryAfterSec
-    );
+    return providerCircuitOpenResponse(provider, retryAfterSec);
   }
 
   return null;
@@ -197,11 +179,7 @@ export async function executeChatWithBreaker({
       return {
         result: {
           success: false,
-          response: unavailableResponse(
-            HTTP_STATUS.SERVICE_UNAVAILABLE,
-            `Provider ${provider} circuit breaker is open`,
-            Math.ceil(cbErr.retryAfterMs / 1000)
-          ),
+          response: providerCircuitOpenResponse(provider, Math.ceil(cbErr.retryAfterMs / 1000)),
           status: HTTP_STATUS.SERVICE_UNAVAILABLE,
         },
         tlsFingerprintUsed: false,

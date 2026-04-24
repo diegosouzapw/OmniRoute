@@ -41,7 +41,7 @@ test("RequestTelemetry: measure() records errors", async () => {
       t.measure("connect", async () => {
         throw new Error("timeout");
       }),
-    (err) => err.message === "timeout"
+    (err) => (err as any).message === "timeout"
   );
   assert.equal(t.getSummary().phases[0].error, "timeout");
 });

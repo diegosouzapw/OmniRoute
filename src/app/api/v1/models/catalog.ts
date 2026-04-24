@@ -18,7 +18,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
@@ -346,16 +346,33 @@ export async function getUnifiedModelsResponse(
       }
     }
 
-    // Gemini: synced API models exclusively (outside PROVIDER_MODELS loop since registry is empty)
-    if (activeAliases.has("gemini") && !blockedProviders.has("gemini")) {
-      try {
-        const syncedModels = await getSyncedAvailableModels("gemini");
-        for (const sm of syncedModels) {
-          if (!providerSupportsModel("gemini", sm.id)) continue;
-          const aliasId = `gemini/${sm.id}`;
-          if (getModelIsHidden("gemini", sm.id)) continue;
+    try {
+      const syncedModelsByProvider = await getAllSyncedAvailableModels();
+      for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
+        if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
+        if (blockedProviders.has(providerId)) continue;
 
-          // Convert supportedEndpoints to type/subtype for endpoint categorization
+        const prefix = providerIdToPrefix[providerId];
+        const alias = prefix || providerIdToAlias[providerId] || providerId;
+        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const parentProviderType = nodeIdToProviderType[providerId];
+
+        if (
+          !activeAliases.has(alias) &&
+          !activeAliases.has(canonicalProviderId) &&
+          !activeAliases.has(providerId) &&
+          !(parentProviderType && activeAliases.has(parentProviderType))
+        ) {
+          continue;
+        }
+
+        for (const sm of syncedModels) {
+          if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
+          if (getModelIsHidden(providerId, sm.id)) continue;
+
+          const aliasId = `${alias}/${sm.id}`;
+          if (models.some((model) => model.id === aliasId)) continue;
+
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
@@ -366,7 +383,7 @@ export async function getUnifiedModelsResponse(
             id: aliasId,
             object: "model",
             created: timestamp,
-            owned_by: "gemini",
+            owned_by: canonicalProviderId,
             permission: [],
             root: sm.id,
             parent: null,
@@ -378,13 +395,12 @@ export async function getUnifiedModelsResponse(
               : {}),
           });
 
-          // For audio models, also add a speech variant so they appear in both sections
           if (modelType === "audio") {
             models.push({
               id: aliasId,
               object: "model",
               created: timestamp,
-              owned_by: "gemini",
+              owned_by: canonicalProviderId,
               permission: [],
               root: sm.id,
               parent: null,
@@ -396,10 +412,30 @@ export async function getUnifiedModelsResponse(
                 : {}),
             });
           }
+
+          if (canonicalProviderId !== alias && !prefix) {
+            const providerPrefixedId = `${canonicalProviderId}/${sm.id}`;
+            if (!models.some((model) => model.id === providerPrefixedId)) {
+              models.push({
+                id: providerPrefixedId,
+                object: "model",
+                created: timestamp,
+                owned_by: canonicalProviderId,
+                permission: [],
+                root: sm.id,
+                parent: aliasId,
+                ...(modelType ? { type: modelType } : {}),
+                ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+                ...(endpoints.length > 1 || !endpoints.includes("chat")
+                  ? { supported_endpoints: endpoints }
+                  : {}),
+              });
+            }
+          }
         }
-      } catch (err) {
-        console.error("[catalog] Error fetching synced Gemini models:", err);
       }
+    } catch (err) {
+      console.error("[catalog] Error fetching synced provider models:", err);
     }
 
     // Helper: check if a provider is active (by provider id or alias)

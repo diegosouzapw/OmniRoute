@@ -82,7 +82,10 @@ test("auth login route lazily migrates INITIAL_PASSWORD to a persisted hash befo
   assert.equal(setCalls.length, 1);
   assert.equal(managementPassword.isBcryptHash(settings.password), true);
   assert.equal(
-    await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
+    await managementPassword.verifyManagementPassword(
+      "bootstrap-secret",
+      (settings as any).password
+    ),
     true
   );
 });

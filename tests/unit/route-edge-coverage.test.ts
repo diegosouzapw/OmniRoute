@@ -158,7 +158,7 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
         body: { name: "Key / Prod #1", noLog: true },
       })
     );
-    const createdBody = await created.json();
+    const createdBody = (await created.json()) as any;
     const stored = await apiKeysDb.getApiKeyById(createdBody.id);
 
     await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
@@ -168,9 +168,9 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
       await makeManagementSessionRequest("http://localhost/api/keys?limit=0&offset=-25")
     );
 
-    const unauthenticatedBody = await unauthenticated.json();
-    const invalidTokenBody = await invalidToken.json();
-    const pagedBody = await paged.json();
+    const unauthenticatedBody = (await unauthenticated.json()) as any;
+    const invalidTokenBody = (await invalidToken.json()) as any;
+    const pagedBody = (await paged.json()) as any;
 
     assert.equal(unauthenticated.status, 401);
     assert.equal(unauthenticatedBody.error.message, "Authentication required");
@@ -214,7 +214,7 @@ test("api keys route rejects invalid payloads and malformed JSON", async () => {
     })
   );
 
-  const malformedBody = await malformed.json();
+  const malformedBody = (await malformed.json()) as any;
 
   assert.equal(missingName.status, 400);
   assert.equal(malformed.status, 500);
@@ -297,16 +297,16 @@ test("settings proxy route covers full config, resolve, validation, delete and g
     new Request("http://localhost/api/settings/proxy", { method: "DELETE" })
   );
 
-  const invalidJsonBody = await invalidJson.json();
-  const invalidBodyPayload = await invalidBody.json();
-  const validPutBody = await validPut.json();
-  const legacyPutBody = await legacyPut.json();
-  const providerGetBody = await providerGet.json();
-  const resolveBody = await resolveGet.json();
-  const fullConfigBody = await fullConfig.json();
-  const deletedBody = await deleted.json();
-  const resolveAfterDeleteBody = await resolveAfterDelete.json();
-  const missingLevelBody = await missingLevel.json();
+  const invalidJsonBody = (await invalidJson.json()) as any;
+  const invalidBodyPayload = (await invalidBody.json()) as any;
+  const validPutBody = (await validPut.json()) as any;
+  const legacyPutBody = (await legacyPut.json()) as any;
+  const providerGetBody = (await providerGet.json()) as any;
+  const resolveBody = (await resolveGet.json()) as any;
+  const fullConfigBody = (await fullConfig.json()) as any;
+  const deletedBody = (await deleted.json()) as any;
+  const resolveAfterDeleteBody = (await resolveAfterDelete.json()) as any;
+  const missingLevelBody = (await missingLevel.json()) as any;
 
   assert.equal(invalidJson.status, 400);
   assert.equal(invalidJsonBody.error.message, "Invalid JSON body");
@@ -346,7 +346,7 @@ test("settings proxy route prefers proxy registry assignments and enforces socks
   const registryBacked = await settingsProxyRoute.GET(
     new Request("http://localhost/api/settings/proxy?level=global")
   );
-  const registryBackedBody = await registryBacked.json();
+  const registryBackedBody = (await registryBacked.json()) as any;
 
   process.env.ENABLE_SOCKS5_PROXY = "false";
   const disabledSocks = await settingsProxyRoute.PUT(
@@ -370,8 +370,8 @@ test("settings proxy route prefers proxy registry assignments and enforces socks
     })
   );
 
-  const disabledSocksBody = await disabledSocks.json();
-  const enabledSocksBody = await enabledSocks.json();
+  const disabledSocksBody = (await disabledSocks.json()) as any;
+  const enabledSocksBody = (await enabledSocks.json()) as any;
 
   assert.equal(registryBacked.status, 200);
   assert.equal(registryBackedBody.proxy.host, "registry.local");
@@ -393,7 +393,7 @@ test("settings proxy route covers default types, null maps, registry fallback, a
     })
   );
   assert.equal(defaultTypePut.status, 200);
-  const defaultTypeBody = await defaultTypePut.json();
+  const defaultTypeBody = (await defaultTypePut.json()) as any;
   assert.equal(defaultTypeBody.global.type, "http");
 
   const clearMapPut = await settingsProxyRoute.PUT(
@@ -406,7 +406,7 @@ test("settings proxy route covers default types, null maps, registry fallback, a
     })
   );
   assert.equal(clearMapPut.status, 200);
-  const clearMapBody = await clearMapPut.json();
+  const clearMapBody = (await clearMapPut.json()) as any;
   assert.equal(clearMapBody.global, null);
   assert.equal(Object.prototype.hasOwnProperty.call(clearMapBody.providers || {}, "openai"), false);
 
@@ -441,7 +441,7 @@ test("settings proxy route covers default types, null maps, registry fallback, a
         new Request("http://localhost/api/settings/proxy?level=global")
       );
       assert.equal(response.status, 200);
-      const body = await response.json();
+      const body = (await response.json()) as any;
       assert.equal(body.level, "global");
       assert.equal(body.proxy.host, "legacy-fallback.local");
     }
@@ -473,7 +473,7 @@ test("settings proxy route covers default types, null maps, registry fallback, a
         })
       );
       assert.equal(response.status, 500);
-      const body = await response.json();
+      const body = (await response.json()) as any;
       assert.equal(body.error.type, "server_error");
       assert.match(body.error.message, /proxy config write failure/i);
     }
@@ -518,7 +518,7 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
       },
     })
   );
-  const created = await createdResponse.json();
+  const created = (await createdResponse.json()) as any;
   await localDb.assignProxyToScope("provider", "openai", created.id);
 
   const pagedList = await managementProxiesRoute.GET(
@@ -580,18 +580,18 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
     )
   );
 
-  const unauthenticatedBody = await unauthenticated.json();
-  const invalidTokenBody = await invalidToken.json();
-  const pagedListBody = await pagedList.json();
-  const byIdBody = await byId.json();
-  const whereUsedBody = await whereUsed.json();
-  const missingGetBody = await missingGet.json();
-  const invalidJsonPatchBody = await invalidJsonPatch.json();
-  const invalidPatchBody = await invalidPatch.json();
-  const patchedBody = await patched.json();
-  const missingDeleteBody = await missingDelete.json();
-  const conflictDeleteBody = await conflictDelete.json();
-  const forcedDeleteBody = await forcedDelete.json();
+  const unauthenticatedBody = (await unauthenticated.json()) as any;
+  const invalidTokenBody = (await invalidToken.json()) as any;
+  const pagedListBody = (await pagedList.json()) as any;
+  const byIdBody = (await byId.json()) as any;
+  const whereUsedBody = (await whereUsed.json()) as any;
+  const missingGetBody = (await missingGet.json()) as any;
+  const invalidJsonPatchBody = (await invalidJsonPatch.json()) as any;
+  const invalidPatchBody = (await invalidPatch.json()) as any;
+  const patchedBody = (await patched.json()) as any;
+  const missingDeleteBody = (await missingDelete.json()) as any;
+  const conflictDeleteBody = (await conflictDelete.json()) as any;
+  const forcedDeleteBody = (await forcedDelete.json()) as any;
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
@@ -633,7 +633,7 @@ test("embeddings route covers options, custom-model listing and defensive POST b
 
   const optionsResponse = await embeddingsRoute.OPTIONS();
   const getResponse = await embeddingsRoute.GET();
-  const getBody = await getResponse.json();
+  const getBody = (await getResponse.json()) as any;
 
   const invalidJson = await embeddingsRoute.POST(
     new Request("http://localhost/v1/embeddings", {
@@ -656,9 +656,9 @@ test("embeddings route covers options, custom-model listing and defensive POST b
   );
 
   const optionsHeaders = Object.fromEntries(optionsResponse.headers.entries());
-  const invalidJsonBody = await invalidJson.json();
-  const validationFailureBody = await validationFailure.json();
-  const invalidModelBody = await invalidModel.json();
+  const invalidJsonBody = (await invalidJson.json()) as any;
+  const validationFailureBody = (await validationFailure.json()) as any;
+  const invalidModelBody = (await invalidModel.json()) as any;
 
   assert.equal(optionsHeaders["access-control-allow-origin"], "*");
   assert.equal(getResponse.status, 200);
@@ -726,10 +726,10 @@ test("embeddings route enforces caller auth, missing credentials and provider ra
     })
   );
 
-  const missingKeyBody = await missingKey.json();
-  const invalidKeyBody = await invalidKey.json();
-  const missingCredentialsBody = await missingCredentials.json();
-  const allRateLimitedBody = await allRateLimited.json();
+  const missingKeyBody = (await missingKey.json()) as any;
+  const invalidKeyBody = (await invalidKey.json()) as any;
+  const missingCredentialsBody = (await missingCredentials.json()) as any;
+  const allRateLimitedBody = (await allRateLimited.json()) as any;
 
   assert.equal(missingKey.status, 401);
   assert.equal(missingKeyBody.error.message, "Missing API key");
@@ -757,7 +757,7 @@ test("embeddings route tolerates custom-model and provider-node lookup failures"
       "custom models unavailable",
       async () => {
         const response = await embeddingsRoute.GET();
-        const body = await response.json();
+        const body = (await response.json()) as any;
 
         assert.equal(response.status, 200);
         assert.ok(body.data.some((model) => model.id === "openai/text-embedding-3-small"));
@@ -774,7 +774,7 @@ test("embeddings route tolerates custom-model and provider-node lookup failures"
             body: { model: "openai/text-embedding-3-small", input: "hello" },
           })
         );
-        const body = await response.json();
+        const body = (await response.json()) as any;
 
         assert.equal(response.status, 200);
         assert.equal(body.model, "openai/text-embedding-3-small");
@@ -820,7 +820,7 @@ test("embeddings route supports local provider nodes without credentials and enf
         },
       })
     );
-    const localBody = await localResponse.json();
+    const localBody = (await localResponse.json()) as any;
 
     assert.equal(localResponse.status, 200);
     assert.equal(localBody.model, "localembed/demo-embed");
@@ -849,7 +849,7 @@ test("embeddings route supports local provider nodes without credentials and enf
         }),
       })
     );
-    const rejectedBody = await rejected.json();
+    const rejectedBody = (await rejected.json()) as any;
 
     assert.equal(rejected.status, 403);
     assert.match(rejectedBody.error.message, /not allowed/i);
@@ -871,7 +871,7 @@ test("embeddings route returns normalized upstream failures", async () => {
         body: { model: "openai/text-embedding-3-small", input: "hello" },
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 502);
     assert.equal(body.error.message, "upstream boom");
@@ -907,7 +907,7 @@ test("embeddings route GET skips malformed, non-embedding, and duplicate custom 
   );
 
   const response = await embeddingsRoute.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = body.data.map((model) => model.id);
 
   assert.equal(response.status, 200);
@@ -976,7 +976,7 @@ test("embeddings route tolerates non-array provider nodes and remote fallback lo
           })
         )
     );
-    const remoteFallbackBody = await remoteFallback.json();
+    const remoteFallbackBody = (await remoteFallback.json()) as any;
 
     assert.equal(remoteFallback.status, 400);
     assert.match(remoteFallbackBody.error.message, /Unknown embedding provider|No matching/i);
@@ -1063,7 +1063,7 @@ test("embeddings route handles responses provider nodes, invalid local nodes, an
           })
         )
     );
-    const remoteBody = await remoteResponse.json();
+    const remoteBody = (await remoteResponse.json()) as any;
 
     assert.equal(remoteResponse.status, 200);
     assert.equal(fetchCalls[1].url, "https://remote.example.com/v1beta/openai/embeddings");

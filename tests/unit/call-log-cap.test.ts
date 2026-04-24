@@ -117,9 +117,9 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   assert.equal(detail?.comboStepId, "step-openai-a");
   assert.equal(detail?.comboExecutionKey, "combo-a:0:step-openai-a");
   assert.equal(detail?.pipelinePayloads?.clientRawRequest?.body?.raw, true);
-  assert.equal(detail?.pipelinePayloads?.providerRequest?.body?.translated, true);
-  assert.equal(detail?.pipelinePayloads?.providerResponse?.body?.upstream, true);
-  assert.equal(detail?.pipelinePayloads?.clientResponse?.body?.final, true);
+  assert.equal((detail?.pipelinePayloads?.providerRequest as any).body?.translated, true);
+  assert.equal((detail?.pipelinePayloads as any).providerResponse?.body?.upstream, true);
+  assert.equal((detail?.pipelinePayloads as any).clientResponse?.body?.final, true);
   assert.match(
     detail?.artifactRelPath || "",
     /^2026-03-30\/2026-03-30T12-34-56\.789Z_req_artifact_1\.json$/
@@ -129,7 +129,7 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   const columns = db
     .prepare("SELECT name FROM pragma_table_info('call_logs') ORDER BY cid")
     .all()
-    .map((row) => row.name);
+    .map((row) => (row as any).name);
   assert.equal(columns.includes("request_body"), false);
   assert.equal(columns.includes("response_body"), false);
   assert.equal(columns.includes("error"), false);
@@ -142,12 +142,12 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
     `
     )
     .get(logId);
-  assert.equal(summaryRow.detail_state, "ready");
-  assert.equal(summaryRow.cache_source, "semantic");
-  assert.equal(summaryRow.has_request_body, 1);
-  assert.equal(summaryRow.has_response_body, 1);
-  assert.equal(summaryRow.has_pipeline_details, 1);
-  assert.equal(typeof summaryRow.artifact_relpath, "string");
+  (assert as any).equal((summaryRow as any).detail_state, "ready");
+  assert.equal((summaryRow as any).cache_source, "semantic");
+  assert.equal((summaryRow as any).has_request_body, 1);
+  assert.equal((summaryRow as any).has_response_body, 1);
+  assert.equal((summaryRow as any).has_pipeline_details, 1);
+  assert.equal(typeof (summaryRow as any).artifact_relpath, "string");
 
   const artifactPath = path.join(TEST_DATA_DIR, "call_logs", detail.artifactRelPath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -192,12 +192,14 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
     .getDbInstance()
     .prepare("SELECT artifact_relpath FROM call_logs WHERE id = ?")
     .get("fresh-log");
-  const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", freshRow.artifact_relpath);
+  const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", (freshRow as any).artifact_relpath);
   assert.equal(
-    core
-      .getDbInstance()
-      .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
-      .get("expired-log").cnt,
+    (
+      core
+        .getDbInstance()
+        .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
+        .get("expired-log") as any
+    ).cnt,
     0
   );
   assert.equal(fs.existsSync(oldAbsPath), false);
@@ -207,7 +209,7 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
 
   const db = core.getDbInstance();
   assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log").cnt,
+    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log") as any).cnt,
     1
   );
   assert.equal(fs.existsSync(freshAbsPath), true);
@@ -365,9 +367,18 @@ test("getCallLogById falls back to legacy inline rows and request_detail_logs", 
   assert.deepEqual(detail?.responseBody, { recovered: "response" });
   assert.deepEqual(detail?.error, { message: "legacy-error" });
   assert.equal(detail?.pipelinePayloads?.clientRequest?.body?.from, "detail-client");
-  assert.equal(detail?.pipelinePayloads?.providerRequest?.body?.from, "detail-provider-request");
-  assert.equal(detail?.pipelinePayloads?.providerResponse?.body?.from, "detail-provider-response");
-  assert.equal(detail?.pipelinePayloads?.clientResponse?.body?.from, "detail-client-response");
+  assert.equal(
+    (detail?.pipelinePayloads?.providerRequest as any).body?.from,
+    "detail-provider-request"
+  );
+  (assert as any).equal(
+    (detail?.pipelinePayloads?.providerResponse as any).body?.from,
+    "detail-provider-response"
+  );
+  assert.equal(
+    (detail?.pipelinePayloads?.clientResponse as any).body?.from,
+    "detail-client-response"
+  );
   assert.equal(detail?.hasPipelineDetails, true);
 });
 
@@ -394,8 +405,8 @@ test("getCallLogById marks missing artifacts explicitly and clears stale DB poin
   const row = db
     .prepare("SELECT artifact_relpath, detail_state FROM call_logs WHERE id = ?")
     .get("missing-artifact");
-  assert.equal(row.artifact_relpath, null);
-  assert.equal(row.detail_state, "missing");
+  assert.equal((row as any).artifact_relpath, null);
+  assert.equal((row as any).detail_state, "missing");
 });
 
 test("saveCallLog keeps large payloads out of SQLite while preserving explicit detail export", async () => {
@@ -424,12 +435,12 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
     `
     )
     .get("artifact-only-large-payload");
-  assert.equal(row.detail_state, "ready");
-  assert.equal(row.has_request_body, 1);
-  assert.equal(typeof row.artifact_relpath, "string");
-  assert.equal(row.error_summary, "upstream unavailable");
+  assert.equal((row as any).detail_state, "ready");
+  assert.equal((row as any).has_request_body, 1);
+  (assert as any).equal(typeof (row as any).artifact_relpath, "string");
+  assert.equal((row as any).error_summary, "upstream unavailable");
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", row.artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.equal(artifact.requestBody.payload.length, requestBody.payload.length);
 
@@ -438,7 +449,7 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
 
   const exported = await callLogs.exportCallLogsSince("2026-03-31T00:00:00.000Z");
   assert.equal(exported.length, 1);
-  assert.equal(exported[0].requestBody.payload.length, requestBody.payload.length);
+  assert.equal((exported[0] as any).requestBody.payload.length, requestBody.payload.length);
 });
 
 test("saveCallLog logs and returns when sqlite persistence throws unexpectedly", async () => {

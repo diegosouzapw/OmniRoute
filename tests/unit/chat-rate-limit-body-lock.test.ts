@@ -54,7 +54,7 @@ test("handleChat applies body-derived retry-after to the runtime limiter", async
       },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.match(body.error.message, /retry after 20s/i);
@@ -86,7 +86,7 @@ test("handleChat tolerates non-JSON rate-limit bodies without breaking fallback 
       },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.match(body.error.message, /rate limit exceeded but body is not json/i);

@@ -246,7 +246,7 @@ export default function BudgetTab() {
             )}
           </div>
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
-            <p className="text-sm text-text-muted mb-2">Active Period Spend</p>
+            <p className="text-sm text-text-muted mb-2">{t("activePeriodSpend")}</p>
             <p className="text-2xl font-bold text-text-main">{formatCurrency(activeCost)}</p>
             {activeLimit > 0 && (
               <ProgressBar
@@ -258,9 +258,10 @@ export default function BudgetTab() {
             )}
             <div className="mt-3 space-y-1 text-xs text-text-muted">
               <p>
-                Interval: {(budget?.resetInterval || form.resetInterval || "daily").toUpperCase()}
+                {t("intervalLabel")}:{" "}
+                {t((budget?.resetInterval || form.resetInterval || "daily").toLowerCase())}
               </p>
-              <p>Next reset (UTC): {formatDateTime(budget?.budgetResetAt)}</p>
+              <p>{t("nextResetUtc", { value: formatDateTime(budget?.budgetResetAt) })}</p>
             </div>
           </div>
         </div>
@@ -279,11 +280,11 @@ export default function BudgetTab() {
               onChange={(e) => setForm({ ...form, dailyLimitUsd: e.target.value })}
             />
             <Input
-              label="Weekly Limit (USD)"
+              label={t("weeklyLimitUsd")}
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g. 25.00"
+              placeholder={t("weeklyLimitPlaceholder")}
               value={form.weeklyLimitUsd}
               onChange={(e) => setForm({ ...form, weeklyLimitUsd: e.target.value })}
             />
@@ -308,27 +309,31 @@ export default function BudgetTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="space-y-1">
-              <label className="text-sm text-text-muted block">Reset Interval</label>
+              <label className="text-sm text-text-muted block">{t("resetInterval")}</label>
               <select
                 value={form.resetInterval}
                 onChange={(e) => setForm({ ...form, resetInterval: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-border/50 bg-surface/30 text-text-main text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option value="daily">{t("daily")}</option>
+                <option value="weekly">{t("weekly")}</option>
+                <option value="monthly">{t("monthly")}</option>
               </select>
             </div>
             <Input
-              label="Reset Time (UTC)"
+              label={t("resetTimeUtc")}
               type="time"
               value={form.resetTime}
               onChange={(e) => setForm({ ...form, resetTime: e.target.value })}
             />
           </div>
           <div className="mb-4 rounded-lg border border-border/30 bg-surface/20 px-4 py-3 text-sm text-text-muted">
-            <p>Weekly limit: {weeklyLimit > 0 ? formatCurrency(weeklyLimit) : "Not configured"}</p>
-            <p>Next reset (UTC): {formatDateTime(budget?.budgetResetAt)}</p>
+            <p>
+              {t("weeklyLimitSummary", {
+                value: weeklyLimit > 0 ? formatCurrency(weeklyLimit) : t("notConfigured"),
+              })}
+            </p>
+            <p>{t("nextResetUtc", { value: formatDateTime(budget?.budgetResetAt) })}</p>
           </div>
           <Button variant="primary" onClick={handleSave} loading={saving}>
             {t("saveLimits")}

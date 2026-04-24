@@ -284,12 +284,12 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 ### Resilience & Rate Limits
 
-| Endpoint                | Method    | Description                     |
-| ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
+| Endpoint                | Method    | Description                                                                        |
+| ----------------------- | --------- | ---------------------------------------------------------------------------------- |
+| `/api/resilience`       | GET/PATCH | Get/update request queue, connection cooldown, provider breaker, and wait settings |
+| `/api/resilience/reset` | POST      | Reset provider circuit breakers                                                    |
+| `/api/rate-limits`      | GET       | Per-account rate limit status                                                      |
+| `/api/rate-limit`       | GET       | Global rate limit configuration                                                    |
 
 ### Evals
 
@@ -442,25 +442,6 @@ Content-Type: application/json
   "period": "monthly"
 }
 ```
-
----
-
-## Model Availability
-
-```bash
-# Get real-time model availability across all providers
-GET /api/models/availability
-
-# Check availability for a specific model
-POST /api/models/availability
-Content-Type: application/json
-
-{
-  "model": "claude-sonnet-4-5-20250929"
-}
-```
-
----
 
 ## Request Processing
 

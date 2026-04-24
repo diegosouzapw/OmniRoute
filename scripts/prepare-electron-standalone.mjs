@@ -8,6 +8,7 @@ import {
   readFileSync,
   rmSync,
   writeFileSync,
+  readdirSync,
 } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -146,11 +147,20 @@ ensurePackage(
   join(ROOT, "node_modules", "@swc", "helpers")
 );
 
-// removed better-sqlite3 to ensure ABI compatibility via electron-builder
-const bundledSqlite = join(ELECTRON_STANDALONE_DIR, "node_modules", "better-sqlite3");
-if (existsSync(bundledSqlite)) {
-  rmSync(bundledSqlite, { recursive: true, force: true });
+// Remove native modules to ensure ABI compatibility via electron-builder
+function removeNativeModules(baseDir) {
+  if (!existsSync(baseDir)) return;
+  const dirs = readdirSync(baseDir);
+  for (const dir of dirs) {
+    if (dir.startsWith("better-sqlite3") || dir.startsWith("keytar")) {
+      const fullPath = join(baseDir, dir);
+      rmSync(fullPath, { recursive: true, force: true });
+    }
+  }
 }
+
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"));
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"));
 
 console.log(
   `[electron] prepared standalone bundle: ${relative(ROOT, ELECTRON_STANDALONE_DIR) || "."}`

@@ -29,6 +29,7 @@ test("primary sidebar items place limits after cache", () => {
       "api-manager",
       "providers",
       "combos",
+      "batch",
       "costs",
       "analytics",
       "cache",

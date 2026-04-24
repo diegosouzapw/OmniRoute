@@ -104,7 +104,7 @@ test("Non-streaming: simple text response", async () => {
     });
 
     assert.equal(result.response.status, 200);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.equal(json.object, "chat.completion");
     assert.equal(json.choices[0].message.role, "assistant");
     assert.equal(json.choices[0].message.content, "Hello, world!");
@@ -144,7 +144,7 @@ test("Non-streaming: strips citations from response", async () => {
       log: null,
     });
 
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(!json.choices[0].message.content.includes("[1]"));
     assert.ok(!json.choices[0].message.content.includes("[2]"));
     assert.ok(!json.choices[0].message.content.includes("[3]"));
@@ -292,7 +292,7 @@ test("Error: 401 returns auth error message", async () => {
     });
 
     assert.equal(result.response.status, 401);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("session-token"));
   } finally {
@@ -314,7 +314,7 @@ test("Error: 429 returns rate limit message", async () => {
     });
 
     assert.equal(result.response.status, 429);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("rate limited"));
   } finally {
     restore();
@@ -335,7 +335,7 @@ test("Error: fetch failure returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("ECONNREFUSED"));
   } finally {
     restore();
@@ -354,7 +354,7 @@ test("Error: empty messages returns 400", async () => {
   });
 
   assert.equal(result.response.status, 400);
-  const json = await result.response.json();
+  const json = (await result.response.json()) as any;
   assert.ok(json.error.message.includes("Missing or empty messages"));
 });
 
@@ -390,7 +390,7 @@ test("Non-streaming: Perplexity stream error returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("Too many requests"));
   } finally {
     restore();
@@ -700,7 +700,7 @@ test("Non-streaming: falls back to text field when no blocks", async () => {
       log: null,
     });
 
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.choices[0].message.content.includes("Fallback answer text"));
   } finally {
     restore();

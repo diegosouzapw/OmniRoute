@@ -210,8 +210,8 @@ test("cloudSync syncs data upstream and refreshes only locally stale provider to
 
   const cloudSync = await loadCloudSync("sync-success");
   const result = await cloudSync.syncToCloud("machine-1", "created-key-1");
-  const staleAfter = await providersDb.getProviderConnectionById(stale.id);
-  const freshAfter = await providersDb.getProviderConnectionById(fresh.id);
+  const staleAfter = await providersDb.getProviderConnectionById((stale as any).id);
+  const freshAfter = await providersDb.getProviderConnectionById((fresh as any).id);
 
   assert.equal(Array.isArray(postedBody.providers), true);
   assert.equal(Array.isArray(postedBody.apiKeys), true);

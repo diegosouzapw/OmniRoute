@@ -27,3 +27,13 @@ test("Amp CLI is discoverable in runtime tooling but excluded from provider fing
   assert.ok(CLI_TOOL_IDS.includes("amp"));
   assert.equal(CLI_COMPAT_PROVIDER_IDS.includes("amp"), false);
 });
+
+test("Hermes quick-config is registered as a guide-based CLI tool", () => {
+  const hermes = CLI_TOOLS.hermes;
+  assert.ok(hermes);
+  assert.equal(hermes.configType, "guide");
+  assert.equal(hermes.defaultCommand, "hermes");
+  assert.ok(Array.isArray(hermes.guideSteps));
+  assert.ok(String(hermes.codeBlock?.code || "").includes('"baseURL": "{{baseUrl}}"'));
+  assert.ok(CLI_TOOL_IDS.includes("hermes"));
+});

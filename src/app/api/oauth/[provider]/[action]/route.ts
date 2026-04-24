@@ -87,7 +87,12 @@ export async function GET(
 
       // Request device code (through proxy if configured)
       let deviceData;
-      if (provider === "github" || provider === "kiro" || provider === "kilocode") {
+      if (
+        provider === "github" ||
+        provider === "kiro" ||
+        provider === "amazon-q" ||
+        provider === "kilocode"
+      ) {
         // GitHub, Kiro, and KiloCode don't use PKCE for device code
         deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
       } else {
@@ -328,7 +333,7 @@ export async function POST(
         result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
-      } else if (provider === "kiro") {
+      } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
         result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, extraData)

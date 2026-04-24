@@ -36,6 +36,33 @@ type CloudflaredTunnelStatus = {
   logPath: string;
 };
 
+type TailscaleTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "needs_login"
+  | "stopped"
+  | "running"
+  | "error";
+
+type TailscaleTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  managedInstall: boolean;
+  installSource: string | null;
+  binaryPath: string | null;
+  loggedIn: boolean;
+  daemonRunning: boolean;
+  running: boolean;
+  enabled: boolean;
+  tunnelUrl: string | null;
+  apiUrl: string | null;
+  phase: TailscaleTunnelPhase;
+  platform: string;
+  brewAvailable: boolean;
+  lastError: string | null;
+  pid: number | null;
+};
+
 type TunnelNotice = {
   type: "success" | "error" | "info";
   message: string;
@@ -69,6 +96,13 @@ export default function APIPageClient({ machineId }) {
   const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
   const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
   const [cloudflaredNotice, setCloudflaredNotice] = useState<TunnelNotice | null>(null);
+  const [tailscaleStatus, setTailscaleStatus] = useState<TailscaleTunnelStatus | null>(null);
+  const [tailscaleBusy, setTailscaleBusy] = useState(false);
+  const [tailscaleNotice, setTailscaleNotice] = useState<TunnelNotice | null>(null);
+  const [showTailscaleInstallModal, setShowTailscaleInstallModal] = useState(false);
+  const [tailscaleInstallBusy, setTailscaleInstallBusy] = useState(false);
+  const [tailscaleInstallLog, setTailscaleInstallLog] = useState<string[]>([]);
+  const [tailscalePassword, setTailscalePassword] = useState("");
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -135,6 +169,36 @@ export default function APIPageClient({ machineId }) {
     [translateOrFallback]
   );
 
+  const fetchTailscaleStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnels/tailscale", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status")
+          );
+        }
+
+        setTailscaleStatus(data);
+        return data as TailscaleTunnelStatus;
+      } catch (error) {
+        if (!silent) {
+          setTailscaleNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status"),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
   useEffect(() => {
     Promise.allSettled([
       loadCloudSettings(),
@@ -142,10 +206,11 @@ export default function APIPageClient({ machineId }) {
       fetchProtocolStatus(),
       fetchSearchProviders(),
       fetchCloudflaredStatus(true),
+      fetchTailscaleStatus(true),
     ]).finally(() => {
       setLoading(false);
     });
-  }, [fetchCloudflaredStatus]);
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
 
   const fetchModels = async () => {
     try {
@@ -183,6 +248,7 @@ export default function APIPageClient({ machineId }) {
     const chat = allModels.filter((m) => !m.type && !m.parent);
     const embeddings = allModels.filter((m) => m.type === "embedding" && !m.parent);
     const images = allModels.filter((m) => m.type === "image" && !m.parent);
+    const video = allModels.filter((m) => m.type === "video" && !m.parent);
     const rerank = allModels.filter((m) => m.type === "rerank" && !m.parent);
     const audioTranscription = allModels.filter(
       (m) => m.type === "audio" && m.subtype === "transcription" && !m.parent
@@ -192,7 +258,17 @@ export default function APIPageClient({ machineId }) {
     );
     const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
     const music = allModels.filter((m) => m.type === "music" && !m.parent);
-    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation, music };
+    return {
+      chat,
+      embeddings,
+      images,
+      video,
+      rerank,
+      audioTranscription,
+      audioSpeech,
+      moderation,
+      music,
+    };
   }, [allModels]);
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
@@ -269,12 +345,20 @@ export default function APIPageClient({ machineId }) {
   }, [cloudflaredNotice]);
 
   useEffect(() => {
+    if (tailscaleNotice) {
+      const timer = setTimeout(() => setTailscaleNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [tailscaleNotice]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       void fetchProtocolStatus();
       void fetchCloudflaredStatus(true);
+      void fetchTailscaleStatus(true);
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchCloudflaredStatus]);
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -414,6 +498,276 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  const waitForTailscale = useCallback(
+    async (
+      predicate: (status: TailscaleTunnelStatus) => boolean,
+      attempts = 40,
+      delayMs = 3000
+    ) => {
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        const status = await fetchTailscaleStatus(true);
+        if (status && predicate(status)) {
+          return status;
+        }
+      }
+      return null;
+    },
+    [fetchTailscaleStatus]
+  );
+
+  const requestTailscaleEnable = useCallback(async (payload: Record<string, unknown> = {}) => {
+    const res = await fetch("/api/tunnels/tailscale/enable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
+  }, []);
+
+  const handleTailscaleEnable = useCallback(async () => {
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+
+    try {
+      let { res, data } = await requestTailscaleEnable();
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+        );
+      }
+
+      if (data?.needsLogin && data?.authUrl) {
+        window.open(data.authUrl, "tailscale_auth", "width=680,height=780");
+        setTailscaleNotice({
+          type: "info",
+          message: translateOrFallback(
+            "tailscaleWaitingForLogin",
+            "Complete the Tailscale login in the opened browser tab. OmniRoute will retry automatically."
+          ),
+        });
+
+        const loggedIn = await waitForTailscale((status) => status.loggedIn);
+        if (!loggedIn) {
+          throw new Error(
+            translateOrFallback("tailscaleLoginTimedOut", "Timed out waiting for Tailscale login")
+          );
+        }
+
+        ({ res, data } = await requestTailscaleEnable());
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+          );
+        }
+      }
+
+      if (data?.funnelNotEnabled && data?.enableUrl) {
+        window.open(data.enableUrl, "tailscale_funnel", "width=680,height=780");
+        setTailscaleNotice({
+          type: "info",
+          message: translateOrFallback(
+            "tailscaleWaitingForFunnel",
+            "Enable Funnel for this device in the opened browser tab. OmniRoute will keep polling."
+          ),
+        });
+
+        let enabled = null;
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          const next = await requestTailscaleEnable();
+          if (!next.res.ok) {
+            throw new Error(
+              next.data?.error ||
+                translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+            );
+          }
+          if (next.data?.success) {
+            enabled = next;
+            break;
+          }
+          if (!next.data?.funnelNotEnabled) {
+            enabled = next;
+            break;
+          }
+        }
+
+        if (!enabled?.data?.success) {
+          throw new Error(
+            translateOrFallback(
+              "tailscaleFunnelTimedOut",
+              "Timed out waiting for Tailscale Funnel to be enabled"
+            )
+          );
+        }
+
+        data = enabled.data;
+      }
+
+      if (!data?.success) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+        );
+      }
+
+      if (data?.status) {
+        setTailscaleStatus(data.status);
+      }
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleStarted", "Tailscale Funnel enabled"),
+      });
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      await fetchTailscaleStatus(true);
+    }
+  }, [fetchTailscaleStatus, requestTailscaleEnable, translateOrFallback, waitForTailscale]);
+
+  const handleTailscaleDisable = useCallback(async () => {
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/tailscale/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel")
+        );
+      }
+
+      if (data?.status) {
+        setTailscaleStatus(data.status);
+      }
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleStopped", "Tailscale Funnel disabled"),
+      });
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      await fetchTailscaleStatus(true);
+    }
+  }, [fetchTailscaleStatus, translateOrFallback]);
+
+  const handleTailscaleInstall = useCallback(async () => {
+    setTailscaleInstallBusy(true);
+    setTailscaleInstallLog([]);
+    setTailscaleNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/tailscale/install", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sudoPassword: tailscalePassword || undefined }),
+      });
+
+      if (!res.body) {
+        throw new Error(
+          translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+        );
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let installSucceeded = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          const lines = part.split("\n");
+          let eventName = "progress";
+          let payload: Record<string, unknown> | null = null;
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventName = line.slice(7).trim();
+            } else if (line.startsWith("data: ")) {
+              payload = JSON.parse(line.slice(6));
+            }
+          }
+
+          if (!payload) continue;
+
+          if (eventName === "progress") {
+            const message =
+              typeof payload.message === "string"
+                ? payload.message
+                : translateOrFallback("tailscaleInstallProgress", "Working...");
+            setTailscaleInstallLog((current) => [...current.slice(-79), message]);
+          } else if (eventName === "done") {
+            installSucceeded = true;
+            if (payload.status) {
+              setTailscaleStatus(payload.status as TailscaleTunnelStatus);
+            }
+          } else if (eventName === "error") {
+            throw new Error(
+              typeof payload.error === "string"
+                ? payload.error
+                : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+            );
+          }
+        }
+      }
+
+      if (!installSucceeded) {
+        throw new Error(
+          translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+        );
+      }
+
+      setShowTailscaleInstallModal(false);
+      setTailscalePassword("");
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleInstalled", "Tailscale installed successfully"),
+      });
+      await fetchTailscaleStatus(true);
+      await handleTailscaleEnable();
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale"),
+      });
+    } finally {
+      setTailscaleInstallBusy(false);
+    }
+  }, [fetchTailscaleStatus, handleTailscaleEnable, tailscalePassword, translateOrFallback]);
+
   const [baseUrl, setBaseUrl] = useState("/v1");
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
@@ -480,6 +834,44 @@ export default function APIPageClient({ machineId }) {
   const cloudflaredUrlNotice = translateOrFallback(
     "cloudflaredUrlNotice",
     "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+  );
+  const tailscalePhase = tailscaleStatus?.phase || "not_installed";
+  const tailscalePhaseMeta: Record<TailscaleTunnelPhase, { label: string; className: string }> = {
+    running: {
+      label: translateOrFallback("tailscaleRunning", "Running"),
+      className: "bg-green-500/10 border-green-500/30 text-green-400",
+    },
+    needs_login: {
+      label: translateOrFallback("tailscaleNeedsLogin", "Needs Login"),
+      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    },
+    stopped: {
+      label: translateOrFallback("tailscaleStoppedState", "Stopped"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    not_installed: {
+      label: translateOrFallback("tailscaleNotInstalled", "Not installed"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    unsupported: {
+      label: translateOrFallback("tailscaleUnsupported", "Unsupported"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    error: {
+      label: translateOrFallback("tailscaleError", "Error"),
+      className: "bg-red-500/10 border-red-500/30 text-red-400",
+    },
+  };
+  const tailscaleActionLabel = tailscaleStatus?.running
+    ? translateOrFallback("tailscaleDisable", "Stop Funnel")
+    : !tailscaleStatus?.installed
+      ? translateOrFallback("tailscaleInstallAndEnable", "Install & Enable")
+      : !tailscaleStatus?.loggedIn
+        ? translateOrFallback("tailscaleLoginAndEnable", "Login & Enable")
+        : translateOrFallback("tailscaleEnable", "Enable Funnel");
+  const tailscaleUrlNotice = translateOrFallback(
+    "tailscaleUrlNotice",
+    "Uses your Tailscale .ts.net address. Login and Funnel approval may be required on first use."
   );
 
   return (
@@ -676,6 +1068,120 @@ export default function APIPageClient({ machineId }) {
             )}
           </div>
         </div>
+
+        <div className="mt-4 rounded-xl border border-border/70 bg-surface/40 p-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold">
+                    {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                  </h3>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
+                  >
+                    {tailscalePhaseMeta[tailscalePhase].label}
+                  </span>
+                </div>
+              </div>
+
+              {tailscaleStatus?.supported !== false && (
+                <Button
+                  size="sm"
+                  variant={tailscaleStatus?.running ? "secondary" : "primary"}
+                  icon={tailscaleStatus?.running ? "vpn_lock_off" : "vpn_lock"}
+                  onClick={() => {
+                    if (tailscaleStatus?.running) {
+                      void handleTailscaleDisable();
+                    } else if (!tailscaleStatus?.installed) {
+                      setShowTailscaleInstallModal(true);
+                    } else {
+                      void handleTailscaleEnable();
+                    }
+                  }}
+                  loading={tailscaleBusy}
+                  className={
+                    tailscaleStatus?.running
+                      ? "border-border/70! text-text-muted! hover:text-text!"
+                      : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+                  }
+                >
+                  {tailscaleActionLabel}
+                </Button>
+              )}
+            </div>
+
+            {tailscaleNotice && (
+              <div
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                  tailscaleNotice.type === "success"
+                    ? "border-green-500/30 bg-green-500/10 text-green-400"
+                    : tailscaleNotice.type === "info"
+                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                      : "border-red-500/30 bg-red-500/10 text-red-400"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {tailscaleNotice.type === "success"
+                    ? "check_circle"
+                    : tailscaleNotice.type === "info"
+                      ? "info"
+                      : "error"}
+                </span>
+                <span className="flex-1">{tailscaleNotice.message}</span>
+                <button
+                  onClick={() => setTailscaleNotice(null)}
+                  className="rounded p-0.5 transition-colors hover:bg-white/10"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            )}
+
+            <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
+            {tailscaleStatus?.phase === "needs_login" && (
+              <p className="text-xs text-blue-400">
+                {translateOrFallback(
+                  "tailscaleNeedsLoginHint",
+                  "Authenticate this machine with Tailscale, then enable Funnel."
+                )}
+              </p>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                value={tailscaleStatus?.apiUrl || ""}
+                readOnly
+                placeholder="https://your-device.tailnet.ts.net/v1"
+                className="flex-1 min-w-0 font-mono text-sm"
+              />
+              <Button
+                variant="secondary"
+                icon={copied === "tailscale_url" ? "check" : "content_copy"}
+                onClick={() =>
+                  tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
+                }
+                disabled={!tailscaleStatus?.apiUrl}
+                className="shrink-0 self-start sm:self-auto"
+              >
+                {copied === "tailscale_url" ? tc("copied") : tc("copy")}
+              </Button>
+            </div>
+            {tailscaleStatus?.binaryPath && (
+              <p className="text-xs text-text-muted">
+                {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
+                  path: tailscaleStatus.binaryPath,
+                })}
+              </p>
+            )}
+            {tailscaleStatus?.lastError && (
+              <p className="text-xs text-red-400">
+                {translateOrFallback("tailscaleLastError", "Last error: {error}", {
+                  error: tailscaleStatus.lastError,
+                })}
+              </p>
+            )}
+          </div>
+        </div>
       </Card>
 
       <Card>
@@ -715,6 +1221,7 @@ export default function APIPageClient({ machineId }) {
                       endpointData.chat,
                       endpointData.embeddings,
                       endpointData.images,
+                      endpointData.video,
                       endpointData.rerank,
                       endpointData.audioTranscription,
                       endpointData.audioSpeech,
@@ -898,6 +1405,25 @@ export default function APIPageClient({ machineId }) {
                 copied={copied}
                 baseUrl={currentEndpoint}
               />
+
+              {/* Video Generation */}
+              <EndpointSection
+                icon="videocam"
+                iconColor="text-red-500"
+                iconBg="bg-red-500/10"
+                title={t("videoGeneration") || "Video Generation"}
+                path="/v1/videos/generations"
+                description={
+                  t("videoDesc") ||
+                  "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
+                }
+                models={endpointData.video}
+                expanded={expandedEndpoint === "video"}
+                onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+              />
             </div>
           </div>
 
@@ -1046,7 +1572,7 @@ export default function APIPageClient({ machineId }) {
                 <div className="mt-3 text-xs text-text-muted space-y-1">
                   <p>
                     {t("protocolToolsLabel") || "Tools"}:{" "}
-                    <span className="text-text-main font-semibold">{mcpToolCount || 16}</span>
+                    <span className="text-text-main font-semibold">{mcpToolCount || 29}</span>
                   </p>
                   <p>
                     {t("protocolLastActivity") || "Last activity"}:{" "}
@@ -1314,6 +1840,72 @@ export default function APIPageClient({ machineId }) {
               variant="ghost"
               fullWidth
               disabled={cloudSyncing}
+            >
+              {tc("cancel")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showTailscaleInstallModal}
+        title={translateOrFallback("tailscaleInstallTitle", "Install Tailscale")}
+        onClose={() => !tailscaleInstallBusy && setShowTailscaleInstallModal(false)}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+            <p className="text-sm font-medium text-blue-300">
+              {translateOrFallback(
+                "tailscaleInstallIntro",
+                "Installs Tailscale on this machine and prepares OmniRoute to enable Funnel."
+              )}
+            </p>
+            <p className="mt-2 text-sm text-blue-200/80">
+              {translateOrFallback(
+                "tailscaleInstallPasswordHint",
+                "On macOS and Linux, sudo may be required for the package install and daemon start."
+              )}
+            </p>
+          </div>
+
+          <Input
+            type="password"
+            value={tailscalePassword}
+            onChange={(event) => setTailscalePassword(event.target.value)}
+            placeholder={translateOrFallback("tailscaleSudoPlaceholder", "Optional sudo password")}
+            disabled={tailscaleInstallBusy}
+          />
+
+          {tailscaleInstallLog.length > 0 && (
+            <div className="max-h-48 overflow-auto rounded-lg border border-border/70 bg-surface/60 p-3">
+              <pre className="whitespace-pre-wrap text-xs text-text-muted">
+                {tailscaleInstallLog.join("\n")}
+              </pre>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button
+              onClick={() => void handleTailscaleInstall()}
+              fullWidth
+              disabled={tailscaleInstallBusy}
+            >
+              {tailscaleInstallBusy ? (
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined animate-spin text-sm">
+                    progress_activity
+                  </span>
+                  {translateOrFallback("tailscaleInstalling", "Installing")}
+                </span>
+              ) : (
+                translateOrFallback("tailscaleInstallAndEnable", "Install & Enable")
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowTailscaleInstallModal(false)}
+              variant="ghost"
+              fullWidth
+              disabled={tailscaleInstallBusy}
             >
               {tc("cancel")}
             </Button>

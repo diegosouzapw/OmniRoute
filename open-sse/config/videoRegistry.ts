@@ -2,10 +2,11 @@
  * Video Generation Provider Registry
  *
  * Defines providers that support the /v1/videos/generations endpoint.
- * Currently supports local providers (ComfyUI, SD WebUI with AnimateDiff).
+ * Supports local providers plus hosted task-based APIs such as Runway.
  */
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
+import { RUNWAYML_SUPPORTED_VIDEO_MODELS } from "./runway.ts";
 
 interface VideoModel {
   id: string;
@@ -41,6 +42,15 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "none",
     format: "sdwebui-video",
     models: [{ id: "animatediff-webui", name: "AnimateDiff (WebUI)" }],
+  },
+
+  runwayml: {
+    id: "runwayml",
+    baseUrl: "https://api.dev.runwayml.com/v1",
+    authType: "bearer",
+    authHeader: "Authorization",
+    format: "runwayml",
+    models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
 };
 

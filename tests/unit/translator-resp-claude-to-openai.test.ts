@@ -40,18 +40,18 @@ test("Claude non-stream: text, thinking and tool_use become OpenAI assistant mes
     new Map([["proxy_read_file", "read_file"]])
   );
 
-  assert.equal(result.id, "chatcmpl-msg_123");
-  assert.equal(result.model, "claude-3-7-sonnet");
-  assert.equal(result.choices[0].message.content, "Final answer");
-  assert.equal(result.choices[0].message.reasoning_content, "Plan first.");
-  assert.equal(result.choices[0].message.tool_calls[0].id, "tool_1");
-  assert.equal(result.choices[0].message.tool_calls[0].function.name, "read_file");
-  assert.equal(
-    result.choices[0].message.tool_calls[0].function.arguments,
+  assert.equal((result as any).id, "chatcmpl-msg_123");
+  (assert as any).equal((result as any).model, "claude-3-7-sonnet");
+  (assert as any).equal((result as any).choices[0].message.content, "Final answer");
+  assert.equal((result as any).choices[0].message.reasoning_content, "Plan first.");
+  assert.equal((result as any).choices[0].message.tool_calls[0].id, "tool_1");
+  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, "read_file");
+  (assert as any).equal(
+    (result as any).choices[0].message.tool_calls[0].function.arguments,
     JSON.stringify({ path: "/tmp/a" })
   );
-  assert.equal(result.choices[0].finish_reason, "tool_calls");
-  assert.deepEqual(result.usage, {
+  assert.equal((result as any).choices[0].finish_reason, "tool_calls");
+  assert.deepEqual((result as any).usage, {
     prompt_tokens: 10,
     completion_tokens: 4,
     total_tokens: 14,
@@ -68,12 +68,12 @@ test("Claude non-stream: end_turn becomes stop and empty text is preserved", () 
       usage: { input_tokens: 2, output_tokens: 1 },
     },
     FORMATS.CLAUDE,
-    FORMATS.OPENAI
+    (FORMATS as any).OPENAI
   );
 
-  assert.equal(result.choices[0].message.content, "");
-  assert.equal(result.choices[0].finish_reason, "stop");
-  assert.equal(result.model, "claude-3-5-haiku");
+  assert.equal(((result as any).choices[0] as any).message.content, "");
+  assert.equal((result as any).choices[0].finish_reason, "stop");
+  assert.equal((result as any).model, "claude-3-5-haiku");
 });
 
 test("Claude stream: message_start emits initial assistant role chunk", () => {

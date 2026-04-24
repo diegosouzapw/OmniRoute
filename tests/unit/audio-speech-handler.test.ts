@@ -8,7 +8,7 @@ test("handleAudioSpeech requires model", async () => {
     body: { input: "hello" },
     credentials: { apiKey: "x" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "model is required");
@@ -19,7 +19,7 @@ test("handleAudioSpeech requires input text", async () => {
     body: { model: "openai/tts-1" },
     credentials: { apiKey: "x" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "input is required");
@@ -121,7 +121,7 @@ test("handleAudioSpeech rejects invalid ElevenLabs voice identifiers", async () 
       },
       credentials: { apiKey: "xi-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 400);
     assert.equal(payload.error.message, "Invalid voice ID");
@@ -216,7 +216,7 @@ test("handleAudioSpeech requires credentials for authenticated providers", async
     },
     credentials: null,
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(payload.error.message, "No credentials for speech provider: openai");
@@ -299,7 +299,7 @@ test("handleAudioSpeech validates HuggingFace model identifiers", async () => {
     },
     credentials: { apiKey: "hf-key" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "Invalid model ID");
@@ -455,7 +455,7 @@ test("handleAudioSpeech surfaces parsed upstream error messages", async () => {
       },
       credentials: { apiKey: "openai-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 429);
     assert.equal(payload.error.message, "quota exceeded");
@@ -479,7 +479,7 @@ test("handleAudioSpeech returns a 500 when the provider request throws", async (
       },
       credentials: { apiKey: "openai-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(payload.error.message, "Speech request failed: socket hang up");

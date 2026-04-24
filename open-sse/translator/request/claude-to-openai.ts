@@ -102,6 +102,28 @@ export function claudeToOpenAIRequest(model, body, stream) {
     result.tool_choice = convertToolChoice(body.tool_choice);
   }
 
+  // Reasoning effort: map Claude-side thinking controls to OpenAI reasoning_effort.
+  // Priority: output_config.effort (Claude Code) > thinking.budget_tokens (Claude native).
+  // Budget buckets match the reverse mapping in thinkingBudget.ts::setCustomBudget.
+  const outputEffort =
+    typeof body.output_config?.effort === "string" ? body.output_config.effort.toLowerCase() : "";
+  if (outputEffort) {
+    result.reasoning_effort = outputEffort;
+  } else if (body.thinking?.type === "enabled" && typeof body.thinking.budget_tokens === "number") {
+    const budget = body.thinking.budget_tokens;
+    if (budget <= 0) {
+      // disabled — leave reasoning_effort unset
+    } else if (budget <= 1024) {
+      result.reasoning_effort = "low";
+    } else if (budget <= 10240) {
+      result.reasoning_effort = "medium";
+    } else if (budget < 131072) {
+      result.reasoning_effort = "high";
+    } else {
+      result.reasoning_effort = "max";
+    }
+  }
+
   return result;
 }
 

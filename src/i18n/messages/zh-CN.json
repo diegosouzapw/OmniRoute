@@ -282,6 +282,10 @@
     "evals": "评测",
     "utilization": "利用率",
     "utilizationDescription": "提供商配额使用趋势和速率限制跟踪",
+    "modelStatus": "模型状态",
+    "modelStatusCooldown": "冷却中",
+    "modelStatusUnavailable": "不可用",
+    "modelStatusError": "错误",
     "comboHealth": "组合健康状况",
     "comboHealthDescription": "组合级别配额、使用分布和性能指标"
   },
@@ -644,7 +648,8 @@
       "kiro": "在集成 Kiro 并从 OmniRoute 集中控制模型路由时使用。",
       "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
-      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。"
+      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。",
+      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。"
     },
     "toolDescriptions": {
       "antigravity": "带 MITM 的 Google Antigravity IDE",
@@ -1022,7 +1027,8 @@
     "selectAccount": "选择账户",
     "autoSelectAccount": "运行时自动选择账户",
     "previewNextStep": "选择提供商和模型以预览下一步。",
-    "addStep": "添加步骤",
+    "builderAddStep": "添加步骤",
+    "builderDuplicateExact": "该提供商/模型/账户步骤已存在于组合中。",
     "comboReference": "组合引用",
     "selectComboToReference": "选择要引用的现有组合",
     "addComboReference": "添加组合引用",
@@ -1725,6 +1731,7 @@
     "errorOccurred": "发生错误。请再试一次。",
     "modelStatus": "模型状态",
     "showConfiguredOnly": "仅显示已配置",
+    "searchProviders": "搜索提供商...",
     "allModelsOperational": "所有模型运行正常",
     "modelsWithIssues": "{count} 有问题的模型",
     "allModelsNormal": "所有模型当前响应正常。",
@@ -1911,6 +1918,9 @@
     "compatUpstreamAddRow": "添加请求头",
     "compatUpstreamRemoveRow": "删除此行",
     "compatBadgeUpstreamHeaders": "请求头",
+    "perModelQuotaLabel": "按模型配额",
+    "perModelQuotaDescription": "启用后，429/404错误只会锁定特定模型，而不是整个连接。适用于具有按模型速率限制的提供商（例如ModelScope）。",
+    "perModelQuotaToggle": "按模型配额开关",
     "modelId": "模型 ID",
     "customModelPlaceholder": "例如：gpt-4.5-turbo",
     "loading": "正在加载...",

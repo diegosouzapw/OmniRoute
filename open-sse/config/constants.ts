@@ -96,39 +96,20 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
   GATEWAY_TIMEOUT: 504,
 };
-
-// OpenAI-compatible error types mapping
-export const ERROR_TYPES = {
-  [HTTP_STATUS.BAD_REQUEST]: { type: "invalid_request_error", code: "bad_request" },
-  [HTTP_STATUS.UNAUTHORIZED]: { type: "authentication_error", code: "invalid_api_key" },
-  [HTTP_STATUS.FORBIDDEN]: { type: "permission_error", code: "insufficient_quota" },
-  [HTTP_STATUS.NOT_FOUND]: { type: "invalid_request_error", code: "model_not_found" },
-  [HTTP_STATUS.RATE_LIMITED]: { type: "rate_limit_error", code: "rate_limit_exceeded" },
-  [HTTP_STATUS.SERVER_ERROR]: { type: "server_error", code: "internal_server_error" },
-  [HTTP_STATUS.BAD_GATEWAY]: { type: "server_error", code: "bad_gateway" },
-  [HTTP_STATUS.SERVICE_UNAVAILABLE]: { type: "server_error", code: "service_unavailable" },
-  [HTTP_STATUS.GATEWAY_TIMEOUT]: { type: "server_error", code: "gateway_timeout" },
-};
-
-// Default error messages per status code
-export const DEFAULT_ERROR_MESSAGES = {
-  [HTTP_STATUS.BAD_REQUEST]: "Bad request",
-  [HTTP_STATUS.UNAUTHORIZED]: "Invalid API key provided",
-  [HTTP_STATUS.FORBIDDEN]: "You exceeded your current quota",
-  [HTTP_STATUS.NOT_FOUND]: "Model not found",
-  [HTTP_STATUS.RATE_LIMITED]: "Rate limit exceeded",
-  [HTTP_STATUS.SERVER_ERROR]: "Internal server error",
-  [HTTP_STATUS.BAD_GATEWAY]: "Bad gateway - upstream provider error",
-  [HTTP_STATUS.SERVICE_UNAVAILABLE]: "Service temporarily unavailable",
-  [HTTP_STATUS.GATEWAY_TIMEOUT]: "Gateway timeout",
-};
-
-// Exponential backoff config for rate limits (like CLIProxyAPI)
-export const BACKOFF_CONFIG = {
-  base: 1000, // 1 second base
-  max: 2 * 60 * 1000, // 2 minutes max
-  maxLevel: 15, // Cap backoff level
-};
+export {
+  BACKOFF_CONFIG,
+  COOLDOWN_MS,
+  DEFAULT_ERROR_MESSAGES,
+  ERROR_RULES,
+  ERROR_TYPES,
+  TRANSIENT_COOLDOWN_MS,
+  calculateBackoffCooldown,
+  findMatchingErrorRule,
+  getDefaultErrorMessage,
+  getErrorInfo,
+  matchErrorRuleByStatus,
+  matchErrorRuleByText,
+} from "./errorConfig.ts";
 
 // Configurable backoff steps for rate limits (Phase 1 — enhanced rate limiting)
 // Used for per-model lockouts with increasing severity
@@ -145,22 +126,6 @@ export const RateLimitReason = {
   UNKNOWN: "unknown",
 };
 
-// Error-based cooldown times (aligned with CLIProxyAPI)
-export const COOLDOWN_MS = {
-  unauthorized: 2 * 60 * 1000, // 401 → 2 min
-  paymentRequired: 2 * 60 * 1000, // 402/403 → 2 min
-  notFound: 2 * 60 * 1000, // 404 → 2 minutes
-  notFoundLocal: 5 * 1000, // 404 on local provider → 5s model-only lockout (connection stays active)
-  transientInitial: 5 * 1000, // 408/500/502/503/504 first hit → 5s (backoff from here)
-  transientMax: 60 * 1000, // 502/503/504 backoff ceiling → 60s
-  transient: 5 * 1000, // Legacy alias → points to transientInitial
-  requestNotAllowed: 5 * 1000, // "Request not allowed" → 5 sec
-  // Legacy aliases for backward compatibility
-  rateLimit: 2 * 60 * 1000,
-  serviceUnavailable: 2 * 1000,
-  authExpired: 2 * 60 * 1000,
-};
-
 // ─── Provider Resilience Profiles ───────────────────────────────────────────
 // Separate behavior for OAuth (low-limit, session-based) vs API Key (high-limit, metered)
 export const PROVIDER_PROFILES = {
@@ -170,6 +135,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
     circuitBreakerThreshold: 3, // Opens fast (low limit providers)
     circuitBreakerReset: 60000, // 1min reset
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 3, // 3 transient failures trigger provider cooldown
+    providerFailureWindowMs: 600000, // 10min window for counting failures
+    providerCooldownMs: 300000, // 5min cooldown when threshold reached
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
@@ -177,6 +146,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
     circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
     circuitBreakerReset: 30000, // 30s reset
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 5, // 5 transient failures trigger provider cooldown
+    providerFailureWindowMs: 1200000, // 20min window for counting failures
+    providerCooldownMs: 600000, // 10min cooldown when threshold reached
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
   // Not yet wired into getProviderProfile() — will be used when local provider_nodes
@@ -187,6 +160,10 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 3, // Low ceiling (local either works or doesn't)
     circuitBreakerThreshold: 2, // Opens fast (if local is down, it's down)
     circuitBreakerReset: 15000, // 15s reset (check again quickly)
+    // Provider-level circuit breaker (entire provider cooldown after repeated failures)
+    providerFailureThreshold: 2, // 2 failures trigger provider cooldown
+    providerFailureWindowMs: 300000, // 5min window for counting failures
+    providerCooldownMs: 60000, // 1min cooldown when threshold reached
   },
 };
 

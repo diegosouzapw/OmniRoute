@@ -54,6 +54,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "kimi-coding",
   "github",
   "kiro",
+  "amazon-q",
   "cursor",
   "kilocode",
   "cline",
@@ -69,6 +70,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
   kiro: KIRO_CONFIG,
+  "amazon-q": KIRO_CONFIG,
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
@@ -84,6 +86,16 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
   kiro: [
+    "registerClientUrl",
+    "deviceAuthUrl",
+    "tokenUrl",
+    "socialAuthEndpoint",
+    "socialLoginUrl",
+    "socialTokenUrl",
+    "socialRefreshUrl",
+    "authMethods",
+  ],
+  "amazon-q": [
     "registerClientUrl",
     "deviceAuthUrl",
     "tokenUrl",
@@ -284,7 +296,7 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
-  const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "kilocode"];
+  const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
 
   for (const providerId of deviceProviders) {
     const provider = PROVIDERS[providerId];

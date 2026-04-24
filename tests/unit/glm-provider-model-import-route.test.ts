@@ -113,7 +113,7 @@ test("GLM import uses China coding endpoint when apiRegion is china", async () =
       { params: { id: connection.id } }
     );
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.provider, "glm");
     assert.equal(body.models.length, 1);
   } finally {

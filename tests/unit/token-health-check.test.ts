@@ -26,7 +26,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -251,7 +251,7 @@ test("checkConnection uses the resolved proxy payload when refreshing tokens", a
               isActive: true,
             });
 
-            await settingsDb.setProxyForLevel("key", connection.id, {
+            await settingsDb.setProxyForLevel("key", (connection as any).id, {
               type: "http",
               host: proxy.host,
               port: proxy.port,
@@ -259,7 +259,7 @@ test("checkConnection uses the resolved proxy payload when refreshing tokens", a
 
             await tokenHealthCheck.checkConnection(connection);
 
-            const updated = await providersDb.getProviderConnectionById(connection.id);
+            const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
             assert.equal(refreshRequests.length, 1);
             assert.equal(refreshRequests[0].method, "POST");
@@ -325,14 +325,14 @@ test("checkConnection uses the latest stored refresh token instead of a stale sw
           });
 
           const staleCheckTime = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-          await providersDb.updateProviderConnection(connection.id, {
+          await providersDb.updateProviderConnection((connection as any).id, {
             refreshToken: "snapshot-refresh-current",
             lastHealthCheckAt: staleCheckTime,
           });
 
           await tokenHealthCheck.checkConnection(connection);
 
-          const updated = await providersDb.getProviderConnectionById(connection.id);
+          const updated = await providersDb.getProviderConnectionById((connection as any).id);
           assert.equal(refreshRequests.length, 1);
           assert.match(refreshRequests[0], /refresh_token=snapshot-refresh-current/);
           assert.equal(updated?.refreshToken, "snapshot-refresh-next");
@@ -382,13 +382,13 @@ test("checkConnection skips interval refresh when token expiry is known and stil
           });
 
           const staleCheckTime = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-          await providersDb.updateProviderConnection(connection.id, {
+          await providersDb.updateProviderConnection((connection as any).id, {
             lastHealthCheckAt: staleCheckTime,
           });
 
           await tokenHealthCheck.checkConnection(connection);
 
-          const updated = await providersDb.getProviderConnectionById(connection.id);
+          const updated = await providersDb.getProviderConnectionById((connection as any).id);
           assert.equal(refreshCount, 0);
           assert.equal(updated?.accessToken, "known-expiry-access");
           assert.equal(updated?.refreshToken, "known-expiry-refresh");

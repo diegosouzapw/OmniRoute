@@ -50,7 +50,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     })
   );
   assert.equal(createRes.status, 201);
-  const createdProxy = await createRes.json();
+  const createdProxy = (await createRes.json()) as any;
   assert.ok(createdProxy.id);
 
   const assignRes = await proxyAssignmentsRoute.PUT(
@@ -72,7 +72,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     )
   );
   assert.equal(resolveRes.status, 200);
-  const resolved = await resolveRes.json();
+  const resolved = (await resolveRes.json()) as any;
   assert.equal(resolved.level, "account");
   assert.equal(resolved.source, "registry");
   assert.equal(resolved.proxy.host, "flow.local");
@@ -89,7 +89,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     })
   );
   assert.equal(bulkRes.status, 200);
-  const bulkPayload = await bulkRes.json();
+  const bulkPayload = (await bulkRes.json()) as any;
   assert.equal(bulkPayload.updated, 2);
   assert.equal(bulkPayload.failed.length, 0);
 
@@ -114,7 +114,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     new Request("http://localhost/api/settings/proxies/health?hours=24")
   );
   assert.equal(healthRes.status, 200);
-  const healthPayload = await healthRes.json();
+  const healthPayload = (await healthRes.json()) as any;
   const row = healthPayload.items.find((item) => item.proxyId === createdProxy.id);
   assert.ok(row);
   assert.equal(row.totalRequests >= 2, true);
@@ -126,7 +126,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     })
   );
   assert.equal(deleteConflictRes.status, 409);
-  const deleteConflict = await deleteConflictRes.json();
+  const deleteConflict = (await deleteConflictRes.json()) as any;
   assert.equal(deleteConflict.error.type, "conflict");
   assert.equal(typeof deleteConflict.requestId, "string");
   assert.equal(deleteConflict.requestId.length > 0, true);
@@ -163,6 +163,6 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     })
   );
   assert.equal(deleteOkRes.status, 200);
-  const deleteOkPayload = await deleteOkRes.json();
+  const deleteOkPayload = (await deleteOkRes.json()) as any;
   assert.equal(deleteOkPayload.success, true);
 });

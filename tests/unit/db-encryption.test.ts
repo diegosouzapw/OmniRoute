@@ -66,7 +66,7 @@ test("connection field helpers encrypt and decrypt all supported credential fiel
   assert.deepEqual(decrypted, connection);
 });
 
-test("decrypt returns the original ciphertext when the value is malformed or the key is wrong", async () => {
+test("decrypt returns null when the value is malformed or the key is wrong", async () => {
   process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-c";
   const firstModule = await importFresh("src/lib/db/encryption.ts");
   const encrypted = firstModule.encrypt("top-secret");
@@ -74,6 +74,8 @@ test("decrypt returns the original ciphertext when the value is malformed or the
   process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-d";
   const secondModule = await importFresh("src/lib/db/encryption.ts");
 
-  assert.equal(secondModule.decrypt(encrypted), encrypted);
-  assert.equal(secondModule.decrypt("enc:v1:not-valid"), "enc:v1:not-valid");
+  // When decryption fails with wrong key, return null (not encrypted ciphertext)
+  // This prevents sending encrypted tokens to APIs
+  assert.equal(secondModule.decrypt(encrypted), null);
+  assert.equal(secondModule.decrypt("enc:v1:not-valid"), null);
 });

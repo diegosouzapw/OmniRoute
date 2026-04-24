@@ -28,12 +28,14 @@ const nextConfig = {
       "./playwright-report/**/*",
       "./app.__qa_backup/**/*",
       "./tests/**/*",
+      "./logs/**/*",
     ],
   },
   serverExternalPackages: [
     "pino",
     "pino-pretty",
     "thread-stream",
+    "pino-abstract-transport",
     "better-sqlite3",
     "keytar",
     "wreq-js",
@@ -50,6 +52,7 @@ const nextConfig = {
     "stream",
     "buffer",
     "util",
+    "process",
   ],
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
@@ -95,6 +98,7 @@ const nextConfig = {
         "zod",
         "pino",
         "pino-pretty",
+        "pino-abstract-transport",
         "child_process",
         "fs",
         "path",
@@ -107,6 +111,7 @@ const nextConfig = {
         "stream",
         "buffer",
         "util",
+        "process",
       ]);
 
       const prev = config.externals ?? [];
@@ -141,6 +146,7 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+        process: false,
       };
     }
     return config;

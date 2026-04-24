@@ -47,24 +47,24 @@ test("schemaCoercion recursively coerces schema numeric fields across object var
     else: { minItems: "18" },
   });
 
-  assert.equal(result.minimum, 1);
-  assert.equal(result.maxItems, 5);
-  assert.equal(result.properties.nested.minLength, 2);
-  assert.equal(result.properties.nested.items.maximum, 7);
-  assert.equal(result.patternProperties["^x-"].minProperties, 1);
-  assert.equal(result.definitions.one.exclusiveMaximum, 9);
-  assert.equal(result.$defs.two.minItems, 3);
-  assert.equal(result.dependentSchemas.dep.maxProperties, 4);
-  assert.equal(result.additionalProperties.maximum, 8);
-  assert.equal(result.unevaluatedProperties.minimum, 0);
-  assert.equal(result.prefixItems[0].minimum, 11);
-  assert.equal(result.anyOf[0].maximum, 12);
-  assert.equal(result.oneOf[0].minimum, 13);
-  assert.equal(result.allOf[0].maxLength, 14);
-  assert.equal(result.not.minimum, 15);
-  assert.equal(result.if.minimum, 16);
-  assert.equal(result.then.maximum, 17);
-  assert.equal(result.else.minItems, 18);
+  assert.equal((result as any).minimum, 1);
+  (assert as any).equal((result as any).maxItems, 5);
+  (assert as any).equal((result as any).properties.nested.minLength, 2);
+  assert.equal((result as any).properties.nested.items.maximum, 7);
+  assert.equal((result as any).patternProperties["^x-"].minProperties, 1);
+  assert.equal((result as any).definitions.one.exclusiveMaximum, 9);
+  assert.equal((result as any).$defs.two.minItems, 3);
+  assert.equal((result as any).dependentSchemas.dep.maxProperties, 4);
+  assert.equal((result as any).additionalProperties.maximum, 8);
+  assert.equal((result as any).unevaluatedProperties.minimum, 0);
+  assert.equal((result as any).prefixItems[0].minimum, 11);
+  assert.equal((result as any).anyOf[0].maximum, 12);
+  assert.equal((result as any).oneOf[0].minimum, 13);
+  assert.equal((result as any).allOf[0].maxLength, 14);
+  assert.equal((result as any).not.minimum, 15);
+  assert.equal((result as any).if.minimum, 16);
+  assert.equal((result as any).then.maximum, 17);
+  assert.equal((result as any).else.minItems, 18);
 
   assert.equal(schemaCoercion.coerceSchemaNumericFields("unchanged"), "unchanged");
   assert.deepEqual(schemaCoercion.coerceSchemaNumericFields(["2", { minimum: "3" }]), [
@@ -78,19 +78,19 @@ test("schemaCoercion sanitizes descriptions, tool schemas, tool ids and deepseek
     type: "function",
     function: { name: "weather", description: 42 },
   });
-  assert.equal(sanitizedOpenAI.function.description, "42");
+  (assert as any).equal((sanitizedOpenAI as any).function.description, "42");
 
   const sanitizedClaude = schemaCoercion.sanitizeToolDescription({
     name: "weather",
     description: null,
   });
-  assert.equal(sanitizedClaude.description, "");
+  assert.equal((sanitizedClaude as any).description, "");
 
   const sanitizedGemini = schemaCoercion.sanitizeToolDescription({
     functionDeclarations: [{ name: "one", description: 12 }, { name: "two" }],
   });
-  assert.equal(sanitizedGemini.functionDeclarations[0].description, "12");
-  assert.equal(sanitizedGemini.functionDeclarations[1].name, "two");
+  assert.equal((sanitizedGemini as any).functionDeclarations[0].description, "12");
+  assert.equal((sanitizedGemini as any).functionDeclarations[1].name, "two");
   assert.equal(schemaCoercion.sanitizeToolDescription("plain"), "plain");
 
   const coercedTools = schemaCoercion.coerceToolSchemas([
@@ -306,9 +306,10 @@ test("claudeHelper validates content, ordering and request preparation branches"
   assert.equal(prepared.messages[4].content[0].type, "tool_result");
   assert.deepEqual(
     prepared.messages[5].content.map((block) => block.type),
-    ["thinking", "text"]
+    ["redacted_thinking", "text"]
   );
   assert.ok(prepared.messages[5].content[0].signature);
+  assert.equal(prepared.messages[5].content[0].thinking, undefined);
   assert.equal(prepared.tools.length, 2);
   assert.equal(prepared.tools[0].cache_control, undefined);
   assert.deepEqual(prepared.tools[1].cache_control, { type: "ephemeral", ttl: "1h" });

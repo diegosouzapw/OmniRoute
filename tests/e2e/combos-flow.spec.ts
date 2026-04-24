@@ -64,6 +64,14 @@ test.describe("Combos flow", () => {
       });
     });
 
+    await page.route(/\/api\/settings$/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ comboConfigMode: "guided" }),
+      });
+    });
+
     await page.route("**/api/settings/proxy", async (route) => {
       await route.fulfill({
         status: 200,
@@ -263,6 +271,213 @@ test.describe("Combos flow", () => {
     await expect(testResultsModal).toContainText(/qa-test-model/i);
   });
 
+  test("expert mode shows a single-page combo form with manual model entry", async ({ page }) => {
+    const state: {
+      combos: ComboStub[];
+      nextId: number;
+      lastPayload: ComboCreatePayload | null;
+    } = {
+      combos: [],
+      nextId: 1,
+      lastPayload: null,
+    };
+
+    await page.route("**/api/combos/metrics", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ metrics: {} }),
+      });
+    });
+
+    await page.route(/\/api\/settings$/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ comboConfigMode: "expert" }),
+      });
+    });
+
+    await page.route("**/api/settings/proxy", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ combos: {} }),
+      });
+    });
+
+    await page.route("**/api/providers", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          connections: [
+            { id: "conn-codex", provider: "codex", testStatus: "active" },
+            { id: "conn-openrouter", provider: "openrouter", testStatus: "active" },
+          ],
+        }),
+      });
+    });
+
+    await page.route("**/api/provider-nodes", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ nodes: [] }),
+      });
+    });
+
+    await page.route("**/api/models/alias", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ aliases: {} }),
+      });
+    });
+
+    await page.route("**/api/pricing", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.route("**/api/combos/builder/options", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          providers: [
+            {
+              providerId: "codex",
+              alias: "cx",
+              displayName: "Codex",
+              connectionCount: 1,
+              models: [],
+              connections: [
+                {
+                  id: "conn-codex",
+                  label: "Codex Primary",
+                  status: "active",
+                  priority: 1,
+                },
+              ],
+            },
+            {
+              providerId: "openrouter",
+              alias: "openrouter",
+              displayName: "OpenRouter",
+              connectionCount: 1,
+              models: [],
+              connections: [
+                {
+                  id: "conn-openrouter",
+                  label: "OpenRouter Primary",
+                  status: "active",
+                  priority: 1,
+                },
+              ],
+            },
+          ],
+          comboRefs: [],
+        }),
+      });
+    });
+
+    await page.route("**/api/combos", async (route) => {
+      const method = route.request().method();
+      if (method === "GET") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ combos: state.combos }),
+        });
+        return;
+      }
+
+      if (method === "POST") {
+        const payloadRaw = route.request().postDataJSON();
+        const payload =
+          payloadRaw && typeof payloadRaw === "object" ? (payloadRaw as ComboCreatePayload) : {};
+        state.lastPayload = payload;
+        const comboId = `combo-${state.nextId++}`;
+        const createdCombo = {
+          id: comboId,
+          name: payload.name || comboId,
+          strategy: payload.strategy || "priority",
+          models: payload.models || [],
+          config: payload.config || {},
+          isActive: true,
+        };
+        state.combos.push(createdCombo);
+
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ combo: createdCombo }),
+        });
+        return;
+      }
+
+      await route.fulfill({ status: 405, body: "Method not allowed in test stub" });
+    });
+
+    await gotoDashboardRoute(page, "/dashboard/combos", {
+      waitUntil: "domcontentloaded",
+    });
+    await page
+      .getByRole("button", { name: /create combo|criar combo/i })
+      .first()
+      .click();
+
+    const comboDialog = page.getByRole("dialog").first();
+    await expect(comboDialog).toBeVisible();
+    await expect(comboDialog.locator('[data-testid="combo-builder-next"]')).toHaveCount(0);
+    await expect(comboDialog.locator('[data-testid="combo-builder-stage-steps"]')).toHaveCount(0);
+    await expect(comboDialog.locator('[data-testid="combo-readiness-panel"]')).toBeVisible();
+    await expect(comboDialog.locator('[data-testid="combo-browse-catalog"]')).toBeVisible();
+    await comboDialog.locator('[data-testid="combo-browse-catalog"]').click();
+    const modelCatalogDialog = page.getByRole("dialog", {
+      name: /add model to combo|adicionar modelo ao combo/i,
+    });
+    await expect(modelCatalogDialog).toBeVisible();
+    await modelCatalogDialog.getByRole("button", { name: /close/i }).click();
+    await expect(comboDialog.getByText(/recommended setup|how to use this strategy/i)).toHaveCount(
+      0
+    );
+
+    await comboDialog.locator('[data-testid="combo-name-input"]').fill("expert-stack");
+    await comboDialog.locator('[data-testid="combo-manual-model-input"]').fill("cx/gpt-5.5");
+    await comboDialog.locator('[data-testid="combo-manual-model-add"]').click();
+    await comboDialog
+      .locator('[data-testid="combo-manual-model-input"]')
+      .fill("openrouter/openai/gpt-5.5");
+    await comboDialog.locator('[data-testid="combo-manual-model-add"]').click();
+    await expect(comboDialog.locator('[data-testid="combo-readiness-panel"]')).toHaveCount(0);
+
+    await comboDialog
+      .getByRole("button", { name: /create combo|criar combo/i })
+      .last()
+      .click();
+    await expect(comboDialog).toBeHidden();
+
+    expect(state.lastPayload?.models).toEqual([
+      {
+        kind: "model",
+        providerId: "codex",
+        model: "codex/gpt-5.5",
+        weight: 0,
+      },
+      {
+        kind: "model",
+        providerId: "openrouter",
+        model: "openrouter/openai/gpt-5.5",
+        weight: 0,
+      },
+    ]);
+  });
+
   test("allows dragging combo cards to persist manual order", async ({ page }) => {
     const state: {
       combos: ComboStub[];
@@ -305,6 +520,14 @@ test.describe("Combos flow", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ metrics: {} }),
+      });
+    });
+
+    await page.route(/\/api\/settings$/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ comboConfigMode: "guided" }),
       });
     });
 

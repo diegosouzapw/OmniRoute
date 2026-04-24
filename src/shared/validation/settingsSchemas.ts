@@ -6,6 +6,7 @@
  * at runtime (see: https://github.com/vercel/next.js/issues/12557).
  */
 import { z } from "zod";
+import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
 const fallbackStrategyValues = [
@@ -47,6 +48,7 @@ export const updateSettingsSchema = z.object({
   hideHealthCheckLogs: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(fallbackStrategyValues).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -97,6 +99,12 @@ export const updateSettingsSchema = z.object({
   // models.dev sync settings
   modelsDevSyncEnabled: z.boolean().optional(),
   modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
+  // Vision Bridge settings
+  visionBridgeEnabled: z.boolean().optional(),
+  visionBridgeModel: z.string().max(200).optional(),
+  visionBridgePrompt: z.string().max(5000).optional(),
+  visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
+  visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
   backgroundDegradation: z.unknown().optional(),

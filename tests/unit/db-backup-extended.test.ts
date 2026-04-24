@@ -126,7 +126,7 @@ test("restoreDbBackup restores SQLite contents and returns entity counts", async
   assert.equal(restored.nodeCount, 0);
   assert.equal(restored.comboCount, 0);
   assert.equal(restored.apiKeyCount, 0);
-  assert.equal(row.cnt, 1);
+  assert.equal((row as any).cnt, 1);
 });
 
 test("cleanupDbBackups removes overflow families and orphaned sidecars", async () => {

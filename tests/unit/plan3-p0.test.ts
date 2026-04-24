@@ -34,6 +34,12 @@ test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
   assert.equal(info.model, "gpt-5.4");
 });
 
+test("getModelInfoCore resolves codex-auto-review to codex", async () => {
+  const info = await getModelInfoCore("codex-auto-review", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "codex-auto-review");
+});
+
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(info.provider, null);
@@ -346,15 +352,18 @@ test("translateNonStreamingResponse converts Responses API payload to OpenAI cha
     FORMATS.OPENAI
   );
 
-  assert.equal(translated.object, "chat.completion");
-  assert.equal(translated.model, "gpt-5.1-codex");
-  assert.equal(translated.choices[0].message.role, "assistant");
-  assert.equal(translated.choices[0].message.content, "Hello from responses API.");
-  assert.equal(translated.choices[0].finish_reason, "tool_calls");
-  assert.equal(translated.choices[0].message.tool_calls.length, 1);
-  assert.equal(translated.usage.prompt_tokens, 11);
-  assert.equal(translated.usage.completion_tokens, 7);
-  assert.equal(translated.usage.total_tokens, 18);
+  assert.equal((translated as any).object, "chat.completion");
+  assert.equal((translated as any).model, "gpt-5.1-codex");
+  (assert as any).equal((translated as any).choices[0].message.role, "assistant");
+  (assert as any).equal(
+    (translated as any).choices[0].message.content,
+    "Hello from responses API."
+  );
+  assert.equal((translated as any).choices[0].finish_reason, "tool_calls");
+  assert.equal(((translated as any).choices[0].message.tool_calls as any).length, 1);
+  assert.equal(((translated as any).usage as any).prompt_tokens, 11);
+  assert.equal((translated as any).usage.completion_tokens, 7);
+  assert.equal((translated as any).usage.total_tokens, 18);
 });
 
 test("extractUsageFromResponse reads usage from Responses API payload", () => {
@@ -393,12 +402,13 @@ test("detectFormat identifies OpenAI Responses by max_output_tokens without inpu
   assert.equal(format, FORMATS.OPENAI_RESPONSES);
 });
 
-test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
+test("detectFormatFromEndpoint uses chat completions endpoint for OpenAI chat protocol", () => {
   const format = detectFormatFromEndpoint(
     {
-      model: "cc/claude-opus-4-6",
+      model: "test-model",
       messages: [{ role: "user", content: "hi" }],
-      max_tokens: 16,
+      input: "ignored for endpoint protocol detection",
+      max_output_tokens: 16,
       stream: false,
     },
     "/v1/chat/completions"

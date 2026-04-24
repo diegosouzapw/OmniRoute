@@ -1635,6 +1635,7 @@
     "errorOccurred": "Tapahtui virhe. Yritä uudelleen.",
     "modelStatus": "Mallin tila",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Hae palveluntarjoajia...",
     "allModelsOperational": "Kaikki mallit toimivat",
     "modelsWithIssues": "{count} malli(t), joissa on ongelmia",
     "allModelsNormal": "Kaikki mallit reagoivat normaalisti.",

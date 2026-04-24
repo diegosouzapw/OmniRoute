@@ -296,23 +296,23 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
     account: "acct-a",
     connection_id: "conn-a",
     detail_state: "ready",
-    artifact_relpath: rows[0].artifact_relpath,
+    artifact_relpath: (rows[0] as any).artifact_relpath,
     has_request_body: 1,
     has_response_body: 1,
     error_summary: "bad upstream",
   });
   assert.equal(typeof rows[0].artifact_relpath, "string");
-  assert.equal(rows[1].id.length > 0, true);
-  assert.equal(rows[1].method, "POST");
-  assert.equal(rows[1].path, null);
-  assert.equal(rows[1].status, 0);
-  assert.equal(rows[1].provider, null);
-  assert.equal(rows[1].account, null);
-  assert.equal(rows[1].connection_id, null);
-  assert.equal(rows[1].detail_state, "ready");
-  assert.equal(rows[1].has_request_body, 1);
-  assert.equal(rows[1].has_response_body, 0);
-  assert.equal(rows[1].error_summary, null);
+  assert.equal((rows[1] as any).id.length > 0, true);
+  assert.equal((rows[1] as any).method, "POST");
+  assert.equal((rows[1] as any).path, null);
+  assert.equal((rows[1] as any).status, 0);
+  assert.equal((rows[1] as any).provider, null);
+  assert.equal((rows[1] as any).account, null);
+  assert.equal((rows[1] as any).connection_id, null);
+  assert.equal((rows[1] as any).detail_state, "ready");
+  assert.equal((rows[1] as any).has_request_body, 1);
+  assert.equal((rows[1] as any).has_response_body, 0);
+  assert.equal((rows[1] as any).error_summary, null);
 
   const firstArtifact = JSON.parse(
     fs.readFileSync(path.join(TEST_DATA_DIR, "call_logs", rows[0].artifact_relpath), "utf8")
@@ -321,7 +321,10 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
   assert.deepEqual(firstArtifact.responseBody, { id: "resp-1" });
 
   const secondArtifact = JSON.parse(
-    fs.readFileSync(path.join(TEST_DATA_DIR, "call_logs", rows[1].artifact_relpath), "utf8")
+    fs.readFileSync(
+      path.join(TEST_DATA_DIR, "call_logs", (rows as any)[1].artifact_relpath),
+      "utf8"
+    )
   );
   assert.deepEqual(secondArtifact.requestBody, { foo: "bar" });
   assert.equal(secondArtifact.responseBody, null);
@@ -337,8 +340,8 @@ test("migrateUsageJsonToSqlite renames empty JSON payloads without inserting row
   assert.equal(fs.existsSync(`${CALL_LOGS_JSON_FILE}.migrated`), true);
 
   const db = getDbInstance();
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_history").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM call_logs").get().count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM usage_history").get() as any).count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM call_logs").get() as any).count, 0);
 });
 
 test("migrateUsageJsonToSqlite leaves malformed JSON files in place and reports both failures", () => {
@@ -364,8 +367,8 @@ test("migrateUsageJsonToSqlite leaves malformed JSON files in place and reports 
   assert.equal(fs.existsSync(`${CALL_LOGS_JSON_FILE}.migrated`), false);
 
   const db = getDbInstance();
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_history").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM call_logs").get().count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM usage_history").get() as any).count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM call_logs").get() as any).count, 0);
   assert.ok(errors.some((entry) => entry.includes("Failed to migrate usage.json")));
   assert.ok(errors.some((entry) => entry.includes("Failed to migrate call_logs.json")));
 });

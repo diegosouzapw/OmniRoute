@@ -1,4 +1,6 @@
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -13,6 +15,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
+  isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -21,14 +24,61 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
+import {
+  AZURE_AI_DEFAULT_BASE_URL,
+  buildAzureAiChatUrl,
+  buildAzureAiModelsUrl,
+} from "@omniroute/open-sse/config/azureAi.ts";
+import {
+  BEDROCK_DEFAULT_BASE_URL,
+  buildBedrockModelsUrl,
+  getBedrockValidationModelId,
+  normalizeBedrockBaseUrl,
+} from "@omniroute/open-sse/config/bedrock.ts";
+import {
+  DATAROBOT_DEFAULT_BASE_URL,
+  buildDataRobotCatalogUrl,
+  buildDataRobotChatUrl,
+  isDataRobotDeploymentUrl,
+} from "@omniroute/open-sse/config/datarobot.ts";
+import {
+  OCI_DEFAULT_BASE_URL,
+  buildOciChatUrl,
+  buildOciModelsUrl,
+} from "@omniroute/open-sse/config/oci.ts";
+import {
+  SAP_DEFAULT_BASE_URL,
+  buildSapChatUrl,
+  buildSapModelsUrl,
+  getSapResourceGroup,
+  isSapDeploymentUrl,
+} from "@omniroute/open-sse/config/sap.ts";
+import {
+  WATSONX_DEFAULT_BASE_URL,
+  buildWatsonxChatUrl,
+  buildWatsonxModelsUrl,
+} from "@omniroute/open-sse/config/watsonx.ts";
+import {
+  buildRunwayApiUrl,
+  buildRunwayHeaders,
+  normalizeRunwayBaseUrl,
+} from "@omniroute/open-sse/config/runway.ts";
+import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
 
 function normalizeBaseUrl(baseUrl: string) {
   return (baseUrl || "").trim().replace(/\/$/, "");
+}
+
+function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
+  return normalizeBaseUrl(baseUrl)
+    .replace(/\/openai$/i, "")
+    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
 }
 
 function normalizeAnthropicBaseUrl(baseUrl: string) {
@@ -143,13 +193,50 @@ function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) 
 }
 
 function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
-  return applyCustomUserAgent(
-    {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    providerSpecificData
-  );
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+  return applyCustomUserAgent(headers, providerSpecificData);
+}
+
+function buildRekaHeaders(apiKey: string, providerSpecificData: any = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+    headers["X-Api-Key"] = apiKey;
+  }
+
+  return applyCustomUserAgent(headers, providerSpecificData);
+}
+
+function buildClarifaiHeaders(apiKey: string, providerSpecificData: any = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers.Authorization = `Key ${apiKey}`;
+  }
+
+  return applyCustomUserAgent(headers, providerSpecificData);
+}
+
+function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers.Authorization = `Token ${apiKey}`;
+  }
+
+  return applyCustomUserAgent(headers, providerSpecificData);
 }
 
 async function validationRead(url: string, init: RequestInit) {
@@ -259,6 +346,143 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
       method: "POST",
       headers: applyCustomUserAgent(headers, providerSpecificData),
       body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateClarifaiProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.clarifai.com/v2/ext/openai/v1";
+  const modelsUrl = addModelsSuffix(baseUrl);
+
+  try {
+    const modelsRes = await validationRead(modelsUrl, {
+      method: "GET",
+      headers: buildClarifaiHeaders(apiKey, providerSpecificData),
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null, method: "clarifai_models" };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    const chatUrl = resolveChatUrl("clarifai", baseUrl, providerSpecificData);
+    const chatRes = await validationWrite(chatUrl, {
+      method: "POST",
+      headers: buildClarifaiHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model:
+          providerSpecificData?.validationModelId || "openai/chat-completion/models/gpt-oss-120b",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (chatRes.ok || chatRes.status === 400 || chatRes.status === 422 || chatRes.status === 429) {
+      return { valid: true, error: null, method: "clarifai_chat_probe" };
+    }
+
+    if (chatRes.status === 401 || chatRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (chatRes.status === 404 || chatRes.status === 405) {
+      return { valid: false, error: "Provider validation endpoint not supported" };
+    }
+
+    if (chatRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${chatRes.status})` };
+    }
+
+    return { valid: true, error: null, method: "clarifai_chat_probe" };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateEmbeddingApiProvider({
+  apiKey,
+  providerSpecificData = {},
+  url,
+  modelId,
+}: any) {
+  if (!url) {
+    return { valid: false, error: "Missing embedding endpoint" };
+  }
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData?.validationModelId || modelId,
+        input: ["test"],
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateRerankApiProvider({ apiKey, providerSpecificData = {}, url, modelId }: any) {
+  if (!url) {
+    return { valid: false, error: "Missing rerank endpoint" };
+  }
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData?.validationModelId || modelId,
+        query: "test",
+        documents: ["test"],
+        top_n: 1,
+        return_documents: false,
+      }),
     });
 
     if (response.status === 401 || response.status === 403) {
@@ -618,6 +842,61 @@ async function validateDatabricksProvider({ apiKey, providerSpecificData = {} }:
   });
 }
 
+async function validateDataRobotProvider({ apiKey, providerSpecificData = {} }: any) {
+  const configuredBaseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) || DATAROBOT_DEFAULT_BASE_URL;
+
+  if (isDataRobotDeploymentUrl(configuredBaseUrl)) {
+    return validateDirectChatProvider({
+      url: buildDataRobotChatUrl(configuredBaseUrl),
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: {
+        model: providerSpecificData.validationModelId || "datarobot-deployed-llm",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      },
+      providerSpecificData,
+    });
+  }
+
+  const catalogUrl = buildDataRobotCatalogUrl(configuredBaseUrl);
+  if (!catalogUrl) {
+    return { valid: false, error: "Invalid DataRobot base URL" };
+  }
+
+  try {
+    const response = await validationRead(catalogUrl, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "gateway_catalog" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "gateway_catalog",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status >= 400 && response.status < 500) {
+      return { valid: true, error: null, method: "gateway_catalog" };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 async function validateSnowflakeProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -671,6 +950,784 @@ async function validateGigachatProvider({ apiKey, providerSpecificData = {} }: a
     },
     providerSpecificData,
   });
+}
+
+async function validateAzureOpenAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!rawBaseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
+  const apiVersion =
+    typeof providerSpecificData.validationApiVersion === "string" &&
+    providerSpecificData.validationApiVersion.trim()
+      ? providerSpecificData.validationApiVersion.trim()
+      : "2024-12-01-preview";
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    providerSpecificData
+  );
+  const encodedVersion = encodeURIComponent(apiVersion);
+
+  for (const probeUrl of [
+    `${baseUrl}/openai/deployments?api-version=${encodedVersion}`,
+    `${baseUrl}/openai/models?api-version=${encodedVersion}`,
+  ]) {
+    try {
+      const response = await validationRead(probeUrl, { method: "GET", headers });
+      if (response.ok) {
+        return { valid: true, error: null, method: "azure_probe" };
+      }
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      if (response.status === 400 || response.status === 404 || response.status === 405) {
+        continue;
+      }
+      if (response.status === 429) {
+        return {
+          valid: true,
+          error: null,
+          method: "azure_probe",
+          warning: "Rate limited, but credentials are valid",
+        };
+      }
+      if (response.status >= 500) {
+        return { valid: false, error: `Provider unavailable (${response.status})` };
+      }
+    } catch (error) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  const deploymentId =
+    typeof providerSpecificData.validationModelId === "string"
+      ? providerSpecificData.validationModelId.trim()
+      : "";
+
+  if (!deploymentId) {
+    return {
+      valid: true,
+      error: null,
+      warning:
+        "Azure key accepted, but no deployment name was provided for a chat probe. Set Model ID to validate a specific deployment.",
+    };
+  }
+
+  const chatUrl = `${baseUrl}/openai/deployments/${encodeURIComponent(deploymentId)}/chat/completions?api-version=${encodedVersion}`;
+  const response = await validationWrite(chatUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: deploymentId,
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    }),
+  });
+
+  if (
+    response.ok ||
+    response.status === 400 ||
+    response.status === 422 ||
+    response.status === 429
+  ) {
+    return { valid: true, error: null, method: "chat_probe" };
+  }
+  if (response.status === 401 || response.status === 403) {
+    return { valid: false, error: "Invalid API key" };
+  }
+  if (response.status === 404) {
+    return {
+      valid: true,
+      error: null,
+      method: "chat_probe",
+      warning: "Azure credentials are valid, but the requested deployment was not found.",
+    };
+  }
+  if (response.status >= 500) {
+    return { valid: false, error: `Provider unavailable (${response.status})` };
+  }
+  return { valid: false, error: `Validation failed: ${response.status}` };
+}
+
+async function validateAzureAiProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || AZURE_AI_DEFAULT_BASE_URL;
+  const modelsUrl = buildAzureAiModelsUrl(rawBaseUrl);
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    providerSpecificData
+  );
+
+  try {
+    const response = await validationRead(modelsUrl, {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "azure_ai_models" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "azure_ai_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+  } catch {
+    // Fall through to chat probe when /models is unavailable.
+  }
+
+  const validationModelId =
+    typeof providerSpecificData.validationModelId === "string"
+      ? providerSpecificData.validationModelId.trim()
+      : "";
+
+  if (!validationModelId) {
+    return {
+      valid: false,
+      error: "Endpoint /models unavailable. Provide a Model ID to validate via /chat/completions.",
+    };
+  }
+
+  const chatUrl = buildAzureAiChatUrl(
+    rawBaseUrl,
+    providerSpecificData.apiType === "responses" ? "responses" : "chat"
+  );
+  const chatBody =
+    providerSpecificData.apiType === "responses"
+      ? {
+          model: validationModelId,
+          input: "test",
+          max_output_tokens: 1,
+        }
+      : {
+          model: validationModelId,
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        };
+
+  try {
+    const response = await validationWrite(chatUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(chatBody),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 404 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null, method: "azure_ai_chat_probe" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Azure AI Foundry" };
+}
+
+async function validateWatsonxProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || WATSONX_DEFAULT_BASE_URL;
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    providerSpecificData
+  );
+
+  try {
+    const response = await validationRead(buildWatsonxModelsUrl(rawBaseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "watsonx_models" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "watsonx_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+  } catch {
+    // Fall through to chat probe when /models is unavailable.
+  }
+
+  const validationModelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "ibm/granite-3-3-8b-instruct";
+
+  try {
+    const response = await validationWrite(buildWatsonxChatUrl(rawBaseUrl), {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: validationModelId,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 404 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return {
+        valid: true,
+        error: null,
+        method: "watsonx_chat_probe",
+        ...(response.status === 404
+          ? { warning: "watsonx credentials are valid, but the requested model is not enabled." }
+          : {}),
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing watsonx.ai" };
+}
+
+async function validateOciProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || OCI_DEFAULT_BASE_URL;
+  const projectId =
+    typeof providerSpecificData.projectId === "string" && providerSpecificData.projectId.trim()
+      ? providerSpecificData.projectId.trim()
+      : typeof providerSpecificData.project === "string" && providerSpecificData.project.trim()
+        ? providerSpecificData.project.trim()
+        : "";
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      ...(projectId ? { "OpenAI-Project": projectId } : {}),
+    },
+    providerSpecificData
+  );
+
+  try {
+    const response = await validationRead(buildOciModelsUrl(rawBaseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "oci_models" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "oci_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+  } catch {
+    // Fall through to chat/responses probe when /models is unavailable.
+  }
+
+  const validationModelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "openai.gpt-oss-20b";
+  const apiType = providerSpecificData.apiType === "responses" ? "responses" : "chat";
+  const body =
+    apiType === "responses"
+      ? {
+          model: validationModelId,
+          input: "test",
+          max_output_tokens: 1,
+        }
+      : {
+          model: validationModelId,
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        };
+
+  try {
+    const response = await validationWrite(buildOciChatUrl(rawBaseUrl, apiType), {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 404 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return {
+        valid: true,
+        error: null,
+        method: apiType === "responses" ? "oci_responses_probe" : "oci_chat_probe",
+        ...(response.status === 404
+          ? { warning: "OCI credentials are valid, but the requested model was not found." }
+          : {}),
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing OCI Generative AI" };
+}
+
+async function validateSapProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || SAP_DEFAULT_BASE_URL;
+  const resourceGroup = getSapResourceGroup(providerSpecificData);
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "AI-Resource-Group": resourceGroup,
+    },
+    providerSpecificData
+  );
+
+  try {
+    const response = await validationRead(buildSapModelsUrl(rawBaseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "sap_models" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "sap_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+  } catch {
+    // Fall through to deployment probe when the discovery API is unavailable.
+  }
+
+  const canProbeChat =
+    isSapDeploymentUrl(rawBaseUrl) || /\/chat\/completions$/i.test(normalizeBaseUrl(rawBaseUrl));
+  if (!canProbeChat) {
+    return {
+      valid: false,
+      error:
+        "SAP validation needs either a reachable AI_API_URL or a deployment URL in providerSpecificData.baseUrl",
+    };
+  }
+
+  const validationModelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "gpt-4o";
+
+  try {
+    const response = await validationWrite(buildSapChatUrl(rawBaseUrl), {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: validationModelId,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 404 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return {
+        valid: true,
+        error: null,
+        method: "sap_chat_probe",
+        ...(response.status === 404
+          ? { warning: "SAP credentials are valid, but the deployment URL or model was not found." }
+          : {}),
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing SAP Generative AI Hub" };
+}
+
+async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.reka.ai/v1";
+  const headers = buildRekaHeaders(apiKey, providerSpecificData);
+
+  try {
+    const response = await validationRead(`${baseUrl}/models`, {
+      method: "GET",
+      headers,
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "reka_models" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "reka_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+  } catch {
+    // Fall through to the chat probe when /models is unavailable.
+  }
+
+  try {
+    const response = await validationWrite(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "reka-flash",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null, method: "reka_chat_probe" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Reka" };
+}
+
+async function validateNlpCloudProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.nlpcloud.io/v1";
+  const baseUrl = rawBaseUrl.endsWith("/gpu") ? rawBaseUrl : `${rawBaseUrl.replace(/\/$/, "")}/gpu`;
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "chatdolphin";
+  const headers = buildTokenHeaders(apiKey, providerSpecificData);
+
+  try {
+    const response = await validationWrite(`${baseUrl}/${modelId}/chatbot`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        input: "test",
+        context: "You are a concise assistant.",
+        history: [],
+      }),
+    });
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return {
+        valid: true,
+        error: null,
+        method: "nlpcloud_chatbot",
+        ...(response.status === 429 ? { warning: "Rate limited, but credentials are valid" } : {}),
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing NLP Cloud" };
+}
+
+async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeRunwayBaseUrl(providerSpecificData.baseUrl);
+
+  try {
+    const response = await validationRead(buildRunwayApiUrl("/organization", baseUrl), {
+      method: "GET",
+      headers: buildRunwayHeaders(apiKey),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "runway_organization" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "runway_organization",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Runway" };
+}
+
+async function validatePetalsProvider({ apiKey, providerSpecificData = {} }: any) {
+  const url = normalizePetalsBaseUrl(providerSpecificData.baseUrl);
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : PETALS_DEFAULT_MODEL;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/x-www-form-urlencoded",
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  const body = new URLSearchParams({
+    model: modelId,
+    inputs: "test",
+    max_new_tokens: "1",
+  });
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers,
+      body: body.toString(),
+    });
+
+    if (response.ok) {
+      const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+      if (payload.ok === false) {
+        return {
+          valid: false,
+          error: "Petals API rejected validation request",
+        };
+      }
+      return { valid: true, error: null, method: "petals_generate" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "petals_generate",
+        warning: "Rate limited, but endpoint is reachable",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Petals" };
+}
+
+async function validateNousResearchProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) || "https://inference-api.nousresearch.com/v1";
+  const chatUrl = `${baseUrl}/chat/completions`;
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "nousresearch/hermes-4-70b";
+
+  try {
+    const response = await validationWrite(chatUrl, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: modelId,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "nous_chat_completions" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "nous_chat_completions",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status === 402) {
+      return { valid: false, error: "Payment required or API key missing" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Nous Research" };
+}
+
+async function validatePoeProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.poe.com/v1";
+  const balanceUrl = new URL("/usage/current_balance", baseUrl).toString();
+
+  try {
+    const response = await validationRead(balanceUrl, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "poe_current_balance" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "poe_current_balance",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Poe" };
 }
 
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -1063,6 +2120,13 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       headers: { Accept: "application/json" },
     },
   }),
+  "youcom-search": (apiKey) => ({
+    url: "https://ydc-index.io/v1/search?query=test&count=1",
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json", "X-API-Key": apiKey },
+    },
+  }),
   "searxng-search": (_apiKey, providerSpecificData = {}) => {
     const baseUrl =
       typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
@@ -1078,6 +2142,117 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
     };
   },
 };
+
+const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
+const META_AI_ASBD_ID = "129477";
+const META_AI_USER_AGENT =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+const META_AI_BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function encodeMetaAiBase62(value: bigint, padLength: number): string {
+  let remaining = value;
+  let encoded = "";
+
+  while (remaining > 0n) {
+    encoded = META_AI_BASE62_ALPHABET[Number(remaining % 62n)] + encoded;
+    remaining /= 62n;
+  }
+
+  return encoded.padStart(padLength, "0");
+}
+
+function decodeMetaAiBase62(value: string): bigint {
+  let decoded = 0n;
+  for (const char of value) {
+    const index = META_AI_BASE62_ALPHABET.indexOf(char);
+    if (index < 0) {
+      throw new Error(`Invalid Meta AI base62 character: ${char}`);
+    }
+    decoded = decoded * 62n + BigInt(index);
+  }
+  return decoded;
+}
+
+function randomMetaAiBigInt(byteLength: number): bigint {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  let result = 0n;
+  for (const byte of bytes) {
+    result = (result << 8n) | BigInt(byte);
+  }
+  return result;
+}
+
+function generateMetaAiConversationId(): string {
+  const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+  const random = randomMetaAiBigInt(8) & ((1n << 64n) - 1n);
+  return `c.${encodeMetaAiBase62((timestamp << 64n) | random, 19)}`;
+}
+
+function generateMetaAiEventId(conversationId: string): string | null {
+  if (!conversationId.startsWith("c.")) {
+    return null;
+  }
+
+  try {
+    const packedConversation = decodeMetaAiBase62(conversationId.slice(2));
+    const conversationRandom = packedConversation & ((1n << 64n) - 1n);
+    const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+    const eventRandom = randomMetaAiBigInt(4) & ((1n << 32n) - 1n);
+    return `e.${encodeMetaAiBase62((timestamp << (64n + 32n)) | (conversationRandom << 32n) | eventRandom, 25)}`;
+  } catch {
+    return null;
+  }
+}
+
+function generateMetaAiNumericMessageId(): string {
+  return (
+    BigInt(Date.now()) * 1000n +
+    BigInt(Math.floor(Math.random() * 1000)) +
+    (randomMetaAiBigInt(2) & 0xfffn)
+  ).toString();
+}
+
+function buildMetaAiValidationBody() {
+  const conversationId = generateMetaAiConversationId();
+  return {
+    doc_id: META_AI_SEND_MESSAGE_DOC_ID,
+    variables: {
+      assistantMessageId: crypto.randomUUID(),
+      attachments: null,
+      clientLatitude: null,
+      clientLongitude: null,
+      clientTimezone:
+        typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC",
+      clippyIp: null,
+      content: "test",
+      conversationId,
+      conversationStarterId: null,
+      currentBranchPath: "0",
+      developerOverridesForMessage: null,
+      devicePixelRatio: 1,
+      entryPoint: "KADABRA__CHAT__UNIFIED_INPUT_BAR",
+      imagineOperationRequest: null,
+      isNewConversation: true,
+      mentions: null,
+      mode: "mode_fast",
+      promptEditType: null,
+      promptSessionId: crypto.randomUUID(),
+      promptType: null,
+      qplJoinId: null,
+      requestedToolCall: null,
+      rewriteOptions: null,
+      turnId: crypto.randomUUID(),
+      userAgent: META_AI_USER_AGENT,
+      userEventId: generateMetaAiEventId(conversationId),
+      userLocale: "en_US",
+      userMessageId: crypto.randomUUID(),
+      userUniqueMessageId: generateMetaAiNumericMessageId(),
+    },
+  };
+}
 
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
@@ -1251,8 +2426,183 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
   }
 }
 
+async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "__Secure-authjs.session-token");
+    const sessionHeaders = applyCustomUserAgent(
+      {
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const sessionResponse = await validationRead("https://app.blackbox.ai/api/auth/session", {
+      method: "GET",
+      headers: sessionHeaders,
+    });
+
+    const sessionText = await sessionResponse.text();
+    const sessionPayload = sessionText ? JSON.parse(sessionText) : null;
+    const userEmail = sessionPayload?.user?.email;
+
+    if (!sessionResponse.ok || !userEmail) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    const subscriptionHeaders = applyCustomUserAgent(
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const subscriptionResponse = await validationWrite(
+      "https://app.blackbox.ai/api/check-subscription",
+      {
+        method: "POST",
+        headers: subscriptionHeaders,
+        body: JSON.stringify({ email: userEmail }),
+      }
+    );
+
+    const subscriptionText = await subscriptionResponse.text();
+    const subscriptionPayload = subscriptionText ? JSON.parse(subscriptionText) : null;
+    const explicitActive =
+      subscriptionPayload?.hasActiveSubscription === true ||
+      subscriptionPayload?.isTrialSubscription === true ||
+      subscriptionPayload?.status === "PREMIUM";
+    const explicitInactive =
+      subscriptionPayload?.hasActiveSubscription === false ||
+      subscriptionPayload?.status === "FREE";
+    const requiresAuthentication =
+      subscriptionPayload?.requiresAuthentication === true ||
+      /login is required/i.test(subscriptionText || "");
+
+    if (subscriptionResponse.status === 401 || subscriptionResponse.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (requiresAuthentication) {
+      return {
+        valid: false,
+        error:
+          "Blackbox session expired — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (subscriptionResponse.ok && explicitActive) {
+      return { valid: true, error: null };
+    }
+
+    if (
+      (subscriptionResponse.ok && explicitInactive) ||
+      subscriptionPayload?.previouslySubscribed
+    ) {
+      return {
+        valid: false,
+        error:
+          "Blackbox account authenticated, but no active paid subscription was detected for premium web models.",
+      };
+    }
+
+    if (subscriptionResponse.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (subscriptionResponse.status >= 500) {
+      return { valid: false, error: `Blackbox unavailable (${subscriptionResponse.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${subscriptionResponse.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "abra_sess");
+    const response = await validationWrite("https://www.meta.ai/api/graphql", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          "Accept-Language": "en-US,en;q=0.9",
+          Cookie: cookieHeader,
+          Origin: "https://www.meta.ai",
+          Referer: "https://www.meta.ai/",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          "User-Agent": META_AI_USER_AGENT,
+          "X-ASBD-ID": META_AI_ASBD_ID,
+          "X-FB-Friendly-Name": META_AI_FRIENDLY_NAME,
+          "X-FB-Request-Analytics-Tags": META_AI_REQUEST_ANALYTICS_TAGS,
+        },
+        providerSpecificData
+      ),
+      body: JSON.stringify(buildMetaAiValidationBody()),
+    });
+
+    const responseText = await response.text();
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (/authentication required to send messages|login is required|sign in/i.test(responseText)) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (
+      response.status === 429 ||
+      /limit exceeded|rate limit|too many requests/i.test(responseText)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Meta AI unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey = provider !== "searxng-search";
+  const requiresApiKey =
+    provider !== "searxng-search" && provider !== "petals" && !isSelfHostedChatProvider(provider);
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
@@ -1288,16 +2638,101 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
+    datarobot: validateDataRobotProvider,
+    watsonx: validateWatsonxProvider,
+    oci: validateOciProvider,
+    sap: validateSapProvider,
+    bedrock: ({ apiKey, providerSpecificData }: any) => {
+      const baseUrl = normalizeBedrockBaseUrl(
+        providerSpecificData?.baseUrl || BEDROCK_DEFAULT_BASE_URL
+      );
+      return validateOpenAILikeProvider({
+        provider: "bedrock",
+        apiKey,
+        providerSpecificData,
+        baseUrl,
+        modelId: getBedrockValidationModelId(baseUrl),
+        modelsUrl: buildBedrockModelsUrl(baseUrl),
+      });
+    },
+    modal: ({ apiKey, providerSpecificData }: any) =>
+      validateOpenAILikeProvider({
+        provider: "modal",
+        apiKey,
+        providerSpecificData,
+        baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
+        modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
+      }),
+    "nous-research": validateNousResearchProvider,
+    petals: validatePetalsProvider,
+    poe: validatePoeProvider,
+    clarifai: validateClarifaiProvider,
+    reka: validateRekaProvider,
+    nlpcloud: validateNlpCloudProvider,
+    runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
+    "blackbox-web": validateBlackboxWebProvider,
+    "muse-spark-web": validateMuseSparkWebProvider,
+    "azure-openai": validateAzureOpenAIProvider,
+    "azure-ai": validateAzureAiProvider,
+    "voyage-ai": ({ apiKey, providerSpecificData }: any) => {
+      const embeddingProvider = getEmbeddingProvider("voyage-ai");
+      return validateEmbeddingApiProvider({
+        apiKey,
+        providerSpecificData,
+        url: embeddingProvider?.baseUrl,
+        modelId: embeddingProvider?.models?.[0]?.id || "voyage-4-lite",
+      });
+    },
+    "jina-ai": ({ apiKey, providerSpecificData }: any) => {
+      const rerankProvider = getRerankProvider("jina-ai");
+      return validateRerankApiProvider({
+        apiKey,
+        providerSpecificData,
+        url: rerankProvider?.baseUrl,
+        modelId: rerankProvider?.models?.[0]?.id || "jina-reranker-v3",
+      });
+    },
+    gitlab: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const configuredBaseUrl =
+          typeof providerSpecificData?.baseUrl === "string"
+            ? providerSpecificData.baseUrl.trim()
+            : "";
+        const root = (configuredBaseUrl || "https://gitlab.com").replace(/\/$/, "");
+        const res = await validationWrite(`${root}/api/v4/code_suggestions/direct_access`, {
+          method: "POST",
+          headers: buildBearerHeaders(apiKey, providerSpecificData),
+          body: "{}",
+        });
+        if (res.status === 401) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =
           await import("@omniroute/open-sse/executors/vertex.ts");
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
+    "vertex-partner": async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };
       } catch (error: any) {

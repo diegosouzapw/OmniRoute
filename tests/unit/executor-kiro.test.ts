@@ -110,7 +110,10 @@ test("KiroExecutor.transformRequest removes the top-level model field", () => {
 
   const result = executor.transformRequest("kiro-model", body, true, {});
   assert.equal("model" in result, false);
-  assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "kiro-model");
+  assert.equal(
+    (result as any).conversationState.currentMessage.userInputMessage.modelId,
+    "kiro-model"
+  );
 });
 
 test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage and DONE", async () => {

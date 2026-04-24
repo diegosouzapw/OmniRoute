@@ -79,7 +79,7 @@ test("kimi-coding-apikey validation uses Kimi Coding messages endpoint", async (
     assert.equal(calls[0].url, "https://api.kimi.com/coding/v1/messages");
     assert.equal(calls[0].method, "POST");
     assert.equal(calls[0].headers["x-api-key"], "sk-kimi-test");
-    assert.equal(calls[0].headers["Anthropic-Version"], "2023-06-01");
+    assert.equal(calls[0].headers["anthropic-version"], "2023-06-01");
 
     for (const call of calls) {
       assert.equal(call.url.includes("?beta=true/messages"), false);

@@ -85,7 +85,7 @@ test("movePath rethrows non-EXDEV rename failures", async () => {
           throw new Error("remove fallback should not run");
         },
       }),
-      (error) => error?.code === "EACCES"
+      (error) => (error as any).code === "EACCES"
     );
   });
 });
