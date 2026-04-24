@@ -1128,9 +1128,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "accounts/fireworks/models/deepseek-v3p1", name: "DeepSeek V3.1" },
-      { id: "accounts/fireworks/models/llama-v3p3-70b-instruct", name: "Llama 3.3 70B" },
-      { id: "accounts/fireworks/models/qwen3-235b-a22b", name: "Qwen3 235B" },
+      { id: "accounts/fireworks/models/kimi-k2p6", name: "Kimi K2.6" },
+      { id: "accounts/fireworks/models/minimax-m2p7", name: "MiniMax M2.7" },
+      { id: "accounts/fireworks/models/qwen3p6-plus", name: "Qwen3.6 Plus" },
+      { id: "accounts/fireworks/models/glm-5p1", name: "GLM 5.1" },
+      { id: "accounts/fireworks/models/deepseek-v3p2", name: "DeepSeek V3.2" },
     ],
   },
 
