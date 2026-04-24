@@ -245,7 +245,10 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    const apiKeyOptional = data.provider === "searxng-search" || isLocalProvider(data.provider);
+    const apiKeyOptional =
+      data.provider === "searxng-search" ||
+      data.provider === "petals" ||
+      isLocalProvider(data.provider);
     if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

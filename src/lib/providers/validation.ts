@@ -66,6 +66,7 @@ import {
   buildRunwayHeaders,
   normalizeRunwayBaseUrl,
 } from "@omniroute/open-sse/config/runway.ts";
+import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -1579,6 +1580,119 @@ async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any
   return { valid: false, error: "Connection failed while testing Runway" };
 }
 
+async function validatePetalsProvider({ apiKey, providerSpecificData = {} }: any) {
+  const url = normalizePetalsBaseUrl(providerSpecificData.baseUrl);
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : PETALS_DEFAULT_MODEL;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/x-www-form-urlencoded",
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  const body = new URLSearchParams({
+    model: modelId,
+    inputs: "test",
+    max_new_tokens: "1",
+  });
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers,
+      body: body.toString(),
+    });
+
+    if (response.ok) {
+      const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+      if (payload.ok === false) {
+        return {
+          valid: false,
+          error: "Petals API rejected validation request",
+        };
+      }
+      return { valid: true, error: null, method: "petals_generate" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "petals_generate",
+        warning: "Rate limited, but endpoint is reachable",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Petals" };
+}
+
+async function validateNousResearchProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) || "https://inference-api.nousresearch.com/v1";
+  const chatUrl = `${baseUrl}/chat/completions`;
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "nousresearch/hermes-4-70b";
+
+  try {
+    const response = await validationWrite(chatUrl, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: modelId,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "nous_chat_completions" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "nous_chat_completions",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status === 402) {
+      return { valid: false, error: "Payment required or API key missing" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Nous Research" };
+}
+
 async function validatePoeProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.poe.com/v1";
   const balanceUrl = new URL("/usage/current_balance", baseUrl).toString();
@@ -2487,7 +2601,8 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey = provider !== "searxng-search" && !isSelfHostedChatProvider(provider);
+  const requiresApiKey =
+    provider !== "searxng-search" && provider !== "petals" && !isSelfHostedChatProvider(provider);
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
@@ -2548,6 +2663,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
         modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
       }),
+    "nous-research": validateNousResearchProvider,
+    petals: validatePetalsProvider,
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,

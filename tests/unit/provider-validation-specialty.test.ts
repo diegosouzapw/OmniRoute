@@ -1211,6 +1211,105 @@ test("specialty validator accepts Poe credentials on the current balance endpoin
   assert.equal(poe.method, "poe_current_balance");
 });
 
+test("specialty validator accepts Nous Research credentials on chat completions", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://inference-api.nousresearch.com/v1/chat/completions") {
+      const headers = init.headers as Record<string, string>;
+      const body = JSON.parse(String(init.body));
+      assert.equal(headers.Authorization, "Bearer nous-key");
+      assert.equal(body.model, "nousresearch/hermes-4-70b");
+      return new Response(
+        JSON.stringify({
+          id: "chatcmpl-nous",
+          choices: [{ message: { role: "assistant", content: "ok" } }],
+        }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nous = await validateProviderApiKey({
+    provider: "nous-research",
+    apiKey: "nous-key",
+  });
+
+  assert.equal(nous.valid, true);
+  assert.equal(nous.method, "nous_chat_completions");
+});
+
+test("specialty validator rejects invalid Nous Research credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://inference-api.nousresearch.com/v1/chat/completions") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer nous-bad");
+      return new Response(JSON.stringify({ message: "invalid" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nous = await validateProviderApiKey({
+    provider: "nous-research",
+    apiKey: "nous-bad",
+  });
+
+  assert.equal(nous.error, "Invalid API key");
+});
+
+test("specialty validator accepts the public Petals generate endpoint without an API key", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://chat.petals.dev/api/v1/generate") {
+      const headers = init.headers as Record<string, string>;
+      const body = new URLSearchParams(String(init.body));
+      assert.equal(headers.Authorization, undefined);
+      assert.equal(headers["Content-Type"], "application/x-www-form-urlencoded");
+      assert.equal(body.get("model"), "stabilityai/StableBeluga2");
+      assert.equal(body.get("inputs"), "test");
+      assert.equal(body.get("max_new_tokens"), "1");
+      return new Response(JSON.stringify({ ok: true, outputs: "hi" }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const petals = await validateProviderApiKey({
+    provider: "petals",
+    apiKey: "",
+  });
+
+  assert.equal(petals.valid, true);
+  assert.equal(petals.method, "petals_generate");
+});
+
+test("specialty validator surfaces Petals upstream unavailability", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://chat.petals.dev/api/v1/generate") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, undefined);
+      return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const petals = await validateProviderApiKey({
+    provider: "petals",
+    apiKey: "",
+  });
+
+  assert.equal(petals.error, "Provider unavailable (503)");
+});
+
 test("specialty validator rejects invalid Poe credentials", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);

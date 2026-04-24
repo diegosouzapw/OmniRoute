@@ -30,6 +30,7 @@ import { BEDROCK_DEFAULT_BASE_URL } from "./bedrock.ts";
 import { WATSONX_DEFAULT_BASE_URL } from "./watsonx.ts";
 import { OCI_DEFAULT_BASE_URL } from "./oci.ts";
 import { SAP_DEFAULT_BASE_URL } from "./sap.ts";
+import { PETALS_DEFAULT_BASE_URL } from "./petals.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -205,6 +206,26 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "meta-llama/Meta-Llama-3-8B-Instruct",
     "meta-llama/Meta-Llama-3-70B-Instruct",
   ]),
+  "nous-research": [
+    { id: "nousresearch/hermes-4-70b", name: "Nous: Hermes 4 70B", contextLength: 131072 },
+    { id: "nousresearch/hermes-4-405b", name: "Nous: Hermes 4 405B", contextLength: 131072 },
+    {
+      id: "nousresearch/hermes-3-llama-3.1-70b",
+      name: "Nous: Hermes 3 70B Instruct",
+      contextLength: 131072,
+    },
+    {
+      id: "nousresearch/hermes-3-llama-3.1-405b",
+      name: "Nous: Hermes 3 405B Instruct",
+      contextLength: 131072,
+    },
+    {
+      id: "nousresearch/hermes-2-pro-llama-3-8b",
+      name: "NousResearch: Hermes 2 Pro - Llama-3 8B",
+      contextLength: 8192,
+    },
+  ],
+  petals: [{ id: "stabilityai/StableBeluga2", name: "Stable Beluga 2 (70B)", contextLength: 8192 }],
   poe: buildModels(["Claude-Sonnet-4.5", "GPT-5-Pro", "GPT-5-Codex", "Gemini-2.5-Pro"]),
   gitlab: [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   "gitlab-duo": [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
@@ -2073,6 +2094,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.empower,
     passthroughModels: true,
+  },
+
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference-api.nousresearch.com/v1",
+    modelsUrl: "https://inference-api.nousresearch.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["nous-research"],
+    passthroughModels: true,
+  },
+
+  petals: {
+    id: "petals",
+    alias: "petals",
+    format: "openai",
+    executor: "petals",
+    baseUrl: PETALS_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.petals,
   },
 
   poe: {

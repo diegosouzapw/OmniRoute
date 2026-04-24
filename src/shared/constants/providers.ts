@@ -1140,6 +1140,33 @@ export const APIKEY_PROVIDERS = {
       "Empower exposes OpenAI-compatible chat on https://app.empower.dev/api/v1 with tool-calling support on empower-functions.",
     passthroughModels: true,
   },
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    name: "Nous Research",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "NO",
+    website: "https://portal.nousresearch.com/help",
+    authHint:
+      "Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
+    apiHint:
+      "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
+    passthroughModels: true,
+  },
+  petals: {
+    id: "petals",
+    alias: "petals",
+    name: "Petals",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "PT",
+    website: "https://chat.petals.dev",
+    authHint:
+      "No API key is required for the public research endpoint. Leave the field blank, or provide a bearer token if your self-hosted Petals gateway uses auth.",
+    apiHint:
+      "Petals exposes a public HTTP API at https://chat.petals.dev/api/v1/generate and a WebSocket API at /api/v2/generate. OmniRoute targets the HTTP generate endpoint and supports self-hosted base URLs.",
+  },
   poe: {
     id: "poe",
     alias: "poe",

@@ -103,6 +103,21 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "nous-research",
+      body: {
+        provider: "nous-research",
+        apiKey: "nous-key",
+        name: "Nous Research Primary",
+      },
+    },
+    {
+      provider: "petals",
+      body: {
+        provider: "petals",
+        name: "Petals Public Endpoint",
+      },
+    },
+    {
       provider: "poe",
       body: {
         provider: "poe",

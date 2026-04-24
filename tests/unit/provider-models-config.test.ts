@@ -117,6 +117,23 @@ test("Poe registry exposes current OpenAI-compatible examples", () => {
   assert.ok(ids.has("Gemini-2.5-Pro"));
 });
 
+test("Nous Research registry exposes current official Hermes examples", () => {
+  const nousModels = getProviderModels("nous");
+  const ids = new Set(nousModels.map((model) => model.id));
+
+  assert.ok(ids.has("nousresearch/hermes-4-70b"));
+  assert.ok(ids.has("nousresearch/hermes-4-405b"));
+  assert.ok(ids.has("nousresearch/hermes-3-llama-3.1-70b"));
+  assert.ok(ids.has("nousresearch/hermes-3-llama-3.1-405b"));
+});
+
+test("Petals registry exposes the current public HTTP API fallback model", () => {
+  const petalsModels = getProviderModels("petals");
+  const ids = new Set(petalsModels.map((model) => model.id));
+
+  assert.ok(ids.has("stabilityai/StableBeluga2"));
+});
+
 test("Azure AI Foundry registry exposes fallback marketplace examples", () => {
   const azureAiModels = getProviderModels("azure-ai");
   const ids = new Set(azureAiModels.map((model) => model.id));

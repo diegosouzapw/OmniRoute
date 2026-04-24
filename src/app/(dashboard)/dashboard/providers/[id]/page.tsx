@@ -5336,6 +5336,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "databricks",
   "snowflake",
   "searxng-search",
+  "petals",
 ]);
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -5343,6 +5344,7 @@ const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
+  petals: "https://chat.petals.dev/api/v1/generate",
 };
 
 function getLocalProviderMetadata(providerId?: string | null) {
@@ -5486,7 +5488,8 @@ function AddApiKeyModal({
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const apiKeyOptional = isSearxng || isLocalSelfHostedProvider;
+  const isPetals = provider === "petals";
+  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -5546,7 +5549,7 @@ function AddApiKeyModal({
               ? t("localProviderApiKeyOptionalHint", {
                   provider: localProviderMetadata?.name || providerName || provider || "",
                 })
-              : isSearxng
+              : isSearxng || isPetals
                 ? t("apiKeyOptionalHint")
                 : undefined;
 
@@ -5975,14 +5978,15 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
-  const apiKeyOptional = isSearxng || isLocalSelfHostedProvider;
+  const isPetals = connection?.provider === "petals";
+  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
   const apiCredentialHint = isLocalSelfHostedProvider
     ? t("localProviderApiKeyOptionalHint", {
         provider: localProviderMetadata?.name || connection?.provider || "",
       })
-    : isSearxng
+    : isSearxng || isPetals
       ? t("apiKeyOptionalHint")
       : t("leaveBlankKeepCurrentApiKey");
 

@@ -27,6 +27,7 @@ const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "databricks",
   "datarobot",
   "clarifai",
+  "nous-research",
   "poe",
   "azure-ai",
   "bedrock",

@@ -342,6 +342,16 @@ test("provider models route fetches remote catalogs for new OpenAI-compatible ga
       model: { id: "empower-functions", name: "Empower Functions", owned_by: "empower" },
     },
     {
+      provider: "nous-research",
+      apiKey: "nous-key",
+      expectedUrl: "https://inference-api.nousresearch.com/v1/models",
+      model: {
+        id: "nousresearch/hermes-4-70b",
+        name: "Nous: Hermes 4 70B",
+        owned_by: "nous-research",
+      },
+    },
+    {
       provider: "poe",
       apiKey: "poe-key",
       expectedUrl: "https://api.poe.com/v1/models",
@@ -423,6 +433,20 @@ test("provider models route returns the local catalog for NLP Cloud", async () =
   assert.ok(body.models.some((model) => model.id === "chatdolphin"));
   assert.ok(body.models.some((model) => model.id === "gpt-oss-120b"));
   assert.ok(body.models.some((model) => model.id === "dolphin-mixtral-8x7b"));
+});
+
+test("provider models route returns the local catalog for Petals", async () => {
+  const connection = await seedConnection("petals", {
+    apiKey: null,
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "petals");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.some((model) => model.id === "stabilityai/StableBeluga2"));
 });
 
 test("provider models route returns the local catalog for Runway video models", async () => {
