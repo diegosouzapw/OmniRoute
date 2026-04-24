@@ -175,6 +175,13 @@ export const DEFAULT_PRICING = {
       reasoning: 30.0,
       cache_creation: 5.0,
     },
+    "gpt-5.5": {
+      input: 5.0,
+      output: 30.0,
+      cached: 2.5,
+      reasoning: 30.0,
+      cache_creation: 5.0,
+    },
     "gpt5.4": {
       input: 5.0,
       output: 20.0,
