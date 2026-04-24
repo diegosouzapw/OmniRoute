@@ -358,9 +358,12 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       credentials: {
         apiKey: "cc-key",
         providerSpecificData: {
-          baseUrl: "https://cc.example.com/v1/messages?beta=true",
           ccSessionId: "session-1",
         },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
       },
       extendedContext: false,
     });
@@ -375,7 +378,6 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       credentials: {
         apiKey: "cc-key",
         providerSpecificData: {
-          baseUrl: "https://cc.example.com/v1/messages?beta=true",
           ccSessionId: "session-1",
           requestDefaults: { context1m: true },
         },
@@ -407,6 +409,76 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
   assert.equal(calls[2].headers["anthropic-beta"], CONTEXT_1M_BETA_HEADER);
+});
+
+test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude models that support x-high effort", async () => {
+  const originalFetch = globalThis.fetch;
+  const requestBodies = [];
+
+  globalThis.fetch = async (_url, init = {}) => {
+    requestBodies.push(JSON.parse(String(init.body)));
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const claude = new DefaultExecutor("claude");
+    await claude.execute({
+      model: "claude-opus-4-7",
+      body: {
+        model: "claude-opus-4-7",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
+
+    await claude.execute({
+      model: "claude-haiku-4-5-20251001",
+      body: {
+        model: "claude-haiku-4-5-20251001",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.deepEqual((requestBodies[0] as any).thinking, { type: "adaptive" });
+  assert.deepEqual((requestBodies[0] as any).context_management, {
+    edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+  });
+  assert.deepEqual((requestBodies[0] as any).output_config, { effort: "high" });
+
+  assert.equal((requestBodies[1] as any).thinking, undefined);
+  assert.equal((requestBodies[1] as any).context_management, undefined);
+  assert.equal((requestBodies[1] as any).output_config, undefined);
 });
 
 test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {

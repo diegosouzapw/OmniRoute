@@ -10,6 +10,7 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { supportsXHighEffort } from "../config/providerModels.ts";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import {
@@ -502,17 +503,19 @@ export class BaseExecutor {
             };
           }
 
-          if (!tb.thinking) {
+          const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
+
+          if (supportsAdaptiveThinking && !tb.thinking) {
             tb.thinking = { type: "adaptive" };
           }
 
-          if (!tb.context_management) {
+          if (supportsAdaptiveThinking && !tb.context_management) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
-          if (!tb.output_config) {
+          if (supportsAdaptiveThinking && !tb.output_config) {
             tb.output_config = { effort: "high" };
           }
 
