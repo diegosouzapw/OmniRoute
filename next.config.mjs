@@ -1,19 +1,24 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".next";
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
+    root: projectRoot,
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
     },
   },
   output: "standalone",
+  outputFileTracingRoot: projectRoot,
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.

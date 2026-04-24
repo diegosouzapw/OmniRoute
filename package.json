@@ -24,6 +24,7 @@
     ".env.example",
     "scripts/postinstall.mjs",
     "scripts/postinstallSupport.mjs",
+    "scripts/responses-ws-proxy.mjs",
     "scripts/check-supported-node-runtime.ts",
     "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",

@@ -32,8 +32,10 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "docs/openapi.yaml",
   "open-sse/mcp-server/server.js",
   "package.json",
+  "responses-ws-proxy.mjs",
   "scripts/sync-env.mjs",
   "server.js",
+  "server-ws.mjs",
 ];
 
 export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
@@ -74,6 +76,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/native-binary-compat.mjs",
   "scripts/postinstall.mjs",
   "scripts/postinstallSupport.mjs",
+  "scripts/responses-ws-proxy.mjs",
   "scripts/sync-env.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
@@ -86,6 +89,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "app/server.js",
+  "app/server-ws.mjs",
+  "app/responses-ws-proxy.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
