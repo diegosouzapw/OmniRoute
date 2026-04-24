@@ -396,6 +396,19 @@ test("detectFormat identifies OpenAI Responses by max_output_tokens without inpu
   assert.equal(format, FORMATS.OPENAI_RESPONSES);
 });
 
+test("detectFormat treats chat messages with reasoning as OpenAI chat", () => {
+  const format = detectFormat({
+    model: "openrouter/deepseek/deepseek-v4-pro",
+    messages: [{ role: "user", content: "Human: Hi" }],
+    max_tokens: 64000,
+    stream: false,
+    reasoning: {
+      effort: "xhigh",
+    },
+  });
+  assert.equal(format, FORMATS.OPENAI);
+});
+
 test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
   const format = detectFormatFromEndpoint(
     {
@@ -403,6 +416,9 @@ test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
       messages: [{ role: "user", content: "hi" }],
       max_tokens: 16,
       stream: false,
+      reasoning: {
+        effort: "xhigh",
+      },
     },
     "/v1/chat/completions"
   );

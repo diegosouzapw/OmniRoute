@@ -31,12 +31,19 @@ export const PROVIDER_COLORS = {
 
 export const PROTOCOL_COLORS = {
   openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
+  "openai-chat": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
   "openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },
   claude: { bg: "#D97757", text: "#fff", label: "Claude" },
   gemini: { bg: "#4285F4", text: "#fff", label: "Gemini" },
   warmup: { bg: "#F59E0B", text: "#000", label: "Warmup" },
   bypass: { bg: "#6B7280", text: "#fff", label: "Bypass" },
 };
+
+function normalizeProtocolKey(protocol) {
+  if (protocol === "openai-chat") return "openai";
+  if (protocol === "openai-response") return "openai-responses";
+  return protocol;
+}
 
 // ═══════════════════════════════════════════
 // Proxy Type Colors (ProxyLogger)
@@ -131,6 +138,24 @@ export function getProviderColor(provider) {
       bg: "#374151",
       text: "#fff",
       label: (provider || "-").toUpperCase(),
+    }
+  );
+}
+
+/**
+ * Get default fallback for a protocol color lookup.
+ * @param {string} protocol - Protocol key
+ * @param {string} fallbackProvider - Provider key to use as a secondary protocol key
+ * @returns {{ bg: string, text: string, label: string }}
+ */
+export function getProtocolColor(protocol, fallbackProvider) {
+  const normalized = normalizeProtocolKey(protocol);
+  return (
+    PROTOCOL_COLORS[normalized] ||
+    PROTOCOL_COLORS[fallbackProvider] || {
+      bg: "#6B7280",
+      text: "#fff",
+      label: (protocol || fallbackProvider || "-").toUpperCase(),
     }
   );
 }

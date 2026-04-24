@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **fix(providers):** Preserve OpenAI Chat Completions `reasoning_effort` through assistant-prefill requests, including OpenRouter and OpenAI-compatible providers, and keep OpenRouter `reasoning` requests displayed as `OPENAI-CHAT` protocol.
+
 ---
 
 ## [3.7.0] — 2026-04-23

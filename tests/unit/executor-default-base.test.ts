@@ -432,6 +432,47 @@ test("DefaultExecutor.transformRequest is a passthrough and preserves model ids 
   assert.equal(result.model, "zai-org/GLM-5-FP8");
 });
 
+test("DefaultExecutor.transformRequest passes through OpenAI reasoning_effort for OpenRouter", () => {
+  const executor = new DefaultExecutor("openrouter");
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    messages: [{ role: "user", content: "hi" }],
+    reasoning_effort: "xhigh",
+  };
+  const result = executor.transformRequest("deepseek/deepseek-v4-pro", body, false, {});
+
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning, undefined);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+test("DefaultExecutor.transformRequest preserves explicit OpenRouter reasoning config", () => {
+  const executor = new DefaultExecutor("openrouter");
+  const body = {
+    model: "anthropic/claude-sonnet-4.5",
+    messages: [{ role: "user", content: "hi" }],
+    reasoning_effort: "high",
+    reasoning: { max_tokens: 2000, exclude: true },
+  };
+  const result = executor.transformRequest("anthropic/claude-sonnet-4.5", body, false, {});
+
+  assert.deepEqual((result as any).reasoning, { max_tokens: 2000, exclude: true });
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("DefaultExecutor.transformRequest preserves OpenRouter none effort as standard field", () => {
+  const executor = new DefaultExecutor("openrouter");
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    messages: [{ role: "user", content: "hi" }],
+    reasoning_effort: "none",
+  };
+  const result = executor.transformRequest("deepseek/deepseek-v4-pro", body, false, {});
+
+  assert.equal((result as any).reasoning, undefined);
+  assert.equal((result as any).reasoning_effort, "none");
+});
+
 test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {
   const executor = new DefaultExecutor("qwen");
   const body = {

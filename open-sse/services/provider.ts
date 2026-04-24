@@ -94,9 +94,7 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
   const hasResponsesSpecificFields =
     body &&
     typeof body === "object" &&
-    (body.max_output_tokens !== undefined ||
-      body.previous_response_id !== undefined ||
-      body.reasoning !== undefined);
+    (body.max_output_tokens !== undefined || body.previous_response_id !== undefined);
 
   if (/\/responses(?=\/|$)/i.test(path) || /^responses(?=\/|$)/i.test(path)) {
     return "openai-responses";
@@ -124,12 +122,14 @@ export function detectFormat(body) {
   // OpenAI Responses API:
   // - input can be string, array, or object (not only array)
   // - some clients send responses-specific fields even when input is omitted
+  // - reasoning alone is ambiguous: OpenRouter Chat Completions also uses a
+  //   reasoning object, so only treat it as Responses when messages are absent
   const hasInputField =
     Object.prototype.hasOwnProperty.call(body, "input") && body.input !== undefined;
   const hasResponsesSpecificFields =
     body.max_output_tokens !== undefined ||
     body.previous_response_id !== undefined ||
-    body.reasoning !== undefined;
+    (body.reasoning !== undefined && !Array.isArray(body.messages));
   if (hasInputField || hasResponsesSpecificFields) {
     return "openai-responses";
   }
@@ -155,6 +155,7 @@ export function detectFormat(body) {
     body.presence_penalty !== undefined || // Penalties
     body.frequency_penalty !== undefined ||
     body.logit_bias || // Token biasing
+    body.reasoning !== undefined || // OpenRouter/OpenAI-compatible reasoning config
     body.user // User identifier
   ) {
     return "openai";
@@ -396,15 +397,16 @@ export function isLastMessageFromUser(body) {
 
 // Check if request has thinking config
 export function hasThinkingConfig(body) {
-  return !!(body.reasoning_effort || body.thinking?.type === "enabled");
+  return !!(body.reasoning_effort || body.reasoning || body.thinking?.type === "enabled");
 }
 
 // Normalize thinking config based on last message role
-// - If lastMessage is not user → remove thinking config
-// - If lastMessage is user AND has thinking config → keep it (force enable)
+// - If lastMessage is not user → remove Claude/Gemini-style thinking config
+// - Keep OpenAI Chat Completions reasoning fields. Standard OpenAI-compatible
+//   providers and OpenRouter accept these as request-level options, including
+//   assistant-prefill continuation requests.
 export function normalizeThinkingConfig(body) {
   if (!isLastMessageFromUser(body)) {
-    delete body.reasoning_effort;
     delete body.thinking;
   }
   return body;
