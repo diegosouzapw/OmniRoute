@@ -41,6 +41,51 @@ const originalResponsesToOpenAI = getRequestTranslator(FORMATS.OPENAI_RESPONSES,
 const originalSetTimeout = globalThis.setTimeout;
 const originalBackgroundConfig = getBackgroundDegradationConfig();
 
+type HandleChatCoreInput = Parameters<typeof handleChatCore>[0];
+type ProviderConnection = NonNullable<
+  Awaited<ReturnType<typeof providersDb.getProviderConnectionById>>
+>;
+
+type CapturedCall = {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body: Record<string, any> | null;
+};
+
+type TranslationError = Error & {
+  statusCode?: number;
+  errorType?: string;
+};
+
+type CodexProviderState = {
+  codexQuotaState: {
+    limit5h: number;
+    scope: string;
+  };
+  codexScopeRateLimitedUntil: Record<string, string>;
+  codexExhaustedWindow: string;
+};
+
+type InvokeChatCoreOptions = {
+  body?: Record<string, unknown>;
+  provider?: string;
+  model?: string;
+  endpoint?: string;
+  accept?: string;
+  userAgent?: string;
+  credentials?: HandleChatCoreInput["credentials"];
+  apiKeyInfo?: HandleChatCoreInput["apiKeyInfo"];
+  responseFormat?: "openai" | "claude" | "openai-responses";
+  responseFactory?: (captured: CapturedCall, calls: CapturedCall[]) => Response | Promise<Response>;
+  isCombo?: boolean;
+  comboStrategy?: HandleChatCoreInput["comboStrategy"];
+  requestHeaders?: Record<string, string>;
+  connectionId?: HandleChatCoreInput["connectionId"];
+  onCredentialsRefreshed?: HandleChatCoreInput["onCredentialsRefreshed"];
+  onRequestSuccess?: HandleChatCoreInput["onRequestSuccess"];
+};
+
 function noopLog() {
   return {
     debug() {},
@@ -50,7 +95,7 @@ function noopLog() {
   };
 }
 
-function toPlainHeaders(headers) {
+function toPlainHeaders(headers?: HeadersInit) {
   if (!headers) return {};
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(
@@ -58,7 +103,7 @@ function toPlainHeaders(headers) {
   );
 }
 
-function buildOpenAIResponse(stream, text = "ok") {
+function buildOpenAIResponse(stream: boolean, text = "ok") {
   if (stream) {
     return new Response(
       `data: ${JSON.stringify({
@@ -98,7 +143,7 @@ function buildOpenAIResponse(stream, text = "ok") {
   );
 }
 
-function buildClaudeResponse(stream, text = "ok") {
+function buildClaudeResponse(stream: boolean, text = "ok") {
   if (stream) {
     return new Response(
       [
@@ -194,7 +239,7 @@ function buildResponsesResponse(text = "ok") {
   );
 }
 
-function capabilityEntry(limitContext) {
+function capabilityEntry(limitContext: number) {
   return {
     tool_call: true,
     reasoning: false,
@@ -216,7 +261,7 @@ function capabilityEntry(limitContext) {
   };
 }
 
-function hasCacheControl(value) {
+function hasCacheControl(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
   if (Array.isArray(value)) {
     return value.some((item) => hasCacheControl(item));
@@ -225,7 +270,7 @@ function hasCacheControl(value) {
   return Object.values(value).some((item) => hasCacheControl(item));
 }
 
-function collectTextBlocks(messages) {
+function collectTextBlocks(messages: Array<{ content?: unknown }> | undefined) {
   if (!Array.isArray(messages)) return [];
   return messages.flatMap((message) =>
     Array.isArray(message.content) ? message.content.filter((block) => block?.type === "text") : []
@@ -249,7 +294,7 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function waitFor(fn, timeoutMs = 1500) {
+async function waitFor<T>(fn: () => T | Promise<T>, timeoutMs = 1500): Promise<Awaited<T> | null> {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const result = await fn();
@@ -287,10 +332,10 @@ async function invokeChatCore({
   connectionId = null,
   onCredentialsRefreshed = null,
   onRequestSuccess = null,
-}: any = {}) {
-  const calls: any[] = [];
+}: InvokeChatCoreOptions = {}) {
+  const calls: CapturedCall[] = [];
 
-  globalThis.fetch = async (url, init = {}) => {
+  globalThis.fetch = async (url: string | URL | Request, init: RequestInit = {}) => {
     const headers = toPlainHeaders(init.headers);
     const captured = {
       url: String(url),
@@ -314,7 +359,7 @@ async function invokeChatCore({
 
   try {
     const requestBody = structuredClone(body);
-    const result = await handleChatCore({
+    const input: HandleChatCoreInput = {
       body: requestBody,
       modelInfo: { provider, model, extendedContext: false },
       credentials: credentials || {
@@ -330,11 +375,14 @@ async function invokeChatCore({
       connectionId,
       apiKeyInfo,
       userAgent,
+      comboName: null,
       isCombo,
       comboStrategy,
       onCredentialsRefreshed,
       onRequestSuccess,
-    } as any);
+      onDisconnect: null,
+    };
+    const result = await handleChatCore(input);
     await waitForAsyncSideEffects();
 
     return { result, calls, call: calls.at(-1) };
@@ -691,7 +739,7 @@ test("chatCore auto cache policy becomes false for nondeterministic combos", asy
   );
   // Cache markers are kept natively due to the latest Claude strict proxy passthrough implementation
   assert.equal(
-    call.body.system.some((block) => !!block.cache_control),
+    call.body.system.some((block: { cache_control?: unknown }) => !!block.cache_control),
     true
   );
 });
@@ -902,7 +950,7 @@ test("chatCore surfaces translation errors with explicit status codes", async ()
     FORMATS.OPENAI_RESPONSES,
     FORMATS.OPENAI,
     () => {
-      const error = new Error("responses translator rejected the payload");
+      const error: TranslationError = new Error("responses translator rejected the payload");
       error.statusCode = 409;
       throw error;
     },
@@ -929,7 +977,7 @@ test("chatCore surfaces typed translation errors with the declared error type", 
     FORMATS.OPENAI_RESPONSES,
     FORMATS.OPENAI,
     () => {
-      const error = new Error("typed translator failure");
+      const error: TranslationError = new Error("typed translator failure");
       error.statusCode = 422;
       error.errorType = "unsupported_feature";
       throw error;
@@ -995,7 +1043,7 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
       stream: false,
       messages: [{ role: "user", content: "retry after auth refresh" }],
     },
-    onCredentialsRefreshed(updated) {
+    onCredentialsRefreshed(updated: HandleChatCoreInput["credentials"]) {
       refreshedCredentials = updated;
     },
     responseFactory(captured, seenCalls) {
@@ -1453,10 +1501,12 @@ test("chatCore redirects background utility tasks to a cheaper mapped model", as
 });
 
 test("chatCore retries Qwen quota 429 responses before succeeding", async () => {
-  globalThis.setTimeout = (callback, _ms, ...args) => {
-    callback(...args);
-    return 0;
-  };
+  globalThis.setTimeout = ((callback: TimerHandler, _ms?: number, ...args: unknown[]) => {
+    if (typeof callback === "function") {
+      callback(...args);
+    }
+    return 0 as unknown as ReturnType<typeof globalThis.setTimeout>;
+  }) as typeof globalThis.setTimeout;
 
   const { calls, result } = await invokeChatCore({
     provider: "qwen",
@@ -1589,13 +1639,16 @@ test("chatCore persists Codex quota headers and scope cooldown on 429 responses"
     },
   });
 
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = (await providersDb.getProviderConnectionById(
+    String(connection.id)
+  )) as ProviderConnection;
+  const providerState = updated.providerSpecificData as CodexProviderState;
   assert.equal(result.success, false);
   assert.equal(result.status, 429);
-  assert.equal(updated.providerSpecificData.codexQuotaState.limit5h, 100);
-  assert.equal(updated.providerSpecificData.codexQuotaState.scope, "codex");
-  assert.equal(typeof updated.providerSpecificData.codexScopeRateLimitedUntil.codex, "string");
-  assert.equal(updated.providerSpecificData.codexExhaustedWindow, "5h");
+  assert.equal(providerState.codexQuotaState.limit5h, 100);
+  assert.equal(providerState.codexQuotaState.scope, "codex");
+  assert.equal(typeof providerState.codexScopeRateLimitedUntil.codex, "string");
+  assert.equal(providerState.codexExhaustedWindow, "5h");
 });
 
 test("chatCore falls back to the next family model when the requested model is unavailable", async () => {

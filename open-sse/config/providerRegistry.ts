@@ -385,7 +385,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
-      { id: "gpt-5.5", name: "GPT 5.5", targetFormat: "openai-responses" },
+      { id: "gpt-5.5", name: "GPT 5.5", contextLength: 1050000, targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT 5.3 Codex" },
       { id: "gpt-5.3-codex-xhigh", name: "GPT 5.3 Codex (xHigh)" },

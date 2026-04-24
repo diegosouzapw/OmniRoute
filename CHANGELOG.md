@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(codex):** Add `gpt-5.5` model to Codex provider with Responses API routing, fingerprint support, and pricing data (#1545)
+
 ---
 
 ## [3.6.9] — 2026-04-19

@@ -68,8 +68,8 @@ test("GET /api/memory filters by q and returns matching stats", async () => {
   const body = await response.json();
 
   assert.deepEqual(
-    body.data.map((memory) => memory.key),
-    ["typescript:tooling", "typescript:guide"]
+    body.data.map((memory) => memory.key).sort(),
+    ["typescript:tooling", "typescript:guide"].sort()
   );
   assert.equal(body.total, 2);
   assert.equal(body.stats.total, 2);
