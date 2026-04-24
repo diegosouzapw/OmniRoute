@@ -764,10 +764,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
-      { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
-      { id: "kimi-latest", name: "Kimi Latest" },
-      { id: "kimi-for-coding", name: "Kimi For Coding" },
     ],
   },
 
