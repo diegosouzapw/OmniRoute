@@ -929,6 +929,8 @@ export function checkFallbackError(
     };
   }
 
+  const isRateLimitStatus = status === HTTP_STATUS.RATE_LIMITED;
+
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
     // T06 (sub2api #1037): Permanent account deactivation — do NOT retry, mark as permanent failure
@@ -942,7 +944,7 @@ export function checkFallbackError(
     }
 
     // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
-    if (isCreditsExhausted(errorStr)) {
+    if (!isRateLimitStatus && isCreditsExhausted(errorStr)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
@@ -952,7 +954,7 @@ export function checkFallbackError(
     }
 
     // Daily quota exhausted — lock model until tomorrow
-    if (isDailyQuotaExhausted(errorStr)) {
+    if (!isRateLimitStatus && isDailyQuotaExhausted(errorStr)) {
       const msUntilTomorrow = getMsUntilTomorrow();
       // Cap at 24 hours to handle timezone edge cases
       const cooldownMs = Math.min(msUntilTomorrow, 24 * 60 * 60 * 1000);

@@ -97,16 +97,14 @@ export function classifyProviderError(statusCode: number, responseBody: unknown)
   const accountDeactivated = isAccountDeactivated(bodyStr);
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
 
-  if (creditsExhausted && [400, 402, 403, 429].includes(statusCode)) {
-    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  // 429 is a retryable rate-limit signal. Cooldown duration and upstream retry hints are
+  // resolved by the resilience-aware fallback layer.
+  if (statusCode === 429) {
+    return PROVIDER_ERROR_TYPES.RATE_LIMITED;
   }
 
-  // 429: Check if it's a daily quota exhaustion (lock until tomorrow) vs regular rate limit
-  if (statusCode === 429) {
-    if (isDailyQuotaExhausted(bodyStr)) {
-      return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
-    }
-    return PROVIDER_ERROR_TYPES.RATE_LIMITED;
+  if (creditsExhausted && [400, 402, 403].includes(statusCode)) {
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
   if (statusCode === 401) {
