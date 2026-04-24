@@ -883,12 +883,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
-      { id: "minimax-m2.7", name: "MiniMax M2.7" },
-      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
-      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
-      { id: "minimax-m2.5", name: "MiniMax M2.5" },
-      { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
-      { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
+      { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
+      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed"}
     ],
   },
 
@@ -907,12 +905,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
-      { id: "minimax-m2.7", name: "MiniMax M2.7" },
-      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
-      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
-      { id: "minimax-m2.5", name: "MiniMax M2.5" },
-      { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
-      { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
+      { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
+      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed"}
     ],
   },
 
