@@ -51,6 +51,7 @@ test("GLM import uses international coding endpoint when apiRegion is internatio
       provider: "glm",
       connectionId: connection.id,
       models: [{ id: "glm-5", name: "GLM 5" }],
+      source: "api",
     });
   } finally {
     globalThis.fetch = originalFetch;
@@ -84,6 +85,7 @@ test("GLMT import shares the GLM coding models endpoint and surfaces provider me
       provider: "glmt",
       connectionId: connection.id,
       models: [{ id: "glm-5.1", name: "GLM 5.1" }],
+      source: "api",
     });
   } finally {
     globalThis.fetch = originalFetch;
@@ -113,7 +115,7 @@ test("GLM import uses China coding endpoint when apiRegion is china", async () =
       { params: { id: connection.id } }
     );
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.provider, "glm");
     assert.equal(body.models.length, 1);
   } finally {
@@ -231,7 +233,7 @@ test("GLM import falls back to accessToken when apiKey is absent", async () => {
   }
 });
 
-test("GLM import surfaces upstream non-OK status codes", async () => {
+test("GLM import falls back to the local catalog on upstream non-OK status codes", async () => {
   await resetStorage();
   const connection = await providersDb.createProviderConnection({
     provider: "glm",
@@ -249,8 +251,13 @@ test("GLM import surfaces upstream non-OK status codes", async () => {
       new Request(`http://localhost/api/providers/${connection.id}/models`),
       { params: { id: connection.id } }
     );
-    assert.equal(response.status, 502);
-    assert.deepEqual(await response.json(), { error: "Failed to fetch models: 502" });
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as any;
+    assert.equal(body.provider, "glm");
+    assert.equal(body.connectionId, connection.id);
+    assert.equal(body.source, "local_catalog");
+    assert.match(body.warning, /API unavailable/i);
+    assert.ok(body.models.some((model) => model.id === "glm-5.1"));
   } finally {
     globalThis.fetch = originalFetch;
   }

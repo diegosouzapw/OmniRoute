@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — The Free AI Gateway (Română)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇩🇪 [de](../de/README.md) · 🇮🇹 [it](../it/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇮🇳 [in](../in/README.md) · 🇹🇭 [th](../th/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇮🇩 [id](../id/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇳🇴 [no](../no/README.md) · 🇩🇰 [da](../da/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇮🇱 [he](../he/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇹🇷 [tr](../tr/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md)
 
 ---
 
@@ -328,12 +328,13 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 **How OmniRoute solves it:**
 
-- **Settings-Driven Lock Hierarchy** — Provider profiles control default account/model lockouts, global model quarantine, and provider circuit breakers from one control surface, while explicit upstream `Retry-After` windows still take priority
-- **Exponential Backoff** — Progressive retry delays for both account/model lockouts and higher-level quarantine
+- **Request Queue & Pacing** — Per-connection request buckets smooth bursts before they hit upstream rate caps
+- **Connection Cooldown** — A single connection cools down after retryable failures with optional upstream `Retry-After` hints and exponential backoff
+- **Provider Circuit Breaker** — The provider only trips after fallback is exhausted and the provider request still fails with provider-wide transient errors; connection-scoped `429` rate limits stay in Connection Cooldown
+- **Wait For Cooldown** — The server can wait for the earliest connection cooldown to expire and retry the same client request automatically
 - **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
 - **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
-- **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain
-- **Health Dashboard** — Uptime monitoring, circuit breaker states, lockouts, cache stats, p50/p95/p99 latency
+- **Health Dashboard** — Uptime monitoring, provider circuit breaker states, cooldowns, cache stats, p50/p95/p99 latency
 
 </details>
 
@@ -474,7 +475,7 @@ As request volume grows, without caching the same questions generate duplicate c
 - **Semantic Cache** — Two-tier cache (signature + semantic) reduces cost and latency
 - **Request Idempotency** — 5s deduplication window for identical requests
 - **Rate Limit Detection** — Per-provider RPM, min gap, and max concurrent tracking
-- **Editable Rate Limits** — Configurable defaults in Settings → Resilience with persistence
+- **Request Queue & Pacing** — Configurable queue, pacing, and concurrency defaults in Settings → Resilience
 - **API Key Validation Cache** — 3-tier cache for production performance
 - **Health Dashboard with Telemetry** — p50/p95/p99 latency, cache stats, uptime
 
@@ -571,8 +572,8 @@ Teams need quick runtime changes during incidents or cost events.
 **How OmniRoute solves it:**
 
 - Switch combo activation directly from MCP dashboard
-- Apply resilience profiles from pre-defined policy packs
-- Reset circuit breaker state from the same operations panel
+- Tune queue, cooldown, breaker, and wait settings from the dedicated Resilience page
+- Review live provider breaker state from the Health dashboard
 
 </details>
 
@@ -777,6 +778,15 @@ omniroute
 > ```
 
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
+
+#### Arch Linux (AUR)
+
+Arch Linux users can install the [AUR package](https://aur.archlinux.org/packages/omniroute-bin), which installs OmniRoute and provides a systemd user service:
+
+```bash
+yay -S omniroute-bin
+systemctl --user enable --now omniroute.service
+```
 
 | Command                 | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
@@ -1356,7 +1366,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                   |
 | 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
 | 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection |
-| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                     |
+| ⏳ **Wait For Cooldown**           | Server-side chat retries when every candidate connection is cooling down; configurable `enabled`, `maxRetries`, and `maxRetryWaitSec`             |
 | 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                  |
 | 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                    |
 | 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
@@ -1410,7 +1420,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
 | 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
 | 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Switch combo, apply resilience profiles, reset breakers from one control surface                                                       |
+| ⚙️ **Operational Controls**           | Switch combos, tune resilience settings, and review breaker state from dedicated Health and Settings surfaces                          |
 
 ### 🧠 Routing & Intelligence
 
@@ -1450,35 +1460,38 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🛡️ Resilience, Security & Governance
 
-| Feature                             | What It Does                                                                            |
-| ----------------------------------- | --------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                          |
-| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                  |
-| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                      |
-| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                            |
-| ⚡ **Request Idempotency**          | Duplicate protection window                                                             |
-| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**           |
-| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**  |
-| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                     |
-| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                              |
-| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                     |
-| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks           |
-| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures   |
-| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically    |
-| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                                |
-| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                  |
-| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                              |
-| 🛡️ **Safe Outbound Fetch** 🆕       | Guarded fetch for provider calls — blocks private/local URLs, retries, SSRF protection  |
-| 🔄 **Cooldown-Aware Retries** 🆕    | Auto-retry chat on model cooldowns; configurable `requestRetry` / `maxRetryIntervalSec` |
-| 🔍 **Runtime Env Validation** 🆕    | Zod-based env schema validation at startup with actionable error messages               |
-| 📋 **Compliance Audit v2** 🆕       | Pagination, request context, auth events, provider CRUD, and SSRF-blocked logging       |
+| Feature                             | What It Does                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 🔌 **Provider Circuit Breakers**    | Provider-wide trip/recover after fallback exhaustion with configurable thresholds                       |
+| 🔒 **Daily Quota Lock** 🆕          | Detects exhaustion signals and locks routing for the specific model until midnight                      |
+| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                                  |
+| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                                      |
+| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                                            |
+| ⚡ **Request Idempotency**          | Duplicate protection window                                                                             |
+| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**                           |
+| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**                  |
+| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                                     |
+| 🚦 **Request Queue & Pacing**       | Configurable per-connection request buckets for RPM, spacing, concurrency, and max wait                 |
+| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                                     |
+| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks                           |
+| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures                   |
+| ❄️ **Connection Cooldown**          | Retryable 408/429/5xx failures cool down a single connection with optional upstream hints               |
+| 🚪 **Auto-Disable Banned Accounts** | Permanently blocked token accounts can be disabled automatically                                        |
+| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                                                |
+| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                                  |
+| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                                              |
+| 🛡️ **Safe Outbound Fetch** 🆕       | Guarded fetch for provider calls — blocks private/local URLs, retries, SSRF protection                  |
+| ⏳ **Wait For Cooldown** 🆕         | Auto-retry chat after connection cooldowns; configurable `enabled`, `maxRetries`, and `maxRetryWaitSec` |
+| 🔍 **Runtime Env Validation** 🆕    | Zod-based env schema validation at startup with actionable error messages                               |
+| 📋 **Compliance Audit v2** 🆕       | Pagination, request context, auth events, provider CRUD, and SSRF-blocked logging                       |
 
 ### 📊 Observability & Analytics
 
 | Feature                          | What It Does                                          |
 | -------------------------------- | ----------------------------------------------------- |
 | 📝 **Request + Proxy Logging**   | Full request/response and proxy logging               |
-| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI  |
+| 📉 **Streamed Detailed Logs**    | Reconstructs SSE payload streams cleanly into the UI  |
+| 🏷️ **Real-Time Model Badges** 🆕 | Live model status and daily quota countdown timers    |
 | 📋 **Unified Logs Dashboard**    | Request, proxy, audit, and console views in one page  |
 | 🔍 **Request Telemetry**         | p50/p95/p99 latency and request tracing               |
 | 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |
@@ -2260,7 +2273,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
 | [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
 | [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)                  | 6-factor scoring, mode packs, self-healing          |
+| [Auto-Combo Engine](docs/AUTO-COMBO.md)                  | 6-factor scoring, mode packs, self-healing          |
 | [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |
 | [Troubleshooting](docs/TROUBLESHOOTING.md)               | Common problems and solutions                       |
 | [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |
@@ -2285,7 +2298,7 @@ OmniRoute has **218+ features planned** across multiple development phases. Here
 | 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, quota-aware P2C, step-based combo routing |
 | 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping                  |
 | 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, combo target health, cost tracking per model   |
-| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing                |
+| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, connection cooldowns, multi-account Codex, Copilot quota parsing              |
 | ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API                        |
 | 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                           |
 

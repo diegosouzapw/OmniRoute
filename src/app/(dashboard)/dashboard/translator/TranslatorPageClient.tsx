@@ -2,27 +2,72 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { SegmentedControl } from "@/shared/components";
 import PlaygroundMode from "./components/PlaygroundMode";
 import ChatTesterMode from "./components/ChatTesterMode";
 import TestBenchMode from "./components/TestBenchMode";
 import LiveMonitorMode from "./components/LiveMonitorMode";
+import StreamTransformerMode from "./components/StreamTransformerMode";
 
 export default function TranslatorPageClient() {
   const t = useTranslations("translator");
+  const translateOrFallback = useCallback(
+    (key: string, fallback: string) => {
+      try {
+        const translated = t(key);
+        return translated === key || translated === `translator.${key}` ? fallback : translated;
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
   const [mode, setMode] = useState("playground");
   const modes = [
-    { value: "playground", label: t("playground"), icon: "code" },
-    { value: "chat-tester", label: t("chatTester"), icon: "chat" },
-    { value: "test-bench", label: t("testBench"), icon: "science" },
-    { value: "live-monitor", label: t("liveMonitor"), icon: "monitoring" },
+    { value: "playground", label: translateOrFallback("playground", "Playground"), icon: "code" },
+    {
+      value: "chat-tester",
+      label: translateOrFallback("chatTester", "Chat Tester"),
+      icon: "chat",
+    },
+    {
+      value: "test-bench",
+      label: translateOrFallback("testBench", "Test Bench"),
+      icon: "science",
+    },
+    {
+      value: "stream-transformer",
+      label: translateOrFallback("streamTransformer", "Stream Transformer"),
+      icon: "swap_horiz",
+    },
+    {
+      value: "live-monitor",
+      label: translateOrFallback("liveMonitor", "Live Monitor"),
+      icon: "monitoring",
+    },
   ];
   const modeDescriptions: Record<string, string> = {
-    playground: t("modeDescriptionPlayground"),
-    "chat-tester": t("modeDescriptionChatTester"),
-    "test-bench": t("modeDescriptionTestBench"),
-    "live-monitor": t("modeDescriptionLiveMonitor"),
+    playground: translateOrFallback(
+      "modeDescriptionPlayground",
+      "Inspect request translation step-by-step between API formats."
+    ),
+    "chat-tester": translateOrFallback(
+      "modeDescriptionChatTester",
+      "Send a real prompt through the selected provider and inspect every translation stage."
+    ),
+    "test-bench": translateOrFallback(
+      "modeDescriptionTestBench",
+      "Run compatibility scenarios across source formats and target providers."
+    ),
+    "stream-transformer": translateOrFallback(
+      "modeDescriptionStreamTransformer",
+      "Transform Chat Completions SSE into Responses API SSE and inspect emitted events."
+    ),
+    "live-monitor": translateOrFallback(
+      "modeDescriptionLiveMonitor",
+      "Watch translation events in real time as requests flow through OmniRoute."
+    ),
   };
 
   return (
@@ -53,6 +98,7 @@ export default function TranslatorPageClient() {
       {mode === "playground" && <PlaygroundMode />}
       {mode === "chat-tester" && <ChatTesterMode />}
       {mode === "test-bench" && <TestBenchMode />}
+      {mode === "stream-transformer" && <StreamTransformerMode />}
       {mode === "live-monitor" && <LiveMonitorMode />}
     </div>
   );

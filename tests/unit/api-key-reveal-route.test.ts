@@ -44,7 +44,7 @@ test("GET /api/keys stays masked even when reveal is enabled", async () => {
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
 
   const response = await listRoute.GET(new Request("http://localhost/api/keys"));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.allowKeyReveal, true);
@@ -59,7 +59,7 @@ test("GET /api/keys falls back to default pagination for invalid query params", 
   const response = await listRoute.GET(
     new Request("http://localhost/api/keys?limit=abc&offset=xyz")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.allowKeyReveal, false);
@@ -92,7 +92,7 @@ test("GET /api/keys returns 500 when key loading fails unexpectedly", async () =
 
   try {
     const response = await listRoute.GET(new Request("http://localhost/api/keys"));
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(body.error, "Failed to fetch keys");
@@ -114,7 +114,7 @@ test("GET /api/keys/[id]/reveal rejects requests when reveal is disabled", async
   const response = await revealRoute.GET(request, {
     params: Promise.resolve({ id: created.id }),
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 403);
   assert.equal(body.error, "API key reveal is disabled");
@@ -128,7 +128,7 @@ test("GET /api/keys/[id]/reveal returns the full key when reveal is enabled", as
   const response = await revealRoute.GET(request, {
     params: Promise.resolve({ id: created.id }),
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.key, created.key);
@@ -141,7 +141,7 @@ test("GET /api/keys/[id]/reveal returns 404 for unknown keys even when reveal is
   const response = await revealRoute.GET(request, {
     params: Promise.resolve({ id: "missing" }),
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 404);
   assert.equal(body.error, "Key not found");
@@ -154,7 +154,7 @@ test("GET /api/keys/[id]/reveal returns 500 when params resolution fails", async
   const response = await revealRoute.GET(request, {
     params: Promise.reject(new Error("params exploded")),
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 500);
   assert.equal(body.error, "Failed to reveal key");

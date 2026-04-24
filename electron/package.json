@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.6.9",
+  "version": "3.7.0",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -45,14 +45,16 @@
     "files": [
       "main.js",
       "preload.js",
-      "package.json"
+      "package.json",
+      "node_modules/**/*"
     ],
     "extraResources": [
       {
         "from": "../.next/electron-standalone",
         "to": "app",
         "filter": [
-          "**/*"
+          "**/*",
+          "node_modules/**/*"
         ]
       },
       {

@@ -1635,6 +1635,7 @@
     "errorOccurred": "Ett fel uppstod. Försök igen.",
     "modelStatus": "Modellstatus",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Sök efter leverantörer...",
     "allModelsOperational": "Alla modeller i drift",
     "modelsWithIssues": "{count} modell(er) med problem",
     "allModelsNormal": "Alla modeller svarar normalt.",

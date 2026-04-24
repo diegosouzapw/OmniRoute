@@ -14,6 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
+const { COOLDOWN_MS } = await import("../../open-sse/config/constants.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -133,7 +134,7 @@ test("getProviderCredentials enforces generic quota policy unless explicitly byp
     },
   });
   const resetAt = futureIso();
-  quotaCache.setQuotaCache(connection.id, "openai", {
+  quotaCache.setQuotaCache((connection as any).id, "openai", {
     daily: { remainingPercentage: 10, resetAt },
   });
 
@@ -300,17 +301,17 @@ test("getProviderCredentials round-robin stays on the current account while belo
     priority: 2,
   });
 
-  await providersDb.updateProviderConnection(current.id, {
+  await providersDb.updateProviderConnection((current as any).id, {
     lastUsedAt: new Date().toISOString(),
     consecutiveUseCount: 1,
   });
-  await providersDb.updateProviderConnection(other.id, {
+  await providersDb.updateProviderConnection((other as any).id, {
     lastUsedAt: new Date(Date.now() - 60_000).toISOString(),
     consecutiveUseCount: 0,
   });
 
   const selected = await auth.getProviderCredentials("openai");
-  const updated = await providersDb.getProviderConnectionById(current.id);
+  const updated = await providersDb.getProviderConnectionById((current as any).id);
 
   assert.equal(selected.connectionId, current.id);
   assert.equal(updated.consecutiveUseCount, 2);
@@ -408,7 +409,7 @@ test("getProviderCredentials retains terminal accounts for combo live tests", as
   const bypassed = await auth.getProviderCredentials("openai", null, null, null, {
     allowSuppressedConnections: true,
   });
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(blocked, null);
   assert.equal(bypassed.connectionId, connection.id);
@@ -449,9 +450,15 @@ test("getProviderCredentials reports allRateLimited when every account is model-
     name: "gemini-model-lock-second",
   });
 
-  await auth.markAccountUnavailable(first.id, 429, "too many requests", "gemini", "gemini-2.5-pro");
   await auth.markAccountUnavailable(
-    second.id,
+    (first as any).id,
+    429,
+    "too many requests",
+    "gemini",
+    "gemini-2.5-pro"
+  );
+  await auth.markAccountUnavailable(
+    (second as any).id,
     429,
     "too many requests",
     "gemini",
@@ -478,7 +485,7 @@ test("getProviderCredentials auto-decays stale backoff metadata for recovered ac
 
   const selected = await auth.getProviderCredentials("openai");
   await flushWrites();
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(selected.connectionId, connection.id);
   assert.equal(updated.backoffLevel, 0);
@@ -496,7 +503,7 @@ test("getProviderCredentials falls back to a five-minute retry window when quota
     },
   });
 
-  quotaCache.setQuotaCache(connection.id, "openai", {
+  quotaCache.setQuotaCache((connection as any).id, "openai", {
     daily: { remainingPercentage: 0, resetAt: null },
   });
 
@@ -521,10 +528,10 @@ test("getProviderCredentials prioritizes accounts that still have quota availabl
     apiKey: "sk-available",
   });
 
-  quotaCache.setQuotaCache(exhausted.id, "openai", {
+  quotaCache.setQuotaCache((exhausted as any).id, "openai", {
     daily: { remainingPercentage: 0, resetAt: futureIso() },
   });
-  quotaCache.setQuotaCache(available.id, "openai", {
+  quotaCache.setQuotaCache((available as any).id, "openai", {
     daily: { remainingPercentage: 65, resetAt: futureIso() },
   });
 
@@ -548,17 +555,17 @@ test("getProviderCredentials round-robin switches to the least recently used acc
     priority: 2,
   });
 
-  await providersDb.updateProviderConnection(current.id, {
+  await providersDb.updateProviderConnection((current as any).id, {
     lastUsedAt: new Date().toISOString(),
     consecutiveUseCount: 2,
   });
-  await providersDb.updateProviderConnection(fallback.id, {
+  await providersDb.updateProviderConnection((fallback as any).id, {
     lastUsedAt: new Date(Date.now() - 120_000).toISOString(),
     consecutiveUseCount: 0,
   });
 
   const selected = await auth.getProviderCredentials("openai");
-  const updated = await providersDb.getProviderConnectionById(fallback.id);
+  const updated = await providersDb.getProviderConnectionById((fallback as any).id);
 
   assert.equal(selected.connectionId, fallback.id);
   assert.equal(updated.consecutiveUseCount, 1);
@@ -578,17 +585,17 @@ test("getProviderCredentials round-robin fallback mode excludes the failed accou
     priority: 2,
   });
 
-  await providersDb.updateProviderConnection(failed.id, {
+  await providersDb.updateProviderConnection((failed as any).id, {
     lastUsedAt: new Date().toISOString(),
     consecutiveUseCount: 3,
   });
-  await providersDb.updateProviderConnection(fallback.id, {
+  await providersDb.updateProviderConnection((fallback as any).id, {
     lastUsedAt: new Date(Date.now() - 120_000).toISOString(),
     consecutiveUseCount: 0,
   });
 
-  const selected = await auth.getProviderCredentials("openai", failed.id);
-  const updated = await providersDb.getProviderConnectionById(fallback.id);
+  const selected = await auth.getProviderCredentials("openai" as any, (failed as any).id);
+  const updated = await providersDb.getProviderConnectionById((fallback as any).id);
 
   assert.equal(selected.connectionId, fallback.id);
   assert.equal(updated.consecutiveUseCount, 1);
@@ -618,10 +625,10 @@ test("getProviderCredentials least-used prefers accounts that were never used", 
     name: "least-used-never",
     priority: 9,
   });
-  await providersDb.updateProviderConnection(recentlyUsed.id, {
+  await providersDb.updateProviderConnection((recentlyUsed as any).id, {
     lastUsedAt: new Date().toISOString(),
   });
-  await providersDb.updateProviderConnection(neverUsed.id, {
+  await providersDb.updateProviderConnection((neverUsed as any).id, {
     lastUsedAt: null,
   });
 
@@ -642,10 +649,10 @@ test("getProviderCredentials least-used prefers the oldest timestamp when all ac
     priority: 1,
   });
 
-  await providersDb.updateProviderConnection(oldest.id, {
+  await providersDb.updateProviderConnection((oldest as any).id, {
     lastUsedAt: new Date(Date.now() - 120_000).toISOString(),
   });
-  await providersDb.updateProviderConnection(newest.id, {
+  await providersDb.updateProviderConnection((newest as any).id, {
     lastUsedAt: new Date().toISOString(),
   });
 
@@ -697,10 +704,10 @@ test("getProviderCredentials p2c prefers the account with more quota headroom ov
     },
   });
 
-  quotaCache.setQuotaCache(nearLimit.id, "openai", {
+  (quotaCache as any).setQuotaCache(nearLimit.id, "openai", {
     daily: { remainingPercentage: 12, resetAt: futureIso(180_000) },
   });
-  quotaCache.setQuotaCache(healthy.id, "openai", {
+  (quotaCache as any).setQuotaCache(healthy.id, "openai", {
     daily: { remainingPercentage: 78, resetAt: futureIso(180_000) },
   });
 
@@ -760,7 +767,7 @@ test("getProviderCredentials exposes copilotToken when present in providerSpecif
   assert.equal(selected.copilotToken, "copilot-token-value");
 });
 
-test("markAccountUnavailable uses configured cooldowns for local 404 model lockouts", async () => {
+test("markAccountUnavailable keeps local 404 failures model-scoped with the local not-found cooldown", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
@@ -781,16 +788,16 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     404,
     "model not found",
     "openai",
     "local-model"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await (providersDb as any).getProviderConnectionById(connection.id);
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 250);
+  assert.equal(result.cooldownMs, COOLDOWN_MS.notFoundLocal);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
@@ -803,14 +810,14 @@ test("markAccountUnavailable applies a model-only lockout for Gemini 429 respons
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     429,
     "too many requests",
     "gemini",
     "gemini-2.5-pro"
   );
   await flushWrites();
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
@@ -826,14 +833,14 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     429,
     "The upstream compatible service exhausted its capacity",
     "openai-compatible-custom-node",
     "custom-model-a"
   );
   await flushWrites();
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
@@ -843,7 +850,7 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(Number(updated.errorCode), 429);
 });
 
-test("markAccountUnavailable honors configured api-key rate-limit cooldowns", async () => {
+test("markAccountUnavailable uses the unified configured api-key connection cooldown", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
@@ -861,7 +868,7 @@ test("markAccountUnavailable honors configured api-key rate-limit cooldowns", as
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     429,
     "too many requests",
     "openai",
@@ -869,7 +876,7 @@ test("markAccountUnavailable honors configured api-key rate-limit cooldowns", as
   );
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 125);
+  assert.equal(result.cooldownMs, 200);
 });
 
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {
@@ -883,20 +890,20 @@ test("markAccountUnavailable stores Codex scope-specific cooldowns without a glo
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     429,
     "quota reached",
     "codex",
     "codex-spark-mini"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
   const selected = await auth.getProviderCredentials("codex", null, null, "codex-spark-mini");
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
   assert.equal(updated.testStatus, "unavailable");
   assert.equal(updated.rateLimitedUntil, undefined);
-  assert.ok(updated.providerSpecificData.codexScopeRateLimitedUntil.spark);
+  assert.ok((updated.providerSpecificData as any).codexScopeRateLimitedUntil.spark);
   assert.equal(selected.allRateLimited, true);
 });
 
@@ -906,13 +913,13 @@ test("markAccountUnavailable returns without fallback on bad requests", async ()
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     400,
     "schema mismatch",
     "openai",
     "gpt-4o"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.deepEqual(result, { shouldFallback: false, cooldownMs: 0 });
   assert.equal(updated.testStatus, "active");
@@ -926,8 +933,13 @@ test("markAccountUnavailable preserves terminal statuses without overwriting the
     rateLimitedUntil: null,
   });
 
-  const result = await auth.markAccountUnavailable(connection.id, 503, "upstream error", "openai");
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const result = await auth.markAccountUnavailable(
+    (connection as any).id,
+    503,
+    "upstream error",
+    "openai"
+  );
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
@@ -942,8 +954,13 @@ test("markAccountUnavailable reuses an existing connection-wide cooldown", async
     rateLimitedUntil: retryAfter,
   });
 
-  const result = await auth.markAccountUnavailable(connection.id, 503, "upstream error", "openai");
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const result = await auth.markAccountUnavailable(
+    (connection as any).id,
+    503,
+    "upstream error",
+    "openai"
+  );
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
@@ -967,18 +984,21 @@ test("markAccountUnavailable reuses an existing Codex scope cooldown", async () 
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     429,
     "quota reached",
     "codex",
     "codex-spark-mini"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
   assert.equal(updated.rateLimitedUntil, undefined);
-  assert.equal(updated.providerSpecificData.codexScopeRateLimitedUntil.spark, retryAfter);
+  (assert as any).equal(
+    (updated.providerSpecificData as any).codexScopeRateLimitedUntil.spark,
+    retryAfter
+  );
 });
 
 test("markAccountUnavailable uses a connection-wide cooldown for non-local 404 errors", async () => {
@@ -990,13 +1010,13 @@ test("markAccountUnavailable uses a connection-wide cooldown for non-local 404 e
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     404,
     "model not found",
     "openai",
     "gpt-missing"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
@@ -1011,17 +1031,17 @@ test("markAccountUnavailable auto-disables permanently banned accounts when the 
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     401,
     "Verify your account to continue",
     "openai",
     "gpt-4o"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, false);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable leaves permanently banned accounts active when auto-disable is disabled", async () => {
@@ -1031,17 +1051,17 @@ test("markAccountUnavailable leaves permanently banned accounts active when auto
   });
 
   const result = await auth.markAccountUnavailable(
-    connection.id,
+    (connection as any).id,
     401,
     "Verify your account to continue",
     "openai",
     "gpt-4o"
   );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, true);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable swallows auto-disable persistence errors", async () => {
@@ -1075,17 +1095,17 @@ test("markAccountUnavailable swallows auto-disable persistence errors", async ()
 
   try {
     const result = await auth.markAccountUnavailable(
-      connection.id,
+      (connection as any).id,
       401,
       "Verify your account to continue",
       "openai",
       "gpt-4o"
     );
-    const updated = await providersDb.getProviderConnectionById(connection.id);
+    const updated = await providersDb.getProviderConnectionById((connection as any).id);
 
     assert.equal(result.shouldFallback, true);
     assert.equal(updated.isActive, true);
-    assert.equal(updated.testStatus, "unavailable");
+    assert.equal(updated.testStatus, "banned");
   } finally {
     db.prepare = originalPrepare;
   }

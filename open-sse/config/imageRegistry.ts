@@ -117,6 +117,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "256x256", "512x512"],
   },
 
+  // Codex exposes image generation only as a Responses-API hosted tool under
+  // ChatGPT OAuth. Incoming DALL-E-style `/v1/images/generations` requests are
+  // translated to /responses calls with `tools: [{ type: "image_generation" }]`
+  // by handleCodexImageGeneration.
+  codex: {
+    id: "codex",
+    alias: "cx",
+    baseUrl: "https://chatgpt.com/backend-api/codex/responses",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "codex-responses",
+    models: [
+      { id: "gpt-5.4", name: "GPT 5.4 (Codex Image)" },
+      { id: "gpt-5.3-codex", name: "GPT 5.3 Codex (Image)" },
+      { id: "gpt-5.1-codex-max", name: "GPT 5.1 Codex Max (Image)" },
+    ],
+    supportedSizes: ["512x512", "1024x1024", "1024x1536", "1536x1024"],
+  },
+
   xai: {
     id: "xai",
     baseUrl: "https://api.x.ai/v1/images/generations",

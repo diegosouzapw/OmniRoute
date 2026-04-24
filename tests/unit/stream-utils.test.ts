@@ -281,11 +281,11 @@ test("buildStreamSummaryFromEvents falls back to response.output_text.delta when
     "gpt-5.4"
   );
 
-  assert.equal(summary.object, "response");
-  assert.equal(summary.output[0].type, "message");
-  assert.equal(summary.output[0].content[0].type, "output_text");
-  assert.equal(summary.output[0].content[0].text, "Hello world");
-  assert.equal(summary.usage.output_tokens, 2);
+  assert.equal((summary as any).object, "response");
+  assert.equal((summary as any).output[0].type, "message");
+  assert.equal((summary as any).output[0].content[0].type, "output_text");
+  assert.equal((summary as any).output[0].content[0].text, "Hello world");
+  assert.equal((summary as any).usage.output_tokens, 2);
 });
 
 test("createSSEStream translate mode aborts on Responses failure with rate limit error", async () => {
@@ -678,10 +678,10 @@ test("buildStreamSummaryFromEvents compacts Responses API deltas into a syntheti
     "gpt-4.1-mini"
   );
 
-  assert.equal(summary.object, "response");
-  assert.equal(summary.model, "gpt-4.1-mini");
-  assert.equal(summary.output[0].content[0].text, "Hello world");
-  assert.deepEqual(summary.usage, { input_tokens: 2, output_tokens: 3, total_tokens: 5 });
+  assert.equal((summary as any).object, "response");
+  assert.equal((summary as any).model, "gpt-4.1-mini");
+  assert.equal((summary as any).output[0].content[0].text, "Hello world");
+  assert.deepEqual((summary as any).usage, { input_tokens: 2, output_tokens: 3, total_tokens: 5 });
 });
 
 test("buildStreamSummaryFromEvents preserves Gemini thought parts and function calls", () => {
@@ -731,13 +731,13 @@ test("buildStreamSummaryFromEvents preserves Gemini thought parts and function c
     "gemini-2.5-pro"
   );
 
-  assert.equal(summary.modelVersion, "gemini-2.5-pro");
-  assert.equal(summary.candidates[0].content.parts[0].text, "Thinking aloud");
-  assert.equal(summary.candidates[0].content.parts[0].thought, true);
-  assert.deepEqual(summary.candidates[0].content.parts[2], {
+  assert.equal((summary as any).modelVersion, "gemini-2.5-pro");
+  assert.equal((summary as any).candidates[0].content.parts[0].text, "Thinking aloud");
+  assert.equal((summary as any).candidates[0].content.parts[0].thought, true);
+  assert.deepEqual((summary as any).candidates[0].content.parts[2], {
     functionCall: { name: "read_file", args: { path: "/tmp/a" } },
   });
-  assert.deepEqual(summary.usageMetadata, {
+  assert.deepEqual((summary as any).usageMetadata, {
     promptTokenCount: 4,
     candidatesTokenCount: 5,
     totalTokenCount: 9,

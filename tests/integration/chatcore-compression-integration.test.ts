@@ -15,14 +15,12 @@ const readCacheDb = await import("../../src/lib/db/readCache.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { estimateTokens, getTokenLimit } = await import("../../open-sse/services/contextManager.ts");
-const { resetAllAvailability } = await import("../../src/domain/modelAvailability.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 const originalFetch = globalThis.fetch;
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
-  resetAllAvailability();
   resetAllCircuitBreakers();
   readCacheDb.invalidateDbCache();
   await new Promise((resolve) => setTimeout(resolve, 20));

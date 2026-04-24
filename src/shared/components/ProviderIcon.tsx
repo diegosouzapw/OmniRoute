@@ -70,6 +70,7 @@ const LOBEHUB_PROVIDER_MAP: Record<string, string> = {
   nvidia: "nvidia",
   cloudflare: "cloudflare",
   "cloudflare-ai": "cloudflare",
+  "amazon-q": "bedrock",
   "aws-bedrock": "bedrock",
   bedrock: "bedrock",
   azure: "azure",

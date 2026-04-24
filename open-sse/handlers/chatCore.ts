@@ -12,10 +12,12 @@ import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import {
+  getStripTypesForProviderModel,
+  stripIncompatibleMessageContent,
+} from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
-import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -31,10 +33,12 @@ import {
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
+import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
   trackPendingRequest,
+  updatePendingRequest,
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
@@ -69,7 +73,6 @@ import { getCachedSettings } from "@/lib/db/readCache";
 
 import {
   parseCodexQuotaHeaders,
-  getCodexResetTime,
   getCodexModelScope,
   getCodexDualWindowCooldownMs,
 } from "../executors/codex.ts";
@@ -88,6 +91,11 @@ import {
   updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
+import {
+  acquire as acquireAccountSemaphore,
+  buildAccountSemaphoreKey,
+  markBlocked as markAccountSemaphoreBlocked,
+} from "../services/accountSemaphore.ts";
 import {
   generateSignature,
   getCachedResponse,
@@ -141,6 +149,8 @@ import {
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
+import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
+import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -234,6 +244,29 @@ function extractMemoryTextFromRequestBody(
   return "";
 }
 
+async function maybeSyncClaudeExtraUsageState({
+  provider,
+  connectionId,
+  providerSpecificData,
+  log,
+}: {
+  provider: string | null | undefined;
+  connectionId: string | null | undefined;
+  providerSpecificData: unknown;
+  log?: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void } | null;
+}) {
+  if (!connectionId || !isClaudeExtraUsageBlockEnabled(provider, providerSpecificData)) {
+    return;
+  }
+
+  try {
+    await fetchLiveProviderLimits(connectionId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log?.debug?.("CLAUDE_USAGE", `Failed to sync Claude extra-usage state: ${message}`);
+  }
+}
+
 function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): string | null {
   const rawId = apiKeyInfo?.id;
   if (typeof rawId === "string" && rawId.trim().length > 0) {
@@ -302,6 +335,25 @@ function restoreClaudePassthroughToolNames(
     ...responseBody,
     content,
   };
+}
+
+function mergeResponseToolNameMap(
+  baseToolNameMap: Map<string, string> | null,
+  transformedBody: Record<string, unknown> | null | undefined
+) {
+  const executorToolNameMap =
+    transformedBody && transformedBody._toolNameMap instanceof Map
+      ? (transformedBody._toolNameMap as Map<string, string>)
+      : null;
+
+  if (!executorToolNameMap?.size) return baseToolNameMap;
+  if (!baseToolNameMap?.size) return executorToolNameMap;
+
+  const merged = new Map(baseToolNameMap);
+  for (const [toolName, originalName] of executorToolNameMap.entries()) {
+    merged.set(toolName, originalName);
+  }
+  return merged;
 }
 
 function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
@@ -417,6 +469,72 @@ function getHeaderValueCaseInsensitive(
     }
   }
   return null;
+}
+
+function toFiniteNumberOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function isSemaphoreTimeoutError(error: unknown): error is Error & { code: string } {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    (error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT"
+  );
+}
+
+function resolveAccountSemaphoreAccountKey(
+  connectionId: string | null | undefined,
+  credentials: Record<string, unknown> | null | undefined
+): string | null {
+  if (typeof connectionId === "string" && connectionId.trim().length > 0) {
+    return connectionId;
+  }
+
+  const candidateKeys = [
+    credentials?.connectionId,
+    credentials?.id,
+    credentials?.email,
+    credentials?.name,
+    credentials?.displayName,
+  ];
+
+  for (const candidate of candidateKeys) {
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate.trim();
+    }
+  }
+
+  return null;
+}
+
+function resolveAccountSemaphoreMaxConcurrency(
+  credentials: Record<string, unknown> | null | undefined
+): number | null {
+  return toFiniteNumberOrNull(credentials?.maxConcurrent);
+}
+
+function resolveAccountSemaphoreKey({
+  provider,
+  model,
+  connectionId,
+  credentials,
+}: {
+  provider: string | null | undefined;
+  model: string;
+  connectionId: string | null | undefined;
+  credentials: Record<string, unknown> | null | undefined;
+}): string | null {
+  const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
+  if (!accountKey || !provider) return null;
+  return buildAccountSemaphoreKey({ provider, accountKey });
 }
 
 function buildClaudePromptCacheLogMeta(
@@ -706,7 +824,7 @@ export async function handleChatCore({
       };
 
       // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
-      // Item 3: Use dual-window cooldown to distinguish 5h vs 7d exhaustion.
+      // Use dual-window cooldown to distinguish short-term and weekly Codex exhaustion.
       if (status === 429) {
         const { cooldownMs, window: exhaustedWindow } = getCodexDualWindowCooldownMs(quota);
         if (cooldownMs > 0) {
@@ -910,6 +1028,29 @@ export async function handleChatCore({
     claudeCacheUsageMeta?: Record<string, unknown>;
     cacheSource?: "upstream" | "semantic";
   }) => {
+    const providerWarnings = extractProviderWarnings(
+      providerResponse,
+      clientResponse,
+      responseBody
+    );
+    if (providerWarnings.length > 0) {
+      logAuditEvent({
+        action: "provider.warning",
+        actor: "system",
+        target: [provider, connectionId].filter(Boolean).join(":") || provider || model,
+        resourceType: "provider_warning",
+        status: "warning",
+        requestId: skillRequestId,
+        details: {
+          provider,
+          model,
+          connectionId,
+          httpStatus: status,
+          warnings: providerWarnings,
+        },
+      });
+    }
+
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
 
@@ -1229,8 +1370,10 @@ export async function handleChatCore({
         const { getComboByName } = await import("../../src/lib/localDb");
         const { parseModel } = await import("../services/model.ts");
         const { resolveComboTargets } = await import("../services/combo.ts");
-        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
-        const comboConfig = await getComboByName(comboToSearch);
+        let comboConfig = await getComboByName(comboName);
+        if (!comboConfig && comboName.startsWith("combo/")) {
+          comboConfig = await getComboByName(comboName.substring(6));
+        }
         if (comboConfig) {
           const targets = await resolveComboTargets(comboConfig, null);
           const limits = targets.map((t: { modelStr?: string }) => {
@@ -1316,6 +1459,21 @@ export async function handleChatCore({
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
+  const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
+
+  if (Array.isArray(translatedBody?.messages) && stripTypes.length > 0) {
+    const stripResult = stripIncompatibleMessageContent(translatedBody.messages, stripTypes);
+    if (stripResult.removedParts > 0) {
+      translatedBody = {
+        ...translatedBody,
+        messages: stripResult.messages,
+      };
+      log?.warn?.(
+        "CONTENT",
+        `Stripped ${stripResult.removedParts} incompatible content part(s) for ${provider}/${model}`
+      );
+    }
+  }
 
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference
@@ -1342,7 +1500,11 @@ export async function handleChatCore({
     content?: unknown;
   };
 
-  const normalizeClaudeUpstreamMessages = (payload: Record<string, unknown>) => {
+  const normalizeClaudeUpstreamMessages = (
+    payload: Record<string, unknown>,
+    options?: { preserveToolResultBlocks?: boolean }
+  ) => {
+    const preserveToolResultBlocks = options?.preserveToolResultBlocks === true;
     if (!Array.isArray(payload.messages)) return;
     const messages = payload.messages as ClaudeMessage[];
 
@@ -1391,6 +1553,9 @@ export async function handleChatCore({
         }
 
         if (block.type === "tool_result") {
+          if (preserveToolResultBlocks) {
+            return [block];
+          }
           const toolId = block.tool_use_id ?? block.id ?? "unknown";
           const resultContent = block.content ?? block.text ?? block.output ?? "";
           const resultText =
@@ -1468,7 +1633,7 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
-      normalizeClaudeUpstreamMessages(translatedBody);
+      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
     } else {
@@ -1720,6 +1885,15 @@ export async function handleChatCore({
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
+      const executionCredentials = getExecutionCredentials();
+      const accountSemaphoreMaxConcurrency =
+        resolveAccountSemaphoreMaxConcurrency(executionCredentials);
+      const accountSemaphoreKey = resolveAccountSemaphoreKey({
+        provider,
+        model: modelToCall,
+        connectionId,
+        credentials: executionCredentials,
+      });
       let bodyToSend =
         translatedBody.model === modelToCall
           ? translatedBody
@@ -1787,6 +1961,13 @@ export async function handleChatCore({
         }
       }
 
+      const acquireAccountSemaphoreRelease =
+        accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
+          ? await acquireAccountSemaphore(accountSemaphoreKey, {
+              maxConcurrency: accountSemaphoreMaxConcurrency,
+            })
+          : () => {};
+
       const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
         let attempts = 0;
         const maxAttempts = provider === "qwen" ? 3 : 1;
@@ -1796,7 +1977,7 @@ export async function handleChatCore({
             model: modelToCall,
             body: bodyToSend,
             stream: upstreamStream,
-            credentials: getExecutionCredentials(),
+            credentials: executionCredentials,
             signal: streamController.signal,
             log,
             extendedContext,
@@ -1819,17 +2000,39 @@ export async function handleChatCore({
               continue;
             }
           }
+
+          // For streaming: wrap response body to release semaphore only when stream is fully consumed
+          if (stream) {
+            const originalBody = res.response.body;
+            const wrappedBody = originalBody
+              ? originalBody.pipeThrough(
+                  new TransformStream({
+                    flush: () => {
+                      acquireAccountSemaphoreRelease();
+                    },
+                  })
+                )
+              : null;
+            return {
+              ...res,
+              response: new Response(wrappedBody, {
+                status: res.response.status,
+                statusText: res.response.statusText,
+                headers: res.response.headers,
+              }),
+            };
+          }
+
           return res;
         }
       });
 
-      if (stream) return rawResult;
-
-      // Non-stream responses need cloning for shared dedup consumers.
+      // Non-stream: release semaphore immediately after reading full response body
       const status = rawResult.response.status;
       const statusText = rawResult.response.statusText;
       const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
       const payload = await rawResult.response.text();
+      acquireAccountSemaphoreRelease();
 
       return {
         ...rawResult,
@@ -1855,7 +2058,10 @@ export async function handleChatCore({
   };
 
   // Track pending request
-  trackPendingRequest(model, provider, connectionId, true);
+  trackPendingRequest(model, provider, connectionId, true, {
+    clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+    clientRequest: clientRawRequest?.body ?? body,
+  });
 
   // T5: track which models we've tried for intra-family fallback
   const triedModels = new Set<string>([effectiveModel]);
@@ -1893,6 +2099,10 @@ export async function handleChatCore({
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+    updatePendingRequest(model, provider, connectionId, {
+      providerRequest: finalBody,
+      providerUrl,
+    });
 
     // Update rate limiter from response headers (learn limits dynamically)
     updateFromHeaders(
@@ -1904,6 +2114,28 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
+    if (isSemaphoreTimeoutError(error)) {
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${error.code}`,
+      }).catch(() => {});
+      if (isCombo) {
+        throw error;
+      }
+      const failureMessage = error.message || "Semaphore timeout";
+      persistAttemptLogs({
+        status: HTTP_STATUS.RATE_LIMITED,
+        error: failureMessage,
+        providerRequest: finalBody || translatedBody,
+        clientResponse: buildErrorBody(HTTP_STATUS.RATE_LIMITED, failureMessage),
+        claudeCacheMeta: claudePromptCacheLogMeta,
+        cacheSource: "upstream",
+      });
+      persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
+      return createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+    }
     const failureStatus =
       error.name === "AbortError"
         ? 499
@@ -2014,6 +2246,10 @@ export async function handleChatCore({
           providerHeaders = retryResult.headers;
           finalBody = retryResult.transformedBody;
           reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+          updatePendingRequest(model, provider, connectionId, {
+            providerRequest: finalBody,
+            providerUrl,
+          });
           upstreamErrorParsed = false; // Reset since new response is OK
         } else {
           providerResponse = retryResult.response;
@@ -2050,7 +2286,7 @@ export async function handleChatCore({
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
-    const errorType = classifyProviderError(statusCode, message);
+    const errorType = classifyProviderError(statusCode, message, provider);
     if (connectionId && errorType) {
       try {
         if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
@@ -2075,51 +2311,29 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
-        } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          // For providers with per-model quotas (passthrough providers, Gemini),
-          // each model has independent quota. A 429 on one model must NOT lock out
-          // the entire connection — other models may still have quota available.
-          const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
-          if (
-            lockModelIfPerModelQuota(
-              provider,
-              connectionId,
-              model,
-              "rate_limited",
-              rateLimitCooldownMs
-            )
-          ) {
-            console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(rateLimitCooldownMs / 1000)}s (connection stays active)`
-            );
-          } else {
-            const rateLimitedUntil = new Date(Date.now() + rateLimitCooldownMs).toISOString();
-            await updateProviderConnection(connectionId, {
-              rateLimitedUntil: rateLimitedUntil,
-              testStatus: "unavailable",
-              lastErrorType: errorType,
-              lastError: message,
-              errorCode: statusCode,
-              healthCheckInterval: null,
-              lastHealthCheckAt: null,
-            });
-            console.warn(
-              `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
-            );
-          }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
+          const quotaCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
+          const accountSemaphoreKey = resolveAccountSemaphoreKey({
+            provider,
+            model: currentModel,
+            connectionId,
+            credentials,
+          });
+          if (accountSemaphoreKey) {
+            markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
+          }
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "quota_exhausted",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {
@@ -2537,8 +2751,13 @@ export async function handleChatCore({
       }
     }
 
+    const responseToolNameMap = mergeResponseToolNameMap(
+      toolNameMap,
+      (finalBody as Record<string, unknown> | null | undefined) ?? null
+    );
+
     if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
-      responseBody = restoreClaudePassthroughToolNames(responseBody, toolNameMap);
+      responseBody = restoreClaudePassthroughToolNames(responseBody, responseToolNameMap);
     }
     reqLogger.logProviderResponse(
       providerResponse.status,
@@ -2557,6 +2776,12 @@ export async function handleChatCore({
     if (onRequestSuccess) {
       await onRequestSuccess();
     }
+    await maybeSyncClaudeExtraUsageState({
+      provider,
+      connectionId,
+      providerSpecificData: credentials?.providerSpecificData,
+      log,
+    });
 
     // Log usage for non-streaming responses
     const usage = extractUsageFromResponse(responseBody, provider);
@@ -2615,7 +2840,7 @@ export async function handleChatCore({
           responseBody,
           responsePayloadFormat,
           clientResponseFormat,
-          toolNameMap as Map<string, string> | null
+          responseToolNameMap as Map<string, string> | null
         )
       : responseBody;
     const memoryExtractionResponse = translatedResponse;
@@ -2839,6 +3064,10 @@ export async function handleChatCore({
 
   // Create transform stream with logger for streaming response
   let transformStream;
+  const responseToolNameMap = mergeResponseToolNameMap(
+    toolNameMap,
+    (finalBody as Record<string, unknown> | null | undefined) ?? null
+  );
 
   // Callback to save call log when stream completes (include responseBody when provided by stream)
   const onStreamComplete = ({
@@ -2850,6 +3079,15 @@ export async function handleChatCore({
     ttft,
   }) => {
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+
+    if (streamStatus === 200) {
+      void maybeSyncClaudeExtraUsageState({
+        provider,
+        connectionId,
+        providerSpecificData: credentials?.providerSpecificData,
+        log,
+      });
+    }
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
@@ -2972,7 +3210,7 @@ export async function handleChatCore({
       "openai",
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,
@@ -2987,7 +3225,7 @@ export async function handleChatCore({
       clientResponseFormat,
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,
@@ -2999,7 +3237,7 @@ export async function handleChatCore({
     transformStream = createPassthroughStreamWithLogger(
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,

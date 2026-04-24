@@ -19,7 +19,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -136,7 +136,7 @@ test("codex workspace uniqueness uses workspaceId alongside email", async () => 
   assert.equal(workspaceAUpdate.id, workspaceA.id);
   assert.notEqual(workspaceB.id, workspaceA.id);
   assert.equal(rows.length, 2);
-  assert.deepEqual(rows.map((row) => row.providerSpecificData.workspaceId).sort(), [
+  assert.deepEqual(rows.map((row) => (row.providerSpecificData as any).workspaceId).sort(), [
     "ws-a",
     "ws-b",
   ]);
@@ -162,7 +162,7 @@ test("updateProviderConnection reorders priorities and returns decrypted payload
     apiKey: "third-key",
   });
 
-  const updated = await providersDb.updateProviderConnection(third.id, {
+  const updated = await providersDb.updateProviderConnection((third as any).id, {
     priority: 0,
     providerSpecificData: { region: "us-east-1" },
     rateLimitProtection: true,
@@ -170,7 +170,7 @@ test("updateProviderConnection reorders priorities and returns decrypted payload
 
   const ordered = await providersDb.getProviderConnections({ provider: "openai" });
 
-  assert.equal(updated.providerSpecificData.region, "us-east-1");
+  assert.equal((updated as any).providerSpecificData.region, "us-east-1");
   assert.equal(updated.rateLimitProtection, true);
   assert.deepEqual(
     ordered.map((connection) => ({
@@ -205,7 +205,7 @@ test("deleteProviderConnection reorders remaining rows and bulk delete reports c
     apiKey: "three",
   });
 
-  assert.equal(await providersDb.deleteProviderConnection(second.id), true);
+  assert.equal(await providersDb.deleteProviderConnection((second as any).id), true);
 
   const reordered = await providersDb.getProviderConnections({ provider: "anthropic" });
   const deletedCount = await providersDb.deleteProviderConnectionsByProvider("anthropic");
@@ -238,12 +238,12 @@ test("provider node CRUD supports filter, update and delete", async () => {
   });
 
   const filtered = await providersDb.getProviderNodes({ type: "custom" });
-  const updated = await providersDb.updateProviderNode(customNode.id, {
+  const updated = await providersDb.updateProviderNode((customNode as any).id, {
     name: "Custom Gateway v2",
     chatPath: "/v1/chat/completions",
     modelsPath: "/v1/models",
   });
-  const deleted = await providersDb.deleteProviderNode(openAiNode.id);
+  const deleted = await providersDb.deleteProviderNode((openAiNode as any).id);
 
   assert.deepEqual(
     filtered.map((node) => node.id),
@@ -251,9 +251,9 @@ test("provider node CRUD supports filter, update and delete", async () => {
   );
   assert.equal(updated.name, "Custom Gateway v2");
   assert.equal(updated.chatPath, "/v1/chat/completions");
-  assert.deepEqual(await providersDb.getProviderNodeById(customNode.id), updated);
+  assert.deepEqual(await providersDb.getProviderNodeById((customNode as any).id), updated);
   assert.equal(deleted.id, openAiNode.id);
-  assert.equal(await providersDb.getProviderNodeById(openAiNode.id), null);
+  assert.equal(await providersDb.getProviderNodeById((openAiNode as any).id), null);
 });
 
 test("rate-limit helpers persist cooldown state in the database", async () => {
@@ -265,9 +265,9 @@ test("rate-limit helpers persist cooldown state in the database", async () => {
   });
   const future = Date.now() + 90_000;
 
-  providersDb.setConnectionRateLimitUntil(connection.id, future);
+  providersDb.setConnectionRateLimitUntil((connection as any).id, future);
 
-  assert.equal(providersDb.isConnectionRateLimited(connection.id), true);
+  assert.equal(providersDb.isConnectionRateLimited((connection as any).id), true);
   assert.deepEqual(
     providersDb
       .getRateLimitedConnections("openai")
@@ -275,9 +275,9 @@ test("rate-limit helpers persist cooldown state in the database", async () => {
     [{ id: connection.id, rateLimitedUntil: future }]
   );
 
-  providersDb.setConnectionRateLimitUntil(connection.id, null);
+  providersDb.setConnectionRateLimitUntil((connection as any).id, null);
 
-  assert.equal(providersDb.isConnectionRateLimited(connection.id), false);
+  assert.equal(providersDb.isConnectionRateLimited((connection as any).id), false);
   assert.deepEqual(providersDb.getRateLimitedConnections("openai"), []);
 });
 

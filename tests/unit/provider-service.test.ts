@@ -114,7 +114,7 @@ test("Unknown providers fall back to bearer auth and OpenAI format", () => {
   assert.equal(getTargetFormat("custom-provider"), "openai");
 });
 
-test("thinking config is removed when the last message is not from the user", () => {
+test("native thinking config is removed when the last message is not from the user", () => {
   const assistantLast = {
     messages: [
       { role: "user", content: "hi" },
@@ -134,7 +134,7 @@ test("thinking config is removed when the last message is not from the user", ()
   assert.equal(isLastMessageFromUser({ messages: [] }), true);
   assert.equal(isLastMessageFromUser(assistantLast), false);
   assert.equal(hasThinkingConfig(userLast), true);
-  assert.equal("reasoning_effort" in normalized, false);
+  assert.equal(normalized.reasoning_effort, "high");
   assert.equal("thinking" in normalized, false);
   assert.equal(normalizeThinkingConfig(userLast).reasoning_effort, "medium");
 });

@@ -278,6 +278,8 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
+ *
+ * @deprecated This function will be removed in v4.0, Codex executor has updated processing logic
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   // Always strip previous_response_id — the /codex/responses endpoint does not
@@ -331,6 +333,31 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+function hasImageGenerationTool(body: Record<string, unknown>): boolean {
+  if (!Array.isArray(body.tools)) return false;
+  return body.tools.some((tool) => {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;
+    return (tool as Record<string, unknown>).type === "image_generation";
+  });
+}
+
+// Responses-API hosted tool types that OpenAI executes server-side (e.g.
+// `image_generation` backed by gpt-image-1 under ChatGPT auth). These arrive shaped as
+// `{ type, ...params }` with no `function` object and no `name` — Codex CLI injects
+// `{ type: "image_generation", output_format: "png" }` when [features] image_generation = true.
+// Keep them through `normalizeCodexTools` so upstream can execute them.
+const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "image_generation",
+  "web_search",
+  "web_search_preview",
+  "file_search",
+  "computer",
+  "computer_use_preview",
+  "code_interpreter",
+  "mcp",
+  "local_shell",
+]);
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -341,7 +368,33 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     }
 
     const tool = toolValue as Record<string, unknown>;
-    if (tool.type !== "function") {
+    const toolType = typeof tool.type === "string" ? tool.type : "";
+
+    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+    // Codex API supports them natively; register sub-tool names for tool_choice validation.
+    if (toolType === "namespace") {
+      if (Array.isArray(tool.tools)) {
+        for (const st of tool.tools as unknown[]) {
+          if (st && typeof st === "object" && !Array.isArray(st)) {
+            const subTool = st as Record<string, unknown>;
+            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+            if (name) validToolNames.add(name);
+          }
+        }
+      }
+      return true;
+    }
+
+    if (toolType !== "function") {
+      const hasFunctionObject = tool.function && typeof tool.function === "object";
+      const hasName = typeof tool.name === "string";
+      if (!toolType || hasFunctionObject || hasName) {
+        return false;
+      }
+      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        return true;
+      }
+      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
       return false;
     }
 
@@ -821,6 +874,8 @@ export class CodexExecutor extends BaseExecutor {
     // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
     // which requires store=true so that response items are persisted.
     // If the client explicitly sets store, respect it. Otherwise default to true.
+    // Exception: when the request uses the image_generation hosted tool, the Codex
+    // backend rejects store=true ("Store must be set to false"), so default to false.
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
@@ -830,7 +885,7 @@ export class CodexExecutor extends BaseExecutor {
     if (explicitStoreSetting === false) {
       body.store = false;
     } else if (body.store === undefined) {
-      body.store = true;
+      body.store = hasImageGenerationTool(body) ? false : true;
     }
 
     // Codex Responses only supports function tools with non-empty names.

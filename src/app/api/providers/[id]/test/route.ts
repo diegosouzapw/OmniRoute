@@ -16,6 +16,11 @@ import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import {
+  buildGitLabOAuthEndpoints,
+  isGitLabDirectAccessDisabled,
+  resolveGitLabOAuthBaseUrl,
+} from "@/lib/oauth/gitlab";
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -52,6 +57,15 @@ const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
   },
+  "gitlab-duo": {
+    getUrl: (connection: any) =>
+      buildGitLabOAuthEndpoints(resolveGitLabOAuthBaseUrl(connection?.providerSpecificData))
+        .directAccessUrl,
+    method: "POST",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    refreshable: true,
+  },
   qwen: {
     // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
     // Use checkExpiry instead — actual connectivity is validated via real requests.
@@ -78,6 +92,10 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   kiro: {
+    checkExpiry: true,
+    refreshable: true,
+  },
+  "amazon-q": {
     checkExpiry: true,
     refreshable: true,
   },
@@ -396,7 +414,8 @@ async function testOAuthConnection(connection: any) {
       ...config.extraHeaders,
     };
 
-    const res = await fetch(config.url, {
+    const url = typeof config.getUrl === "function" ? config.getUrl(connection) : config.url;
+    const res = await fetch(url, {
       method: config.method,
       headers,
     });
@@ -409,6 +428,19 @@ async function testOAuthConnection(connection: any) {
         newTokens,
         diagnosis: makeDiagnosis("ok", "upstream", null, null),
       };
+    }
+
+    if (connection.provider === "gitlab-duo") {
+      const gitlabText = await res.text();
+      if (isGitLabDirectAccessDisabled(res.status, gitlabText)) {
+        return {
+          valid: true,
+          error: null,
+          refreshed,
+          newTokens,
+          diagnosis: makeDiagnosis("ok", "upstream", null, null),
+        };
+      }
     }
 
     // If 401/403 and we haven't tried refresh yet, only attempt refresh
@@ -424,7 +456,7 @@ async function testOAuthConnection(connection: any) {
       const tokens = await refreshOAuthToken(connection);
       if (tokens) {
         // Retry with new token
-        const retryRes = await fetch(config.url, {
+        const retryRes = await fetch(url, {
           method: config.method,
           headers: {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,

@@ -1635,6 +1635,7 @@
     "errorOccurred": "May naganap na error. Pakisubukang muli.",
     "modelStatus": "Katayuan ng Modelo",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Maghanap ng mga provider...",
     "allModelsOperational": "Ang lahat ng mga modelo ay gumagana",
     "modelsWithIssues": "{count} (mga) modelong may mga isyu",
     "allModelsNormal": "Ang lahat ng mga modelo ay tumutugon nang normal.",

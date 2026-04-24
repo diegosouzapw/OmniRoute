@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardSkeleton } from "@/shared/components";
+import { Card, CardSkeleton, SegmentedControl } from "@/shared/components";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
 import {
   PROVIDER_MODELS,
@@ -18,12 +18,33 @@ import {
   DefaultToolCard,
   AntigravityToolCard,
   CopilotToolCard,
+  CustomCliCard,
 } from "./components";
 import { useTranslations } from "next-intl";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+const AUTO_CONFIGURED_TOOL_IDS = new Set([
+  "claude",
+  "codex",
+  "droid",
+  "openclaw",
+  "cline",
+  "kilo",
+  "copilot",
+]);
+const GUIDED_TOOL_IDS = new Set([
+  "cursor",
+  "windsurf",
+  "continue",
+  "opencode",
+  "hermes",
+  "amp",
+  "qwen",
+]);
+const MITM_TOOL_IDS = new Set(["antigravity", "kiro"]);
+const CUSTOM_TOOL_IDS = new Set(["custom"]);
 
-export default function CLIToolsPageClient({ machineId }) {
+export default function CLIToolsPageClient({ machineId: _machineId }) {
   const t = useTranslations("cliTools");
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +55,12 @@ export default function CLIToolsPageClient({ machineId }) {
   const [toolStatuses, setToolStatuses] = useState({});
   const [statusesLoaded, setStatusesLoaded] = useState(false);
   const [dynamicModels, setDynamicModels] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("auto");
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
       try {
-        return t(key, values);
+        const translated = t(key, values);
+        return translated === key || translated === `cliTools.${key}` ? fallback : translated;
       } catch {
         return fallback;
       }
@@ -220,6 +243,14 @@ export default function CLIToolsPageClient({ machineId }) {
 
   const availableModels = getAllAvailableModels();
   const hasActiveProviders = availableModels.length > 0;
+  const toolEntries = Object.entries(CLI_TOOLS).filter(([toolId]) => {
+    if (activeCategory === "all") return true;
+    if (activeCategory === "auto") return AUTO_CONFIGURED_TOOL_IDS.has(toolId);
+    if (activeCategory === "guided") return GUIDED_TOOL_IDS.has(toolId);
+    if (activeCategory === "mitm") return MITM_TOOL_IDS.has(toolId);
+    if (activeCategory === "custom") return CUSTOM_TOOL_IDS.has(toolId);
+    return true;
+  });
 
   const renderToolCard = (toolId, tool) => {
     const commonProps = {
@@ -316,6 +347,16 @@ export default function CLIToolsPageClient({ machineId }) {
             cloudEnabled={cloudEnabled}
           />
         );
+      case "custom":
+        return (
+          <CustomCliCard
+            key={toolId}
+            {...commonProps}
+            availableModels={availableModels}
+            hasActiveProviders={hasActiveProviders}
+            cloudEnabled={cloudEnabled}
+          />
+        );
       default:
         // #487: Any tool with configType "mitm" should use the MITM card (Start/Stop controls)
         if (tool.configType === "mitm") {
@@ -377,6 +418,34 @@ export default function CLIToolsPageClient({ machineId }) {
         </div>
       </Card>
 
+      <Card>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-sm font-semibold">{t("toolCategories")}</h2>
+              <p className="text-xs text-text-muted mt-1">{t("toolCategoriesDesc")}</p>
+            </div>
+            <span className="text-xs text-text-muted">
+              {t("visibleToolsCount", { count: toolEntries.length })}
+            </span>
+          </div>
+          <SegmentedControl
+            options={[
+              { value: "auto", label: t("autoConfiguredTab") },
+              { value: "guided", label: t("guidedClientsTab") },
+              { value: "mitm", label: t("mitmClientsTab") },
+              {
+                value: "custom",
+                label: translateOrFallback("customCliTab", "Custom CLI"),
+              },
+              { value: "all", label: t("allToolsTab") },
+            ]}
+            value={activeCategory}
+            onChange={setActiveCategory}
+          />
+        </div>
+      </Card>
+
       {!hasActiveProviders && (
         <Card className="border-yellow-500/50 bg-yellow-500/5">
           <div className="flex items-center gap-3">
@@ -392,7 +461,7 @@ export default function CLIToolsPageClient({ machineId }) {
       )}
 
       <div className="flex flex-col gap-4">
-        {Object.entries(CLI_TOOLS).map(([toolId, tool]) => {
+        {toolEntries.map(([toolId, tool]) => {
           const docsHref = getToolDocsHref(toolId, tool);
           const isExternalDocs = /^https?:\/\//i.test(docsHref);
           return (

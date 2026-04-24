@@ -18,6 +18,7 @@ import { randomUUID } from "crypto";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
+import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import {
   submitComfyWorkflow,
@@ -273,6 +274,17 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
 
   if (providerConfig.format === "comfyui") {
     return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
+  }
+
+  if (providerConfig.format === "codex-responses") {
+    return handleCodexImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
   }
 
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
@@ -1319,6 +1331,219 @@ function firstString(...values) {
 
 function isHttpUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
+}
+
+/**
+ * Codex image generation — translate DALL-E-style /v1/images/generations
+ * request into a /v1/responses call with the `image_generation` hosted tool,
+ * parse the SSE stream, and return the base64 PNG in OpenAI image response shape.
+ *
+ * Requires ChatGPT OAuth credentials (Codex provider connection). The hosted
+ * image_generation tool is only served upstream under ChatGPT auth; API-key
+ * users will receive a 400 from OpenAI.
+ */
+export function extractImageGenerationCalls(
+  sseText: string
+): Array<{ b64: string; revisedPrompt: string | null }> {
+  const results: Array<{ b64: string; revisedPrompt: string | null }> = [];
+  const lines = String(sseText || "").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    let evt: Record<string, unknown>;
+    try {
+      evt = JSON.parse(payload) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+    if (evt?.type !== "response.output_item.done") continue;
+    const item = evt.item as Record<string, unknown> | undefined;
+    if (!item || item.type !== "image_generation_call") continue;
+    const result = typeof item.result === "string" ? item.result : "";
+    if (!result) continue;
+    const revisedPrompt = typeof item.revised_prompt === "string" ? item.revised_prompt : null;
+    results.push({ b64: result, revisedPrompt });
+  }
+  return results;
+}
+
+// The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
+// for `quality`. DALL-E clients often send "standard" / "hd". Map legacy values
+// so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
+function mapDalleQualityToImageTool(value: string): string {
+  const normalized = value.toLowerCase();
+  if (normalized === "standard") return "medium";
+  if (normalized === "hd") return "high";
+  return normalized;
+}
+
+async function handleCodexImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const prompt = typeof body.prompt === "string" ? body.prompt : "";
+  if (!prompt.trim()) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: "Prompt is required for Codex image generation",
+    });
+  }
+
+  const requestedCount = Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  if (log && requestedCount > 1) {
+    log.warn(
+      "IMAGE",
+      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will run sequentially`
+    );
+  }
+
+  const token = credentials?.accessToken || credentials?.apiKey;
+  if (!token) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 401,
+      startTime,
+      error: "Codex credentials missing accessToken — reconnect the Codex provider",
+    });
+  }
+
+  const workspaceId =
+    credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+      ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
+      : undefined;
+
+  // Forward size/quality from the DALL-E-style body into the hosted tool so
+  // OpenWebUI's size/quality selectors actually take effect. Everything else
+  // (model, n, background, moderation, output_compression) is left to the
+  // Codex backend's defaults — today that's `gpt-image-2`.
+  const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
+  if (typeof body.size === "string" && body.size.trim()) {
+    toolConfig.size = body.size.trim();
+  }
+  if (typeof body.quality === "string" && body.quality.trim()) {
+    toolConfig.quality = mapDalleQualityToImageTool(body.quality.trim());
+  }
+
+  const upstreamBody: Record<string, unknown> = {
+    model,
+    instructions:
+      "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
+    input: [
+      {
+        role: "user",
+        content: [{ type: "input_text", text: prompt }],
+      },
+    ],
+    tools: [toolConfig],
+    stream: true,
+    store: false,
+  };
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+    Authorization: `Bearer ${token}`,
+    Version: getCodexClientVersion(),
+    "User-Agent": getCodexUserAgent(),
+    originator: "codex_cli_rs",
+  };
+  if (typeof workspaceId === "string" && workspaceId) {
+    headers["chatgpt-account-id"] = workspaceId;
+    headers["session_id"] = workspaceId;
+  }
+
+  if (log) {
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (codex-responses) | prompt: "${prompt.slice(0, 60)}..."`
+    );
+  }
+
+  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
+  for (let i = 0; i < requestedCount; i++) {
+    let response: Response;
+    try {
+      response = await fetch(providerConfig.baseUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(upstreamBody),
+      });
+    } catch (err) {
+      if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error: `Image provider error: ${(err as Error).message}`,
+        requestBody: upstreamBody,
+      });
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      if (log)
+        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: response.status,
+        startTime,
+        error: errorText,
+        requestBody: upstreamBody,
+      });
+    }
+
+    const rawSSE = await response.text();
+    const items = extractImageGenerationCalls(rawSSE);
+    if (items.length === 0) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error:
+          "Codex completed without producing an image_generation_call — the model may have declined the tool",
+        requestBody: upstreamBody,
+      });
+    }
+    for (const item of items) {
+      collected.push({
+        b64_json: item.b64,
+        ...(item.revisedPrompt ? { revised_prompt: item.revisedPrompt } : {}),
+      });
+    }
+  }
+
+  const wantsUrl = body.response_format !== "b64_json";
+  const data = wantsUrl
+    ? collected.map((item) => ({
+        url: `data:image/png;base64,${item.b64_json}`,
+        ...(item.revised_prompt ? { revised_prompt: item.revised_prompt } : {}),
+      }))
+    : collected;
+
+  return saveImageSuccessResult({
+    provider,
+    model,
+    startTime,
+    requestBody: upstreamBody,
+    responseBody: { images_count: data.length },
+    images: data,
+  });
 }
 
 function saveImageSuccessResult({

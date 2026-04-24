@@ -1635,6 +1635,7 @@
     "errorOccurred": "Възникна грешка. Моля, опитайте отново.",
     "modelStatus": "Статус на модела",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Търсете доставчици...",
     "allModelsOperational": "Всички модели работещи",
     "modelsWithIssues": "{count} модел(а) с проблеми",
     "allModelsNormal": "Всички модели реагират нормално.",

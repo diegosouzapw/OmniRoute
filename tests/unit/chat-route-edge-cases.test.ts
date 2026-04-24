@@ -115,7 +115,7 @@ test("Test 3: handleChat returns cached response directly for Semantic Cache hit
   });
 
   const res2 = await handleChat(req2);
-  const json2 = await res2.json();
+  const json2 = (await res2.json()) as any;
 
   assert.equal(fetchCount, 1, "Should have hit the semantic cache without calling fetch again");
   assert.equal(json2.choices[0].message.content, "Cache Generation 1");
@@ -207,7 +207,7 @@ test("handleChat returns cached response directly for Idempotency hits", async (
     })
   );
 
-  const json2 = await response2.json();
+  const json2 = (await response2.json()) as any;
   assert.equal(response2.status, 200);
   assert.equal(response2.headers.get("X-OmniRoute-Idempotent"), "true");
   assert.equal(json2.choices[0].message.content, "Original response");
@@ -243,7 +243,7 @@ test("Test 6: handleChat correctly sets isResponsesEndpoint for /v1/responses", 
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   const responseText = json.output_text || json.output?.[0]?.content?.[0]?.text;
   assert.equal(responseText, "Responses OK");
@@ -269,7 +269,7 @@ test("handleChat returns Semantic Cache hit", async () => {
   // Second request: should hit semantic cache
   const response2 = await handleChat(buildRequest({ body: reqBody }));
 
-  const json2 = await response2.json();
+  const json2 = (await response2.json()) as any;
   assert.equal(response2.status, 200);
   assert.equal(response2.headers.get("X-OmniRoute-Cache"), "HIT");
   assert.equal(json2.choices[0].message.content, "Semantic API response");

@@ -37,14 +37,14 @@ test("Gemini non-stream: single candidate text maps to one OpenAI choice", () =>
     FORMATS.OPENAI
   );
 
-  assert.equal(result.object, "chat.completion");
-  assert.equal(result.id, "chatcmpl-resp-single");
-  assert.equal(result.model, "gemini-2.5-flash");
-  assert.equal(result.choices.length, 1);
-  assert.equal(result.choices[0].message.role, "assistant");
-  assert.equal(result.choices[0].message.content, "Hello from Gemini");
-  assert.equal(result.choices[0].finish_reason, "stop");
-  assert.deepEqual(result.usage, {
+  assert.equal((result as any).object, "chat.completion");
+  (assert as any).equal((result as any).id, "chatcmpl-resp-single");
+  (assert as any).equal((result as any).model, "gemini-2.5-flash");
+  assert.equal((result as any).choices.length, 1);
+  assert.equal((result as any).choices[0].message.role, "assistant");
+  assert.equal((result as any).choices[0].message.content, "Hello from Gemini");
+  assert.equal((result as any).choices[0].finish_reason, "stop");
+  (assert as any).deepEqual((result as any).usage, {
     prompt_tokens: 3,
     completion_tokens: 5,
     total_tokens: 8,
@@ -85,26 +85,29 @@ test("Gemini non-stream: multiple candidates keep multimodal content, reasoning 
       },
     },
     FORMATS.GEMINI,
-    FORMATS.OPENAI
+    (FORMATS as any).OPENAI
   );
 
-  assert.equal(result.choices.length, 2);
-  assert.equal(result.choices[0].finish_reason, "tool_calls");
-  assert.equal(result.choices[0].message.reasoning_content, "Plan first.");
-  assert.equal(result.choices[0].message.content[0].text, "Answer:");
-  assert.equal(result.choices[0].message.content[1].image_url.url, "data:image/png;base64,abc123");
-  assert.equal(result.choices[0].message.tool_calls[0].function.name, "read_file");
+  assert.equal((result as any).choices.length, 2);
+  assert.equal(((result as any).choices as any)[0].finish_reason, "tool_calls");
+  assert.equal(((result as any).choices[0] as any).message.reasoning_content, "Plan first.");
+  assert.equal((result as any).choices[0].message.content[0].text, "Answer:");
   assert.equal(
-    result.choices[0].message.tool_calls[0].function.arguments,
+    ((result as any).choices[0].message as any).content[1].image_url.url,
+    "data:image/png;base64,abc123"
+  );
+  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, "read_file");
+  assert.equal(
+    ((result as any).choices[0].message as any).tool_calls[0].function.arguments,
     JSON.stringify({ path: "/tmp/a" })
   );
-  assert.equal(result.choices[1].message.content, "Second option");
-  assert.equal(result.choices[1].finish_reason, "length");
-  assert.equal(result.usage.prompt_tokens, 4);
-  assert.equal(result.usage.completion_tokens, 8);
-  assert.equal(result.usage.total_tokens, 12);
-  assert.equal(result.usage.prompt_tokens_details.cached_tokens, 1);
-  assert.equal(result.usage.completion_tokens_details.reasoning_tokens, 2);
+  assert.equal(((result as any).choices[1].message as any).content, "Second option");
+  (assert as any).equal((result as any).choices[1].finish_reason, "length");
+  assert.equal((result as any).usage.prompt_tokens, 4);
+  assert.equal((result as any).usage.completion_tokens, 8);
+  (assert as any).equal((result as any).usage.total_tokens, 12);
+  assert.equal((result as any).usage.prompt_tokens_details.cached_tokens, 1);
+  assert.equal((result as any).usage.completion_tokens_details.reasoning_tokens, 2);
 });
 
 test("Gemini non-stream: promptFeedback-only block becomes content_filter", () => {
@@ -115,13 +118,13 @@ test("Gemini non-stream: promptFeedback-only block becomes content_filter", () =
       promptFeedback: { blockReason: "SAFETY" },
     },
     FORMATS.GEMINI,
-    FORMATS.OPENAI
+    (FORMATS as any).OPENAI
   );
 
-  assert.equal(result.object, "chat.completion");
-  assert.equal(result.choices.length, 1);
-  assert.equal(result.choices[0].message.content, "");
-  assert.equal(result.choices[0].finish_reason, "content_filter");
+  assert.equal((result as any).object, "chat.completion");
+  assert.equal((result as any).choices.length, 1);
+  assert.equal((result as any).choices[0].message.content, "");
+  assert.equal((result as any).choices[0].finish_reason, "content_filter");
 });
 
 test("Gemini non-stream: restores sanitized tool names from the request map", () => {
@@ -154,7 +157,37 @@ test("Gemini non-stream: restores sanitized tool names from the request map", ()
     new Map([[sanitizedToolName, originalToolName]])
   );
 
-  assert.equal(result.choices[0].message.tool_calls[0].function.name, originalToolName);
+  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, originalToolName);
+});
+
+test("Gemini non-stream: restores Antigravity _ide-cloaked tool names from the request map", () => {
+  const result = translateNonStreamingResponse(
+    {
+      responseId: "resp-ag-tool-map",
+      modelVersion: "antigravity/gemini-2.5-pro",
+      createTime: "2026-04-22T12:00:00.000Z",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: {
+                  name: "read_project_file_ide",
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    FORMATS.ANTIGRAVITY,
+    FORMATS.OPENAI,
+    new Map([["read_project_file_ide", "read_project_file"]])
+  );
+
+  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, "read_project_file");
 });
 
 test("Gemini stream: first text chunk emits assistant role then content delta", () => {

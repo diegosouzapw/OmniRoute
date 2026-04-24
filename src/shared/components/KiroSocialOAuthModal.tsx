@@ -11,7 +11,13 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
  * Kiro Social OAuth Modal (Google/GitHub)
  * Handles manual callback URL flow for social login
  */
-export default function KiroSocialOAuthModal({ isOpen, provider, onSuccess, onClose }) {
+export default function KiroSocialOAuthModal({
+  isOpen,
+  provider,
+  providerLabel = "Kiro",
+  onSuccess,
+  onClose,
+}) {
   const [step, setStep] = useState("loading"); // loading | input | success | error
   const [authUrl, setAuthUrl] = useState("");
   const [authData, setAuthData] = useState(null);
@@ -100,7 +106,12 @@ export default function KiroSocialOAuthModal({ isOpen, provider, onSuccess, onCl
   const providerName = provider === "google" ? "Google" : "GitHub";
 
   return (
-    <Modal isOpen={isOpen} title={`Connect Kiro via ${providerName}`} onClose={onClose} size="lg">
+    <Modal
+      isOpen={isOpen}
+      title={`Connect ${providerLabel} via ${providerName}`}
+      onClose={onClose}
+      size="lg"
+    >
       <div className="flex flex-col gap-4">
         {/* Loading */}
         {step === "loading" && (
@@ -168,7 +179,7 @@ export default function KiroSocialOAuthModal({ isOpen, provider, onSuccess, onCl
             </div>
             <h3 className="text-lg font-semibold mb-2">Connected Successfully!</h3>
             <p className="text-sm text-text-muted mb-4">
-              Your Kiro account via {providerName} has been connected.
+              Your {providerLabel} account via {providerName} has been connected.
             </p>
             <Button onClick={onClose} fullWidth>
               Done
@@ -202,6 +213,7 @@ export default function KiroSocialOAuthModal({ isOpen, provider, onSuccess, onCl
 KiroSocialOAuthModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   provider: PropTypes.oneOf(["google", "github"]).isRequired,
+  providerLabel: PropTypes.string,
   onSuccess: PropTypes.func,
   onClose: PropTypes.func.isRequired,
 };

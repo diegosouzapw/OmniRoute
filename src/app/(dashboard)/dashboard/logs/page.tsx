@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
+import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
 import AuditLogTab from "./AuditLogTab";
 import { useTranslations } from "next-intl";
 
@@ -21,11 +23,21 @@ const TAB_TO_LOG_TYPE: Record<string, string> = {
 };
 
 export default function LogsPage() {
-  const [activeTab, setActiveTab] = useState("request-logs");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    requestedTab && TAB_TO_LOG_TYPE[requestedTab] ? requestedTab : "request-logs"
+  );
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("logs");
+
+  useEffect(() => {
+    if (requestedTab && TAB_TO_LOG_TYPE[requestedTab] && requestedTab !== activeTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [activeTab, requestedTab]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -132,7 +144,12 @@ export default function LogsPage() {
       </div>
 
       {/* Content */}
-      {activeTab === "request-logs" && <RequestLoggerV2 />}
+      {activeTab === "request-logs" && (
+        <div className="flex flex-col gap-6">
+          <ActiveRequestsPanel />
+          <RequestLoggerV2 />
+        </div>
+      )}
       {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "audit-logs" && <AuditLogTab />}
       {activeTab === "console" && <ConsoleLogViewer />}

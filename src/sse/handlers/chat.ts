@@ -42,11 +42,6 @@ import {
 
 // Pipeline integration — wired modules
 import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
-import {
-  isModelAvailable,
-  markModelAsProblematic,
-  clearModelUnavailability,
-} from "../../domain/modelAvailability";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -106,6 +101,8 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 
   return first || second || null;
 }
+
+const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
 /**
  * Handle chat completion request
@@ -324,14 +321,6 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         return false;
       }
 
-      // Fixed-account combo steps must bypass the provider/model cooldown gate here.
-      // A previous account failure can quarantine the model globally, but the next
-      // step may intentionally pin a different connection for the same model.
-      if (!hasForcedConnection && !isModelAvailable(provider, resolvedModel)) {
-        log.debug("AVAILABILITY", `${provider}/${modelInfo.model} in cooldown, skipping`);
-        return false;
-      }
-
       const creds = await getProviderCredentialsWithQuotaPreflight(
         provider,
         null,
@@ -524,7 +513,7 @@ async function handleSingleModelChat(
       ? "fixed combo step connection"
       : undefined;
 
-  // 2. Pipeline gates (availability + circuit breaker)
+  // 2. Pipeline gates (availability + provider circuit breaker)
   const providerProfile = await getRuntimeProviderProfile(provider);
   const gate = await checkPipelineGates(provider, model, {
     ignoreCircuitBreaker: forceLiveComboTest || hasForcedConnection,
@@ -535,8 +524,8 @@ async function handleSingleModelChat(
   if (gate) return gate;
 
   const breaker = getCircuitBreaker(provider, {
-    failureThreshold: providerProfile.circuitBreakerThreshold,
-    resetTimeout: providerProfile.circuitBreakerReset,
+    failureThreshold: providerProfile.failureThreshold,
+    resetTimeout: providerProfile.resetTimeoutMs,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
@@ -545,13 +534,15 @@ async function handleSingleModelChat(
   const baseRetrySettings = resolveCooldownAwareRetrySettings(
     await getCachedSettings().catch(() => ({}))
   );
-  const disableCooldownAwareRetry = isCombo || runtimeOptions.emergencyFallbackTried === true;
+  const disableCooldownAwareRetry =
+    isCombo || forceLiveComboTest || runtimeOptions.emergencyFallbackTried === true;
   const retrySettings = disableCooldownAwareRetry
     ? {
         ...baseRetrySettings,
-        requestRetry: 0,
-        maxRetryIntervalSec: 0,
-        maxRetryIntervalMs: 0,
+        enabled: false,
+        maxRetries: 0,
+        maxRetryWaitSec: 0,
+        maxRetryWaitMs: 0,
       }
     : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
@@ -597,26 +588,6 @@ async function handleSingleModelChat(
       );
 
       if (!credentials || "allRateLimited" in credentials) {
-        if ([408, 429, 500, 502, 503, 504].includes(Number(lastStatus))) {
-          const quarantine = markModelAsProblematic(provider, model, {
-            status: Number(lastStatus),
-            baseCooldownMs: lastCooldownMs,
-            reason: `HTTP ${lastStatus}`,
-            profile: providerProfile,
-          });
-          if (quarantine.quarantined) {
-            log.info(
-              "AVAILABILITY",
-              `${provider}/${model} marked unavailable — all accounts exhausted (HTTP ${lastStatus}, cooldown ${Math.ceil(quarantine.cooldownMs / 1000)}s, failureCount ${quarantine.failureCount}/${quarantine.threshold})`
-            );
-          } else {
-            log.info(
-              "AVAILABILITY",
-              `${provider}/${model} recorded exhaustion failure ${quarantine.failureCount}/${quarantine.threshold} (HTTP ${lastStatus}, cooldown basis ${Math.ceil(quarantine.cooldownMs / 1000)}s)`
-            );
-          }
-        }
-
         if (credentials?.allRateLimited) {
           const retryDecision = getCooldownAwareRetryDecision({
             retryAfter: credentials.retryAfter,
@@ -628,7 +599,7 @@ async function handleSingleModelChat(
             const waitSec = Math.max(Math.ceil(retryDecision.waitMs / 1000), 0);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} all accounts cooling down (${retryDecision.retryAfterHuman || `retry in ${waitSec}s`}) — waiting ${waitSec}s before retry ${requestRetryAttempt + 1}/${retrySettings.requestRetry}`
+              `${provider}/${model} all connections cooling down (${retryDecision.retryAfterHuman || `retry in ${waitSec}s`}) — waiting ${waitSec}s before retry ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
             );
 
             const completed = await waitForCooldownAwareRetry(retryDecision.waitMs, requestSignal);
@@ -643,10 +614,19 @@ async function handleSingleModelChat(
             requestRetryAttempt += 1;
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.requestRetry}`
+              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.maxRetries}`
             );
             continue requestAttemptLoop;
           }
+        }
+
+        const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
+        if (
+          !forceLiveComboTest &&
+          credentials?.allRateLimited &&
+          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+        ) {
+          breaker._onFailure();
         }
 
         return handleNoCredentials(
@@ -717,10 +697,10 @@ async function handleSingleModelChat(
       const proxyInfo = await safeResolveProxy(credentials.connectionId);
       const proxyStartTime = Date.now();
 
-      // 4. Execute chat via core (with circuit breaker + optional TLS)
+      // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
       const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
-        bypassCircuitBreaker: forceLiveComboTest,
+        bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection,
         breaker,
         body: requestBody,
         provider,
@@ -765,7 +745,9 @@ async function handleSingleModelChat(
 
       if (result.success) {
         clearModelLock(provider, credentials.connectionId, model);
-        clearModelUnavailability(provider, model);
+        if (!forceLiveComboTest) {
+          breaker._onSuccess();
+        }
         if (injectedHandoff && runtimeOptions.sessionId && comboName) {
           deleteHandoff(runtimeOptions.sessionId, comboName);
         }
@@ -841,7 +823,11 @@ async function handleSingleModelChat(
       // 6. Mark account as quota-exhausted on 429 response
       // For providers that route quota/cooldown at model scope, a 429 on one model
       // does not mean the whole connection is exhausted.
-      if (result.status === 429 && shouldMarkAccountExhaustedFrom429(provider, model)) {
+      const passthroughModels = credentials.providerSpecificData?.passthroughModels;
+      if (
+        result.status === 429 &&
+        shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
+      ) {
         markAccountExhaustedFrom429(credentials.connectionId, provider);
       }
 
@@ -867,6 +853,10 @@ async function handleSingleModelChat(
         requestRetryLastError = result.error;
         requestRetryLastStatus = result.status;
         continue;
+      }
+
+      if (!forceLiveComboTest && PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))) {
+        breaker._onFailure();
       }
 
       return result.response;

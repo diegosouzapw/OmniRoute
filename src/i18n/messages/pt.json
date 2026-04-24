@@ -1687,6 +1687,7 @@
     "errorOccurred": "Ocorreu um erro. Por favor, tente novamente.",
     "modelStatus": "Status do modelo",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Pesquisar fornecedores...",
     "allModelsOperational": "Todos os modelos operacionais",
     "modelsWithIssues": "{count} modelo(s) com problemas",
     "allModelsNormal": "Todos os modelos estão respondendo normalmente.",

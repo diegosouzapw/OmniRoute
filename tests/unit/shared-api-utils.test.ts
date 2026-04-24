@@ -99,9 +99,12 @@ test("shared api utils throw enriched errors for non-OK responses", async () => 
   await assert.rejects(
     () => del("http://localhost/delete"),
     (error) => {
-      assert.equal(error.message, "bad request");
-      assert.equal(error.status, 400);
-      assert.deepEqual(error.data, { error: "bad request", detail: "broken payload" });
+      assert.equal((error as any).message, "bad request");
+      (assert as any).equal((error as any).status, 400);
+      (assert as any).deepEqual((error as any).data, {
+        error: "bad request",
+        detail: "broken payload",
+      });
       return true;
     }
   );

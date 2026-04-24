@@ -28,7 +28,7 @@ test("T14: runWithProxyContext fast-fails when proxy is unreachable", async () =
         executed = true;
         return "ok";
       }),
-    (err) => err?.code === "PROXY_UNREACHABLE"
+    (err) => (err as any).code === "PROXY_UNREACHABLE"
   );
 
   assert.equal(executed, false);

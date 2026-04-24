@@ -233,7 +233,7 @@ test("handleResponsesCore propagates upstream failures from chatCore unchanged",
   assert.equal(result.success, false);
   assert.equal(result.status, 401);
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(payload.error.message, "[401]: unauthorized");
 });
 

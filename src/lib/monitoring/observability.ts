@@ -4,7 +4,8 @@ interface CircuitBreakerStatus {
   name: string;
   state: string;
   failureCount?: number;
-  lastFailureTime?: string | null;
+  lastFailureTime?: number | string | null;
+  retryAfterMs?: number;
 }
 
 interface SessionSnapshot {
@@ -71,6 +72,7 @@ interface BuildHealthPayloadOptions {
   connections: Array<{ provider?: string; isActive?: boolean | null }>;
   circuitBreakers: CircuitBreakerStatus[];
   rateLimitStatus: JsonRecord;
+  learnedLimits: JsonRecord;
   lockouts: JsonRecord;
   localProviders: JsonRecord;
   inflightRequests: number;
@@ -137,6 +139,7 @@ export function buildHealthPayload({
   connections,
   circuitBreakers,
   rateLimitStatus,
+  learnedLimits,
   lockouts,
   localProviders,
   inflightRequests,
@@ -155,13 +158,31 @@ export function buildHealthPayload({
     platform: process.platform,
   };
 
+  const providerBreakers = circuitBreakers
+    .filter((cb) => !cb.name.startsWith("test-") && !cb.name.startsWith("test_"))
+    .map((cb) => {
+      const lastFailure =
+        typeof cb.lastFailureTime === "number" && Number.isFinite(cb.lastFailureTime)
+          ? new Date(cb.lastFailureTime).toISOString()
+          : typeof cb.lastFailureTime === "string"
+            ? cb.lastFailureTime
+            : null;
+      return {
+        provider: cb.name,
+        state: cb.state,
+        failureCount: cb.failureCount || 0,
+        lastFailure,
+        retryAfterMs: cb.retryAfterMs || 0,
+      };
+    });
+
   const providerHealth: Record<string, JsonRecord> = {};
-  for (const cb of circuitBreakers) {
-    if (cb.name.startsWith("test-") || cb.name.startsWith("test_")) continue;
-    providerHealth[cb.name] = {
-      state: cb.state,
-      failures: cb.failureCount || 0,
-      lastFailure: cb.lastFailureTime || null,
+  for (const breaker of providerBreakers) {
+    providerHealth[breaker.provider] = {
+      state: breaker.state,
+      failures: breaker.failureCount,
+      lastFailure: breaker.lastFailure,
+      retryAfterMs: breaker.retryAfterMs,
     };
   }
 
@@ -197,6 +218,7 @@ export function buildHealthPayload({
       ...breakerCounts,
       total: breakerCounts.open + breakerCounts.halfOpen + breakerCounts.closed,
     },
+    providerBreakers,
     providerHealth,
     providerSummary: {
       catalogCount,
@@ -206,6 +228,7 @@ export function buildHealthPayload({
     },
     localProviders,
     rateLimitStatus,
+    learnedLimits,
     lockouts,
     quotaMonitor: {
       ...quotaMonitorSummary,

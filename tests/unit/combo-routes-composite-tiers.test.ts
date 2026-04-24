@@ -96,7 +96,7 @@ test("POST /api/combos rejects composite tiers that point to unknown steps", asy
       },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.deepEqual(body, {
@@ -114,12 +114,12 @@ test("POST /api/combos rejects composite tiers that point to unknown steps", asy
 
 test("POST /api/combos persists valid composite tiers", async () => {
   const response = await createRoute.POST(makeCreateRequest(createTieredComboInput()));
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const stored = await combosDb.getComboByName("tiered-codex");
 
   assert.equal(response.status, 201);
   assert.equal(body.config.compositeTiers.defaultTier, "primary");
-  assert.equal(stored.config.compositeTiers.tiers.primary.stepId, "step-primary");
+  assert.equal((stored.config as any).compositeTiers.tiers.primary.stepId, "step-primary");
   assert.equal(stored.models[0].id, "step-primary");
 });
 
@@ -137,7 +137,7 @@ test("POST /api/combos preserves legacy string combo refs during normalization",
       models: ["child-ref"],
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const stored = await combosDb.getComboByName("parent-ref");
 
   assert.equal(response.status, 201);
@@ -164,7 +164,7 @@ test("PUT /api/combos rejects updates that orphan an existing composite tier ste
     }),
     { params: Promise.resolve({ id: combo.id }) }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.deepEqual(body, {
@@ -198,8 +198,8 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
     }),
     { params: Promise.resolve({ id: combo.id }) }
   );
-  const body = await response.json();
-  const stored = await combosDb.getComboById(combo.id);
+  const body = (await response.json()) as any;
+  const stored = await combosDb.getComboById((combo as any).id);
 
   assert.equal(response.status, 200);
   assert.equal(body.models[0].kind, "combo-ref");

@@ -1635,6 +1635,7 @@
     "errorOccurred": "A apărut o eroare. Vă rugăm să încercați din nou.",
     "modelStatus": "Stare model",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Căutați furnizori...",
     "allModelsOperational": "Toate modelele sunt operaționale",
     "modelsWithIssues": "{count} model(e) cu probleme",
     "allModelsNormal": "Toate modelele răspund normal.",

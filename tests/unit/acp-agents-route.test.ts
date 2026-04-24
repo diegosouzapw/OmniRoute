@@ -69,7 +69,7 @@ test("GET /api/acp/agents requires authentication when login is enabled", async 
   process.env.INITIAL_PASSWORD = "route-auth-required";
 
   const response = await routeModule.GET(makeRequest("GET"));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(body.error, "Unauthorized");
@@ -95,7 +95,7 @@ test("POST /api/acp/agents rejects unsafe version commands for authenticated ses
       token
     )
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(body.error, /Invalid versionCommand/i);

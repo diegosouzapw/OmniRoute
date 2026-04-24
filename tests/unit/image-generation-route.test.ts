@@ -44,13 +44,13 @@ test.after(() => {
 
 test("v1 image models GET exposes image-only modalities for image-only models", async () => {
   const response = await imageRoute.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
 
   assert.equal(response.status, 200);
-  assert.deepEqual(byId.get("topaz/topaz-enhance")?.input_modalities, ["image"]);
-  assert.deepEqual(byId.get("stability-ai/remove-background")?.input_modalities, ["image"]);
-  assert.deepEqual(byId.get("stability-ai/fast")?.input_modalities, ["image"]);
+  assert.deepEqual((byId.get("topaz/topaz-enhance") as any).input_modalities, ["image"]);
+  assert.deepEqual((byId.get("stability-ai/remove-background") as any).input_modalities, ["image"]);
+  assert.deepEqual((byId.get("stability-ai/fast") as any).input_modalities, ["image"]);
 });
 
 test("v1 image generation POST accepts promptless requests for image-only models", async () => {
@@ -89,7 +89,7 @@ test("v1 image generation POST accepts promptless requests for image-only models
       }),
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.data[0].b64_json, "BwcH");
@@ -106,7 +106,7 @@ test("v1 image generation POST still requires prompts for text-input models", as
       }),
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(body.error.message, /Prompt is required for image model: openai\/dall-e-3/);

@@ -55,14 +55,14 @@ test("v1 models exposes CC-compatible fallback models under the provider node pr
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.ok(ids.has("cm/claude-opus-4-7"));
   assert.ok(ids.has("cm/claude-opus-4-6"));
   assert.ok(ids.has("cm/claude-sonnet-4-6"));
   assert.equal(
-    [...ids].some((id) => id.startsWith("anthropic-compatible-cc-cm/")),
+    [...ids].some((id) => (id as any).startsWith("anthropic-compatible-cc-cm/")),
     false
   );
 });

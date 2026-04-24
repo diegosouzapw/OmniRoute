@@ -85,7 +85,7 @@ test("nanobanana async flow (submit->poll->url) normalizes to OpenAI-style url i
       headers: { "Content-Type": "application/json", Authorization: "Bearer test" },
       body: JSON.stringify({ prompt: "space" }),
     });
-    const submitData = await submit.json();
+    const submitData = (await submit.json()) as any;
     const taskId = submitData.data.taskId;
 
     let finalData;
@@ -93,7 +93,7 @@ test("nanobanana async flow (submit->poll->url) normalizes to OpenAI-style url i
       const poll = await fetch(
         `https://api.nanobananaapi.ai/api/v1/nanobanana/record-info?taskId=${encodeURIComponent(taskId)}`
       );
-      const pollData = await poll.json();
+      const pollData = (await poll.json()) as any;
       if (pollData.data.successFlag === 1) {
         finalData = pollData.data;
         break;

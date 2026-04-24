@@ -110,5 +110,6 @@ test("next config webpack client branch disables Node builtins in browser bundle
     net: false,
     tls: false,
     crypto: false,
+    process: false,
   });
 });

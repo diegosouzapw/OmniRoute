@@ -95,18 +95,18 @@ test("Test 2: migrateFromJson migrates data to SQLite successfully", () => {
 
   const pc = db.prepare("SELECT * FROM provider_connections WHERE id = 'test-conn'").get();
   assert.ok(pc);
-  assert.equal(pc.provider, "openai");
-  assert.equal(pc.is_active, 0);
+  assert.equal((pc as any).provider, "openai");
+  (assert as any).equal((pc as any).is_active, 0);
 
   const key = db.prepare("SELECT * FROM api_keys WHERE id = 'test-key'").get();
   assert.ok(key);
-  assert.equal(key.name, "Key 1");
+  (assert as any).equal((key as any).name, "Key 1");
 
   const kv = db
     .prepare("SELECT * FROM key_value WHERE namespace = 'settings' AND key = 'globalFallbackModel'")
     .get();
   assert.ok(kv);
-  assert.equal(JSON.parse(kv.value), "openai/gpt-4o");
+  (assert as any).equal(JSON.parse((kv as any).value), "openai/gpt-4o");
 
   core.resetDbInstance();
 });

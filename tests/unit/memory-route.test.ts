@@ -65,7 +65,7 @@ test("GET /api/memory filters by q and returns matching stats", async () => {
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.deepEqual(
     body.data.map((memory) => memory.key),
@@ -84,7 +84,7 @@ test("GET /api/memory continues to honor limit+offset requests", async () => {
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.data.length, 1);
   assert.equal(body.total, 3);

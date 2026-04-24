@@ -86,7 +86,7 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   );
 
   assert.equal(createResponse.status, 201);
-  const createdBody = await createResponse.json();
+  const createdBody = (await createResponse.json()) as any;
   assert.match(createdBody.token, /^osync_/);
   assert.equal(createdBody.syncToken.name, "Desktop client");
   assert.equal(createdBody.syncToken.syncApiKeyId, managementKey.id);
@@ -97,7 +97,7 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
     })
   );
   assert.equal(listResponse.status, 200);
-  const listed = await listResponse.json();
+  const listed = (await listResponse.json()) as any;
   assert.equal(listed.total, 1);
   assert.equal(listed.tokens[0].name, "Desktop client");
   assert.equal(listed.tokens[0].lastUsedAt, null);
@@ -113,7 +113,7 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   assert.equal(bundleResponse.status, 200);
   assert.match(bundleResponse.headers.get("etag") || "", /^"[a-f0-9]{64}"$/);
   assert.match(bundleResponse.headers.get("x-config-version") || "", /^[a-f0-9]{64}$/);
-  const bundlePayload = await bundleResponse.json();
+  const bundlePayload = (await bundleResponse.json()) as any;
   assert.equal(bundlePayload.version, bundleResponse.headers.get("x-config-version"));
   assert.equal(typeof bundlePayload.bundle, "object");
 
@@ -122,7 +122,7 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
       token: managementKey.key,
     })
   );
-  const secondListBody = await secondListResponse.json();
+  const secondListBody = (await secondListResponse.json()) as any;
   assert.equal(typeof secondListBody.tokens[0].lastUsedAt, "string");
 
   const notModifiedResponse = await syncBundleRoute.GET(
@@ -151,7 +151,7 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   );
 
   assert.equal(revokeResponse.status, 200);
-  const revokeBody = await revokeResponse.json();
+  const revokeBody = (await revokeResponse.json()) as any;
   assert.equal(typeof revokeBody.syncToken.revokedAt, "string");
 
   const revokedBundleResponse = await syncBundleRoute.GET(

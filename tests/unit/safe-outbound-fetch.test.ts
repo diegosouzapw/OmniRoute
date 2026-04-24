@@ -58,9 +58,9 @@ test("safeOutboundFetch normalizes timeout failures", async () => {
     }),
     (error) => {
       assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "TIMEOUT");
-      assert.equal(error.timeoutMs, 5);
-      assert.equal(error.url, "https://example.test/slow");
+      assert.equal((error as any).code, "TIMEOUT");
+      (assert as any).equal((error as any).timeoutMs, 5);
+      (assert as any).equal((error as any).url, "https://example.test/slow");
       return true;
     }
   );
@@ -81,9 +81,9 @@ test("safeOutboundFetch blocks redirects when allowRedirect is disabled", async 
     }),
     (error) => {
       assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "REDIRECT_BLOCKED");
-      assert.equal(error.status, 302);
-      assert.equal(error.location, "https://redirect.example.test/login");
+      assert.equal((error as any).code, "REDIRECT_BLOCKED");
+      assert.equal((error as any).status, 302);
+      assert.equal((error as any).location, "https://redirect.example.test/login");
       return true;
     }
   );
@@ -104,7 +104,7 @@ test("safeOutboundFetch blocks private hosts when public-only guard is enabled",
     }),
     (error) => {
       assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "URL_GUARD_BLOCKED");
+      assert.equal((error as any).code, "URL_GUARD_BLOCKED");
       assert.equal(called, false);
       return true;
     }

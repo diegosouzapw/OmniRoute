@@ -531,6 +531,17 @@ export class BaseExecutor {
             "x-client-request-id": randomUUID(),
             "X-Claude-Code-Session-Id": randomUUID(),
           };
+          // Remove any existing case variants of ccHeaders keys before merging.
+          // The claude provider config sets "Anthropic-Version" (Title-Case) while
+          // ccHeaders uses all-lowercase keys.  Both JS keys normalise to the same
+          // HTTP header name, so undici would combine them into "2023-06-01, 2023-06-01"
+          // causing a 400 from Anthropic (see issue #1454).
+          const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
+          for (const key of Object.keys(headers)) {
+            if (ccKeysLower.has(key.toLowerCase())) {
+              delete headers[key];
+            }
+          }
           Object.assign(headers, ccHeaders);
           delete headers["X-Stainless-Helper-Method"];
 

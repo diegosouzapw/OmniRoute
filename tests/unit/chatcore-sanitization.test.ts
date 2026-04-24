@@ -445,6 +445,45 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
   );
 });
 
+test("chatCore preserves Claude passthrough tool_result blocks instead of converting them to plain text", async () => {
+  const { call } = await invokeChatCore({
+    endpoint: "/v1/messages",
+    provider: "claude",
+    model: "claude-opus-4-7",
+    userAgent: "claude-cli/2.1.114",
+    body: {
+      model: "claude-opus-4-7",
+      max_tokens: 64,
+      system: [{ type: "text", text: "sys" }],
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "toolu_keep", name: "Bash", input: { command: "pwd" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "toolu_keep", content: "done" }],
+        },
+      ],
+      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+    },
+  });
+
+  assert.equal(call.body.messages[0].role, "assistant");
+  assert.equal(call.body.messages[0].content[0].type, "tool_use");
+  assert.equal(call.body.messages[1].role, "user");
+  assert.equal(call.body.messages[1].content[0].type, "tool_result");
+  assert.equal(call.body.messages[1].content[0].tool_use_id, "toolu_keep");
+  assert.equal(
+    call.body.messages[1].content.some(
+      (block) => block.type === "text" && /\[Tool Result:/.test(block.text)
+    ),
+    false
+  );
+});
+
 test("chatCore resolves stream mode from body.stream and Accept header", async () => {
   const explicitTrue = await invokeChatCore({
     accept: "application/json",

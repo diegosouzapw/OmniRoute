@@ -53,11 +53,14 @@ test("settings route password update requires the current INITIAL_PASSWORD after
   assert.equal(response.status, 200);
   assert.equal(managementPassword.isBcryptHash(settings.password), true);
   assert.equal(
-    await managementPassword.verifyManagementPassword("rotated-secret", settings.password),
+    await managementPassword.verifyManagementPassword("rotated-secret", (settings as any).password),
     true
   );
   assert.equal(
-    await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
+    await managementPassword.verifyManagementPassword(
+      "bootstrap-secret" as any,
+      (settings as any).password
+    ),
     false
   );
 });

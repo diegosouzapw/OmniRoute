@@ -18,7 +18,7 @@ test("openaiResponsesToOpenAIRequest: skips function_call items with empty name"
   };
 
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, {});
-  const messages = result.messages;
+  const messages = (result as any).messages;
 
   // Should have only the user message, no assistant message with empty tool call
   const assistantMsgs = messages.filter((m) => m.role === "assistant");
@@ -35,7 +35,7 @@ test("openaiResponsesToOpenAIRequest: skips function_call items with whitespace-
   };
 
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, {});
-  const messages = result.messages;
+  const messages = (result as any).messages;
 
   const assistantMsgs = messages.filter((m) => m.role === "assistant");
   assert.equal(assistantMsgs.length, 0, "whitespace-only name function_call should be skipped");
@@ -56,7 +56,7 @@ test("openaiResponsesToOpenAIRequest: keeps function_call items with valid name"
   };
 
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, {});
-  const messages = result.messages;
+  const messages = (result as any).messages;
 
   const assistantMsgs = messages.filter((m) => m.role === "assistant");
   assert.equal(assistantMsgs.length, 1, "valid function_call should produce assistant message");
@@ -81,7 +81,7 @@ test("openaiResponsesToOpenAIRequest: mixed valid and empty names keeps only val
   };
 
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, {});
-  const messages = result.messages;
+  const messages = (result as any).messages;
 
   const assistantMsgs = messages.filter((m) => m.role === "assistant");
   assert.equal(assistantMsgs.length, 1);
@@ -106,7 +106,7 @@ test("openaiToOpenAIResponsesRequest: skips tool_calls with empty function name"
   };
 
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, {});
-  const fnCalls = result.input.filter((i) => i.type === "function_call");
+  const fnCalls = (result as any).input.filter((i) => i.type === "function_call");
   assert.equal(fnCalls.length, 0, "empty-name tool_call should be skipped");
 });
 
@@ -125,7 +125,7 @@ test("openaiToOpenAIResponsesRequest: skips tool_calls with whitespace-only func
   };
 
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, {});
-  const fnCalls = result.input.filter((i) => i.type === "function_call");
+  const fnCalls = (result as any).input.filter((i) => i.type === "function_call");
   assert.equal(fnCalls.length, 0, "whitespace-only name tool_call should be skipped");
 });
 
@@ -148,7 +148,7 @@ test("openaiToOpenAIResponsesRequest: keeps tool_calls with valid function name"
   };
 
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, {});
-  const fnCalls = result.input.filter((i) => i.type === "function_call");
+  const fnCalls = (result as any).input.filter((i) => i.type === "function_call");
   assert.equal(fnCalls.length, 1);
   assert.equal(fnCalls[0].name, "get_weather");
 });
@@ -174,7 +174,7 @@ test("openaiToOpenAIResponsesRequest: mixed valid and empty names keeps only val
   };
 
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, {});
-  const fnCalls = result.input.filter((i) => i.type === "function_call");
+  const fnCalls = (result as any).input.filter((i) => i.type === "function_call");
   assert.equal(fnCalls.length, 1, "only valid tool call should remain");
   assert.equal(fnCalls[0].name, "get_weather");
 });

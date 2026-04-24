@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const auth = await import("../../src/sse/services/auth.ts");
 const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
 const { invalidateCacheControlSettingsCache } =
   await import("../../src/lib/cacheControlSettings.ts");
@@ -404,7 +405,7 @@ test("chatCore honors providerSpecificData.apiType for legacy openai-compatible 
     responseFormat: "openai-responses",
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.match(call.url, /\/responses$/);
   assert.ok(call.body.input);
@@ -770,7 +771,7 @@ test("chatCore restores prefixed Claude passthrough tool names in upstream respo
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(payload.content[0].name, "Bash");
 });
@@ -795,6 +796,55 @@ test("chatCore strips unsupported reasoning params and caps provider token field
   assert.equal(call.body.presence_penalty, undefined);
   assert.equal(call.body.max_tokens, 16384);
   assert.equal(call.body.max_completion_tokens, 16384);
+});
+
+test("chatCore preserves reasoning_effort for assistant-prefill OpenAI-compatible requests", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openai-compatible-aio",
+    model: "glm-5.1",
+    endpoint: "/v1/chat/completions",
+    body: {
+      model: "aio/glm-5.1",
+      messages: [
+        { role: "user", content: "draft the answer" },
+        { role: "assistant", content: "<thinking>" },
+      ],
+      reasoning_effort: "xhigh",
+      stream: true,
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.model, "glm-5.1");
+  assert.equal(call.body.reasoning_effort, "xhigh");
+});
+
+test("chatCore logs chat completions endpoint as OpenAI protocol", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openrouter",
+    model: "deepseek/deepseek-v4-pro",
+    endpoint: "/v1/chat/completions",
+    body: {
+      model: "openrouter/deepseek/deepseek-v4-pro",
+      messages: [{ role: "user", content: "Human: Hi" }],
+      temperature: 1,
+      max_tokens: 64000,
+      stream: false,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      top_p: 0.9,
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.model, "deepseek/deepseek-v4-pro");
+
+  const logEntry = await waitFor(getLatestCallLog);
+  assert.ok(logEntry, "expected call log to be persisted");
+  assert.equal(logEntry.path, "/v1/chat/completions");
+  assert.equal(logEntry.sourceFormat, FORMATS.OPENAI);
 });
 
 test("chatCore surfaces translation errors with explicit status codes", async () => {
@@ -850,7 +900,7 @@ test("chatCore surfaces typed translation errors with the declared error type", 
   assert.equal(result.success, false);
   assert.equal(result.status, 422);
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(payload.error.type, "unsupported_feature");
   assert.equal(payload.error.code, "unsupported_feature");
 });
@@ -931,7 +981,7 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   const providerCalls = calls.filter((entry) =>
     entry.url.startsWith("https://api.githubcopilot.com/")
   );
@@ -1134,7 +1184,7 @@ test("chatCore serves a cached idempotent response without hitting the provider 
   assert.equal(second.result.success, true);
   assert.equal(second.result.response.headers.get("X-OmniRoute-Idempotent"), "true");
 
-  const payload = await second.result.response.json();
+  const payload = (await second.result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "ok");
 });
 
@@ -1175,7 +1225,7 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
   assert.equal(upstreamHits, 1);
 
-  const payload = await second.result.response.json();
+  const payload = (await second.result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "cached-once");
 
   await waitForAsyncSideEffects();
@@ -1230,7 +1280,7 @@ test("chatCore skips semantic cache when disabled in settings", async () => {
   assert.equal(first.result.response.headers.get("X-OmniRoute-Cache"), "MISS");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "MISS");
 
-  const payload = await second.result.response.json();
+  const payload = (await second.result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "fresh-2");
 });
 
@@ -1301,7 +1351,7 @@ test("chatCore normalizes tool finish reasons and estimates usage when upstream 
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(payload.choices[0].finish_reason, "tool_calls");
   assert.ok(payload.usage.total_tokens > 0);
@@ -1319,7 +1369,7 @@ test("chatCore bypasses Claude CLI warmup probes before touching the provider", 
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(calls.length, 0);
   assert.match(payload.choices[0].message.content, /CLI Command Execution/);
@@ -1380,7 +1430,7 @@ test("chatCore retries Qwen quota 429 responses before succeeding", async () => 
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
   assert.equal(payload.choices[0].message.content, "qwen recovered");
@@ -1447,7 +1497,7 @@ test("chatCore does not inject fallback user for Qwen API key requests", async (
   assert.equal("user" in call.body, false);
 });
 
-test("chatCore persists Codex quota headers and scope cooldown on 429 responses", async () => {
+test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
@@ -1489,13 +1539,77 @@ test("chatCore persists Codex quota headers and scope cooldown on 429 responses"
     },
   });
 
-  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const updated = await providersDb.getProviderConnectionById((connection as any).id);
   assert.equal(result.success, false);
   assert.equal(result.status, 429);
-  assert.equal(updated.providerSpecificData.codexQuotaState.limit5h, 100);
-  assert.equal(updated.providerSpecificData.codexQuotaState.scope, "codex");
-  assert.equal(typeof updated.providerSpecificData.codexScopeRateLimitedUntil.codex, "string");
-  assert.equal(updated.providerSpecificData.codexExhaustedWindow, "5h");
+  assert.equal((updated as any).providerSpecificData.codexQuotaState.limit5h, 100);
+  assert.equal((updated as any).providerSpecificData.codexQuotaState.scope, "codex");
+  assert.equal(
+    typeof (updated as any).providerSpecificData.codexScopeRateLimitedUntil.codex,
+    "string"
+  );
+  assert.equal((updated as any).providerSpecificData.codexExhaustedWindow, "5h");
+});
+
+test("chatCore 429 lets account fallback apply the configured resilience cooldown", async () => {
+  await settingsDb.updateSettings({
+    resilienceSettings: {
+      connectionCooldown: {
+        apikey: {
+          baseCooldownMs: 1000,
+          useUpstreamRetryHints: false,
+          maxBackoffSteps: 3,
+        },
+      },
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "resilience-429",
+    apiKey: "sk-resilience-429",
+    isActive: true,
+    providerSpecificData: {},
+  });
+
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    connectionId: connection.id,
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "rate limit me" }],
+    },
+    responseFactory() {
+      return new Response(JSON.stringify({ error: { message: "too many requests" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
+  const afterCore = await providersDb.getProviderConnectionById((connection as any).id);
+  assert.equal(result.success, false);
+  assert.equal(result.status, 429);
+  assert.equal((afterCore as any).rateLimitedUntil, undefined);
+
+  const fallback = await auth.markAccountUnavailable(
+    (connection as any).id,
+    result.status,
+    result.error,
+    "openai",
+    "gpt-4o-mini"
+  );
+  const afterFallback = await providersDb.getProviderConnectionById((connection as any).id);
+  const cooldownRemaining =
+    new Date((afterFallback as any).rateLimitedUntil).getTime() - Date.now();
+
+  assert.equal(fallback.shouldFallback, true);
+  assert.equal(fallback.cooldownMs, 1000);
+  assert.equal((afterFallback as any).testStatus, "unavailable");
+  assert.ok(cooldownRemaining > 0 && cooldownRemaining <= 2_000);
 });
 
 test("chatCore falls back to the next family model when the requested model is unavailable", async () => {
@@ -1518,7 +1632,7 @@ test("chatCore falls back to the next family model when the requested model is u
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[1].body.model, "gpt-5.1-mini");
@@ -1553,7 +1667,7 @@ test("chatCore falls back to a larger-context sibling when the request overflows
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[1].body.model, "gpt-4o");
@@ -1574,7 +1688,7 @@ test("chatCore parses upstream SSE payloads for non-streaming requests", async (
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(payload.choices[0].message.content, "sse json");
 });
@@ -1657,7 +1771,7 @@ test("chatCore falls back after an empty-content success response", async () => 
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[1].body.model, "gpt-5.1-mini");
@@ -1813,7 +1927,7 @@ test("chatCore serves emergency fallback responses for budget errors on non-stre
     },
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 2);
@@ -1938,7 +2052,7 @@ test("chatCore caches streaming response and serves cache HIT on repeat", async 
   assert.equal(second.calls.length, 0, "second request should not reach upstream");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
 
-  const payload = await second.result.response.json();
+  const payload = (await second.result.response.json()) as any;
   assert.ok(payload.choices, "cached response should have choices");
   assert.equal(payload.choices[0].message.content, "streamed-once");
 });
@@ -2070,6 +2184,6 @@ test("chatCore returns cache HIT as JSON even when client requests SSE", async (
     "cache HIT should return JSON regardless of stream flag"
   );
 
-  const payload = await second.result.response.json();
+  const payload = (await second.result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "cached-json");
 });

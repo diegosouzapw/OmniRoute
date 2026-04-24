@@ -227,7 +227,7 @@ test("chatCore converts Responses-style SSE fallback into JSON when stream=false
     responseFactory: () => buildResponsesSse("Brasilia"),
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.success, true);
   assert.equal(call.headers.Accept || call.headers.accept, "application/json");
@@ -250,7 +250,7 @@ test("chatCore converts Responses-style NDJSON fallback into JSON when stream=fa
     responseFactory: () => buildResponsesNdjson("Brasilia"),
   });
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.success, true);
   assert.equal(call.headers.Accept || call.headers.accept, "application/json");
@@ -300,7 +300,7 @@ test("handleComboChat validates non-stream quality using the original client str
     allCombos: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.ok, true);
   assert.deepEqual(seenModels, ["codex/gpt-5.4", "openai/gpt-4o-mini"]);

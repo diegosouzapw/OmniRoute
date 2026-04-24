@@ -71,10 +71,10 @@ test("payload rules apply default, default-raw, override, and filter operations"
   );
 
   assert.equal(payload.temperature, 0.4);
-  assert.equal(payload.metadata.routeTag, "feature-110");
+  assert.equal((payload.metadata as any).routeTag, "feature-110");
   assert.equal("removeMe" in payload.metadata, false);
   assert.equal("dangerous" in payload, false);
-  assert.equal(payload.reasoning.effort, "high");
+  assert.equal((payload as any).reasoning.effort, "high");
   assert.deepEqual(payload.response_format, {
     type: "json_schema",
     json_schema: {
