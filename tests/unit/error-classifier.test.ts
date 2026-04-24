@@ -34,11 +34,33 @@ test("classifyProviderError: 429 without billing signal => RATE_LIMITED", () => 
   assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
 });
 
-test("classifyProviderError: 429 with billing signal => RATE_LIMITED", () => {
+test("classifyProviderError: 429 with billing signal and no provider keeps legacy QUOTA_EXHAUSTED", () => {
   const result = classifyProviderError(429, {
     error: { message: "insufficient_quota: exceeded your current quota" },
   });
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+});
+
+test("classifyProviderError: API-key provider 429 with billing signal => RATE_LIMITED", () => {
+  const result = classifyProviderError(
+    429,
+    {
+      error: { message: "insufficient_quota: exceeded your current quota" },
+    },
+    "openai"
+  );
   assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
+});
+
+test("classifyProviderError: OAuth provider 429 with billing signal => QUOTA_EXHAUSTED", () => {
+  const result = classifyProviderError(
+    429,
+    {
+      error: { message: "insufficient_quota: exceeded your current quota" },
+    },
+    "codex"
+  );
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
 });
 
 test("classifyProviderError: 403 with 'has not been used in project' => PROJECT_ROUTE_ERROR (transient)", () => {
@@ -66,20 +88,24 @@ test("classifyProviderError: 403 with project string as plain string body => PRO
   assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);
 });
 
-test("classifyProviderError: 429 with daily quota signal => RATE_LIMITED", () => {
+test("classifyProviderError: API-key provider 429 with daily quota signal => RATE_LIMITED", () => {
   const body = JSON.stringify({
     error: {
       message:
         "You have exceeded today's quota for model moonshotai/Kimi-K2.5, please try again tomorrow",
     },
   });
-  const result = classifyProviderError(429, body);
+  const result = classifyProviderError(429, body, "openai");
   assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
 });
 
-test("classifyProviderError: 429 with 'daily quota' signal => RATE_LIMITED", () => {
-  const result = classifyProviderError(429, {
-    error: { message: "You have reached your daily quota limit" },
-  });
-  assert.equal(result, PROVIDER_ERROR_TYPES.RATE_LIMITED);
+test("classifyProviderError: OAuth provider 429 with daily quota signal => QUOTA_EXHAUSTED", () => {
+  const result = classifyProviderError(
+    429,
+    {
+      error: { message: "You have reached your daily quota limit" },
+    },
+    "codex"
+  );
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
 });

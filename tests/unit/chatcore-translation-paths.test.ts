@@ -1448,7 +1448,7 @@ test("chatCore does not inject fallback user for Qwen API key requests", async (
   assert.equal("user" in call.body, false);
 });
 
-test("chatCore persists Codex quota headers without pre-writing 429 scope cooldowns", async () => {
+test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
@@ -1495,8 +1495,11 @@ test("chatCore persists Codex quota headers without pre-writing 429 scope cooldo
   assert.equal(result.status, 429);
   assert.equal((updated as any).providerSpecificData.codexQuotaState.limit5h, 100);
   assert.equal((updated as any).providerSpecificData.codexQuotaState.scope, "codex");
-  assert.equal((updated as any).providerSpecificData.codexScopeRateLimitedUntil, undefined);
-  assert.equal((updated as any).providerSpecificData.codexExhaustedWindow, undefined);
+  assert.equal(
+    typeof (updated as any).providerSpecificData.codexScopeRateLimitedUntil.codex,
+    "string"
+  );
+  assert.equal((updated as any).providerSpecificData.codexExhaustedWindow, "5h");
 });
 
 test("chatCore 429 lets account fallback apply the configured resilience cooldown", async () => {
@@ -1504,7 +1507,7 @@ test("chatCore 429 lets account fallback apply the configured resilience cooldow
     resilienceSettings: {
       connectionCooldown: {
         apikey: {
-          baseCooldownMs: 125,
+          baseCooldownMs: 1000,
           useUpstreamRetryHints: false,
           maxBackoffSteps: 3,
         },
@@ -1555,9 +1558,9 @@ test("chatCore 429 lets account fallback apply the configured resilience cooldow
     new Date((afterFallback as any).rateLimitedUntil).getTime() - Date.now();
 
   assert.equal(fallback.shouldFallback, true);
-  assert.equal(fallback.cooldownMs, 125);
+  assert.equal(fallback.cooldownMs, 1000);
   assert.equal((afterFallback as any).testStatus, "unavailable");
-  assert.ok(cooldownRemaining > 0 && cooldownRemaining < 2_000);
+  assert.ok(cooldownRemaining > 0 && cooldownRemaining <= 2_000);
 });
 
 test("chatCore falls back to the next family model when the requested model is unavailable", async () => {

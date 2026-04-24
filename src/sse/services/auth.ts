@@ -1267,7 +1267,7 @@ export async function markAccountUnavailable(
     const result = fallbackResult;
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
-    const providerErrorType = classifyProviderError(status, errorText);
+    const providerErrorType = classifyProviderError(status, errorText, provider);
     const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 

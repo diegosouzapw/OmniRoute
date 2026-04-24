@@ -71,7 +71,11 @@ import {
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 
-import { parseCodexQuotaHeaders, getCodexModelScope } from "../executors/codex.ts";
+import {
+  parseCodexQuotaHeaders,
+  getCodexModelScope,
+  getCodexDualWindowCooldownMs,
+} from "../executors/codex.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
@@ -819,7 +823,31 @@ export async function handleChatCore({
         codexQuotaState: quotaState,
       };
 
+      // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
+      // Use dual-window cooldown to distinguish short-term and weekly Codex exhaustion.
       if (status === 429) {
+        const { cooldownMs, window: exhaustedWindow } = getCodexDualWindowCooldownMs(quota);
+        if (cooldownMs > 0) {
+          const scopeUntil = new Date(Date.now() + cooldownMs).toISOString();
+          const scopeMapRaw =
+            existingProviderData &&
+            typeof existingProviderData === "object" &&
+            existingProviderData.codexScopeRateLimitedUntil &&
+            typeof existingProviderData.codexScopeRateLimitedUntil === "object"
+              ? existingProviderData.codexScopeRateLimitedUntil
+              : {};
+
+          nextProviderData.codexScopeRateLimitedUntil = {
+            ...(scopeMapRaw as Record<string, unknown>),
+            [scope]: scopeUntil,
+          };
+          nextProviderData.codexExhaustedWindow = exhaustedWindow;
+          log?.debug?.(
+            "CODEX",
+            `Quota exhaustion on ${exhaustedWindow} window, cooldown until ${scopeUntil}`
+          );
+        }
+
         // Invalidate the preflight cache for this connection so the next
         // isModelAvailable check fetches fresh quota data.
         if (connectionId) {
@@ -2251,7 +2279,7 @@ export async function handleChatCore({
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
-    const errorType = classifyProviderError(statusCode, message);
+    const errorType = classifyProviderError(statusCode, message, provider);
     if (connectionId && errorType) {
       try {
         if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
@@ -2276,12 +2304,6 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
-        } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          await updateProviderConnection(connectionId, {
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
           const quotaCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
