@@ -1164,13 +1164,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
     // Users can generate API keys at https://ollama.com/settings/api-keys
     models: [
-      { id: "gemma3:27b", name: "Gemma 3 27B" },
-      { id: "llama3.3:70b", name: "Llama 3.3 70B" },
-      { id: "qwen3:72b", name: "Qwen3 72B" },
-      { id: "devstral:24b", name: "Devstral 24B" },
-      { id: "deepseek-r2:671b", name: "DeepSeek R2 671B" },
-      { id: "phi4:14b", name: "Phi 4 14B" },
-      { id: "mistral-small3.2:24b", name: "Mistral Small 3.2 24B" },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "kimi-k2.6", name: "Kimi K2.6" },
+      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "gemma4:31b", name: "Gemma 4 31B" },
+      { id: "nemotron-3-super", name: "NVIDIA Nemotron 3 Super" },
+      { id: "qwen3.5:397b", name: "Qwen 3.5 397B" },
     ],
     passthroughModels: true,
   },
