@@ -100,8 +100,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.120.0");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
+  assert.equal(standardHeaders.Version, "0.124.0");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.124.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -127,7 +127,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.120.0");
+      assert.equal(headers.Version, "0.124.0");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
