@@ -38,3 +38,13 @@ test("settings schemas accept wsAuth toggle", () => {
   assert.equal(routeParsed.wsAuth, true);
   assert.equal(sharedParsed.wsAuth, false);
 });
+
+test("settings schemas accept combo configuration modes", () => {
+  const routeParsed = settingsRouteSchema.parse({ comboConfigMode: "expert" });
+  const sharedParsed = sharedSettingsSchema.parse({ comboConfigMode: "guided" });
+
+  assert.equal(routeParsed.comboConfigMode, "expert");
+  assert.equal(sharedParsed.comboConfigMode, "guided");
+  assert.equal(settingsRouteSchema.safeParse({ comboConfigMode: "compact" }).success, false);
+  assert.equal(sharedSettingsSchema.safeParse({ comboConfigMode: "compact" }).success, false);
+});

@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
 const { generateSignature, invalidateBySignature, setCachedResponse } =
   await import("../../src/lib/semanticCache.ts");
@@ -196,4 +197,34 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
   } finally {
     invalidateBySignature(signature);
   }
+});
+
+test("combo live test does not use cooldown-aware request retry on upstream failures", async () => {
+  await seedHealthyConnection();
+  await settingsDb.updateSettings({
+    requestRetry: 3,
+    maxRetryIntervalSec: 5,
+  });
+
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return Response.json(
+      {
+        error: {
+          message: "upstream unavailable",
+        },
+      },
+      { status: 503 }
+    );
+  };
+
+  const liveResponse = await chatRoute.POST(
+    makeRequest({ "X-Internal-Test": "combo-health-check" })
+  );
+  const liveBody = (await liveResponse.json()) as any;
+
+  assert.equal(liveResponse.status, 503);
+  assert.equal(fetchCalls, 1);
+  assert.match(liveBody.error.message, /upstream unavailable/i);
 });

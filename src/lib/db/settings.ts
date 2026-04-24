@@ -54,6 +54,7 @@ export async function getSettings() {
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
     hiddenSidebarItems: [],
+    comboConfigMode: "guided",
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
     wsAuth: false,

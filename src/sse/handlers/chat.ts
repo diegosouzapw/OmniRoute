@@ -534,7 +534,8 @@ async function handleSingleModelChat(
   const baseRetrySettings = resolveCooldownAwareRetrySettings(
     await getCachedSettings().catch(() => ({}))
   );
-  const disableCooldownAwareRetry = isCombo || runtimeOptions.emergencyFallbackTried === true;
+  const disableCooldownAwareRetry =
+    isCombo || forceLiveComboTest || runtimeOptions.emergencyFallbackTried === true;
   const retrySettings = disableCooldownAwareRetry
     ? {
         ...baseRetrySettings,

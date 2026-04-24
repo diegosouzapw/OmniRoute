@@ -35,6 +35,47 @@ test("buildPrecisionComboModelStep preserves provider/model/account triple", () 
   );
 });
 
+test("buildManualComboModelStep resolves provider aliases and uses dynamic account", () => {
+  assert.deepEqual(
+    builderDraft.buildManualComboModelStep({
+      value: "cx/gpt-5.5",
+      providers: [{ providerId: "codex", alias: "cx" }],
+    }),
+    {
+      kind: "model",
+      providerId: "codex",
+      model: "codex/gpt-5.5",
+      weight: 0,
+    }
+  );
+
+  assert.deepEqual(
+    builderDraft.buildManualComboModelStep({
+      value: "openrouter/openai/gpt-5.5",
+      providers: [{ providerId: "openrouter", alias: "openrouter" }],
+    }),
+    {
+      kind: "model",
+      providerId: "openrouter",
+      model: "openrouter/openai/gpt-5.5",
+      weight: 0,
+    }
+  );
+
+  assert.equal(
+    builderDraft.resolveComboBuilderProviderId("foo", [{ providerId: "codex", alias: "cx" }]),
+    null
+  );
+  assert.equal(
+    builderDraft.buildManualComboModelStep({
+      value: "foo/bar",
+      providers: [{ providerId: "codex", alias: "cx" }],
+    }),
+    null
+  );
+  assert.equal(builderDraft.buildManualComboModelStep({ value: "gpt-5.5" }), null);
+});
+
 test("hasExactModelStepDuplicate blocks only exact provider/model/connection repeats", () => {
   const existing = [
     builderDraft.buildPrecisionComboModelStep({
