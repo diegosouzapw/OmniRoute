@@ -34,6 +34,18 @@ test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
   assert.equal(info.model, "gpt-5.4");
 });
 
+test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+test("getModelInfoCore resolves cx/gpt-5.5 to codex", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(info.provider, null);
