@@ -382,6 +382,106 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
   assert.equal("messages" in call.body, false);
 });
 
+test("chatCore routes cx/gpt-5.5 responses requests through the Codex backend fingerprint", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "codex",
+    model: "gpt-5.5",
+    endpoint: "/v1/responses",
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { workspaceId: "workspace-gpt-55" },
+    },
+    body: {
+      model: "cx/gpt-5.5",
+      input: [
+        {
+          type: "message",
+          role: "system",
+          content: [{ type: "input_text", text: "Stay concise." }],
+        },
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "ping" }],
+        },
+      ],
+      stream: false,
+      max_tokens: 256,
+      max_output_tokens: 128,
+      background: true,
+      session_id: "session-should-strip",
+      conversation_id: "conversation-should-strip",
+      previous_response_id: "resp_previous",
+    },
+    responseFormat: "openai-responses",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.url, "https://chatgpt.com/backend-api/codex/responses");
+  assert.equal(call.headers.originator, "opencode");
+  assert.equal(call.headers.session_id, "workspace-gpt-55");
+  assert.equal(call.body.stream, true);
+  assert.equal(call.body.model, "gpt-5.5");
+  assert.equal(call.body.instructions, "Follow the developer instructions in the conversation.");
+  assert.equal(call.body.prompt_cache_key, "workspace-gpt-55");
+  assert.equal(call.body.max_tokens, undefined);
+  assert.equal(call.body.max_output_tokens, undefined);
+  assert.equal(call.body.background, undefined);
+  assert.equal(call.body.session_id, undefined);
+  assert.equal(call.body.conversation_id, undefined);
+  assert.equal(call.body.previous_response_id, undefined);
+  assert.equal(call.body.input[0].role, "developer");
+});
+
+test("chatCore normalizes cx/gpt-5.5 chat completions onto the Codex responses path for stream and non-stream requests", async () => {
+  for (const stream of [false, true]) {
+    const { call, result } = await invokeChatCore({
+      provider: "codex",
+      model: "gpt-5.5",
+      endpoint: "/v1/chat/completions",
+      accept: stream ? "text/event-stream" : "application/json",
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { workspaceId: `workspace-chat-${stream ? "stream" : "json"}` },
+      },
+      body: {
+        model: "cx/gpt-5.5",
+        stream,
+        messages: [
+          { role: "system", content: "Use the Codex backend." },
+          { role: "user", content: `respond to ${stream ? "stream" : "json"}` },
+        ],
+        metadata: { source: "should-strip" },
+        temperature: 0.2,
+        max_tokens: 64,
+        max_output_tokens: 32,
+        background: true,
+      },
+      responseFormat: stream ? "openai" : "openai-responses",
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(call.url, "https://chatgpt.com/backend-api/codex/responses");
+    assert.equal(call.headers.originator, "opencode");
+    assert.equal(call.body.stream, true);
+    assert.equal(call.body.messages, undefined);
+    assert.equal(call.body.metadata, undefined);
+    assert.equal(call.body.temperature, undefined);
+    assert.equal(call.body.max_tokens, undefined);
+    assert.equal(call.body.max_output_tokens, undefined);
+    assert.equal(call.body.background, undefined);
+
+    if (stream) {
+      const payload = await result.response.text();
+      assert.match(payload, /data:/);
+      assert.match(payload, /\[DONE\]/);
+    } else {
+      const payload = await result.response.json();
+      assert.equal(payload.choices[0].message.content, "ok");
+    }
+  }
+});
+
 test("chatCore honors providerSpecificData.apiType for legacy openai-compatible providers", async () => {
   const { call, result } = await invokeChatCore({
     provider: "openai-compatible-sp-openai",
