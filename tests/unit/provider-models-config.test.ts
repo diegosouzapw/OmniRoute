@@ -25,6 +25,7 @@ test("provider models helpers expose model lists and defaults", () => {
 test("provider models helpers validate and resolve model metadata", () => {
   const openaiModels = PROVIDER_MODELS.openai;
   const firstModel = openaiModels[0];
+  const codexModels = PROVIDER_MODELS.cx;
 
   assert.equal(isValidModel("openai", firstModel.id), true);
   assert.equal(isValidModel("openai", "missing-model"), false);
@@ -40,6 +41,9 @@ test("provider models helpers validate and resolve model metadata", () => {
   assert.equal(getModelTargetFormat("openai", firstModel.id), firstModel.targetFormat || null);
   assert.equal(getModelTargetFormat("openai", "missing-model"), null);
   assert.equal(getModelTargetFormat("missing-provider", "missing-model"), null);
+
+  assert.ok(codexModels.some((model) => model.id === "gpt-5.5"), "missing built-in cx/gpt-5.5");
+  assert.equal(getModelTargetFormat("cx", "gpt-5.5"), "openai-responses");
 });
 
 test("provider models helpers resolve provider IDs through aliases", () => {

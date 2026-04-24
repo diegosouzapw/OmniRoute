@@ -27,6 +27,14 @@ test("T28: antigravity static catalog exposes client-visible Gemini preview IDs"
   assert.ok(!staticIds.includes("gemini-3.1-pro-high"));
 });
 
+test("T28: codex registry exposes built-in gpt-5.5 via responses format", () => {
+  const codexIds = REGISTRY.codex.models.map((m) => m.id);
+  const gpt55 = REGISTRY.codex.models.find((m) => m.id === "gpt-5.5");
+
+  assert.ok(codexIds.includes("gpt-5.5"));
+  assert.equal(gpt55?.targetFormat, "openai-responses");
+});
+
 test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
   const githubIds = REGISTRY.github.models.map((m) => m.id);
 
