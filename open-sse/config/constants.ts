@@ -101,6 +101,10 @@ export const HTTP_STATUS = {
 export const ERROR_TYPES = {
   [HTTP_STATUS.BAD_REQUEST]: { type: "invalid_request_error", code: "bad_request" },
   [HTTP_STATUS.UNAUTHORIZED]: { type: "authentication_error", code: "invalid_api_key" },
+  [HTTP_STATUS.PAYMENT_REQUIRED]: {
+    type: "permission_error",
+    code: "payment_required",
+  },
   [HTTP_STATUS.FORBIDDEN]: { type: "permission_error", code: "insufficient_quota" },
   [HTTP_STATUS.NOT_FOUND]: { type: "invalid_request_error", code: "model_not_found" },
   [HTTP_STATUS.RATE_LIMITED]: { type: "rate_limit_error", code: "rate_limit_exceeded" },
@@ -114,6 +118,8 @@ export const ERROR_TYPES = {
 export const DEFAULT_ERROR_MESSAGES = {
   [HTTP_STATUS.BAD_REQUEST]: "Bad request",
   [HTTP_STATUS.UNAUTHORIZED]: "Invalid API key provided",
+  [HTTP_STATUS.PAYMENT_REQUIRED]:
+    "This request requires an active subscription, credits, or membership validation",
   [HTTP_STATUS.FORBIDDEN]: "You exceeded your current quota",
   [HTTP_STATUS.NOT_FOUND]: "Model not found",
   [HTTP_STATUS.RATE_LIMITED]: "Rate limit exceeded",

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { jwtVerify, SignJWT } from "jose";
 import { generateRequestId } from "./shared/utils/requestId";
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
@@ -39,13 +39,14 @@ async function getModelSyncModule() {
 
 export async function proxy(request: any) {
   const { pathname } = request.nextUrl;
+  const isDashboardRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/adm");
+  const isOnboardingRoute =
+    pathname.startsWith("/dashboard/onboarding") || pathname.startsWith("/adm/onboarding");
 
-  // Pipeline: Add request ID header for end-to-end tracing
   const requestId = generateRequestId();
   const response = NextResponse.next();
   response.headers.set("X-Request-Id", requestId);
 
-  // ──────────────── Pre-flight: Reject during shutdown drain ────────────────
   if (isDraining() && pathname.startsWith("/api/")) {
     return NextResponse.json(
       {
@@ -59,14 +60,15 @@ export async function proxy(request: any) {
     );
   }
 
-  // ──────────────── Pre-flight: Reject oversized bodies ────────────────
   if (pathname.startsWith("/api/") && request.method !== "GET" && request.method !== "OPTIONS") {
     const bodySizeRejection = checkBodySize(request, getBodySizeLimit(pathname));
-    if (bodySizeRejection) return bodySizeRejection;
+    if (bodySizeRejection) {
+      return bodySizeRejection;
+    }
   }
 
   if (E2E_MODE) {
-    if (pathname.startsWith("/dashboard")) {
+    if (isDashboardRoute) {
       return response;
     }
     if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
@@ -74,14 +76,11 @@ export async function proxy(request: any) {
     }
   }
 
-  // ──────────────── Protect Management API Routes ────────────────
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
-    // Allow public routes (login, logout, health, etc.)
     if (isPublicApiRoute(pathname, request.method)) {
       return response;
     }
 
-    // Allow the model auto-sync scheduler to reach only its internal provider routes.
     const { isModelSyncInternalRequest } = await getModelSyncModule();
     if (
       isModelSyncInternalRequest(request) &&
@@ -90,14 +89,12 @@ export async function proxy(request: any) {
       return response;
     }
 
-    // Check if auth is required at all (respects requireLogin setting)
     const { isAuthRequired, verifyAuth } = await getApiAuthModule();
     const authRequired = await isAuthRequired();
     if (!authRequired) {
       return response;
     }
 
-    // Verify authentication (JWT cookie or Bearer API key)
     const authError = await verifyAuth(request);
     if (authError) {
       const status = authError === "Invalid management token" ? 403 : 401;
@@ -114,33 +111,27 @@ export async function proxy(request: any) {
     }
   }
 
-  // ──────────────── Protect Dashboard Routes ────────────────
-  if (pathname.startsWith("/dashboard")) {
-    // Always allow onboarding — it has its own setupComplete guard
-    if (pathname.startsWith("/dashboard/onboarding")) {
+  if (isDashboardRoute) {
+    if (isOnboardingRoute) {
       return response;
     }
 
     try {
-      // Direct import — no HTTP self-fetch overhead
       const { getSettings } = await getSettingsModule();
       const settings = await getSettings();
-      // Skip auth if login is not required
+
       if (settings.requireLogin === false) {
         return response;
       }
-      // Skip auth ONLY for fresh installs (before onboarding) where no password exists yet.
-      // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
+
       if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD) {
         return response;
       }
-    } catch (err) {
-      // FASE-01: Log settings fetch errors instead of silencing them
-      console.error("[Middleware] settings_error: Settings read failed:", err.message, {
+    } catch (err: any) {
+      console.error("[Middleware] settings_error: Settings read failed:", err?.message, {
         path: pathname,
         requestId,
       });
-      // On error, require login (fall through to token check)
     }
 
     const token = request.cookies.get("auth_token")?.value;
@@ -148,19 +139,17 @@ export async function proxy(request: any) {
     if (token) {
       try {
         const { payload } = await jwtVerify(token, getJwtSecret());
-
-        // Auto-refresh: if token expires within 7 days, issue a fresh 30-day token
         const exp = payload.exp as number;
         const now = Math.floor(Date.now() / 1000);
-        const REFRESH_WINDOW = 7 * 24 * 60 * 60; // 7 days in seconds
-        if (exp && exp - now < REFRESH_WINDOW) {
+        const refreshWindow = 7 * 24 * 60 * 60;
+
+        if (exp && exp - now < refreshWindow) {
           try {
             const freshToken = await new SignJWT({ authenticated: true })
               .setProtectedHeader({ alg: "HS256" })
               .setExpirationTime("30d")
               .sign(getJwtSecret());
 
-            // Detect secure context
             const fwdProto = (request.headers.get("x-forwarded-proto") || "")
               .split(",")[0]
               .trim()
@@ -177,16 +166,14 @@ export async function proxy(request: any) {
             console.log(
               `[Middleware] JWT auto-refreshed for ${pathname} (was expiring in ${Math.round((exp - now) / 3600)}h)`
             );
-          } catch (refreshErr) {
-            // Refresh failed — continue with existing valid token
-            console.error("[Middleware] JWT auto-refresh failed:", refreshErr.message);
+          } catch (refreshErr: any) {
+            console.error("[Middleware] JWT auto-refresh failed:", refreshErr?.message);
           }
         }
 
         return response;
-      } catch (err) {
-        // FASE-01: Log auth errors instead of silently redirecting
-        console.error("[Middleware] auth_error: JWT verification failed:", err.message, {
+      } catch (err: any) {
+        console.error("[Middleware] auth_error: JWT verification failed:", err?.message, {
           path: pathname,
           tokenPresent: true,
           requestId,
@@ -200,14 +187,9 @@ export async function proxy(request: any) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect / to /dashboard if logged in, or /dashboard if it's the root
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   return response;
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/api/:path*"],
+  matcher: ["/", "/adm/:path*", "/dashboard/:path*", "/api/:path*"],
 };

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { clearApiKeyCaches } from "./apiKeys";
@@ -7,6 +8,8 @@ type JsonRecord = Record<string, unknown>;
 
 export type SaasCustomerStatus = "active" | "inactive" | "blocked";
 export type SaasBillingStatus = "active" | "past_due" | "canceled";
+export type SaasBillingEventKind = "plan_purchase" | "plan_renewal" | "credit_purchase";
+export type SaasBillingEventStatus = "pending" | "approved" | "rejected" | "cancelled" | "expired";
 
 export interface SaasPlan {
   id: string;
@@ -44,6 +47,11 @@ export interface SaasCustomer {
   usage?: SaasUsageSummary;
 }
 
+export interface SaasPortalAuthResult {
+  customer: SaasCustomer;
+  primaryApiKey: SaasCustomerApiKey | null;
+}
+
 export interface SaasCustomerApiKey {
   id: string;
   customerId: string;
@@ -78,6 +86,25 @@ export interface SaasPolicyContext {
   allowedModels: string[];
   allowedCombos: string[];
   usage: SaasUsageSummary;
+}
+
+export interface SaasBillingEvent {
+  id: string;
+  customerId: string;
+  planId: string | null;
+  kind: SaasBillingEventKind;
+  status: SaasBillingEventStatus;
+  provider: string;
+  externalReference: string;
+  preferenceId: string | null;
+  paymentId: string | null;
+  amountCents: number;
+  tokenCredits: number;
+  checkoutUrl: string | null;
+  metadataJson: string | null;
+  createdAt: string;
+  updatedAt: string;
+  approvedAt: string | null;
 }
 
 let schemaReady = false;
@@ -240,6 +267,37 @@ function mapCustomer(row: unknown): SaasCustomer {
   };
 }
 
+function mapBillingEvent(row: unknown): SaasBillingEvent {
+  const r = toRecord(rowToCamel(row as JsonRecord));
+  return {
+    id: toString(r.id),
+    customerId: toString(r.customerId),
+    planId: typeof r.planId === "string" ? r.planId : null,
+    kind:
+      r.kind === "plan_purchase" || r.kind === "plan_renewal" || r.kind === "credit_purchase"
+        ? r.kind
+        : "plan_purchase",
+    status:
+      r.status === "approved" ||
+      r.status === "rejected" ||
+      r.status === "cancelled" ||
+      r.status === "expired"
+        ? r.status
+        : "pending",
+    provider: toString(r.provider, "mercado_pago"),
+    externalReference: toString(r.externalReference),
+    preferenceId: typeof r.preferenceId === "string" ? r.preferenceId : null,
+    paymentId: typeof r.paymentId === "string" ? r.paymentId : null,
+    amountCents: Math.max(0, Math.round(toNumber(r.amountCents))),
+    tokenCredits: Math.max(0, Math.round(toNumber(r.tokenCredits))),
+    checkoutUrl: typeof r.checkoutUrl === "string" ? r.checkoutUrl : null,
+    metadataJson: typeof r.metadataJson === "string" ? r.metadataJson : null,
+    createdAt: toString(r.createdAt),
+    updatedAt: toString(r.updatedAt),
+    approvedAt: typeof r.approvedAt === "string" ? r.approvedAt : null,
+  };
+}
+
 function mapCustomerApiKey(row: unknown): SaasCustomerApiKey {
   const r = toRecord(rowToCamel(row as JsonRecord));
   const keyValue = toString(r.key);
@@ -286,6 +344,7 @@ export function ensureSaasSchema(): void {
       paid_until TEXT,
       extra_token_credits INTEGER NOT NULL DEFAULT 0,
       plan_id TEXT,
+      password_hash TEXT,
       billing_cycle_anchor TEXT NOT NULL,
       notes TEXT DEFAULT '',
       created_at TEXT NOT NULL,
@@ -316,6 +375,27 @@ export function ensureSaasSchema(): void {
       combo_name TEXT NOT NULL,
       PRIMARY KEY (customer_id, combo_name)
     );
+
+    CREATE TABLE IF NOT EXISTS saas_billing_events (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      plan_id TEXT,
+      kind TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      provider TEXT NOT NULL DEFAULT 'mercado_pago',
+      external_reference TEXT NOT NULL UNIQUE,
+      preference_id TEXT,
+      payment_id TEXT,
+      amount_cents INTEGER NOT NULL DEFAULT 0,
+      token_credits INTEGER NOT NULL DEFAULT 0,
+      checkout_url TEXT,
+      metadata_json TEXT,
+      approved_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_saas_billing_customer ON saas_billing_events(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_saas_billing_status ON saas_billing_events(status);
   `);
 
   migrateExistingSaasSchema(db);
@@ -349,6 +429,7 @@ function migrateExistingSaasSchema(db: ReturnType<typeof getDbInstance>): void {
     "billing_status TEXT NOT NULL DEFAULT 'active'"
   );
   ensureColumn(db, "saas_customers", "paid_until", "paid_until TEXT");
+  ensureColumn(db, "saas_customers", "password_hash", "password_hash TEXT");
   ensureColumn(
     db,
     "saas_customers",
@@ -399,7 +480,7 @@ function seedDefaultPlans(): void {
       id, name, slug, monthly_token_limit, is_active, allow_all_models, allow_all_combos, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  insert.run(randomUUID(), "Starter", "starter", 1_000_000, 1, 0, 0, now, now);
+  insert.run(randomUUID(), "Starter", "starter", 1_000_000, 1, 1, 1, now, now);
   insert.run(randomUUID(), "Pro", "pro", 10_000_000, 1, 1, 1, now, now);
   insert.run(randomUUID(), "Empresarial", "empresarial", 100_000_000, 1, 1, 1, now, now);
 }
@@ -544,6 +625,7 @@ export function createSaasCustomer(input: {
   notes?: string;
   allowedModels?: string[];
   allowedCombos?: string[];
+  passwordHash?: string | null;
 }): SaasCustomer {
   ensureSaasSchema();
   const db = getDbInstance();
@@ -552,8 +634,8 @@ export function createSaasCustomer(input: {
   db.prepare(
     `INSERT INTO saas_customers (
       id, name, email, company, status, billing_status, paid_until, extra_token_credits,
-      plan_id, billing_cycle_anchor, notes, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      plan_id, password_hash, billing_cycle_anchor, notes, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.name,
@@ -564,6 +646,7 @@ export function createSaasCustomer(input: {
     input.paidUntil || null,
     Math.max(0, Math.round(input.extraTokenCredits || 0)),
     input.planId || null,
+    input.passwordHash || null,
     now,
     input.notes || "",
     now,
@@ -588,6 +671,7 @@ export function updateSaasCustomer(
     notes: string;
     allowedModels: string[];
     allowedCombos: string[];
+    passwordHash: string | null;
   }>
 ): SaasCustomer | null {
   ensureSaasSchema();
@@ -607,6 +691,7 @@ export function updateSaasCustomer(
     ["paidUntil", "paid_until"],
     ["extraTokenCredits", "extra_token_credits"],
     ["planId", "plan_id"],
+    ["passwordHash", "password_hash"],
     ["notes", "notes"],
   ] as const) {
     if (field in input) {
@@ -650,6 +735,222 @@ export function updateSaasCustomer(
   }
   backupDbFile("pre-write");
   return getSaasCustomerById(id);
+}
+
+export function getSaasCustomerByEmail(
+  email: string,
+  options: { includeUsage?: boolean } = {}
+): SaasCustomer | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      `SELECT c.*, p.name as plan_name, p.monthly_token_limit, p.price_monthly_cents
+       FROM saas_customers c
+       LEFT JOIN saas_plans p ON p.id = c.plan_id
+       WHERE lower(c.email) = lower(?)`
+    )
+    .get(email);
+  if (!row) return null;
+  return hydrateCustomer(mapCustomer(row), options);
+}
+
+export function setSaasCustomerPassword(customerId: string, password: string): void {
+  ensureSaasSchema();
+  const hash = bcrypt.hashSync(password, 10);
+  updateSaasCustomer(customerId, { passwordHash: hash });
+}
+
+export function verifySaasCustomerPassword(
+  email: string,
+  password: string
+): SaasPortalAuthResult | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const row = toRecord(
+    db
+      .prepare("SELECT id, password_hash FROM saas_customers WHERE lower(email) = lower(?)")
+      .get(email)
+  );
+  const customerId = toString(row.id);
+  const passwordHash = toString(row.passwordHash ?? row.password_hash);
+  if (!customerId || !passwordHash) return null;
+  if (!bcrypt.compareSync(password, passwordHash)) return null;
+  const customer = getSaasCustomerById(customerId);
+  const primaryApiKey =
+    customer?.apiKeys?.find((key) => key.isActive) || customer?.apiKeys?.[0] || null;
+  if (!customer) return null;
+  return { customer, primaryApiKey };
+}
+
+export function createSaasBillingEvent(input: {
+  customerId: string;
+  planId?: string | null;
+  kind: SaasBillingEventKind;
+  provider?: string;
+  amountCents: number;
+  tokenCredits?: number;
+  checkoutUrl?: string | null;
+  preferenceId?: string | null;
+  externalReference?: string;
+  metadataJson?: string | null;
+}): SaasBillingEvent {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const now = new Date().toISOString();
+  const id = randomUUID();
+  const externalReference =
+    input.externalReference ||
+    `easyia:${input.kind}:${input.customerId}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+  db.prepare(
+    `INSERT INTO saas_billing_events (
+      id, customer_id, plan_id, kind, status, provider, external_reference,
+      preference_id, payment_id, amount_cents, token_credits, checkout_url, metadata_json,
+      approved_at, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, NULL, ?, ?, ?, ?, NULL, ?, ?)`
+  ).run(
+    id,
+    input.customerId,
+    input.planId || null,
+    input.kind,
+    input.provider || "mercado_pago",
+    externalReference,
+    input.preferenceId || null,
+    Math.max(0, Math.round(input.amountCents || 0)),
+    Math.max(0, Math.round(input.tokenCredits || 0)),
+    input.checkoutUrl || null,
+    input.metadataJson || null,
+    now,
+    now
+  );
+  backupDbFile("pre-write");
+  return mapBillingEvent(db.prepare("SELECT * FROM saas_billing_events WHERE id = ?").get(id));
+}
+
+export function updateSaasBillingEvent(
+  id: string,
+  input: Partial<{
+    status: SaasBillingEventStatus;
+    checkoutUrl: string | null;
+    preferenceId: string | null;
+    paymentId: string | null;
+    metadataJson: string | null;
+    approvedAt: string | null;
+  }>
+): SaasBillingEvent | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const current = db.prepare("SELECT * FROM saas_billing_events WHERE id = ?").get(id);
+  if (!current) return null;
+  const updates: string[] = [];
+  const params: Record<string, unknown> = { id, updatedAt: new Date().toISOString() };
+  for (const [field, column] of [
+    ["status", "status"],
+    ["checkoutUrl", "checkout_url"],
+    ["preferenceId", "preference_id"],
+    ["paymentId", "payment_id"],
+    ["metadataJson", "metadata_json"],
+    ["approvedAt", "approved_at"],
+  ] as const) {
+    if (field in input) {
+      updates.push(`${column} = @${field}`);
+      params[field] = input[field] ?? null;
+    }
+  }
+  if (!updates.length) return mapBillingEvent(current);
+  updates.push("updated_at = @updatedAt");
+  db.prepare(`UPDATE saas_billing_events SET ${updates.join(", ")} WHERE id = @id`).run(params);
+  backupDbFile("pre-write");
+  return mapBillingEvent(db.prepare("SELECT * FROM saas_billing_events WHERE id = ?").get(id));
+}
+
+export function getSaasBillingEventByExternalReference(
+  externalReference: string
+): SaasBillingEvent | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT * FROM saas_billing_events WHERE external_reference = ?")
+    .get(externalReference);
+  return row ? mapBillingEvent(row) : null;
+}
+
+export function getSaasBillingEventByPaymentId(paymentId: string): SaasBillingEvent | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const row = db.prepare("SELECT * FROM saas_billing_events WHERE payment_id = ?").get(paymentId);
+  return row ? mapBillingEvent(row) : null;
+}
+
+export function listSaasBillingEvents(
+  options: { customerId?: string; limit?: number } = {}
+): SaasBillingEvent[] {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const limit = Math.max(1, Math.min(200, Math.round(options.limit || 50)));
+  if (options.customerId) {
+    return db
+      .prepare(
+        "SELECT * FROM saas_billing_events WHERE customer_id = ? ORDER BY created_at DESC LIMIT ?"
+      )
+      .all(options.customerId, limit)
+      .map(mapBillingEvent);
+  }
+  return db
+    .prepare("SELECT * FROM saas_billing_events ORDER BY created_at DESC LIMIT ?")
+    .all(limit)
+    .map(mapBillingEvent);
+}
+
+export function activateSaasCustomerBilling(input: {
+  customerId: string;
+  planId?: string | null;
+  paymentId?: string | null;
+  paymentStatus?: string | null;
+  approvedAt?: string | null;
+}): SaasCustomer | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const customer = getSaasCustomerById(input.customerId, { includeUsage: false });
+  if (!customer) return null;
+  const now = input.approvedAt || new Date().toISOString();
+  const paidUntil = addMonths(new Date(now), 1).toISOString();
+  db.prepare(
+    `UPDATE saas_customers
+     SET status = 'active',
+         billing_status = 'active',
+         paid_until = ?,
+         plan_id = COALESCE(?, plan_id),
+         updated_at = ?
+     WHERE id = ?`
+  ).run(paidUntil, input.planId || null, now, input.customerId);
+  db.prepare(
+    "UPDATE saas_customer_api_keys SET is_active = 1, updated_at = ? WHERE customer_id = ?"
+  ).run(now, input.customerId);
+  db.prepare(
+    `UPDATE api_keys
+     SET is_active = 1
+     WHERE id IN (SELECT api_key_id FROM saas_customer_api_keys WHERE customer_id = ?)`
+  ).run(input.customerId);
+  clearApiKeyCaches();
+  backupDbFile("pre-write");
+  return getSaasCustomerById(input.customerId);
+}
+
+export function addSaasCustomerCredits(
+  customerId: string,
+  tokenCredits: number
+): SaasCustomer | null {
+  ensureSaasSchema();
+  const db = getDbInstance();
+  const credits = Math.max(0, Math.round(tokenCredits || 0));
+  db.prepare(
+    `UPDATE saas_customers
+     SET extra_token_credits = COALESCE(extra_token_credits, 0) + ?, updated_at = ?
+     WHERE id = ?`
+  ).run(credits, new Date().toISOString(), customerId);
+  backupDbFile("pre-write");
+  return getSaasCustomerById(customerId);
 }
 
 export function deleteSaasCustomer(id: string): boolean {

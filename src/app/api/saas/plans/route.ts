@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { deleteSaasPlan, listSaasPlans, upsertSaasPlan } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { friendlyPlanAdminError, summarizeValidationError } from "@/lib/saas/userFacingMessages";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const planSchema = z
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({ plans: listSaasPlans() });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: friendlyPlanAdminError(error) }, { status: 500 });
   }
 }
 
@@ -34,13 +35,22 @@ export async function DELETE(request: Request) {
 
   try {
     const id = new URL(request.url).searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json(
+        { error: friendlyPlanAdminError("Missing plan id") },
+        { status: 400 }
+      );
+    }
     const deleted = deleteSaasPlan(id);
-    if (!deleted) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+    if (!deleted) {
+      return NextResponse.json(
+        { error: friendlyPlanAdminError("Plan not found") },
+        { status: 404 }
+      );
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: message }, { status: 409 });
+    return NextResponse.json({ error: friendlyPlanAdminError(error) }, { status: 409 });
   }
 }
 
@@ -52,13 +62,21 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(planSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
+      return NextResponse.json(
+        {
+          error: summarizeValidationError(
+            validation.error,
+            "Revise os dados do plano antes de salvar."
+          ),
+        },
+        { status: 400 }
+      );
     }
     const plan = upsertSaasPlan(validation.data);
     return NextResponse.json({ plan }, { status: validation.data.id ? 200 : 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message.includes("UNIQUE constraint failed") ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: friendlyPlanAdminError(message) }, { status });
   }
 }

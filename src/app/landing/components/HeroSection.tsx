@@ -32,7 +32,7 @@ export default function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 w-full">
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/adm")}
             className="w-full sm:w-auto h-12 px-8 rounded-lg bg-[#E54D5E] hover:bg-[#C93D4E] text-white text-base font-bold transition-all shadow-[0_0_15px_rgba(229,77,94,0.4)] flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" aria-hidden="true">

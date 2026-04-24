@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCombos, listSaasPlans } from "@/lib/localDb";
+import { friendlyPublicSignupError } from "@/lib/saas/userFacingMessages";
 
 function formatCombo(combo: Record<string, unknown>) {
   const name = typeof combo.name === "string" ? combo.name : "combo";
@@ -38,7 +39,6 @@ export async function GET() {
       combos: publicCombos,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: friendlyPublicSignupError(error) }, { status: 500 });
   }
 }

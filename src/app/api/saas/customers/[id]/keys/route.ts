@@ -7,6 +7,10 @@ import {
   updateApiKeyPermissions,
 } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import {
+  friendlyCustomerAdminError,
+  summarizeValidationError,
+} from "@/lib/saas/userFacingMessages";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -23,12 +27,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     const customer = getSaasCustomerById(id);
-    if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    if (!customer) {
+      return NextResponse.json(
+        { error: friendlyCustomerAdminError("Customer not found") },
+        { status: 404 }
+      );
+    }
 
     const rawBody = await request.json().catch(() => ({}));
     const validation = validateBody(createCustomerKeySchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
+      return NextResponse.json(
+        {
+          error: summarizeValidationError(
+            validation.error,
+            "Revise o rótulo da API key antes de continuar."
+          ),
+        },
+        { status: 400 }
+      );
     }
 
     const label = validation.data.label || "API Key";
@@ -53,6 +70,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message.includes("UNIQUE constraint failed") ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: friendlyCustomerAdminError(message) }, { status });
   }
 }

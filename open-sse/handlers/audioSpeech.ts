@@ -19,7 +19,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
 
 import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
-import { errorResponse } from "../utils/error.ts";
+import { errorResponse, normalizeUserFacingErrorMessage } from "../utils/error.ts";
 
 /**
  * Return a CORS error response from an upstream fetch failure
@@ -45,7 +45,12 @@ function upstreamErrorResponse(res, errText) {
   }
 
   return Response.json(
-    { error: { message: errorMessage, code: res.status } },
+    {
+      error: {
+        message: normalizeUserFacingErrorMessage(errorMessage, res.status),
+        code: res.status,
+      },
+    },
     {
       status: res.status,
       headers: { "Access-Control-Allow-Origin": getCorsOrigin() },

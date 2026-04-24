@@ -8,6 +8,7 @@ import {
   listSaasPlans,
   updateApiKeyPermissions,
 } from "@/lib/localDb";
+import { friendlyPublicSignupError, summarizeValidationError } from "@/lib/saas/userFacingMessages";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -25,13 +26,24 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(signupSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
+      return NextResponse.json(
+        {
+          error: summarizeValidationError(
+            validation.error,
+            "Revise os dados do cadastro antes de continuar."
+          ),
+        },
+        { status: 400 }
+      );
     }
 
     const data = validation.data;
     const plan = listSaasPlans().find((item) => item.id === data.planId && item.isActive);
     if (!plan) {
-      return NextResponse.json({ error: "Plano indisponivel." }, { status: 404 });
+      return NextResponse.json(
+        { error: friendlyPublicSignupError("Plano indisponivel.") },
+        { status: 404 }
+      );
     }
 
     const customer = createSaasCustomer({
@@ -72,6 +84,6 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message.includes("UNIQUE constraint failed") ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: friendlyPublicSignupError(message) }, { status });
   }
 }

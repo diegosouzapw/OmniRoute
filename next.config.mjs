@@ -146,8 +146,31 @@ const nextConfig = {
     return config;
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/dashboard",
+        destination: "/adm",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: "/adm/:path*",
+        permanent: false,
+      },
+    ];
+  },
+
   async rewrites() {
     return [
+      {
+        source: "/adm",
+        destination: "/dashboard",
+      },
+      {
+        source: "/adm/:path*",
+        destination: "/dashboard/:path*",
+      },
       {
         source: "/chat/completions",
         destination: "/api/v1/chat/completions",

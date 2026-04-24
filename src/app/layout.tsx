@@ -13,7 +13,7 @@ const inter = Inter({
 
 export async function generateMetadata() {
   const settings = await getSettings();
-  const instanceName = settings?.instanceName || "OmniRoute";
+  const instanceName = settings?.instanceName || "Easy IA";
   const customFaviconUrl = settings?.customFaviconUrl || settings?.customFaviconBase64;
 
   return {

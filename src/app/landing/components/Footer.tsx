@@ -42,10 +42,7 @@ export default function Footer() {
             >
               {t("featuresLink")}
             </a>
-            <a
-              className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
-              href="/dashboard"
-            >
+            <a className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors" href="/adm">
               {t("dashboardLink")}
             </a>
             <a

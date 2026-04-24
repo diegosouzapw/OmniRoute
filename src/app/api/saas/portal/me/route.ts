@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getApiKeyMetadata, getSaasPolicyForApiKeyId } from "@/lib/localDb";
+import {
+  friendlyPortalSessionError,
+  summarizeValidationError,
+} from "@/lib/saas/userFacingMessages";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const portalAuthSchema = z
@@ -20,18 +24,32 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(portalAuthSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
+      return NextResponse.json(
+        {
+          error: summarizeValidationError(
+            validation.error,
+            "Nao foi possivel validar a sessao do portal."
+          ),
+        },
+        { status: 400 }
+      );
     }
 
     const { email, apiKey } = validation.data;
     const metadata = await getApiKeyMetadata(apiKey);
     if (!metadata?.id) {
-      return NextResponse.json({ error: "API key ou email invalido." }, { status: 401 });
+      return NextResponse.json(
+        { error: friendlyPortalSessionError("API key ou email invalido.") },
+        { status: 401 }
+      );
     }
 
     const policy = getSaasPolicyForApiKeyId(metadata.id);
     if (!policy || policy.customer.email.toLowerCase() !== email.toLowerCase()) {
-      return NextResponse.json({ error: "API key ou email invalido." }, { status: 401 });
+      return NextResponse.json(
+        { error: friendlyPortalSessionError("API key ou email invalido.") },
+        { status: 401 }
+      );
     }
 
     const customer = {
@@ -51,6 +69,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: friendlyPortalSessionError(message) }, { status: 500 });
   }
 }

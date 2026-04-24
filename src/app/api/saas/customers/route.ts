@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import {
   createApiKey,
   createSaasCustomer,
@@ -9,6 +10,10 @@ import {
   updateApiKeyPermissions,
 } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import {
+  friendlyCustomerAdminError,
+  summarizeValidationError,
+} from "@/lib/saas/userFacingMessages";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -22,6 +27,7 @@ const customerSchema = z
     paidUntil: z.string().trim().max(80).nullable().optional(),
     extraTokenCredits: z.number().int().min(0).max(10_000_000_000).optional(),
     planId: z.string().trim().min(1).nullable().optional(),
+    password: z.string().min(6).max(200).optional(),
     notes: z.string().trim().max(2000).optional(),
     allowedModels: z.array(z.string().trim().min(1).max(240)).max(500).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(240)).max(200).optional(),
@@ -37,7 +43,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({ customers: listSaasCustomers() });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: friendlyCustomerAdminError(error) }, { status: 500 });
   }
 }
 
@@ -49,7 +55,15 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(customerSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
+      return NextResponse.json(
+        {
+          error: summarizeValidationError(
+            validation.error,
+            "Revise os dados do cliente antes de salvar."
+          ),
+        },
+        { status: 400 }
+      );
     }
     const data = validation.data;
 
@@ -62,6 +76,7 @@ export async function POST(request: Request) {
       paidUntil: data.paidUntil || null,
       extraTokenCredits: data.extraTokenCredits || 0,
       planId: data.planId || null,
+      passwordHash: data.password ? bcrypt.hashSync(data.password, 10) : null,
       notes: data.notes || "",
       allowedModels: data.allowedModels || [],
       allowedCombos: data.allowedCombos || [],
@@ -91,6 +106,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: friendlyCustomerAdminError(error) }, { status: 500 });
   }
 }

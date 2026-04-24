@@ -1,4 +1,4 @@
-const PUBLIC_API_ROUTE_PREFIXES = [
+﻿const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/status",
@@ -8,6 +8,20 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/cloud/",
   "/api/sync/bundle",
   "/api/oauth/",
+  "/api/saas/public/",
+  "/api/saas/portal/login",
+  "/api/saas/portal/me",
+  "/api/saas/checkout/start",
+  "/api/saas/checkout/confirm",
+  "/api/saas/checkout/webhook",
+  "/api/plans",
+  "/api/signup",
+  "/api/chat",
+  "/api/portal/login",
+  "/api/portal/logout",
+  "/api/portal/session",
+  "/api/checkout/start",
+  "/api/checkout/confirm",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = ["/api/settings/require-login"];

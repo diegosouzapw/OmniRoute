@@ -16,9 +16,11 @@ export function buildErrorBody(statusCode, message) {
       ? { type: "server_error", code: "internal_server_error" }
       : { type: "invalid_request_error", code: "" });
 
+  const friendlyMessage = normalizeUserFacingErrorMessage(message, statusCode);
+
   return {
     error: {
-      message: message || DEFAULT_ERROR_MESSAGES[statusCode] || "An error occurred",
+      message: friendlyMessage || DEFAULT_ERROR_MESSAGES[statusCode] || "An error occurred",
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -51,6 +53,94 @@ export async function writeStreamError(writer, statusCode, message) {
   const errorBody = buildErrorBody(statusCode, message);
   const encoder = new TextEncoder();
   await writer.write(encoder.encode(`data: ${JSON.stringify(errorBody)}\n\n`));
+}
+
+function extractMessageText(message: unknown): string {
+  if (typeof message === "string") return message.trim();
+  if (message instanceof Error) return message.message.trim();
+  if (message === null || message === undefined) return "";
+
+  try {
+    return JSON.stringify(message);
+  } catch {
+    return String(message);
+  }
+}
+
+function stripTransportPrefixes(message: string): string {
+  return message
+    .replace(/^AI_APICallError:\s*/i, "")
+    .replace(/^Error:\s*/i, "")
+    .replace(/^\[\d+\]:\s*/, "")
+    .trim();
+}
+
+export function normalizeUserFacingErrorMessage(message: unknown, statusCode?: number): string {
+  const rawMessage = extractMessageText(message);
+  const cleanedMessage = stripTransportPrefixes(rawMessage);
+
+  if (!cleanedMessage) {
+    return DEFAULT_ERROR_MESSAGES[statusCode || 500] || "Ocorreu um erro ao processar a chamada.";
+  }
+
+  const normalized = cleanedMessage.toLowerCase();
+
+  if (
+    normalized.includes("unable to verify your membership benefits") ||
+    (normalized.includes("membership") && normalized.includes("active"))
+  ) {
+    return "Nao foi possivel validar os beneficios da assinatura desta conta agora. Confirme se a assinatura do provedor esta ativa e tente novamente em alguns instantes.";
+  }
+
+  if (
+    normalized.includes("chatgpt account") &&
+    normalized.includes("model is not supported") &&
+    normalized.includes("codex")
+  ) {
+    return "Este modelo nao esta liberado para esta conta do Codex. Escolha outro modelo compativel ou deixe o fallback do OmniRoute seguir para a proxima opcao.";
+  }
+
+  if (normalized.includes("requested model is not supported")) {
+    return "O modelo solicitado nao esta disponivel neste provedor ou nesta conta. Escolha outro modelo ou use o fallback automatico para continuar.";
+  }
+
+  if (normalized.includes("customer api key is disabled")) {
+    return "Esta API key esta temporariamente indisponivel. Verifique no painel se o plano esta ativo, se a renovacao foi concluida ou se a chave foi bloqueada pelo administrador.";
+  }
+
+  if (normalized.includes("invalid json response from provider")) {
+    return "O provedor retornou uma resposta invalida nesta tentativa. Tente novamente em alguns segundos ou deixe o fallback usar outro provedor/modelo.";
+  }
+
+  if (normalized.includes("invalid api key")) {
+    return "A API key informada nao foi aceita. Revise a chave configurada e tente novamente.";
+  }
+
+  if (statusCode === 401) {
+    return "Nao foi possivel autenticar esta chamada no provedor configurado. Revise as credenciais e tente novamente.";
+  }
+
+  if (statusCode === 402) {
+    return "Esta chamada nao pode ser concluida agora porque a conta do provedor precisa de assinatura, creditos ou validacao de beneficios. Verifique o status da conta e tente novamente.";
+  }
+
+  if (statusCode === 403) {
+    return "Esta chamada foi recusada pelo provedor. Verifique se esta conta tem permissao para usar este recurso ou modelo.";
+  }
+
+  if (statusCode === 404) {
+    return "O recurso solicitado nao foi encontrado neste provedor. Confira o modelo, rota ou configuracao usada nesta chamada.";
+  }
+
+  if (statusCode === 429) {
+    return "O limite de uso desta conta foi atingido no momento. Aguarde alguns instantes ou deixe o fallback tentar outra conexao.";
+  }
+
+  if (statusCode && statusCode >= 500) {
+    return "O provedor retornou uma falha temporaria. Tente novamente em instantes ou deixe o fallback seguir para a proxima opcao.";
+  }
+
+  return cleanedMessage;
 }
 
 function normalizeRetryAfterSeconds(retryAfter?: string | number | Date | null): number {

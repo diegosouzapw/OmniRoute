@@ -58,6 +58,20 @@ type Model = { id: string };
 type Combo = { id: string; name: string };
 type ActiveTab = "users" | "plans" | "finance";
 type CustomerApiKey = NonNullable<Customer["apiKeys"]>[number];
+type BillingEvent = {
+  id: string;
+  customerId: string;
+  planId: string | null;
+  kind: "plan_purchase" | "plan_renewal" | "credit_purchase";
+  status: "pending" | "approved" | "rejected" | "cancelled" | "expired";
+  provider: string;
+  amountCents: number;
+  tokenCredits: number;
+  checkoutUrl: string | null;
+  paymentId: string | null;
+  createdAt: string;
+  approvedAt: string | null;
+};
 type ApiKeyViewTarget = {
   customer: Customer;
   apiKey: CustomerApiKey;
@@ -67,6 +81,7 @@ const emptyCustomerForm = {
   name: "",
   email: "",
   company: "",
+  password: "",
   planId: "",
   allowedModelsText: "",
   allowedCombosText: "",
@@ -125,6 +140,7 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [combos, setCombos] = useState<Combo[]>([]);
+  const [billingEvents, setBillingEvents] = useState<BillingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
@@ -147,14 +163,16 @@ export default function CustomersPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [plansRes, customersRes, modelsRes, combosRes] = await Promise.all([
+      const [plansRes, customersRes, billingRes, modelsRes, combosRes] = await Promise.all([
         fetch("/api/saas/plans"),
         fetch("/api/saas/customers"),
+        fetch("/api/saas/billing"),
         fetch("/v1/models"),
         fetch("/api/combos"),
       ]);
       if (plansRes.ok) setPlans((await plansRes.json()).plans || []);
       if (customersRes.ok) setCustomers((await customersRes.json()).customers || []);
+      if (billingRes.ok) setBillingEvents((await billingRes.json()).events || []);
       if (modelsRes.ok) setModels((await modelsRes.json()).data || []);
       if (combosRes.ok) setCombos((await combosRes.json()).combos || []);
     } finally {
@@ -176,6 +194,13 @@ export default function CustomersPage() {
   const totalApiKeys = customers.reduce(
     (total, customer) => total + (customer.apiKeys?.length || 0),
     0
+  );
+  const totalRevenue = useMemo(
+    () =>
+      billingEvents
+        .filter((event) => event.status === "approved")
+        .reduce((sum, event) => sum + (event.amountCents || 0), 0),
+    [billingEvents]
   );
 
   const planOptions = useMemo(
@@ -317,6 +342,7 @@ export default function CustomersPage() {
           name: customerForm.name,
           email: customerForm.email,
           company: customerForm.company,
+          password: customerForm.password || undefined,
           planId: customerForm.planId || null,
           allowedModels: listFromText(customerForm.allowedModelsText),
           allowedCombos: listFromText(customerForm.allowedCombosText),
@@ -346,6 +372,7 @@ export default function CustomersPage() {
       name: customer.name || "",
       email: customer.email || "",
       company: customer.company || "",
+      password: "",
       planId: customer.planId || "",
       allowedModelsText: (customer.allowedModels || []).join("\n"),
       allowedCombosText: (customer.allowedCombos || []).join("\n"),
@@ -370,6 +397,7 @@ export default function CustomersPage() {
           name: customerForm.name,
           email: customerForm.email,
           company: customerForm.company,
+          password: customerForm.password || undefined,
           planId: customerForm.planId || null,
           allowedModels: listFromText(customerForm.allowedModelsText),
           allowedCombos: listFromText(customerForm.allowedCombosText),
@@ -445,20 +473,66 @@ export default function CustomersPage() {
     if (!raw) return;
     const credits = Math.max(0, Math.round(Number(raw.replace(/\D/g, "")) || Number(raw) || 0));
     if (!credits) return;
-    await updateCustomer(customer, {
-      extraTokenCredits: (customer.extraTokenCredits || 0) + credits,
-      status: "active",
-    });
+    setSaving(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/saas/checkout/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "credit_purchase",
+          customerId: customer.id,
+          tokenCredits: credits,
+        }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(payload?.error || "Nao foi possivel gerar a recarga.");
+      if (payload?.checkoutUrl) {
+        window.open(payload.checkoutUrl, "_blank", "noopener,noreferrer");
+        setNotice({ type: "success", text: "Link de recarga aberto em nova aba." });
+      } else {
+        setNotice({ type: "success", text: "Recarga criada." });
+      }
+      await load();
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: error instanceof Error ? error.message : "Nao foi possivel gerar a recarga.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const markCustomerPaid = async (customer: Customer) => {
-    const paidUntil = new Date();
-    paidUntil.setMonth(paidUntil.getMonth() + 1);
-    await updateCustomer(customer, {
-      billingStatus: "active",
-      paidUntil: paidUntil.toISOString(),
-      status: "active",
-    });
+    setSaving(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/saas/checkout/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "plan_renewal",
+          customerId: customer.id,
+        }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(payload?.error || "Nao foi possivel gerar a renovacao.");
+      if (payload?.checkoutUrl) {
+        window.open(payload.checkoutUrl, "_blank", "noopener,noreferrer");
+        setNotice({ type: "success", text: "Link de renovacao aberto em nova aba." });
+      } else {
+        setNotice({ type: "success", text: "Renovacao criada." });
+      }
+      await load();
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: error instanceof Error ? error.message : "Nao foi possivel gerar a renovacao.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const copyText = async (text: string, keyId: string) => {
@@ -600,6 +674,13 @@ export default function CustomersPage() {
                 onChange={(e) => setCustomerForm((s) => ({ ...s, company: e.target.value }))}
                 placeholder="Opcional"
               />
+              <Input
+                label={editingCustomerId ? "Nova senha do portal" : "Senha do portal"}
+                type="password"
+                value={customerForm.password}
+                onChange={(e) => setCustomerForm((s) => ({ ...s, password: e.target.value }))}
+                placeholder={editingCustomerId ? "Preencha para redefinir" : "Minimo 6 caracteres"}
+              />
               <Select
                 label="Plano"
                 value={customerForm.planId}
@@ -628,7 +709,12 @@ export default function CustomersPage() {
               <Button
                 onClick={editingCustomerId ? saveCustomerEdit : createCustomer}
                 loading={saving}
-                disabled={!customerForm.name || !customerForm.email || !customerForm.planId}
+                disabled={
+                  !customerForm.name ||
+                  !customerForm.email ||
+                  !customerForm.planId ||
+                  (!editingCustomerId && !customerForm.password)
+                }
                 icon={editingCustomerId ? "save" : "key"}
               >
                 {editingCustomerId ? "Salvar usuario" : "Criar usuario e API key"}
@@ -820,7 +906,11 @@ export default function CustomersPage() {
               icon="query_stats"
             />
             <MetricCard label="Clientes bloqueados" value={blockedCustomers} icon="block" />
-            <MetricCard label="Receita" value="Em breve" icon="paid" />
+            <MetricCard
+              label="Receita aprovada"
+              value={formatMoneyFromCents(totalRevenue)}
+              icon="paid"
+            />
           </div>
           <Card
             title="Financeiro e consumo"
@@ -925,6 +1015,92 @@ export default function CustomersPage() {
                     <tr>
                       <td colSpan={9} className="py-8 text-center text-text-muted">
                         Nenhum consumo para exibir ainda.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          <Card
+            title="Transacoes recentes"
+            subtitle="Eventos de checkout gerados para renovacoes, assinaturas e recargas"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-text-muted">
+                    <th className="py-3 pr-4">Evento</th>
+                    <th className="py-3 pr-4">Cliente</th>
+                    <th className="py-3 pr-4">Valor</th>
+                    <th className="py-3 pr-4">Status</th>
+                    <th className="py-3 pr-4">Criado</th>
+                    <th className="py-3 pr-4 text-right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billingEvents.map((event) => {
+                    const customer = customers.find((item) => item.id === event.customerId);
+                    return (
+                      <tr key={event.id} className="border-b border-border/50">
+                        <td className="py-4 pr-4">
+                          {event.kind === "credit_purchase"
+                            ? "Recarga"
+                            : event.kind === "plan_renewal"
+                              ? "Renovacao"
+                              : "Assinatura"}
+                        </td>
+                        <td className="py-4 pr-4">
+                          <p className="font-medium text-text-main">
+                            {customer?.name || event.customerId}
+                          </p>
+                          <p className="text-xs text-text-muted">{customer?.email || ""}</p>
+                        </td>
+                        <td className="py-4 pr-4 font-mono">
+                          {formatMoneyFromCents(event.amountCents || 0)}
+                        </td>
+                        <td className="py-4 pr-4">
+                          <Badge
+                            variant={
+                              event.status === "approved"
+                                ? "success"
+                                : event.status === "pending"
+                                  ? "warning"
+                                  : "error"
+                            }
+                          >
+                            {event.status}
+                          </Badge>
+                        </td>
+                        <td className="py-4 pr-4">
+                          {new Date(event.createdAt).toLocaleString("pt-BR")}
+                        </td>
+                        <td className="py-4 pr-4 text-right">
+                          {event.checkoutUrl ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                window.open(
+                                  event.checkoutUrl || "",
+                                  "_blank",
+                                  "noopener,noreferrer"
+                                )
+                              }
+                            >
+                              Abrir checkout
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-text-muted">Sem link</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {billingEvents.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-text-muted">
+                        Nenhuma transacao registrada ainda.
                       </td>
                     </tr>
                   )}
