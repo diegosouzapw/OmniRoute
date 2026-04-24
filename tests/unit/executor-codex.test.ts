@@ -102,6 +102,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
   assert.equal(standardHeaders.Version, "0.120.0");
   assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
+  assert.equal(standardHeaders.originator, "opencode");
+  assert.equal(standardHeaders.session_id, "workspace-1");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 

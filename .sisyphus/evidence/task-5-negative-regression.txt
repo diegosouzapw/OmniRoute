@@ -1,0 +1,14 @@
+## Task 5 negative regression 확인
+
+- 변경 범위는 `open-sse/executors/codex.ts`의 `originator` 헤더 1건뿐이다.
+- 다음 동작은 코드상 그대로 유지됨:
+  - gpt-5.4 / gpt-5.5 모두 동일한 Codex backend URL(`/backend-api/codex/responses`) 사용
+  - OAuth access token 기반 Bearer 인증 유지
+  - workspace binding (`chatgpt-account-id`) 유지
+  - `session_id` / `prompt_cache_key` 생성 방식 유지
+  - unsupported parameter strip 로직 유지
+
+### 회귀 위험 판단
+
+- `gpt-5.4` 경로에서 URL/OAuth/body transform/session cache 동작은 변경되지 않았다.
+- 이번 수정은 backend fingerprint의 `originator` 값만 조정하므로, 기존 `gpt-5.4` 요청 처리 흐름에 대한 회귀 반경은 매우 작다.

@@ -476,8 +476,9 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     // Originator header — identifies the client type to the Codex backend.
-    // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
-    headers["originator"] = "codex_cli_rs";
+    // Align with the OpenCode fingerprint for gpt-5.5 visibility while keeping
+    // the existing Codex backend URL/OAuth/session handling unchanged.
+    headers["originator"] = "opencode";
 
     // session_id header — enables prompt cache affinity on the Codex backend.
     // The official Codex client sets this to conversation_id (a stable UUID per session).

@@ -1,0 +1,31 @@
+## Task 5 fingerprint 적용 내용
+
+- 검토 대상 change-candidate: `originator`, `User-Agent`, `session_id`
+- 현재 구현 확인:
+  - endpoint: `https://chatgpt.com/backend-api/codex/responses`
+  - `originator`: `codex_cli_rs`
+  - `User-Agent`: `codex-cli/{version} (Windows 10.0.26100; x64)`
+  - `session_id`: `workspaceId` 기반 고정값
+- 최소 변경 판단:
+  - spike 우선순위가 `originator > User-Agent > session_id`
+  - `gpt-5.5` 인식에 가장 직접 연결될 가능성이 큰 차이는 `originator`
+  - `User-Agent`/`session_id`까지 동시에 바꾸면 원인 분리가 어려워져 최소 변경 원칙을 위반함
+
+### 적용 변경
+
+- `open-sse/executors/codex.ts`
+  - `headers["originator"]` 값을 `codex_cli_rs` → `opencode` 로 변경
+
+### 유지한 항목
+
+- Codex backend URL rewrite 로직 유지
+- OAuth/Bearer header 처리 유지
+- `chatgpt-account-id` workspace binding 유지
+- `session_id` header handling 유지
+- `max_tokens` / `max_output_tokens` strip logic 유지
+- `User-Agent` fingerprint 유지
+
+### 결론
+
+- Task 5는 `originator`만 OpenCode fingerprint에 맞추는 최소 변경으로 구현했다.
+- 추가 fingerprint 변경(`User-Agent`, `session_id`)은 이번 범위에서 제외했다.
