@@ -39,6 +39,6 @@ test("T12: minimax default model list starts with M2.7", () => {
   const minimaxModels = REGISTRY.minimax.models.map((m) => m.id);
   const minimaxCnModels = REGISTRY["minimax-cn"].models.map((m) => m.id);
 
-  assert.equal(minimaxModels[0], "minimax-m2.7");
-  assert.equal(minimaxCnModels[0], "minimax-m2.7");
+  assert.equal(minimaxModels[0], "MiniMax-M2.7");
+  assert.equal(minimaxCnModels[0], "MiniMax-M2.7");
 });
