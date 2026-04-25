@@ -654,13 +654,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authPrefix: "Bearer",
     defaultContextLength: 200000,
     models: [
-      { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
-      { id: "big-pickle", name: "Big Pickle", contextLength: 200000 },
+      { id: "big-pickle", name: "Big Pickle" },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
-      { id: "mimo-v2-omni-free", name: "MiMo V2 Omni Free", contextLength: 262144 },
-      { id: "mimo-v2-pro-free", name: "MiMo V2 Pro Free", contextLength: 1048576 },
+      { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
+      { id: "hy3-preview-free", name: "Hy3 Preview Free", contextLength: 256000 },
+      { id: "ling-2.6-flash-free", name: "Ling 2.6 Flash Free", contextLength: 262000 },
+      { id: "trinity-large-preview-free", name: "Trinity Large Preview Free", contextLength: 131000 },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
-      { id: "qwen3.6-plus-free", name: "Qwen 3.6 Plus Free", contextLength: 1048576 },
     ],
   },
 
