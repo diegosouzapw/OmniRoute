@@ -141,6 +141,17 @@ export const WEB_COOKIE_PROVIDERS = {
 
 // API Key Providers
 export const APIKEY_PROVIDERS = {
+  agentrouter: {
+    id: "agentrouter",
+    alias: "agentrouter",
+    name: "AgentRouter",
+    icon: "router",
+    color: "#10B981",
+    textIcon: "AR",
+    passthroughModels: true,
+    website: "https://agentrouter.org",
+    apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",

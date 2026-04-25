@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
 
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
+  agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",

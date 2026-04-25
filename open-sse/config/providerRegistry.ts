@@ -848,6 +848,22 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  agentrouter: {
+    id: "agentrouter",
+    alias: "agentrouter",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://agentrouter.org/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    headers: {
+      "HTTP-Referer": "https://endpoint-proxy.local",
+      "X-Title": "OmniRoute",
+    },
+    models: [{ id: "auto", name: "Auto (Best Available)" }],
+  },
+
   openrouter: {
     id: "openrouter",
     alias: "openrouter",

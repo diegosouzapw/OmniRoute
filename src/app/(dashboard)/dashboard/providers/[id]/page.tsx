@@ -346,6 +346,9 @@ interface ModelRowProps {
   compatDisabled?: boolean;
   onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
   togglingHidden?: boolean;
+  onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
+  testStatus?: "ok" | "error" | null;
+  testingModel?: boolean;
 }
 
 interface PassthroughModelRowProps {
@@ -365,6 +368,9 @@ interface PassthroughModelRowProps {
   compatDisabled?: boolean;
   onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
   togglingHidden?: boolean;
+  onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
+  testStatus?: "ok" | "error" | null;
+  testingModel?: boolean;
 }
 
 interface PassthroughModelsSectionProps {
@@ -393,6 +399,9 @@ interface PassthroughModelsSectionProps {
   onBulkToggleHidden: (modelIds: string[], hidden: boolean) => Promise<void>;
   bulkTogglePending?: boolean;
   togglingModelId?: string | null;
+  onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
+  modelTestStatus?: Record<string, "ok" | "error" | null>;
+  testingModelId?: string | null;
 }
 
 interface CustomModelsSectionProps {
@@ -440,6 +449,9 @@ interface CompatibleModelsSectionProps {
   onBulkToggleHidden: (modelIds: string[], hidden: boolean) => Promise<void>;
   bulkTogglePending?: boolean;
   togglingModelId?: string | null;
+  onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
+  modelTestStatus?: Record<string, "ok" | "error" | null>;
+  testingModelId?: string | null;
 }
 
 interface CooldownTimerProps {
@@ -995,6 +1007,8 @@ export default function ProviderDetailPage() {
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [modelFilter, setModelFilter] = useState("");
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
+  const [testingModelId, setTestingModelId] = useState<string | null>(null);
+  const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
   const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
     null
   );
@@ -1253,6 +1267,41 @@ export default function ProviderDetailPage() {
       void loadConnProxies(connections);
     }
   }, [loading, connections, loadConnProxies]);
+
+  const onTestModel = async (modelId: string, fullModel: string) => {
+    setTestingModelId(modelId);
+    setModelTestStatus((prev) => ({ ...prev, [modelId]: undefined }));
+    try {
+      const res = await fetch("/api/models/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: selectedConnection?.provider || providerNode?.id || providerId,
+          modelId: fullModel,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "ok") {
+        notify.success(
+          providerText(
+            t,
+            "testModelSuccess",
+            `Model ${modelId} is working. Latency: ${data.latencyMs}ms`,
+            { modelId, latencyMs: data.latencyMs }
+          )
+        );
+        setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
+      } else {
+        notify.error(data.error || "Model test failed");
+        setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+      }
+    } catch (err) {
+      notify.error("Network error testing model");
+      setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+    } finally {
+      setTestingModelId(null);
+    }
+  };
 
   const handleSetAlias = async (modelId, alias, providerAliasOverride = providerAlias) => {
     const fullModel = `${providerAliasOverride}/${modelId}`;
@@ -2417,6 +2466,9 @@ export default function ProviderDetailPage() {
             }
             bulkTogglePending={bulkVisibilityAction !== null}
             togglingModelId={togglingModelId}
+            onTestModel={onTestModel}
+            modelTestStatus={modelTestStatus}
+            testingModelId={testingModelId}
           />
         </div>
       );
@@ -2464,6 +2516,9 @@ export default function ProviderDetailPage() {
             }
             bulkTogglePending={bulkVisibilityAction !== null}
             togglingModelId={togglingModelId}
+            onTestModel={onTestModel}
+            modelTestStatus={modelTestStatus}
+            testingModelId={testingModelId}
           />
         </div>
       );
@@ -2559,6 +2614,9 @@ export default function ProviderDetailPage() {
                   handleToggleModelHidden(providerId, modelId, hidden)
                 }
                 togglingHidden={togglingModelId === model.id}
+                onTestModel={onTestModel}
+                testStatus={modelTestStatus[model.id] || null}
+                testingModel={testingModelId === model.id}
               />
             );
           })}
@@ -3416,6 +3474,9 @@ function ModelRow({
   compatDisabled,
   onToggleHidden,
   togglingHidden,
+  onTestModel,
+  testStatus,
+  testingModel,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
   return (
@@ -3446,6 +3507,34 @@ function ModelRow({
         </button>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        {onTestModel && (
+          <button
+            onClick={() => onTestModel(model.id, fullModel)}
+            disabled={testingModel}
+            className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+            title={
+              testingModel
+                ? t("testingModel", "Testing...")
+                : testStatus === "ok"
+                  ? "OK"
+                  : testStatus === "error"
+                    ? "Error"
+                    : t("testModel", "Test Model")
+            }
+          >
+            {testingModel ? (
+              <span className="material-symbols-outlined text-sm animate-spin">
+                progress_activity
+              </span>
+            ) : testStatus === "ok" ? (
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+            ) : testStatus === "error" ? (
+              <span className="material-symbols-outlined text-sm">error</span>
+            ) : (
+              <span className="material-symbols-outlined text-sm">play_circle</span>
+            )}
+          </button>
+        )}
         {onToggleHidden && (
           <button
             onClick={() => onToggleHidden(model.id, !isHidden)}
@@ -3579,6 +3668,9 @@ function PassthroughModelsSection({
   onBulkToggleHidden,
   bulkTogglePending,
   togglingModelId,
+  onTestModel,
+  modelTestStatus,
+  testingModelId,
 }: PassthroughModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
@@ -3764,6 +3856,9 @@ function PassthroughModelRow({
   compatDisabled,
   onToggleHidden,
   togglingHidden,
+  onTestModel,
+  testStatus,
+  testingModel,
 }: PassthroughModelRowProps) {
   return (
     <div
@@ -3798,6 +3893,34 @@ function PassthroughModelRow({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1 self-start">
+        {onTestModel && (
+          <button
+            onClick={() => onTestModel(modelId, fullModel)}
+            disabled={testingModel}
+            className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+            title={
+              testingModel
+                ? t("testingModel", "Testing...")
+                : testStatus === "ok"
+                  ? "OK"
+                  : testStatus === "error"
+                    ? "Error"
+                    : t("testModel", "Test Model")
+            }
+          >
+            {testingModel ? (
+              <span className="material-symbols-outlined text-sm animate-spin">
+                progress_activity
+              </span>
+            ) : testStatus === "ok" ? (
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+            ) : testStatus === "error" ? (
+              <span className="material-symbols-outlined text-sm">error</span>
+            ) : (
+              <span className="material-symbols-outlined text-sm">play_circle</span>
+            )}
+          </button>
+        )}
         {onToggleHidden && (
           <button
             onClick={() => onToggleHidden(modelId, !isHidden)}
@@ -4406,6 +4529,9 @@ function CompatibleModelsSection({
   onBulkToggleHidden,
   bulkTogglePending,
   togglingModelId,
+  onTestModel,
+  modelTestStatus,
+  testingModelId,
 }: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);

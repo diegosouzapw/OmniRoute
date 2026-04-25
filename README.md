@@ -1160,6 +1160,7 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
 |                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
 |                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
+|                     | AgentRouter 🆕              | Pay-per-use               | None             | $200 free credits at signup       |
 | **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
 |                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
 |                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
