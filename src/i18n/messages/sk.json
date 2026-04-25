@@ -1635,6 +1635,7 @@
     "errorOccurred": "Vyskytla sa chyba. Skúste to znova.",
     "modelStatus": "Stav modelu",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Hľadať poskytovateľov...",
     "allModelsOperational": "Všetky modely funkčné",
     "modelsWithIssues": "{count} modelov s problémami",
     "allModelsNormal": "Všetky modely reagujú normálne.",

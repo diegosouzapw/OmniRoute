@@ -94,6 +94,8 @@ docs/*
 !docs/screenshots/
 !docs/i18n/
 !docs/i18n/**
+!docs/features/
+!docs/features/**
 !docs/A2A-SERVER.md
 !docs/AUTO-COMBO.md
 !docs/MCP-SERVER.md
@@ -116,6 +118,7 @@ test-results/
 playwright-report/
 blob-report/
 cloud/
+.tmp/
 
 # Security Analysis (standalone project with own git)
 security-analysis/
@@ -176,3 +179,6 @@ bin/omniroute.mjs
 .omc/
 audit-report.json
 bun.lock
+
+# Private environment variables for .http-client
+http-client.private.env.json

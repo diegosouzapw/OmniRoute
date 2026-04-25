@@ -1635,6 +1635,7 @@
     "errorOccurred": "Hiba történt. Kérjük, próbálja újra.",
     "modelStatus": "Modell állapota",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Keressen szolgáltatók között...",
     "allModelsOperational": "Minden modell működőképes",
     "modelsWithIssues": "{count} problémákkal küzdő modell(ek).",
     "allModelsNormal": "Minden modell normálisan reagál.",

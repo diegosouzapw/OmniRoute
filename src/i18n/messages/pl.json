@@ -1635,6 +1635,7 @@
     "errorOccurred": "Wystąpił błąd. Spróbuj ponownie.",
     "modelStatus": "Stan modelu",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Wyszukaj dostawców...",
     "allModelsOperational": "Wszystkie modele sprawne",
     "modelsWithIssues": "{count} modele z problemami",
     "allModelsNormal": "Wszystkie modele reagują normalnie.",

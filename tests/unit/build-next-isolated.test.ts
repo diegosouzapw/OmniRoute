@@ -85,7 +85,7 @@ test("movePath rethrows non-EXDEV rename failures", async () => {
           throw new Error("remove fallback should not run");
         },
       }),
-      (error) => error?.code === "EACCES"
+      (error) => (error as any).code === "EACCES"
     );
   });
 });
@@ -108,7 +108,7 @@ test("getTransientBuildPaths leaves _tasks in place by default", () => {
 
   assert.deepEqual(
     paths.map((entry) => entry.label),
-    ["legacy app snapshot"]
+    ["legacy app snapshot", "local Wine prefix"]
   );
   assert.equal(
     paths.some((entry) => entry.sourcePath === "/repo/_tasks"),

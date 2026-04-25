@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, Badge, Button, Input, Select } from "@/shared/components";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Card, Badge, Button, Input, Select, Modal } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
 interface Memory {
@@ -39,6 +39,14 @@ export default function MemoryPage() {
   const [total, setTotal] = useState(0);
   const [health, setHealth] = useState<{ working: boolean; latencyMs: number } | null>(null);
   const [checkingHealth, setCheckingHealth] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newMemory, setNewMemory] = useState<Partial<Memory>>({
+    type: "factual",
+    key: "",
+    content: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchMemories = useCallback(async () => {
     try {
@@ -92,6 +100,63 @@ export default function MemoryPage() {
     link.href = url;
     link.download = `memory-export-${new Date().toISOString()}.json`;
     link.click();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsSubmitting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const memoriesToImport = Array.isArray(data) ? data : [data];
+
+      for (const m of memoriesToImport) {
+        if (!m.key || !m.content) continue;
+        await fetch("/api/memory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: m.type || "factual",
+            key: m.key,
+            content: m.content,
+            metadata: m.metadata || {},
+          }),
+        });
+      }
+      fetchMemories();
+    } catch (error) {
+      console.error("Failed to import memories:", error);
+    } finally {
+      setIsSubmitting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleAddMemory = async () => {
+    if (!newMemory.key || !newMemory.content) return;
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMemory),
+      });
+      if (response.ok) {
+        setAddDialogOpen(false);
+        setNewMemory({ type: "factual", key: "", content: "" });
+        fetchMemories();
+      }
+    } catch (error) {
+      console.error("Failed to add memory:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const checkHealth = async () => {
@@ -155,11 +220,20 @@ export default function MemoryPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            className="hidden"
+          />
           <Button variant="outline" onClick={handleExport}>
             {t("export")}
           </Button>
-          <Button variant="outline">{t("import")}</Button>
-          <Button>{t("addMemory")}</Button>
+          <Button variant="outline" onClick={handleImportClick} loading={isSubmitting}>
+            {t("import")}
+          </Button>
+          <Button onClick={() => setAddDialogOpen(true)}>{t("addMemory")}</Button>
         </div>
       </div>
 
@@ -270,6 +344,64 @@ export default function MemoryPage() {
           </div>
         </div>
       </Card>
+
+      <Modal
+        isOpen={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        title={t("addMemory")}
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setAddDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddMemory}
+              loading={isSubmitting}
+              disabled={!newMemory.key || !newMemory.content}
+            >
+              Save
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Type</label>
+            <Select
+              value={newMemory.type}
+              onChange={(e) => setNewMemory({ ...newMemory, type: e.target.value as any })}
+              className="w-full"
+            >
+              <option value="factual">Factual</option>
+              <option value="episodic">Episodic</option>
+              <option value="procedural">Procedural</option>
+              <option value="semantic">Semantic</option>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Key</label>
+            <Input
+              value={newMemory.key}
+              onChange={(e) => setNewMemory({ ...newMemory, key: e.target.value })}
+              placeholder="e.g., user_preference_theme"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Content</label>
+            <Input
+              value={newMemory.content}
+              onChange={(e) => setNewMemory({ ...newMemory, content: e.target.value })}
+              placeholder="e.g., Prefers dark mode"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -71,7 +71,7 @@ test("skills route GET loads skills from the database and lists them", async () 
   const response = await skillsRoute.GET(
     new Request("http://localhost/api/skills?page=1&limit=50")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.data));
@@ -90,7 +90,7 @@ test("skills route GET returns 500 when the registry load fails", async () => {
     const response = await skillsRoute.GET(
       new Request("http://localhost/api/skills?page=1&limit=50")
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(body.error, "skill db unavailable");
@@ -105,12 +105,12 @@ test("skills by-id DELETE removes existing skills, returns 404 for missing ones,
   const deleted = await skillByIdRoute.DELETE(new Request("http://localhost/api/skills/id"), {
     params: Promise.resolve({ id: created.id }),
   });
-  const deletedBody = await deleted.json();
+  const deletedBody = (await deleted.json()) as any;
 
   const missing = await skillByIdRoute.DELETE(new Request("http://localhost/api/skills/id"), {
     params: Promise.resolve({ id: created.id }),
   });
-  const missingBody = await missing.json();
+  const missingBody = (await missing.json()) as any;
 
   const originalUnregisterById = skillRegistry.unregisterById;
   skillRegistry.unregisterById = async () => {
@@ -121,7 +121,7 @@ test("skills by-id DELETE removes existing skills, returns 404 for missing ones,
     const failed = await skillByIdRoute.DELETE(new Request("http://localhost/api/skills/id"), {
       params: Promise.resolve({ id: "broken-skill" }),
     });
-    const failedBody = await failed.json();
+    const failedBody = (await failed.json()) as any;
 
     assert.equal(deleted.status, 200);
     assert.deepEqual(deletedBody, { success: true });
@@ -167,14 +167,14 @@ test("skills by-id PUT updates enabled state, validates input, and surfaces pars
     { params: Promise.resolve({ id: created.id }) }
   );
 
-  const updatedBody = await updated.json();
-  const invalidBody = await invalid.json();
-  const malformedBody = await malformed.json();
+  const updatedBody = (await updated.json()) as any;
+  const invalidBody = (await invalid.json()) as any;
+  const malformedBody = (await malformed.json()) as any;
   const loadedSkillRow = core
     .getDbInstance()
     .prepare("SELECT enabled FROM skills WHERE id = ?")
     .get(created.id);
-  const isEnabled = loadedSkillRow ? loadedSkillRow.enabled === 1 : false;
+  const isEnabled = loadedSkillRow ? (loadedSkillRow as any).enabled === 1 : false;
 
   assert.equal(updated.status, 200);
   assert.deepEqual(updatedBody, { success: true, enabled: true });

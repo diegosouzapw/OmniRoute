@@ -60,7 +60,7 @@ test("detectAndLearn: finds known signatures", () => {
   const result = detectAndLearn("<antThinking>I think...</antThinking> Hello!", {});
   assert.ok(result.found.includes("<antThinking>"));
   assert.ok(result.found.includes("</antThinking>"));
-  assert.ok(!result.cleaned.includes("<antThinking>"));
+  assert.ok(!(result.cleaned as any).includes("<antThinking>"));
 });
 
 test("detectAndLearn: auto-learns new thinking tags", () => {

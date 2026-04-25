@@ -10,6 +10,7 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { supportsXHighEffort } from "../config/providerModels.ts";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import {
@@ -502,17 +503,19 @@ export class BaseExecutor {
             };
           }
 
-          if (!tb.thinking) {
+          const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
+
+          if (supportsAdaptiveThinking && !tb.thinking) {
             tb.thinking = { type: "adaptive" };
           }
 
-          if (!tb.context_management) {
+          if (supportsAdaptiveThinking && !tb.context_management) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
-          if (!tb.output_config) {
+          if (supportsAdaptiveThinking && !tb.output_config) {
             tb.output_config = { effort: "high" };
           }
 
@@ -531,6 +534,17 @@ export class BaseExecutor {
             "x-client-request-id": randomUUID(),
             "X-Claude-Code-Session-Id": randomUUID(),
           };
+          // Remove any existing case variants of ccHeaders keys before merging.
+          // The claude provider config sets "Anthropic-Version" (Title-Case) while
+          // ccHeaders uses all-lowercase keys.  Both JS keys normalise to the same
+          // HTTP header name, so undici would combine them into "2023-06-01, 2023-06-01"
+          // causing a 400 from Anthropic (see issue #1454).
+          const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
+          for (const key of Object.keys(headers)) {
+            if (ccKeysLower.has(key.toLowerCase())) {
+              delete headers[key];
+            }
+          }
           Object.assign(headers, ccHeaders);
           delete headers["X-Stainless-Helper-Method"];
 

@@ -1,10 +1,16 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import {
+  BaseExecutor,
+  mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
+  type ExecuteInput,
+} from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import { websocket } from "wreq-js";
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -163,6 +169,7 @@ export function getCodexDualWindowCooldownMs(
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
+const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
@@ -271,6 +278,8 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
+ *
+ * @deprecated This function will be removed in v4.0, Codex executor has updated processing logic
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   // Always strip previous_response_id — the /codex/responses endpoint does not
@@ -324,6 +333,31 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+function hasImageGenerationTool(body: Record<string, unknown>): boolean {
+  if (!Array.isArray(body.tools)) return false;
+  return body.tools.some((tool) => {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;
+    return (tool as Record<string, unknown>).type === "image_generation";
+  });
+}
+
+// Responses-API hosted tool types that OpenAI executes server-side (e.g.
+// `image_generation` backed by gpt-image-1 under ChatGPT auth). These arrive shaped as
+// `{ type, ...params }` with no `function` object and no `name` — Codex CLI injects
+// `{ type: "image_generation", output_format: "png" }` when [features] image_generation = true.
+// Keep them through `normalizeCodexTools` so upstream can execute them.
+const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "image_generation",
+  "web_search",
+  "web_search_preview",
+  "file_search",
+  "computer",
+  "computer_use_preview",
+  "code_interpreter",
+  "mcp",
+  "local_shell",
+]);
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -334,7 +368,33 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     }
 
     const tool = toolValue as Record<string, unknown>;
-    if (tool.type !== "function") {
+    const toolType = typeof tool.type === "string" ? tool.type : "";
+
+    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+    // Codex API supports them natively; register sub-tool names for tool_choice validation.
+    if (toolType === "namespace") {
+      if (Array.isArray(tool.tools)) {
+        for (const st of tool.tools as unknown[]) {
+          if (st && typeof st === "object" && !Array.isArray(st)) {
+            const subTool = st as Record<string, unknown>;
+            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+            if (name) validToolNames.add(name);
+          }
+        }
+      }
+      return true;
+    }
+
+    if (toolType !== "function") {
+      const hasFunctionObject = tool.function && typeof tool.function === "object";
+      const hasName = typeof tool.name === "string";
+      if (!toolType || hasFunctionObject || hasName) {
+        return false;
+      }
+      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        return true;
+      }
+      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
       return false;
     }
 
@@ -431,6 +491,99 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
+function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
+  const normalizedModel = String(model || "")
+    .trim()
+    .toLowerCase();
+  if (normalizedModel === "gpt-5.5") return true;
+  const providerSpecificData =
+    credentials && typeof credentials === "object"
+      ? (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
+      : null;
+  return providerSpecificData?.codexTransport === "websocket";
+}
+
+function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<string, unknown> {
+  const upstreamError =
+    parsed.error && typeof parsed.error === "object" && !Array.isArray(parsed.error)
+      ? (parsed.error as Record<string, unknown>)
+      : parsed;
+  const code =
+    typeof upstreamError.code === "string"
+      ? upstreamError.code
+      : typeof upstreamError.type === "string"
+        ? upstreamError.type
+        : "upstream_error";
+  const message =
+    typeof upstreamError.message === "string" && upstreamError.message.trim()
+      ? upstreamError.message
+      : "Codex upstream error";
+  const error: Record<string, unknown> = { code, message };
+
+  if (typeof upstreamError.type === "string") error.type = upstreamError.type;
+  if (typeof parsed.status_code === "number") error.status_code = parsed.status_code;
+  if (typeof parsed.status === "number") error.status_code = parsed.status;
+
+  return {
+    type: "response.failed",
+    response: {
+      id: null,
+      status: "failed",
+      error,
+    },
+  };
+}
+
+export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
+  let eventType = "message";
+  let payload = raw;
+  let terminal = false;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.type === "string" && parsed.type.trim()) {
+      eventType = parsed.type.trim();
+      if (eventType === "error") {
+        const failed = toCodexResponseFailedEvent(parsed as Record<string, unknown>);
+        payload = JSON.stringify(failed);
+        eventType = "response.failed";
+      }
+      terminal = eventType === "response.completed" || eventType === "response.failed";
+    }
+  } catch {
+    // Keep message as the generic SSE event for non-JSON upstream payloads.
+  }
+
+  return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
+}
+
+function toWebSocketUrl(url: string): string {
+  if (url.startsWith("wss://") || url.startsWith("ws://")) return url;
+  if (url.startsWith("https://")) return `wss://${url.slice("https://".length)}`;
+  if (url.startsWith("http://")) return `ws://${url.slice("http://".length)}`;
+  return CODEX_RESPONSES_WS_URL;
+}
+
+function normalizeCodexWsHeaders(headers: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    const lower = key.toLowerCase();
+    if (
+      lower === "host" ||
+      lower === "connection" ||
+      lower === "upgrade" ||
+      lower === "sec-websocket-key" ||
+      lower === "sec-websocket-version" ||
+      lower === "sec-websocket-extensions"
+    ) {
+      continue;
+    }
+    result[key] = value;
+  }
+  result.Origin = "https://chatgpt.com";
+  return result;
+}
+
 /**
  * Codex Executor - handles OpenAI Codex API (Responses API format)
  * Automatically injects default instructions if missing.
@@ -439,6 +592,132 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
 export class CodexExecutor extends BaseExecutor {
   constructor() {
     super("codex", PROVIDERS.codex);
+  }
+
+  async execute(input: ExecuteInput) {
+    if (!isCodexResponsesWebSocketRequired(input.model, input.credentials)) {
+      return super.execute(input);
+    }
+
+    const url = CODEX_RESPONSES_WS_URL;
+    const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
+    mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+
+    const transformedBody = (await this.transformRequest(
+      input.model,
+      input.body,
+      true,
+      input.credentials
+    )) as Record<string, unknown>;
+    transformedBody.model = input.model;
+    delete transformedBody.stream;
+    delete transformedBody.stream_options;
+
+    const bodyString = JSON.stringify({
+      type: "response.create",
+      ...transformedBody,
+    });
+
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        let closed = false;
+        let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+
+        const closeController = () => {
+          if (closed) return;
+          closed = true;
+          try {
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          } catch {
+            // The downstream may already have gone away.
+          }
+          try {
+            controller.close();
+          } catch {
+            // The controller may already be closed.
+          }
+        };
+
+        const failController = (code: string, message: string) => {
+          if (closed) return;
+          const payload = JSON.stringify({
+            type: "response.failed",
+            response: {
+              id: null,
+              status: "failed",
+              error: { code, message },
+            },
+          });
+          controller.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
+          closeController();
+        };
+
+        const abort = () => {
+          try {
+            ws?.close(1000, "client_aborted");
+          } catch {
+            // ignore abort races
+          }
+          closeController();
+        };
+
+        input.signal?.addEventListener("abort", abort, { once: true });
+
+        try {
+          ws = await websocket(toWebSocketUrl(url), {
+            browser: "chrome_142",
+            os: "windows",
+            headers,
+          });
+          if (input.signal?.aborted) {
+            abort();
+            return;
+          }
+          ws.onmessage = (event) => {
+            if (closed) return;
+            const raw =
+              typeof event.data === "string"
+                ? event.data
+                : Buffer.from(event.data as Buffer).toString("utf8");
+            const sseEvent = encodeResponseSseEvent(raw);
+            controller.enqueue(encoder.encode(sseEvent.sse));
+            if (sseEvent.terminal) {
+              closeController();
+            }
+          };
+          ws.onerror = (event) => {
+            failController(
+              "upstream_websocket_error",
+              event.message || "Codex upstream WebSocket error"
+            );
+          };
+          ws.onclose = () => {
+            closeController();
+          };
+          ws.send(bodyString);
+        } catch (error) {
+          failController(
+            "upstream_websocket_connect_failed",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      },
+    });
+
+    return {
+      response: new Response(stream, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      }),
+      url,
+      headers,
+      transformedBody,
+    };
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
@@ -595,6 +874,8 @@ export class CodexExecutor extends BaseExecutor {
     // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
     // which requires store=true so that response items are persisted.
     // If the client explicitly sets store, respect it. Otherwise default to true.
+    // Exception: when the request uses the image_generation hosted tool, the Codex
+    // backend rejects store=true ("Store must be set to false"), so default to false.
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
@@ -604,7 +885,7 @@ export class CodexExecutor extends BaseExecutor {
     if (explicitStoreSetting === false) {
       body.store = false;
     } else if (body.store === undefined) {
-      body.store = true;
+      body.store = hasImageGenerationTool(body) ? false : true;
     }
 
     // Codex Responses only supports function tools with non-empty names.

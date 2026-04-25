@@ -99,7 +99,7 @@ test("buildClaudeCodeCompatibleValidationPayload produces the expected smoke-tes
   });
   assert.equal(payload.tools.length, 0);
   assert.equal(payload.system.length, 1);
-  assert.match(payload.system[0].text, /Claude Agent SDK/);
-  assert.ok(JSON.parse(payload.metadata.user_id).session_id);
+  assert.match((payload as any).system[0].text, /Claude Agent SDK/);
+  assert.ok((JSON as any).parse(payload.metadata.user_id).session_id);
   assert.ok(CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS > payload.max_tokens);
 });

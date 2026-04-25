@@ -56,6 +56,15 @@ test("T28: vertex catalog includes partner models when vertex executor is availa
   assert.ok(vertexIds.includes("glm-5"));
 });
 
+test("T23/#1491: dedicated partner providers and opencode-go discovery metadata are registered", () => {
+  assert.equal(
+    REGISTRY["glm-cn"].baseUrl,
+    "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions"
+  );
+  assert.equal(REGISTRY["vertex-partner"].executor, "vertex");
+  assert.equal(REGISTRY["opencode-go"].modelsUrl, "https://opencode.ai/zen/go/v1/models");
+});
+
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
   const minimax = await getModelInfoCore("minimax/minimax-m2.7", {});
   assert.equal(minimax.provider, "minimax");

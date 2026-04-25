@@ -96,11 +96,13 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
   try {
-    const [{ closeAuditDb }, { closeDbInstance }, { flushSpendBatchWriter }] = await Promise.all([
-      import("@omniroute/open-sse/mcp-server/audit.ts"),
-      import("@/lib/db/core"),
-      import("@/lib/spend/batchWriter"),
-    ]);
+    const [{ closeAuditDb }, { closeDbInstance }, { flushSpendBatchWriter }, { closeLogRotation }] =
+      await Promise.all([
+        import("@omniroute/open-sse/mcp-server/audit.ts"),
+        import("@/lib/db/core"),
+        import("@/lib/spend/batchWriter"),
+        import("@/lib/logRotation"),
+      ]);
     const flushResult = await flushSpendBatchWriter();
     if (flushResult.flushedEntries > 0) {
       console.log(
@@ -113,6 +115,8 @@ async function cleanup(): Promise<void> {
     if (closeDbInstance()) {
       console.log("[Shutdown] SQLite database checkpointed and closed.");
     }
+    closeLogRotation();
+    console.log("[Shutdown] Log rotation timer stopped.");
   } catch (err) {
     console.error("[Shutdown] Error during cleanup:", (err as Error).message);
   }

@@ -1635,6 +1635,7 @@
     "errorOccurred": "Сталася помилка. Спробуйте ще раз.",
     "modelStatus": "Статус моделі",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "Пошук постачальників...",
     "allModelsOperational": "Всі моделі робочі",
     "modelsWithIssues": "{count} моделі з проблемами",
     "allModelsNormal": "Усі моделі реагують нормально.",

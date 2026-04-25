@@ -17,7 +17,7 @@ test("handleAudioTranscription requires model", async () => {
   formData.append("file", buildFile("abc", "audio.wav", "audio/wav"));
 
   const response = await handleAudioTranscription({ formData, credentials: { apiKey: "x" } });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "model is required");
@@ -28,7 +28,7 @@ test("handleAudioTranscription requires a file upload", async () => {
   formData.append("model", "openai/whisper-1");
 
   const response = await handleAudioTranscription({ formData, credentials: { apiKey: "x" } });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "file is required");
@@ -119,7 +119,7 @@ test("handleAudioTranscription routes Deepgram with binary upload and language p
       formData,
       credentials: { apiKey: "dg-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     const url = new URL(capturedUrl);
     assert.equal(url.origin + url.pathname, "https://api.deepgram.com/v1/listen");
@@ -213,7 +213,7 @@ test("handleAudioTranscription rejects invalid HuggingFace model paths", async (
     formData,
     credentials: { apiKey: "hf-key" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "Invalid model ID");
@@ -225,7 +225,7 @@ test("handleAudioTranscription requires credentials for authenticated providers"
   formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
 
   const response = await handleAudioTranscription({ formData, credentials: null });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(payload.error.message, "No credentials for transcription provider: openai");
@@ -338,7 +338,7 @@ test("handleAudioTranscription returns an error when AssemblyAI reports a termin
       formData,
       credentials: { apiKey: "assembly-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(payload.error.message, "corrupt audio payload");
@@ -397,7 +397,7 @@ test("handleAudioTranscription rejects unsupported providers", async () => {
     formData,
     credentials: { apiKey: "x" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(
@@ -424,7 +424,7 @@ test("handleAudioTranscription surfaces parsed upstream errors for OpenAI-compat
       formData,
       credentials: { apiKey: "openai-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 429);
     assert.equal(payload.error.message, "too many requests");
@@ -449,7 +449,7 @@ test("handleAudioTranscription returns a 500 when upstream fetch throws", async 
       formData,
       credentials: { apiKey: "openai-key" },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(payload.error.message, "Transcription request failed: network timeout");

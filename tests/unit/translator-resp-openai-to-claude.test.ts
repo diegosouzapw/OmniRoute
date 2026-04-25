@@ -184,17 +184,17 @@ test("OpenAI non-stream: chat completion becomes Claude message with thinking an
     FORMATS.CLAUDE
   );
 
-  assert.equal(result.type, "message");
-  assert.equal(result.model, "gpt-4.1");
-  assert.equal(result.content[0].type, "thinking");
-  assert.equal(result.content[0].thinking, "Think first");
-  assert.equal(result.content[1].type, "text");
-  assert.equal(result.content[1].text, "Final answer");
-  assert.equal(result.content[2].type, "tool_use");
-  assert.equal(result.content[2].name, "read_file");
-  assert.deepEqual(result.content[2].input, { path: "/tmp/a" });
-  assert.equal(result.stop_reason, "tool_use");
-  assert.deepEqual(result.usage, {
+  assert.equal((result as any).type, "message");
+  (assert as any).equal((result as any).model, "gpt-4.1");
+  (assert as any).equal((result as any).content[0].type, "thinking");
+  assert.equal((result as any).content[0].thinking, "Think first");
+  assert.equal((result as any).content[1].type, "text");
+  assert.equal((result as any).content[1].text, "Final answer");
+  assert.equal((result as any).content[2].type, "tool_use");
+  assert.equal((result as any).content[2].name, "read_file");
+  (assert as any).deepEqual((result as any).content[2].input, { path: "/tmp/a" });
+  assert.equal((result as any).stop_reason, "tool_use");
+  assert.deepEqual((result as any).usage, {
     input_tokens: 5,
     output_tokens: 3,
   });

@@ -195,6 +195,17 @@ console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
 
+const standaloneWsSrc = join(ROOT, "scripts", "standalone-server-ws.mjs");
+const responsesWsProxySrc = join(ROOT, "scripts", "responses-ws-proxy.mjs");
+if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc)) {
+  console.log("  📋 Adding Responses WebSocket standalone wrapper...");
+  cpSync(standaloneWsSrc, join(APP_DIR, "server-ws.mjs"));
+  writeFileSync(
+    join(APP_DIR, "responses-ws-proxy.mjs"),
+    'export * from "../scripts/responses-ws-proxy.mjs";\n'
+  );
+}
+
 // ── Next.js Turbopack Standalone Tracer Fix ───────────────
 // Workaround for Next.js 15+ standalone mode missing Turbopack chunks
 const staticChunksSrc = join(ROOT, ".next", "server", "chunks");
@@ -320,10 +331,17 @@ if (existsSync(mitmSrc)) {
   // Write a temporary tsconfig.json targeting the mitm directory
   const mitmTsconfig = {
     compilerOptions: {
-      target: "ES2020",
-      module: "CommonJS",
+      target: "ES2022",
+      module: "NodeNext",
+      moduleResolution: "NodeNext",
       outDir: mitmDest,
       rootDir: mitmSrc,
+      strict: false,
+      noImplicitAny: false,
+      strictNullChecks: false,
+      noEmitOnError: true,
+      allowImportingTsExtensions: true,
+      rewriteRelativeImportExtensions: true,
       ignoreDeprecations: "6.0",
       resolveJsonModule: true,
       esModuleInterop: true,
@@ -341,6 +359,10 @@ if (existsSync(mitmSrc)) {
 
   try {
     execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
+    const mitmServerSrc = join(mitmSrc, "server.cjs");
+    if (existsSync(mitmServerSrc)) {
+      cpSync(mitmServerSrc, join(mitmDest, "server.cjs"));
+    }
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);

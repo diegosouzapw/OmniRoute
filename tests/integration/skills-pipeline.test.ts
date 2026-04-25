@@ -89,7 +89,7 @@ test("skills API lists registered skills", async () => {
   });
 
   const response = await skillsRouteModule.GET();
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(json.skills));
@@ -170,7 +170,7 @@ test("matching tool calls execute the registered skill and return tool results",
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(json.choices[0].finish_reason, "tool_calls");
@@ -202,7 +202,7 @@ test("non-matching responses fall through the pipeline normally", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(json.choices[0].message.content, "Normal pipeline response");
@@ -275,7 +275,7 @@ test("skill execution errors are returned gracefully in tool results", async () 
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(json.tool_results[0].tool_call_id, "call_broken");
@@ -350,10 +350,13 @@ test("injectSkills() correctly injects skill context into a request", async () =
 
   assert.ok(Array.isArray(tools), "injectSkills should return an array");
   assert.equal(tools.length, 1, "should inject exactly one skill tool");
-  assert.equal(tools[0].type, "function");
-  assert.equal(tools[0].function.name, "translateText@1.0.0");
-  assert.equal(tools[0].function.description, "Translate text to another language");
-  assert.ok(tools[0].function.parameters, "parameters should be present");
+  assert.equal((tools[0] as any).type, "function");
+  assert.equal((tools as any)[0].function.name, "translateText@1.0.0");
+  (assert as any).equal(
+    (tools[0] as any).function.description,
+    "Translate text to another language"
+  );
+  assert.ok((tools[0] as any).function.parameters, "parameters should be present");
 });
 
 test("injectSkills() merges with existing tools without duplicating", async () => {
@@ -384,7 +387,7 @@ test("injectSkills() merges with existing tools without duplicating", async () =
   });
 
   assert.equal(tools.length, 2, "should have injected skill + existing tool");
-  const names = tools.map((t) => t.function?.name || t.name);
+  const names = tools.map((t) => (t as any).function?.name || (t as any).name);
   assert.ok(names.includes("calcRoute@1.0.0"));
   assert.ok(names.includes("preExistingTool"));
 });
@@ -599,7 +602,7 @@ test("skills pipeline can be disabled via skillsEnabled flag without crashing", 
         }
       ),
     (err) => {
-      assert.ok(err.message.includes("disabled"), "should mention disabled in error");
+      assert.ok((err as any).message.includes("disabled"), "should mention disabled in error");
       return true;
     }
   );
@@ -830,7 +833,7 @@ test("web_search fallback converts built-in tools for unsupported providers and 
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(upstreamBodies.length, 1);
@@ -896,7 +899,7 @@ test("web_search fallback preserves Responses API output by appending function_c
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
   const functionCall = json.output.find((item) => item.type === "function_call");
   const functionCallOutput = json.output.find((item) => item.type === "function_call_output");
 

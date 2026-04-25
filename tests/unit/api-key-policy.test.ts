@@ -40,7 +40,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -73,7 +73,7 @@ function makePolicyRequest(apiKey) {
 }
 
 async function readErrorMessage(response) {
-  const body = await response.json();
+  const body = (await response.json()) as any;
   return body.error.message;
 }
 

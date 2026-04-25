@@ -246,6 +246,22 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "Play3.0-mini", name: "Play3.0 Mini" },
     ],
   },
+
+  "aws-polly": {
+    id: "aws-polly",
+    // POST https://polly.{region}.amazonaws.com/v1/speech
+    // Auth: AWS SigV4. The provider apiKey stores Secret Access Key; PSD stores accessKeyId/region.
+    baseUrl: "https://polly.us-east-1.amazonaws.com",
+    authType: "apikey",
+    authHeader: "aws-sigv4",
+    format: "aws-polly",
+    models: [
+      { id: "standard", name: "Polly Standard" },
+      { id: "neural", name: "Polly Neural" },
+      { id: "long-form", name: "Polly Long-Form" },
+      { id: "generative", name: "Polly Generative" },
+    ],
+  },
 };
 
 /**

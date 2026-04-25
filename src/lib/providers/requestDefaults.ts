@@ -108,6 +108,14 @@ export function normalizeProviderSpecificData(
     delete normalized.openaiStoreEnabled;
   }
 
+  if ("blockExtraUsage" in normalized && typeof normalized.blockExtraUsage !== "boolean") {
+    delete normalized.blockExtraUsage;
+  }
+
+  if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
+    delete normalized.autoFetchModels;
+  }
+
   if ("tag" in normalized) {
     if (typeof normalized.tag === "string") {
       const trimmedTag = normalized.tag.trim();
@@ -143,6 +151,19 @@ export function normalizeProviderSpecificData(
   }
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRecord | undefined {
+  const record = asRecord(value);
+  if (Object.keys(record).length === 0) return undefined;
+
+  const sanitized: JsonRecord = { ...record };
+  delete sanitized.consoleApiKey;
+  delete sanitized.secretAccessKey;
+  delete sanitized.awsSecretAccessKey;
+  delete sanitized.sessionToken;
+  delete sanitized.awsSessionToken;
+  return sanitized;
 }
 
 export function isOpenAIResponsesStoreEnabled(providerSpecificData: unknown): boolean {

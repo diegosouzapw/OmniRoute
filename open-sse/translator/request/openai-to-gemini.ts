@@ -538,15 +538,12 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     });
     if (geminiTools) {
       envelope.request.tools = geminiTools;
-      envelope.request.toolConfig = {
-        functionCallingConfig: { mode: "VALIDATED" },
-      };
     }
   }
 
-  // Add system instruction (Antigravity default)
-  const defaultPart = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
-  const systemParts = [defaultPart];
+  // Keep Antigravity's default and caller-provided system rules as distinct parts,
+  // matching the Gemini bridge and avoiding accidental prompt concatenation.
+  const systemParts: GeminiPart[] = [{ text: ANTIGRAVITY_DEFAULT_SYSTEM }];
 
   if (claudeRequest.system) {
     if (Array.isArray(claudeRequest.system)) {

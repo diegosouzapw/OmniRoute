@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   CodexExecutor,
+  encodeResponseSseEvent,
   getCodexModelScope,
   getCodexRateLimitKey,
   getCodexResetTime,
@@ -100,8 +101,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.120.0");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
+  assert.equal(standardHeaders.Version, "0.124.0");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.124.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -127,7 +128,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.120.0");
+      assert.equal(headers.Version, "0.124.0");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -272,6 +273,42 @@ test("CodexExecutor.transformRequest lets model suffix beat connection reasoning
   assert.equal(result.reasoning.effort, "high");
 });
 
+test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhigh reasoning", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    { model: "gpt-5.5", input: [], reasoning_effort: "xhigh" },
+    false,
+    {}
+  );
+
+  assert.equal(result.model, "gpt-5.5");
+  assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
+  const raw = JSON.stringify({
+    type: "error",
+    status_code: 429,
+    error: {
+      type: "usage_limit_reached",
+      message: "The usage limit has been reached",
+    },
+  });
+
+  const result = encodeResponseSseEvent(raw);
+  assert.equal(result.terminal, true);
+  assert.match(result.sse, /^event: response\.failed/m);
+
+  const dataLine = result.sse.split("\n").find((line) => line.startsWith("data: "));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.status, "failed");
+  assert.equal(payload.response.error.code, "usage_limit_reached");
+  assert.equal(payload.response.error.status_code, 429);
+});
+
 test("CodexExecutor.transformRequest does not apply connection reasoning defaults when Thinking Budget is not passthrough", () => {
   const executor = new CodexExecutor();
   setThinkingBudgetConfig({ mode: ThinkingMode.AUTO });
@@ -331,4 +368,169 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("CodexExecutor.transformRequest preserves image_generation hosted tool for Codex CLI", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [],
+    tools: [{ type: "image_generation", output_format: "png" }],
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, true, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.deepEqual(result.tools, [{ type: "image_generation", output_format: "png" }]);
+});
+
+test("CodexExecutor.transformRequest preserves web_search and file_search hosted tools", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [],
+    tools: [
+      { type: "web_search" },
+      { type: "file_search" },
+      { type: "image_generation", output_format: "png" },
+    ],
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, true, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.deepEqual(result.tools, [
+    { type: "web_search" },
+    { type: "file_search" },
+    { type: "image_generation", output_format: "png" },
+  ]);
+});
+
+test("CodexExecutor.transformRequest drops unknown hosted tool types", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [],
+    tools: [{ type: "made_up_tool" }, { type: "image_generation", output_format: "png" }],
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, true, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.deepEqual(result.tools, [{ type: "image_generation", output_format: "png" }]);
+});
+
+test("CodexExecutor.transformRequest keeps valid function tools and drops empty-named ones", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [],
+    tools: [
+      { type: "function", function: { name: "" } },
+      { type: "function", function: { name: "   " } },
+      { type: "function", function: { name: "shell", parameters: {} } },
+    ],
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, true, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.tools.length, 1);
+  assert.equal(result.tools[0].function.name, "shell");
+});
+
+test("CodexExecutor.transformRequest leaves hosted tool_choice untouched and strips stale function tool_choice", () => {
+  const executor = new CodexExecutor();
+
+  const hostedChoice = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [],
+      tools: [{ type: "image_generation", output_format: "png" }],
+      tool_choice: { type: "image_generation" },
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.deepEqual(hostedChoice.tool_choice, { type: "image_generation" });
+
+  const staleChoice = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [],
+      tools: [{ type: "function", function: { name: "shell" } }],
+      tool_choice: { type: "function", name: "ghost" },
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(staleChoice.tool_choice, undefined);
+});
+
+test("CodexExecutor.transformRequest drops hosted tools that also declare name or function properties", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [],
+    tools: [
+      { type: "image_generation", name: "img", output_format: "png" },
+      { type: "image_generation", function: { name: "img" }, output_format: "png" },
+      { type: "image_generation", output_format: "png" },
+    ],
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, true, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.deepEqual(result.tools, [{ type: "image_generation", output_format: "png" }]);
+});
+
+test("CodexExecutor.transformRequest defaults store to false when image_generation tool is present", () => {
+  const executor = new CodexExecutor();
+
+  const withImageGen = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [],
+      tools: [{ type: "image_generation", output_format: "png" }],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+  assert.equal(withImageGen.store, false);
+
+  const withoutImageGen = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [],
+      tools: [{ type: "function", function: { name: "shell" } }],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+  assert.equal(withoutImageGen.store, true);
+
+  const explicitTrue = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [],
+      store: true,
+      tools: [{ type: "image_generation", output_format: "png" }],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+  assert.equal(explicitTrue.store, true);
 });

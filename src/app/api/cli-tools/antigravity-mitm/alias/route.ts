@@ -1,12 +1,16 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getMitmAlias, setMitmAliasAll } from "@/models";
 import { cliMitmAliasUpdateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 // GET - Get MITM aliases for a tool
 export async function GET(request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const toolName = searchParams.get("tool");
@@ -20,6 +24,9 @@ export async function GET(request) {
 
 // PUT - Save MITM aliases for a specific tool
 export async function PUT(request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();

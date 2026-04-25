@@ -96,7 +96,7 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   });
 
   const context = result.conversationState.currentMessage.userInputMessage.userInputMessageContext;
-  assert.equal(context.toolResults.length, 2);
+  assert.equal((context.toolResults as any).length, 2);
   assert.deepEqual(context.toolResults[0], {
     toolUseId: "call_1",
     status: "success",
@@ -114,8 +114,14 @@ test("OpenAI -> Kiro derives a stable conversationId for the same first history 
   const first = buildSamplePayload();
   const second = buildSamplePayload();
 
-  assert.equal(first.conversationState.history[0].userInputMessage.content, "Rules\n\nHello");
-  assert.equal(second.conversationState.history[0].userInputMessage.content, "Rules\n\nHello");
+  assert.equal(
+    (first.conversationState as any).history[0].userInputMessage.content,
+    "Rules\n\nHello"
+  );
+  assert.equal(
+    (second as any).conversationState.history[0].userInputMessage.content,
+    "Rules\n\nHello"
+  );
   assert.equal(first.conversationState.conversationId, second.conversationState.conversationId);
 });
 

@@ -1635,6 +1635,7 @@
     "errorOccurred": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
     "modelStatus": "สถานะโมเดล",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "ค้นหาผู้ให้บริการ...",
     "allModelsOperational": "ใช้งานได้ทุกรุ่น",
     "modelsWithIssues": "{count} โมเดลที่มีปัญหา",
     "allModelsNormal": "ทุกรุ่นตอบสนองได้ปกติ",

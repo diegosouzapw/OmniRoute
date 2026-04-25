@@ -23,6 +23,11 @@ export function getTransientBuildPaths(rootDir = projectRoot, env = process.env)
       sourcePath: path.join(rootDir, "app"),
       backupPath: path.join(backupRoot, "app"),
     },
+    {
+      label: "local Wine prefix",
+      sourcePath: path.join(rootDir, ".tmp", "wine32"),
+      backupPath: path.join(backupRoot, "wine32"),
+    },
   ];
 
   if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
@@ -72,7 +77,7 @@ export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
 function runNextBuild() {
   return new Promise((resolve) => {
     const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
-    const child = spawn(process.execPath, [nextBin, "build"], {
+    const child = spawn(process.execPath, [nextBin, "build", resolveNextBuildBundlerFlag()], {
       cwd: projectRoot,
       stdio: "inherit",
       env: resolveNextBuildEnv(process.env),
@@ -95,6 +100,10 @@ function runNextBuild() {
       resolve({ code: code ?? 1, signal: null });
     });
   });
+}
+
+export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
+  return baseEnv.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {

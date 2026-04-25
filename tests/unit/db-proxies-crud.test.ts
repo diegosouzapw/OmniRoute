@@ -20,7 +20,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -106,14 +106,18 @@ test("proxy assignments resolve by account, provider and global scope", async ()
   await proxiesDb.assignProxyToScope("provider", "openai", providerProxy.id);
 
   const providerResolved = await proxiesDb.resolveProxyForProvider("openai");
-  const beforeAccount = await proxiesDb.resolveProxyForConnectionFromRegistry(connection.id);
+  const beforeAccount = await proxiesDb.resolveProxyForConnectionFromRegistry(
+    (connection as any).id
+  );
 
-  await proxiesDb.assignProxyToScope("key", connection.id, accountProxy.id);
+  await proxiesDb.assignProxyToScope("key", (connection as any).id, accountProxy.id);
 
   const assignmentsForAccountProxy = await proxiesDb.getProxyAssignments({
     proxyId: accountProxy.id,
   });
-  const accountResolved = await proxiesDb.resolveProxyForConnectionFromRegistry(connection.id);
+  const accountResolved = await proxiesDb.resolveProxyForConnectionFromRegistry(
+    (connection as any).id
+  );
   const usage = await proxiesDb.getProxyWhereUsed(accountProxy.id);
 
   assert.equal(providerResolved.host, "provider.local");
@@ -220,7 +224,7 @@ test("assignProxyToScope normalizes key scope, supports removal, and blocks dele
     port: 8080,
   });
 
-  const assignment = await proxiesDb.assignProxyToScope("key", connection.id, proxy.id);
+  const assignment = await proxiesDb.assignProxyToScope("key", (connection as any).id, proxy.id);
 
   assert.equal(assignment.scope, "account");
   assert.equal((await proxiesDb.getProxyAssignments({ scope: "key" })).length, 1);
@@ -230,7 +234,7 @@ test("assignProxyToScope normalizes key scope, supports removal, and blocks dele
     /Remove assignments first or use force=true/
   );
 
-  const removed = await proxiesDb.assignProxyToScope("key", connection.id, null);
+  const removed = await proxiesDb.assignProxyToScope("key", (connection as any).id, null);
 
   assert.equal(removed, null);
   assert.equal((await proxiesDb.getProxyAssignments({ scope: "account" })).length, 0);

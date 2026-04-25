@@ -176,11 +176,29 @@ export function claudeToGeminiRequest(model, body, stream) {
   }
 
   // ── Thinking config ────────────────────────────────────────────
+  // Priority: thinking.budget_tokens (Claude native) > output_config.effort (Claude Code).
   if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,
     };
+  } else if (typeof body.output_config?.effort === "string") {
+    const effort = body.output_config.effort.toLowerCase();
+    const effortBudgetMap: Record<string, number> = {
+      none: 0,
+      low: 1024,
+      medium: 10240,
+      high: 32768,
+      max: 131072,
+      xhigh: 131072,
+    };
+    const budget = effortBudgetMap[effort];
+    if (budget !== undefined && budget > 0) {
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: budget,
+        includeThoughts: true,
+      };
+    }
   }
 
   const changedToolNameMap = new Map(

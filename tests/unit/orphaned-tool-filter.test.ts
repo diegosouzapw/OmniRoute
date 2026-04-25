@@ -18,7 +18,7 @@ test("openaiResponsesToOpenAIRequest: filters orphaned tool messages", () => {
     ],
   };
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, null);
-  const toolMessages = result.messages.filter((m) => m.role === "tool");
+  const toolMessages = (result as any).messages.filter((m) => m.role === "tool");
   assert.equal(toolMessages.length, 1, "should have exactly 1 tool message");
   assert.equal(toolMessages[0].tool_call_id, "call_valid_1");
 });
@@ -35,7 +35,7 @@ test("openaiResponsesToOpenAIRequest: preserves all messages when no orphans", (
     ],
   };
   const result = openaiResponsesToOpenAIRequest("gpt-4", body, true, null);
-  const toolMessages = result.messages.filter((m) => m.role === "tool");
+  const toolMessages = (result as any).messages.filter((m) => m.role === "tool");
   assert.equal(toolMessages.length, 2, "both valid tool results should be preserved");
 });
 
@@ -56,7 +56,7 @@ test("openaiToOpenAIResponsesRequest: filters orphaned function_call_output", ()
     ],
   };
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
-  const outputs = result.input.filter((i) => i.type === "function_call_output");
+  const outputs = (result as any).input.filter((i) => i.type === "function_call_output");
   assert.equal(outputs.length, 1, "should have exactly 1 function_call_output");
   assert.equal(outputs[0].call_id, "call_valid_2");
 });
@@ -74,7 +74,7 @@ test("openaiToOpenAIResponsesRequest: preserves all items when no orphans", () =
     ],
   };
   const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
-  const outputs = result.input.filter((i) => i.type === "function_call_output");
+  const outputs = (result as any).input.filter((i) => i.type === "function_call_output");
   assert.equal(outputs.length, 1, "valid function_call_output should be preserved");
 });
 

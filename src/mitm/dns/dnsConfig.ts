@@ -1,6 +1,11 @@
-import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import {
+  execFileWithPassword,
+  getErrorMessage,
+  quotePowerShell,
+  runElevatedPowerShell,
+} from "../systemCommands.ts";
 
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
 const IS_WIN = process.platform === "win32";
@@ -8,46 +13,22 @@ const HOSTS_FILE = IS_WIN
   ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "drivers", "etc", "hosts")
   : "/etc/hosts";
 
-/**
- * Execute command with sudo password via stdin (macOS/Linux only)
- */
-export function execWithPassword(command, password) {
-  return new Promise((resolve, reject) => {
-    const child = exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(`Command failed: ${error.message}\n${stderr}`));
-      } else {
-        resolve(stdout);
-      }
-    });
-    child.stdin.write(`${password}\n`);
-    child.stdin.end();
-  });
-}
-
-/**
- * Execute elevated command on Windows via PowerShell RunAs
- */
-function execElevatedWindows(command) {
-  return new Promise((resolve, reject) => {
-    const psScript = `
-      $proc = Start-Process cmd -ArgumentList '/c','${command.replace(/'/g, "''")}' -Verb RunAs -Wait -PassThru;
-      if ($proc.ExitCode -ne 0) { throw "Elevated command exited with code $($proc.ExitCode)" }
-    `;
-    exec(`powershell -Command "${psScript.replace(/\n/g, " ")}"`, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(`Elevated command failed: ${error.message}\n${stderr}`));
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-}
+const REMOVE_HOSTS_ENTRY_SCRIPT = `
+const fs = require("fs");
+const filePath = process.argv[1];
+const targetHost = process.argv[2];
+const content = fs.readFileSync(filePath, "utf8");
+const filtered = content.split(/\\r?\\n/).filter((line) => {
+  const parts = line.trim().split(/\\s+/).filter(Boolean);
+  return !(parts.length >= 2 && parts.includes(targetHost));
+});
+fs.writeFileSync(filePath, filtered.join("\\n").replace(/\\n*$/, "\\n"));
+`;
 
 /**
  * Check if DNS entry already exists
  */
-export function checkDNSEntry() {
+export function checkDNSEntry(): boolean {
   try {
     const hostsContent = fs.readFileSync(HOSTS_FILE, "utf8");
     const lines = hostsContent.split(/\r?\n/);
@@ -63,7 +44,7 @@ export function checkDNSEntry() {
 /**
  * Add DNS entry to hosts file
  */
-export async function addDNSEntry(sudoPassword) {
+export async function addDNSEntry(sudoPassword: string): Promise<void> {
   if (checkDNSEntry()) {
     console.log(`DNS entry for ${TARGET_HOST} already exists`);
     return;
@@ -73,22 +54,27 @@ export async function addDNSEntry(sudoPassword) {
 
   try {
     if (IS_WIN) {
-      // Windows: use elevated echo >> hosts
-      await execElevatedWindows(`echo ${entry} >> "${HOSTS_FILE}"`);
+      await runElevatedPowerShell(
+        `Add-Content -LiteralPath ${quotePowerShell(HOSTS_FILE)} -Value ${quotePowerShell(entry)}`
+      );
     } else {
-      const command = `echo "${entry}" | sudo -S tee -a ${HOSTS_FILE} > /dev/null`;
-      await execWithPassword(command, sudoPassword);
+      await execFileWithPassword(
+        "sudo",
+        ["-S", "tee", "-a", HOSTS_FILE],
+        sudoPassword,
+        `${entry}\n`
+      );
     }
     console.log(`✅ Added DNS entry: ${entry}`);
   } catch (error) {
-    throw new Error(`Failed to add DNS entry: ${error.message}`);
+    throw new Error(`Failed to add DNS entry: ${getErrorMessage(error)}`);
   }
 }
 
 /**
  * Remove DNS entry from hosts file
  */
-export async function removeDNSEntry(sudoPassword) {
+export async function removeDNSEntry(sudoPassword: string): Promise<void> {
   if (!checkDNSEntry()) {
     console.log(`DNS entry for ${TARGET_HOST} does not exist`);
     return;
@@ -96,21 +82,25 @@ export async function removeDNSEntry(sudoPassword) {
 
   try {
     if (IS_WIN) {
-      // Windows: read, filter, write back via elevated PowerShell
-      const psScript = `(Get-Content '${HOSTS_FILE}') | Where-Object { $_ -notmatch '${TARGET_HOST}' } | Set-Content '${HOSTS_FILE}'`;
-      const psCommand = `Start-Process powershell -ArgumentList '-Command','${psScript.replace(/'/g, "''")}' -Verb RunAs -Wait`;
-      await new Promise((resolve, reject) => {
-        exec(`powershell -Command "${psCommand}"`, (error) => {
-          if (error) reject(new Error(`Failed to remove DNS entry: ${error.message}`));
-          else resolve(void 0);
-        });
-      });
+      await runElevatedPowerShell(`
+        $hostsFile = ${quotePowerShell(HOSTS_FILE)};
+        $targetHost = ${quotePowerShell(TARGET_HOST)};
+        $lines = Get-Content -LiteralPath $hostsFile;
+        $filtered = $lines | Where-Object {
+          $parts = ($_ -split '\\s+') | Where-Object { $_ };
+          -not (($parts.Length -ge 2) -and ($parts -contains $targetHost))
+        };
+        Set-Content -LiteralPath $hostsFile -Value $filtered;
+      `);
     } else {
-      const command = `sudo -S sed -i '' '/${TARGET_HOST}/d' ${HOSTS_FILE}`;
-      await execWithPassword(command, sudoPassword);
+      await execFileWithPassword(
+        "sudo",
+        ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, TARGET_HOST],
+        sudoPassword
+      );
     }
     console.log(`✅ Removed DNS entry for ${TARGET_HOST}`);
   } catch (error) {
-    throw new Error(`Failed to remove DNS entry: ${error.message}`);
+    throw new Error(`Failed to remove DNS entry: ${getErrorMessage(error)}`);
   }
 }

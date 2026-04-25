@@ -290,6 +290,42 @@ export const CLI_TOOLS = {
 }`,
     },
   },
+  hermes: {
+    id: "hermes",
+    name: "Hermes",
+    icon: "terminal",
+    color: "#8B5CF6",
+    description: "Hermes coding agent quick configuration",
+    docsUrl: "/docs?section=cli-tools&tool=hermes",
+    configType: "guide",
+    defaultCommand: "hermes",
+    guideSteps: [
+      {
+        step: 1,
+        title: "Open Hermes Config",
+        desc: "Open your Hermes configuration file or create one if this is the first run.",
+      },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Save Provider Block",
+        desc: "Use the JSON block below as the OpenAI-compatible provider definition for OmniRoute.",
+      },
+    ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "provider": {
+    "type": "openai",
+    "baseURL": "{{baseUrl}}",
+    "apiKey": "{{apiKey}}",
+    "model": "{{model}}"
+  }
+}`,
+    },
+  },
   amp: {
     id: "amp",
     name: "Amp CLI",
@@ -487,6 +523,15 @@ amp --model "{{model}}"
   }
 }`,
     },
+  },
+  custom: {
+    id: "custom",
+    name: "Custom CLI",
+    icon: "terminal",
+    color: "#10B981",
+    description: "Generic OpenAI-compatible CLI or SDK configuration generator",
+    docsUrl: "/docs?section=cli-tools",
+    configType: "custom-builder",
   },
   // HIDDEN: gemini-cli
   // "gemini-cli": {

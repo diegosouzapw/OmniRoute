@@ -7,7 +7,7 @@ test("openapi spec route resolves the repository spec file and returns a parsed 
   const response = await GET();
   assert.equal(response.status, 200);
 
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
   assert.equal(typeof payload.info, "object");
   assert.ok(Array.isArray(payload.endpoints));
   assert.ok(Array.isArray(payload.schemas));

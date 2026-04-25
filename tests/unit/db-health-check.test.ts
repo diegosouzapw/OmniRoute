@@ -72,9 +72,12 @@ test("runDbHealthCheck reports issues without mutating when autoRepair is disabl
   assert.equal(result.isHealthy, false);
   assert.equal(result.repairedCount, 0);
   assert.equal(result.issues.length, 6);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 2);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get().count, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 2);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 1);
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get() as any).count,
+    1
+  );
 });
 
 test("runDbHealthCheck tolerates databases without a combos table", async () => {
@@ -102,14 +105,26 @@ test("runDbHealthCheck auto-repairs orphan rows and invalid JSON payloads", asyn
   assert.equal(result.isHealthy, false);
   assert.equal(result.backupCreated, true);
   assert.equal(result.repairedCount, 7);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get().count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 0);
   assert.equal(
-    db.prepare("SELECT options FROM domain_circuit_breakers WHERE name = ?").get("broken-breaker")
-      .options,
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get() as any).count,
+    0
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get() as any).count,
+    0
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get() as any).count,
+    0
+  );
+  assert.equal(
+    (
+      db
+        .prepare("SELECT options FROM domain_circuit_breakers WHERE name = ?")
+        .get("broken-breaker") as any
+    ).options,
     null
   );
 });
@@ -192,10 +207,10 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
     createBackupBeforeRepair: () => false,
   });
   const invalidCombo = JSON.parse(
-    db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-invalid").data
+    (db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-invalid") as any).data
   );
   const repairedCombo = JSON.parse(
-    db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-broken").data
+    (db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-broken") as any).data
   );
 
   assert.equal(
@@ -273,14 +288,26 @@ test("getDbInstance can auto-repair persisted broken rows when startup repair is
     }
   }
 
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get().count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 0);
   assert.equal(
-    db.prepare("SELECT options FROM domain_circuit_breakers WHERE name = ?").get("broken-breaker")
-      .options,
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get() as any).count,
+    0
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get() as any).count,
+    0
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get() as any).count,
+    0
+  );
+  assert.equal(
+    (
+      db
+        .prepare("SELECT options FROM domain_circuit_breakers WHERE name = ?")
+        .get("broken-breaker") as any
+    ).options,
     null
   );
 });
@@ -292,11 +319,20 @@ test("getDbInstance skips automatic startup repair during tests unless forced", 
 
   db = core.getDbInstance();
 
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 2);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get().count, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get().count, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get().count, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 2);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 1);
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get() as any).count,
+    1
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get() as any).count,
+    1
+  );
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get() as any).count,
+    1
+  );
 });
 
 test("runDbHealthCheck repairs a drifted db_meta schema version", async () => {
@@ -313,7 +349,7 @@ test("runDbHealthCheck repairs a drifted db_meta schema version", async () => {
     true
   );
   assert.equal(
-    db.prepare("SELECT value FROM db_meta WHERE key = 'schema_version'").get().value,
+    (db.prepare("SELECT value FROM db_meta WHERE key = 'schema_version'").get() as any).value,
     "1"
   );
 });
@@ -333,14 +369,19 @@ test("deleteApiKey removes domain budget and cost history rows for that key", as
 
   assert.equal(await apiKeysDb.deleteApiKey(created.id), true);
   assert.equal(
-    db.prepare("SELECT COUNT(*) AS count FROM domain_budgets WHERE api_key_id = ?").get(created.id)
-      .count,
+    (
+      db
+        .prepare("SELECT COUNT(*) AS count FROM domain_budgets WHERE api_key_id = ?")
+        .get(created.id) as any
+    ).count,
     0
   );
   assert.equal(
-    db
-      .prepare("SELECT COUNT(*) AS count FROM domain_cost_history WHERE api_key_id = ?")
-      .get(created.id).count,
+    (
+      db
+        .prepare("SELECT COUNT(*) AS count FROM domain_cost_history WHERE api_key_id = ?")
+        .get((created as any).id) as any
+    ).count,
     0
   );
 });
@@ -371,19 +412,21 @@ test("deleteProviderConnection and bulk delete remove related quota snapshots", 
      VALUES (?, ?, ?, ?, ?, ?)`
   ).run("openai", second.id, "monthly", 40, 0, new Date().toISOString());
 
-  assert.equal(await providersDb.deleteProviderConnection(first.id), true);
+  assert.equal(await providersDb.deleteProviderConnection((first as any).id), true);
   assert.equal(
-    db
-      .prepare("SELECT COUNT(*) AS count FROM quota_snapshots WHERE connection_id = ?")
-      .get(first.id).count,
+    (
+      db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots WHERE connection_id = ?") as any
+    ).get(first.id).count,
     0
   );
 
   await providersDb.deleteProviderConnectionsByProvider("openai");
   assert.equal(
-    db
-      .prepare("SELECT COUNT(*) AS count FROM quota_snapshots WHERE connection_id = ?")
-      .get(second.id).count,
+    (
+      db
+        .prepare("SELECT COUNT(*) AS count FROM quota_snapshots WHERE connection_id = ?")
+        .get(second.id) as any
+    ).count,
     0
   );
 });

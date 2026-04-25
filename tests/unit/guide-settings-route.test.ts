@@ -40,7 +40,7 @@ test.afterEach(async () => {
 test("guide-settings POST creates new qwen settings.json if it doesn't exist", async () => {
   const req = buildRequest({ baseUrl: "http://my-omni", apiKey: "sk-123", model: "qwen-max" });
   const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
-  const data = await response.json();
+  const data = (await response.json()) as any;
 
   assert.equal(response.status, 200, "Response should be OK");
   assert.equal(data.success, true);

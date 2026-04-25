@@ -38,21 +38,21 @@ describe("E2E: MCP Server (16 tools)", () => {
   itCase("should respond to health check", async () => {
     const res = await apiFetch("/api/monitoring/health");
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data).toHaveProperty("status");
   });
 
   itCase("should list combos", async () => {
     const res = await apiFetch("/api/combos");
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(Array.isArray(data?.combos)).toBe(true);
   });
 
   itCase("should return quota data", async () => {
     const res = await apiFetch("/api/usage/quota");
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(Array.isArray(data?.providers)).toBe(true);
     expect(data).toHaveProperty("meta");
   });
@@ -74,7 +74,7 @@ describe("E2E: Quota Contract (/api/usage/quota)", () => {
     const res = await apiFetch("/api/usage/quota");
     expect(res.ok).toBe(true);
 
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(Array.isArray(data.providers)).toBe(true);
     expect(data).toHaveProperty("meta");
     expect(typeof data.meta.generatedAt).toBe("string");
@@ -96,13 +96,13 @@ describe("E2E: Quota Contract (/api/usage/quota)", () => {
   itCase("should filter quota by provider", async () => {
     const allRes = await apiFetch("/api/usage/quota");
     expect(allRes.ok).toBe(true);
-    const allData = await allRes.json();
+    const allData = (await allRes.json()) as any;
     if (!Array.isArray(allData.providers) || allData.providers.length === 0) return;
 
     const provider = allData.providers[0].provider;
     const filteredRes = await apiFetch(`/api/usage/quota?provider=${encodeURIComponent(provider)}`);
     expect(filteredRes.ok).toBe(true);
-    const filteredData = await filteredRes.json();
+    const filteredData = (await filteredRes.json()) as any;
     expect(filteredData.meta.filters.provider).toBe(provider);
     expect(Array.isArray(filteredData.providers)).toBe(true);
     expect(filteredData.providers.every((p: any) => p.provider === provider)).toBe(true);
@@ -111,7 +111,7 @@ describe("E2E: Quota Contract (/api/usage/quota)", () => {
   itCase("should filter quota by connectionId", async () => {
     const allRes = await apiFetch("/api/usage/quota");
     expect(allRes.ok).toBe(true);
-    const allData = await allRes.json();
+    const allData = (await allRes.json()) as any;
     if (!Array.isArray(allData.providers) || allData.providers.length === 0) return;
 
     const connectionId = allData.providers[0].connectionId;
@@ -119,7 +119,7 @@ describe("E2E: Quota Contract (/api/usage/quota)", () => {
       `/api/usage/quota?connectionId=${encodeURIComponent(connectionId)}`
     );
     expect(filteredRes.ok).toBe(true);
-    const filteredData = await filteredRes.json();
+    const filteredData = (await filteredRes.json()) as any;
     expect(filteredData.meta.filters.connectionId).toBe(connectionId);
     expect(Array.isArray(filteredData.providers)).toBe(true);
     expect(filteredData.providers.every((p: any) => p.connectionId === connectionId)).toBe(true);
@@ -131,7 +131,7 @@ describe("E2E: A2A Server (lifecycle)", () => {
   itCase("should serve Agent Card", async () => {
     const res = await apiFetch("/.well-known/agent.json");
     expect(res.ok).toBe(true);
-    const card = await res.json();
+    const card = (await res.json()) as any;
     expect(card).toHaveProperty("name");
     expect(card).toHaveProperty("skills");
     expect(card).toHaveProperty("version");
@@ -152,7 +152,7 @@ describe("E2E: A2A Server (lifecycle)", () => {
       }),
     });
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data).toHaveProperty("result");
     expect(data.result.task).toHaveProperty("id");
     expect(data.result.task).toHaveProperty("state");
@@ -168,7 +168,7 @@ describe("E2E: A2A Server (lifecycle)", () => {
         params: {},
       }),
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data).toHaveProperty("error");
     expect(data.error.code).toBe(-32601);
   });
@@ -197,7 +197,7 @@ describe("E2E: Auto-Combo (routing + self-healing)", () => {
     const res = await apiFetch("/api/combos");
     if (!res.ok) console.error("GET /api/combos failed:", await res.text());
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(Array.isArray(data?.combos)).toBe(true);
     const autoCombos = data.combos.filter((c: any) => c.strategy === "auto");
     expect(autoCombos.length).toBeGreaterThanOrEqual(0);
@@ -209,7 +209,7 @@ describe("E2E: OpenClaw Integration", () => {
   itCase("should return dynamic provider.order", async () => {
     const res = await apiFetch("/api/cli-tools/openclaw/auto-order");
     expect(res.ok).toBe(true);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data).toHaveProperty("provider");
     expect(data.provider).toHaveProperty("order");
     expect(Array.isArray(data.provider.order)).toBe(true);
@@ -306,7 +306,7 @@ describe("E2E: Security", () => {
       method: "POST",
       body: "not-json",
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (data.error) {
       expect(data.error.code).toBe(-32700); // Parse error
     }

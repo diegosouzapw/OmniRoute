@@ -136,7 +136,7 @@ test("proxy fetch uses TLS fingerprint transport when enabled and available", as
 
       assert.equal(isTlsFingerprintActive(), true);
       assert.equal(tracked.tlsFingerprintUsed, true);
-      assert.deepEqual(await tracked.result.json(), { via: "tls-client" });
+      assert.deepEqual(await (tracked.result as any).json(), { via: "tls-client" });
     }
   );
 });
