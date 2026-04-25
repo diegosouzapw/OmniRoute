@@ -1117,11 +1117,19 @@ async function* extractContent(
     // Detect image_gen on top-level "server_ste_metadata" events. These don't
     // have a `message` field so the post-message guard would skip them, but
     // they're the most reliable signal — `turn_use_case: "image gen"`.
+    //
+    // Originally we also accepted `meta.tool_invoked === true`, but ChatGPT
+    // sets that flag for ANY internal tool the assistant uses (reasoning
+    // chains, web search, calc, file_search, etc.). That made plain text
+    // turns spuriously emit the "Generating image…" placeholder + 30s
+    // WebSocket wait. Image gen has a more specific signal we can rely on:
+    // either `turn_use_case === "image gen"` here, or an `image_gen_task_id`
+    // on a tool-role message (handled below).
     if (event.type === "server_ste_metadata") {
       const meta = (event as Record<string, unknown>).metadata as
         | Record<string, unknown>
         | undefined;
-      if (meta && (meta.turn_use_case === "image gen" || meta.tool_invoked === true)) {
+      if (meta && meta.turn_use_case === "image gen") {
         imageGenAsync = true;
       }
     }
@@ -2169,21 +2177,31 @@ function makeImageResolver(ctx: ResolverContext): ImageResolver {
   return async (assetPointer, conversationId, parentMessageId) => {
     if (cache.has(assetPointer)) return cache.get(assetPointer) ?? null;
 
-    let signedUrl: string | null = null;
+    let fileId: string | null = null;
     if (assetPointer.startsWith(FILE_SERVICE_PREFIX)) {
-      const fileId = assetPointer.slice(FILE_SERVICE_PREFIX.length);
-      signedUrl = await fetchDownloadUrl(
-        `${CHATGPT_BASE}/backend-api/files/${encodeURIComponent(fileId)}/download`,
-        ctx
-      );
+      fileId = assetPointer.slice(FILE_SERVICE_PREFIX.length);
     } else if (assetPointer.startsWith(SEDIMENT_PREFIX)) {
-      // sediment pointers from the async image_gen tool. Both /files/<id>/
-      // download and /conversation/<cid>/attachment/<fid>/download return a
-      // chatgpt.com estuary URL signed for the current session — those URLs
-      // 403 without the user's cookie, so downstream clients can't fetch
-      // them directly. We download once via the authenticated TLS client
-      // and expose the bytes through OmniRoute's short-lived image cache.
-      const fileId = assetPointer.slice(SEDIMENT_PREFIX.length);
+      fileId = assetPointer.slice(SEDIMENT_PREFIX.length);
+    } else {
+      ctx.log?.warn?.("CGPT-WEB", `Unknown asset_pointer scheme: ${assetPointer}`);
+    }
+
+    let signedUrl: string | null = null;
+    if (fileId) {
+      // Both endpoints return a chatgpt.com estuary URL signed for the
+      // user's current session — that URL 403s without the cookie, so
+      // downstream clients can't fetch it directly. We download once via
+      // the authenticated TLS client and expose the bytes through
+      // OmniRoute's short-lived image cache.
+      //
+      // /files/{id}/download is the historical path. It works for
+      // chat-uploaded files and the older image_gen output format
+      // (`file-XXXX`). Newer image-edit results from continued
+      // conversations land with a `file_00000000XXXX` shape that 422s on
+      // /files/{id}/download — they're conversation-scoped attachments
+      // and only resolve through /conversation/{cid}/attachment/{fid}/
+      // download. We try /files first because it's cheaper and works for
+      // the common case, then fall through.
       signedUrl = await fetchDownloadUrl(
         `${CHATGPT_BASE}/backend-api/files/${encodeURIComponent(fileId)}/download`,
         ctx
@@ -2194,8 +2212,6 @@ function makeImageResolver(ctx: ResolverContext): ImageResolver {
           ctx
         );
       }
-    } else {
-      ctx.log?.warn?.("CGPT-WEB", `Unknown asset_pointer scheme: ${assetPointer}`);
     }
 
     let finalUrl: string | null = null;

@@ -18,6 +18,20 @@ const nextConfig = {
     },
   },
   output: "standalone",
+  // OmniRoute is a proxy for AI APIs — request bodies routinely include
+  // multi-MB payloads (vision models, image edits, base64-encoded files,
+  // long chat histories with embedded images). Next.js's Server Action
+  // handler intercepts POSTs with multipart/form-data or
+  // x-www-form-urlencoded content-types and enforces a 1 MB cap that
+  // surfaces as a 413 with a confusing "Server Actions" hint, even on
+  // pure route handlers. 50 MB matches what most upstream LLM providers
+  // accept for image-bearing requests; tune via env if a deployment needs
+  // more.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
+    },
+  },
   outputFileTracingRoot: projectRoot,
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies

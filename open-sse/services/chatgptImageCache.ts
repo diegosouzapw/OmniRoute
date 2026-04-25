@@ -17,13 +17,17 @@
  * the conversation in a few hours the URLs will 404; that's expected.
  */
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 interface CachedImage {
   bytes: Buffer;
   mime: string;
   expiresAt: number;
   context?: ChatGptImageConversationContext;
+  /** sha256(bytes) — used by /v1/images/edits to correlate an uploaded
+   *  image (Open WebUI re-uploads the bytes via multipart) back to the
+   *  conversation context we cached when the image was first generated. */
+  bytesSha256: string;
 }
 
 const cache = new Map<string, CachedImage>();
@@ -82,7 +86,14 @@ export function storeChatGptImage(
   evictExpired();
   evictUntilWithinLimits(configuredMaxBytes(), bytes.length);
   const id = randomUUID().replace(/-/g, "");
-  cache.set(id, { bytes, mime, expiresAt: Date.now() + ttlMs, context });
+  const bytesSha256 = createHash("sha256").update(bytes).digest("hex");
+  cache.set(id, {
+    bytes,
+    mime,
+    expiresAt: Date.now() + ttlMs,
+    context,
+    bytesSha256,
+  });
   cacheBytes += bytes.length;
   return id;
 }
@@ -102,6 +113,27 @@ export function getChatGptImageConversationContext(
   id: string
 ): ChatGptImageConversationContext | null {
   return getChatGptImage(id)?.context ?? null;
+}
+
+/**
+ * Look up a cached entry by sha256(bytes). Used by /v1/images/edits to
+ * correlate Open WebUI's re-uploaded image back to the conversation
+ * context we cached at generation time, so the executor can continue the
+ * saved chatgpt.com conversation node and actually edit the image instead
+ * of generating an unrelated one from scratch.
+ */
+export function findChatGptImageBySha256(
+  hash: string
+): { id: string; entry: CachedImage } | null {
+  evictExpired();
+  const target = hash.toLowerCase();
+  for (const [id, entry] of cache.entries()) {
+    if (entry.bytesSha256 === target) {
+      if (Date.now() < entry.expiresAt) return { id, entry };
+      deleteEntry(id);
+    }
+  }
+  return null;
 }
 
 /** Test-only: clear the cache between tests. */

@@ -1659,9 +1659,15 @@ test("Image gen: sediment:// pointer prefers /files/<id>/download over /attachme
 
 test("Image gen: failed download URL is dropped silently — no broken markdown", async () => {
   reset();
+  // Both /files/<id>/download AND the /conversation/<cid>/attachment/<fid>/
+  // download fallback have to fail for the resolver to give up. The fallback
+  // is the path that recovers `file_00000000XXX` shaped IDs returned by
+  // chatgpt.com for image-edit results, so the failure assertion has to
+  // close BOTH doors.
   const m = installMockFetch({
     conv: { status: 200, events: imageGenEvents({ pointer: "file-service://file-broken" }) },
     fileDownload: { status: 500, body: { error: "boom" } },
+    attachmentDownload: { status: 500, body: { error: "boom" } },
   });
   try {
     const executor = new ChatGptWebExecutor();
@@ -2219,6 +2225,183 @@ test("Image cache: byte cap evicts oldest before count cap kicks in", async () =
     if (original == null) delete process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB;
     else process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB = original;
     cacheMod.__resetChatGptImageCacheForTesting();
+  }
+});
+
+test("Image edit: file_0000XXXX (chatgpt-web edit result) falls back to /conversation/.../attachment/.../download", async () => {
+  // The /files/<id>/download endpoint rejects the new `file_00000000XXX`
+  // pointer shape that chatgpt.com returns for image-EDIT results — it
+  // 422s. The pointer is conversation-scoped and only resolves through
+  // /conversation/<cid>/attachment/<fid>/download. Without the fallback
+  // we'd render a broken image link or no markdown at all.
+  reset();
+  const m = installMockFetch({
+    conv: {
+      status: 200,
+      events: imageGenEvents({
+        pointer: "file-service://file_00000000f1fc7246af3a3934a8c55b9c",
+      }),
+    },
+    fileDownload: { status: 422, body: { detail: "edit-shape pointer not directly fetchable" } },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "now make it nighttime" }] },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(result.response.status, 200);
+    const json = await result.response.json();
+    const content = json.choices[0].message.content;
+    assert.match(content, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/, "image rendered via fallback");
+    assert.equal(m.calls.fileDownload, 1, "tried /files/ first");
+    assert.equal(m.calls.attachmentDownload, 1, "fell back to /conversation/.../attachment/.../download");
+    assert.equal(m.calls.signedDownload, 1, "fetched signed bytes once");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Image gen: ChatGPT-internal tool_invoked metadata does NOT spuriously trigger image gen heartbeats", async () => {
+  // Regression for: the executor used to set imageGenAsync = true on any
+  // server_ste_metadata event with `tool_invoked: true`, but ChatGPT marks
+  // *all* internal tool usage (reasoning, web search, calc, file_search)
+  // with that flag. Plain text turns ended up emitting "Generating image…"
+  // text and a 30s WebSocket wait. Specific image-gen signals only.
+  reset();
+  const events = [
+    {
+      type: "server_ste_metadata",
+      metadata: { tool_invoked: true, turn_use_case: "default" },
+    },
+    {
+      conversation_id: "conv-x",
+      message: {
+        id: "msg-x",
+        author: { role: "assistant" },
+        content: { content_type: "text", parts: ["GPT-4o-mini has weaker reasoning."] },
+        status: "in_progress",
+      },
+    },
+    {
+      conversation_id: "conv-x",
+      message: {
+        id: "msg-x",
+        author: { role: "assistant" },
+        content: { content_type: "text", parts: ["GPT-4o-mini has weaker reasoning."] },
+        status: "finished_successfully",
+      },
+    },
+  ];
+  const m = installMockFetch({ conv: { status: 200, events } });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "limitations of gpt-4o-mini?" }] },
+      stream: true,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    const reader = result.response.body.getReader();
+    const decoder = new TextDecoder();
+    let body = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      body += decoder.decode(value);
+    }
+    assert.doesNotMatch(body, /Generating image/, "no spurious image-gen placeholder text");
+    assert.match(body, /weaker reasoning/, "actual answer streamed");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Image edit handler: bytes-hash match drives executor with cached conversation context", async () => {
+  // The /v1/images/edits flow exists because Open WebUI's image-edit toggle
+  // posts multipart bodies (prompt + uploaded image bytes) and would
+  // otherwise trip Next.js's Server Action handler. We hash the uploaded
+  // bytes, find the cached entry, and synthesize a chat thread that drives
+  // the executor through its continuation path — same code paths as the
+  // chat-message edit flow.
+  reset();
+  const cacheMod = await import("../../open-sse/services/chatgptImageCache.ts");
+  cacheMod.__resetChatGptImageCacheForTesting();
+  const sourceBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+  cacheMod.storeChatGptImage(sourceBytes, "image/png", 60_000, {
+    conversationId: "conv-edit-handler",
+    parentMessageId: "msg-edit-handler",
+  });
+
+  const m = installMockFetch({
+    // Conv response must include an image pointer so the handler sees
+    // markdown in the assistant message and treats the edit as successful.
+    conv: { status: 200, events: imageGenEvents({ pointer: "file-service://file-edited-day", text: "Done:" }) },
+  });
+  try {
+    const { handleImageEdit } = await import(
+      "../../open-sse/handlers/imageGeneration.ts"
+    );
+    const result = await handleImageEdit({
+      provider: "chatgpt-web",
+      model: "gpt-5.3-instant",
+      body: { prompt: "turn it to day time" },
+      imageBytes: sourceBytes,
+      credentials: { apiKey: "test" },
+      log: null,
+    });
+    assert.equal(result.success, true, `expected success, got error: ${(result as any).error}`);
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    assert.ok(convIdx >= 0, "conversation request was sent");
+    const sentBody = JSON.parse(m.calls.bodies[convIdx]);
+    assert.equal(sentBody.conversation_id, "conv-edit-handler");
+    assert.equal(sentBody.parent_message_id, "msg-edit-handler");
+    assert.equal(sentBody.history_and_training_disabled, false);
+    assert.match(
+      sentBody.messages[sentBody.messages.length - 1].content.parts[0],
+      /day time/
+    );
+  } finally {
+    m.restore();
+  }
+});
+
+test("Image edit handler: no cached match returns 400 (does not silently generate unrelated image)", async () => {
+  // If the user uploads a foreign image (or the cache TTL elapsed), there's
+  // no chatgpt.com conversation node to continue and chatgpt-web's image_gen
+  // tool can't actually edit. Surface that with a clear, actionable error
+  // instead of generating an unrelated image and confusing the user.
+  reset();
+  const cacheMod = await import("../../open-sse/services/chatgptImageCache.ts");
+  cacheMod.__resetChatGptImageCacheForTesting();
+
+  const m = installMockFetch();
+  try {
+    const { handleImageEdit } = await import(
+      "../../open-sse/handlers/imageGeneration.ts"
+    );
+    const foreignBytes = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0xde, 0xad, 0xbe, 0xef]);
+    const result = await handleImageEdit({
+      provider: "chatgpt-web",
+      model: "gpt-5.3-instant",
+      body: { prompt: "turn it to day time" },
+      imageBytes: foreignBytes,
+      credentials: { apiKey: "test" },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.match(String(result.error), /generated through this OmniRoute instance/);
+    assert.equal(m.calls.session, 0, "no upstream calls were attempted");
+    assert.equal(m.calls.conv, 0, "no chat-completion was attempted");
+  } finally {
+    m.restore();
   }
 });
 
