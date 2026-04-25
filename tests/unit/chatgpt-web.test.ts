@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const { ChatGptWebExecutor, __resetChatGptWebCachesForTesting } =
   await import("../../open-sse/executors/chatgpt-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
-const { __setTlsFetchOverrideForTesting } =
+const { __setTlsFetchOverrideForTesting, looksLikeSse, TlsClientUnavailableError } =
   await import("../../open-sse/services/chatgptTlsClient.ts");
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -891,4 +891,348 @@ test("Provider registry: chatgpt-web is registered with gpt-5.3-instant model", 
   assert.equal(entry.format, "openai");
   assert.equal(entry.authHeader, "cookie");
   assert.ok(entry.models.find((m) => m.id === "gpt-5.3-instant"));
+});
+
+// ─── Cookie rotation preserves Cloudflare cookies ───────────────────────────
+
+test("Cookie rotation: full DevTools blob keeps cf_clearance/__cf_bm/_cfuvid", async () => {
+  // When the user pastes the recommended full DevTools Cookie line and
+  // NextAuth rotates the session-token chunks, only those chunks should
+  // change — the Cloudflare cookies must be preserved or every subsequent
+  // request gets cf-mitigated: challenge.
+  reset();
+  const m = installMockFetch({
+    session: {
+      status: 200,
+      body: {
+        accessToken: "jwt-abc",
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+        user: { id: "user-1" },
+      },
+      setCookie:
+        "__Secure-next-auth.session-token.0=NEW0; Path=/; HttpOnly, " +
+        "__Secure-next-auth.session-token.1=NEW1; Path=/; HttpOnly",
+    },
+  });
+  try {
+    let refreshed = null;
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey:
+          "__Secure-next-auth.session-token.0=OLD0; " +
+          "__Secure-next-auth.session-token.1=OLD1; " +
+          "cf_clearance=CFCLEAR; __cf_bm=CFBM; _cfuvid=CFUV; _puid=PUID",
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+      onCredentialsRefreshed: (creds) => {
+        refreshed = creds;
+      },
+    });
+
+    assert.ok(refreshed, "callback should fire on rotation");
+    assert.match(refreshed.apiKey, /session-token\.0=NEW0/, "session-token.0 rotated");
+    assert.match(refreshed.apiKey, /session-token\.1=NEW1/, "session-token.1 rotated");
+    assert.match(refreshed.apiKey, /cf_clearance=CFCLEAR/, "cf_clearance preserved");
+    assert.match(refreshed.apiKey, /__cf_bm=CFBM/, "__cf_bm preserved");
+    assert.match(refreshed.apiKey, /_cfuvid=CFUV/, "_cfuvid preserved");
+    assert.match(refreshed.apiKey, /_puid=PUID/, "_puid preserved");
+    // Old session-token values must NOT survive in the merged blob.
+    assert.doesNotMatch(refreshed.apiKey, /OLD0/);
+    assert.doesNotMatch(refreshed.apiKey, /OLD1/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("Cookie rotation: returns null when Set-Cookie has no session-token", async () => {
+  // When NextAuth doesn't rotate (Set-Cookie sets only unrelated cookies, or
+  // returns the same session-token value), the callback shouldn't fire.
+  reset();
+  const m = installMockFetch({
+    session: {
+      status: 200,
+      body: {
+        accessToken: "jwt-abc",
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+        user: { id: "user-1" },
+      },
+      setCookie: "some-other-cookie=value; Path=/",
+    },
+  });
+  try {
+    let refreshed = null;
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "cookie-v1" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+      onCredentialsRefreshed: (creds) => {
+        refreshed = creds;
+      },
+    });
+    assert.equal(refreshed, null, "no rotation should not fire callback");
+  } finally {
+    m.restore();
+  }
+});
+
+// ─── Echo suppression in extractContent ─────────────────────────────────────
+
+test("Stream parser: echoed prior assistant turn is suppressed (streaming)", async () => {
+  // chatgpt.com sometimes echoes prior assistant turns at the start of the
+  // stream with status: finished_successfully BEFORE the new generation
+  // starts. The parser must not emit echoed bytes — otherwise the SSE
+  // consumer sees old content prepended to the new answer.
+  reset();
+  const m = installMockFetch({
+    conv: {
+      status: 200,
+      events: [
+        // Echo of a prior assistant turn — full content, finished, never
+        // transitions through in_progress.
+        {
+          conversation_id: "c1",
+          message: {
+            id: "echo-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["OLD ECHO ANSWER"] },
+            status: "finished_successfully",
+          },
+        },
+        // The real new turn — streams as in_progress, then finishes.
+        {
+          conversation_id: "c1",
+          message: {
+            id: "new-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["Hello"] },
+            status: "in_progress",
+          },
+        },
+        {
+          conversation_id: "c1",
+          message: {
+            id: "new-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["Hello world"] },
+            status: "finished_successfully",
+          },
+        },
+      ],
+    },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }], stream: true },
+      stream: true,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    const text = await result.response.text();
+    const contentDeltas = text
+      .split("\n")
+      .filter((l) => l.startsWith("data: ") && l !== "data: [DONE]")
+      .map((l) => {
+        try {
+          return JSON.parse(l.slice(6));
+        } catch {
+          return null;
+        }
+      })
+      .filter((j) => j?.choices?.[0]?.delta?.content)
+      .map((j) => j.choices[0].delta.content);
+
+    const joined = contentDeltas.join("");
+    assert.equal(joined, "Hello world", "only the new turn is emitted");
+    assert.doesNotMatch(joined, /OLD ECHO/, "echoed content must not appear in stream");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Stream parser: echoed prior assistant turn is suppressed (non-streaming)", async () => {
+  reset();
+  const m = installMockFetch({
+    conv: {
+      status: 200,
+      events: [
+        {
+          conversation_id: "c1",
+          message: {
+            id: "echo-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["OLD ECHO ANSWER"] },
+            status: "finished_successfully",
+          },
+        },
+        {
+          conversation_id: "c1",
+          message: {
+            id: "new-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["Hello world"] },
+            status: "in_progress",
+          },
+        },
+      ],
+    },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    const json = await result.response.json();
+    assert.equal(json.choices[0].message.content, "Hello world");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Stream parser: instant single-event reply still surfaces via fallback", async () => {
+  // Edge case: a real reply that arrives in a single event with status
+  // already finished_successfully (cached/instant). End-of-stream fallback
+  // should emit it; otherwise streaming consumers would get nothing.
+  reset();
+  const m = installMockFetch({
+    conv: {
+      status: 200,
+      events: [
+        {
+          conversation_id: "c1",
+          message: {
+            id: "instant-1",
+            author: { role: "assistant" },
+            content: { content_type: "text", parts: ["instant reply"] },
+            status: "finished_successfully",
+          },
+        },
+      ],
+    },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    const json = await result.response.json();
+    assert.equal(json.choices[0].message.content, "instant reply");
+  } finally {
+    m.restore();
+  }
+});
+
+// ─── TLS client unavailable ─────────────────────────────────────────────────
+
+test("Error: TlsClientUnavailableError returns 502 with TLS_UNAVAILABLE code", async () => {
+  reset();
+  // Make the override throw TlsClientUnavailableError on the conversation
+  // call (after a successful session/sentinel/dpl pass). The executor catches
+  // the error and surfaces TLS_UNAVAILABLE so operators can identify missing
+  // native binary issues quickly.
+  let convAttempted = false;
+  __setTlsFetchOverrideForTesting(async (url) => {
+    if (url === "https://chatgpt.com/" || url === "https://chatgpt.com") {
+      return {
+        status: 200,
+        headers: makeHeaders({ "Content-Type": "text/html" }),
+        text: '<html data-build="prod-test"></html>',
+        body: null,
+      };
+    }
+    if (url.includes("/api/auth/session")) {
+      return {
+        status: 200,
+        headers: makeHeaders({ "Content-Type": "application/json" }),
+        text: JSON.stringify({
+          accessToken: "jwt",
+          expires: new Date(Date.now() + 3600_000).toISOString(),
+          user: { id: "u" },
+        }),
+        body: null,
+      };
+    }
+    if (url.includes("/sentinel/chat-requirements")) {
+      return {
+        status: 200,
+        headers: makeHeaders({ "Content-Type": "application/json" }),
+        text: JSON.stringify({ token: "t", proofofwork: { required: false } }),
+        body: null,
+      };
+    }
+    if (url.endsWith("/backend-api/f/conversation")) {
+      convAttempted = true;
+      throw new TlsClientUnavailableError("native binary not loaded");
+    }
+    return {
+      status: 200,
+      headers: makeHeaders(),
+      text: "",
+      body: null,
+    };
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.ok(convAttempted);
+    assert.equal(result.response.status, 502);
+    const json = await result.response.json();
+    assert.equal(json.error.code, "TLS_UNAVAILABLE");
+  } finally {
+    __setTlsFetchOverrideForTesting(null);
+  }
+});
+
+// ─── looksLikeSse heuristic ─────────────────────────────────────────────────
+
+test("looksLikeSse: detects SSE bodies", () => {
+  assert.equal(looksLikeSse('data: {"v":"hi"}\n\n'), true);
+  assert.equal(looksLikeSse("\r\n\r\ndata: foo"), true, "leading blank lines OK");
+  assert.equal(looksLikeSse("event: end\ndata: []"), true);
+  assert.equal(looksLikeSse("id: 42\ndata: x"), true);
+  assert.equal(looksLikeSse(": comment\ndata: x"), true, "SSE comment lines start with :");
+  assert.equal(looksLikeSse("retry: 3000\n"), true);
+});
+
+test("looksLikeSse: rejects non-SSE bodies that previously passed as 200", () => {
+  // The original peek heuristic only looked for `{` to detect JSON errors,
+  // letting Cloudflare HTML challenge pages and plain-text 4xx bodies
+  // masquerade as 200 SSE responses. looksLikeSse must reject these.
+  assert.equal(looksLikeSse('{"detail":"rate limited"}'), false, "JSON error");
+  assert.equal(looksLikeSse("<!DOCTYPE html>\n<html>"), false, "HTML doctype");
+  assert.equal(looksLikeSse("<html><head>"), false, "HTML page");
+  assert.equal(looksLikeSse("Just a moment..."), false, "Cloudflare plain-text challenge");
+  assert.equal(looksLikeSse("Attention Required! | Cloudflare"), false);
+  assert.equal(looksLikeSse(""), false, "empty body");
+  assert.equal(looksLikeSse("   \n\n"), false, "whitespace only");
+  assert.equal(looksLikeSse("error: rate limit"), false, "non-SSE field name");
 });

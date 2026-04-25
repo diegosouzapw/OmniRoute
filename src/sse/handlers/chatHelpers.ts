@@ -148,6 +148,10 @@ export async function executeChatWithBreaker({
               expiresIn: newCreds.expiresIn,
               expiresAt: newCreds.expiresAt,
               providerSpecificData: newCreds.providerSpecificData,
+              // Cookie/session providers (chatgpt-web) rotate the stored
+              // apiKey blob mid-request — forward it so the DB credential
+              // doesn't go stale after Set-Cookie rotation.
+              apiKey: newCreds.apiKey,
               testStatus: "active",
             });
           },

@@ -20,7 +20,6 @@ import { createHash, randomUUID, randomBytes } from "node:crypto";
 import {
   tlsFetchChatGpt,
   TlsClientUnavailableError,
-  type TlsFetchOptions,
   type TlsFetchResult,
 } from "../services/chatgptTlsClient.ts";
 
@@ -112,12 +111,12 @@ const TOKEN_TTL_MS = 5 * 60 * 1000; // 5min — accessTokens are short-lived
 const tokenCache = new Map<string, TokenEntry>();
 
 function cookieKey(cookie: string): string {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < cookie.length; i++) {
-    hash ^= cookie.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
+  // SHA-256 prefix (64 bits). Used as the Map key for tokenCache and
+  // warmupCache; the previous 32-bit FNV-1a was small enough that a
+  // birthday-paradox collision could surface one user's cached accessToken
+  // to another's request. 64 bits is overkill for the 200-entry cache but
+  // costs essentially nothing.
+  return createHash("sha256").update(cookie).digest("hex").slice(0, 16);
 }
 
 function tokenLookup(cookie: string): TokenEntry | null {
@@ -153,15 +152,69 @@ interface SessionResponse {
   user?: { id?: string };
 }
 
-function extractRefreshedCookie(setCookieHeader: string | null): string | null {
+/**
+ * Merge any rotated session-token chunks from a Set-Cookie response into the
+ * original cookie blob, preserving every other cookie the caller pasted
+ * (cf_clearance, __cf_bm, _cfuvid, _puid, ...). Returns null if no rotation
+ * occurred or the rotated chunks match what's already there.
+ *
+ * Returning only the matched session-token chunks here was a bug: when the
+ * caller pastes a full DevTools Cookie line (the recommended form), the
+ * Cloudflare cookies are required for subsequent requests, and dropping
+ * them re-triggers `cf-mitigated: challenge`.
+ */
+function mergeRefreshedCookie(
+  originalCookie: string,
+  setCookieHeader: string | null
+): string | null {
   if (!setCookieHeader) return null;
-  // Set-Cookie can rotate either an unchunked token or any of the chunks.
-  // Capture all relevant chunks and re-emit them as a single Cookie header value.
   const matches = Array.from(
     setCookieHeader.matchAll(/(__Secure-next-auth\.session-token(?:\.\d+)?)=([^;,\s]+)/g)
   );
   if (matches.length === 0) return null;
-  return matches.map((m) => `${m[1]}=${m[2]}`).join("; ");
+
+  const refreshed = new Map<string, string>();
+  for (const m of matches) refreshed.set(m[1], m[2]);
+
+  let blob = originalCookie.trim();
+  if (/^cookie\s*:\s*/i.test(blob)) blob = blob.replace(/^cookie\s*:\s*/i, "");
+
+  // Bare value (no `=`): the original was just the session-token contents.
+  // Replace with the new chunked form.
+  if (!/=/.test(blob)) {
+    return Array.from(refreshed, ([k, v]) => `${k}=${v}`).join("; ");
+  }
+
+  const pairs = blob.split(/;\s*/).filter(Boolean);
+  const replaced = new Set<string>();
+  const result: string[] = [];
+  let mutated = false;
+  for (const pair of pairs) {
+    const eqIdx = pair.indexOf("=");
+    if (eqIdx < 0) {
+      result.push(pair);
+      continue;
+    }
+    const name = pair.slice(0, eqIdx).trim();
+    const value = pair.slice(eqIdx + 1);
+    if (refreshed.has(name)) {
+      const newValue = refreshed.get(name)!;
+      if (newValue !== value) mutated = true;
+      result.push(`${name}=${newValue}`);
+      replaced.add(name);
+    } else {
+      result.push(`${name}=${value}`);
+    }
+  }
+  // Append any rotated chunks that weren't in the original (e.g., the user
+  // pasted only `.0` but rotation returned `.0` and `.1`).
+  for (const [name, value] of refreshed) {
+    if (!replaced.has(name)) {
+      result.push(`${name}=${value}`);
+      mutated = true;
+    }
+  }
+  return mutated ? result.join("; ") : null;
 }
 
 /**
@@ -212,7 +265,7 @@ async function exchangeSession(
     throw new Error(`Session exchange failed (HTTP ${response.status})`);
   }
 
-  const refreshed = extractRefreshedCookie(response.headers.get("set-cookie"));
+  const refreshed = mergeRefreshedCookie(cookie, response.headers.get("set-cookie"));
   let data: SessionResponse = {};
   try {
     data = JSON.parse(response.text || "{}");
@@ -646,7 +699,6 @@ interface ChatGptMessage {
 function buildConversationBody(
   parsed: ParsedMessages,
   modelSlug: string,
-  conversationId: string | null,
   parentMessageId: string
 ): Record<string, unknown> {
   // Critical: do NOT send prior turns as separate `assistant` and `user`
@@ -662,7 +714,7 @@ function buildConversationBody(
   if (parsed.systemMsg.trim()) {
     systemParts.push(parsed.systemMsg.trim());
   }
-  if (parsed.history.length > 0 && !conversationId) {
+  if (parsed.history.length > 0) {
     const formatted = parsed.history
       .map((h) => `${h.role === "assistant" ? "Assistant" : "User"}: ${h.content}`)
       .join("\n\n");
@@ -672,7 +724,7 @@ function buildConversationBody(
   }
 
   const messages: ChatGptMessage[] = [];
-  if (systemParts.length > 0 && !conversationId) {
+  if (systemParts.length > 0) {
     messages.push({
       id: randomUUID(),
       author: { role: "system" },
@@ -690,7 +742,9 @@ function buildConversationBody(
     action: "next",
     messages,
     model: modelSlug,
-    conversation_id: conversationId,
+    // Conversation continuity intentionally disabled — Temporary Chat mode
+    // expires conversation_ids quickly upstream and 404s on reuse.
+    conversation_id: null,
     parent_message_id: parentMessageId,
     timezone_offset_min: -new Date().getTimezoneOffset(),
     history_and_training_disabled: true,
@@ -776,8 +830,8 @@ async function* readChatGptSseEvents(
 
 // ─── Content extraction ─────────────────────────────────────────────────────
 // ChatGPT SSE chunks contain CUMULATIVE content (full text so far in `parts[0]`),
-// not deltas. Diff against `seenLen` to emit incremental tokens — same pattern
-// perplexity-web.ts uses for markdown blocks (lines 386-397).
+// not deltas. Diff against the emitted length to produce incremental tokens —
+// same pattern perplexity-web.ts uses for markdown blocks (lines 386-397).
 
 interface ContentChunk {
   delta?: string;
@@ -792,14 +846,21 @@ async function* extractContent(
   eventStream: ReadableStream<Uint8Array>,
   signal?: AbortSignal | null
 ): AsyncGenerator<ContentChunk> {
-  let fullAnswer = "";
-  let seenLen = 0;
+  // ChatGPT may echo prior assistant turns at the start of the stream with
+  // status: "finished_successfully" and full content, before sending the new
+  // generation. If we emit those bytes downstream, streaming consumers see
+  // the previous answer prepended to the new one (visible in Open WebUI as
+  // run-on output across turns). Strategy: only emit deltas after we've seen
+  // status === "in_progress" for the current message id (i.e., it's being
+  // generated live in this stream). Echoes always arrive already finished
+  // and never transition through in_progress, so they get suppressed. An
+  // end-of-stream fallback handles the rare case where a real turn arrives
+  // as a single already-finished event (instant/cached responses).
   let conversationId: string | null = null;
-  let messageId: string | null = null;
-  // ChatGPT may echo prior messages in the stream for context before sending
-  // the new assistant turn. Track which message id we're currently consuming
-  // so we reset the accumulator when a new turn starts, and so "finished_*"
-  // on an old echoed message doesn't end the stream prematurely.
+  let currentId: string | null = null;
+  let currentParts = "";
+  let emittedLen = 0;
+  let isLive = false;
 
   for await (const event of readChatGptSseEvents(eventStream, signal)) {
     if (event.error) {
@@ -815,45 +876,58 @@ async function* extractContent(
 
     const m = event.message;
     if (!m) continue;
-
-    const role = m.author?.role ?? "";
-    if (role !== "assistant") continue;
+    if (m.author?.role !== "assistant") continue;
 
     const id = m.id ?? null;
-    if (id && id !== messageId) {
-      // A new assistant message has started — reset accumulator. The previous
-      // message was either an echo of prior context or an aside; we only emit
-      // content for the latest message.
-      messageId = id;
-      fullAnswer = "";
-      seenLen = 0;
+    const status = m.status ?? "";
+
+    if (id && id !== currentId) {
+      currentId = id;
+      currentParts = "";
+      emittedLen = 0;
+      isLive = false;
+    }
+
+    if (status === "in_progress") {
+      isLive = true;
     }
 
     const parts = m.content?.parts ?? [];
     if (parts.length === 0) continue;
     const cumulative = parts.map((p) => (typeof p === "string" ? p : "")).join("");
+    if (cumulative.length > currentParts.length) {
+      currentParts = cumulative;
+    }
 
-    if (cumulative.length > seenLen) {
-      const delta = cumulative.slice(seenLen);
-      fullAnswer = cumulative;
-      seenLen = cumulative.length;
+    if (isLive && currentParts.length > emittedLen) {
+      const delta = currentParts.slice(emittedLen);
+      emittedLen = currentParts.length;
       yield {
         delta,
-        answer: fullAnswer,
+        answer: currentParts,
         conversationId: conversationId ?? undefined,
-        messageId: messageId ?? undefined,
+        messageId: currentId ?? undefined,
       };
     }
-    // Don't break on finished_successfully here — the server may still send
-    // the new turn after echoing prior messages. Let the stream end naturally
-    // (when the upstream closes or sends [DONE]).
+  }
+
+  // End-of-stream fallback: if we never observed status === "in_progress"
+  // for the current id (single-event reply, cached/instant response), emit
+  // the accumulated content now so the consumer doesn't get an empty stream.
+  if (!isLive && currentParts.length > emittedLen) {
+    yield {
+      delta: currentParts.slice(emittedLen),
+      answer: currentParts,
+      conversationId: conversationId ?? undefined,
+      messageId: currentId ?? undefined,
+    };
   }
 
   yield {
     delta: "",
-    answer: fullAnswer,
+    answer: currentParts,
     conversationId: conversationId ?? undefined,
-    messageId: messageId ?? undefined,
+    messageId: currentId ?? undefined,
     done: true,
   };
 }
@@ -869,8 +943,6 @@ function buildStreamingResponse(
   model: string,
   cid: string,
   created: number,
-  history: Array<{ role: string; content: string }>,
-  currentMsg: string,
   signal?: AbortSignal | null
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
@@ -893,14 +965,7 @@ function buildStreamingResponse(
           )
         );
 
-        let fullAnswer = "";
-        let respConversationId: string | null = null;
-        let respMessageId: string | null = null;
-
         for await (const chunk of extractContent(eventStream, signal)) {
-          if (chunk.conversationId) respConversationId = chunk.conversationId;
-          if (chunk.messageId) respMessageId = chunk.messageId;
-
           if (chunk.error) {
             controller.enqueue(
               encoder.encode(
@@ -925,7 +990,6 @@ function buildStreamingResponse(
           }
 
           if (chunk.done) {
-            fullAnswer = chunk.answer || fullAnswer;
             break;
           }
 
@@ -953,7 +1017,6 @@ function buildStreamingResponse(
               );
             }
           }
-          if (chunk.answer) fullAnswer = chunk.answer;
         }
 
         controller.enqueue(
@@ -969,12 +1032,6 @@ function buildStreamingResponse(
           )
         );
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        // Conversation continuity intentionally not persisted (Temporary Chat
-        // mode — see comment near the top of the file).
-        void respConversationId;
-        void respMessageId;
-        void history;
-        void currentMsg;
       } catch (err) {
         controller.enqueue(
           encoder.encode(
@@ -1010,17 +1067,12 @@ async function buildNonStreamingResponse(
   model: string,
   cid: string,
   created: number,
-  history: Array<{ role: string; content: string }>,
   currentMsg: string,
   signal?: AbortSignal | null
 ): Promise<Response> {
   let fullAnswer = "";
-  let respConversationId: string | null = null;
-  let respMessageId: string | null = null;
 
   for await (const chunk of extractContent(eventStream, signal)) {
-    if (chunk.conversationId) respConversationId = chunk.conversationId;
-    if (chunk.messageId) respMessageId = chunk.messageId;
     if (chunk.error) {
       return new Response(
         JSON.stringify({
@@ -1035,11 +1087,6 @@ async function buildNonStreamingResponse(
     }
     if (chunk.answer) fullAnswer = chunk.answer;
   }
-
-  // Conversation continuity intentionally not persisted (Temporary Chat mode).
-  void respConversationId;
-  void respMessageId;
-  void history;
 
   fullAnswer = cleanChatGptText(fullAnswer);
   const promptTokens = Math.ceil(currentMsg.length / 4);
@@ -1284,11 +1331,10 @@ export class ChatGptWebExecutor extends BaseExecutor {
     // chatgpt.com expires those conversation_ids quickly — re-using them
     // returns 404. Each request starts a fresh conversation; clients (Open
     // WebUI, OpenAI-API-style) send the full history each turn anyway.
-    const conversationId: string | null = null;
     const parentMessageId = randomUUID();
 
     const modelSlug = MODEL_MAP[model] ?? model;
-    const cgptBody = buildConversationBody(parsed, modelSlug, conversationId, parentMessageId);
+    const cgptBody = buildConversationBody(parsed, modelSlug, parentMessageId);
 
     const headers: Record<string, string> = {
       ...browserHeaders(),
@@ -1305,10 +1351,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
     if (proofToken) headers["openai-sentinel-proof-token"] = proofToken;
     if (turnstileToken) headers["openai-sentinel-turnstile-token"] = turnstileToken;
 
-    log?.info?.(
-      "CGPT-WEB",
-      `Conversation request → ${modelSlug} (continue=${!!conversationId}, pow=${!!proofToken})`
-    );
+    log?.info?.("CGPT-WEB", `Conversation request → ${modelSlug} (pow=${!!proofToken})`);
 
     let response: TlsFetchResult;
     try {
@@ -1388,15 +1431,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
 
     let finalResponse: Response;
     if (stream) {
-      const sseStream = buildStreamingResponse(
-        bodyStream,
-        model,
-        cid,
-        created,
-        parsed.history,
-        parsed.currentMsg,
-        signal
-      );
+      const sseStream = buildStreamingResponse(bodyStream, model, cid, created, signal);
       finalResponse = new Response(sseStream, {
         status: 200,
         headers: {
@@ -1411,7 +1446,6 @@ export class ChatGptWebExecutor extends BaseExecutor {
         model,
         cid,
         created,
-        parsed.history,
         parsed.currentMsg,
         signal
       );

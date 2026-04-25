@@ -62,14 +62,11 @@ async function getClient(): Promise<{
         };
         await client.start();
 
-        console.log("[CGPT-TLS] Native runtime ready (Firefox 148 fingerprint).");
         installExitHook();
         return client;
       } catch (err) {
         clientPromise = null;
         const msg = err instanceof Error ? err.message : String(err);
-
-        console.log(`[CGPT-TLS] FAILED to start: ${msg}`);
         throw new TlsClientUnavailableError(
           `TLS impersonation client failed to start: ${msg}. ` +
             `Verify tls-client-node is installed and its native binary downloaded.`
@@ -234,11 +231,10 @@ async function tlsFetchStreaming(
   // Wait briefly for the file to appear so we can detect early errors.
   const ready = await waitForFile(path, 5_000);
   if (!ready) {
-    // File never appeared — request must have errored out before any body
-    // bytes. Wait for it to settle and surface as a non-streaming response.
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
@@ -247,16 +243,18 @@ async function tlsFetchStreaming(
     };
   }
 
-  // Peek the first bytes to distinguish a JSON error envelope from an SSE
-  // body. Errors typically come back as `{"detail":"..."}`; SSE bodies start
-  // with `data:` or empty lines. If it looks like an error, wait for the
-  // full body and return non-streaming so the executor can read response.text.
+  // Peek the first bytes to decide whether this looks like SSE. Anything
+  // that doesn't positively look like SSE (JSON `{...}`, HTML `<...>`, plain
+  // text rate-limit messages, Cloudflare challenge pages, etc.) gets surfaced
+  // as a non-streaming response so the executor sees the real upstream status
+  // and body — otherwise non-2xx error pages get silently treated as 200 OK
+  // and the SSE parser produces an empty completion.
   const peek = await readFirstBytes(path, 256);
-  const trimmedPeek = peek.replace(/^[\s\r\n]+/, "");
-  if (trimmedPeek.startsWith("{")) {
+  if (!looksLikeSse(peek)) {
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
@@ -265,15 +263,35 @@ async function tlsFetchStreaming(
     };
   }
 
-  // Tail the file as a real-time stream. We assume HTTP 200 here — if the
-  // upstream errored, we'd have caught it via the JSON-peek above. The
-  // request promise is still tracked so cleanup can run after it settles.
+  // Looks like SSE — start tailing. SSE bodies in practice are always 2xx;
+  // tls-client-node doesn't expose response status separately from full-body
+  // completion, so we report 200 and let the SSE parser consume the stream.
   const stream = tailFile(path, eofSymbol, requestPromise, signal);
   const headers = new Headers({
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
   });
   return { status: 200, headers, text: null, body: stream };
+}
+
+/**
+ * Returns true if the peeked response body looks like an SSE stream — i.e.,
+ * begins (after any leading whitespace) with one of the SSE field markers
+ * (`data:`, `event:`, `id:`, `retry:`) or a comment line (`:`).
+ *
+ * Exported for tests.
+ */
+export function looksLikeSse(text: string): boolean {
+  const trimmed = text.replace(/^[\s\r\n]+/, "");
+  if (!trimmed) return false;
+  if (trimmed.startsWith(":")) return true;
+  return /^(data|event|id|retry):/i.test(trimmed);
+}
+
+async function cleanupTempPath(path: string): Promise<void> {
+  await unlink(path).catch(() => {});
+  const dir = path.substring(0, path.lastIndexOf("/"));
+  await rmdir(dir).catch(() => {});
 }
 
 async function readFirstBytes(path: string, n: number): Promise<string> {
@@ -313,11 +331,21 @@ function tailFile(
       let offset = 0;
       let finished = false;
       let aborted = false;
+      let upstreamError: Error | null = null;
 
-      // Mark when the request completes so we know to drain the rest.
-      done.finally(() => {
-        finished = true;
-      });
+      // Track request settlement, capturing both fulfillment and rejection.
+      // Without the rejection branch, a mid-stream tls-client-node error
+      // becomes an unhandledRejection — the stream cleans up silently and
+      // the consumer sees what looks like a successful truncated response.
+      done.then(
+        () => {
+          finished = true;
+        },
+        (err) => {
+          upstreamError = err instanceof Error ? err : new Error(String(err));
+          finished = true;
+        }
+      );
 
       // If the caller aborts, stop tailing immediately.
       const onAbort = () => {
@@ -328,6 +356,7 @@ function tailFile(
         else signal.addEventListener("abort", onAbort, { once: true });
       }
 
+      let errored = false;
       try {
         while (!aborted) {
           const { bytesRead } = await fd.read(buf, 0, buf.length, offset);
@@ -342,7 +371,13 @@ function tailFile(
             }
             controller.enqueue(new Uint8Array(chunk));
           } else if (finished) {
-            // No more data and request completed — drain done.
+            // No more data and request completed. If the request rejected,
+            // surface the error so the consumer doesn't think the stream
+            // ended cleanly.
+            if (upstreamError) {
+              controller.error(upstreamError);
+              errored = true;
+            }
             break;
           } else {
             await sleep(25);
@@ -350,13 +385,14 @@ function tailFile(
         }
       } catch (err) {
         controller.error(err);
+        errored = true;
       } finally {
         if (signal) signal.removeEventListener("abort", onAbort);
         await fd.close().catch(() => {});
         await unlink(path).catch(() => {});
         const dir = path.substring(0, path.lastIndexOf("/"));
         await rmdir(dir).catch(() => {});
-        controller.close();
+        if (!errored) controller.close();
       }
     },
   });
