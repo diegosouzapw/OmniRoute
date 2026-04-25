@@ -2851,6 +2851,16 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   const entry = getRegistryEntry(provider);
   if (!entry) {
+    if (isSelfHostedChatProvider(provider)) {
+      return await validateOpenAILikeProvider({
+        provider,
+        apiKey,
+        baseUrl: resolveBaseUrl(null, providerSpecificData),
+        providerSpecificData,
+        modelId: "local-model",
+        modelsUrl: addModelsSuffix(providerSpecificData?.baseUrl || ""),
+      });
+    }
     return { valid: false, error: "Provider validation not supported", unsupported: true };
   }
 

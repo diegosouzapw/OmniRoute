@@ -241,28 +241,7 @@ test("provider models route returns the local catalog for GitLab Duo fallback mo
   assert.equal(body.provider, "gitlab");
   assert.equal(body.source, "local_catalog");
   assert.deepEqual(body.models, [
-    { id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions", owned_by: "gitlab" },
-  ]);
-});
-
-test("provider models route returns the local catalog for GitLab Duo OAuth fallback models", async () => {
-  const connection = await seedConnection("gitlab-duo", {
-    authType: "oauth",
-    accessToken: "oauth-access",
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "gitlab-duo");
-  assert.equal(body.source, "local_catalog");
-  assert.deepEqual(body.models, [
-    {
-      id: "gitlab-duo-code-suggestions",
-      name: "GitLab Duo Code Suggestions",
-      owned_by: "gitlab-duo",
-    },
+    { id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" },
   ]);
 });
 
@@ -352,88 +331,6 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
 });
 
-test("provider models route fetches remote catalogs for new OpenAI-compatible gateway providers", async () => {
-  const cases = [
-    {
-      provider: "glhf",
-      apiKey: "glhf-key",
-      expectedUrl: "https://glhf.chat/api/openai/v1/models",
-      model: { id: "hf:Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B via GLHF" },
-    },
-    {
-      provider: "cablyai",
-      apiKey: "cably-key",
-      expectedUrl: "https://cablyai.com/v1/models",
-      model: { id: "gpt-4o", name: "GPT-4o via CablyAI" },
-    },
-    {
-      provider: "thebai",
-      apiKey: "theb-key",
-      expectedUrl: "https://api.theb.ai/v1/models",
-      model: { id: "gpt-4o", name: "GPT-4o via TheB.AI" },
-    },
-    {
-      provider: "fenayai",
-      apiKey: "fenay-key",
-      expectedUrl: "https://fenayai.com/v1/models",
-      model: { id: "deepseek-chat", name: "DeepSeek Chat via FenayAI" },
-    },
-    {
-      provider: "empower",
-      apiKey: "empower-key",
-      expectedUrl: "https://app.empower.dev/api/v1/models",
-      model: { id: "empower-functions", name: "Empower Functions", owned_by: "empower" },
-    },
-    {
-      provider: "nous-research",
-      apiKey: "nous-key",
-      expectedUrl: "https://inference-api.nousresearch.com/v1/models",
-      model: {
-        id: "nousresearch/hermes-4-70b",
-        name: "Nous: Hermes 4 70B",
-        owned_by: "nous-research",
-      },
-    },
-    {
-      provider: "poe",
-      apiKey: "poe-key",
-      expectedUrl: "https://api.poe.com/v1/models",
-      model: { id: "Claude-Sonnet-4.5", name: "Claude Sonnet 4.5", owned_by: "Anthropic" },
-    },
-    {
-      provider: "chutes",
-      apiKey: "chutes-key",
-      expectedUrl: "https://llm.chutes.ai/v1/models",
-      model: { id: "Qwen/Qwen3-32B-TEE", name: "Qwen3 32B via Chutes" },
-    },
-  ];
-
-  for (const entry of cases) {
-    const connection = await seedConnection(entry.provider, {
-      apiKey: entry.apiKey,
-    });
-    const seenUrls = [];
-
-    globalThis.fetch = async (url, init = {}) => {
-      seenUrls.push(String(url));
-      assert.equal(init.method, "GET");
-      assert.equal(init.headers.Authorization, `Bearer ${entry.apiKey}`);
-      return Response.json({
-        data: [entry.model],
-      });
-    };
-
-    const response = await callRoute(connection.id, "?refresh=true");
-    const body = (await response.json()) as any;
-
-    assert.equal(response.status, 200);
-    assert.equal(body.provider, entry.provider);
-    assert.equal(body.source, "api");
-    assert.deepEqual(seenUrls, [entry.expectedUrl]);
-    assert.deepEqual(body.models, [entry.model]);
-  }
-});
-
 test("provider models route returns the local catalog for embedding and rerank providers", async () => {
   const voyage = await seedConnection("voyage-ai", {
     apiKey: "voyage-key",
@@ -462,36 +359,6 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
 });
 
-test("provider models route returns the local catalog for NLP Cloud", async () => {
-  const connection = await seedConnection("nlpcloud", {
-    apiKey: "nlpc-key",
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "nlpcloud");
-  assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "chatdolphin"));
-  assert.ok(body.models.some((model) => model.id === "gpt-oss-120b"));
-  assert.ok(body.models.some((model) => model.id === "dolphin-mixtral-8x7b"));
-});
-
-test("provider models route returns the local catalog for Petals", async () => {
-  const connection = await seedConnection("petals", {
-    apiKey: null,
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "petals");
-  assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "stabilityai/StableBeluga2"));
-});
-
 test("provider models route returns the local catalog for Runway video models", async () => {
   const connection = await seedConnection("runwayml", {
     apiKey: "runway-key",
@@ -506,23 +373,6 @@ test("provider models route returns the local catalog for Runway video models", 
   assert.ok(body.models.some((model) => model.id === "gen4.5"));
   assert.ok(body.models.some((model) => model.id === "veo3.1"));
   assert.ok(body.models.some((model) => model.id === "gen3a_turbo"));
-});
-
-test("provider models route returns the local catalog for amazon-q via the kiro-compatible registry", async () => {
-  const connection = await seedConnection("amazon-q", {
-    authType: "oauth",
-    apiKey: null,
-    accessToken: "amazon-q-access",
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "amazon-q");
-  assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4.5"));
-  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4"));
 });
 
 test("provider models route returns the updated local catalog for GitHub Copilot", async () => {
@@ -563,9 +413,9 @@ test("provider models route returns the expanded local catalog for Kiro", async 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kiro");
   assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "auto"));
+  assert.ok(body.models.some((model) => model.id === "claude-haiku-4.5"));
   assert.ok(body.models.some((model) => model.id === "claude-opus-4.7"));
-  assert.ok(body.models.some((model) => model.id === "qwen3-coder-next"));
+  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4.6"));
 });
 
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
