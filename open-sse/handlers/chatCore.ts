@@ -142,6 +142,66 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
 
+const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
+const CHAT_LOG_TEXT_LIMIT = 64 * 1024;
+const CHAT_LOG_ARRAY_TAIL_ITEMS = 24;
+const CHAT_LOG_MAX_DEPTH = 6;
+const CHAT_LOG_MAX_OBJECT_KEYS = 80;
+
+function capMemoryExtractionText(value: string): string {
+  if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
+  return value.slice(-MEMORY_EXTRACTION_TEXT_LIMIT);
+}
+
+function truncateChatLogText(value: string): string {
+  if (value.length <= CHAT_LOG_TEXT_LIMIT) return value;
+  const head = value.slice(0, Math.floor(CHAT_LOG_TEXT_LIMIT / 2));
+  const tail = value.slice(-Math.ceil(CHAT_LOG_TEXT_LIMIT / 2));
+  return `${head}\n[...truncated ${value.length - CHAT_LOG_TEXT_LIMIT} chars...]\n${tail}`;
+}
+
+function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "string") return truncateChatLogText(value);
+  if (typeof value !== "object") return value;
+  if (depth >= CHAT_LOG_MAX_DEPTH) return "[MaxDepth]";
+
+  if (Array.isArray(value)) {
+    const retained =
+      value.length > CHAT_LOG_ARRAY_TAIL_ITEMS ? value.slice(-CHAT_LOG_ARRAY_TAIL_ITEMS) : value;
+    const cloned = retained.map((item) => cloneBoundedChatLogPayload(item, depth + 1));
+    if (value.length > CHAT_LOG_ARRAY_TAIL_ITEMS) {
+      return [
+        {
+          _omniroute_truncated_array: true,
+          originalLength: value.length,
+          retainedTailItems: CHAT_LOG_ARRAY_TAIL_ITEMS,
+        },
+        ...cloned,
+      ];
+    }
+    return cloned;
+  }
+
+  const result: Record<string, unknown> = {};
+  const entries = Object.entries(value as Record<string, unknown>);
+  for (const [key, item] of entries.slice(0, CHAT_LOG_MAX_OBJECT_KEYS)) {
+    result[key] = cloneBoundedChatLogPayload(item, depth + 1);
+  }
+  if (entries.length > CHAT_LOG_MAX_OBJECT_KEYS) {
+    result._omniroute_truncated_keys = entries.length - CHAT_LOG_MAX_OBJECT_KEYS;
+  }
+  return result;
+}
+
+function isSmallEnoughForSemanticCache(value: unknown): boolean {
+  try {
+    return JSON.stringify(value).length <= 256 * 1024;
+  } catch {
+    return false;
+  }
+}
+
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
 ): string {
@@ -149,7 +209,7 @@ function extractMemoryTextFromResponse(
 
   const openAIText = response?.choices?.[0]?.message?.content;
   if (typeof openAIText === "string") {
-    return openAIText.trim();
+    return capMemoryExtractionText(openAIText.trim());
   }
 
   if (Array.isArray(response?.content)) {
@@ -160,11 +220,11 @@ function extractMemoryTextFromResponse(
       .map((part: Record<string, unknown>) => String(part.text).trim())
       .filter(Boolean)
       .join("\n");
-    if (contentText) return contentText;
+    if (contentText) return capMemoryExtractionText(contentText);
   }
 
   if (typeof response?.output_text === "string") {
-    return response.output_text.trim();
+    return capMemoryExtractionText(response.output_text.trim());
   }
 
   return "";
@@ -182,7 +242,7 @@ function extractMemoryTextFromRequestBody(
       if (msg?.role !== "user") continue;
 
       if (typeof msg.content === "string" && msg.content.trim().length > 0) {
-        return msg.content.trim();
+        return capMemoryExtractionText(msg.content.trim());
       }
 
       if (Array.isArray(msg.content)) {
@@ -196,15 +256,43 @@ function extractMemoryTextFromRequestBody(
           .filter(Boolean)
           .join("\n")
           .trim();
-        if (text) return text;
+        if (text) return capMemoryExtractionText(text);
       }
     }
   }
 
   const input = Array.isArray(body.input) ? body.input : null;
   if (input && input.length > 0) {
-    const chunks = input
-      .map((item: Record<string, unknown>) => {
+    for (let i = input.length - 1; i >= 0; i -= 1) {
+      const item = input[i] as Record<string, unknown>;
+      const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
+      const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
+      if (role && role !== "user") continue;
+      if (itemType && itemType !== "message") continue;
+
+      if (typeof item?.content === "string" && item.content.trim()) {
+        return capMemoryExtractionText(item.content.trim());
+      }
+      if (Array.isArray(item?.content)) {
+        const text = item.content
+          .map((part: Record<string, unknown>) => {
+            if (typeof part?.text === "string") return part.text.trim();
+            if (part?.type === "input_text" && typeof part?.text === "string")
+              return part.text.trim();
+            return "";
+          })
+          .filter(Boolean)
+          .join("\n")
+          .trim();
+        if (text) return capMemoryExtractionText(text);
+      }
+    }
+
+    const tailChunks: string[] = [];
+    let tailLength = 0;
+    for (let i = input.length - 1; i >= 0 && tailLength < MEMORY_EXTRACTION_TEXT_LIMIT; i -= 1) {
+      const item = input[i] as Record<string, unknown>;
+      const text = (() => {
         const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
         const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
         if (role && role !== "user") return "";
@@ -224,11 +312,13 @@ function extractMemoryTextFromRequestBody(
             .trim();
         }
         return "";
-      })
-      .filter(Boolean)
-      .join("\n")
-      .trim();
-    if (chunks) return chunks;
+      })();
+      if (!text) continue;
+      tailChunks.unshift(text);
+      tailLength += text.length + 1;
+    }
+    const chunks = tailChunks.join("\n").trim();
+    if (chunks) return capMemoryExtractionText(chunks);
   }
 
   return "";
@@ -641,6 +731,7 @@ export async function handleChatCore({
   log,
   onCredentialsRefreshed,
   onRequestSuccess,
+  onStreamFailure,
   onDisconnect,
   clientRawRequest,
   connectionId,
@@ -941,19 +1032,23 @@ export async function handleChatCore({
       connectionId,
       duration: Date.now() - startTime,
       tokens: tokens || {},
-      requestBody: attachLogMeta((body as Record<string, unknown>) ?? undefined, {
-        claudePromptCache: claudeCacheMeta,
-      }),
-      responseBody: attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
-        claudePromptCache: claudeCacheMeta
-          ? {
-              applied: claudeCacheMeta.applied,
-              totalBreakpoints: claudeCacheMeta.totalBreakpoints,
-              anthropicBeta: claudeCacheMeta.anthropicBeta,
-            }
-          : null,
-        claudePromptCacheUsage: claudeCacheUsageMeta,
-      }),
+      requestBody: cloneBoundedChatLogPayload(
+        attachLogMeta((body as Record<string, unknown>) ?? undefined, {
+          claudePromptCache: claudeCacheMeta,
+        })
+      ),
+      responseBody: cloneBoundedChatLogPayload(
+        attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
+          claudePromptCache: claudeCacheMeta
+            ? {
+                applied: claudeCacheMeta.applied,
+                totalBreakpoints: claudeCacheMeta.totalBreakpoints,
+                anthropicBeta: claudeCacheMeta.anthropicBeta,
+              }
+            : null,
+          claudePromptCacheUsage: claudeCacheUsageMeta,
+        })
+      ),
       error: error || null,
       sourceFormat,
       targetFormat,
@@ -1031,7 +1126,10 @@ export async function handleChatCore({
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
   // Create request logger for this session: sourceFormat_targetFormat_model
-  const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model);
+  const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
+    enabled: detailedLoggingEnabled,
+    captureStreamChunks: detailedLoggingEnabled,
+  });
 
   // 0. Log client raw request (before format conversion)
   if (clientRawRequest) {
@@ -2758,7 +2856,11 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (semanticCacheEnabled && isCacheableForWrite(body, clientRawRequest?.headers)) {
+    if (
+      semanticCacheEnabled &&
+      isCacheableForWrite(body, clientRawRequest?.headers) &&
+      isSmallEnoughForSemanticCache(translatedResponse)
+    ) {
       const signature = generateSignature(
         model,
         body.messages ?? body.input,
@@ -2939,6 +3041,7 @@ export async function handleChatCore({
       try {
         const cleanBody = { ...streamResponseBody };
         delete cleanBody._streamed;
+        if (!isSmallEnoughForSemanticCache(cleanBody)) return;
         const sig = generateSignature(
           model,
           body.messages ?? body.input,
@@ -2953,6 +3056,20 @@ export async function handleChatCore({
       } catch {
         // Cache write failed — non-critical
       }
+    }
+  };
+
+  const handleStreamFailure = (failure: {
+    status: number;
+    message: string;
+    code?: string;
+    type?: string;
+  }) => {
+    persistFailureUsage(failure.status || HTTP_STATUS.BAD_GATEWAY, failure.code || failure.type);
+    try {
+      onStreamFailure?.(failure);
+    } catch {
+      // Best-effort fallback state update only.
     }
   };
 
@@ -2977,7 +3094,8 @@ export async function handleChatCore({
       connectionId,
       body,
       onStreamComplete,
-      apiKeyInfo
+      apiKeyInfo,
+      handleStreamFailure
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -2992,7 +3110,8 @@ export async function handleChatCore({
       connectionId,
       body,
       onStreamComplete,
-      apiKeyInfo
+      apiKeyInfo,
+      handleStreamFailure
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
@@ -3004,7 +3123,8 @@ export async function handleChatCore({
       connectionId,
       body,
       onStreamComplete,
-      apiKeyInfo
+      apiKeyInfo,
+      handleStreamFailure
     );
   }
 

@@ -169,7 +169,8 @@ if (!nodeSupport.nodeCompatible) {
 `);
 }
 
-const serverJs = join(APP_DIR, "server.js");
+const serverWsJs = join(APP_DIR, "server-ws.mjs");
+const serverJs = existsSync(serverWsJs) ? serverWsJs : join(APP_DIR, "server.js");
 
 if (!existsSync(serverJs)) {
   console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);

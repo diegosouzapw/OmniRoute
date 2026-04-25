@@ -1,5 +1,5 @@
 import { getModelInfo } from "../services/model";
-import { clearAccountError } from "../services/auth";
+import { clearAccountError, markAccountUnavailable } from "../services/auth";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -138,6 +138,7 @@ export async function executeChatWithBreaker({
   comboStepId,
   comboExecutionKey,
   extendedContext,
+  providerProfile,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
 
@@ -170,6 +171,17 @@ export async function executeChatWithBreaker({
           },
           onRequestSuccess: async () => {
             await clearAccountError(credentials.connectionId, credentials);
+          },
+          onStreamFailure: async (failure: any) => {
+            if (!credentials.connectionId) return;
+            await markAccountUnavailable(
+              credentials.connectionId,
+              Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
+              String(failure?.message || failure?.code || "stream failure"),
+              provider,
+              model,
+              providerProfile
+            );
           },
         })
       );

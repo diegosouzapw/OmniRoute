@@ -195,6 +195,17 @@ console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
 
+const standaloneWsSrc = join(ROOT, "scripts", "standalone-server-ws.mjs");
+const responsesWsProxySrc = join(ROOT, "scripts", "responses-ws-proxy.mjs");
+if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc)) {
+  console.log("  📋 Adding Responses WebSocket standalone wrapper...");
+  cpSync(standaloneWsSrc, join(APP_DIR, "server-ws.mjs"));
+  writeFileSync(
+    join(APP_DIR, "responses-ws-proxy.mjs"),
+    'export * from "../scripts/responses-ws-proxy.mjs";\n'
+  );
+}
+
 // ── Next.js Turbopack Standalone Tracer Fix ───────────────
 // Workaround for Next.js 15+ standalone mode missing Turbopack chunks
 const staticChunksSrc = join(ROOT, ".next", "server", "chunks");

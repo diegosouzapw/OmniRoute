@@ -16,6 +16,7 @@ const {
   createStructuredSSECollector,
 } = await import("../../open-sse/utils/streamPayloadCollector.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
 const textEncoder = new TextEncoder();
 const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
@@ -889,4 +890,66 @@ test("createSSEStream passthrough drops keepalive event blocks without losing Re
   assert.match(text, /response\.output_text\.delta/);
   assert.match(text, /Hello keepalive-safe/);
   assert.match(text, /data: \[DONE\]/);
+});
+
+test("createSSEStream passthrough aborts on Responses usage-limit failures and reports 429", async () => {
+  let failurePayload = null;
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `data: ${JSON.stringify({
+          type: "response.failed",
+          response: {
+            id: "resp_usage_limit",
+            object: "response",
+            model: "gpt-5.5",
+            status: "failed",
+            error: {
+              code: "usage_limit_reached",
+              message: "Your weekly usage limit has been reached",
+            },
+          },
+        })}\n\n`,
+      ],
+      {
+        mode: "passthrough",
+        sourceFormat: FORMATS.OPENAI_RESPONSES,
+        provider: "codex",
+        model: "gpt-5.5",
+        body: { input: "hello" },
+        onFailure(payload) {
+          failurePayload = payload;
+        },
+      }
+    ),
+    /weekly usage limit|Upstream failure/
+  );
+
+  assert.ok(failurePayload, "should report the stream failure before aborting");
+  assert.equal(failurePayload.status, 429);
+  assert.equal(failurePayload.code, "usage_limit_reached");
+});
+
+test("createRequestLogger skips disabled logs and caps retained stream chunk bytes", async () => {
+  const disabled = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: false,
+  });
+  disabled.logClientRawRequest("/v1/chat/completions", { prompt: "hello" });
+  disabled.appendProviderChunk("x".repeat(32));
+  assert.equal(disabled.getPipelinePayloads(), null);
+
+  const logger = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: true,
+    captureStreamChunks: true,
+    maxStreamChunkBytes: 5,
+  });
+  logger.appendProviderChunk("abcdef");
+  logger.appendProviderChunk("ghijkl");
+  const payloads = logger.getPipelinePayloads();
+
+  assert.deepEqual(payloads.streamChunks.provider, [
+    "abcde",
+    "[stream chunk log truncated after 5 bytes]",
+  ]);
 });

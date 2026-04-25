@@ -48,6 +48,7 @@ const PATTERN_PATTERNS: RegExp[] = [
 const MAX_FACT_LENGTH = 500;
 // Minimum content length to avoid noise
 const MIN_FACT_LENGTH = 3;
+const MAX_EXTRACTION_TEXT_LENGTH = 64 * 1024;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -65,6 +66,11 @@ export interface ExtractedFact {
  */
 function sanitizeMatch(raw: string): string {
   return raw.trim().replace(/\s+/g, " ").slice(0, MAX_FACT_LENGTH);
+}
+
+function capExtractionText(text: string): string {
+  if (text.length <= MAX_EXTRACTION_TEXT_LENGTH) return text;
+  return text.slice(-MAX_EXTRACTION_TEXT_LENGTH);
 }
 
 /**
@@ -126,6 +132,8 @@ function runPatterns(
 export function extractFactsFromText(text: string): ExtractedFact[] {
   if (!text || typeof text !== "string") return [];
 
+  text = capExtractionText(text);
+
   const seen = new Set<string>();
   const facts: ExtractedFact[] = [];
 
@@ -153,11 +161,13 @@ export function extractFactsFromText(text: string): ExtractedFact[] {
 export function extractFacts(response: string, apiKeyId: string, sessionId: string): void {
   if (!response || !apiKeyId || !sessionId) return;
 
+  const cappedResponse = capExtractionText(response);
+
   log.info("memory.extraction.start", { apiKeyId });
 
   // Non-blocking: schedule after current event loop tick
   setImmediate(() => {
-    const facts = extractFactsFromText(response);
+    const facts = extractFactsFromText(cappedResponse);
     if (facts.length === 0) return;
 
     for (const fact of facts) {

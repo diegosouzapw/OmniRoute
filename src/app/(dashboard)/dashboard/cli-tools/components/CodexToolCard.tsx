@@ -25,8 +25,9 @@ export default function CodexToolCard({
   const [message, setMessage] = useState(null);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-5.5");
   const CODEX_DEFAULT_MODELS = [
+    "gpt-5.5",
     "gpt-5.3-codex",
     "gpt-5.4",
     "gpt-5.2-codex",
@@ -35,7 +36,7 @@ export default function CodexToolCard({
     "gpt-5.1-codex-mini",
   ];
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
-  const [reasoningEffort, setReasoningEffort] = useState("medium");
+  const [reasoningEffort, setReasoningEffort] = useState("xhigh");
   const [wireApi, setWireApi] = useState("chat");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTarget, setModalTarget] = useState<string | null>(null); // null = default model, string = mapping key
@@ -584,7 +585,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     type="text"
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    placeholder="gpt-5.4"
+                    placeholder="gpt-5.5"
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   {selectedModel && (
@@ -615,6 +616,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
+                    <option value="xhigh">XHigh</option>
                   </select>
                 </div>
 
