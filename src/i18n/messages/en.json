@@ -139,7 +139,12 @@
     "apikey": "API Key",
     "http": "HTTP",
     "goToDashboard": "Go to Dashboard",
-    "checkSystemStatus": "Check System Status"
+    "checkSystemStatus": "Check System Status",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "Home",
@@ -644,7 +649,9 @@
       "kiro": "Use when integrating Kiro and controlling model routing centrally from OmniRoute.",
       "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
-      "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
+      "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
+      "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
+      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE with MITM",
@@ -660,7 +667,8 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI"
     },
     "guides": {
       "cursor": {
@@ -1084,14 +1092,26 @@
     "failedReorder": "Failed to reorder models",
     "builderFlowTitle": "Combo Builder Flow",
     "builderStage": {
-      "basics": { "label": "Basics", "description": "Name and starting template" },
-      "steps": { "label": "Steps", "description": "Provider, model, and account selection" },
-      "strategy": { "label": "Strategy", "description": "Routing behavior and advanced settings" },
+      "basics": {
+        "label": "Basics",
+        "description": "Name and starting template"
+      },
+      "steps": {
+        "label": "Steps",
+        "description": "Provider, model, and account selection"
+      },
+      "strategy": {
+        "label": "Strategy",
+        "description": "Routing behavior and advanced settings"
+      },
       "intelligent": {
         "label": "Smart Routing",
         "description": "Auto-routing candidate pool, presets, and scoring"
       },
-      "review": { "label": "Review", "description": "Final validation before saving" }
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      }
     },
     "builderStageVisited": "Stage completed",
     "builderStageCurrent": "Current stage",

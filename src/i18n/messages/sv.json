@@ -139,7 +139,12 @@
     "http": "HTTP",
     "goToDashboard": "Go to Dashboard",
     "nothingHere": "Nothing here yet",
-    "checkSystemStatus": "Check System Status"
+    "checkSystemStatus": "Check System Status",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "Hem",
@@ -644,7 +649,9 @@
       "kiro": "Använd när du integrerar Kiro och styr modelldirigering centralt från OmniRoute.",
       "antigravity": "Använd när Antigravity/Kiro-trafik måste avlyssnas genom MITM och dirigeras till OmniRoute.",
       "copilot": "Använd när du vill ha Copilot chattstil UX samtidigt som du upprätthåller OmniRoute-nycklar och routingregler.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
+      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE med MITM",
@@ -660,7 +667,8 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI"
     },
     "guides": {
       "cursor": {

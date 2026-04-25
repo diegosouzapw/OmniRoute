@@ -139,7 +139,12 @@
     "apikey": "API 密钥",
     "http": "HTTP",
     "goToDashboard": "前往仪表板",
-    "checkSystemStatus": "查看系统状态"
+    "checkSystemStatus": "查看系统状态",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "首页",
@@ -644,7 +649,9 @@
       "kiro": "在集成 Kiro 并从 OmniRoute 集中控制模型路由时使用。",
       "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
-      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。"
+      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。",
+      "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
+      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access."
     },
     "toolDescriptions": {
       "antigravity": "带 MITM 的 Google Antigravity IDE",
@@ -660,7 +667,8 @@
       "kiro": "Amazon Kiro - AI 驱动 IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI"
     },
     "guides": {
       "cursor": {
