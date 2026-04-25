@@ -1160,6 +1160,7 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
 |                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
 |                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
+|                     | AgentRouter 🆕              | Pay-per-use               | None             | $200 free credits at signup       |
 | **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
 |                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
 |                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
@@ -1769,6 +1770,16 @@ Models:
 **Models:** Access 100+ models from all major providers through a single API key.
 
 **Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
+
+### Baidu Qianfan / ERNIE
+
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key
+3. Dashboard → Add Provider → Baidu Qianfan
+
+**Use:** `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`, or any Qianfan OpenAI-compatible model ID.
+
+**Dashboard behavior:** Qianfan is registered as an OpenAI-compatible API key provider. Built-in ERNIE models are available immediately, and passthrough model IDs are accepted for newer Qianfan deployments.
 
 </details>
 

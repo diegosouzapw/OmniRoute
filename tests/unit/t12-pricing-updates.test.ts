@@ -29,6 +29,12 @@ test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", 
   assert.ok(pricing.kimi["kimi-for-coding"], "missing kimi/kimi-for-coding");
 });
 
+test("T12: codex catalog includes GPT 5.5 entries", () => {
+  const codexModels = REGISTRY.codex.models.map((m) => m.id);
+  assert.ok(codexModels.includes("gpt-5.5"), "missing codex/gpt-5.5");
+  assert.ok(codexModels.includes("gpt-5.5-mini"), "missing codex/gpt-5.5-mini");
+});
+
 test("T12: minimax default model list starts with M2.7", () => {
   const minimaxModels = REGISTRY.minimax.models.map((m) => m.id);
   const minimaxCnModels = REGISTRY["minimax-cn"].models.map((m) => m.id);

@@ -33,10 +33,10 @@ test("T20: gemini CLI fingerprint uses 0.31.0 and preserves darwin platform name
 
 test("T25: anthropic API-key config includes the full Anthropic beta header set", () => {
   const anthropic = REGISTRY.anthropic;
-  assert.equal(anthropic.headers["anthropic-version"], "2023-06-01");
-  assert.ok(anthropic.headers["anthropic-beta"]?.includes("advanced-tool-use-2025-11-20"));
-  assert.ok(anthropic.headers["anthropic-beta"]?.includes("structured-outputs-2025-12-15"));
-  assert.ok(anthropic.headers["anthropic-beta"]?.includes("token-efficient-tools-2026-03-28"));
+  assert.equal(anthropic.headers["Anthropic-Version"], "2023-06-01");
+  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("advanced-tool-use-2025-11-20"));
+  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("structured-outputs-2025-12-15"));
+  assert.ok(anthropic.headers["Anthropic-Beta"]?.includes("token-efficient-tools-2026-03-28"));
 });
 
 test("T22: github headers include updated editor/plugin versions and required fields", () => {
@@ -57,8 +57,8 @@ test("T22: github config exposes dedicated responses endpoint", () => {
 
 test("T20: codex config advertises current client headers and auto-review model", () => {
   const codex = REGISTRY.codex;
-  assert.equal(codex.headers.Version, "0.124.0");
+  assert.equal(codex.headers.Version, "0.125.0");
   assert.equal(codex.headers["Openai-Beta"], "responses=experimental");
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.124.0 (Windows 10.0.26100; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.ok(codex.models.some((model) => model.id === "codex-auto-review"));
 });

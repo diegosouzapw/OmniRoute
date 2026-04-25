@@ -371,10 +371,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
+      { id: "codex-auto-review", name: "Codex Auto Review", targetFormat: "openai-responses" },
       { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", targetFormat: "openai-responses" },
       { id: "gpt-5.5-high", name: "GPT 5.5 (High)", targetFormat: "openai-responses" },
       { id: "gpt-5.5", name: "GPT 5.5 (Medium)", targetFormat: "openai-responses" },
       { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", targetFormat: "openai-responses" },
+      { id: "gpt-5.5-mini", name: "GPT 5.5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
@@ -477,7 +479,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     headers: getGitHubCopilotChatHeaders(),
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
-      { id: "gpt-5-mini", name: "GPT-5 Mini"},
+      { id: "gpt-5-mini", name: "GPT-5 Mini" },
       { id: "gpt-5.2", name: "GPT-5.2" },
       { id: "gpt-5.2-codex", name: "GPT-5.2 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
@@ -613,7 +615,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authPrefix: "Bearer",
     defaultContextLength: 200000,
     models: [
-      { id: "glm-5.1", name: "GLM-5.1"},
+      { id: "glm-5.1", name: "GLM-5.1" },
       { id: "glm-5", name: "GLM-5" },
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -645,9 +647,29 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "hy3-preview-free", name: "Hy3 Preview Free", contextLength: 256000 },
       { id: "ling-2.6-flash-free", name: "Ling 2.6 Flash Free", contextLength: 262000 },
-      { id: "trinity-large-preview-free", name: "Trinity Large Preview Free", contextLength: 131000 },
+      {
+        id: "trinity-large-preview-free",
+        name: "Trinity Large Preview Free",
+        contextLength: 131000,
+      },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
     ],
+  },
+
+  agentrouter: {
+    id: "agentrouter",
+    alias: "agentrouter",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://agentrouter.org/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    headers: {
+      "HTTP-Referer": "https://endpoint-proxy.local",
+      "X-Title": "OmniRoute",
+    },
+    models: [{ id: "auto", name: "Auto (Best Available)" }],
   },
 
   openrouter: {
@@ -664,6 +686,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "X-Title": "Endpoint Proxy",
     },
     models: [{ id: "auto", name: "Auto (Best Available)" }],
+  },
+
+  qianfan: {
+    id: "qianfan",
+    alias: "qianfan",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://qianfan.baidubce.com/v2/chat/completions",
+    modelsUrl: "https://qianfan.baidubce.com/v2/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "ernie-4.5-turbo-128k", name: "ERNIE 4.5 Turbo 128K" },
+      { id: "ernie-4.5-turbo-32k", name: "ERNIE 4.5 Turbo 32K", contextLength: 32000 },
+      { id: "ernie-4.5-turbo-8k", name: "ERNIE 4.5 Turbo 8K", contextLength: 8000 },
+      { id: "ernie-x1-turbo-32k", name: "ERNIE X1 Turbo 32K", contextLength: 32000 },
+      { id: "ernie-x1-turbo-8k", name: "ERNIE X1 Turbo 8K", contextLength: 8000 },
+      { id: "ernie-4.5-8k-preview", name: "ERNIE 4.5 8K Preview", contextLength: 8000 },
+    ],
+    passthroughModels: true,
   },
 
   glm: {
@@ -795,7 +838,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "openrouter/free", name: "Free Models Router" },
       { id: "qwen/qwen3.6-plus", name: "Qwen3.6 Plus" },
-      { id: "qwen/qwen3.5-397b-a17b", name: "Qwen3.5 397B A17B"},
+      { id: "qwen/qwen3.5-397b-a17b", name: "Qwen3.5 397B A17B" },
       { id: "openai/gpt-5.5", name: "GPT-5.5" },
       { id: "openai/gpt-5.4-mini", name: "GPT-5.4 Mini" },
       { id: "anthropic/claude-opus-4.7", name: "Claude Opus 4.7" },
@@ -861,7 +904,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed"}
+      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed" },
     ],
   },
 
@@ -883,7 +926,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed"}
+      { id: "MiniMax-M2.5-highspeed", name: "MiniMax M2.5 Highspeed" },
     ],
   },
 

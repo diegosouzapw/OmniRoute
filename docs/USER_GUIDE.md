@@ -36,6 +36,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
 |                     | Cohere            | Pay per use | None             | Command R+ RAG       |
 |                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
+|                     | Baidu Qianfan     | Pay per use | None             | ERNIE models         |
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
 |                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
@@ -190,6 +191,13 @@ Models:
 2. Get API key → Dashboard → Add API Key
 
 **Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+
+#### Baidu Qianfan / ERNIE
+
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
+
+**Use:** `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`, or another Qianfan OpenAI-compatible model ID.
 
 ### 🆓 FREE Providers
 
@@ -589,6 +597,8 @@ For the full environment variable reference, see the [README](../README.md).
 **Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
 
 **NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
+
+**Baidu Qianfan (`qianfan/`)**: `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`
 
 </details>
 

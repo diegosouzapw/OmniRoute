@@ -5,8 +5,13 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { getTransientBuildPaths, movePath, pruneStandaloneArtifacts, resolveNextBuildEnv } =
-  await import("../../scripts/build-next-isolated.mjs");
+const {
+  getTransientBuildPaths,
+  movePath,
+  pruneStandaloneArtifacts,
+  resolveNextBuildEnv,
+  syncStandaloneNativeAssets,
+} = await import("../../scripts/build-next-isolated.mjs");
 
 async function withTempDir(fn) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
@@ -74,8 +79,7 @@ test("movePath rethrows non-EXDEV rename failures", async () => {
     await assert.rejects(
       movePath(sourceDir, destinationDir, {
         rename: async () => {
-          const error = new Error("permission denied");
-          error.code = "EACCES";
+          const error = Object.assign(new Error("permission denied"), { code: "EACCES" });
           throw error;
         },
         cp: async () => {
@@ -85,7 +89,7 @@ test("movePath rethrows non-EXDEV rename failures", async () => {
           throw new Error("remove fallback should not run");
         },
       }),
-      (error) => (error as any).code === "EACCES"
+      (error) => error instanceof Error && "code" in error && error.code === "EACCES"
     );
   });
 });
@@ -134,5 +138,38 @@ test("pruneStandaloneArtifacts removes traced _tasks from standalone output", as
     await pruneStandaloneArtifacts(tempDir);
 
     assert.equal(fsSync.existsSync(path.join(tempDir, ".next", "standalone", "_tasks")), false);
+  });
+});
+
+test("syncStandaloneNativeAssets copies wreq-js native runtime into standalone output", async () => {
+  await withTempDir(async (tempDir) => {
+    const sourceNativeFile = path.join(
+      tempDir,
+      "node_modules",
+      "wreq-js",
+      "rust",
+      "wreq-js.linux-x64-gnu.node"
+    );
+    const destinationNativeFile = path.join(
+      tempDir,
+      ".next",
+      "standalone",
+      "node_modules",
+      "wreq-js",
+      "rust",
+      "wreq-js.linux-x64-gnu.node"
+    );
+    const logs: string[] = [];
+
+    await fs.mkdir(path.dirname(sourceNativeFile), { recursive: true });
+    await fs.writeFile(sourceNativeFile, "native module bytes");
+
+    const changed = await syncStandaloneNativeAssets(tempDir, fs, {
+      log: (message: unknown) => logs.push(String(message)),
+    });
+
+    assert.equal(changed, true);
+    assert.equal(await fs.readFile(destinationNativeFile, "utf8"), "native module bytes");
+    assert.match(logs[0] ?? "", /wreq-js\/rust/);
   });
 });

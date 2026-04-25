@@ -283,6 +283,80 @@ const STREAM_MODE = {
 };
 
 /**
+ * Lifecycle event types in OpenAI Responses API streams whose `response`
+ * payload is a snapshot of the request (echoes back `instructions` + `tools`).
+ */
+const RESPONSES_LIFECYCLE_EVENT_TYPES = new Set([
+  "response.created",
+  "response.in_progress",
+  "response.completed",
+]);
+
+/**
+ * Backfill `parsed.response.output` on a `response.completed` event from the
+ * snapshots accumulated as the stream progressed (`response.output_item.done`).
+ *
+ * Why: when the upstream request runs with `store: false`, OpenAI's Responses
+ * API leaves `response.output` empty in the final `response.completed`
+ * snapshot — clients that rebuild assistant messages from that snapshot
+ * (notably the GitHub Copilot CLI 1.0.36) end up with `choices: []` and never
+ * trigger tool execution. Codex CLI and others that consume per-item events
+ * are unaffected; backfilling the array makes both styles work.
+ *
+ * Returns true when `parsed.response.output` was empty and got replaced, so
+ * the caller can re-serialize.
+ */
+export function backfillResponsesCompletedOutput(
+  parsed: unknown,
+  collectedItems: readonly unknown[]
+): boolean {
+  if (!collectedItems.length) return false;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as Record<string, unknown>;
+  if (obj.type !== "response.completed") return false;
+  const resp = obj.response;
+  if (!resp || typeof resp !== "object" || Array.isArray(resp)) return false;
+  const r = resp as Record<string, unknown>;
+  const existing = r.output;
+  if (Array.isArray(existing) && existing.length > 0) return false;
+  r.output = collectedItems.slice();
+  return true;
+}
+
+/**
+ * Strip the request echo (`instructions`, `tools`) from `parsed.response`
+ * on Responses API lifecycle events.
+ *
+ * Why: those fields can balloon the SSE message past 100 KB when the request
+ * carries large tool definitions / instructions. Some clients (notably the
+ * GitHub Copilot CLI) cannot process oversized SSE events and stop rendering
+ * mid-stream. The fields are pure echo of the original request — clients
+ * already hold the original locally — so removing them is observably safe.
+ *
+ * Returns true when the payload was modified and must be re-serialized.
+ */
+export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as Record<string, unknown>;
+  if (typeof obj.type !== "string" || !RESPONSES_LIFECYCLE_EVENT_TYPES.has(obj.type)) {
+    return false;
+  }
+  const resp = obj.response;
+  if (!resp || typeof resp !== "object" || Array.isArray(resp)) return false;
+  const r = resp as Record<string, unknown>;
+  let changed = false;
+  if ("instructions" in r) {
+    delete r.instructions;
+    changed = true;
+  }
+  if ("tools" in r) {
+    delete r.tools;
+    changed = true;
+  }
+  return changed;
+}
+
+/**
  * Create unified SSE transform stream with idle timeout protection.
  * If the upstream provider stops sending data for STREAM_IDLE_TIMEOUT_MS,
  * the stream emits an error event and closes to prevent indefinite hanging.
@@ -339,6 +413,10 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
+  // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
+  // used to backfill `response.completed.response.output` when upstream returns it
+  // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
+  const passthroughResponsesOutputItems: unknown[] = [];
   const streamStartedAt = Date.now();
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
@@ -634,6 +712,29 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (parsed.delta && typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
                     passthroughAccumulatedContent += parsed.delta;
+                  }
+                  // Capture each completed output item so the final
+                  // response.completed snapshot can be backfilled when upstream
+                  // returns an empty `output` (happens with store: false).
+                  if (parsed.type === "response.output_item.done" && parsed.item) {
+                    passthroughResponsesOutputItems.push(parsed.item);
+                  }
+                  // Two transport-level fixes for Responses passthrough:
+                  //   1) Strip echoed `instructions` + `tools` from lifecycle
+                  //      events — they can balloon a single SSE event past
+                  //      100 KB and break parsers (e.g. GitHub Copilot CLI).
+                  //   2) Backfill `response.completed.response.output` when
+                  //      upstream sent it empty (store: false) — some clients
+                  //      build their tool-call list from that snapshot rather
+                  //      than from per-item events.
+                  const stripped = stripResponsesLifecycleEcho(parsed);
+                  const backfilled = backfillResponsesCompletedOutput(
+                    parsed,
+                    passthroughResponsesOutputItems
+                  );
+                  if (stripped || backfilled) {
+                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    injectedUsage = true;
                   }
                 } else if (isClaudeSSE) {
                   // Claude SSE: extract usage, track content, forward as-is

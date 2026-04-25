@@ -136,6 +136,41 @@ export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = f
   }
 }
 
+export async function syncStandaloneNativeAssets(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  const nativeAssetDirs = [
+    {
+      label: "wreq-js native runtime",
+      sourcePath: path.join(rootDir, "node_modules", "wreq-js", "rust"),
+      destinationPath: path.join(rootDir, ".next", "standalone", "node_modules", "wreq-js", "rust"),
+    },
+  ];
+
+  let changed = false;
+
+  for (const entry of nativeAssetDirs) {
+    if (!(await exists(entry.sourcePath))) continue;
+
+    await fsImpl.mkdir(path.dirname(entry.destinationPath), { recursive: true });
+    await fsImpl.cp(entry.sourcePath, entry.destinationPath, {
+      recursive: true,
+      force: true,
+    });
+    log.log(
+      `[build-next-isolated] Copied native standalone asset: ${path.relative(
+        rootDir,
+        entry.destinationPath
+      )}`
+    );
+    changed = true;
+  }
+
+  return changed;
+}
+
 export async function main() {
   const movedPaths = [];
   const transientBuildPaths = getTransientBuildPaths();
@@ -173,6 +208,15 @@ export async function main() {
         console.warn(
           "[build-next-isolated] Non-fatal error pruning standalone artifacts:",
           pruneErr
+        );
+      }
+
+      try {
+        await syncStandaloneNativeAssets(projectRoot);
+      } catch (nativeAssetErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error copying native standalone assets:",
+          nativeAssetErr
         );
       }
     }
