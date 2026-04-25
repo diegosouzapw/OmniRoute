@@ -57,8 +57,8 @@ test("T22: github config exposes dedicated responses endpoint", () => {
 
 test("T20: codex config advertises current client headers and auto-review model", () => {
   const codex = REGISTRY.codex;
-  assert.equal(codex.headers.Version, "0.124.0");
+  assert.equal(codex.headers.Version, "0.125.0");
   assert.equal(codex.headers["Openai-Beta"], "responses=experimental");
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.124.0 (Windows 10.0.26100; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.ok(codex.models.some((model) => model.id === "codex-auto-review"));
 });
