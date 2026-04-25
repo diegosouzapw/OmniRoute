@@ -1743,6 +1743,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "glmt",
   "minimax",
   "minimax-cn",
+  "crof",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
