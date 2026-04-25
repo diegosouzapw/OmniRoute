@@ -213,7 +213,7 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
     detectionEnabled: true,
     taskModelMap: {
       ...getDefaultTaskModelMap(),
-      coding: "deepseek/deepseek-chat",
+      coding: "deepseek/deepseek-v4-flash",
     },
   });
 
