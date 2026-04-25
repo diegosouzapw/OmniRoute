@@ -172,6 +172,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "MC",
     website: "https://www.minimaxi.com",
   },
+  crof: {
+    id: "crof",
+    alias: "crof",
+    name: "CrofAI",
+    icon: "auto_awesome",
+    color: "#0EA5E9",
+    textIcon: "CR",
+    website: "https://crof.ai",
+  },
   alicode: {
     id: "alicode",
     alias: "alicode",

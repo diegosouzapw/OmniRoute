@@ -49,6 +49,7 @@ const LOBEHUB_PROVIDER_MAP: Record<string, string> = {
   "ollama-cloud": "ollama",
   minimax: "minimax",
   "minimax-cn": "minimax",
+  crof: "crof",
   qwen: "qwen",
   alibaba: "qwen",
   moonshot: "moonshot",
