@@ -136,8 +136,9 @@ export default function DefaultToolCard({
     (text) => {
       // (#523) Look up the key object by id to get the masked display value.
       const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-      const keyToUse =
+      let keyToUse =
         selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
+      if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
 
       const normalizedBaseUrl = baseUrl || "http://localhost:20128";
       const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -168,8 +169,9 @@ export default function DefaultToolCard({
     if (!usesOpenCodePreview) return replaceVars(tool.codeBlock.code);
 
     const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-    const keyToUse =
+    let keyToUse =
       selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
+    if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
     const normalizedBaseUrl = baseUrl || "http://localhost:20128";
     const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
       ? normalizedBaseUrl
