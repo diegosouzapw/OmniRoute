@@ -919,6 +919,26 @@
         "when": "Use when long sessions must survive account rotation without losing the working context.",
         "avoid": "Avoid when account switching is rare or when you do not want extra summarization requests.",
         "example": "Example: Codex sessions that rotate across multiple accounts near quota exhaustion."
+      },
+      "fill-first": {
+        "when": "Use when you want to fully exhaust one provider's quota before moving to the next.",
+        "avoid": "Avoid when you need request-level load balancing across providers.",
+        "example": "Example: Use all $200 Deepgram credits before falling back to Groq."
+      },
+      "auto": {
+        "when": "Use when you need multi-factor scoring routing based on cost, latency, and quality.",
+        "avoid": "Avoid when you need strict priority ordering or historical persistence.",
+        "example": "Example: Balance requests across models with different strengths."
+      },
+      "lkgp": {
+        "when": "Use when you want to route based on historical success rates and performance.",
+        "avoid": "Avoid when historical data is limited or unreliable.",
+        "example": "Example: Route to models with a good track record on specific tasks."
+      },
+      "context-optimized": {
+        "when": "Use when you need to optimize context window usage across models.",
+        "avoid": "Avoid when models have similar context lengths or tasks are simple.",
+        "example": "Example: Distribute long conversations across models with larger context windows."
       }
     },
     "advancedHelp": {
@@ -1063,6 +1083,48 @@
         "tip1": "Use at least 2 models for meaningful distribution.",
         "tip2": "Works best with equivalent-performance models.",
         "tip3": "Ideal for load balancing across multiple API accounts."
+      },
+      "fill-first": {
+        "description": "Exhaust provider quotas sequentially before falling back.",
+        "tip1": "Use for quota-based routing with clear fallback chains.",
+        "tip2": "Set quotas accurately to avoid premature fallback.",
+        "tip3": "Works best with providers offering free tiers or credit buckets.",
+        "title": "Quota Exhaustion"
+      },
+      "auto": {
+        "description": "Route based on real-time scoring for cost, latency, quality, and health.",
+        "tip1": "Let the engine balance multiple factors automatically.",
+        "tip2": "Monitor which factors drive routing decisions in logs.",
+        "tip3": "Use for complex workloads where no single factor dominates.",
+        "title": "Multi-Factor Optimization"
+      },
+      "lkgp": {
+        "description": "Route based on historical performance and success patterns.",
+        "tip1": "Requires sufficient request history for accurate predictions.",
+        "tip2": "Good for workloads with consistent model performance patterns.",
+        "tip3": "Monitor prediction accuracy and adjust weights as needed.",
+        "title": "History-Based Routing"
+      },
+      "context-optimized": {
+        "description": "Optimize routing based on context window usage and token efficiency.",
+        "tip1": "Route long conversations to models with larger context windows.",
+        "tip2": "Monitor context utilization to avoid token waste.",
+        "tip3": "Best for conversational AI requiring extensive context retention.",
+        "title": "Context Optimization"
+      },
+      "context-relay": {
+        "description": "Best when account rotation is expected and the next account must inherit a simplified task summary.",
+        "tip1": "Use with providers rotating accounts for the same model family.",
+        "tip2": "Set handoff threshold below hard quota cutoffs for summary generation time.",
+        "tip3": "Only set a dedicated summary model if the primary is too expensive or unstable.",
+        "title": "Session Continuity Priority"
+      },
+      "p2c": {
+        "description": "Route to the provider with the lowest current load based on real-time metrics.",
+        "tip1": "Monitor provider health metrics for accurate load assessment.",
+        "tip2": "Works best with homogeneous provider pools.",
+        "tip3": "Adjust sensitivity to avoid oscillation during traffic spikes.",
+        "title": "Power of Two Choices"
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -1089,14 +1151,26 @@
     "failedReorder": "Failed to reorder models",
     "builderFlowTitle": "Combo Builder Flow",
     "builderStage": {
-      "basics": { "label": "Basics", "description": "Name and starting template" },
-      "steps": { "label": "Steps", "description": "Provider, model, and account selection" },
-      "strategy": { "label": "Strategy", "description": "Routing behavior and advanced settings" },
+      "basics": {
+        "label": "Basics",
+        "description": "Name and starting template"
+      },
+      "steps": {
+        "label": "Steps",
+        "description": "Provider, model, and account selection"
+      },
+      "strategy": {
+        "label": "Strategy",
+        "description": "Routing behavior and advanced settings"
+      },
       "intelligent": {
         "label": "Smart Routing",
         "description": "Auto-routing candidate pool, presets, and scoring"
       },
-      "review": { "label": "Review", "description": "Final validation before saving" }
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      }
     },
     "builderStageVisited": "Stage completed",
     "builderStageCurrent": "Current stage",
@@ -1128,7 +1202,34 @@
     "reviewAdvanced": "Advanced Settings",
     "reviewAgentFlags": "Agent Flags",
     "reviewSequence": "Model Sequence",
-    "reviewNoSteps": "No steps configured"
+    "reviewNoSteps": "No steps configured",
+    "builderStagesDescription": "Complete each stage in order to define combos, build steps, select routing strategy, and review results.",
+    "builderStepsDescription": "Build each combo step in order: provider, model, then account. This allows reusing the same provider and model across different accounts.",
+    "selectProvider": "Select Provider",
+    "selectProviderPlaceholder": "Select a provider",
+    "selectModel": "Select Model",
+    "selectModelPlaceholder": "Select a provider first",
+    "selectAccount": "Select Account",
+    "selectComboToReference": "Select combo to reference",
+    "comboReference": "Combo Reference",
+    "addComboReference": "Add Combo Reference",
+    "addStepBeforeContinue": "Please add at least one step before proceeding to the next stage.",
+    "previewNextStep": "Preview next step",
+    "autoSelectAccount": "Automatically select account at runtime",
+    "modePackBalanced": "Balanced",
+    "modePackBudget": "Budget",
+    "modePackPerformance": "Performance",
+    "modePackCustom": "Custom",
+    "browseLegacyCatalog": "Browse legacy combo catalog",
+    "agentFeaturesTitle": "Agent Features",
+    "agentFeaturesDescription": "Enable advanced features for agents using this combo",
+    "agentFeaturesSystemMessageOverride": "Override system message",
+    "agentFeaturesSystemMessagePlaceholder": "You are an expert assistant...",
+    "agentFeaturesSystemMessageHint": "System message override for agents",
+    "agentFeaturesToolFilterRegex": "/regex-pattern/",
+    "agentFeaturesToolFilterHint": "Tool filter regex for agents",
+    "agentFeaturesContextCacheHint": "Enable in-context cache for agent tools",
+    "agentFeaturesContextCacheProtection": "Protect cache from agent tool mutations"
   },
   "costs": {
     "title": "Costs",
