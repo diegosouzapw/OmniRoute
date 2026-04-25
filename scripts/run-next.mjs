@@ -42,7 +42,6 @@ const nextApp = next({
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
-  webpack: dev && !useTurbopack,
 });
 
 async function start() {
