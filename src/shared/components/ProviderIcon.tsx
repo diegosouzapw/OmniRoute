@@ -206,6 +206,7 @@ const KNOWN_SVGS = new Set([
   "opencode",
   "playht",
   "puter",
+  "qianfan",
   "scaleway",
   "sdwebui",
   "synthetic",

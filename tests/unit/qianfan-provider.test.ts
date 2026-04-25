@@ -31,6 +31,8 @@ test("qianfan registers Baidu ERNIE as an OpenAI-compatible API key provider", (
 
   assert.equal(PROVIDERS.qianfan.baseUrl, registryEntry.baseUrl);
   assert.equal(PROVIDERS.qianfan.format, "openai");
+  assert.equal("modelsUrl" in PROVIDERS.qianfan, false);
+  assert.equal("passthroughModels" in PROVIDERS.qianfan, false);
 });
 
 test("qianfan exposes ERNIE chat models in the local model catalog", () => {
