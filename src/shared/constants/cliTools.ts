@@ -242,13 +242,16 @@ export const CLI_TOOLS = {
   opencode: {
     id: "opencode",
     name: "OpenCode",
-    image: "/providers/opencode.png",
+    image: "/providers/opencode.svg",
     icon: "terminal",
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",
     docsUrl: "/docs?section=cli-tools&tool=opencode",
     configType: "guide",
     defaultCommand: "opencode",
+    modelSelectionMode: "multiple",
+    hideComboModels: true,
+    previewConfigMode: "opencode",
     notes: [
       {
         type: "warning",
@@ -273,19 +276,58 @@ export const CLI_TOOLS = {
     codeBlock: {
       language: "json",
       code: `{
-  "providers": {
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
     "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
       "name": "OmniRoute",
-      "api": "openai",
-      "baseURL": "{{baseUrl}}",
-      "apiKey": "{{apiKey}}",
-      "models": [
-        "{{model}}",
-        "claude-sonnet-4-5-thinking",
-        "gemini-3.1-pro-high",
-        "gemini-3-flash"
-      ]
+      "options": {
+        "baseURL": "{{baseUrl}}",
+        "apiKey": "{{apiKey}}"
+      },
+      "models": {
+        "{{model}}": { "name": "{{model}}" },
+        "claude-sonnet-4-5-thinking": { "name": "claude-sonnet-4-5-thinking" },
+        "gemini-3.1-pro-high": { "name": "gemini-3.1-pro-high" },
+        "gemini-3-flash": { "name": "gemini-3-flash" }
+      }
     }
+  }
+}`,
+    },
+  },
+  hermes: {
+    id: "hermes",
+    name: "Hermes",
+    icon: "terminal",
+    color: "#8B5CF6",
+    description: "Hermes coding agent quick configuration",
+    docsUrl: "/docs?section=cli-tools&tool=hermes",
+    configType: "guide",
+    defaultCommand: "hermes",
+    guideSteps: [
+      {
+        step: 1,
+        title: "Open Hermes Config",
+        desc: "Open your Hermes configuration file or create one if this is the first run.",
+      },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Save Provider Block",
+        desc: "Use the JSON block below as the OpenAI-compatible provider definition for OmniRoute.",
+      },
+    ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "provider": {
+    "type": "openai",
+    "baseURL": "{{baseUrl}}",
+    "apiKey": "{{apiKey}}",
+    "model": "{{model}}"
   }
 }`,
     },
@@ -487,6 +529,15 @@ amp --model "{{model}}"
   }
 }`,
     },
+  },
+  custom: {
+    id: "custom",
+    name: "Custom CLI",
+    icon: "terminal",
+    color: "#10B981",
+    description: "Generic OpenAI-compatible CLI or SDK configuration generator",
+    docsUrl: "/docs?section=cli-tools",
+    configType: "custom-builder",
   },
   // HIDDEN: gemini-cli
   // "gemini-cli": {

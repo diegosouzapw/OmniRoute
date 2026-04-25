@@ -7,12 +7,15 @@ import {
 import { updateSettings } from "@/lib/db/settings";
 import { jsonObjectSchema, resetStatsActionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 /**
  * GET /api/settings/background-degradation
  * Returns the current background degradation configuration.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     return NextResponse.json(getBackgroundDegradationConfig());
   } catch (error) {
@@ -26,7 +29,9 @@ export async function GET() {
  * Update the background degradation configuration.
  * Body: { enabled?: boolean, degradationMap?: {...}, detectionPatterns?: [...] }
  */
-export async function PUT(request) {
+export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();
@@ -67,7 +72,9 @@ export async function PUT(request) {
  * Reset stats counters.
  * Body: { action: "reset-stats" }
  */
-export async function POST(request) {
+export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();

@@ -23,7 +23,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -69,6 +69,7 @@ test("getSettings exposes defaults and updateSettings persists typed values", as
   assert.equal(defaults.requestRetry, 3);
   assert.equal(defaults.maxRetryIntervalSec, 30);
   assert.equal(defaults.antigravitySignatureCacheMode, "enabled");
+  assert.equal(defaults.comboConfigMode, "guided");
   assert.equal(updated.requireLogin, false);
   assert.equal(updated.cloudEnabled, true);
   assert.equal(updated.stickyRoundRobinLimit, 7);
@@ -143,6 +144,53 @@ test("pricing layers merge synced, models.dev and user overrides", async () => {
     temp: { model: { prompt: 1 } },
   });
   assert.deepEqual(await settingsDb.resetAllPricing(), {});
+});
+
+test("getPricingWithSources reports the winning layer for each provider/model", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "pricing_synced",
+    "layer-source",
+    JSON.stringify({
+      "model-litellm": { prompt: 1, completion: 2 },
+      "model-user": { prompt: 3 },
+    })
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "models_dev_pricing",
+    "layer-source",
+    JSON.stringify({
+      "model-modelsdev": { prompt: 4, completion: 5 },
+      "model-user": { completion: 6 },
+    })
+  );
+
+  await settingsDb.updatePricing({
+    "layer-source": {
+      "model-user": { cached: 7 },
+    },
+  });
+
+  const { pricing, sourceMap } = await settingsDb.getPricingWithSources();
+
+  assert.deepEqual(pricing["layer-source"]["model-litellm"], {
+    prompt: 1,
+    completion: 2,
+  });
+  assert.deepEqual(pricing["layer-source"]["model-modelsdev"], {
+    prompt: 4,
+    completion: 5,
+  });
+  assert.deepEqual(pricing["layer-source"]["model-user"], {
+    prompt: 3,
+    completion: 6,
+    cached: 7,
+  });
+  assert.equal(sourceMap["layer-source"]["model-litellm"], "litellm");
+  assert.equal(sourceMap["layer-source"]["model-modelsdev"], "modelsDev");
+  assert.equal(sourceMap["layer-source"]["model-user"], "user");
+  assert.equal(sourceMap.openai["gpt-4o"], "default");
 });
 
 test("LKGP values can be set, read and cleared", async () => {
@@ -225,48 +273,50 @@ test("settings and pricing readers skip malformed rows while merging surviving l
       };
     }
 
-    if (text.includes("namespace = 'pricing_synced'")) {
+    if (text === "SELECT key, value FROM key_value WHERE namespace = ?") {
       return {
-        all: () => [
-          123,
-          { key: 456, value: JSON.stringify({ ignored: true }) },
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { prompt: 1, completion: 2 },
-            }),
-          },
-        ],
-      };
-    }
+        all: (namespace) => {
+          if (namespace === "pricing_synced") {
+            return [
+              123,
+              { key: 456, value: JSON.stringify({ ignored: true }) },
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { prompt: 1, completion: 2 },
+                }),
+              },
+            ];
+          }
 
-    if (text.includes("namespace = 'models_dev_pricing'")) {
-      return {
-        all: () => [
-          { key: "broken-provider", value: "{bad" },
-          { key: "missing-value", value: null },
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { cached: 3 },
-            }),
-          },
-        ],
-      };
-    }
+          if (namespace === "models_dev_pricing") {
+            return [
+              { key: "broken-provider", value: "{bad" },
+              { key: "missing-value", value: null },
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { cached: 3 },
+                }),
+              },
+            ];
+          }
 
-    if (text.includes("namespace = 'pricing'")) {
-      return {
-        all: () => [
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { prompt: 9, custom: 42 },
-              "model-b": { prompt: 7 },
-            }),
-          },
-          { key: null, value: JSON.stringify({ ignored: true }) },
-        ],
+          if (namespace === "pricing") {
+            return [
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { prompt: 9, custom: 42 },
+                  "model-b": { prompt: 7 },
+                }),
+              },
+              { key: null, value: JSON.stringify({ ignored: true }) },
+            ];
+          }
+
+          return originalPrepare(sql).all(namespace);
+        },
       };
     }
 
@@ -437,7 +487,7 @@ test("proxy helpers resolve key, provider, global, and direct paths while tolera
   });
   db.prepare("UPDATE combos SET data = ? WHERE id = ?").run("{not-json", combo.id);
 
-  const providerResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const providerResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(providerResolved.level, "provider");
   assert.equal(providerResolved.proxy.host, "provider.local");
@@ -449,26 +499,26 @@ test("proxy helpers resolve key, provider, global, and direct paths while tolera
 
   await settingsDb.deleteProxyForLevel("provider", "openai");
 
-  const globalResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const globalResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(globalResolved.level, "global");
   assert.equal(globalResolved.proxy.host, "global.local");
 
-  await settingsDb.setProxyForLevel("key", connection.id, {
+  await settingsDb.setProxyForLevel("key", (connection as any).id, {
     type: "http",
     host: "key.local",
     port: 3128,
   });
 
-  const keyResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const keyResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(keyResolved.level, "key");
   assert.equal(keyResolved.proxy.host, "key.local");
 
-  await settingsDb.deleteProxyForLevel("key", connection.id);
+  await settingsDb.deleteProxyForLevel("key", (connection as any).id);
   await settingsDb.deleteProxyForLevel("global", null);
 
-  const directResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const directResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(directResolved.level, "direct");
   assert.equal(directResolved.proxy, null);
@@ -494,14 +544,14 @@ test("proxy resolution skips combos without serialized data and falls back to pr
     models: ["claude/claude-3-5-sonnet"],
     strategy: "priority",
   });
-  await settingsDb.setProxyForLevel("combo", combo.id, {
+  await settingsDb.setProxyForLevel("combo" as any, (combo as any).id, {
     type: "http",
     host: "combo-null.local",
     port: 8080,
   });
   db.prepare("UPDATE combos SET data = ? WHERE id = ?").run(0, combo.id);
 
-  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const resolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(resolved.level, "provider");
   assert.equal(resolved.proxy.host, "provider-claude.local");
@@ -520,13 +570,13 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
     models: [{ model: "cc/claude-3-5-sonnet" }],
     strategy: "priority",
   });
-  await settingsDb.setProxyForLevel("combo", combo.id, {
+  await settingsDb.setProxyForLevel("combo", (combo as any).id, {
     type: "https",
     host: "combo-alias.local",
     port: 443,
   });
 
-  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const resolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(resolved.level, "combo");
   assert.equal(resolved.levelId, combo.id);

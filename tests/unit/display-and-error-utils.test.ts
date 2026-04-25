@@ -76,7 +76,7 @@ test("createErrorResponse: infers error types from status and preserves details"
     message: "Conflict detected",
     details: { field: "name" },
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 409);
   assert.equal(body.error.message, "Conflict detected");
@@ -91,7 +91,7 @@ test("createErrorResponse: uses explicit type when provided", async () => {
     message: "teapot",
     type: "not_found",
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.error.type, "not_found");
 });
@@ -103,7 +103,7 @@ test("createErrorResponseFromUnknown: normalizes typed errors", async () => {
     type: "server_error",
     details: { retryable: true },
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 503);
   assert.equal(body.error.message, "db exploded");
@@ -113,7 +113,7 @@ test("createErrorResponseFromUnknown: normalizes typed errors", async () => {
 
 test("createErrorResponseFromUnknown: falls back for non-object errors", async () => {
   const response = createErrorResponseFromUnknown("boom", "fallback message");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 500);
   assert.equal(body.error.message, "fallback message");

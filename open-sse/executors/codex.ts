@@ -1,10 +1,16 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import {
+  BaseExecutor,
+  mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
+  type ExecuteInput,
+} from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import { websocket } from "wreq-js";
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -163,6 +169,7 @@ export function getCodexDualWindowCooldownMs(
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
+const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
@@ -431,6 +438,138 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
+function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
+  const normalizedModel = String(model || "")
+    .trim()
+    .toLowerCase();
+  if (normalizedModel === "gpt-5.5") return true;
+  const providerSpecificData =
+    credentials && typeof credentials === "object"
+      ? (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
+      : null;
+  return providerSpecificData?.codexTransport === "websocket";
+}
+
+function toStatusCode(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
+    return value;
+  }
+  if (typeof value === "string" && /^\d{3}$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    return parsed >= 400 && parsed <= 599 ? parsed : null;
+  }
+  return null;
+}
+
+function looksLikeQuotaOrRateLimit(code: string, type: string, message: string): boolean {
+  const haystack = `${code} ${type} ${message}`.toLowerCase();
+  return (
+    haystack.includes("usage_limit_reached") ||
+    haystack.includes("rate_limit") ||
+    haystack.includes("rate limit") ||
+    haystack.includes("quota") ||
+    haystack.includes("too many requests") ||
+    haystack.includes("limit has been reached") ||
+    haystack.includes("limit reached")
+  );
+}
+
+function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<string, unknown> {
+  const response =
+    parsed.response && typeof parsed.response === "object" && !Array.isArray(parsed.response)
+      ? (parsed.response as Record<string, unknown>)
+      : null;
+  const upstreamError =
+    response?.error && typeof response.error === "object" && !Array.isArray(response.error)
+      ? (response.error as Record<string, unknown>)
+      : parsed.error && typeof parsed.error === "object" && !Array.isArray(parsed.error)
+        ? (parsed.error as Record<string, unknown>)
+        : parsed;
+  const code =
+    typeof upstreamError.code === "string"
+      ? upstreamError.code
+      : typeof upstreamError.type === "string"
+        ? upstreamError.type
+        : "upstream_error";
+  const type = typeof upstreamError.type === "string" ? upstreamError.type : "";
+  const message =
+    typeof upstreamError.message === "string" && upstreamError.message.trim()
+      ? upstreamError.message
+      : "Codex upstream error";
+  const error: Record<string, unknown> = { code, message };
+  const explicitStatus =
+    toStatusCode(parsed.status_code) ??
+    toStatusCode(parsed.status) ??
+    toStatusCode(response?.status_code) ??
+    toStatusCode(response?.status) ??
+    toStatusCode(upstreamError.status_code) ??
+    toStatusCode(upstreamError.status);
+  const statusCode =
+    explicitStatus ?? (looksLikeQuotaOrRateLimit(code, type, message) ? 429 : null);
+
+  if (type) error.type = type;
+  if (statusCode !== null) error.status_code = statusCode;
+
+  return {
+    type: "response.failed",
+    response: {
+      id: typeof response?.id === "string" ? response.id : null,
+      status: "failed",
+      error,
+    },
+  };
+}
+
+export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
+  let eventType = "message";
+  let payload = raw;
+  let terminal = false;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.type === "string" && parsed.type.trim()) {
+      eventType = parsed.type.trim();
+      if (eventType === "error" || eventType === "response.failed") {
+        const failed = toCodexResponseFailedEvent(parsed as Record<string, unknown>);
+        payload = JSON.stringify(failed);
+        eventType = "response.failed";
+      }
+      terminal = eventType === "response.completed" || eventType === "response.failed";
+    }
+  } catch {
+    // Keep message as the generic SSE event for non-JSON upstream payloads.
+  }
+
+  return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
+}
+
+function toWebSocketUrl(url: string): string {
+  if (url.startsWith("wss://") || url.startsWith("ws://")) return url;
+  if (url.startsWith("https://")) return `wss://${url.slice("https://".length)}`;
+  if (url.startsWith("http://")) return `ws://${url.slice("http://".length)}`;
+  return CODEX_RESPONSES_WS_URL;
+}
+
+function normalizeCodexWsHeaders(headers: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    const lower = key.toLowerCase();
+    if (
+      lower === "host" ||
+      lower === "connection" ||
+      lower === "upgrade" ||
+      lower === "sec-websocket-key" ||
+      lower === "sec-websocket-version" ||
+      lower === "sec-websocket-extensions"
+    ) {
+      continue;
+    }
+    result[key] = value;
+  }
+  result.Origin = "https://chatgpt.com";
+  return result;
+}
+
 /**
  * Codex Executor - handles OpenAI Codex API (Responses API format)
  * Automatically injects default instructions if missing.
@@ -439,6 +578,181 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
 export class CodexExecutor extends BaseExecutor {
   constructor() {
     super("codex", PROVIDERS.codex);
+  }
+
+  async execute(input: ExecuteInput) {
+    if (!isCodexResponsesWebSocketRequired(input.model, input.credentials)) {
+      return super.execute(input);
+    }
+
+    const url = CODEX_RESPONSES_WS_URL;
+    const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
+    mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+
+    const transformedBody = (await this.transformRequest(
+      input.model,
+      input.body,
+      true,
+      input.credentials
+    )) as Record<string, unknown>;
+    transformedBody.model = input.model;
+    delete transformedBody.stream;
+    delete transformedBody.stream_options;
+
+    const bodyString = JSON.stringify({
+      type: "response.create",
+      ...transformedBody,
+    });
+
+    const encoder = new TextEncoder();
+    let closed = false;
+    let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+    let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
+
+    const closeUpstream = (reason: string) => {
+      try {
+        ws?.close(1000, reason);
+      } catch {
+        // ignore close races
+      }
+    };
+
+    let abortHandler: (() => void) | null = null;
+    const removeAbortListener = () => {
+      if (!abortHandler) return;
+      input.signal?.removeEventListener("abort", abortHandler);
+      abortHandler = null;
+    };
+
+    const finishStream = ({
+      reason,
+      emitDone = true,
+      closeController = true,
+      closeSocket = true,
+    }: {
+      reason: string;
+      emitDone?: boolean;
+      closeController?: boolean;
+      closeSocket?: boolean;
+    }) => {
+      if (closed) return;
+      closed = true;
+      removeAbortListener();
+      if (closeSocket) closeUpstream(reason);
+
+      const controller = streamController;
+      if (!controller || !closeController) return;
+      if (emitDone) {
+        try {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } catch {
+          // The downstream may already have gone away.
+        }
+      }
+      try {
+        controller.close();
+      } catch {
+        // The controller may already be closed.
+      }
+    };
+
+    const failController = (code: string, message: string) => {
+      if (closed) return;
+      const controller = streamController;
+      const payload = JSON.stringify({
+        type: "response.failed",
+        response: {
+          id: null,
+          status: "failed",
+          error: { code, message },
+        },
+      });
+      try {
+        controller?.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
+      } catch {
+        // Downstream closed before the failure could be delivered.
+      }
+      finishStream({ reason: "upstream_failed" });
+    };
+
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        streamController = controller;
+        abortHandler = () => {
+          finishStream({ reason: "client_aborted" });
+        };
+        input.signal?.addEventListener("abort", abortHandler, { once: true });
+
+        try {
+          ws = await websocket(toWebSocketUrl(url), {
+            browser: "chrome_142",
+            os: "windows",
+            headers,
+          });
+          if (closed) return;
+          if (input.signal?.aborted) {
+            finishStream({ reason: "client_aborted" });
+            return;
+          }
+          ws.onmessage = (event) => {
+            if (closed) return;
+            const raw =
+              typeof event.data === "string"
+                ? event.data
+                : Buffer.from(event.data as Buffer).toString("utf8");
+            const sseEvent = encodeResponseSseEvent(raw);
+            if (closed) return;
+            try {
+              controller.enqueue(encoder.encode(sseEvent.sse));
+            } catch {
+              finishStream({
+                reason: "downstream_closed",
+                emitDone: false,
+                closeController: false,
+              });
+              return;
+            }
+            if (sseEvent.terminal) {
+              finishStream({ reason: "terminal_event" });
+            }
+          };
+          ws.onerror = (event) => {
+            failController(
+              "upstream_websocket_error",
+              event.message || "Codex upstream WebSocket error"
+            );
+          };
+          ws.onclose = () => {
+            finishStream({ reason: "upstream_closed", closeSocket: false });
+          };
+          if (!closed) {
+            ws.send(bodyString);
+          }
+        } catch (error) {
+          failController(
+            "upstream_websocket_connect_failed",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      },
+      cancel() {
+        finishStream({ reason: "client_cancelled", emitDone: false, closeController: false });
+      },
+    });
+
+    return {
+      response: new Response(stream, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      }),
+      url,
+      headers,
+      transformedBody,
+    };
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {

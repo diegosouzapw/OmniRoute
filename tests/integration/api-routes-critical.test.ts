@@ -84,7 +84,7 @@ test("critical routes: v1 management proxies covers auth, lookup, where-used, pa
       },
     })
   );
-  const created = await createResponse.json();
+  const created = (await createResponse.json()) as any;
 
   await localDb.assignProxyToScope("provider", "openai", created.id);
 
@@ -142,17 +142,17 @@ test("critical routes: v1 management proxies covers auth, lookup, where-used, pa
     )
   );
 
-  const unauthenticatedBody = await unauthenticated.json();
-  const invalidTokenBody = await invalidToken.json();
-  const getByIdBody = await getById.json();
-  const whereUsedBody = await whereUsed.json();
-  const missingGetBody = await missingGet.json();
-  const invalidJsonPatchBody = await invalidJsonPatch.json();
-  const invalidPatchBody = await invalidPatch.json();
-  const validPatchBody = await validPatch.json();
-  const missingDeleteBody = await missingDelete.json();
-  const conflictDeleteBody = await conflictDelete.json();
-  const forcedDeleteBody = await forcedDelete.json();
+  const unauthenticatedBody = (await unauthenticated.json()) as any;
+  const invalidTokenBody = (await invalidToken.json()) as any;
+  const getByIdBody = (await getById.json()) as any;
+  const whereUsedBody = (await whereUsed.json()) as any;
+  const missingGetBody = (await missingGet.json()) as any;
+  const invalidJsonPatchBody = (await invalidJsonPatch.json()) as any;
+  const invalidPatchBody = (await invalidPatch.json()) as any;
+  const validPatchBody = (await validPatch.json()) as any;
+  const missingDeleteBody = (await missingDelete.json()) as any;
+  const conflictDeleteBody = (await conflictDelete.json()) as any;
+  const forcedDeleteBody = (await forcedDelete.json()) as any;
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
@@ -210,7 +210,7 @@ test("critical routes: v1 management proxies validates create payloads and clamp
         },
       })
     );
-    const created = await createResponse.json();
+    const created = (await createResponse.json()) as any;
     createdIds.push(created.id);
     assert.equal(createResponse.status, 201);
   }
@@ -232,11 +232,11 @@ test("critical routes: v1 management proxies validates create payloads and clamp
     })
   );
 
-  const invalidJsonPostBody = await invalidJsonPost.json();
-  const invalidPostBody = await invalidPost.json();
-  const pagedListBody = await pagedList.json();
-  const missingPatchBody = await missingPatch.json();
-  const missingDeleteBody = await missingDelete.json();
+  const invalidJsonPostBody = (await invalidJsonPost.json()) as any;
+  const invalidPostBody = (await invalidPost.json()) as any;
+  const pagedListBody = (await pagedList.json()) as any;
+  const missingPatchBody = (await missingPatch.json()) as any;
+  const missingDeleteBody = (await missingDelete.json()) as any;
 
   assert.equal(invalidJsonPost.status, 400);
   assert.equal(invalidJsonPostBody.error.message, "Invalid JSON body");
@@ -304,13 +304,13 @@ test("critical routes: v1 management proxies requires auth on mutating routes", 
   );
 
   for (const response of [unauthenticatedPost, unauthenticatedPatch, unauthenticatedDelete]) {
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(response.status, 401);
     assert.equal(body.error.message, "Authentication required");
   }
 
   for (const response of [invalidPost, invalidPatch, invalidDelete]) {
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(response.status, 403);
     assert.equal(body.error.message, "Invalid management token");
   }
@@ -370,14 +370,14 @@ test("critical routes: settings proxy resolves config, validates payloads, and d
     new Request("http://localhost/api/settings/proxy")
   );
 
-  const invalidJsonBody = await invalidJson.json();
-  const invalidProvidersBody = await invalidProviders.json();
-  const setProviderProxyBody = await setProviderProxy.json();
-  const getProviderProxyBody = await getProviderProxy.json();
-  const resolveProxyBody = await resolveProxy.json();
-  const missingLevelDeleteBody = await missingLevelDelete.json();
-  const deleteProviderProxyBody = await deleteProviderProxy.json();
-  const getFullConfigBody = await getFullConfig.json();
+  const invalidJsonBody = (await invalidJson.json()) as any;
+  const invalidProvidersBody = (await invalidProviders.json()) as any;
+  const setProviderProxyBody = (await setProviderProxy.json()) as any;
+  const getProviderProxyBody = (await getProviderProxy.json()) as any;
+  const resolveProxyBody = (await resolveProxy.json()) as any;
+  const missingLevelDeleteBody = (await missingLevelDelete.json()) as any;
+  const deleteProviderProxyBody = (await deleteProviderProxy.json()) as any;
+  const getFullConfigBody = (await getFullConfig.json()) as any;
 
   assert.equal(invalidJson.status, 400);
   assert.equal(invalidJsonBody.error.message, "Invalid JSON body");
@@ -413,7 +413,7 @@ test("critical routes: settings proxy prefers registry assignment for global loo
   const response = await settingsProxyRoute.GET(
     new Request("http://localhost/api/settings/proxy?level=global")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.level, "global");
@@ -470,10 +470,10 @@ test("critical routes: settings proxy covers global fallback and socks5 gating",
     })
   );
 
-  const setLegacyGlobalProxyBody = await setLegacyGlobalProxy.json();
-  const getLegacyGlobalProxyBody = await getLegacyGlobalProxy.json();
-  const socksDisabledBody = await socksDisabled.json();
-  const socksEnabledBody = await socksEnabled.json();
+  const setLegacyGlobalProxyBody = (await setLegacyGlobalProxy.json()) as any;
+  const getLegacyGlobalProxyBody = (await getLegacyGlobalProxy.json()) as any;
+  const socksDisabledBody = (await socksDisabled.json()) as any;
+  const socksEnabledBody = (await socksEnabled.json()) as any;
 
   assert.equal(setLegacyGlobalProxy.status, 200);
   assert.equal(setLegacyGlobalProxyBody.global.host, "legacy.proxy.local");
@@ -490,7 +490,7 @@ test("critical routes: v1 models route exposes CORS and list contracts", async (
   const response = await v1ModelsRoute.GET(
     new Request("http://localhost/api/v1/models", { method: "GET" })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(options.status, 200);
   assert.match(options.headers.get("Access-Control-Allow-Methods") || "", /GET/);

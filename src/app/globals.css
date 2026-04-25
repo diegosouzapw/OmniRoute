@@ -14,6 +14,7 @@
 :root {
   --desktop-safe-top: 0px;
   --desktop-safe-bottom: 0px;
+  color-scheme: light;
 
   /* Primary - Coral Red (OpenClaw) */
   --color-primary: #e54d5e;
@@ -54,6 +55,7 @@
 
 .dark {
   /* Dark theme (ClawHub deep) */
+  color-scheme: dark;
   --color-bg: #0b0e14;
   --color-bg-alt: #111520;
   --color-bg-primary: #0b0e14;
@@ -355,4 +357,10 @@ button .material-symbols-outlined,
   .ant-table {
     min-width: 600px; /* Prevent columns from crushing together */
   }
+}
+
+/* Fix for native dropdown options visibility in dark mode */
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-text-main);
 }

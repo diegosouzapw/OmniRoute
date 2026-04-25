@@ -6,8 +6,8 @@ import {
   withInjectionGuard,
 } from "../../src/middleware/promptInjectionGuard.ts";
 
-async function withEnv(overrides, fn) {
-  const originals = {};
+async function withEnv(overrides: Record<string, string | undefined>, fn: any) {
+  const originals: Record<string, string | undefined> = {};
 
   for (const [key, value] of Object.entries(overrides)) {
     originals[key] = process.env[key];
@@ -205,7 +205,7 @@ test("promptInjectionGuard: withInjectionGuard blocks suspicious POST bodies", a
     });
 
     const response = await wrapped(request, {});
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 400);
     assert.equal(payload.error.type, "injection_detected");
@@ -235,7 +235,7 @@ test("promptInjectionGuard: withInjectionGuard annotates downstream headers in w
     });
 
     const response = await wrapped(request, {});
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(payload.flagged, "true");
@@ -253,7 +253,7 @@ test("promptInjectionGuard: withInjectionGuard skips non-mutating methods", asyn
   assert.equal(response.status, 200);
 });
 
-test("promptInjectionGuard: withInjectionGuard fails open when the guard throws", async () => {
+test("promptInjectionGuard: withInjectionGuard fails closed when the guard throws", async () => {
   const wrapped = withInjectionGuard(async () => new Response("passed", { status: 202 }), {
     mode: "block",
   });
@@ -267,5 +267,5 @@ test("promptInjectionGuard: withInjectionGuard fails open when the guard throws"
 
   const response = await wrapped(request, {});
 
-  assert.equal(response.status, 202);
+  assert.equal(response.status, 500);
 });

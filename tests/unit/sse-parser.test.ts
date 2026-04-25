@@ -103,12 +103,12 @@ test("parseSSEToClaudeResponse parses text, thinking, tool_use, and usage events
 
   assert.equal(parsed.id, "msg_1");
   assert.equal(parsed.model, "claude-3-5-sonnet");
-  assert.equal(parsed.content[0].type, "thinking");
-  assert.equal(parsed.content[0].thinking, "step 1");
-  assert.equal(parsed.content[0].signature, "sig-1");
-  assert.equal(parsed.content[1].text, "Hello");
-  assert.equal(parsed.content[2].type, "tool_use");
-  assert.deepEqual(parsed.content[2].input, { q: "docs" });
+  assert.equal((parsed.content[0] as any).type, "thinking");
+  assert.equal((parsed as any).content[0].thinking, "step 1");
+  assert.equal((parsed as any).content[0].signature, "sig-1");
+  (assert as any).equal((parsed.content[1] as any).text, "Hello");
+  assert.equal((parsed.content[2] as any).type, "tool_use");
+  (assert as any).deepEqual((parsed.content[2] as any).input, { q: "docs" });
   assert.equal(parsed.stop_reason, "tool_use");
   assert.equal(parsed.stop_sequence, "END");
   assert.deepEqual(parsed.usage, { input_tokens: 10, output_tokens: 4 });

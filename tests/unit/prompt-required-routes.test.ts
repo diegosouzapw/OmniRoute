@@ -26,7 +26,7 @@ test("v1 video generation POST rejects requests without a prompt", async () => {
       }),
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(body.error.message, /Prompt is required/);
@@ -42,7 +42,7 @@ test("v1 music generation POST rejects requests without a prompt", async () => {
       }),
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(body.error.message, /Prompt is required/);

@@ -16,6 +16,7 @@ import {
   type ApiErrorType,
 } from "@/lib/api/errorResponse";
 import type { z } from "zod";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 type UpdateProxyConfigInput = z.infer<typeof updateProxyConfigSchema>;
@@ -120,6 +121,9 @@ function normalizeProxyPayload(body: UpdateProxyConfigInput): UpdateProxyConfigI
  * Or: ?resolve=connectionId to resolve effective proxy
  */
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const level = searchParams.get("level");
@@ -174,6 +178,9 @@ export async function GET(request: Request) {
  * Body: { level, id?, proxy } or legacy { global?, providers? }
  */
 export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -214,6 +221,9 @@ export async function PUT(request: Request) {
  * Query: ?level=provider&id=xxx
  */
 export async function DELETE(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const level = searchParams.get("level");

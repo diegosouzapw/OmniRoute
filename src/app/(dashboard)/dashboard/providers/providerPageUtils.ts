@@ -69,11 +69,26 @@ export function buildStaticProviderEntries(
 
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
-  showConfiguredOnly: boolean
+  showConfiguredOnly: boolean,
+  searchQuery?: string
 ): ProviderEntry<TProvider>[] {
-  if (!showConfiguredOnly) return entries;
+  let filtered = entries;
 
-  return entries.filter((entry) => Number(entry.stats?.total || 0) > 0);
+  if (showConfiguredOnly) {
+    filtered = filtered.filter((entry) => Number(entry.stats?.total || 0) > 0);
+  }
+
+  if (searchQuery && searchQuery.trim()) {
+    const query = searchQuery.trim().toLowerCase();
+    filtered = filtered.filter((entry) => {
+      const provider = entry.provider as Record<string, unknown>;
+      const name = String(provider.name || "").toLowerCase();
+      const id = entry.providerId.toLowerCase();
+      return name.includes(query) || id.includes(query);
+    });
+  }
+
+  return filtered;
 }
 
 export function resolveDashboardProviderInfo(

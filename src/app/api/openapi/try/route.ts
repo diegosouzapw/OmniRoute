@@ -5,19 +5,65 @@
 
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const ALLOWED_TRY_PATH_PREFIXES = ["/api/", "/v1/", "/v1beta/", "/a2a", "/.well-known/agent.json"];
+const BLOCKED_FORWARD_HEADERS = new Set([
+  "connection",
+  "content-length",
+  "cookie",
+  "host",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "x-forwarded-for",
+  "x-forwarded-host",
+  "x-forwarded-proto",
+]);
 
 const tryRequestSchema = z.object({
   method: z
     .enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
     .optional()
     .default("GET"),
-  path: z.string().min(1, "Path is required").startsWith("/", "Path must start with /"),
+  path: z
+    .string()
+    .min(1, "Path is required")
+    .startsWith("/", "Path must start with /")
+    .refine((value) => !value.startsWith("//"), "Path must be a same-origin path")
+    .refine(
+      (value) => ALLOWED_TRY_PATH_PREFIXES.some((prefix) => value.startsWith(prefix)),
+      "Path must target an OmniRoute API endpoint"
+    ),
   headers: z.record(z.string(), z.string()).optional().default({}),
   body: z.any().optional(),
 });
 
+function getRequestOrigin(request: NextRequest) {
+  return request.nextUrl?.origin || new URL(request.url).origin;
+}
+
+function buildForwardHeaders(headers: Record<string, string>) {
+  const forwardHeaders: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(headers)) {
+    const normalizedKey = key.trim().toLowerCase();
+    if (!normalizedKey || BLOCKED_FORWARD_HEADERS.has(normalizedKey)) continue;
+    forwardHeaders[key] = value;
+  }
+
+  return forwardHeaders;
+}
+
 export async function POST(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const rawBody = await request.json();
     const validation = validateBody(tryRequestSchema, rawBody);
@@ -27,19 +73,16 @@ export async function POST(request: NextRequest) {
 
     const { method, path, headers, body: reqBody } = validation.data;
 
-    // Build the target URL using the incoming request's origin
-    const origin = request.headers.get("x-forwarded-proto")
-      ? `${request.headers.get("x-forwarded-proto")}://${request.headers.get("host")}`
-      : `http://${request.headers.get("host") || "localhost:20128"}`;
-
-    const targetUrl = `${origin}${path}`;
+    const origin = getRequestOrigin(request);
+    const targetUrl = new URL(path, origin);
+    if (targetUrl.origin !== origin) {
+      return NextResponse.json({ error: "Path must be same-origin" }, { status: 400 });
+    }
 
     const start = performance.now();
 
     // Forward cookies/auth from the original request
-    const forwardHeaders: Record<string, string> = {
-      ...(headers as Record<string, string>),
-    };
+    const forwardHeaders = buildForwardHeaders(headers as Record<string, string>);
 
     // Forward auth from the dashboard session
     const cookie = request.headers.get("cookie");

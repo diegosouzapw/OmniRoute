@@ -47,7 +47,7 @@ async function readJsonFileWithRetry(filePath, attempts = 100) {
 
     try {
       return JSON.parse(trimmed);
-    } catch (error) {
+    } catch (error: any) {
       const snapshots = trimmed
         .split(/\n(?=\{)/)
         .map((entry) => entry.trim())
@@ -69,7 +69,7 @@ async function readJsonFileWithRetry(filePath, attempts = 100) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
       return parseJsonSnapshot(await fs.readFile(filePath, "utf8"));
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
@@ -101,7 +101,7 @@ test.afterEach(async () => {
   restoreEnv();
 
   for (const dir of tempDirs) {
-    await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir as any, { recursive: true, force: true });
   }
   tempDirs.clear();
 });

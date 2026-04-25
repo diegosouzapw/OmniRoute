@@ -75,7 +75,7 @@ test("handleChat waits for a short cooldown and retries once within the configur
     })
   );
   const elapsedMs = Date.now() - startedAt;
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls, 1);
@@ -126,7 +126,7 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
     })
   );
   const elapsedMs = Date.now() - startedAt;
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls, 4);
@@ -161,7 +161,7 @@ test("handleChat does not wait when the cooldown exceeds maxRetryIntervalSec", a
       },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(fetchCalls, 0);
   assert.equal(response.status, 503);
@@ -181,9 +181,15 @@ test("handleChat returns model_cooldown when every credential for the requested 
     maxRetryIntervalSec: 0,
   });
 
-  await auth.markAccountUnavailable(first.id, 429, "too many requests", "gemini", "gemini-2.5-pro");
   await auth.markAccountUnavailable(
-    second.id,
+    (first as any).id,
+    429,
+    "too many requests",
+    "gemini",
+    "gemini-2.5-pro"
+  );
+  await auth.markAccountUnavailable(
+    (second as any).id,
     429,
     "too many requests",
     "gemini",
@@ -205,7 +211,7 @@ test("handleChat returns model_cooldown when every credential for the requested 
       },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(fetchCalls, 0);
   assert.equal(response.status, 429);
@@ -247,7 +253,7 @@ test("handleChat aborts the pending cooldown wait when the client disconnects", 
       controller.signal
     )
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(fetchCalls, 0);
   assert.equal(response.status, 499);

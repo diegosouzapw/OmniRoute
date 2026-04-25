@@ -76,7 +76,7 @@ test("proxy requires auth for POST /api/settings/require-login after setup", asy
 
   const { proxy } = await importFreshProxy();
   const response = await proxy(makeRequest("/api/settings/require-login", "POST"));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(body.error.code, "AUTH_001");
@@ -95,7 +95,7 @@ test("proxy rejects bearer tokens for POST /api/settings/require-login after set
       authorization: "Bearer sk-invalid",
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 403);
   assert.equal(body.error.code, "AUTH_001");

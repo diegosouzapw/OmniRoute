@@ -7,9 +7,9 @@ import {
   normalizeModelCatalogSource,
 } from "../../src/shared/utils/modelCatalogSearch.ts";
 
-test("model catalog source normalization groups manual/imported rows as custom", () => {
+test("model catalog source normalization groups manual and synced rows separately", () => {
   assert.equal(normalizeModelCatalogSource("manual"), "custom");
-  assert.equal(normalizeModelCatalogSource("imported"), "custom");
+  assert.equal(normalizeModelCatalogSource("imported"), "api-sync");
   assert.equal(normalizeModelCatalogSource("api-sync"), "api-sync");
   assert.equal(normalizeModelCatalogSource("fallback"), "fallback");
   assert.equal(normalizeModelCatalogSource("alias"), "alias");

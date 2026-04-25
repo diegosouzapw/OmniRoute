@@ -93,7 +93,7 @@ test("Non-streaming: simple response", async () => {
       log: null,
     });
     assert.equal(result.response.status, 200);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.equal(json.object, "chat.completion");
     assert.equal(json.choices[0].message.role, "assistant");
     assert.equal(json.choices[0].message.content, "Hello world!");
@@ -152,7 +152,7 @@ test("Error: 401 returns auth error", async () => {
       log: null,
     });
     assert.equal(result.response.status, 401);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("sso"));
   } finally {
@@ -173,7 +173,7 @@ test("Error: 429 returns rate limit message", async () => {
       log: null,
     });
     assert.equal(result.response.status, 429);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("rate limited"));
   } finally {
     restore();
@@ -206,7 +206,7 @@ test("Error: Grok stream error returns 502", async () => {
       log: null,
     });
     assert.equal(result.response.status, 502);
-    const json = await result.response.json();
+    const json = (await result.response.json()) as any;
     assert.ok(json.error.message.includes("Internal error"));
   } finally {
     restore();
@@ -352,15 +352,12 @@ test("Provider registry: grok-web has correct models", async () => {
   const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
   const models = PROVIDER_MODELS["grok-web"];
   assert.ok(models, "grok-web should be in PROVIDER_MODELS");
-  assert.equal(models.length, 12, `Expected 12 models, got ${models.length}`);
+  assert.equal(models.length, 4, `Expected 4 models, got ${models.length}`);
   const ids = models.map((m: any) => m.id);
-  assert.ok(ids.includes("grok-3"));
-  assert.ok(ids.includes("grok-4"));
-  assert.ok(ids.includes("grok-4-heavy"));
-  assert.ok(ids.includes("grok-4.1-fast"));
-  assert.ok(ids.includes("grok-4.1-expert"));
-  assert.ok(ids.includes("grok-4.1-thinking"));
-  assert.ok(ids.includes("grok-4.2"));
+  assert.ok(ids.includes("fast"));
+  assert.ok(ids.includes("expert"));
+  assert.ok(ids.includes("heavy"));
+  assert.ok(ids.includes("grok-420-computer-use-sa"));
 });
 
 // ─── Statsig header ─────────────────────────────────────────────────────────

@@ -5,9 +5,13 @@ import {
   resetComboMetrics,
   resetAllComboMetrics,
 } from "@omniroute/open-sse/services/comboMetrics.ts";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos/metrics - Get per-combo metrics
 export async function GET(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const comboName = searchParams.get("combo");
@@ -30,6 +34,9 @@ export async function GET(request) {
 
 // DELETE /api/combos/metrics - Reset metrics
 export async function DELETE(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const comboName = searchParams.get("combo");

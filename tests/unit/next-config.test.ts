@@ -39,7 +39,7 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
-  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse"]);
+  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse", "@lobehub/icons"]);
   assert.deepEqual(rewrites.slice(0, 4), [
     {
       source: "/chat/completions",
@@ -110,5 +110,6 @@ test("next config webpack client branch disables Node builtins in browser bundle
     net: false,
     tls: false,
     crypto: false,
+    process: false,
   });
 });

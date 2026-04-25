@@ -24,12 +24,23 @@ export const FREE_PROVIDERS = {
       "Google restricts third-party OAuth usage for Gemini CLI (Mar 2026). Pro models require paid plans. Use 'gemini' (API key) provider instead.",
   },
   kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
+  "amazon-q": {
+    id: "amazon-q",
+    alias: "aq",
+    name: "Amazon Q",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "AQ",
+    website: "https://aws.amazon.com/q/developer/",
+    authHint:
+      "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+  },
 };
 
 export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
 
-export function supportsApiKeyOnFreeProvider(providerId) {
-  return FREE_APIKEY_PROVIDER_IDS.has(providerId);
+export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
+  return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
 }
 
 // OAuth Providers
@@ -44,6 +55,17 @@ export const OAUTH_PROVIDERS = {
   },
   codex: { id: "codex", alias: "cx", name: "OpenAI Codex", icon: "code", color: "#3B82F6" },
   github: { id: "github", alias: "gh", name: "GitHub Copilot", icon: "code", color: "#333333" },
+  "gitlab-duo": {
+    id: "gitlab-duo",
+    alias: "gitlab-duo",
+    name: "GitLab Duo",
+    icon: "hub",
+    color: "#FC6D26",
+    textIcon: "GL",
+    website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
+    authHint:
+      "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
+  },
   cursor: { id: "cursor", alias: "cu", name: "Cursor IDE", icon: "edit_note", color: "#00D4AA" },
   "kimi-coding": {
     id: "kimi-coding",
@@ -73,6 +95,16 @@ export const OAUTH_PROVIDERS = {
 
 // Web / Cookie Providers
 export const WEB_COOKIE_PROVIDERS = {
+  "chatgpt-web": {
+    id: "chatgpt-web",
+    alias: "cgpt-web",
+    name: "ChatGPT Web (Plus/Pro)",
+    icon: "auto_awesome",
+    color: "#10A37F",
+    textIcon: "CG",
+    website: "https://chatgpt.com",
+    authHint: "Paste your __Secure-next-auth.session-token cookie value from chatgpt.com",
+  },
   "grok-web": {
     id: "grok-web",
     alias: "gw",
@@ -94,10 +126,42 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.perplexity.ai",
     authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
   },
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    name: "Blackbox Web (Subscription)",
+    icon: "view_in_ar",
+    color: "#1A1A2E",
+    textIcon: "BW",
+    website: "https://app.blackbox.ai",
+    authHint:
+      "Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai",
+  },
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    name: "Muse Spark Web (Meta AI)",
+    icon: "auto_awesome",
+    color: "#0866FF",
+    textIcon: "MS",
+    website: "https://www.meta.ai",
+    authHint: "Paste your abra_sess value or full cookie header from meta.ai",
+  },
 };
 
 // API Key Providers
 export const APIKEY_PROVIDERS = {
+  agentrouter: {
+    id: "agentrouter",
+    alias: "agentrouter",
+    name: "AgentRouter",
+    icon: "router",
+    color: "#10B981",
+    textIcon: "AR",
+    passthroughModels: true,
+    website: "https://agentrouter.org",
+    apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",
@@ -108,6 +172,18 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     website: "https://openrouter.ai",
   },
+  qianfan: {
+    id: "qianfan",
+    alias: "qianfan",
+    name: "Baidu Qianfan",
+    icon: "cloud",
+    color: "#2468F2",
+    textIcon: "BD",
+    website: "https://cloud.baidu.com/product/wenxinworkshop",
+    passthroughModels: true,
+    apiHint:
+      "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
+  },
   glm: {
     id: "glm",
     alias: "glm",
@@ -115,6 +191,15 @@ export const APIKEY_PROVIDERS = {
     icon: "code",
     color: "#2563EB",
     textIcon: "GL",
+    website: "https://open.bigmodel.cn",
+  },
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    name: "GLM Coding (China)",
+    icon: "code",
+    color: "#DC2626",
+    textIcon: "GC",
     website: "https://open.bigmodel.cn",
   },
   glmt: {
@@ -207,6 +292,147 @@ export const APIKEY_PROVIDERS = {
     color: "#10A37F",
     textIcon: "OA",
     website: "https://platform.openai.com",
+  },
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    name: "Azure OpenAI",
+    icon: "cloud",
+    color: "#0078D4",
+    textIcon: "AZ",
+    website: "https://azure.microsoft.com/products/ai-services/openai-service",
+    authHint:
+      "Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com.",
+    passthroughModels: true,
+  },
+  "azure-ai": {
+    id: "azure-ai",
+    alias: "azure-ai",
+    name: "Azure AI Foundry",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "AF",
+    website: "https://learn.microsoft.com/azure/ai-foundry/",
+    authHint:
+      "Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.",
+    apiHint:
+      "Foundry uses the OpenAI v1 surface with deployment names as models. OmniRoute normalizes root resource URLs to the v1 chat and /models endpoints.",
+    passthroughModels: true,
+  },
+  bedrock: {
+    id: "bedrock",
+    alias: "bedrock",
+    name: "Amazon Bedrock",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "BR",
+    website: "https://aws.amazon.com/bedrock/",
+    authHint:
+      "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
+    apiHint:
+      "This integration targets Amazon Bedrock's current OpenAI-compatible surface. bedrock-mantle is the default for /models and chat; advanced users can also point baseUrl to bedrock-runtime/.../openai/v1 for runtime-specific model IDs.",
+    passthroughModels: true,
+  },
+  watsonx: {
+    id: "watsonx",
+    alias: "watsonx",
+    name: "IBM watsonx.ai Gateway",
+    icon: "hub",
+    color: "#0F62FE",
+    textIcon: "WX",
+    website: "https://www.ibm.com/products/watsonx-ai",
+    authHint:
+      "Use your watsonx bearer token. Base URL can be https://<region>.ml.cloud.ibm.com/ml/gateway/v1/ or a self-managed /ml/gateway/v1 endpoint.",
+    apiHint:
+      "The watsonx model gateway exposes OpenAI-compatible /chat/completions and /models under /ml/gateway/v1.",
+    passthroughModels: true,
+  },
+  oci: {
+    id: "oci",
+    alias: "oci",
+    name: "OCI Generative AI",
+    icon: "cloud",
+    color: "#C74634",
+    textIcon: "OCI",
+    website: "https://www.oracle.com/artificial-intelligence/generative-ai/",
+    authHint:
+      "Use your OCI Generative AI API key or IAM bearer token. Base URL can be https://inference.generativeai.<region>.oci.oraclecloud.com/openai/v1/.",
+    apiHint:
+      "OCI exposes OpenAI-compatible chat and responses endpoints. Project ID is optional in OmniRoute but may be required for Responses and agentic workflows.",
+    passthroughModels: true,
+  },
+  sap: {
+    id: "sap",
+    alias: "sap",
+    name: "SAP Generative AI Hub",
+    icon: "business",
+    color: "#0FAAFF",
+    textIcon: "SAP",
+    website:
+      "https://help.sap.com/docs/sap-ai-core/sap-ai-core-service-guide/generative-ai-hub-in-sap-ai-core",
+    authHint:
+      "Use your SAP AI Core bearer token. Base URL can be your AI_API_URL root or a deploymentUrl from Generative AI Hub.",
+    apiHint:
+      "Model discovery uses /v2/lm/scenarios/foundation-models/models on AI_API_URL. Chat requests use deploymentUrl/chat/completions and require AI-Resource-Group.",
+    passthroughModels: true,
+  },
+  modal: {
+    id: "modal",
+    alias: "mdl",
+    name: "Modal",
+    icon: "cloud_queue",
+    color: "#7C3AED",
+    textIcon: "MDL",
+    website: "https://modal.com/docs",
+    authHint:
+      "Use the bearer token that protects your Modal deployment, if enabled. Base URL should point to your OpenAI-compatible Modal app, for example https://<workspace>--<app>.modal.run/v1.",
+    apiHint:
+      "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. OmniRoute will probe /v1/models and route chat traffic to /v1/chat/completions.",
+    hasFree: true,
+    freeNote: "$30/month free credits for new accounts",
+    passthroughModels: true,
+  },
+  reka: {
+    id: "reka",
+    alias: "reka",
+    name: "Reka",
+    icon: "auto_awesome",
+    color: "#111827",
+    textIcon: "RK",
+    website: "https://docs.reka.ai/chat/overview",
+    authHint:
+      "Use your Reka API key. OmniRoute supports the OpenAI-compatible base URL https://api.reka.ai/v1 and sends both Authorization and X-Api-Key headers for compatibility.",
+    apiHint:
+      "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
+    passthroughModels: true,
+  },
+  nlpcloud: {
+    id: "nlpcloud",
+    alias: "nlpc",
+    name: "NLP Cloud",
+    icon: "psychology",
+    color: "#2196F3",
+    textIcon: "NLPC",
+    website: "https://docs.nlpcloud.com",
+    authHint:
+      "Use your NLP Cloud API key in Authorization: Token <key>. OmniRoute targets the chatbot endpoint on https://api.nlpcloud.io/v1/gpu/<model>/chatbot by default.",
+    apiHint:
+      "NLP Cloud uses a proprietary chatbot API instead of OpenAI chat/completions. OmniRoute adapts OpenAI messages to input/context/history and exposes a local catalog of supported chatbot models.",
+    hasFree: true,
+    freeNote: "Trial credits for new accounts",
+  },
+  runwayml: {
+    id: "runwayml",
+    alias: "runway",
+    name: "Runway",
+    icon: "movie",
+    color: "#111827",
+    textIcon: "RW",
+    website: "https://docs.dev.runwayml.com",
+    authHint:
+      "Use your Runway API key in Authorization: Bearer <key>. OmniRoute targets the current Runway API at https://api.dev.runwayml.com/v1 and sends the required X-Runway-Version header automatically.",
+    apiHint:
+      "Runway video generation is task-based. OmniRoute submits text-to-video or image-to-video jobs, polls /v1/tasks/{id}, and normalizes the finished video outputs back into the OpenAI-like /v1/videos/generations response.",
   },
   anthropic: {
     id: "anthropic",
@@ -382,24 +608,6 @@ export const APIKEY_PROVIDERS = {
     textIcon: "OC",
     website: "https://ollama.com/settings/api-keys",
   },
-  sdwebui: {
-    id: "sdwebui",
-    alias: "sdwebui",
-    name: "SD WebUI",
-    icon: "brush",
-    color: "#FF7043",
-    textIcon: "SD",
-    website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
-  },
-  comfyui: {
-    id: "comfyui",
-    alias: "comfyui",
-    name: "ComfyUI",
-    icon: "account_tree",
-    color: "#4CAF50",
-    textIcon: "CF",
-    website: "https://github.com/comfyanonymous/ComfyUI",
-  },
   huggingface: {
     id: "huggingface",
     alias: "hf",
@@ -440,6 +648,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
     authHint: "Provide Service Account JSON or OAuth access_token",
+  },
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    name: "Vertex AI Partners",
+    icon: "cloud",
+    color: "#34A853",
+    textIcon: "VP",
+    website: "https://cloud.google.com/vertex-ai",
+    authHint: "Provide the same Service Account JSON used for Vertex AI partner models.",
   },
   zai: {
     id: "zai",
@@ -700,6 +918,34 @@ export const APIKEY_PROVIDERS = {
     textIcon: "DB",
     website: "https://www.databricks.com",
   },
+  datarobot: {
+    id: "datarobot",
+    alias: "datarobot",
+    name: "DataRobot",
+    icon: "precision_manufacturing",
+    color: "#6D28D9",
+    textIcon: "DR",
+    website: "https://docs.datarobot.com",
+    authHint:
+      "Use your DataRobot API token. Optional Base URL can be the account root (for LLM Gateway) or a deployment URL under /api/v2/deployments/<id>.",
+    apiHint:
+      "The default gateway catalogs active models from /genai/llmgw/catalog/. Deployment URLs are also supported for direct OpenAI-compatible chat requests.",
+    passthroughModels: true,
+  },
+  clarifai: {
+    id: "clarifai",
+    alias: "clarifai",
+    name: "Clarifai",
+    icon: "hub",
+    color: "#7C3AED",
+    textIcon: "CF",
+    website: "https://docs.clarifai.com",
+    authHint:
+      "Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>.",
+    apiHint:
+      "Clarifai exposes OpenAI-compatible chat, responses and /models on /v2/ext/openai/v1. Public/community models typically require a PAT; app-scoped keys only work for resources inside that app.",
+    passthroughModels: true,
+  },
   snowflake: {
     id: "snowflake",
     alias: "snowflake",
@@ -879,6 +1125,145 @@ export const APIKEY_PROVIDERS = {
     website: "https://api.laozhang.ai",
     passthroughModels: true,
   },
+  glhf: {
+    id: "glhf",
+    alias: "glhf",
+    name: "GLHF Chat",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "GH",
+    website: "https://glhf.chat",
+    authHint: "Bearer API key for the GLHF OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  cablyai: {
+    id: "cablyai",
+    alias: "cablyai",
+    name: "CablyAI",
+    icon: "hub",
+    color: "#FF4081",
+    textIcon: "CA",
+    website: "https://cablyai.com",
+    authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  thebai: {
+    id: "thebai",
+    alias: "thebai",
+    name: "TheB.AI",
+    icon: "hub",
+    color: "#3B82F6",
+    textIcon: "TB",
+    website: "https://theb.ai",
+    authHint: "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  fenayai: {
+    id: "fenayai",
+    alias: "fenayai",
+    name: "FenayAI",
+    icon: "hub",
+    color: "#FF9800",
+    textIcon: "FN",
+    website: "https://fenayai.com",
+    authHint: "Bearer API key for the FenayAI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  empower: {
+    id: "empower",
+    alias: "empower",
+    name: "Empower",
+    icon: "hub",
+    color: "#14B8A6",
+    textIcon: "EM",
+    website: "https://docs.empower.dev",
+    authHint: "Bearer API key for the Empower OpenAI-compatible endpoint.",
+    apiHint:
+      "Empower exposes OpenAI-compatible chat on https://app.empower.dev/api/v1 with tool-calling support on empower-functions.",
+    passthroughModels: true,
+  },
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    name: "Nous Research",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "NO",
+    website: "https://portal.nousresearch.com/help",
+    authHint:
+      "Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
+    apiHint:
+      "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
+    passthroughModels: true,
+  },
+  petals: {
+    id: "petals",
+    alias: "petals",
+    name: "Petals",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "PT",
+    website: "https://chat.petals.dev",
+    authHint:
+      "No API key is required for the public research endpoint. Leave the field blank, or provide a bearer token if your self-hosted Petals gateway uses auth.",
+    apiHint:
+      "Petals exposes a public HTTP API at https://chat.petals.dev/api/v1/generate and a WebSocket API at /api/v2/generate. OmniRoute targets the HTTP generate endpoint and supports self-hosted base URLs.",
+  },
+  poe: {
+    id: "poe",
+    alias: "poe",
+    name: "Poe",
+    icon: "hub",
+    color: "#F97316",
+    textIcon: "PO",
+    website: "https://creator.poe.com/api-reference",
+    authHint: "Bearer API key for the Poe OpenAI-compatible API.",
+    apiHint:
+      "Poe exposes OpenAI-compatible chat and responses on https://api.poe.com/v1, with authenticated balance checks on /usage/current_balance.",
+    passthroughModels: true,
+  },
+  gitlab: {
+    id: "gitlab",
+    alias: "gitlab",
+    name: "GitLab Duo PAT",
+    icon: "hub",
+    color: "#FC6D26",
+    textIcon: "GL",
+    website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
+    authHint:
+      "GitLab personal access token for the public Code Suggestions API. Configure a self-hosted base URL when not using gitlab.com.",
+  },
+  chutes: {
+    id: "chutes",
+    alias: "chutes",
+    name: "Chutes.ai",
+    icon: "hub",
+    color: "#06B6D4",
+    textIcon: "CH",
+    website: "https://chutes.ai",
+    authHint: "Bearer API key for the Chutes OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  "voyage-ai": {
+    id: "voyage-ai",
+    alias: "voyage",
+    name: "Voyage AI",
+    icon: "blur_on",
+    color: "#0F766E",
+    textIcon: "VA",
+    website: "https://www.voyageai.com",
+    authHint: "Bearer API key for Voyage AI embeddings and rerank APIs.",
+  },
+  "jina-ai": {
+    id: "jina-ai",
+    alias: "jina",
+    name: "Jina AI",
+    icon: "sort",
+    color: "#2563EB",
+    textIcon: "JA",
+    website: "https://jina.ai",
+    authHint: "Bearer API key for the Jina AI rerank API.",
+  },
   "fal-ai": {
     id: "fal-ai",
     alias: "fal",
@@ -923,6 +1308,138 @@ export const APIKEY_PROVIDERS = {
     color: "#059669",
     textIcon: "TP",
     website: "https://topazlabs.com",
+  },
+};
+
+// Local / Self-Hosted Providers
+export const LOCAL_PROVIDERS = {
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    name: "LM Studio",
+    icon: "server",
+    color: "#4A148C",
+    textIcon: "LM",
+    website: "https://lmstudio.ai",
+    authHint:
+      "API key optional. Configure the local LM Studio OpenAI-compatible base URL (default: http://localhost:1234/v1).",
+    localDefault: "http://localhost:1234/v1",
+    passthroughModels: true,
+  },
+  vllm: {
+    id: "vllm",
+    alias: "vllm",
+    name: "vLLM",
+    icon: "memory",
+    color: "#0F766E",
+    textIcon: "VL",
+    website: "https://github.com/vllm-project/vllm",
+    authHint:
+      "API key optional. Configure the local vLLM OpenAI-compatible base URL (default: http://localhost:8000/v1).",
+    localDefault: "http://localhost:8000/v1",
+    passthroughModels: true,
+  },
+  lemonade: {
+    id: "lemonade",
+    alias: "lemonade",
+    name: "Lemonade Server",
+    icon: "bolt",
+    color: "#F59E0B",
+    textIcon: "LM",
+    website: "https://lemonade-server.ai",
+    authHint:
+      "API key optional. Configure the local Lemonade OpenAI-compatible base URL (default: http://localhost:13305/api/v1).",
+    localDefault: "http://localhost:13305/api/v1",
+    passthroughModels: true,
+  },
+  llamafile: {
+    id: "llamafile",
+    alias: "llamafile",
+    name: "Llamafile",
+    icon: "article",
+    color: "#EA580C",
+    textIcon: "LF",
+    website: "https://github.com/Mozilla-Ocho/llamafile",
+    authHint:
+      "API key optional. Configure the local Llamafile OpenAI-compatible base URL (default: http://127.0.0.1:8080/v1).",
+    localDefault: "http://127.0.0.1:8080/v1",
+    passthroughModels: true,
+  },
+  triton: {
+    id: "triton",
+    alias: "triton",
+    name: "NVIDIA Triton",
+    icon: "developer_board",
+    color: "#76B900",
+    textIcon: "TR",
+    website: "https://developer.nvidia.com/triton-inference-server",
+    authHint:
+      "API key optional. Configure the Triton OpenAI-compatible base URL (default: http://localhost:8000/v1).",
+    localDefault: "http://localhost:8000/v1",
+    passthroughModels: true,
+  },
+  "docker-model-runner": {
+    id: "docker-model-runner",
+    alias: "dmr",
+    name: "Docker Model Runner",
+    icon: "inventory_2",
+    color: "#2496ED",
+    textIcon: "DM",
+    website: "https://docs.docker.com/ai/model-runner/",
+    authHint:
+      "API key optional. Configure the local Docker Model Runner OpenAI-compatible base URL (default: http://localhost:12434/v1).",
+    localDefault: "http://localhost:12434/v1",
+    passthroughModels: true,
+  },
+  xinference: {
+    id: "xinference",
+    alias: "xinference",
+    name: "XInference",
+    icon: "hub",
+    color: "#DC2626",
+    textIcon: "XI",
+    website: "https://inference.readthedocs.io",
+    authHint:
+      "API key optional. Configure the local XInference OpenAI-compatible base URL (default: http://localhost:9997/v1).",
+    localDefault: "http://localhost:9997/v1",
+    passthroughModels: true,
+  },
+  oobabooga: {
+    id: "oobabooga",
+    alias: "ooba",
+    name: "oobabooga",
+    icon: "dns",
+    color: "#8B5CF6",
+    textIcon: "OO",
+    website: "https://github.com/oobabooga/text-generation-webui",
+    authHint:
+      "API key optional. Configure the local oobabooga OpenAI-compatible base URL (default: http://localhost:5000/v1).",
+    localDefault: "http://localhost:5000/v1",
+    passthroughModels: true,
+  },
+  sdwebui: {
+    id: "sdwebui",
+    alias: "sdwebui",
+    name: "SD WebUI",
+    icon: "brush",
+    color: "#FF7043",
+    textIcon: "SD",
+    website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
+    authHint:
+      "No API key required. Configure the local WebUI base URL (default: http://localhost:7860).",
+    localDefault: "http://localhost:7860",
+  },
+  comfyui: {
+    id: "comfyui",
+    alias: "comfyui",
+    name: "ComfyUI",
+    icon: "account_tree",
+    color: "#4CAF50",
+    textIcon: "CF",
+    website: "https://github.com/comfyanonymous/ComfyUI",
+    authHint:
+      "No API key required. Configure the local ComfyUI base URL (default: http://localhost:8188).",
+    localDefault: "http://localhost:8188",
   },
 };
 
@@ -1008,6 +1525,16 @@ export const SEARCH_PROVIDERS = {
     website: "https://www.searchapi.io/docs",
     authHint: "API key from SearchAPI (query param or Bearer auth)",
   },
+  "youcom-search": {
+    id: "youcom-search",
+    alias: "youcom-search",
+    name: "You.com Search",
+    icon: "travel_explore",
+    color: "#2563EB",
+    textIcon: "YOU",
+    website: "https://you.com/docs/search/overview",
+    authHint: "X-API-Key from the You.com platform dashboard",
+  },
   "searxng-search": {
     id: "searxng-search",
     alias: "searxng",
@@ -1076,17 +1603,28 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "IW",
     website: "https://inworld.ai",
   },
+  "aws-polly": {
+    id: "aws-polly",
+    alias: "polly",
+    name: "AWS Polly",
+    icon: "record_voice_over",
+    color: "#FF9900",
+    textIcon: "PL",
+    website: "https://aws.amazon.com/polly/",
+    authHint:
+      "Use AWS Secret Access Key as API key; set providerSpecificData.accessKeyId and optional region.",
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 export const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 
-export function isOpenAICompatibleProvider(providerId) {
+export function isOpenAICompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
 }
 
-export function isAnthropicCompatibleProvider(providerId) {
+export function isAnthropicCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
 
@@ -1108,8 +1646,30 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
-export function isClaudeCodeCompatibleProvider(providerId) {
+export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
+}
+
+export function isLocalProvider(providerId: unknown): boolean {
+  return (
+    typeof providerId === "string" &&
+    Object.prototype.hasOwnProperty.call(LOCAL_PROVIDERS, providerId)
+  );
+}
+
+export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
+  "lm-studio",
+  "vllm",
+  "lemonade",
+  "llamafile",
+  "triton",
+  "docker-model-runner",
+  "xinference",
+  "oobabooga",
+]);
+
+export function isSelfHostedChatProvider(providerId: unknown): boolean {
+  return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
 // All providers (combined)
@@ -1118,10 +1678,14 @@ export const AI_PROVIDERS = {
   ...OAUTH_PROVIDERS,
   ...APIKEY_PROVIDERS,
   ...WEB_COOKIE_PROVIDERS,
+  ...LOCAL_PROVIDERS,
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
 };
+
+export type AiProviderId = keyof typeof AI_PROVIDERS;
+export type AiProviderDefinition = (typeof AI_PROVIDERS)[AiProviderId];
 
 // Auth methods
 export const AUTH_METHODS = {
@@ -1130,7 +1694,7 @@ export const AUTH_METHODS = {
 };
 
 // Helper: Get provider by alias
-export function getProviderByAlias(alias) {
+export function getProviderByAlias(alias: string): AiProviderDefinition | null {
   for (const provider of Object.values(AI_PROVIDERS)) {
     if (provider.alias === alias || provider.id === alias) {
       return provider;
@@ -1140,25 +1704,27 @@ export function getProviderByAlias(alias) {
 }
 
 // Helper: Get provider ID from alias
-export function resolveProviderId(aliasOrId) {
+export function resolveProviderId(aliasOrId: string): string {
   const provider = getProviderByAlias(aliasOrId);
   return provider?.id || aliasOrId;
 }
 
 // Helper: Get alias from provider ID
-export function getProviderAlias(providerId) {
-  const provider = AI_PROVIDERS[providerId];
+export function getProviderAlias(providerId: string): string {
+  const provider = Object.prototype.hasOwnProperty.call(AI_PROVIDERS, providerId)
+    ? AI_PROVIDERS[providerId as AiProviderId]
+    : undefined;
   return provider?.alias || providerId;
 }
 
 // Alias to ID mapping (for quick lookup)
-export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce((acc, p) => {
+export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
   if (p.alias) acc[p.alias] = p.id;
   return acc;
 }, {});
 
 // ID to Alias mapping
-export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
+export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
   acc[p.id] = p.alias || p.id;
   return acc;
 }, {});
@@ -1168,12 +1734,15 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
   "gemini-cli",
   "kiro",
+  "amazon-q",
   "github",
   "codex",
   "claude",
   "kimi-coding",
   "glm",
   "glmt",
+  "minimax",
+  "minimax-cn",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
@@ -1183,5 +1752,7 @@ validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
 validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
 validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
 validateProviders(WEB_COOKIE_PROVIDERS, "WEB_COOKIE_PROVIDERS");
+validateProviders(LOCAL_PROVIDERS, "LOCAL_PROVIDERS");
 validateProviders(SEARCH_PROVIDERS, "SEARCH_PROVIDERS");
 validateProviders(AUDIO_ONLY_PROVIDERS, "AUDIO_ONLY_PROVIDERS");
+validateProviders(UPSTREAM_PROXY_PROVIDERS, "UPSTREAM_PROXY_PROVIDERS");

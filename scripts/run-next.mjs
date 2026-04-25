@@ -7,6 +7,8 @@ import next from "next";
 import { bootstrapEnv } from "./bootstrap-env.mjs";
 import { resolveRuntimePorts, withRuntimePortEnv } from "./runtime-env.mjs";
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
+import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
+import { randomUUID } from "node:crypto";
 
 // Add check for conflicting app/ directory (Issue #1206)
 const rootAppDir = path.join(process.cwd(), "app");
@@ -35,6 +37,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
 const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK === "1";
+process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
 
 const nextApp = next({
   dev,
@@ -42,7 +45,6 @@ const nextApp = next({
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
-  webpack: dev && !useTurbopack,
 });
 
 async function start() {
@@ -50,6 +52,10 @@ async function start() {
 
   const requestHandler = nextApp.getRequestHandler();
   const upgradeHandler = nextApp.getUpgradeHandler();
+  const responsesWsProxy = createResponsesWsProxy({
+    baseUrl: `http://127.0.0.1:${dashboardPort}`,
+    bridgeSecret: process.env.OMNIROUTE_WS_BRIDGE_SECRET,
+  });
   const wsBridge = createOmnirouteWsBridge({
     baseUrl: `http://127.0.0.1:${dashboardPort}`,
   });
@@ -57,6 +63,8 @@ async function start() {
   const server = http.createServer((req, res) => requestHandler(req, res));
   server.on("upgrade", async (req, socket, head) => {
     try {
+      const responsesWsHandled = await responsesWsProxy.handleUpgrade(req, socket, head);
+      if (responsesWsHandled) return;
       const handled = await wsBridge.handleUpgrade(req, socket, head);
       if (handled) return;
       await upgradeHandler(req, socket, head);

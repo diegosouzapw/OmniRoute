@@ -298,46 +298,105 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
  *   - Gemini: "Function response without function call"
  */
 function fixToolPairs(messages: Record<string, unknown>[]) {
-  // Collect all tool_call IDs from assistant messages that remain
-  const toolCallIds = new Set();
+  // Pass 1: Collect all tool_result IDs from user/tool messages
+  const toolResultIds = new Set();
   for (const msg of messages) {
-    if (msg.role === "assistant" && Array.isArray(msg.tool_calls)) {
-      for (const tc of msg.tool_calls) {
-        if (tc.id) toolCallIds.add(tc.id);
-      }
+    if (msg.role === "tool" && msg.tool_call_id) {
+      toolResultIds.add(msg.tool_call_id);
     }
-    // Claude format: content blocks with type=tool_use
-    if (msg.role === "assistant" && Array.isArray(msg.content)) {
+    if (msg.role === "user" && Array.isArray(msg.content)) {
       for (const block of msg.content) {
-        if (block.type === "tool_use" && block.id) {
-          toolCallIds.add(block.id);
+        if (block.type === "tool_result" && block.tool_use_id) {
+          toolResultIds.add(block.tool_use_id);
         }
       }
     }
   }
 
-  // Remove tool_result / "tool" role messages without a matching tool_use
-  return messages.filter((msg) => {
-    // OpenAI format: role="tool" with tool_call_id
-    if (msg.role === "tool" && msg.tool_call_id) {
-      return toolCallIds.has(msg.tool_call_id);
-    }
-    // Claude format: user message with tool_result content blocks
-    if (msg.role === "user" && Array.isArray(msg.content)) {
-      const hasOrphanedResult = msg.content.some(
-        (block) =>
-          block.type === "tool_result" && block.tool_use_id && !toolCallIds.has(block.tool_use_id)
-      );
-      if (hasOrphanedResult) {
-        // Filter out only the orphaned blocks, keep the rest
-        const filtered = msg.content.filter(
-          (block) =>
-            block.type !== "tool_result" || !block.tool_use_id || toolCallIds.has(block.tool_use_id)
+  // Pass 2: Filter assistant messages to remove tool_use without tool_result
+  // (Exception: keep tool_use if the assistant message is the last message)
+  const isLastMessage = (idx: number) => idx === messages.length - 1;
+  const filteredMessages = messages.map((msg, idx) => {
+    if (msg.role === "assistant" && !isLastMessage(idx)) {
+      let modified = false;
+      const newMsg = { ...msg };
+
+      if (Array.isArray(newMsg.tool_calls)) {
+        const filteredToolCalls = newMsg.tool_calls.filter(
+          (tc: Record<string, unknown>) => !tc.id || toolResultIds.has(tc.id)
         );
-        // If nothing left after filtering, drop the entire message
-        return filtered.length > 0;
+        if (filteredToolCalls.length !== newMsg.tool_calls.length) {
+          newMsg.tool_calls = filteredToolCalls;
+          modified = true;
+        }
+      }
+
+      if (Array.isArray(newMsg.content)) {
+        const filteredContent = newMsg.content.filter(
+          (block: Record<string, unknown>) =>
+            block.type !== "tool_use" || !block.id || toolResultIds.has(block.id)
+        );
+        if (filteredContent.length !== newMsg.content.length) {
+          newMsg.content = filteredContent;
+          modified = true;
+        }
+      }
+
+      return modified ? newMsg : msg;
+    }
+    return msg;
+  });
+
+  // Pass 3: Collect all remaining tool_use IDs from assistant messages
+  const toolCallIds = new Set();
+  for (const msg of filteredMessages) {
+    if (msg.role === "assistant") {
+      if (Array.isArray(msg.tool_calls)) {
+        for (const tc of msg.tool_calls) {
+          if (tc.id) toolCallIds.add(tc.id);
+        }
+      }
+      if (Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block.type === "tool_use" && block.id) {
+            toolCallIds.add(block.id);
+          }
+        }
       }
     }
-    return true;
-  });
+  }
+
+  // Pass 4: Filter user/tool messages to remove tool_result without tool_use
+  return filteredMessages
+    .map((msg) => {
+      if (msg.role === "tool" && msg.tool_call_id) {
+        if (!toolCallIds.has(msg.tool_call_id)) return null;
+      }
+
+      if (msg.role === "user" && Array.isArray(msg.content)) {
+        const filteredContent = msg.content.filter(
+          (block: Record<string, unknown>) =>
+            block.type !== "tool_result" || !block.tool_use_id || toolCallIds.has(block.tool_use_id)
+        );
+        if (filteredContent.length !== msg.content.length) {
+          if (filteredContent.length === 0) return null;
+          return { ...msg, content: filteredContent };
+        }
+      }
+
+      // Drop assistant messages if their content AND tool_calls became empty
+      if (msg.role === "assistant") {
+        const hasContent =
+          typeof msg.content === "string"
+            ? msg.content.trim().length > 0
+            : Array.isArray(msg.content) && msg.content.length > 0;
+        const hasToolCalls = Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0;
+        if (!hasContent && !hasToolCalls) {
+          return null;
+        }
+      }
+
+      return msg;
+    })
+    .filter(Boolean) as Record<string, unknown>[];
 }

@@ -7,8 +7,11 @@ import {
 } from "@omniroute/open-sse/services/thinkingBudget.ts";
 import { updateThinkingBudgetSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const config = getThinkingBudgetConfig();
     return NextResponse.json(config);
@@ -18,7 +21,9 @@ export async function GET() {
   }
 }
 
-export async function PUT(request) {
+export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();

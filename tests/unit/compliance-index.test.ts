@@ -233,13 +233,14 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
   );
 
   const result = compliance.cleanupExpiredLogs();
-  const usageCount = db.prepare("SELECT COUNT(*) as count FROM usage_history").get().count;
-  const callCount = db.prepare("SELECT COUNT(*) as count FROM call_logs").get().count;
-  const proxyCount = db.prepare("SELECT COUNT(*) as count FROM proxy_logs").get().count;
-  const requestDetailCount = db
-    .prepare("SELECT COUNT(*) as count FROM request_detail_logs")
-    .get().count;
-  const mcpAuditCount = db.prepare("SELECT COUNT(*) as count FROM mcp_tool_audit").get().count;
+  const usageCount = (db.prepare("SELECT COUNT(*) as count FROM usage_history").get() as any).count;
+  const callCount = (db.prepare("SELECT COUNT(*) as count FROM call_logs").get() as any).count;
+  const proxyCount = (db.prepare("SELECT COUNT(*) as count FROM proxy_logs").get() as any).count;
+  const requestDetailCount = (
+    db.prepare("SELECT COUNT(*) as count FROM request_detail_logs") as any
+  ).get().count;
+  const mcpAuditCount = (db.prepare("SELECT COUNT(*) as count FROM mcp_tool_audit").get() as any)
+    .count;
   const auditEntries = compliance.getAuditLog();
   const auditActions = auditEntries.map((entry) => entry.action);
 

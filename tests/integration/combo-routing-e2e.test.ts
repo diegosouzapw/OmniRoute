@@ -64,7 +64,7 @@ test("combo routes requests by exact combo name", async () => {
       body: buildOpenAIChatBody("router-priority"),
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -165,7 +165,7 @@ test("priority combo falls back to the secondary model when the first one fails"
   };
 
   const response = await handleChat(buildRequest({ body: buildOpenAIChatBody("router-fallback") }));
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(attempts.length, 2);
@@ -227,7 +227,7 @@ test("priority combo can repeat the same provider/model with different fixed acc
       body: buildOpenAIChatBody("router-fixed-accounts"),
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(authHeaders.length, 2);
@@ -297,7 +297,7 @@ test("model combo mappings route explicit model ids through the configured combo
       body: buildOpenAIChatBody("tenant/mapped-model"),
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -332,7 +332,7 @@ test("wildcard model combo mappings resolve arbitrary matching models", async ()
       body: buildOpenAIChatBody("tenant/any-model-name"),
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -347,7 +347,7 @@ test("unmapped custom model requests fail after combo resolution falls through",
       body: buildOpenAIChatBody("tenant/unmapped-model"),
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /No credentials for provider: tenant/);
@@ -378,7 +378,7 @@ test("strategy updates take effect for later requests on the same combo name", a
       body: buildOpenAIChatBody("router-dynamic", "Route dynamic initial"),
     })
   );
-  await combosDb.updateCombo(combo.id, {
+  await combosDb.updateCombo((combo as any).id, {
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0 },
   });

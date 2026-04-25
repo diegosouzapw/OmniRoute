@@ -208,3 +208,59 @@ test("Claude -> Gemini handles empty bodies without producing invalid content", 
   assert.deepEqual(result.generationConfig, {});
   assert.deepEqual(result.safetySettings, DEFAULT_SAFETY_SETTINGS);
 });
+
+test("Claude -> Gemini maps output_config.effort to thinkingConfig when thinking absent", () => {
+  const cases: Array<{ effort: string; expected: number }> = [
+    { effort: "low", expected: 1024 },
+    { effort: "medium", expected: 10240 },
+    { effort: "high", expected: 32768 },
+    { effort: "max", expected: 131072 },
+    { effort: "xhigh", expected: 131072 },
+  ];
+
+  for (const { effort, expected } of cases) {
+    const result = claudeToGeminiRequest(
+      "gemini-2.5-pro",
+      {
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        output_config: { effort },
+      },
+      false
+    );
+    assert.deepEqual(
+      result.generationConfig.thinkingConfig,
+      { thinkingBudget: expected, includeThoughts: true },
+      `effort ${effort} should map to budget ${expected}`
+    );
+  }
+});
+
+test("Claude -> Gemini prefers thinking.budget_tokens over output_config.effort", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      thinking: { type: "enabled", budget_tokens: 4096 },
+      output_config: { effort: "high" },
+    },
+    false
+  );
+
+  assert.deepEqual(result.generationConfig.thinkingConfig, {
+    thinkingBudget: 4096,
+    includeThoughts: true,
+  });
+});
+
+test("Claude -> Gemini skips thinkingConfig for output_config.effort=none", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      output_config: { effort: "none" },
+    },
+    false
+  );
+
+  assert.equal((result.generationConfig as any).thinkingConfig, undefined);
+});

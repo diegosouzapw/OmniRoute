@@ -40,7 +40,7 @@ test("providers validate route returns 400 for invalid JSON", async () => {
   const response = await validateRoute.POST(request);
 
   assert.equal(response.status, 400);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.error.message, "Invalid request");
 });
 
@@ -96,7 +96,7 @@ test("providers validate route forwards baseUrl to built-in specialty validators
     });
 
     const response = await validateRoute.POST(request);
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(body.valid, true);
@@ -175,7 +175,7 @@ test("providers validate route allows private baseUrl values when opt-in env is 
     });
 
     const response = await validateRoute.POST(request);
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(body.valid, true);
@@ -212,7 +212,7 @@ test("providers validate route returns 504 on controlled outbound timeout", asyn
     });
 
     const response = await validateRoute.POST(request);
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 504);
     assert.match(body.error, /timed out/i);

@@ -129,7 +129,7 @@ describe("Protocol clients E2E", () => {
       expect([200, 401]).toContain(auditRes.status);
       if (auditRes.status === 200) {
         expect(auditRes.ok).toBe(true);
-        const auditJson = await auditRes.json();
+        const auditJson = (await auditRes.json()) as any;
         const entries = Array.isArray(auditJson?.entries) ? auditJson.entries : [];
         expect(entries.some((entry: any) => entry.toolName === "omniroute_get_health")).toBe(true);
       }
@@ -142,7 +142,7 @@ describe("Protocol clients E2E", () => {
     async () => {
       const cardRes = await apiFetch("/.well-known/agent.json");
       expect(cardRes.ok).toBe(true);
-      const card = await cardRes.json();
+      const card = (await cardRes.json()) as any;
       expect(card).toHaveProperty("name");
       expect(Array.isArray(card?.skills)).toBe(true);
 
@@ -203,7 +203,7 @@ describe("Protocol clients E2E", () => {
       expect([200, 401]).toContain(tasksRes.status);
       if (tasksRes.status === 200) {
         expect(tasksRes.ok).toBe(true);
-        const tasksJson = await tasksRes.json();
+        const tasksJson = (await tasksRes.json()) as any;
         const tasks = Array.isArray(tasksJson?.tasks) ? tasksJson.tasks : [];
         expect(tasks.some((task: any) => task.id === sendTaskId)).toBe(true);
       }

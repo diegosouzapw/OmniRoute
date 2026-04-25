@@ -5,6 +5,7 @@ import { Card, Button, ModelSelectModal } from "@/shared/components";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { buildOpenCodeConfigDocument } from "@/shared/services/opencodeConfig";
 
 export default function DefaultToolCard({
   toolId,
@@ -31,6 +32,7 @@ export default function DefaultToolCard({
   const [copiedField, setCopiedField] = useState(null);
   const [showModelModal, setShowModelModal] = useState(false);
   const [modelValue, setModelValue] = useState("");
+  const [modelValues, setModelValues] = useState<string[]>([]);
   const [runtimeStatus, setRuntimeStatus] = useState(null);
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -40,11 +42,32 @@ export default function DefaultToolCard({
   const [selectedApiKeyId, setSelectedApiKeyId] = useState(() =>
     apiKeys?.length > 0 ? apiKeys[0].id : ""
   );
+  const isMultiModelTool = tool.modelSelectionMode === "multiple";
+  const usesOpenCodePreview = tool.previewConfigMode === "opencode";
 
   // Persist and restore model selection per tool via localStorage
   useEffect(() => {
     const savedModel = localStorage.getItem(`omniroute-cli-model-${toolId}`);
-    if (savedModel) setModelValue(savedModel);
+    if (savedModel) {
+      if (isMultiModelTool) {
+        try {
+          const parsed = JSON.parse(savedModel);
+          if (Array.isArray(parsed)) {
+            const normalized = parsed.map((value) => String(value || "").trim()).filter(Boolean);
+            setModelValues(normalized);
+            setModelValue(normalized[0] || "");
+          } else {
+            setModelValue(savedModel);
+            setModelValues([savedModel]);
+          }
+        } catch {
+          setModelValue(savedModel);
+          setModelValues([savedModel]);
+        }
+      } else {
+        setModelValue(savedModel);
+      }
+    }
     const savedKey = localStorage.getItem(`omniroute-cli-key-${toolId}`);
     // (#523) localStorage may contain a masked key string from before the fix —
     // match by prefix/suffix against known keys to find the id.
@@ -56,13 +79,31 @@ export default function DefaultToolCard({
       );
       if (matchedKey) setSelectedApiKeyId(matchedKey.id);
     }
-  }, [toolId, apiKeys]);
+  }, [toolId, apiKeys, isMultiModelTool]);
 
   const handleModelChange = useCallback(
     (value) => {
       setModelValue(value);
       if (value) {
         localStorage.setItem(`omniroute-cli-model-${toolId}`, value);
+      } else {
+        localStorage.removeItem(`omniroute-cli-model-${toolId}`);
+      }
+    },
+    [toolId]
+  );
+
+  const handleModelValuesChange = useCallback(
+    (values) => {
+      const normalized = Array.isArray(values)
+        ? [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))]
+        : [];
+
+      setModelValues(normalized);
+      setModelValue(normalized[0] || "");
+
+      if (normalized.length > 0) {
+        localStorage.setItem(`omniroute-cli-model-${toolId}`, JSON.stringify(normalized));
       } else {
         localStorage.removeItem(`omniroute-cli-model-${toolId}`);
       }
@@ -89,24 +130,28 @@ export default function DefaultToolCard({
       .then((res) => res.json())
       .then((data) => setRuntimeStatus(data))
       .catch((error) => setRuntimeStatus({ error: error?.message || t("runtimeCheckFailed") }));
-  }, [isExpanded, runtimeStatus, toolId]);
+  }, [isExpanded, runtimeStatus, t, toolId]);
 
-  const replaceVars = (text) => {
-    // (#523) Look up the key object by id to get the masked display value.
-    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-    const keyToUse =
-      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
+  const replaceVars = useCallback(
+    (text) => {
+      // (#523) Look up the key object by id to get the masked display value.
+      const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+      let keyToUse =
+        selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
+      if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
 
-    const normalizedBaseUrl = baseUrl || "http://localhost:20128";
-    const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
-      ? normalizedBaseUrl
-      : `${normalizedBaseUrl}/v1`;
+      const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+      const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
+        ? normalizedBaseUrl
+        : `${normalizedBaseUrl}/v1`;
 
-    return text
-      .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
-      .replace(/\{\{apiKey\}\}/g, keyToUse)
-      .replace(/\{\{model\}\}/g, modelValue || t("modelPlaceholder"));
-  };
+      return text
+        .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
+        .replace(/\{\{apiKey\}\}/g, keyToUse)
+        .replace(/\{\{model\}\}/g, modelValue || t("modelPlaceholder"));
+    },
+    [apiKeys, baseUrl, cloudEnabled, modelValue, selectedApiKeyId, t]
+  );
 
   const handleCopy = async (text, field) => {
     await copyToClipboard(replaceVars(text));
@@ -114,8 +159,63 @@ export default function DefaultToolCard({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const getSelectedModels = useCallback(() => {
+    if (!isMultiModelTool) return modelValue ? [modelValue] : [];
+    return modelValues.length > 0 ? modelValues : modelValue ? [modelValue] : [];
+  }, [isMultiModelTool, modelValue, modelValues]);
+
+  const getRenderedCodeBlock = useCallback(() => {
+    if (!tool.codeBlock?.code) return "";
+    if (!usesOpenCodePreview) return replaceVars(tool.codeBlock.code);
+
+    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+    let keyToUse =
+      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
+    if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
+    const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+    const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
+      ? normalizedBaseUrl
+      : `${normalizedBaseUrl}/v1`;
+
+    return JSON.stringify(
+      buildOpenCodeConfigDocument({
+        baseUrl: baseUrlWithV1,
+        apiKey: keyToUse,
+        models: getSelectedModels(),
+        model: getSelectedModels()[0],
+      }),
+      null,
+      2
+    );
+  }, [
+    apiKeys,
+    baseUrl,
+    cloudEnabled,
+    getSelectedModels,
+    replaceVars,
+    selectedApiKeyId,
+    t,
+    tool.codeBlock?.code,
+    usesOpenCodePreview,
+  ]);
+
   const handleSelectModel = (model) => {
-    handleModelChange(model.value);
+    if (!isMultiModelTool) {
+      handleModelChange(model.value);
+      return;
+    }
+
+    if (!model) {
+      handleModelValuesChange([]);
+      return;
+    }
+
+    if (modelValues.includes(model.value)) {
+      handleModelValuesChange(modelValues.filter((value) => value !== model.value));
+      return;
+    }
+
+    handleModelValuesChange([...modelValues, model.value]);
   };
 
   const hasActiveProviders = activeProviders.length > 0;
@@ -142,6 +242,7 @@ export default function DefaultToolCard({
           apiKey: !cloudEnabled ? "sk_omniroute" : null,
           keyId: selectedKeyId,
           model: modelValue,
+          models: isMultiModelTool ? getSelectedModels() : undefined,
         }),
       });
       const data = await res.json();
@@ -199,12 +300,23 @@ export default function DefaultToolCard({
   };
 
   const renderModelSelector = () => {
+    const displayValue = isMultiModelTool ? getSelectedModels().join(", ") : modelValue;
+
     return (
       <div className="mt-2 flex items-center gap-2">
         <input
           type="text"
-          value={modelValue}
-          onChange={(e) => handleModelChange(e.target.value)}
+          value={displayValue}
+          onChange={(e) =>
+            isMultiModelTool
+              ? handleModelValuesChange(
+                  e.target.value
+                    .split(",")
+                    .map((value) => value.trim())
+                    .filter(Boolean)
+                )
+              : handleModelChange(e.target.value)
+          }
           placeholder={t("modelPlaceholder")}
           className="flex-1 px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
         />
@@ -219,10 +331,10 @@ export default function DefaultToolCard({
         >
           {t("selectModel")}
         </button>
-        {modelValue && (
+        {displayValue && (
           <>
             <button
-              onClick={() => handleCopy(modelValue, "model")}
+              onClick={() => handleCopy(displayValue, "model")}
               className="shrink-0 px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary rounded-lg border border-border transition-colors"
             >
               <span className="material-symbols-outlined text-lg">
@@ -230,7 +342,9 @@ export default function DefaultToolCard({
               </span>
             </button>
             <button
-              onClick={() => handleModelChange("")}
+              onClick={() =>
+                isMultiModelTool ? handleModelValuesChange([]) : handleModelChange("")
+              }
               className="p-2 text-text-muted hover:text-red-500 rounded transition-colors"
               title={t("clear")}
             >
@@ -398,7 +512,7 @@ export default function DefaultToolCard({
                 {tool.codeBlock.language}
               </span>
               <button
-                onClick={() => handleCopy(tool.codeBlock.code, "codeblock")}
+                onClick={() => handleCopy(getRenderedCodeBlock(), "codeblock")}
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">
@@ -408,9 +522,7 @@ export default function DefaultToolCard({
               </button>
             </div>
             <pre className="p-4 bg-bg-secondary rounded-lg border border-border overflow-x-auto">
-              <code className="text-sm font-mono whitespace-pre">
-                {replaceVars(tool.codeBlock.code)}
-              </code>
+              <code className="text-sm font-mono whitespace-pre">{getRenderedCodeBlock()}</code>
             </pre>
           </div>
         )}
@@ -434,7 +546,7 @@ export default function DefaultToolCard({
                   variant="primary"
                   size="sm"
                   onClick={handleSaveConfig}
-                  disabled={!modelValue}
+                  disabled={isMultiModelTool ? getSelectedModels().length === 0 : !modelValue}
                   loading={saving}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>
@@ -445,7 +557,7 @@ export default function DefaultToolCard({
                 <Button
                   variant={supportsDirectSave ? "outline" : "primary"}
                   size="sm"
-                  onClick={() => handleCopy(tool.codeBlock.code, "codeblock")}
+                  onClick={() => handleCopy(getRenderedCodeBlock(), "codeblock")}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">
                     {copiedField === "codeblock" ? "check" : "content_copy"}
@@ -453,7 +565,7 @@ export default function DefaultToolCard({
                   {copiedField === "codeblock" ? t("copied") : t("copyConfig")}
                 </Button>
               )}
-              {modelValue && (
+              {(isMultiModelTool ? getSelectedModels().length > 0 : !!modelValue) && (
                 <span className="text-xs text-text-muted flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px] text-green-500">
                     check_circle
@@ -578,8 +690,11 @@ export default function DefaultToolCard({
         onClose={() => setShowModelModal(false)}
         onSelect={handleSelectModel}
         selectedModel={modelValue}
+        selectedModels={isMultiModelTool ? getSelectedModels() : []}
         activeProviders={activeProviders}
         title={t("selectModel")}
+        multiSelect={isMultiModelTool}
+        showCombos={!tool.hideComboModels}
       />
     </Card>
   );

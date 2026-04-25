@@ -185,5 +185,52 @@ describe("OpencodeExecutor", () => {
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
+
+    it("routes opencode-go new models to chat completions", async () => {
+      // Register new models
+      registerModel("opencode-go", { id: "glm-5.1", name: "GLM-5.1", contextLength: 204800 });
+      registerModel("opencode-go", { id: "kimi-k2.6", name: "Kimi K2.6" });
+      registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo V2 Pro" });
+      registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo V2 Omni" });
+      registerModel("opencode-go", { id: "qwen3.6-plus", name: "Qwen 3.6 Plus" });
+      registerModel("opencode-go", { id: "qwen3.5-plus", name: "Qwen 3.5 Plus" });
+
+      // glm-5.1
+      const glm51 = await goExecutor.execute(createInput("glm-5.1"));
+      assert.equal(glm51.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // kimi-k2.6
+      const kimi26 = await goExecutor.execute(createInput("kimi-k2.6"));
+      assert.equal(kimi26.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // mimo-v2-pro
+      const mimoPro = await goExecutor.execute(createInput("mimo-v2-pro"));
+      assert.equal(mimoPro.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // mimo-v2-omni
+      const mimoOmni = await goExecutor.execute(createInput("mimo-v2-omni"));
+      assert.equal(mimoOmni.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // qwen3.6-plus
+      const qwen36 = await goExecutor.execute(createInput("qwen3.6-plus"));
+      assert.equal(qwen36.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // qwen3.5-plus
+      const qwen35 = await goExecutor.execute(createInput("qwen3.5-plus"));
+      assert.equal(qwen35.url, "https://opencode.ai/zen/go/v1/chat/completions");
+    });
+
+    it("builds bearer auth headers for opencode-go openai models", async () => {
+      registerModel("opencode-go", { id: "glm-5.1", name: "GLM-5.1" });
+
+      const result = await goExecutor.execute(createInput("glm-5.1"));
+
+      assert.deepEqual(result.headers, {
+        Authorization: "Bearer test-key",
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      });
+      assert.deepEqual(fetchCalls[0].options.headers, result.headers);
+    });
   });
 });

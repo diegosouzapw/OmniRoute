@@ -55,8 +55,19 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
   };
 
   // Show method selection first
+  const oauthProviderId = providerInfo?.id || "kiro";
+  const providerLabel = providerInfo?.name || "Kiro";
+
   if (!authMethod) {
-    return <KiroAuthModal isOpen={isOpen} onMethodSelect={handleMethodSelect} onClose={onClose} />;
+    return (
+      <KiroAuthModal
+        isOpen={isOpen}
+        providerId={oauthProviderId}
+        providerLabel={providerLabel}
+        onMethodSelect={handleMethodSelect}
+        onClose={onClose}
+      />
+    );
   }
 
   // Show device code flow (Builder ID or IDC)
@@ -64,7 +75,7 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
     return (
       <OAuthModal
         isOpen={isOpen}
-        provider="kiro"
+        provider={oauthProviderId}
         providerInfo={providerInfo}
         onSuccess={handleDeviceSuccess}
         onClose={handleBack}
@@ -79,6 +90,7 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
       <KiroSocialOAuthModal
         isOpen={isOpen}
         provider={socialProvider}
+        providerLabel={providerLabel}
         onSuccess={handleSocialSuccess}
         onClose={handleBack}
       />
@@ -91,6 +103,7 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
 KiroOAuthWrapper.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   providerInfo: PropTypes.shape({
+    id: PropTypes.string,
     name: PropTypes.string,
   }),
   onSuccess: PropTypes.func,

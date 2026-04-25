@@ -6,7 +6,7 @@ API (like OmniRoute itself) to translate any English paragraphs into the
 target language.
 
 Usage:
-  python3 scripts/i18n_autotranslate.py --api-url http://192.168.0.15:20128/v1 --api-key sk-14e76c286e84ff2d-agn73z-5a1fd283 --model cx/gpt-5.4
+  python3 scripts/i18n_autotranslate.py --api-url http://localhost:20128/v1 --api-key sk-your-omniroute-key --model cx/gpt-5.4
 """
 
 import os

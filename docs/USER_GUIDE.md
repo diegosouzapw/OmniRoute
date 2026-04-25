@@ -36,6 +36,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
 |                     | Cohere            | Pay per use | None             | Command R+ RAG       |
 |                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
+|                     | Baidu Qianfan     | Pay per use | None             | ERNIE models         |
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
 |                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
@@ -190,6 +191,13 @@ Models:
 2. Get API key → Dashboard → Add API Key
 
 **Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+
+#### Baidu Qianfan / ERNIE
+
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
+
+**Use:** `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`, or another Qianfan OpenAI-compatible model ID.
 
 ### 🆓 FREE Providers
 
@@ -590,6 +598,8 @@ For the full environment variable reference, see the [README](../README.md).
 
 **NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
 
+**Baidu Qianfan (`qianfan/`)**: `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`
+
 </details>
 
 ---
@@ -756,35 +766,34 @@ Chain: production-fallback
 
 Configure via **Dashboard → Settings → Resilience**.
 
-OmniRoute implements provider-level resilience with four components:
+OmniRoute implements provider-level resilience with five components:
 
-1. **Provider Profiles** — Per-provider configuration for:
-   - **Transient Cooldown** — Base cooldown for transient upstream failures
-   - **Rate Limit Cooldown** — Base cooldown for `429`-driven lockouts
-   - **Max Backoff Level** — Maximum exponential backoff level for repeated failures
-   - **CB Threshold** — Failure count before model quarantine / provider circuit breaker escalates
-   - **CB Reset Time** — Failure counting window and breaker reset timer
-
-2. **Editable Rate Limits** — System-level defaults configurable in the dashboard:
+1. **Request Queue & Pacing** — System-level request shaping:
    - **Requests Per Minute (RPM)** — Maximum requests per minute per account
    - **Min Time Between Requests** — Minimum gap in milliseconds between requests
    - **Max Concurrent Requests** — Maximum simultaneous requests per account
-   - Click **Edit** to modify, then **Save** or **Cancel**. Values persist via the resilience API.
 
-3. **Circuit Breaker** — Tracks failures per provider and automatically opens the circuit when the configured threshold is reached:
+2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
+   - **Base Cooldown** — Default cooldown window for retryable upstream failures
+   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
+   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
+
+3. **Provider Circuit Breaker** — Tracks end-to-end provider failures and automatically opens the breaker when the configured threshold is reached:
+   - **Failure Threshold** — Consecutive provider failures before opening the breaker
+   - **Reset Timeout** — Time window before the provider is tested again
    - **CLOSED** (Healthy) — Requests flow normally
    - **OPEN** — Provider is temporarily blocked after repeated failures
    - **HALF_OPEN** — Testing if provider has recovered
 
-   The same provider profile also drives model-scoped lockouts:
-   - Account/model lockouts react immediately to authoritative `429` / `404` signals and use the configured cooldown + backoff values
-   - Global provider/model quarantine only activates after repeated exhaustion hits the configured **CB Threshold** within **CB Reset Time**
+   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
 
-4. **Policies & Locked Identifiers** — Shows circuit breaker status and locked identifiers with force-unlock capability.
+   The provider breaker runtime state is shown on **Dashboard → Health** only.
 
-5. **Rate Limit Auto-Detection** — Monitors `429` and `Retry-After` headers to proactively avoid hitting provider rate limits. When an upstream provider returns an explicit wait window, that authoritative `Retry-After` value overrides the base cooldown from the provider profile.
+4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
 
-**Pro Tip:** Use **Reset All** button to clear all circuit breakers and cooldowns when a provider recovers from an outage.
+5. **Rate Limit Auto-Detection** — When upstream providers return explicit wait windows, those hints override the local connection cooldown when the setting is enabled.
+
+**Pro Tip:** Use the **Health** page to inspect and reset live provider breakers after an outage. The Resilience page only changes configuration.
 
 ---
 
@@ -824,14 +833,14 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 The settings page is organized into 6 tabs for easy navigation:
 
-| Tab            | Contents                                                                                       |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility     |
-| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking      |
-| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults   |
-| **Resilience** | Provider profiles, editable rate limits, circuit breaker status, policies & locked identifiers |
-| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats              |
-| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                       |
+| Tab            | Contents                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility   |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking    |
+| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior  |
+| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats            |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                     |
 
 ---
 
@@ -904,9 +913,9 @@ Access via **Dashboard → Health**. Real-time system health overview with 6 car
 | Card                  | What It Shows                                               |
 | --------------------- | ----------------------------------------------------------- |
 | **System Status**     | Uptime, version, memory usage, data directory               |
-| **Provider Health**   | Per-provider circuit breaker state (Closed/Open/Half-Open)  |
-| **Rate Limits**       | Active rate limit cooldowns per account with remaining time |
-| **Active Lockouts**   | Providers temporarily blocked by the lockout policy         |
+| **Provider Health**   | Global provider circuit breaker runtime state               |
+| **Rate Limits**       | Active connection cooldowns per account with remaining time |
+| **Active Lockouts**   | Active model-scoped lockouts and temporary exclusions       |
 | **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
 | **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 

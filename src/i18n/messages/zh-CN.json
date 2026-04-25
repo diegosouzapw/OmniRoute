@@ -139,7 +139,12 @@
     "apikey": "API 密钥",
     "http": "HTTP",
     "goToDashboard": "前往仪表板",
-    "checkSystemStatus": "查看系统状态"
+    "checkSystemStatus": "查看系统状态",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "首页",
@@ -282,6 +287,10 @@
     "evals": "评测",
     "utilization": "利用率",
     "utilizationDescription": "提供商配额使用趋势和速率限制跟踪",
+    "modelStatus": "模型状态",
+    "modelStatusCooldown": "冷却中",
+    "modelStatusUnavailable": "不可用",
+    "modelStatusError": "错误",
     "comboHealth": "组合健康状况",
     "comboHealthDescription": "组合级别配额、使用分布和性能指标"
   },
@@ -507,7 +516,7 @@
     "yearsAgoShort": "{count}年前",
     "runtimeCheckFailed": "运行时检查失败",
     "yourApiKeyPlaceholder": "你的 API 密钥",
-    "modelPlaceholder": "provider/model-id",
+    "modelPlaceholder": "提供商/模型 ID",
     "configurationSaved": "配置保存成功。",
     "failedToSave": "保存配置失败。",
     "noApiKeysCreateOne": "无 API 密钥 - 在“密钥”页面创建一个",
@@ -644,7 +653,11 @@
       "kiro": "在集成 Kiro 并从 OmniRoute 集中控制模型路由时使用。",
       "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
-      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。"
+      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。",
+      "amp": "当您想要 Amp 简写工作流，但仍需要 OmniRoute 别名和路由规则支持时使用。",
+      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。",
+      "hermes": "当您需要轻量级终端原生 AI 助手来处理快速任务时使用。",
+      "custom": "用于自定义工具实现或通用 OpenAI 兼容配置。"
     },
     "toolDescriptions": {
       "antigravity": "带 MITM 的 Google Antigravity IDE",
@@ -660,7 +673,10 @@
       "kiro": "Amazon Kiro - AI 驱动 IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp 编程助手 CLI",
+      "hermes": "Hermes AI 终端助手",
+      "custom": "通用 OpenAI 兼容 CLI 或 SDK 配置生成器"
     },
     "guides": {
       "cursor": {
@@ -678,7 +694,7 @@
             "desc": "开启 “OpenAI API key” 选项"
           },
           "3": {
-            "title": "Base URL"
+            "title": "基础 URL"
           },
           "4": {
             "title": "API密钥"
@@ -730,7 +746,7 @@
             "title": "选择模型"
           },
           "5": {
-            "title": "Use Thinking Variant",
+            "title": "使用思考变体",
             "desc": "For thinking models, run with --variant high/low/max (example command below)."
           }
         },
@@ -763,24 +779,24 @@
       "windsurf": {
         "steps": {
           "1": {
-            "title": "Open AI Settings",
+            "title": "打开 AI 设置",
             "desc": "Click the AI Settings icon in Windsurf or go to Settings"
           },
           "2": {
-            "title": "Add Custom Provider",
+            "title": "添加自定义提供商",
             "desc": "Select \"Add custom provider\" (OpenAI-compatible)"
           },
           "3": {
-            "title": "Base URL",
+            "title": "基础 URL",
             "desc": "http://127.0.0.1:20128/v1"
           },
           "4": {
-            "title": "API Key",
+            "title": "API 密钥",
             "desc": "Select your OmniRoute API key"
           },
           "5": {
-            "title": "Select Model",
-            "desc": "Choose a model from the dropdown"
+            "title": "选择模型",
+            "desc": "从下拉菜单中选择一个模型"
           }
         }
       }
@@ -1022,7 +1038,8 @@
     "selectAccount": "选择账户",
     "autoSelectAccount": "运行时自动选择账户",
     "previewNextStep": "选择提供商和模型以预览下一步。",
-    "addStep": "添加步骤",
+    "builderAddStep": "添加步骤",
+    "builderDuplicateExact": "该提供商/模型/账户步骤已存在于组合中。",
     "comboReference": "组合引用",
     "selectComboToReference": "选择要引用的现有组合",
     "addComboReference": "添加组合引用",
@@ -1200,7 +1217,6 @@
     "builderProviderFirst": "请先选择提供商",
     "builderAccount": "账户",
     "builderPreview": "预览",
-    "builderAddStep": "添加步骤",
     "builderComboRef": "组合引用",
     "builderAddComboRef": "添加组合引用",
     "builderComboRefStep": "添加组合引用步骤",
@@ -1828,7 +1844,7 @@
     "connectionCountLabel": "{count, plural, one {# 个连接} other {# 个连接}}",
     "messagesPath": "messages",
     "responsesPath": "responses",
-    "chatCompletionsPath": "chat/completions",
+    "chatCompletionsPath": "聊天补全路径",
     "add": "添加",
     "edit": "编辑",
     "delete": "删除",
@@ -1911,6 +1927,9 @@
     "compatUpstreamAddRow": "添加请求头",
     "compatUpstreamRemoveRow": "删除此行",
     "compatBadgeUpstreamHeaders": "请求头",
+    "perModelQuotaLabel": "按模型配额",
+    "perModelQuotaDescription": "启用后，429/404错误只会锁定特定模型，而不是整个连接。适用于具有按模型速率限制的提供商（例如ModelScope）。",
+    "perModelQuotaToggle": "按模型配额开关",
     "modelId": "模型 ID",
     "customModelPlaceholder": "例如：gpt-4.5-turbo",
     "loading": "正在加载...",
@@ -1978,9 +1997,9 @@
     "statusCreditsExhausted": "余额不足 / 配额已耗尽",
     "showEmails": "显示所有邮箱",
     "hideEmails": "隐藏所有邮箱",
-    "imagesGenerations": "Images Generations",
+    "imagesGenerations": "图像生成",
     "audioSpeech": "Audio Speech",
-    "audioTranscriptions": "Audio Transcriptions",
+    "audioTranscriptions": "音频转录",
     "embeddings": "Embeddings"
   },
   "settings": {
@@ -2228,7 +2247,7 @@
     "stickyLimitDesc": "切换前每个账户连续处理的请求次数",
     "modelAliases": "模型别名",
     "modelAliasesTitle": "模型别名",
-    "modelAliasesDesc": "Remap model names using exact matches or wildcard patterns.",
+    "modelAliasesDesc": "使用精确匹配或通配符模式映射模型名称。",
     "addCustomAlias": "添加自定义别名",
     "deprecatedModelId": "已弃用的模型 ID",
     "newModelId": "新模型 ID",
@@ -2482,27 +2501,27 @@
     "maintenance": "维护",
     "purgeExpiredLogs": "清理过期日志",
     "purgeLogsFailed": "清理日志失败",
-    "contextOpt": "Context Optimized",
-    "contextOptDesc": "Routes based on context window requirements and conversation length",
-    "priorityDesc": "Sequential fallback - tries provider 1 first, then provider 2, and so on",
-    "weightedDesc": "Distributes traffic by percentage weights across providers",
-    "modelRoutingTitle": "Model Routing Rules",
-    "modelRoutingDesc": "Automatically route models to specific combos using glob patterns",
+    "contextOpt": "上下文优化",
+    "contextOptDesc": "根据上下文窗口需求和对话长度路由请求。",
+    "priorityDesc": "顺序回退 - 先尝试提供商 1，然后提供商 2...",
+    "weightedDesc": "按百分比权重在提供商间分配流量。",
+    "modelRoutingTitle": "模型路由规则",
+    "modelRoutingDesc": "使用 glob 模式自动将模型路由到特定组合。",
     "addRule": "Add Rule",
     "routeToCombo": "Route to Combo",
-    "selectCombo": "Select combo...",
-    "priorityHint": "Higher = checked first. Use 10+ for specific patterns.",
-    "patternHint": "Use * for any chars, ? for single char. Case-insensitive.",
-    "noRoutingRules": "No routing rules configured. Requests use the global combo by default.",
+    "selectCombo": "选择组合...",
+    "priorityHint": "数值越高 = 优先检查。特定模式使用 10+。",
+    "patternHint": "使用 * 匹配任意字符，? 匹配单个字符。不区分大小写。",
+    "noRoutingRules": "未配置路由规则。请求将使用全局组合基准。",
     "routingRuleHint": "Add a rule like claude-opus* -> frontier-combo to automatically route requests.",
-    "deleteRoutingRule": "Delete this model routing rule?",
+    "deleteRoutingRule": "删除此模型路由规则？",
     "exactMatchMode": "Exact Match",
-    "wildcardPatternMode": "Wildcard Pattern",
-    "exactMatchModeDesc": "Use exact aliases for deprecated or renamed model IDs.",
-    "wildcardPatternModeDesc": "Use wildcard aliases with * and ? when a family of models should map to one target.",
-    "noExactAliasesConfigured": "No exact-match aliases configured.",
+    "wildcardPatternMode": "通配符模式",
+    "exactMatchModeDesc": "为已弃用或重命名的模型 ID 使用精确别名。",
+    "wildcardPatternModeDesc": "当一系列模型应使用相同别名时，使用带 * 和 ? 的通配符。",
+    "noExactAliasesConfigured": "未配置精确匹配别名。",
     "wildcardRulesTitle": "Wildcard Rules",
-    "noWildcardAliasesConfigured": "No wildcard aliases configured."
+    "noWildcardAliasesConfigured": "未配置通配符别名。"
   },
   "translator": {
     "title": "翻译器",
@@ -2922,7 +2941,7 @@
     "forgotPassword": "忘记密码？",
     "defaultPasswordHint": "默认密码：CHANGEME（除非已设置 INITIAL_PASSWORD）",
     "Authorization": "Authorization",
-    "Content-Disposition": "Content-Disposition",
+    "Content-Disposition": "内容分发",
     "waitingForAuthorization": "正在等待授权...",
     "waitingForGoogleAuthorization": "正在等待 Google 授权...",
     "waitingForOpenAIAuthorization": "正在等待 OpenAI 授权...",
@@ -3317,12 +3336,12 @@
     "cacheHitRate": "缓存命中率",
     "cacheRate": "缓存率",
     "cacheRateDesc": "占总请求数",
-    "cachedTokens": "Cache Read Tokens",
-    "cacheCreationTokens": "Cache Write Tokens",
+    "cachedTokens": "缓存读取令牌",
+    "cacheCreationTokens": "缓存写入令牌",
     "cacheMetrics": "Prompt 缓存指标",
     "withCacheControl": "含缓存控制",
-    "cachedTokensRead": "Read from cache",
-    "cacheCreationWrite": "Written to cache",
+    "cachedTokensRead": "从缓存读取",
+    "cacheCreationWrite": "写入到缓存",
     "cacheReuseRatio": "缓存复用率",
     "cacheReuseRatioDesc": "Cache read tokens / 输入 Tokens 总量",
     "estCostSaved": "预估节省费用",

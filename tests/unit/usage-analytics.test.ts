@@ -19,6 +19,7 @@ function clearPendingRequests() {
   const pending = usageHistory.getPendingRequests();
   for (const key of Object.keys(pending.byModel)) delete pending.byModel[key];
   for (const key of Object.keys(pending.byAccount)) delete pending.byAccount[key];
+  for (const key of Object.keys(pending.details || {})) delete pending.details[key];
 }
 
 async function resetStorage() {
@@ -224,9 +225,24 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
     timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
   });
 
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, false);
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider",
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    false
+  );
 
   const stats = await usageStats.getUsageStats();
   const expectedCost =
@@ -294,4 +310,35 @@ test("recent request summaries are generated from SQLite call logs", async () =>
   assert.match(recent[0], /LOG-PROVIDER/);
   assert.match(recent[0], /Named Account/);
   assert.match(recent[0], /205 \| 206 \| 200$/);
+});
+
+test("pending request metadata stores sanitized payload previews and clears after completion", async () => {
+  usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", true, {
+    clientEndpoint: "/v1/chat/completions",
+    clientRequest: {
+      token: "super-secret-token",
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  usageHistory.updatePendingRequest("gpt-test", "openai", "conn-preview", {
+    providerUrl: "https://api.example.com/v1/chat/completions",
+    providerRequest: {
+      authorization: "Bearer super-secret-token",
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  const pending = usageHistory.getPendingRequests();
+  const detail = pending.details["conn-preview"]["gpt-test (openai)"];
+  const clientRequestPreview = detail.clientRequest as Record<string, unknown>;
+  const providerRequestPreview = detail.providerRequest as Record<string, unknown>;
+
+  assert.equal(detail.clientEndpoint, "/v1/chat/completions");
+  assert.equal(clientRequestPreview.token, "[REDACTED]");
+  assert.equal(providerRequestPreview.authorization, "[REDACTED]");
+  assert.equal(detail.providerUrl, "https://api.example.com/v1/chat/completions");
+
+  usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", false);
+  assert.equal(pending.details["conn-preview"], undefined);
 });

@@ -139,7 +139,12 @@
     "http": "HTTP",
     "goToDashboard": "Go to Dashboard",
     "nothingHere": "Nothing here yet",
-    "checkSystemStatus": "Check System Status"
+    "checkSystemStatus": "Check System Status",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "홈",
@@ -644,7 +649,9 @@
       "kiro": "Kiro를 통합하고 OmniRoute에서 중앙에서 모델 라우팅을 제어할 때 사용합니다.",
       "antigravity": "Antigravity/Kiro 트래픽이 MITM을 통해 가로채어 OmniRoute로 라우팅되어야 하는 경우에 사용합니다.",
       "copilot": "OmniRoute 키와 라우팅 규칙을 적용하면서 Copilot 채팅 스타일 UX를 원할 때 사용하세요.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
+      "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
+      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access."
     },
     "toolDescriptions": {
       "antigravity": "MITM이 포함된 Google 반중력 IDE",
@@ -660,7 +667,8 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI"
     },
     "guides": {
       "cursor": {
@@ -1635,6 +1643,7 @@
     "errorOccurred": "오류가 발생했습니다. 다시 시도해 주세요.",
     "modelStatus": "모델현황",
     "showConfiguredOnly": "Configured only",
+    "searchProviders": "공급자 검색...",
     "allModelsOperational": "모든 모델 작동 가능",
     "modelsWithIssues": "문제가 있는 {count} 모델",
     "allModelsNormal": "모든 모델이 정상적으로 반응하고 있습니다.",
@@ -1845,6 +1854,8 @@
     "save": "저장",
     "editConnection": "연결 편집",
     "accountName": "계정 이름",
+    "accountConcurrencyCapLabel": "Provider 계정 최대 동시 요청 수",
+    "accountConcurrencyCapHint": "이 provider 계정의 최대 동시 요청 수입니다. 비워 두거나 0으로 설정하면 제한이 없습니다. provider 자체가 부과하는 제한에 먼저 걸리지 않도록 돕습니다.",
     "email": "이메일",
     "healthCheckMinutes": "상태 점검(분)",
     "healthCheckHint": "사전 토큰 새로 고침 간격. 0 = 비활성화됨.",
@@ -2215,6 +2226,8 @@
     "defaultSafetyNet": "기본 안전망",
     "rpm": "RPM",
     "minGap": "민갭",
+    "comboConcurrencyLabel": "콤보 라운드로빈 모델별 최대 동시 요청 수",
+    "comboConcurrencyHint": "Combo 라운드로빈에서 모델별 최대 동시 요청 수입니다. 이 설정은 combo 전략에만 적용됩니다.",
     "maxConcurrent": "최대 동시",
     "activeLimiters": "활성 리미터",
     "noActiveLimiters": "아직 활성 속도 제한기가 없습니다.",

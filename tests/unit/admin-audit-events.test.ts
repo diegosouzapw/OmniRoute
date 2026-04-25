@@ -139,7 +139,7 @@ test("provider create/update/delete routes emit sanitized credential audit event
   );
 
   assert.equal(createResponse.status, 201);
-  const createBody = await createResponse.json();
+  const createBody = (await createResponse.json()) as any;
   const connectionId = createBody.connection.id;
   assert.equal(typeof connectionId, "string");
 
@@ -179,23 +179,23 @@ test("provider create/update/delete routes emit sanitized credential audit event
   assert.equal(createdEvent.resourceType, "provider_credentials");
   assert.equal(createdEvent.requestId, "req-provider-create");
   assert.equal(createdEvent.target, "openai:Primary OpenAI");
-  assert.equal("apiKey" in createdEvent.metadata.connection, false);
+  assert.equal("apiKey" in (createdEvent.metadata as any).connection, false);
 
   const updatedEvent = compliance.getAuditLog({ action: "provider.credentials.updated" })[0];
   assert.equal(updatedEvent.requestId, "req-provider-update");
-  assert.deepEqual(updatedEvent.metadata.changedFields.sort(), [
+  assert.deepEqual((updatedEvent as any).metadata.changedFields.sort(), [
     "defaultModel",
     "isActive",
     "name",
   ]);
-  assert.equal(updatedEvent.metadata.before.name, "Primary OpenAI");
-  assert.equal(updatedEvent.metadata.after.name, "Primary OpenAI Updated");
-  assert.equal("apiKey" in updatedEvent.metadata.before, false);
-  assert.equal("apiKey" in updatedEvent.metadata.after, false);
+  assert.equal((updatedEvent as any).metadata.before.name, "Primary OpenAI");
+  (assert as any).equal((updatedEvent.metadata as any).after.name, "Primary OpenAI Updated");
+  (assert as any).equal("apiKey" in (updatedEvent.metadata as any).before, false);
+  (assert as any).equal("apiKey" in (updatedEvent.metadata as any).after, false);
 
   const revokedEvent = compliance.getAuditLog({ action: "provider.credentials.revoked" })[0];
   assert.equal(revokedEvent.requestId, "req-provider-delete");
   assert.equal(revokedEvent.target, "openai:Primary OpenAI Updated");
   assert.equal(revokedEvent.status, "success");
-  assert.equal("apiKey" in revokedEvent.metadata.connection, false);
+  assert.equal("apiKey" in (revokedEvent.metadata as any).connection, false);
 });

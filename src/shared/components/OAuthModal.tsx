@@ -200,6 +200,7 @@ export default function OAuthModal({
         provider === "github" ||
         provider === "qwen" ||
         provider === "kiro" ||
+        provider === "amazon-q" ||
         provider === "kimi-coding" ||
         provider === "kilocode"
       ) {
@@ -225,7 +226,7 @@ export default function OAuthModal({
 
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
         const extraData =
-          provider === "kiro"
+          provider === "kiro" || provider === "amazon-q"
             ? { _clientId: data._clientId, _clientSecret: data._clientSecret }
             : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);

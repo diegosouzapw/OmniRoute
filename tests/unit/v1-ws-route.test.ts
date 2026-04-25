@@ -60,7 +60,7 @@ test("v1 ws handshake succeeds without credentials when wsAuth is disabled", asy
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.ok, true);
   assert.equal(body.wsAuth, false);
   assert.equal(body.authenticated, false);
@@ -73,7 +73,7 @@ test("v1 ws handshake requires credentials when wsAuth is enabled", async () => 
   const response = await wsRoute.GET(new Request("http://localhost/api/v1/ws?handshake=1"));
 
   assert.equal(response.status, 401);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.error.code, "ws_auth_required");
   assert.equal(body.wsAuth, true);
 });
@@ -87,7 +87,7 @@ test("v1 ws handshake accepts valid API key query credentials when wsAuth is ena
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.ok, true);
   assert.equal(body.authenticated, true);
   assert.equal(body.authType, "api_key");
@@ -98,6 +98,6 @@ test("v1 ws HTTP GET reports upgrade required outside handshake mode", async () 
 
   assert.equal(response.status, 426);
   assert.equal(response.headers.get("upgrade"), "websocket");
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.error.code, "upgrade_required");
 });

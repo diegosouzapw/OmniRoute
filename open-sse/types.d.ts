@@ -17,6 +17,8 @@ export interface ProviderCredentials {
   refreshToken?: string;
   /** Internal connection ID */
   connectionId: string;
+  /** Optional per-account concurrency cap */
+  maxConcurrent?: number | null;
   /** User email associated with the connection */
   email?: string;
   /** API key (for apikey auth type) */

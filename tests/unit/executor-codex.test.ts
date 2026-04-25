@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   CodexExecutor,
+  encodeResponseSseEvent,
   getCodexModelScope,
   getCodexRateLimitKey,
   getCodexResetTime,
@@ -100,8 +101,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.120.0");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
+  assert.equal(standardHeaders.Version, "0.125.0");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -127,7 +128,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.120.0");
+      assert.equal(headers.Version, "0.125.0");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -272,6 +273,42 @@ test("CodexExecutor.transformRequest lets model suffix beat connection reasoning
   assert.equal(result.reasoning.effort, "high");
 });
 
+test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhigh reasoning", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    { model: "gpt-5.5", input: [], reasoning_effort: "xhigh" },
+    false,
+    {}
+  );
+
+  assert.equal(result.model, "gpt-5.5");
+  assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
+  const raw = JSON.stringify({
+    type: "error",
+    status_code: 429,
+    error: {
+      type: "usage_limit_reached",
+      message: "The usage limit has been reached",
+    },
+  });
+
+  const result = encodeResponseSseEvent(raw);
+  assert.equal(result.terminal, true);
+  assert.match(result.sse, /^event: response\.failed/m);
+
+  const dataLine = result.sse.split("\n").find((line) => line.startsWith("data: "));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.status, "failed");
+  assert.equal(payload.response.error.code, "usage_limit_reached");
+  assert.equal(payload.response.error.status_code, 429);
+});
+
 test("CodexExecutor.transformRequest does not apply connection reasoning defaults when Thinking Budget is not passthrough", () => {
   const executor = new CodexExecutor();
   setThinkingBudgetConfig({ mode: ThinkingMode.AUTO });
@@ -331,4 +368,60 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("CodexExecutor maps usage_limit_reached websocket failures without explicit status to 429", () => {
+  const raw = JSON.stringify({
+    type: "response.failed",
+    response: {
+      id: "resp_usage_limit",
+      status: "failed",
+      error: {
+        code: "usage_limit_reached",
+        message: "Your weekly usage limit has been reached",
+      },
+    },
+  });
+
+  const result = encodeResponseSseEvent(raw);
+  assert.equal(result.terminal, true);
+
+  const dataLine = result.sse.split("\n").find((line) => line.startsWith("data: "));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.id, "resp_usage_limit");
+  assert.equal(payload.response.error.code, "usage_limit_reached");
+  assert.equal(payload.response.error.status_code, 429);
+});
+
+test("Codex internal websocket bridge secret comparison handles mismatched lengths safely", async () => {
+  const { bridgeSecretMatches } =
+    await import("../../src/app/api/internal/codex-responses-ws/route.ts");
+
+  assert.equal(bridgeSecretMatches("bridge-secret", "bridge-secret"), true);
+  assert.equal(bridgeSecretMatches("bridge-secret", "bridge-secret-extra"), false);
+  assert.equal(bridgeSecretMatches("bridge-secret", ""), false);
+});
+
+test("Codex internal websocket bridge rejects non-object JSON payloads", async () => {
+  await withEnv({ OMNIROUTE_WS_BRIDGE_SECRET: "bridge-secret" }, async () => {
+    const { POST } = await import("../../src/app/api/internal/codex-responses-ws/route.ts");
+
+    const response = await POST(
+      new Request("http://omniroute.local/api/internal/codex-responses-ws", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-omniroute-ws-bridge-secret": "bridge-secret",
+        },
+        body: JSON.stringify(["invalid"]),
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 400);
+    assert.equal(body.error.code, "invalid_json");
+    assert.match(body.error.message, /JSON object/);
+  });
 });

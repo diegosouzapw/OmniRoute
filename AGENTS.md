@@ -6,7 +6,7 @@ Unified AI proxy/router — route any LLM through one endpoint. Multi-provider s
 with **100+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
 ## Stack
 
@@ -303,12 +303,14 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-25 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
+29 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
-**Core tools** (18): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
+**Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
 set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
+best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
+
+**Cache tools** (2): cache_stats, cache_flush.
 
 **Memory tools** (3): memory_search, memory_add, memory_clear.
 

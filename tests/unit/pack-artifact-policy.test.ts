@@ -56,6 +56,8 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
   );
 
   assert.deepEqual(missingPaths, [
+    "app/responses-ws-proxy.mjs",
+    "app/server-ws.mjs",
     "bin/mcp-server.mjs",
     "bin/nodeRuntimeSupport.mjs",
     "scripts/native-binary-compat.mjs",

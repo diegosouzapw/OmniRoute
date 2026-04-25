@@ -83,37 +83,9 @@ export async function GET() {
 /**
  * POST /v1/embeddings — create embeddings
  */
-export async function POST(request) {
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    log.warn("EMBED", "Invalid JSON body");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
-  }
+type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
-  const validation = validateBody(v1EmbeddingsSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
-
-  // Optional API key validation
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
-
-  // Enforce API key policies (model restrictions + budget limits)
-  const policy = await enforceApiKeyPolicy(request, body.model);
-  if (policy.rejection) return policy.rejection;
-
+export async function handleValidatedEmbeddingRequestBody(body: ValidatedEmbeddingBody) {
   // Load local provider_nodes for embedding routing (only localhost — prevents auth bypass/SSRF)
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
@@ -243,4 +215,38 @@ export async function POST(request) {
     status: result.status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+export async function POST(request) {
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    log.warn("EMBED", "Invalid JSON body");
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+  }
+
+  const validation = validateBody(v1EmbeddingsSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+  }
+  const body = validation.data;
+
+  // Optional API key validation
+  if (process.env.REQUIRE_API_KEY === "true") {
+    const apiKey = extractApiKey(request);
+    if (!apiKey) {
+      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
+    }
+    const valid = await isValidApiKey(apiKey);
+    if (!valid) {
+      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+    }
+  }
+
+  // Enforce API key policies (model restrictions + budget limits)
+  const policy = await enforceApiKeyPolicy(request, body.model);
+  if (policy.rejection) return policy.rejection;
+
+  return handleValidatedEmbeddingRequestBody(body as ValidatedEmbeddingBody);
 }

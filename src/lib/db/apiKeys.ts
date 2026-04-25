@@ -604,6 +604,25 @@ export async function getApiKeyMetadata(
 
   const now = Date.now();
 
+  // persistent env-var key support (persistent passthrough keys) (#1350)
+  const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
+  if (envKey && key === envKey) {
+    return {
+      id: "env-key",
+      name: "Environment Key",
+      machineId: "server-env",
+      allowedModels: [],
+      allowedConnections: [],
+      noLog: false,
+      autoResolve: true,
+      isActive: true,
+      accessSchedule: null,
+      maxRequestsPerDay: null,
+      maxRequestsPerMinute: null,
+      maxSessions: 0,
+    };
+  }
+
   // Check cache first
   const cached = _keyMetadataCache.get(key);
   if (cached && now - cached.timestamp < CACHE_TTL) {

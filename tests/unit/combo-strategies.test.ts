@@ -48,7 +48,7 @@ test("handleComboChat with 'usage' strategy hits sortModelsByUsage", async () =>
   try {
     const res = await handleComboChat(id, req, stubConnection());
     assert.equal(res.status >= 200, true);
-  } catch (e) {
+  } catch (e: any) {
     // Expect error as fetch is not globally mocked for this quick edge branch test, that's fine
   }
 });
@@ -70,7 +70,7 @@ test("handleComboChat with 'context' strategy hits sortModelsByContextSize", asy
 
   try {
     const res = await handleComboChat(id, req, stubConnection());
-  } catch (e) {}
+  } catch (e: any) {}
 });
 
 test("handleComboChat hits extractPromptForIntent edge cases", async () => {
@@ -99,8 +99,8 @@ test("handleComboChat hits extractPromptForIntent edge cases", async () => {
 
   try {
     await handleComboChat(id, reqNull, stubConnection());
-  } catch (e) {}
+  } catch (e: any) {}
   try {
     await handleComboChat(id, reqEmpty, stubConnection());
-  } catch (e) {}
+  } catch (e: any) {}
 });
