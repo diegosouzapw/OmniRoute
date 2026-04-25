@@ -9,6 +9,7 @@ import {
   getRuntimeProviderProfile,
   shouldMarkAccountExhaustedFrom429,
   clearModelLock,
+  lockModel,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -841,6 +842,41 @@ async function handleSingleModelChat(
         model,
         providerProfile
       );
+
+      // 新增：检查 ModelScope 的日限额错误
+      if (
+        result.status === 429 &&
+        provider === 'modelscope' &&
+        result.error?.includes("today's quota for model")
+      ) {
+        // 解析具体哪个模型限额了
+        const match = result.error.match(/today's quota for model ([^,]+)/);
+        const limitedModel = match ? match[1].trim() : model;
+
+        // 锁定该 connection 的该模型 24 小时
+        const lockResult = recordModelLockoutFailure(
+          provider,
+          credentials.connectionId,
+          limitedModel,
+          'quota_exhausted',
+          result.status,
+          0, // fallbackCooldownMs (会被 exactCooldownMs 覆盖)
+          providerProfile
+        );
+        // 强制设置为 24 小时
+        lockModel(provider, credentials.connectionId, limitedModel, 'quota_exhausted', 24 * 60 * 60 * 1000, {
+          failureCount: lockResult.failureCount,
+          lastFailureAt: Date.now(),
+          resetAfterMs: 24 * 60 * 60 * 1000,
+        });
+
+        log.info('MODEL_DAILY_QUOTA', JSON.stringify({
+          connection: credentials.connectionId.slice(0, 8),
+          model: limitedModel,
+          cooldownMs: 24 * 60 * 60 * 1000,
+          failureCount: lockResult.failureCount
+        }));
+      }
 
       if (shouldFallback) {
         if (Number.isFinite(cooldownMs) && cooldownMs > 0) {

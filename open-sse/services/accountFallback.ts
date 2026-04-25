@@ -345,6 +345,11 @@ export function recordModelLockoutFailure(
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
+  // 对于日限额耗尽 (quota_exhausted),设置固定 24 小时冷却时间
+  if (reason === 'quota_exhausted') {
+    fallbackCooldownMs = 24 * 60 * 60 * 1000; // 24 小时
+  }
+
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
   const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
