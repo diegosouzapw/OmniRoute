@@ -1757,6 +1757,16 @@ Models:
 
 **Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
 
+### Baidu Qianfan / ERNIE
+
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key
+3. Dashboard → Add Provider → Baidu Qianfan
+
+**Use:** `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`, or any Qianfan OpenAI-compatible model ID.
+
+**Dashboard behavior:** Qianfan is registered as an OpenAI-compatible API key provider. Built-in ERNIE models are available immediately, and passthrough model IDs are accepted for newer Qianfan deployments.
+
 </details>
 
 <details>

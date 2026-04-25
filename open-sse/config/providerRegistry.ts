@@ -680,6 +680,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [{ id: "auto", name: "Auto (Best Available)" }],
   },
 
+  qianfan: {
+    id: "qianfan",
+    alias: "qianfan",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://qianfan.baidubce.com/v2/chat/completions",
+    modelsUrl: "https://qianfan.baidubce.com/v2/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "ernie-4.5-turbo-128k", name: "ERNIE 4.5 Turbo 128K" },
+      { id: "ernie-4.5-turbo-32k", name: "ERNIE 4.5 Turbo 32K", contextLength: 32000 },
+      { id: "ernie-4.5-turbo-8k", name: "ERNIE 4.5 Turbo 8K", contextLength: 8000 },
+      { id: "ernie-x1-turbo-32k", name: "ERNIE X1 Turbo 32K", contextLength: 32000 },
+      { id: "ernie-x1-turbo-8k", name: "ERNIE X1 Turbo 8K", contextLength: 8000 },
+      { id: "ernie-4.5-8k-preview", name: "ERNIE 4.5 8K Preview", contextLength: 8000 },
+    ],
+    passthroughModels: true,
+  },
+
   glm: {
     id: "glm",
     alias: "glm",
