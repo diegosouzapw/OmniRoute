@@ -671,7 +671,7 @@ test("Provider registry: perplexity-web is registered with correct models", asyn
 
   const models = PROVIDER_MODELS["pplx-web"];
   assert.ok(models, "pplx-web should be in PROVIDER_MODELS");
-  assert.ok(models.length === 7, `Expected 7 models, got ${models.length}`);
+  assert.ok(models.length === 8, `Expected 8 models, got ${models.length}`);
 
   const modelIds = models.map((m) => m.id);
   assert.ok(modelIds.includes("pplx-auto"));
@@ -681,6 +681,7 @@ test("Provider registry: perplexity-web is registered with correct models", asyn
   assert.ok(modelIds.includes("pplx-gemini"));
   assert.ok(modelIds.includes("pplx-nemotron"));
   assert.ok(modelIds.includes("pplx-sonar"));
+  assert.ok(modelIds.includes("pplx-kimi"));
 });
 
 // ─── Test: Fallback text field ──────────────────────────────────────────────

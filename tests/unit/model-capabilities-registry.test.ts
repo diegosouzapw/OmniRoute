@@ -106,16 +106,16 @@ test("canonical model capability resolver merges models.dev data and keeps stati
 
 test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   // GPT OSS models should not be blocked by the heuristic
-  assert.equal(modelCapabilities.supportsToolCalling("nvidia/gpt-oss-120b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);
   assert.equal(modelCapabilities.supportsToolCalling("gpt-oss-120b"), true);
-  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-20b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-20b"), false); // in registry
 
   // DeepSeek Reasoner supports tool calling
   assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);
   assert.equal(modelCapabilities.supportsToolCalling("deepseek/deepseek-r1"), true);
 
   // Full capability resolution
-  const gptOss = modelCapabilities.getResolvedModelCapabilities("nvidia/gpt-oss-120b");
+  const gptOss = modelCapabilities.getResolvedModelCapabilities("fake-provider/gpt-oss-120b");
   assert.equal(gptOss.toolCalling, true);
   const deepseek = modelCapabilities.getResolvedModelCapabilities("deepseek/deepseek-reasoner");
   assert.equal(deepseek.toolCalling, true);

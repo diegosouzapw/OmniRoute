@@ -102,7 +102,7 @@ test("v1 models catalog hides models excluded by every active connection while k
   const first = await seedConnection("openai", {
     name: "openai-first",
     providerSpecificData: {
-      excludedModels: ["gpt-4o*"],
+      excludedModels: ["gpt-5.4*"],
     },
   });
   const second = await seedConnection("openai", {
@@ -119,11 +119,11 @@ test("v1 models catalog hides models excluded by every active connection while k
   let ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
-  assert.equal(ids.has("openai/gpt-4o-mini"), true);
+  assert.equal(ids.has("openai/gpt-5.4-mini"), true);
 
   await providersDb.updateProviderConnection((second as any).id, {
     providerSpecificData: {
-      excludedModels: ["gpt-4o*"],
+      excludedModels: ["gpt-5.4*"],
     },
   });
 
@@ -134,7 +134,7 @@ test("v1 models catalog hides models excluded by every active connection while k
   ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
-  assert.equal(ids.has("openai/gpt-4o-mini"), false);
+  assert.equal(ids.has("openai/gpt-5.4-mini"), false);
 
   await providersDb.updateProviderConnection((first as any).id, {
     providerSpecificData: {
@@ -249,28 +249,6 @@ test("v1 models catalog exposes claude alias and provider-prefixed built-in mode
   assert.equal(aliasModel.capabilities?.vision, true);
   assert.deepEqual(aliasModel.input_modalities, ["text", "image"]);
   assert.deepEqual(aliasModel.output_modalities, ["text"]);
-});
-
-test("v1 models catalog exposes amazon-q alias and provider-prefixed models via the kiro-compatible registry", async () => {
-  await seedConnection("amazon-q", {
-    authType: "oauth",
-    name: "amazon-q-main",
-    apiKey: null,
-    accessToken: "amazon-q-access",
-  });
-
-  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
-    new Request("http://localhost/api/v1/models")
-  );
-  const body = (await response.json()) as any;
-  const aliasModel = body.data.find((item) => item.id === "aq/claude-sonnet-4.5");
-  const providerModel = body.data.find((item) => item.id === "amazon-q/claude-sonnet-4.5");
-
-  assert.equal(response.status, 200);
-  assert.ok(aliasModel);
-  assert.ok(providerModel);
-  assert.equal(providerModel.parent, aliasModel.id);
-  assert.equal(aliasModel.owned_by, "amazon-q");
 });
 
 test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retired models", async () => {

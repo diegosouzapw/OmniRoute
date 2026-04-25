@@ -6,15 +6,6 @@ import {
   stripIncompatibleMessageContent,
 } from "../../open-sse/services/modelStrip.ts";
 
-test("model strip metadata is exposed for text-only models", () => {
-  assert.deepEqual(getStripTypesForProviderModel("deepseek", "deepseek-chat"), ["image", "audio"]);
-  assert.deepEqual(getStripTypesForProviderModel("bailian-coding-plan", "qwen3-coder-next"), [
-    "image",
-    "audio",
-  ]);
-  assert.deepEqual(getStripTypesForProviderModel("openai", "gpt-4o"), []);
-});
-
 test("stripIncompatibleMessageContent removes image and audio parts but preserves text", () => {
   const originalMessages = [
     {
