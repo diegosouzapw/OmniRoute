@@ -1579,11 +1579,17 @@ export const codexProfileIdSchema = z.object({
   profileId: z.string().trim().min(1, "profileId is required"),
 });
 
-export const guideSettingsSaveSchema = z.object({
-  baseUrl: z.string().trim().min(1).optional(),
-  apiKey: z.string().optional(),
-  model: z.string().trim().min(1, "Model is required"),
-});
+export const guideSettingsSaveSchema = z
+  .object({
+    baseUrl: z.string().trim().min(1).optional(),
+    apiKey: z.string().optional(),
+    model: z.string().trim().min(1, "Model is required").optional(),
+    models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
+  })
+  .refine((data) => !!data.model || !!data.models?.length, {
+    message: "Model is required",
+    path: ["model"],
+  });
 
 // ── Search Schemas ─────────────────────────────────────────────────────
 // Unified search request/response schemas. Final contract — all fields optional

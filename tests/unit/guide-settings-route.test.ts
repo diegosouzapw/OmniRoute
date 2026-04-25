@@ -9,6 +9,7 @@ const guideSettingsRoute =
 const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-qwen-test-" + Date.now());
 const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
 const QWEN_ENV_PATH = path.join(DUMMY_HOME, ".qwen", ".env");
+const OPENCODE_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.json");
 
 type QwenProviderEntry = {
   id?: string;
@@ -100,4 +101,47 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
   assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
   assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
+});
+
+test("guide-settings POST writes OpenCode config with current schema and multi-model selection", async () => {
+  await fs.mkdir(path.dirname(OPENCODE_CONFIG_PATH), { recursive: true });
+  await fs.writeFile(
+    OPENCODE_CONFIG_PATH,
+    JSON.stringify({
+      $schema: "https://opencode.ai/config.json",
+      provider: {
+        custom: {
+          name: "Custom Provider",
+        },
+      },
+    }),
+    "utf-8"
+  );
+
+  const req = new Request("http://localhost/api/cli-tools/guide-settings/opencode", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      baseUrl: "http://my-omni/v1",
+      apiKey: "sk-123",
+      models: ["cc/claude-sonnet-4-20250514", "gg/gemini-2.5-pro"],
+    }),
+  });
+
+  const response = (await guideSettingsRoute.POST(req, {
+    params: { toolId: "opencode" },
+  })) as Response;
+  assert.equal(response.status, 200);
+
+  const content = JSON.parse(await fs.readFile(OPENCODE_CONFIG_PATH, "utf-8"));
+  assert.equal(content.$schema, "https://opencode.ai/config.json");
+  assert.ok(content.provider.custom);
+  assert.equal(content.provider.omniroute.npm, "@ai-sdk/openai-compatible");
+  assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
+  assert.equal(content.provider.omniroute.options.apiKey, "sk-123");
+  assert.deepEqual(Object.keys(content.provider.omniroute.models), [
+    "cc/claude-sonnet-4-20250514",
+    "gg/gemini-2.5-pro",
+  ]);
+  assert.equal(content.providers, undefined);
 });

@@ -249,6 +249,9 @@ export const CLI_TOOLS = {
     docsUrl: "/docs?section=cli-tools&tool=opencode",
     configType: "guide",
     defaultCommand: "opencode",
+    modelSelectionMode: "multiple",
+    hideComboModels: true,
+    previewConfigMode: "opencode",
     notes: [
       {
         type: "warning",
@@ -273,18 +276,21 @@ export const CLI_TOOLS = {
     codeBlock: {
       language: "json",
       code: `{
-  "providers": {
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
     "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
       "name": "OmniRoute",
-      "api": "openai",
-      "baseURL": "{{baseUrl}}",
-      "apiKey": "{{apiKey}}",
-      "models": [
-        "{{model}}",
-        "claude-sonnet-4-5-thinking",
-        "gemini-3.1-pro-high",
-        "gemini-3-flash"
-      ]
+      "options": {
+        "baseURL": "{{baseUrl}}",
+        "apiKey": "{{apiKey}}"
+      },
+      "models": {
+        "{{model}}": { "name": "{{model}}" },
+        "claude-sonnet-4-5-thinking": { "name": "claude-sonnet-4-5-thinking" },
+        "gemini-3.1-pro-high": { "name": "gemini-3.1-pro-high" },
+        "gemini-3-flash": { "name": "gemini-3-flash" }
+      }
     }
   }
 }`,

@@ -2,6 +2,7 @@ type OpenCodeConfigInput = {
   baseUrl?: string;
   apiKey?: string;
   model?: string;
+  models?: string[];
 };
 
 const OPENCODE_DEFAULT_MODELS = [
@@ -16,17 +17,27 @@ const normalizeValue = (value: unknown) =>
     .trim()
     .replace(/^\/+/, "");
 
+const normalizeModels = (models: unknown): string[] => {
+  if (!Array.isArray(models)) return [];
+  return [...new Set(models.map((model) => normalizeValue(model)).filter(Boolean))];
+};
+
 export const buildOpenCodeProviderConfig = ({
   baseUrl,
   apiKey,
   model,
+  models,
 }: OpenCodeConfigInput): Record<string, any> => {
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
   const normalizedModel = normalizeValue(model);
+  const normalizedModels = normalizeModels(models);
 
-  const uniqueModels = [...new Set([normalizedModel, ...OPENCODE_DEFAULT_MODELS].filter(Boolean))];
+  const uniqueModels =
+    normalizedModels.length > 0
+      ? normalizedModels
+      : [...new Set([normalizedModel, ...OPENCODE_DEFAULT_MODELS].filter(Boolean))];
 
   const modelsRecord: Record<string, { name: string }> = {};
   for (const m of uniqueModels) {
@@ -46,6 +57,13 @@ export const buildOpenCodeProviderConfig = ({
   };
 };
 
+export const buildOpenCodeConfigDocument = (input: OpenCodeConfigInput) => ({
+  $schema: "https://opencode.ai/config.json",
+  provider: {
+    omniroute: buildOpenCodeProviderConfig(input),
+  },
+});
+
 export const mergeOpenCodeConfig = (
   existingConfig: Record<string, any> | null | undefined,
   input: OpenCodeConfigInput
@@ -57,6 +75,7 @@ export const mergeOpenCodeConfig = (
 
   return {
     ...safeConfig,
+    $schema: safeConfig.$schema || "https://opencode.ai/config.json",
     provider: {
       ...((safeConfig as any).provider || {}),
       omniroute: buildOpenCodeProviderConfig(input),

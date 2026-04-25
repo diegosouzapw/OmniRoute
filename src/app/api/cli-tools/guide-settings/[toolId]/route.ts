@@ -36,7 +36,7 @@ export async function POST(request, { params }) {
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const { baseUrl, model } = validation.data;
+  const { baseUrl, model, models } = validation.data;
   // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
   const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
   const apiKey = await resolveApiKey(apiKeyId, validation.data.apiKey);
@@ -47,8 +47,8 @@ export async function POST(request, { params }) {
         return await saveContinueConfig({ baseUrl, apiKey, model });
       case "opencode":
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
-        // opencode reads ~/.config/opencode/config.toml — write the OmniRoute settings there.
-        return await saveOpenCodeConfig({ baseUrl, apiKey, model });
+        // OpenCode reads ~/.config/opencode/opencode.json — write the OmniRoute settings there.
+        return await saveOpenCodeConfig({ baseUrl, apiKey, model, models });
       case "qwen":
         return await saveQwenConfig({ baseUrl, apiKey, model });
       default:
@@ -145,7 +145,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
-async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
+async function saveOpenCodeConfig({ baseUrl, apiKey, model, models }) {
   const configPath = getOpenCodeConfigPath();
   const configDir = path.dirname(configPath);
 
@@ -169,6 +169,7 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
     baseUrl: normalizedBaseUrl,
     apiKey,
     model,
+    models,
   });
 
   await fs.writeFile(configPath, JSON.stringify(nextConfig, null, 2), "utf-8");
