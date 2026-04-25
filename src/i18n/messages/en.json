@@ -649,7 +649,10 @@
       "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
-      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks."
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
+      "amp": "Use when you want Amp shorthand workflows but still need OmniRoute alias and routing rules enforcement.",
+      "hermes": "Use when you need a lightweight terminal-native AI assistant for quick tasks.",
+      "custom": "Use for custom tool implementations or generic OpenAI-compatible configurations."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE with MITM",
@@ -665,7 +668,10 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI",
+      "hermes": "Hermes AI Terminal Assistant",
+      "custom": "Generic OpenAI-compatible CLI or SDK configuration generator"
     },
     "guides": {
       "cursor": {

@@ -649,7 +649,10 @@
       "windsurf": "当您需要 Windsurf AI IDE 并通过 OmniRoute 路由模型时使用。",
       "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
       "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。",
-      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。"
+      "qwen": "当您需要使用阿里云 Qwen Code CLI 进行编码任务时使用。",
+      "amp": "当您想要 Amp 简写工作流，但仍需要 OmniRoute 别名和路由规则支持时使用。",
+      "hermes": "当您需要轻量级终端原生 AI 助手来处理快速任务时使用。",
+      "custom": "用于自定义工具实现或通用 OpenAI 兼容配置。"
     },
     "toolDescriptions": {
       "antigravity": "带 MITM 的 Google Antigravity IDE",
@@ -665,7 +668,10 @@
       "kiro": "Amazon Kiro - AI 驱动 IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI"
+      "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp 编程助手 CLI",
+      "hermes": "Hermes AI 终端助手",
+      "custom": "通用 OpenAI 兼容 CLI 或 SDK 配置生成器"
     },
     "guides": {
       "cursor": {
