@@ -277,19 +277,20 @@ function parseAliasTarget(target) {
 function resolveModelByProviderInference(modelId, extendedContext) {
   const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
 
-  // Preserve historical behavior: OpenAI stays default when model exists there
-  if (providers.includes("openai")) {
+  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
+
+  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
     return {
-      provider: "openai",
+      provider: "codex",
       model: modelId,
       extendedContext,
     };
   }
 
-  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
-  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
+  // Preserve historical behavior: OpenAI stays default when model exists there
+  if (providers.includes("openai")) {
     return {
-      provider: "codex",
+      provider: "openai",
       model: modelId,
       extendedContext,
     };

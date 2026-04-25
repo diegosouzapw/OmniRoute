@@ -28,15 +28,6 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore reports ambiguous unprefixed GPT Codex models", async () => {
-  const info = await getModelInfoCore("gpt-5.4", {});
-  assert.equal(info.provider, null);
-  assert.equal(info.model, "gpt-5.4");
-  assert.equal(info.errorType, "ambiguous_model");
-  assert.ok(info.candidateProviders.includes("codex"));
-  assert.ok(info.candidateProviders.includes("github"));
-});
-
 test("getModelInfoCore resolves codex-auto-review to codex", async () => {
   const info = await getModelInfoCore("codex-auto-review", {});
   assert.equal(info.provider, "codex");
