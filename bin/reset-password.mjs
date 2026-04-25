@@ -70,10 +70,10 @@ async function main() {
     console.log("ℹ️  No password is currently set.");
   }
 
-  const password = await ask("Enter new password (min 4 chars): ");
+  const password = await ask("Enter new password (min 8 chars): ");
 
-  if (!password || password.length < 4) {
-    console.error("\n❌ Password must be at least 4 characters.\n");
+  if (!password || password.length < 8) {
+    console.error("\n❌ Password must be at least 8 characters.\n");
     db.close();
     rl.close();
     process.exit(1);
