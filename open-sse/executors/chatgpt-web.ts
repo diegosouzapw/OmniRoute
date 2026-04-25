@@ -135,13 +135,16 @@ function tokenLookup(cookie: string): TokenEntry | null {
   return entry;
 }
 
+const TOKEN_CACHE_MAX = 200;
+
 function tokenStore(cookie: string, entry: TokenEntry): void {
-  tokenCache.set(cookieKey(cookie), entry);
-  // Trim to 200 entries (matches Perplexity executor's session cache)
-  if (tokenCache.size > 200) {
+  // Bound the cache to TOKEN_CACHE_MAX entries (FIFO). Same shape as the
+  // image cache and warmup cache — drop the oldest before inserting.
+  if (tokenCache.size >= TOKEN_CACHE_MAX && !tokenCache.has(cookieKey(cookie))) {
     const firstKey = tokenCache.keys().next().value;
     if (firstKey) tokenCache.delete(firstKey);
   }
+  tokenCache.set(cookieKey(cookie), entry);
 }
 
 // Conversation continuity is intentionally not cached. Open WebUI and most
@@ -399,10 +402,11 @@ async function prepareChatRequirements(
   deviceId: string,
   cookie: string,
   dplInfo: { dpl: string; scriptSrc: string },
-  signal: AbortSignal | null | undefined
+  signal: AbortSignal | null | undefined,
+  log?: { warn?: (tag: string, msg: string) => void } | null
 ): Promise<ChatRequirements> {
   const config = buildPrekeyConfig(CHATGPT_USER_AGENT, dplInfo.dpl, dplInfo.scriptSrc);
-  const prekey = await buildPrepareToken(config);
+  const prekey = await buildPrepareToken(config, log);
 
   const headers: Record<string, string> = {
     ...browserHeaders(),
@@ -602,9 +606,15 @@ function buildPrekeyConfig(userAgent: string, dpl: string, scriptSrc: string): u
 /**
  * Build the `p` (prekey) value sent in the chat-requirements POST body.
  *
- * Format: "gAAAAAC" + base64(JSON(config)), with a brief PoW solver loop
- * (difficulty "0fffff") mutating config[3] to find a hash whose hex prefix
- * is ≤ the difficulty. Mirrors chat2api / openai-sentinel.
+ * Format: "<prefix>" + base64(JSON(config)), with a PoW solver loop mutating
+ * config[3] to find a hash whose hex prefix is ≤ the target difficulty.
+ * Mirrors chat2api / openai-sentinel.
+ *   - prepare:      prefix="gAAAAAC", seed=""           (target "0fffff")
+ *   - chat-requirements: prefix="gAAAAAB", seed=<server seed>  (target=difficulty)
+ *
+ * Submitting an unsolved token still works on low-friction accounts, so we
+ * fall back to that after exhausting the iteration budget — but emit a warn
+ * log so production can see when it happens.
  */
 // PoW solvers run up to 100k–500k SHA3-512 hashes. To avoid blocking the
 // Node event loop on a busy server, we yield with `setImmediate` every
@@ -617,50 +627,68 @@ function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function buildPrepareToken(config: unknown[]): Promise<string> {
-  const target = "0fffff";
-  const cfg = [...config];
-  for (let i = 0; i < 100_000; i++) {
-    if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
-    cfg[3] = i;
-    const json = JSON.stringify(cfg);
-    const b64 = Buffer.from(json).toString("base64");
-    const hash = createHash("sha3-512").update(b64).digest("hex");
-    if (hash.slice(0, target.length) <= target) {
-      return `gAAAAAC${b64}`;
-    }
-  }
-  // Fallback — submit unsolved; some clients do this and it still works.
-  const b64 = Buffer.from(JSON.stringify(cfg)).toString("base64");
-  return `gAAAAAC${b64}`;
+interface PowOptions {
+  config: unknown[];
+  seed: string;
+  target: string;
+  prefix: string;
+  maxIter: number;
+  label: string;
+  log?: { warn?: (tag: string, msg: string) => void } | null;
 }
 
-async function solveProofOfWork(
-  seed: string,
-  difficulty: string,
-  config: unknown[]
-): Promise<string> {
-  const target = (difficulty || "").toLowerCase();
-  const cfg = [...config];
-  const maxIter = 500_000;
-
-  for (let i = 0; i < maxIter; i++) {
+async function solvePow(opts: PowOptions): Promise<string> {
+  const cfg = [...opts.config];
+  for (let i = 0; i < opts.maxIter; i++) {
     if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
     cfg[3] = i;
     const json = JSON.stringify(cfg);
     const b64 = Buffer.from(json).toString("base64");
     const hash = createHash("sha3-512")
-      .update(seed + b64)
+      .update(opts.seed + b64)
       .digest("hex");
-    if (target && hash.slice(0, target.length) <= target) {
-      return `gAAAAAB${b64}`;
+    if (opts.target && hash.slice(0, opts.target.length) <= opts.target) {
+      return `${opts.prefix}${b64}`;
     }
   }
-
-  // Fallback: submit unsolved with the gAAAAAB prefix; some clients do this
-  // and the request still goes through on legacy/low-friction prompts.
+  opts.log?.warn?.(
+    "CGPT-WEB",
+    `PoW (${opts.label}) exhausted ${opts.maxIter} iterations against target=${opts.target || "<empty>"}; submitting unsolved token (Sentinel may reject)`
+  );
   const b64 = Buffer.from(JSON.stringify(cfg)).toString("base64");
-  return `gAAAAAB${b64}`;
+  return `${opts.prefix}${b64}`;
+}
+
+async function buildPrepareToken(
+  config: unknown[],
+  log?: { warn?: (tag: string, msg: string) => void } | null
+): Promise<string> {
+  return solvePow({
+    config,
+    seed: "",
+    target: "0fffff",
+    prefix: "gAAAAAC",
+    maxIter: 100_000,
+    label: "prepare",
+    log,
+  });
+}
+
+async function solveProofOfWork(
+  seed: string,
+  difficulty: string,
+  config: unknown[],
+  log?: { warn?: (tag: string, msg: string) => void } | null
+): Promise<string> {
+  return solvePow({
+    config,
+    seed,
+    target: (difficulty || "").toLowerCase(),
+    prefix: "gAAAAAB",
+    maxIter: 500_000,
+    label: "conversation",
+    log,
+  });
 }
 
 // ─── OpenAI → ChatGPT message translation ───────────────────────────────────
@@ -697,7 +725,8 @@ function stripInlinedImages(content: string): string {
 
 function findCachedImageContext(content: string): ChatGptImageConversationContext | null {
   let latest: ChatGptImageConversationContext | null = null;
-  CACHED_IMAGE_URL_RE.lastIndex = 0;
+  // String.prototype.matchAll consumes a fresh iterator and ignores the
+  // regex's lastIndex, so no manual reset is required.
   for (const match of content.matchAll(CACHED_IMAGE_URL_RE)) {
     const id = match[1];
     const context = getChatGptImageConversationContext(id);
@@ -1944,15 +1973,28 @@ async function registerWebSocket(ctx: ResolverContext): Promise<string | null> {
   return null;
 }
 
+interface WsWaitOutcome {
+  pointers: ImagePointerRef[];
+  /** True if the connection emitted an error event. Used by the retry layer
+   *  to decide whether a transport blip is worth a second attempt. */
+  errored: boolean;
+  /** True if any frame (message or open) was actually received from the
+   *  server. A retry is most valuable when the connection died before
+   *  exchanging any data. */
+  gotAnyMessage: boolean;
+}
+
 async function waitForImageViaWebSocket(
   wssUrl: string,
   conversationId: string,
   timeoutMs: number,
   ctx: ResolverContext
-): Promise<ImagePointerRef[]> {
+): Promise<WsWaitOutcome> {
   return new Promise((resolve) => {
     const found = new Map<string, ImagePointerRef>();
     let resolved = false;
+    let errored = false;
+    let gotAnyMessage = false;
     const finish = () => {
       if (resolved) return;
       resolved = true;
@@ -1961,7 +2003,11 @@ async function waitForImageViaWebSocket(
       } catch {
         /* ignore */
       }
-      resolve(Array.from(found.values()));
+      resolve({
+        pointers: Array.from(found.values()),
+        errored,
+        gotAnyMessage,
+      });
     };
     const ws = new WebSocket(wssUrl);
     const timer = setTimeout(() => {
@@ -1974,9 +2020,11 @@ async function waitForImageViaWebSocket(
     };
     ctx.signal?.addEventListener?.("abort", onAbort);
     ws.onopen = () => {
+      gotAnyMessage = true;
       ctx.log?.debug?.("CGPT-WEB", "WebSocket open — waiting for image events");
     };
     ws.onerror = (e) => {
+      errored = true;
       ctx.log?.warn?.("CGPT-WEB", `WebSocket error: ${(e as ErrorEvent).message ?? "unknown"}`);
     };
     ws.onclose = () => {
@@ -1985,6 +2033,7 @@ async function waitForImageViaWebSocket(
       finish();
     };
     ws.onmessage = (event) => {
+      gotAnyMessage = true;
       let payload: unknown;
       const raw = typeof event.data === "string" ? event.data : event.data.toString();
       try {
@@ -2054,19 +2103,61 @@ async function waitForImageViaWebSocket(
   });
 }
 
+// Default 3-minute wait for the async image_gen tool to produce an image
+// pointer over the celsius WebSocket. Tunable so deployments can stretch
+// during chatgpt.com queue-deep windows ("Lots of people are creating
+// images right now") without code changes.
+const DEFAULT_ASYNC_IMAGE_TIMEOUT_MS = 180_000;
+
+function configuredAsyncImageTimeoutMs(): number {
+  const raw = Number(process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS);
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_ASYNC_IMAGE_TIMEOUT_MS;
+  return Math.floor(raw);
+}
+
 async function pollForAsyncImage(
   conversationId: string,
   ctx: ResolverContext,
   opts: { timeoutMs?: number } = {}
 ): Promise<ImagePointerRef[]> {
-  const timeoutMs = opts.timeoutMs ?? 180_000;
-  const wssUrl = await registerWebSocket(ctx);
-  if (!wssUrl) {
-    ctx.log?.warn?.("CGPT-WEB", "Could not register WebSocket — async image gen not retrievable");
-    return [];
+  const totalTimeoutMs = opts.timeoutMs ?? configuredAsyncImageTimeoutMs();
+  const deadline = Date.now() + totalTimeoutMs;
+
+  // One reconnect attempt on transport error: the WS endpoint is signed and
+  // short-lived, and a network blip during the long wait would otherwise
+  // lose the image entirely. The deadline is shared across attempts so we
+  // never exceed the caller's budget.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const wssUrl = await registerWebSocket(ctx);
+    if (!wssUrl) {
+      ctx.log?.warn?.(
+        "CGPT-WEB",
+        attempt === 0
+          ? "Could not register WebSocket — async image gen not retrievable"
+          : `WebSocket re-registration failed on retry attempt ${attempt + 1}`
+      );
+      if (attempt === 0) continue; // try again — registration can be flaky
+      return [];
+    }
+    ctx.log?.debug?.(
+      "CGPT-WEB",
+      `Registered WebSocket for async image (attempt ${attempt + 1}, ${remaining}ms remaining)`
+    );
+    const outcome = await waitForImageViaWebSocket(wssUrl, conversationId, remaining, ctx);
+    if (outcome.pointers.length > 0) return outcome.pointers;
+    if (ctx.signal?.aborted) return [];
+    // Only retry when the connection died before producing anything useful.
+    // A clean close with no pointers (e.g., upstream cancellation) shouldn't
+    // burn a second attempt — the result would be the same.
+    if (!outcome.errored || outcome.gotAnyMessage) return [];
+    ctx.log?.warn?.(
+      "CGPT-WEB",
+      `WebSocket attempt ${attempt + 1} ended in transport error before any frame; retrying`
+    );
   }
-  ctx.log?.debug?.("CGPT-WEB", `Registered WebSocket for async image (timeout ${timeoutMs}ms)`);
-  return waitForImageViaWebSocket(wssUrl, conversationId, timeoutMs, ctx);
+  return [];
 }
 
 function makeImageResolver(ctx: ResolverContext): ImageResolver {
@@ -2109,18 +2200,17 @@ function makeImageResolver(ctx: ResolverContext): ImageResolver {
 
     let finalUrl: string | null = null;
     if (signedUrl) {
-      // Inline the bytes — chatgpt.com signed URLs aren't anonymously
-      // reachable, so we have to materialize them into the response.
+      // chatgpt.com signed URLs require the user's session cookie to fetch,
+      // so we materialize the bytes into our own cache and emit an OmniRoute
+      // URL. If that fails (oversize, network error, etc.) we return null —
+      // never the signed URL — because handing it back would emit broken
+      // markdown that 403s for the client. Better to drop the image silently
+      // than render a broken link.
       finalUrl = await imageUrlToCachedImageUrl(
         signedUrl,
         ctx,
         conversationId && parentMessageId ? { conversationId, parentMessageId } : undefined
       );
-      if (!finalUrl) {
-        // Last-ditch fallback: hand back the signed URL directly. Won't
-        // render in most clients, but better than nothing if download fails.
-        finalUrl = signedUrl;
-      }
     }
     cache.set(assetPointer, finalUrl);
     if (finalUrl) {
@@ -2266,7 +2356,8 @@ export class ChatGptWebExecutor extends BaseExecutor {
         deviceId,
         cookie,
         dplInfo,
-        signal
+        signal,
+        log
       );
     } catch (err) {
       if (err instanceof SentinelBlockedError) {
@@ -2319,7 +2410,8 @@ export class ChatGptWebExecutor extends BaseExecutor {
       proofToken = await solveProofOfWork(
         reqs.proofofwork.seed,
         reqs.proofofwork.difficulty,
-        powConfig
+        powConfig,
+        log
       );
     }
 

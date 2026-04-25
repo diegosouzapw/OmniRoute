@@ -563,7 +563,8 @@ const CHATGPT_WEB_IMAGE_ID_RE = /\/v1\/chatgpt-web\/image\/([a-f0-9]{16,64})(?=[
 
 function extractMarkdownImageUrls(text: string): string[] {
   const urls: string[] = [];
-  CHATGPT_WEB_IMAGE_MARKDOWN_RE.lastIndex = 0;
+  // String.prototype.matchAll consumes a fresh iterator and ignores the
+  // regex's lastIndex, so no manual reset is required.
   for (const match of text.matchAll(CHATGPT_WEB_IMAGE_MARKDOWN_RE)) {
     if (match[1]) urls.push(match[1]);
   }
@@ -616,8 +617,22 @@ async function handleChatGptWebImageGeneration({
     });
   }
 
-  const requestedCount =
+  // Each image is one chatgpt.com chat turn (~30s). Cap at 4 (matches OpenAI's
+  // own limit for image-1 / dall-e-3) so a stray n=1000 doesn't pin the
+  // executor for hours before the upstream HTTP timeout fires.
+  const CHATGPT_WEB_IMAGE_N_MAX = 4;
+  const rawCount =
     Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  if (rawCount > CHATGPT_WEB_IMAGE_N_MAX) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: `ChatGPT Web image generation supports n=1..${CHATGPT_WEB_IMAGE_N_MAX} (got ${rawCount}); each n is a separate ~30s chat turn.`,
+    });
+  }
+  const requestedCount = rawCount;
   if (log && requestedCount > 1) {
     log.warn(
       "IMAGE",

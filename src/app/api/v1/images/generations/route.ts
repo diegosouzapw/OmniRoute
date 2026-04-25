@@ -101,12 +101,21 @@ function hasImageGenerationInput(body: Record<string, unknown>) {
   return false;
 }
 
-function requestHeadersToRecord(headers: Headers): Record<string, string> {
-  const normalized: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    normalized[key] = value;
-  });
-  return normalized;
+// Forward only the host-shaped headers the chatgpt-web image handler needs
+// to derive the browser-facing public base URL. Avoid copying the full
+// request header set: it's wider than the handler needs (auth tokens,
+// content-type, etc.) and `Headers.forEach` collapses repeated values, which
+// would silently drop entries if a wider helper were reused for headers
+// that can legitimately repeat (e.g., set-cookie).
+const PUBLIC_BASE_URL_HEADER_KEYS = ["host", "x-forwarded-host", "x-forwarded-proto"] as const;
+
+function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of PUBLIC_BASE_URL_HEADER_KEYS) {
+    const value = headers.get(key);
+    if (value !== null) out[key] = value;
+  }
+  return out;
 }
 
 export async function POST(request) {
@@ -237,7 +246,7 @@ export async function POST(request) {
     log,
     ...(isCustomModel && { resolvedProvider: provider }),
     signal: request.signal,
-    clientHeaders: requestHeadersToRecord(request.headers),
+    clientHeaders: publicBaseUrlHeaders(request.headers),
   });
 
   if (result.success) {

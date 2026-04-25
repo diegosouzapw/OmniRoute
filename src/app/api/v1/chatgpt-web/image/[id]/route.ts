@@ -24,7 +24,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });
   }
-  return new Response(new Uint8Array(entry.bytes), {
+  // entry.bytes is a Buffer (subclass of Uint8Array); pass it directly.
+  // Wrapping in `new Uint8Array(...)` would copy the entire payload — up to
+  // 8 MB per image — for no benefit.
+  return new Response(entry.bytes, {
     status: 200,
     headers: {
       "Content-Type": entry.mime,

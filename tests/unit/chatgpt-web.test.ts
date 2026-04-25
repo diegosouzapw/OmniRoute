@@ -63,6 +63,7 @@ function installMockFetch({
   dpl,
   fileDownload,
   attachmentDownload,
+  signedDownload,
   onSession,
   onSentinel,
   onConv,
@@ -76,6 +77,7 @@ function installMockFetch({
     conv: 0,
     fileDownload: 0,
     attachmentDownload: 0,
+    signedDownload: 0,
     urls: [],
     headers: [],
     bodies: [],
@@ -179,6 +181,35 @@ function installMockFetch({
           body: null,
         };
       }
+    }
+
+    // The signed estuary URL the executor follows after fetching either
+    // download endpoint. Mock returns a tiny PNG header so the executor's
+    // `imageUrlToCachedImageUrl` decoder produces a valid Buffer and the
+    // image makes it into the cache, surfaced as /v1/chatgpt-web/image/<id>.
+    if (/^https:\/\/files\.oaiusercontent\.com\//.test(u)) {
+      calls.signedDownload++;
+      const cfg = signedDownload ?? { status: 200 };
+      if (cfg.status >= 400) {
+        return {
+          status: cfg.status,
+          headers: makeHeaders({ "Content-Type": "text/plain" }),
+          text: cfg.body || "",
+          body: null,
+        };
+      }
+      const tinyPng = Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+      ]);
+      return {
+        status: cfg.status,
+        headers: makeHeaders({ "Content-Type": "image/png" }),
+        // tls-client-node packages binary bodies as a data:<mime>;base64,...
+        // string when isByteResponse is set; the mock mirrors that contract.
+        text: `data:image/png;base64,${tinyPng.toString("base64")}`,
+        body: null,
+      };
     }
 
     // Match only the exact conversation endpoint, not /conversations (plural — warmup).
@@ -1543,11 +1574,13 @@ test("Image gen: file-service:// pointer resolves to download URL and is appende
     const json = await result.response.json();
     const content = json.choices[0].message.content;
     assert.match(content, /Here's your kitten:/);
-    assert.match(
-      content,
-      /!\[image\]\(https:\/\/files\.oaiusercontent\.com\/file-kitten1\?sig=mock\)/
-    );
+    // The signed chatgpt.com URL is downloaded server-side and re-served
+    // from the OmniRoute cache; clients see a stable /v1/chatgpt-web/image
+    // path, never the session-signed estuary URL (which 403s anonymously).
+    assert.match(content, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/);
+    assert.doesNotMatch(content, /files\.oaiusercontent\.com/);
     assert.equal(m.calls.fileDownload, 1, "fetched download URL once");
+    assert.equal(m.calls.signedDownload, 1, "fetched signed bytes once");
   } finally {
     m.restore();
   }
@@ -1580,12 +1613,11 @@ test("Image gen: file-service:// pointer is appended in streaming SSE", async ()
       if (done) break;
       body += decoder.decode(value);
     }
-    assert.match(
-      body,
-      /!\[image\]\(https:\/\/files\.oaiusercontent\.com\/file-kitten2\?sig=mock\)/
-    );
+    assert.match(body, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/);
+    assert.doesNotMatch(body, /files\.oaiusercontent\.com/);
     assert.match(body, /data: \[DONE\]/);
     assert.equal(m.calls.fileDownload, 1);
+    assert.equal(m.calls.signedDownload, 1);
   } finally {
     m.restore();
   }
@@ -1615,9 +1647,11 @@ test("Image gen: sediment:// pointer prefers /files/<id>/download over /attachme
     // round-trip); the /attachment endpoint is a fallback for when the
     // primary 404s. The mock /files/ response also doubles as the image
     // bytes that are cached behind the emitted OmniRoute image URL.
-    assert.match(content, /!\[image\]\(/, "image rendered");
+    assert.match(content, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/, "image rendered");
+    assert.doesNotMatch(content, /files\.oaiusercontent\.com/);
     assert.equal(m.calls.fileDownload, 1, "tried /files/ endpoint first");
     assert.equal(m.calls.attachmentDownload, 0, "did not need /attachment fallback");
+    assert.equal(m.calls.signedDownload, 1, "fetched signed bytes once");
   } finally {
     m.restore();
   }
@@ -2122,4 +2156,109 @@ test("Image gen: dedupes the same pointer across in-progress + finished events",
   } finally {
     m.restore();
   }
+});
+
+test("Image gen: bytes-fetch failure drops markdown (no signed-URL fallback)", async () => {
+  // Memory principle #3: never hand back the chatgpt.com signed estuary URL.
+  // It 403s for any anonymous client, so emitting it as markdown produces
+  // broken images. The resolver returns null when the bytes fetch fails;
+  // imageMarkdown skips empty URL lists, so no `![image](…)` appears.
+  reset();
+  const m = installMockFetch({
+    conv: { status: 200, events: imageGenEvents({ pointer: "file-service://file-broken-bytes" }) },
+    signedDownload: { status: 500, body: "boom" },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "draw a kitten" }] },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(result.response.status, 200);
+    const json = await result.response.json();
+    const content = json.choices[0].message.content;
+    assert.doesNotMatch(content, /!\[image\]/, "no markdown for failed bytes fetch");
+    assert.doesNotMatch(content, /files\.oaiusercontent\.com/, "signed URL is never leaked to client");
+    assert.equal(m.calls.fileDownload, 1, "download URL was attempted");
+    assert.equal(m.calls.signedDownload, 1, "signed-bytes fetch was attempted and failed");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Image cache: byte cap evicts oldest before count cap kicks in", async () => {
+  reset();
+  const cacheMod = await import("../../open-sse/services/chatgptImageCache.ts");
+  // 4 MB images × 3 stores against a 10 MB byte cap: third store should
+  // evict the first to fit. Verifies the byte budget bites BEFORE the
+  // 200-entry count cap, which is the whole point of the byte budget.
+  const original = process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB;
+  process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB = "10";
+  try {
+    cacheMod.__resetChatGptImageCacheForTesting();
+    const big = Buffer.alloc(4 * 1024 * 1024, 1);
+    const id1 = cacheMod.storeChatGptImage(big, "image/png");
+    const id2 = cacheMod.storeChatGptImage(big, "image/png");
+    assert.ok(cacheMod.getChatGptImage(id1), "id1 still resident after id2");
+    assert.ok(cacheMod.getChatGptImage(id2), "id2 resident");
+    const id3 = cacheMod.storeChatGptImage(big, "image/png");
+    assert.equal(cacheMod.getChatGptImage(id1), null, "id1 evicted to make room for id3");
+    assert.ok(cacheMod.getChatGptImage(id2), "id2 still resident");
+    assert.ok(cacheMod.getChatGptImage(id3), "id3 resident");
+    // Total bytes never exceeds the cap once we've evicted.
+    const bytes = cacheMod.__getChatGptImageCacheBytesForTesting();
+    assert.ok(
+      bytes <= 10 * 1024 * 1024,
+      `cache bytes (${bytes}) should be within the configured 10 MB cap`
+    );
+  } finally {
+    if (original == null) delete process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB;
+    else process.env.OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB = original;
+    cacheMod.__resetChatGptImageCacheForTesting();
+  }
+});
+
+test("Image gen handler: n>4 is rejected before any upstream call", async () => {
+  // Each chatgpt-web image is a separate ~30s chat turn. Without a clamp,
+  // body.n=1000 would pin the executor for hours before HTTP timeout.
+  // Verify the cap rejects at the boundary without burning a single upstream
+  // request — important so a rogue client can't trivially DoS the worker.
+  reset();
+  const m = installMockFetch();
+  try {
+    const { handleImageGeneration } = await import(
+      "../../open-sse/handlers/imageGeneration.ts"
+    );
+    const result = await handleImageGeneration({
+      body: { prompt: "draw a kitten", n: 5, model: "cgpt-web/gpt-5.3-instant" },
+      credentials: { apiKey: "test" },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.match(String(result.error), /n=1\.\.4/);
+    assert.equal(m.calls.session, 0, "no session exchange was attempted");
+    assert.equal(m.calls.conv, 0, "no conversation request was attempted");
+  } finally {
+    m.restore();
+  }
+});
+
+test("Image cache: deleting an entry decrements the byte counter", async () => {
+  // Regression guard: an earlier draft tracked entry count but not bytes,
+  // and TTL eviction removed the entry without crediting back its size —
+  // the counter would only ever grow.
+  reset();
+  const cacheMod = await import("../../open-sse/services/chatgptImageCache.ts");
+  cacheMod.__resetChatGptImageCacheForTesting();
+  const id = cacheMod.storeChatGptImage(Buffer.alloc(1024, 7), "image/png", 10);
+  assert.equal(cacheMod.__getChatGptImageCacheBytesForTesting(), 1024);
+  // Wait past the 10 ms TTL, then trigger eviction by reading.
+  await new Promise((r) => setTimeout(r, 25));
+  assert.equal(cacheMod.getChatGptImage(id), null, "entry expired");
+  assert.equal(cacheMod.__getChatGptImageCacheBytesForTesting(), 0, "bytes credited back on TTL evict");
 });
