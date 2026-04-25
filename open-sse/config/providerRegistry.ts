@@ -297,17 +297,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-opus-4-7", name: "Claude Opus 4.7", supportsXHighEffort: true },
       { id: "claude-opus-4-6", name: "Claude Opus 4.6", supportsXHighEffort: false },
       { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet", supportsXHighEffort: false },
-      { id: "claude-opus-4-5-20251101", name: "Claude 4.5 Opus", supportsXHighEffort: false },
-      {
-        id: "claude-sonnet-4-5-20250929",
-        name: "Claude 4.5 Sonnet",
-        supportsXHighEffort: false,
-      },
-      {
-        id: "claude-haiku-4-5-20251001",
-        name: "Claude 4.5 Haiku",
-        supportsXHighEffort: false,
-      },
+      { id: "claude-sonnet-4-5-20250929", name: "Claude 4.5 Sonnet", supportsXHighEffort: false },
+      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku", supportsXHighEffort: false },
     ],
   },
 
