@@ -611,14 +611,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
-      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4" },
-      { id: "claude-sonnet-4-6-20251031", name: "Claude Sonnet 4.6 (Dated)" },
-      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
-      { id: "claude-opus-4-20250514", name: "Claude Opus 4" },
-      { id: "claude-opus-4-6-20251031", name: "Claude Opus 4.6 (Dated)" },
+      { id: "claude-opus-4.7", name: "Claude Opus 4.7" },
       { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
-      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
+      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.6" },
+      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
     ],
   },
 
