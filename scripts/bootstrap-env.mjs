@@ -18,7 +18,7 @@
  *   4. process.env            (shell / Docker -e flags, highest priority)
  */
 
-import { randomBytes } from "node:crypto";
+import { randomBytes, createDecipheriv } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
@@ -215,6 +215,64 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   // ── Warn about default password ────────────────────────────────────────────
   if (merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim()) {
     log("⚠️  INITIAL_PASSWORD is not set — using default 'CHANGEME'. Change it in Settings!");
+  }
+
+  // ── Decrypt-probe: verify STORAGE_ENCRYPTION_KEY matches encrypted data (#1622) ─
+  if (merged.STORAGE_ENCRYPTION_KEY?.trim() && hasEncryptedCredentials(dataDir)) {
+    try {
+      const Database = require("better-sqlite3");
+      const db = new Database(join(dataDir, "storage.sqlite"), {
+        readonly: true,
+        fileMustExist: true,
+      });
+      try {
+        const row = db
+          .prepare(
+            `SELECT api_key, access_token, refresh_token, id_token
+               FROM provider_connections
+              WHERE api_key LIKE 'enc:v1:%'
+                 OR access_token LIKE 'enc:v1:%'
+                 OR refresh_token LIKE 'enc:v1:%'
+                 OR id_token LIKE 'enc:v1:%'
+              LIMIT 1`
+          )
+          .get();
+        if (row) {
+          const ciphertext = row.api_key || row.access_token || row.refresh_token || row.id_token;
+          if (ciphertext?.startsWith("enc:v1:")) {
+            const parts = ciphertext.split(":");
+            // enc:v1:<iv>:<ct>:<tag>
+            if (parts.length >= 5) {
+              const iv = Buffer.from(parts[2], "hex");
+              const ct = Buffer.from(parts[3], "hex");
+              const tag = Buffer.from(parts[4], "hex");
+              const key = Buffer.from(merged.STORAGE_ENCRYPTION_KEY, "hex");
+              const decipher = createDecipheriv("aes-256-gcm", key, iv);
+              decipher.setAuthTag(tag);
+              try {
+                decipher.update(ct);
+                decipher.final();
+                // Decrypt succeeded — key matches
+              } catch {
+                log(
+                  "⛔ STORAGE_ENCRYPTION_KEY does not match the key used to encrypt your stored credentials."
+                );
+                log(
+                  "   Either restore your previous key via ~/.omniroute/server.env or ~/.omniroute/.env,"
+                );
+                log(
+                  "   or run: omniroute reset-encrypted-columns --force  (wipes credentials, keeps provider config)"
+                );
+              }
+            }
+          }
+        }
+      } finally {
+        db.close();
+      }
+    } catch {
+      // Non-fatal — probe is best-effort
+    }
   }
 
   return merged;

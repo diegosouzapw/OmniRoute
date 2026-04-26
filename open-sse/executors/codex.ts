@@ -10,7 +10,38 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { websocket } from "wreq-js";
+import { createRequire } from "module";
+
+// ─── wreq-js lazy loader ───────────────────────────────────────────────────
+// wreq-js is a Rust-native module that requires platform-specific .node binaries.
+// Loading it eagerly crashes the server when the binary is missing (pnpm, Docker
+// Alpine, unsupported architectures). We lazy-load with try/catch to gracefully
+// fall back to HTTP transport when the WebSocket transport is unavailable.
+const _wreqRequire = createRequire(import.meta.url);
+
+type WreqWebSocket = {
+  send: (data: string) => void;
+  close: (code?: number, reason?: string) => void;
+  onmessage: ((event: { data: unknown }) => void) | null;
+  onerror: ((event: { message?: string }) => void) | null;
+  onclose: (() => void) | null;
+};
+type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
+
+let _websocketFn: WebsocketFn | null = null;
+let _wreqChecked = false;
+
+function getWreqWebsocket(): WebsocketFn | null {
+  if (_wreqChecked) return _websocketFn;
+  _wreqChecked = true;
+  try {
+    const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
+    _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
+  } catch {
+    _websocketFn = null;
+  }
+  return _websocketFn;
+}
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -622,9 +653,30 @@ export class CodexExecutor extends BaseExecutor {
       ...transformedBody,
     });
 
+    const websocketFn = getWreqWebsocket();
+    if (!websocketFn) {
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              code: "wreq_unavailable",
+              message:
+                "wreq-js native module not available on this platform. " +
+                "The Codex WebSocket transport requires wreq-js with native binaries. " +
+                "Please reinstall with npm (not pnpm) or use HTTP transport instead.",
+            },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } }
+        ),
+        url,
+        headers,
+        transformedBody,
+      };
+    }
+
     const encoder = new TextEncoder();
     let closed = false;
-    let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+    let ws: WreqWebSocket | null = null;
     let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
 
     const closeUpstream = (reason: string) => {
@@ -702,7 +754,7 @@ export class CodexExecutor extends BaseExecutor {
         input.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
-          ws = await websocket(toWebSocketUrl(url), {
+          ws = await websocketFn(toWebSocketUrl(url), {
             browser: "chrome_142",
             os: "windows",
             headers,
