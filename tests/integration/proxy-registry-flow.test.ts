@@ -6,6 +6,9 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-flow-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+// Disable dashboard auth for direct route handler calls in CI
+// (postinstall auto-generates DASHBOARD_PASSWORD, causing 401 on management routes)
+process.env.DASHBOARD_PASSWORD = "";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
