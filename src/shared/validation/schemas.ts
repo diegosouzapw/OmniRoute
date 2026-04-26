@@ -1729,6 +1729,7 @@ export const guideSettingsSaveSchema = z
     apiKey: z.string().optional(),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
+    modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
   })
   .refine((data) => !!data.model || !!data.models?.length, {
     message: "Model is required",

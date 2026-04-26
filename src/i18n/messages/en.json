@@ -1339,6 +1339,7 @@
     "allToolsTab": "All Tools",
     "guidedClientsTab": "Guided Clients",
     "mitmClientsTab": "MITM Clients",
+    "customCliTab": "Custom CLI",
     "toolCategories": "Tool Categories",
     "visibleToolsCount": "{count} tools available"
   },

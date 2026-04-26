@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { buildOpenCodeConfigDocument } from "@/shared/services/opencodeConfig";
+import { useTheme } from "@/shared/hooks/useTheme";
 
 export default function DefaultToolCard({
   toolId,
@@ -37,6 +38,7 @@ export default function DefaultToolCard({
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const runtimeFetchStartedRef = useRef(false);
+  const { isDark } = useTheme();
 
   // (#523) Initialize state with key *id* instead of masked key string
   const [selectedApiKeyId, setSelectedApiKeyId] = useState(() =>
@@ -44,6 +46,49 @@ export default function DefaultToolCard({
   );
   const isMultiModelTool = tool.modelSelectionMode === "multiple";
   const usesOpenCodePreview = tool.previewConfigMode === "opencode";
+  const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+
+  const resolveApiKeyValue = useCallback(
+    () => selectedKeyObj?.rawKey || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder")),
+    [cloudEnabled, selectedKeyObj?.rawKey, t]
+  );
+
+  const getSelectedModelEntries = useCallback(() => {
+    const selectedValues = isMultiModelTool
+      ? modelValues.length > 0
+        ? modelValues
+        : modelValue
+          ? [modelValue]
+          : []
+      : modelValue
+        ? [modelValue]
+        : [];
+
+    const availableModels = Array.isArray(activeProviders)
+      ? activeProviders.flatMap((provider) => provider?.models || [])
+      : [];
+    const modelMap = new Map(
+      availableModels.filter((model) => model?.value).map((model) => [model.value, model])
+    );
+
+    return selectedValues.map((value) => {
+      const matched = modelMap.get(value);
+      return {
+        value,
+        label: matched?.name || matched?.label || value,
+      };
+    });
+  }, [activeProviders, isMultiModelTool, modelValue, modelValues]);
+
+  const getSelectedModelLabels = useCallback(
+    () => getSelectedModelEntries().map((entry) => entry.label),
+    [getSelectedModelEntries]
+  );
+
+  const getSelectedModelLabelMap = useCallback(
+    () => Object.fromEntries(getSelectedModelEntries().map((entry) => [entry.value, entry.label])),
+    [getSelectedModelEntries]
+  );
 
   // Persist and restore model selection per tool via localStorage
   useEffect(() => {
@@ -75,7 +120,9 @@ export default function DefaultToolCard({
       const prefix = savedKey.slice(0, 8);
       const suffix = savedKey.slice(-4);
       const matchedKey = apiKeys.find(
-        (k) => k.key && k.key.startsWith(prefix) && k.key.endsWith(suffix)
+        (k) =>
+          (k.rawKey && k.rawKey.startsWith(prefix) && k.rawKey.endsWith(suffix)) ||
+          (k.key && k.key.startsWith(prefix) && k.key.endsWith(suffix))
       );
       if (matchedKey) setSelectedApiKeyId(matchedKey.id);
     }
@@ -134,11 +181,7 @@ export default function DefaultToolCard({
 
   const replaceVars = useCallback(
     (text) => {
-      // (#523) Look up the key object by id to get the masked display value.
-      const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-      let keyToUse =
-        selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
-      if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
+      const keyToUse = resolveApiKeyValue();
 
       const normalizedBaseUrl = baseUrl || "http://localhost:20128";
       const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -148,9 +191,9 @@ export default function DefaultToolCard({
       return text
         .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
         .replace(/\{\{apiKey\}\}/g, keyToUse)
-        .replace(/\{\{model\}\}/g, modelValue || t("modelPlaceholder"));
+        .replace(/\{\{model\}\}/g, getSelectedModelLabels()[0] || t("modelPlaceholder"));
     },
-    [apiKeys, baseUrl, cloudEnabled, modelValue, selectedApiKeyId, t]
+    [baseUrl, getSelectedModelLabels, resolveApiKeyValue, t]
   );
 
   const handleCopy = async (text, field) => {
@@ -168,10 +211,7 @@ export default function DefaultToolCard({
     if (!tool.codeBlock?.code) return "";
     if (!usesOpenCodePreview) return replaceVars(tool.codeBlock.code);
 
-    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-    let keyToUse =
-      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : t("yourApiKeyPlaceholder"));
-    if (keyToUse.includes("***")) keyToUse = "<YOUR_API_KEY>";
+    const keyToUse = resolveApiKeyValue();
     const normalizedBaseUrl = baseUrl || "http://localhost:20128";
     const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
       ? normalizedBaseUrl
@@ -183,18 +223,17 @@ export default function DefaultToolCard({
         apiKey: keyToUse,
         models: getSelectedModels(),
         model: getSelectedModels()[0],
+        modelLabels: getSelectedModelLabelMap(),
       }),
       null,
       2
     );
   }, [
-    apiKeys,
     baseUrl,
-    cloudEnabled,
     getSelectedModels,
+    getSelectedModelLabelMap,
     replaceVars,
-    selectedApiKeyId,
-    t,
+    resolveApiKeyValue,
     tool.codeBlock?.code,
     usesOpenCodePreview,
   ]);
@@ -243,6 +282,7 @@ export default function DefaultToolCard({
           keyId: selectedKeyId,
           model: modelValue,
           models: isMultiModelTool ? getSelectedModels() : undefined,
+          modelLabels: getSelectedModelLabelMap(),
         }),
       });
       const data = await res.json();
@@ -279,9 +319,7 @@ export default function DefaultToolCard({
             </select>
             <button
               onClick={() => {
-                // (#523) Look up the masked key by id for clipboard copy
-                const keyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
-                handleCopy(keyObj?.key || selectedApiKeyId, "apiKey");
+                handleCopy(resolveApiKeyValue(), "apiKey");
               }}
               className="shrink-0 px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary rounded-lg border border-border transition-colors"
             >
@@ -300,7 +338,9 @@ export default function DefaultToolCard({
   };
 
   const renderModelSelector = () => {
-    const displayValue = isMultiModelTool ? getSelectedModels().join(", ") : modelValue;
+    const displayValue = isMultiModelTool
+      ? getSelectedModelLabels().join(", ")
+      : getSelectedModelLabels()[0] || "";
 
     return (
       <div className="mt-2 flex items-center gap-2">
@@ -479,7 +519,9 @@ export default function DefaultToolCard({
                 </p>
                 {item.desc && (
                   <p className="text-sm text-text-muted mt-0.5">
-                    {translateOrFallback(`guides.${toolId}.steps.${item.step}.desc`, item.desc)}
+                    {toolId === "opencode" && item.step === 3
+                      ? item.desc
+                      : translateOrFallback(`guides.${toolId}.steps.${item.step}.desc`, item.desc)}
                   </p>
                 )}
                 {item.type === "apiKeySelector" && renderApiKeySelector()}
@@ -585,6 +627,24 @@ export default function DefaultToolCard({
       return (
         <Image
           src={tool.image}
+          alt={tool.name}
+          width={32}
+          height={32}
+          className="size-8 object-contain rounded-lg"
+          sizes="32px"
+          onError={(e) => {
+            (e.currentTarget as HTMLElement).style.display = "none";
+          }}
+        />
+      );
+    }
+    if (tool.imageLight || tool.imageDark) {
+      const themedSrc = isDark
+        ? tool.imageDark || tool.imageLight
+        : tool.imageLight || tool.imageDark;
+      return (
+        <Image
+          src={themedSrc}
           alt={tool.name}
           width={32}
           height={32}
