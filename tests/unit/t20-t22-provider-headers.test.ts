@@ -14,7 +14,7 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 
-test("T20: gemini CLI fingerprint uses 0.31.0 and preserves darwin platform name", () => {
+test("T20: gemini CLI fingerprint uses 0.31.0 and normalizes darwin to macos", () => {
   assert.equal(GEMINI_CLI_VERSION, "0.31.0");
 
   const descriptor = Object.getOwnPropertyDescriptor(process, "platform");
@@ -22,7 +22,7 @@ test("T20: gemini CLI fingerprint uses 0.31.0 and preserves darwin platform name
   try {
     assert.match(
       geminiCLIUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.31\.0\/gemini-3-flash \(darwin; /
+      /^GeminiCLI\/0\.31\.0\/gemini-3-flash \(macos; /
     );
   } finally {
     if (descriptor) {
