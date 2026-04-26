@@ -113,6 +113,17 @@ function parseEnvFile(filePath) {
   return env;
 }
 
+function mergeEnvLayers(...layers) {
+  const merged = {};
+  for (const layer of layers) {
+    for (const [key, value] of Object.entries(layer)) {
+      if (value === undefined || String(value).trim() === "") continue;
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
 // ── Write a simple KEY=VALUE env file ───────────────────────────────────────
 function writeEnvFile(filePath, env) {
   const lines = [
@@ -135,7 +146,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   const preferredEnvPath = getPreferredEnvFilePath(process.env);
   const preferredEnv = preferredEnvPath ? parseEnvFile(preferredEnvPath) : {};
-  const dataDir = resolveDataDir(dataDirOverride, { ...preferredEnv, ...process.env });
+  const dataDir = resolveDataDir(dataDirOverride, mergeEnvLayers(preferredEnv, process.env));
   const serverEnvPath = join(dataDir, "server.env");
 
   // ── Layer 1: Load persisted server.env ────────────────────────────────────
@@ -143,7 +154,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
   // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
-  const merged = { ...persisted, ...preferredEnv, ...process.env };
+  const merged = mergeEnvLayers(persisted, preferredEnv, process.env);
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;
