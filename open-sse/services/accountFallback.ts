@@ -345,6 +345,12 @@ export function recordModelLockoutFailure(
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
+  // 对于日限额耗尽 (quota_exhausted),设置冷却到第二天 0 点
+  // 使用 exactCooldownMs 避免指数缩放，确保精确到明天 0 点
+  if (reason === "quota_exhausted" && typeof options.exactCooldownMs !== "number") {
+    options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
+  }
+
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
   const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
@@ -770,11 +776,12 @@ export function classifyError(status, errorText) {
  * @returns {number} Milliseconds until tomorrow
  */
 export function getMsUntilTomorrow(): number {
-  const now = new Date();
-  const tomorrow = new Date(now);
+  const nowMs = Date.now();
+  const now = new Date(nowMs);
+  const tomorrow = new Date(nowMs);
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
-  const ms = tomorrow.getTime() - now.getTime();
+  const ms = tomorrow.getTime() - nowMs;
   // Guard against DST edge cases: if ms is negative (shouldn't happen) or
   // unreasonably large (>25h due to spring-forward), cap at 24 hours.
   return ms > 0 && ms <= 25 * 60 * 60 * 1000 ? ms : 24 * 60 * 60 * 1000;
