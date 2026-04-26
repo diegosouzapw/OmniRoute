@@ -1,8 +1,6 @@
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
-const REQUIRE_BEARER = process.env.REQUIRE_API_KEY === "true";
-
 function extractBearer(headers: Headers): string | null {
   const raw = headers.get("authorization") ?? headers.get("Authorization");
   if (!raw) return null;
@@ -20,13 +18,6 @@ export const clientApiPolicy: RoutePolicy = {
   routeClass: "CLIENT_API",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
     const bearer = extractBearer(ctx.request.headers);
-
-    if (!REQUIRE_BEARER) {
-      if (!bearer) {
-        return allow({ kind: "anonymous", id: "anonymous", label: "auth-not-required" });
-      }
-    }
-
     if (!bearer) {
       return reject(401, "AUTH_002", "Authentication required");
     }

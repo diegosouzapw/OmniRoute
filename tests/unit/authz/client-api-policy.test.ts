@@ -11,8 +11,6 @@ process.env.API_KEY_SECRET = "test-secret";
 const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
 const core = await import("../../../src/lib/db/core.ts");
 
-const ORIGINAL_REQUIRE = process.env.REQUIRE_API_KEY;
-
 function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
@@ -26,11 +24,6 @@ test.beforeEach(() => {
 
 test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_REQUIRE === undefined) {
-    delete process.env.REQUIRE_API_KEY;
-  } else {
-    process.env.REQUIRE_API_KEY = ORIGINAL_REQUIRE;
-  }
 });
 
 async function loadPolicy() {
@@ -50,18 +43,7 @@ function ctx(headers: Headers) {
   };
 }
 
-test("clientApiPolicy: REQUIRE_API_KEY=false and no bearer → allow anonymous", async () => {
-  delete process.env.REQUIRE_API_KEY;
-  const policy = await loadPolicy();
-  const out = await policy.evaluate(ctx(new Headers()));
-  assert.equal(out.allow, true);
-  if (out.allow) {
-    assert.equal(out.subject.kind, "anonymous");
-  }
-});
-
-test("clientApiPolicy: REQUIRE_API_KEY=true and no bearer → reject 401", async () => {
-  process.env.REQUIRE_API_KEY = "true";
+test("clientApiPolicy: missing bearer is rejected with 401", async () => {
   const policy = await loadPolicy();
   const out = await policy.evaluate(ctx(new Headers()));
   assert.equal(out.allow, false);
@@ -71,8 +53,7 @@ test("clientApiPolicy: REQUIRE_API_KEY=true and no bearer → reject 401", async
   }
 });
 
-test("clientApiPolicy: invalid bearer is rejected even when REQUIRE_API_KEY=false", async () => {
-  delete process.env.REQUIRE_API_KEY;
+test("clientApiPolicy: invalid bearer is rejected with 401", async () => {
   const policy = await loadPolicy();
   const headers = new Headers({ authorization: "Bearer sk-totally-bogus" });
   const out = await policy.evaluate(ctx(headers));
@@ -83,9 +64,7 @@ test("clientApiPolicy: invalid bearer is rejected even when REQUIRE_API_KEY=fals
   }
 });
 
-test("clientApiPolicy: valid bearer is accepted", async () => {
-  process.env.REQUIRE_API_KEY = "true";
-
+test("clientApiPolicy: valid bearer is accepted as client_api_key subject", async () => {
   const created = await apiKeysDb.createApiKey("policy-test-key", "machine-test-1234");
   assert.ok(created?.key, "createApiKey must return a key");
 
@@ -97,4 +76,14 @@ test("clientApiPolicy: valid bearer is accepted", async () => {
     assert.equal(out.subject.kind, "client_api_key");
     assert.match(out.subject.id, /^key_/);
   }
+});
+
+test("clientApiPolicy: revoked bearer is rejected", async () => {
+  const created = await apiKeysDb.createApiKey("policy-revoked-key", "machine-revoked");
+  assert.ok(await apiKeysDb.revokeApiKey(created.id));
+
+  const policy = await loadPolicy();
+  const headers = new Headers({ authorization: `Bearer ${created.key}` });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, false);
 });

@@ -171,14 +171,6 @@ test("initCloudSync skips auto initialization during build and test processes un
   );
 });
 
-test("proxy: internal model sync token is only allowed for provider model sync routes", () => {
-  const filePath = path.join(process.cwd(), "src/proxy.ts");
-  const source = fs.readFileSync(filePath, "utf8");
-
-  assert.match(source, /isModelSyncInternalRequest/);
-  assert.match(source, /sync-models\|models/);
-});
-
 test("modelSyncScheduler starts once, honors env interval and syncs only active autoSync connections", async () => {
   await providersDb.createProviderConnection({
     provider: "openai",

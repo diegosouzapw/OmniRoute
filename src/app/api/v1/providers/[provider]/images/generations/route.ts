@@ -52,14 +52,6 @@ export async function POST(request, { params }) {
   }
   const body = validation.data;
 
-  // Optional API key validation
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey || !(await isValidApiKey(apiKey))) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
-
   // Ensure model has provider prefix
   if (!body.model.includes("/")) {
     body.model = `${rawProvider}/${body.model}`;

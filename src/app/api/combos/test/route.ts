@@ -1,11 +1,23 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
-import { getComboByName, getCombos } from "@/lib/localDb";
+import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+
+async function getInternalApiKey(): Promise<string | null> {
+  try {
+    const keys = await getApiKeys();
+    const active = (
+      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
+    ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
+    return active?.key ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function buildComboTestResult(target, partial = {}) {
   return {
@@ -19,7 +31,7 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, baseInternalUrl) {
+async function testComboTarget(target, baseInternalUrl, internalApiKey: string | null) {
   const startTime = Date.now();
   try {
     const isEmbedding =
@@ -38,8 +50,7 @@ async function testComboTarget(target, baseInternalUrl) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Internal dashboard tests still use the normal /v1 pipeline but
-          // bypass REQUIRE_API_KEY so admins can test with local session auth.
+          ...(internalApiKey ? { Authorization: `Bearer ${internalApiKey}` } : {}),
           "X-Internal-Test": "combo-health-check",
           // Force a fresh execution path so combo tests cannot be satisfied by
           // OmniRoute's semantic cache or other request reuse layers.
@@ -145,8 +156,9 @@ export async function POST(request) {
     }
 
     const baseInternalUrl = getBaseUrl(request);
+    const internalApiKey = await getInternalApiKey();
     const results = await Promise.all(
-      targets.map((target) => testComboTarget(target, baseInternalUrl))
+      targets.map((target) => testComboTarget(target, baseInternalUrl, internalApiKey))
     );
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;

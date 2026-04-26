@@ -184,21 +184,8 @@ export default function SecurityTab() {
           <h3 className="text-lg font-semibold">{t("apiEndpointProtection")}</h3>
         </div>
         <div className="flex flex-col gap-4">
-          {/* Require auth for /models */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{t("requireAuthModels")}</p>
-              <p className="text-sm text-text-muted">{t("requireAuthModelsDesc")}</p>
-            </div>
-            <Toggle
-              checked={settings.requireAuthForModels === true}
-              onChange={() => updateSetting("requireAuthForModels", !settings.requireAuthForModels)}
-              disabled={loading}
-            />
-          </div>
-
           {/* Blocked Providers */}
-          <div className="pt-4 border-t border-border/50">
+          <div>
             <div className="mb-3">
               <p className="font-medium">{t("blockedProviders")}</p>
               <p className="text-sm text-text-muted">{t("blockedProvidersDesc")}</p>

@@ -1,11 +1,6 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
-import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
-} from "@/sse/services/auth";
+import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { parseRerankModel, getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -52,14 +47,6 @@ function buildDynamicRerankProvider(node: any) {
  * and local provider_nodes (oMLX, vLLM, etc.) via dynamic routing.
  */
 export async function POST(request) {
-  // Optional API key validation
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-  }
-
   let rawBody;
   try {
     rawBody = await request.json();
