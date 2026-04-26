@@ -9,6 +9,8 @@ import {
   getRuntimeProviderProfile,
   shouldMarkAccountExhaustedFrom429,
   clearModelLock,
+  lockModel,
+  recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -827,18 +829,54 @@ async function handleSingleModelChat(
         }
       }
 
-      // 6. Mark account as quota-exhausted on 429 response
-      // For providers that route quota/cooldown at model scope, a 429 on one model
-      // does not mean the whole connection is exhausted.
-      const passthroughModels = credentials.providerSpecificData?.passthroughModels;
-      if (
-        result.status === 429 &&
-        shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
-      ) {
-        markAccountExhaustedFrom429(credentials.connectionId, provider);
+      // 6. 日限额错误检查 - 必须在 markAccountUnavailable 之前执行
+      // 检查是否是日限额耗尽错误 (如 ModelScope/Kimi 的 "today's quota for model")
+      // 日限额锁定会覆盖后续的 rate_limited 锁定，确保锁定到第二天 0:00
+      let isDailyQuotaExhausted = false;
+      if (result.status === 429 && result.error?.includes("today's quota")) {
+        // 解析具体哪个模型限额了
+        const match = result.error.match(/today's quota for model ([^,]+)/);
+        const limitedModel = match ? match[1].trim() : model;
+
+        // 锁定该 connection 的该模型直到第二天 0 点
+        const lockResult = recordModelLockoutFailure(
+          provider,
+          credentials.connectionId,
+          limitedModel,
+          "quota_exhausted",
+          result.status,
+          0,
+          providerProfile
+        );
+
+        log.info(
+          "MODEL_DAILY_QUOTA",
+          JSON.stringify({
+            connection: credentials.connectionId.slice(0, 8),
+            model: limitedModel,
+            cooldownMs: lockResult.cooldownMs,
+            failureCount: lockResult.failureCount,
+          })
+        );
+
+        isDailyQuotaExhausted = true;
       }
 
-      // 7. Fallback to next account
+      // 7. Mark account as quota-exhausted on 429 response (非日限额错误)
+      // For providers that route quota/cooldown at model scope, a 429 on one model
+      // does not mean the whole connection is exhausted.
+      // 日限额错误已经单独处理，这里只处理普通 rate_limit
+      if (!isDailyQuotaExhausted) {
+        const passthroughModels = credentials.providerSpecificData?.passthroughModels;
+        if (
+          result.status === 429 &&
+          shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
+        ) {
+          markAccountExhaustedFrom429(credentials.connectionId, provider);
+        }
+      }
+
+      // 8. Fallback to next account
       const { shouldFallback, cooldownMs } = await markAccountUnavailable(
         credentials.connectionId,
         result.status,
