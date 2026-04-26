@@ -19,7 +19,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "search-tools",
   "logs",
   "health",
-  "audit",
   "settings",
   "docs",
   "issues",

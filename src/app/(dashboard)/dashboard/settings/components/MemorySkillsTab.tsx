@@ -280,7 +280,6 @@ export default function MemorySkillsTab() {
         )}
       </Card>
 
-      {/* Skills Settings (placeholder) */}
       <Card data-testid="skills-settings-card">
         <div className="flex items-center gap-3 mb-5">
           <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">

@@ -13,6 +13,13 @@ import { registerDefaultGuardrails } from "./lib/guardrails";
 import { ensurePersistentManagementPasswordHash } from "./lib/auth/managementPassword";
 import { skillExecutor } from "./lib/skills/executor";
 import { registerBuiltinSkills } from "./lib/skills/builtins";
+import { createLogger } from "./shared/utils/logger";
+
+const startupLog = createLogger("server-init");
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
 
 async function startServer() {
   // Trigger request-log layout migration during startup, before serving requests.
@@ -28,9 +35,9 @@ async function startServer() {
   // Compliance: Initialize audit_log table
   try {
     initAuditLog();
-    console.log("[COMPLIANCE] Audit log table initialized");
+    startupLog.info("Audit log table initialized");
   } catch (err) {
-    console.warn("[COMPLIANCE] Could not initialize audit log:", err.message);
+    startupLog.warn({ err }, "Could not initialize audit log");
   }
 
   // Compliance: One-time cleanup of expired logs
@@ -44,28 +51,27 @@ async function startServer() {
       cleanup.deletedAuditLogs ||
       cleanup.deletedMcpAuditLogs
     ) {
-      console.log("[COMPLIANCE] Expired log cleanup:", cleanup);
+      startupLog.info({ cleanup }, "Expired log cleanup completed");
     }
   } catch (err) {
-    console.warn("[COMPLIANCE] Log cleanup failed:", err.message);
+    startupLog.warn({ err }, "Log cleanup failed");
   }
 
-  console.log("Starting server with cloud sync...");
+  startupLog.info("Starting server with cloud sync");
 
   try {
     let settings = await getSettings();
     const passwordState = await ensurePersistentManagementPasswordHash({
-      logger: console,
+      logger: { log: (message: string) => startupLog.info(message) },
       settings,
       source: "startup",
     });
     settings = passwordState.settings;
     const runtimeChanges = await applyRuntimeSettings(settings, { force: true, source: "startup" });
     if (runtimeChanges.length > 0) {
-      console.log(
-        `[STARTUP] Runtime settings hydrated: ${runtimeChanges
-          .map((entry) => entry.section)
-          .join(", ")}`
+      startupLog.info(
+        { sections: runtimeChanges.map((entry) => entry.section) },
+        "Runtime settings hydrated"
       );
     }
 
@@ -73,13 +79,13 @@ async function startServer() {
     startSpendBatchWriter();
     registerDefaultGuardrails();
     registerBuiltinSkills(skillExecutor);
-    console.log("[STARTUP] Spend batch writer started");
-    console.log("[STARTUP] Guardrail registry initialized");
-    console.log("[STARTUP] Builtin skill handlers registered");
+    startupLog.info("Spend batch writer started");
+    startupLog.info("Guardrail registry initialized");
+    startupLog.info("Builtin skill handlers registered");
     await initializeCloudSync();
     startBudgetResetJob();
     startRuntimeConfigHotReload();
-    console.log("Server started with cloud sync initialized");
+    startupLog.info("Server started with cloud sync initialized");
 
     // Log server start event to audit log
     logAuditEvent({
@@ -91,7 +97,7 @@ async function startServer() {
       details: { timestamp: new Date().toISOString() },
     });
   } catch (error) {
-    console.error("[FATAL] Error initializing cloud sync:", error);
+    startupLog.error({ err: error }, "Error initializing cloud sync");
     process.exit(1);
   }
 
@@ -101,17 +107,14 @@ async function startServer() {
       const { initPricingSync } = await import("./lib/pricingSync");
       await initPricingSync();
     } catch (err) {
-      console.warn(
-        "[PRICING_SYNC] Could not initialize:",
-        err instanceof Error ? err.message : err
-      );
+      startupLog.warn({ error: getErrorMessage(err) }, "Pricing sync could not initialize");
     }
   }
 }
 
 // Start the server initialization
 startServer().catch((err) => {
-  console.error("[FATAL] Server initialization failed:", err);
+  startupLog.error({ err }, "Server initialization failed");
   process.exit(1);
 });
 

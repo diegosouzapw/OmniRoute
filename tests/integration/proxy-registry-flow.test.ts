@@ -6,6 +6,11 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-flow-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+// Disable dashboard auth for direct route handler calls in CI
+// (CI sets JWT_SECRET + INITIAL_PASSWORD, causing isAuthRequired() → true)
+process.env.DASHBOARD_PASSWORD = "";
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
