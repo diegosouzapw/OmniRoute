@@ -10,6 +10,7 @@ import {
   shouldMarkAccountExhaustedFrom429,
   clearModelLock,
   lockModel,
+  getMsUntilTomorrow,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -846,36 +847,47 @@ async function handleSingleModelChat(
       // 新增：检查 ModelScope 的日限额错误
       if (
         result.status === 429 &&
-        provider === 'modelscope' &&
+        provider === "modelscope" &&
         result.error?.includes("today's quota for model")
       ) {
         // 解析具体哪个模型限额了
         const match = result.error.match(/today's quota for model ([^,]+)/);
         const limitedModel = match ? match[1].trim() : model;
 
-        // 锁定该 connection 的该模型 24 小时
+        // 锁定该 connection 的该模型直到第二天 0 点 (ModelScope 每天 0 点更新额度)
+        const msUntilTomorrow = getMsUntilTomorrow();
         const lockResult = recordModelLockoutFailure(
           provider,
           credentials.connectionId,
           limitedModel,
-          'quota_exhausted',
+          "quota_exhausted",
           result.status,
           0, // fallbackCooldownMs (会被 exactCooldownMs 覆盖)
           providerProfile
         );
-        // 强制设置为 24 小时
-        lockModel(provider, credentials.connectionId, limitedModel, 'quota_exhausted', 24 * 60 * 60 * 1000, {
-          failureCount: lockResult.failureCount,
-          lastFailureAt: Date.now(),
-          resetAfterMs: 24 * 60 * 60 * 1000,
-        });
+        // 强制设置为到第二天 0 点
+        lockModel(
+          provider,
+          credentials.connectionId,
+          limitedModel,
+          "quota_exhausted",
+          msUntilTomorrow,
+          {
+            failureCount: lockResult.failureCount,
+            lastFailureAt: Date.now(),
+            resetAfterMs: msUntilTomorrow,
+          }
+        );
 
-        log.info('MODEL_DAILY_QUOTA', JSON.stringify({
-          connection: credentials.connectionId.slice(0, 8),
-          model: limitedModel,
-          cooldownMs: 24 * 60 * 60 * 1000,
-          failureCount: lockResult.failureCount
-        }));
+        log.info(
+          "MODEL_DAILY_QUOTA",
+          JSON.stringify({
+            connection: credentials.connectionId.slice(0, 8),
+            model: limitedModel,
+            cooldownMs: msUntilTomorrow,
+            failureCount: lockResult.failureCount,
+          })
+        );
       }
 
       if (shouldFallback) {
