@@ -1265,7 +1265,7 @@
           },
           "3": {
             "title": "Задайте базовый URL",
-            "desc": "opencode config set baseUrl {{baseUrl}}"
+            "desc": "opencode config set baseUrl {baseUrl}"
           },
           "4": {
             "title": "Выберите модель"
@@ -1330,7 +1330,7 @@
     "guides.opencode.steps.1.desc": "Установите через npm: npm install -g opencode-ai",
     "guides.opencode.steps.2.title": "API-ключ",
     "guides.opencode.steps.3.title": "Задайте базовый URL",
-    "guides.opencode.steps.3.desc": "opencode config set baseUrl {{baseUrl}}",
+    "guides.opencode.steps.3.desc": "opencode config set baseUrl {baseUrl}",
     "guides.opencode.steps.4.title": "Выберите модель",
     "guides.opencode.steps.5.title": "Используйте вариант мышления",
     "guides.opencode.steps.5.desc": "Для thinking-моделей запускайте с --variant high/low/max (пример команды ниже).",

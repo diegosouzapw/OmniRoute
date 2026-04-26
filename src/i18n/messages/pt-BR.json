@@ -1293,7 +1293,7 @@
           },
           "3": {
             "title": "Definir URL base",
-            "desc": "conjunto de configuração opencode baseUrl {{baseUrl}}"
+            "desc": "opencode config set baseUrl {baseUrl}"
           },
           "4": {
             "title": "Selecione o modelo"

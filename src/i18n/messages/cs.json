@@ -1265,7 +1265,7 @@
           },
           "3": {
             "title": "Nastavit základní URL",
-            "desc": "opencode config set baseUrl {{baseUrl}}"
+            "desc": "opencode config set baseUrl {baseUrl}"
           },
           "4": {
             "title": "Vybrat model"

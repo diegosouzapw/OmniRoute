@@ -90,6 +90,11 @@ export default function DefaultToolCard({
     [getSelectedModelEntries]
   );
 
+  const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+  const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
+    ? normalizedBaseUrl
+    : `${normalizedBaseUrl}/v1`;
+
   // Persist and restore model selection per tool via localStorage
   useEffect(() => {
     const savedModel = localStorage.getItem(`omniroute-cli-model-${toolId}`);
@@ -183,11 +188,6 @@ export default function DefaultToolCard({
     (text) => {
       const keyToUse = resolveApiKeyValue();
 
-      const normalizedBaseUrl = baseUrl || "http://localhost:20128";
-      const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
-        ? normalizedBaseUrl
-        : `${normalizedBaseUrl}/v1`;
-
       return text
         .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
         .replace(/\{\{apiKey\}\}/g, keyToUse)
@@ -212,11 +212,6 @@ export default function DefaultToolCard({
     if (!usesOpenCodePreview) return replaceVars(tool.codeBlock.code);
 
     const keyToUse = resolveApiKeyValue();
-    const normalizedBaseUrl = baseUrl || "http://localhost:20128";
-    const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
-      ? normalizedBaseUrl
-      : `${normalizedBaseUrl}/v1`;
-
     return JSON.stringify(
       buildOpenCodeConfigDocument({
         baseUrl: baseUrlWithV1,
@@ -267,11 +262,6 @@ export default function DefaultToolCard({
     try {
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId = selectedApiKeyId?.trim() || null;
-
-      const normalizedBaseUrl = baseUrl || "http://localhost:20128";
-      const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
-        ? normalizedBaseUrl
-        : `${normalizedBaseUrl}/v1`;
 
       const res = await fetch(`/api/cli-tools/guide-settings/${toolId}`, {
         method: "POST",
@@ -519,9 +509,9 @@ export default function DefaultToolCard({
                 </p>
                 {item.desc && (
                   <p className="text-sm text-text-muted mt-0.5">
-                    {toolId === "opencode" && item.step === 3
-                      ? item.desc
-                      : translateOrFallback(`guides.${toolId}.steps.${item.step}.desc`, item.desc)}
+                    {translateOrFallback(`guides.${toolId}.steps.${item.step}.desc`, item.desc, {
+                      baseUrl: baseUrlWithV1,
+                    })}
                   </p>
                 )}
                 {item.type === "apiKeySelector" && renderApiKeySelector()}

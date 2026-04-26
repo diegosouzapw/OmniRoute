@@ -1273,7 +1273,7 @@
           },
           "3": {
             "title": "设置 Base URL",
-            "desc": "opencode config set baseUrl {{baseUrl}}"
+            "desc": "opencode config set baseUrl {baseUrl}"
           },
           "4": {
             "title": "选择模型"

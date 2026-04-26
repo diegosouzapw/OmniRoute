@@ -1265,7 +1265,7 @@
           },
           "3": {
             "title": "Set Base URL",
-            "desc": "opencode config set baseUrl {{baseUrl}}"
+            "desc": "opencode config set baseUrl {baseUrl}"
           },
           "4": {
             "title": "Select Model"
