@@ -11,6 +11,7 @@ import {
   clearModelLock,
   lockModel,
   recordModelLockoutFailure,
+  isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -829,13 +830,14 @@ async function handleSingleModelChat(
         }
       }
 
-      // 6. 日限额错误检查 - 必须在 markAccountUnavailable 之前执行
-      // 检查是否是日限额耗尽错误 (如 ModelScope/Kimi 的 "today's quota for model")
-      // 日限额锁定会覆盖后续的 rate_limited 锁定，确保锁定到第二天 0:00
-      let isDailyQuotaExhausted = false;
-      if (result.status === 429 && result.error?.includes("today's quota")) {
-        // 解析具体哪个模型限额了
-        const match = result.error.match(/today's quota for model ([^,]+)/);
+      // 6. Daily quota error check - must be executed before markAccountUnavailable
+      // Check if it's a daily quota exhausted error (e.g., ModelScope/Kimi "today's quota for model")
+      // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
+      let dailyQuotaExhausted = false;
+      const errorStr = String(result.error || "");
+      if (result.status === 429 && isDailyQuotaExhausted(errorStr)) {
+        // Parse which model is quota-limited
+        const match = errorStr.match(/today's quota for model ([^,]+)/);
         const limitedModel = match ? match[1].trim() : model;
 
         // 锁定该 connection 的该模型直到第二天 0 点
@@ -859,14 +861,14 @@ async function handleSingleModelChat(
           })
         );
 
-        isDailyQuotaExhausted = true;
+        dailyQuotaExhausted = true;
       }
 
       // 7. Mark account as quota-exhausted on 429 response (非日限额错误)
       // For providers that route quota/cooldown at model scope, a 429 on one model
       // does not mean the whole connection is exhausted.
       // 日限额错误已经单独处理，这里只处理普通 rate_limit
-      if (!isDailyQuotaExhausted) {
+      if (!dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
         if (
           result.status === 429 &&
