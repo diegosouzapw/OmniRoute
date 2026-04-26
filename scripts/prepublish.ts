@@ -255,7 +255,7 @@ if (sanitisedCount > 0) {
 // to ensure all require() calls use the real package names.
 {
   const serverOutput = join(APP_DIR, ".next", "server");
-  const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+-[0-9a-f]{16})\1/g;
+  const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+?-[0-9a-f]{16}(?:\/[^'"\\]+)?)\1/g;
   let patchedFiles = 0;
   let patchedMatches = 0;
   const walkDir = (dir: string) => {
@@ -277,7 +277,7 @@ if (sanitisedCount > 0) {
         const src = readFileSync(full, "utf8");
         let count = 0;
         const patched = src.replace(HASH_RE, (_, q, name) => {
-          const base = name.replace(/-[0-9a-f]{16}$/, "");
+          const base = name.replace(/-[0-9a-f]{16}(?=\/|$)/, "");
           count++;
           return `${q}${base}${q}`;
         });

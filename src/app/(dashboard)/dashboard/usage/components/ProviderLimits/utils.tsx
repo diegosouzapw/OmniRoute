@@ -157,10 +157,18 @@ function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
   const usedRaw = Number(quota?.used || 0);
   const totalRaw = Number(quota?.total || 0);
   const resetAt = quota?.resetAt || null;
-  const staleAfterReset = isPastResetWindow(resetAt);
+
+  // T13: Only consider it stale if the reset time passed AND there's still usage shown.
+  // If usage is already 0 (or remaining is 100%), it's naturally reset and doesn't need to be marked as stale.
+  const passedReset = isPastResetWindow(resetAt);
+  const remainingPercentageRaw = safePercentage(quota?.remainingPercentage);
+  const hasPendingUsage =
+    usedRaw > 0 || (remainingPercentageRaw !== undefined && remainingPercentageRaw < 100);
+  const staleAfterReset = passedReset && hasPendingUsage;
+
   const used = staleAfterReset ? 0 : usedRaw;
   const total = Number.isFinite(totalRaw) ? totalRaw : 0;
-  const remainingPercentageRaw = safePercentage(quota?.remainingPercentage);
+
   const remainingPercentage =
     staleAfterReset && total > 0
       ? 100

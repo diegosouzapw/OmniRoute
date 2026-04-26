@@ -3,7 +3,7 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **100+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
@@ -213,7 +213,7 @@ Zod schemas, and unit tests aligned when editing.
 
 - **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
 - **OAuth** (8): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline
-- **API Key** (91): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
+- **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
   HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
   Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
@@ -224,7 +224,10 @@ Zod schemas, and unit tests aligned when editing.
   Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate,
   Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai,
   Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase,
-  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), and more.
+  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI,
+  AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo,
+  Amazon Q, Empower, Poe, and many more.
+- **Self-Hosted** (8+): LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga
 - **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
 
 Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.

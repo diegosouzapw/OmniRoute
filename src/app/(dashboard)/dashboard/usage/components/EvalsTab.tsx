@@ -353,7 +353,7 @@ export default function EvalsTab() {
       try {
         const response = await fetch("/api/evals");
         if (!response.ok) {
-          throw new Error(t("notifyEvalRunFailed"));
+          throw new Error("Eval load failed");
         }
 
         const payload = (await response.json()) as EvalsDashboardPayload;
@@ -380,7 +380,8 @@ export default function EvalsTab() {
     return () => {
       isMounted = false;
     };
-  }, [notify, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (targetOptions.length === 0) return;

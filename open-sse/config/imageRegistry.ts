@@ -136,6 +136,17 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["512x512", "1024x1024", "1024x1536", "1536x1024"],
   },
 
+  "chatgpt-web": {
+    id: "chatgpt-web",
+    alias: "cgpt-web",
+    baseUrl: "https://chatgpt.com/backend-api/f/conversation",
+    authType: "apikey",
+    authHeader: "cookie",
+    format: "chatgpt-web",
+    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (ChatGPT Web Image)" }],
+    supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
+  },
+
   xai: {
     id: "xai",
     baseUrl: "https://api.x.ai/v1/images/generations",

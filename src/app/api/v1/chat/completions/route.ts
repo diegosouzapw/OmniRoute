@@ -31,6 +31,19 @@ export async function OPTIONS() {
 export async function POST(request) {
   await ensureInitialized();
 
+  // One-line marker for diagnosing 413 / Server-Action interceptions.
+  // Logs only when Content-Length is present so debug noise stays low for
+  // typical chat payloads. Toggle off via OMNIROUTE_LOG_REQUEST_SHAPE=0.
+  if (process.env.OMNIROUTE_LOG_REQUEST_SHAPE !== "0") {
+    const ct = request.headers.get("content-type") ?? "";
+    const cl = request.headers.get("content-length");
+    if (cl && Number(cl) > 256 * 1024) {
+      console.error(
+        `[CHAT-ROUTE] large body content-type="${ct}" content-length=${cl}`
+      );
+    }
+  }
+
   // Prompt injection guard — inspect body before forwarding
   try {
     const cloned = request.clone();

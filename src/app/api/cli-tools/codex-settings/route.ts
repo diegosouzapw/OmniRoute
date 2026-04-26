@@ -40,7 +40,7 @@ const parseToml = (content: string) => {
     const kvMatch = trimmed.match(/^([^=]+)\s*=\s*(.+)$/);
     if (kvMatch) {
       let key = kvMatch[1].trim();
-      let value = kvMatch[2].trim();
+      const rawValue = kvMatch[2].trim();
       // Strip quotes from key (TOML quoted keys like "gpt-5.3-codex")
       if (
         (key.startsWith('"') && key.endsWith('"')) ||
@@ -48,17 +48,30 @@ const parseToml = (content: string) => {
       ) {
         key = key.slice(1, -1);
       }
-      // Remove quotes from string values only (not arrays, booleans, numbers)
-      if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
+      // Parse value preserving TOML types (integers, floats, booleans)
+      let parsedValue: string | number | boolean = rawValue;
+      if (rawValue === "true") {
+        parsedValue = true;
+      } else if (rawValue === "false") {
+        parsedValue = false;
+      } else if (
+        (rawValue.startsWith('"') && rawValue.endsWith('"')) ||
+        (rawValue.startsWith("'") && rawValue.endsWith("'"))
       ) {
-        value = value.slice(1, -1);
+        // Quoted string — strip quotes, keep as string
+        parsedValue = rawValue.slice(1, -1);
+      } else if (/^-?\d+$/.test(rawValue)) {
+        // Integer literal (unquoted)
+        parsedValue = parseInt(rawValue, 10);
+      } else if (/^-?\d+\.\d+$/.test(rawValue)) {
+        // Float literal (unquoted)
+        parsedValue = parseFloat(rawValue);
       }
+      // Arrays and other complex values stay as raw strings
       if (currentSection === "_root") {
-        result._root[key] = value;
+        result._root[key] = parsedValue;
       } else {
-        result._sections[currentSection][key] = value;
+        result._sections[currentSection][key] = parsedValue;
       }
     }
   });

@@ -110,6 +110,14 @@ export interface TlsFetchOptions {
   stream?: boolean;
   /** EOF marker the upstream sends to signal end of stream (default: "[DONE]"). */
   streamEofSymbol?: string;
+  /**
+   * If true, instructs the underlying tls-client to return the response body
+   * as a base64 `data:<mime>;base64,...` string (so binary payloads survive
+   * the JSON marshalling step). Required for image / binary downloads —
+   * without it, raw bytes get UTF-8-decoded and any non-ASCII byte is
+   * mangled. Default false (text mode).
+   */
+  byteResponse?: boolean;
 }
 
 export interface TlsFetchResult {
@@ -161,6 +169,7 @@ export async function tlsFetchChatGpt(
     timeoutMilliseconds: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     followRedirects: true,
     withRandomTLSExtensionOrder: true,
+    isByteResponse: options.byteResponse === true,
   };
 
   if (options.stream) {

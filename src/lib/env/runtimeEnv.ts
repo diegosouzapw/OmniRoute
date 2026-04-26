@@ -66,6 +66,7 @@ export const webRuntimeEnvSchema = z.object({
   OMNIROUTE_DISABLE_BACKGROUND_SERVICES: optionalBooleanEnv,
   CLOUD_URL: optionalHttpUrl,
   NEXT_PUBLIC_CLOUD_URL: optionalHttpUrl,
+  OMNIROUTE_PUBLIC_BASE_URL: optionalHttpUrl,
   OMNIROUTE_BASE_URL: optionalHttpUrl,
   BASE_URL: optionalHttpUrl,
   NEXT_PUBLIC_BASE_URL: optionalHttpUrl,

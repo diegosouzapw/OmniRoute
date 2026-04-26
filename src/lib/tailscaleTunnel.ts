@@ -22,6 +22,15 @@ const EXTENDED_PATH = `/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:${process.
 const LOGIN_TIMEOUT_MS = 15000;
 const FUNNEL_TIMEOUT_MS = 30000;
 
+// System-level tailscaled socket (used by apt/brew installed tailscale)
+const SYSTEM_SOCKET_LINUX = "/var/run/tailscale/tailscaled.sock";
+const SYSTEM_SOCKET_MAC = "/var/run/tailscaled.sock";
+
+/** Cached active socket path — avoids repeated probing during a single request */
+let _cachedActiveSocket: string | null = null;
+let _cachedActiveSocketTimestamp = 0;
+const SOCKET_CACHE_TTL_MS = 10_000;
+
 type JsonRecord = Record<string, unknown>;
 
 export type TailscaleTunnelInstallSource = "managed" | "path" | "env" | "windows-default";
@@ -277,9 +286,63 @@ function buildExecEnv() {
   };
 }
 
-function buildTailscaleArgs(...args: string[]) {
+/**
+ * Probe which tailscaled socket is actually live.
+ * Priority: system daemon socket → OmniRoute custom socket.
+ * When the system daemon is running (e.g. via systemd), we MUST use its socket
+ * because only one tailscaled can hold the TUN device.
+ */
+async function getActiveSocketPath(): Promise<string> {
+  const now = Date.now();
+  if (_cachedActiveSocket && now - _cachedActiveSocketTimestamp < SOCKET_CACHE_TTL_MS) {
+    return _cachedActiveSocket;
+  }
+
+  // Check system sockets first
+  const systemSocket = IS_LINUX ? SYSTEM_SOCKET_LINUX : IS_MAC ? SYSTEM_SOCKET_MAC : null;
+  if (systemSocket && fs.existsSync(systemSocket)) {
+    _cachedActiveSocket = systemSocket;
+    _cachedActiveSocketTimestamp = now;
+    return systemSocket;
+  }
+
+  // Fallback to OmniRoute custom socket
+  const customSocket = getTailscaleSocketPath();
+  _cachedActiveSocket = customSocket;
+  _cachedActiveSocketTimestamp = now;
+  return customSocket;
+}
+
+/** Synchronous check: is the system daemon socket available? */
+function isSystemDaemonAvailable(): boolean {
+  const systemSocket = IS_LINUX ? SYSTEM_SOCKET_LINUX : IS_MAC ? SYSTEM_SOCKET_MAC : null;
+  return Boolean(systemSocket && fs.existsSync(systemSocket));
+}
+
+/** Invalidate socket cache so the next call re-probes */
+function invalidateSocketCache() {
+  _cachedActiveSocket = null;
+  _cachedActiveSocketTimestamp = 0;
+}
+
+async function buildTailscaleArgs(...args: string[]) {
   if (IS_WINDOWS) return args;
-  return ["--socket", getTailscaleSocketPath(), ...args];
+  const socket = await getActiveSocketPath();
+  return ["--socket", socket, ...args];
+}
+
+/** Synchronous variant for places that cannot await */
+function buildTailscaleArgsSync(...args: string[]) {
+  if (IS_WINDOWS) return args;
+  // Use cached socket or default to system socket if available
+  const socket =
+    _cachedActiveSocket ||
+    (isSystemDaemonAvailable()
+      ? IS_LINUX
+        ? SYSTEM_SOCKET_LINUX
+        : SYSTEM_SOCKET_MAC
+      : getTailscaleSocketPath());
+  return ["--socket", socket!, ...args];
 }
 
 async function readJsonCommand(binaryPath: string, args: string[], timeout = 5000) {
@@ -297,12 +360,12 @@ async function readJsonCommand(binaryPath: string, args: string[], timeout = 500
 
 async function getLiveStatusPayload(binaryPath: string | null) {
   if (!binaryPath) return null;
-  return readJsonCommand(binaryPath, buildTailscaleArgs("status", "--json"));
+  return readJsonCommand(binaryPath, await buildTailscaleArgs("status", "--json"));
 }
 
 async function getLiveFunnelPayload(binaryPath: string | null) {
   if (!binaryPath) return null;
-  return readJsonCommand(binaryPath, buildTailscaleArgs("funnel", "status", "--json"));
+  return readJsonCommand(binaryPath, await buildTailscaleArgs("funnel", "status", "--json"));
 }
 
 function isBackendRunning(payload: unknown) {
@@ -455,6 +518,20 @@ export async function startTailscaleDaemon({
     throw new Error("Tailscale is not installed");
   }
 
+  // Invalidate socket cache so we re-probe the system socket
+  invalidateSocketCache();
+
+  // Check if the system daemon is already running (e.g. via systemd)
+  // This is the most common case on servers where tailscale was installed via apt/brew
+  if (isSystemDaemonAvailable()) {
+    const systemStatus = await getLiveStatusPayload(resolution.binaryPath);
+    if (systemStatus) {
+      // System daemon is live — no need to start our own
+      return { started: false, systemDaemon: true };
+    }
+  }
+
+  // Check if our custom daemon is already running
   const existingStatus = await getLiveStatusPayload(resolution.binaryPath);
   if (existingStatus) {
     return { started: false };
@@ -500,6 +577,9 @@ export async function startTailscaleDaemon({
   await runSudoShell(command, password);
   await sleep(3000);
 
+  // Re-probe socket after starting
+  invalidateSocketCache();
+
   if (!(await getLiveStatusPayload(resolution.binaryPath))) {
     throw new Error("tailscaled did not become ready");
   }
@@ -531,22 +611,19 @@ export async function startTailscaleLogin({
   }
 
   const resolvedHostname = toNonEmptyString(hostname) || (await getDefaultHostname());
+  const spawnArgs = await buildTailscaleArgs(
+    "up",
+    "--accept-routes",
+    ...(resolvedHostname ? [`--hostname=${resolvedHostname}`] : [])
+  );
 
   return new Promise((resolve, reject) => {
-    const child = spawn(
-      resolution.binaryPath as string,
-      buildTailscaleArgs(
-        "up",
-        "--accept-routes",
-        ...(resolvedHostname ? [`--hostname=${resolvedHostname}`] : [])
-      ),
-      {
-        detached: true,
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
-        env: buildExecEnv(),
-      }
-    );
+    const child = spawn(resolution.binaryPath as string, spawnArgs, {
+      detached: true,
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: buildExecEnv(),
+    });
 
     let settled = false;
     let output = "";
@@ -602,7 +679,7 @@ export async function startTailscaleLogin({
 
 async function resetTailscaleFunnel(binaryPath: string) {
   try {
-    await execFileAsync(binaryPath, buildTailscaleArgs("funnel", "--bg", "reset"), {
+    await execFileAsync(binaryPath, await buildTailscaleArgs("funnel", "--bg", "reset"), {
       timeout: 5000,
       windowsHide: true,
       env: buildExecEnv(),
@@ -622,16 +699,14 @@ export async function startTailscaleFunnel(
 
   await resetTailscaleFunnel(resolution.binaryPath);
 
+  const funnelArgs = await buildTailscaleArgs("funnel", "--bg", String(port));
+
   return new Promise((resolve, reject) => {
-    const child = spawn(
-      resolution.binaryPath as string,
-      buildTailscaleArgs("funnel", "--bg", String(port)),
-      {
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
-        env: buildExecEnv(),
-      }
-    );
+    const child = spawn(resolution.binaryPath as string, funnelArgs, {
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: buildExecEnv(),
+    });
 
     let settled = false;
     let output = "";

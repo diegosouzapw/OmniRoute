@@ -238,8 +238,10 @@ export default function ProviderLimits() {
     [fetchQuota]
   );
 
+  const refreshingAllRef = useRef(false);
   const refreshAll = useCallback(async () => {
-    if (refreshingAll) return;
+    if (refreshingAllRef.current) return;
+    refreshingAllRef.current = true;
     setRefreshingAll(true);
     try {
       const response = await fetch("/api/usage/provider-limits", { method: "POST" });
@@ -256,9 +258,10 @@ export default function ProviderLimits() {
     } catch (error) {
       console.error("Error refreshing all:", error);
     } finally {
+      refreshingAllRef.current = false;
       setRefreshingAll(false);
     }
-  }, [refreshingAll, applyCachedQuotaState, fetchConnections]);
+  }, [applyCachedQuotaState, fetchConnections]);
 
   useEffect(() => {
     const init = async () => {

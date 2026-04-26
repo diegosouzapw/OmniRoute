@@ -70,6 +70,7 @@ import {
   registerCodexQuotaFetcher,
 } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
 import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
+import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
 import {
   getCooldownAwareRetryDecision,
   resolveCooldownAwareRetrySettings,
@@ -82,6 +83,11 @@ registerCodexQuotaFetcher();
 // This hooks into the quotaPreflight + quotaMonitor systems so that combos
 // can proactively switch accounts before quota is exhausted.
 registerBailianCodingPlanQuotaFetcher();
+
+// Register CrofAI usage fetcher (subscription requests + credits balance).
+// Surfaces usable_requests + credits in the monitor and only blocks (preflight
+// opt-in) when the active bucket reaches zero.
+registerCrofUsageFetcher();
 
 function normalizeAllowedConnectionIds(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;

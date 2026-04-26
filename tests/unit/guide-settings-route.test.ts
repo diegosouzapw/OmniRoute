@@ -10,6 +10,7 @@ const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-qwen-test-" + Date.now());
 const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
 const QWEN_ENV_PATH = path.join(DUMMY_HOME, ".qwen", ".env");
 const OPENCODE_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.json");
+const originalXDG = process.env.XDG_CONFIG_HOME;
 
 type QwenProviderEntry = {
   id?: string;
@@ -31,11 +32,16 @@ function buildRequest(body: any) {
 test.beforeEach(async () => {
   // Mock os.homedir to return our dummy path
   os.homedir = () => DUMMY_HOME;
+  // Force XDG_CONFIG_HOME so resolveOpencodeConfigPath resolves to our dummy dir
+  // (CI runners often have XDG_CONFIG_HOME set, causing path mismatch)
+  process.env.XDG_CONFIG_HOME = path.join(DUMMY_HOME, ".config");
   await fs.mkdir(path.dirname(QWEN_CONFIG_PATH), { recursive: true }).catch(() => {});
 });
 
 test.afterEach(async () => {
   await fs.rm(DUMMY_HOME, { recursive: true, force: true }).catch(() => {});
+  if (originalXDG === undefined) delete process.env.XDG_CONFIG_HOME;
+  else process.env.XDG_CONFIG_HOME = originalXDG;
 });
 
 test("guide-settings POST creates new qwen settings.json if it doesn't exist", async () => {

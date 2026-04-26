@@ -1,6 +1,6 @@
 # OmniRoute
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 60+ AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (25 tools), A2A v0.3 protocol, Memory/Skills systems, and an Electron desktop app.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 160+ AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (29 tools), A2A v0.3 protocol, Memory/Skills systems, and an Electron desktop app.
 
 ## Overview
 
@@ -165,7 +165,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   └── manager.ts            # MITM proxy manager
 │   ├── shared/                   # Shared utilities, components, and constants
 │   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, ProviderIcon, etc.)
-│   │   ├── constants/            # Provider definitions (60+), model lists, pricing, routing strategies, MCP scopes
+│   │   ├── constants/            # Provider definitions (160+), model lists, pricing, routing strategies, MCP scopes
 │   │   ├── contracts/            # Shared API contracts
 │   │   ├── hooks/                # React hooks
 │   │   ├── middleware/           # Shared middleware utilities
@@ -209,7 +209,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── moderations.ts        # Content moderation
 │   │   ├── rerank.ts             # Reranking API
 │   │   └── search.ts             # Web search API
-│   ├── mcp-server/               # Built-in MCP server (25 tools, 3 transports: stdio/SSE/streamable-HTTP)
+│   ├── mcp-server/               # Built-in MCP server (29 tools, 3 transports: stdio/SSE/streamable-HTTP)
 │   │   ├── server.ts             # MCP server core (tool registration, scope enforcement)
 │   │   ├── tools/                # Tool implementations (advancedTools, memoryTools, skillTools)
 │   │   ├── schemas/              # Zod input schemas (tools, audit, a2a)
@@ -269,7 +269,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── CLI-TOOLS.md              # CLI tools integration guide
 │   ├── A2A-SERVER.md             # A2A agent protocol documentation
 │   ├── AUTO-COMBO.md             # Auto-combo engine (6-factor scoring)
-│   ├── MCP-SERVER.md             # MCP server (25 tools)
+│   ├── MCP-SERVER.md             # MCP server (29 tools)
 │   ├── TROUBLESHOOTING.md        # Troubleshooting guide
 │   ├── VM_DEPLOYMENT_GUIDE.md    # VPS deployment guide
 │   ├── openapi.yaml              # OpenAPI specification
@@ -282,8 +282,8 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ## Key Features (v3.7.0)
 
 ### Core Proxy
-- **60+ AI providers** with automatic format translation
-- **4 provider categories**: Free (4), OAuth (8), API Key (48+), Custom (OpenAI/Anthropic-compatible)
+- **160+ AI providers** with automatic format translation
+- **4 provider categories**: Free (4), OAuth (8), API Key (120+), Self-Hosted (8+), Custom (OpenAI/Anthropic-compatible)
 - **13 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
 - **Context Relay strategy**: Session handoff summaries on account rotation for continuity
@@ -345,14 +345,15 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
 - **Ollama** — `/v1/api/chat`, `/api/tags`
 - **Search** — `/v1/search` (Perplexity, Serper, Brave, Exa, Tavily)
-- **MCP** — 25-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **MCP** — 29-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
 - **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, smart-routing + quota-management skills)
 - **ACP** — Agent Communication Protocol registry and manager
 
-### MCP Server (25 Tools)
+### MCP Server (29 Tools)
 | Category  | Tools |
 |-----------|-------|
-| Core (18)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `sync_pricing` |
+| Core (20)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing` |
+| Cache (2)  | `cache_stats`, `cache_flush` |
 | Memory (3) | `memory_search`, `memory_add`, `memory_clear` |
 | Skills (4) | `skills_list`, `skills_enable`, `skills_execute`, `skills_executions` |
 

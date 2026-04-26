@@ -2,7 +2,7 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now with **MCP Server (29 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -257,7 +257,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How OmniRoute solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 160+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -344,7 +344,7 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 100+ providers
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 160+ providers
 
 </details>
 
@@ -1405,19 +1405,19 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
-| Feature                               | What It Does                                                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **MCP Server (25 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                            |
-| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                           |
-| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                               |
-| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                         |
-| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                               |
-| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
-| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Switch combos, tune resilience settings, and review breaker state from dedicated Health and Settings surfaces                          |
+| Feature                               | What It Does                                                                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 🔧 **MCP Server (29 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 20 core + 2 cache + 3 memory + 4 skill tools |
+| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                                      |
+| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                                     |
+| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                                         |
+| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                          |
+| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                                   |
+| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                                         |
+| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                                |
+| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                              |
+| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                          |
+| ⚙️ **Operational Controls**           | Switch combos, tune resilience settings, and review breaker state from dedicated Health and Settings surfaces                                    |
 
 ### 🧠 Routing & Intelligence
 
@@ -2278,7 +2278,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | -------------------------------------------------------- | --------------------------------------------------- |
 | [User Guide](docs/USER_GUIDE.md)                         | Providers, combos, CLI integration, deployment      |
 | [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [MCP Server](open-sse/mcp-server/README.md)              | 29 MCP tools, IDE configs, Python/TS/Go clients     |
 | [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
 | [Auto-Combo Engine](docs/AUTO-COMBO.md)                  | 6-factor scoring, mode packs, self-healing          |
 | [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |

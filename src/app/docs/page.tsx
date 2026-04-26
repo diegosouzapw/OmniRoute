@@ -16,13 +16,16 @@ function ProviderTable({
   title,
   providers,
   colorDot,
+  maxHeight,
 }: {
   title: string;
   providers: Record<string, any>;
   colorDot: string;
+  maxHeight?: string;
 }) {
   const t = useTranslations("docs");
   const entries = Object.values(providers) as any[];
+  const isLargeList = entries.length > 20;
 
   return (
     <div className="rounded-lg border border-border bg-bg p-4">
@@ -33,16 +36,17 @@ function ProviderTable({
           {t("providersCount", { count: entries.length })}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+      <div
+        className={`${isLargeList ? "grid grid-cols-2 sm:grid-cols-3 gap-1.5" : "grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1"} text-sm`}
+        style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
+      >
         {entries.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0"
+            className={`flex items-center ${isLargeList ? "gap-1.5 py-1 px-2 rounded-md bg-bg-subtle border border-border/30" : "justify-between py-1.5 border-b border-border/40 last:border-0"}`}
           >
-            <span className="font-medium">{p.name}</span>
-            <code className="text-xs text-text-muted px-1.5 py-0.5 rounded bg-bg-subtle">
-              {p.alias}/
-            </code>
+            <code className="text-xs text-text-muted shrink-0">{p.alias}/</code>
+            <span className={`${isLargeList ? "text-xs truncate" : "font-medium"}`}>{p.name}</span>
           </div>
         ))}
       </div>
@@ -238,7 +242,7 @@ export default function DocsPage() {
               {t("manageProviders")}
             </Link>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <ProviderTable
               title={t("providerTypeFree")}
               providers={FREE_PROVIDERS}
@@ -249,10 +253,13 @@ export default function DocsPage() {
               providers={OAUTH_PROVIDERS}
               colorDot="bg-blue-500"
             />
+          </div>
+          <div className="mt-3">
             <ProviderTable
               title={t("providerTypeApiKey")}
               providers={APIKEY_PROVIDERS}
               colorDot="bg-amber-500"
+              maxHeight="400px"
             />
           </div>
         </section>

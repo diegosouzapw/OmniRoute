@@ -531,7 +531,9 @@ export default function APIPageClient({ machineId }) {
     setTailscaleNotice(null);
 
     try {
-      let { res, data } = await requestTailscaleEnable();
+      let { res, data } = await requestTailscaleEnable({
+        sudoPassword: tailscalePassword || undefined,
+      });
       if (!res.ok) {
         throw new Error(
           data?.error ||
@@ -556,7 +558,9 @@ export default function APIPageClient({ machineId }) {
           );
         }
 
-        ({ res, data } = await requestTailscaleEnable());
+        ({ res, data } = await requestTailscaleEnable({
+          sudoPassword: tailscalePassword || undefined,
+        }));
         if (!res.ok) {
           throw new Error(
             data?.error ||
@@ -578,7 +582,9 @@ export default function APIPageClient({ machineId }) {
         let enabled = null;
         for (let attempt = 0; attempt < 40; attempt += 1) {
           await new Promise((resolve) => setTimeout(resolve, 3000));
-          const next = await requestTailscaleEnable();
+          const next = await requestTailscaleEnable({
+            sudoPassword: tailscalePassword || undefined,
+          });
           if (!next.res.ok) {
             throw new Error(
               next.data?.error ||
@@ -633,7 +639,13 @@ export default function APIPageClient({ machineId }) {
       setTailscaleBusy(false);
       await fetchTailscaleStatus(true);
     }
-  }, [fetchTailscaleStatus, requestTailscaleEnable, translateOrFallback, waitForTailscale]);
+  }, [
+    fetchTailscaleStatus,
+    requestTailscaleEnable,
+    tailscalePassword,
+    translateOrFallback,
+    waitForTailscale,
+  ]);
 
   const handleTailscaleDisable = useCallback(async () => {
     setTailscaleBusy(true);
@@ -643,7 +655,7 @@ export default function APIPageClient({ machineId }) {
       const res = await fetch("/api/tunnels/tailscale/disable", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ sudoPassword: tailscalePassword || undefined }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -1148,6 +1160,30 @@ export default function APIPageClient({ machineId }) {
                 )}
               </p>
             )}
+            {/* Sudo password input — shown when Tailscale is installed but not running (needs sudo to start daemon) */}
+            {tailscaleStatus?.installed &&
+              !tailscaleStatus?.running &&
+              tailscaleStatus?.platform !== "win32" && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-text-muted">
+                    {translateOrFallback(
+                      "tailscaleSudoLabel",
+                      "Sudo Password (required on macOS/Linux)"
+                    )}
+                  </label>
+                  <Input
+                    type="password"
+                    value={tailscalePassword}
+                    onChange={(event) => setTailscalePassword(event.target.value)}
+                    placeholder={translateOrFallback(
+                      "tailscaleSudoPlaceholder",
+                      "Enter sudo password"
+                    )}
+                    disabled={tailscaleBusy}
+                    className="font-mono text-sm"
+                  />
+                </div>
+              )}
             <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 value={tailscaleStatus?.apiUrl || ""}

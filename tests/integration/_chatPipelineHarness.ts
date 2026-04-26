@@ -6,6 +6,11 @@ export async function createChatPipelineHarness(prefix) {
   const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `omniroute-${prefix}-`));
   process.env.DATA_DIR = testDataDir;
   process.env.REQUIRE_API_KEY = "false";
+  // Disable dashboard auth so direct route handler calls don't get 401
+  // (CI sets JWT_SECRET + INITIAL_PASSWORD, causing isAuthRequired() → true)
+  process.env.DASHBOARD_PASSWORD = "";
+  process.env.INITIAL_PASSWORD = "";
+  delete process.env.JWT_SECRET;
   // FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
   if (!process.env.API_KEY_SECRET) {
     process.env.API_KEY_SECRET = "test-harness-secret-" + Date.now();
