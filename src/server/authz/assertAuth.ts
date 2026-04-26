@@ -25,6 +25,12 @@ function readHeader(source: HeaderSource, name: string): string | null {
   return source.get(name) ?? null;
 }
 
+function isHeaderSource(value: unknown): value is HeaderSource {
+  if (value instanceof Headers) return true;
+  if (typeof value !== "object" || value === null) return false;
+  return typeof (value as { get?: unknown }).get === "function";
+}
+
 export function readSubjectFromHeaders(headers: HeaderSource): AuthSubject {
   const kind = (readHeader(headers, AUTHZ_HEADER_AUTH_KIND) ?? "anonymous") as AuthSubject["kind"];
   const id = readHeader(headers, AUTHZ_HEADER_AUTH_ID) ?? "anonymous";
@@ -49,8 +55,11 @@ export function assertAuth(
   request: Request | { headers: HeaderSource },
   expected: RouteClass
 ): AuthSubject {
-  const headers: HeaderSource =
-    request instanceof Request ? request.headers : (request as any).headers;
+  const headers = request instanceof Request ? request.headers : request.headers;
+
+  if (!isHeaderSource(headers)) {
+    throw new AuthzAssertionError("AUTHZ_INVALID_REQUEST", "Request headers are unavailable", 500);
+  }
 
   const actualClass = readRouteClassFromHeaders(headers);
   if (!actualClass) {
