@@ -16,8 +16,6 @@
  * The middleware applies the resolved value via `applyCorsHeaders()`.
  * Per-route handlers no longer set `Access-Control-Allow-Origin` themselves.
  */
-import type { NextResponse } from "next/server";
-
 const ENV_ALLOW_ALL = "CORS_ALLOW_ALL";
 const ENV_ALLOWED = "CORS_ALLOWED_ORIGINS";
 const LEGACY_ENV_SINGLE = "CORS_ORIGIN";
@@ -100,7 +98,7 @@ export function resolveAllowedOrigin(requestOrigin: string | null | undefined): 
  * is not allowed, no `Access-Control-Allow-Origin` is added — browsers
  * will block the response, which is the desired fail-closed behavior.
  */
-export function applyCorsHeaders(response: NextResponse, request: Request): void {
+export function applyCorsHeaders(response: Response, request: Request): void {
   const requestOrigin = request.headers.get("origin");
   const allowed = resolveAllowedOrigin(requestOrigin);
   if (allowed !== null) {
