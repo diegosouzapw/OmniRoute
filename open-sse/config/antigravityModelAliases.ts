@@ -25,7 +25,7 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 
 type AntigravityModelAliasMap = Record<string, string>;
 
-export const ANTIGRAVITY_REVERSE_MODEL_ALIASES = Object.freeze({
+export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
   "gemini-3.1-pro-high": "gemini-3-pro-preview",
   "gemini-3-flash": "gemini-3-flash-preview",
   "gemini-3-pro-image": "gemini-3-pro-image-preview",
