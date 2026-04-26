@@ -171,6 +171,26 @@ type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
+function splitCodexReasoningSuffix(model: unknown): {
+  baseModel: string;
+  effort: EffortLevel | null;
+} {
+  const modelId = typeof model === "string" ? model : "";
+  for (const level of EFFORT_ORDER) {
+    if (modelId.endsWith(`-${level}`)) {
+      return {
+        baseModel: modelId.slice(0, -`-${level}`.length),
+        effort: level,
+      };
+    }
+  }
+  return { baseModel: modelId, effort: null };
+}
+
+export function getCodexUpstreamModel(model: unknown): string {
+  return splitCodexReasoningSuffix(model).baseModel;
+}
+
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
     return content.trim();
@@ -438,10 +458,8 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
-function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
-  const normalizedModel = String(model || "")
-    .trim()
-    .toLowerCase();
+export function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
+  const normalizedModel = getCodexUpstreamModel(model).trim().toLowerCase();
   if (normalizedModel === "gpt-5.5") return true;
   const providerSpecificData =
     credentials && typeof credentials === "object"
@@ -595,7 +613,7 @@ export class CodexExecutor extends BaseExecutor {
       true,
       input.credentials
     )) as Record<string, unknown>;
-    transformedBody.model = input.model;
+    transformedBody.model = getCodexUpstreamModel(transformedBody.model || input.model);
     delete transformedBody.stream;
     delete transformedBody.stream_options;
 
@@ -936,16 +954,13 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    const effortLevels = ["none", "low", "medium", "high", "xhigh"];
     let modelEffort: string | null = null;
     let cleanModel = typeof body.model === "string" ? body.model : model;
-    for (const level of effortLevels) {
-      if (typeof cleanModel === "string" && cleanModel.endsWith(`-${level}`)) {
-        modelEffort = level;
-        body.model = cleanModel.slice(0, -`-${level}`.length);
-        cleanModel = body.model;
-        break;
-      }
+    const splitModel = splitCodexReasoningSuffix(cleanModel);
+    if (splitModel.effort) {
+      modelEffort = splitModel.effort;
+      body.model = splitModel.baseModel;
+      cleanModel = body.model;
     }
 
     const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);

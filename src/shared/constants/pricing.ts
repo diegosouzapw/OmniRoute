@@ -11,6 +11,14 @@ const GPT_5_3_CODEX_PRICING = {
   cache_creation: 5.0,
 };
 
+const GPT_5_5_PRICING = {
+  input: 5.0,
+  output: 30.0,
+  cached: 0.5,
+  reasoning: 30.0,
+  cache_creation: 5.0,
+};
+
 const CLAUDE_OPUS_4_PRICING = {
   input: 15.0,
   output: 75.0,
@@ -167,6 +175,14 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
+    // GPT 5.5
+    "gpt-5.5": GPT_5_5_PRICING,
+    "gpt5.5": GPT_5_5_PRICING,
+    "gpt-5.5-xhigh": GPT_5_5_PRICING,
+    "gpt-5.5-high": GPT_5_5_PRICING,
+    "gpt-5.5-medium": GPT_5_5_PRICING,
+    "gpt-5.5-low": GPT_5_5_PRICING,
+    "gpt-5.5-none": GPT_5_5_PRICING,
     // GPT 5.4
     "gpt-5.4": {
       input: 5.0,
@@ -584,6 +600,7 @@ export const DEFAULT_PRICING = {
 
   // OpenAI
   openai: {
+    "gpt-5.5": GPT_5_5_PRICING,
     "gpt-4o": {
       input: 2.5,
       output: 10.0,
