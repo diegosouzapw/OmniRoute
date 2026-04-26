@@ -71,6 +71,7 @@
     "electron:build:win": "npm run build && cd electron && npm run build:win",
     "electron:build:mac": "npm run build && cd electron && npm run build:mac",
     "electron:build:linux": "npm run build && cd electron && npm run build:linux",
+    "electron:smoke:packaged": "node scripts/smoke-electron-packaged.mjs",
     "test": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test --test-concurrency=10 tests/unit/*.test.ts",
     "test:unit": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test --test-concurrency=10 tests/unit/*.test.ts",
     "test:plan3": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/plan3-p0.test.ts",
