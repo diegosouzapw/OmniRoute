@@ -22,6 +22,9 @@ test("T31: antigravity static catalog exposes client-visible Gemini preview IDs"
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
   assert.ok(staticIds.includes("gemini-3-pro-preview"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
+  assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
 test("T31: legacy Gemini aliases resolve to Gemini 3.1 IDs", () => {
