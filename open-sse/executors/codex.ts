@@ -10,7 +10,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function codexWebSocketUnavailableResponse(): Response {
       status: 503,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
+        ...CORS_HEADERS,
       },
     }
   );
