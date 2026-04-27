@@ -70,6 +70,7 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -3013,6 +3014,15 @@ export async function handleChatCore({
       }
     }
 
+    // Reasoning Replay Cache (#1628): Capture reasoning_content from non-streaming responses
+    // with tool_calls so it can be replayed on subsequent turns (DeepSeek V4, Kimi K2, etc.)
+    try {
+      const firstChoice = translatedResponse?.choices?.[0];
+      const msg = firstChoice?.message;
+      cacheReasoningFromAssistantMessage(msg, provider, model);
+    } catch {
+      // Cache capture is non-critical — never block the response
+    }
     // Sanitize response for OpenAI SDK compatibility
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
     // Extracts <think> and <thinking> tags into reasoning_content
@@ -3237,6 +3247,19 @@ export async function handleChatCore({
         providerSpecificData: credentials?.providerSpecificData,
         log,
       });
+    }
+
+    // Reasoning Replay Cache (#1628): Capture reasoning_content from streaming responses
+    // with tool_calls so it can be replayed on subsequent turns (DeepSeek V4, Kimi K2, etc.)
+    if (streamStatus === 200 && streamResponseBody) {
+      try {
+        const body = streamResponseBody as Record<string, unknown>;
+        const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
+        const msg = choices?.[0]?.message;
+        cacheReasoningFromAssistantMessage(msg, provider, model);
+      } catch {
+        // Cache capture is non-critical — never block the stream
+      }
     }
 
     // Track cache token metrics for streaming responses

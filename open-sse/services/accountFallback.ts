@@ -407,7 +407,7 @@ export function hasPerModelQuota(
     return connectionPassthroughModels;
   }
   if (!provider) return false;
-  if (provider === "gemini") return true;
+  if (provider === "gemini" || provider === "github") return true;
   if (getPassthroughProviders().has(provider)) return true;
   if (isCompatibleProvider(provider)) return true;
   return false;

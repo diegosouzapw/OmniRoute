@@ -293,6 +293,39 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
   assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
 });
 
+test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {
+  assert.equal(hasPerModelQuota("github"), true);
+  assert.equal(hasPerModelQuota("github", "gpt-5.1-codex-max"), true);
+  assert.equal(hasPerModelQuota("github", "gpt-5-mini"), true);
+});
+
+test("shouldMarkAccountExhaustedFrom429 skips connection-wide lockout for GitHub (#1624)", () => {
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5.1-codex-max"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5-mini"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "claude-haiku-4.5"), false);
+});
+
+test("lockModelIfPerModelQuota locks individual GitHub models without poisoning the connection (#1624)", () => {
+  const connectionId = `github-${Date.now()}`;
+
+  // A 429 on a high-PRU model should lock ONLY that model
+  assert.equal(
+    lockModelIfPerModelQuota(
+      "github",
+      connectionId,
+      "gpt-5.1-codex-max",
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(isModelLocked("github", connectionId, "gpt-5.1-codex-max"), true);
+
+  // Other models on the same connection should remain unlocked
+  assert.equal(isModelLocked("github", connectionId, "gpt-5-mini"), false);
+  assert.equal(isModelLocked("github", connectionId, "claude-haiku-4.5"), false);
+});
+
 test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and reset window", () => {
   const originalNow = Date.now;
   let now = 1_700_000_000_000;

@@ -10,40 +10,37 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { createRequire } from "node:module";
-import { errorResponse } from "../utils/error.ts";
+import { createRequire } from "module";
 
-const require = createRequire(import.meta.url);
+// ─── wreq-js lazy loader ───────────────────────────────────────────────────
+// wreq-js is a Rust-native module that requires platform-specific .node binaries.
+// Loading it eagerly crashes the server when the binary is missing (pnpm, Docker
+// Alpine, unsupported architectures). We lazy-load with try/catch to gracefully
+// fall back to HTTP transport when the WebSocket transport is unavailable.
+const _wreqRequire = createRequire(import.meta.url);
 
 type WreqWebSocket = {
   send: (data: string) => void;
   close: (code?: number, reason?: string) => void;
-  onmessage?: (event: { data: string | Buffer | ArrayBuffer | Uint8Array }) => void;
-  onerror?: (event: { message?: string }) => void;
-  onclose?: () => void;
+  onmessage: ((event: { data: unknown }) => void) | null;
+  onerror: ((event: { message?: string }) => void) | null;
+  onclose: (() => void) | null;
 };
+type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
 
-type WreqWebSocketFn = (
-  url: string,
-  options: { browser: string; os: string; headers: Record<string, string> }
-) => Promise<WreqWebSocket>;
+let _websocketFn: WebsocketFn | null = null;
+let _wreqChecked = false;
 
-let codexWebSocketTransport: WreqWebSocketFn | null | undefined;
-
-function getCodexWebSocketTransport(): WreqWebSocketFn | null {
-  if (codexWebSocketTransport !== undefined) {
-    return codexWebSocketTransport;
-  }
-
+function getWreqWebsocket(): WebsocketFn | null {
+  if (_wreqChecked) return _websocketFn;
+  _wreqChecked = true;
   try {
-    const loaded = require("wreq-js") as { websocket?: WreqWebSocketFn };
-    codexWebSocketTransport =
-      typeof loaded.websocket === "function" ? loaded.websocket : null;
+    const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
+    _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
   } catch {
-    codexWebSocketTransport = null;
+    _websocketFn = null;
   }
-
-  return codexWebSocketTransport;
+  return _websocketFn;
 }
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
@@ -204,6 +201,26 @@ const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
+
+function splitCodexReasoningSuffix(model: unknown): {
+  baseModel: string;
+  effort: EffortLevel | null;
+} {
+  const modelId = typeof model === "string" ? model : "";
+  for (const level of EFFORT_ORDER) {
+    if (modelId.endsWith(`-${level}`)) {
+      return {
+        baseModel: modelId.slice(0, -`-${level}`.length),
+        effort: level,
+      };
+    }
+  }
+  return { baseModel: modelId, effort: null };
+}
+
+export function getCodexUpstreamModel(model: unknown): string {
+  return splitCodexReasoningSuffix(model).baseModel;
+}
 
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
@@ -472,10 +489,8 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
-function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
-  const normalizedModel = String(model || "")
-    .trim()
-    .toLowerCase();
+export function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
+  const normalizedModel = getCodexUpstreamModel(model).trim().toLowerCase();
   if (normalizedModel === "gpt-5.5") return true;
   const providerSpecificData =
     credentials && typeof credentials === "object"
@@ -642,7 +657,7 @@ export class CodexExecutor extends BaseExecutor {
       true,
       input.credentials
     )) as Record<string, unknown>;
-    transformedBody.model = input.model;
+    transformedBody.model = getCodexUpstreamModel(transformedBody.model || input.model);
     delete transformedBody.stream;
     delete transformedBody.stream_options;
 
@@ -650,6 +665,27 @@ export class CodexExecutor extends BaseExecutor {
       type: "response.create",
       ...transformedBody,
     });
+
+    const websocketFn = getWreqWebsocket();
+    if (!websocketFn) {
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              code: "wreq_unavailable",
+              message:
+                "wreq-js native module not available on this platform. " +
+                "The Codex WebSocket transport requires wreq-js with native binaries. " +
+                "Please reinstall with npm (not pnpm) or use HTTP transport instead.",
+            },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } }
+        ),
+        url,
+        headers,
+        transformedBody,
+      };
+    }
 
     const encoder = new TextEncoder();
     let closed = false;
@@ -731,7 +767,7 @@ export class CodexExecutor extends BaseExecutor {
         input.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
-          ws = await websocket(toWebSocketUrl(url), {
+          ws = await websocketFn(toWebSocketUrl(url), {
             browser: "chrome_142",
             os: "windows",
             headers,
@@ -983,16 +1019,13 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    const effortLevels = ["none", "low", "medium", "high", "xhigh"];
     let modelEffort: string | null = null;
     let cleanModel = typeof body.model === "string" ? body.model : model;
-    for (const level of effortLevels) {
-      if (typeof cleanModel === "string" && cleanModel.endsWith(`-${level}`)) {
-        modelEffort = level;
-        body.model = cleanModel.slice(0, -`-${level}`.length);
-        cleanModel = body.model;
-        break;
-      }
+    const splitModel = splitCodexReasoningSuffix(cleanModel);
+    if (splitModel.effort) {
+      modelEffort = splitModel.effort;
+      body.model = splitModel.baseModel;
+      cleanModel = body.model;
     }
 
     const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);

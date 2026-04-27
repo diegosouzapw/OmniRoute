@@ -242,7 +242,8 @@ export const CLI_TOOLS = {
   opencode: {
     id: "opencode",
     name: "OpenCode",
-    image: "/providers/opencode.svg",
+    imageLight: "/providers/opencode-light.svg",
+    imageDark: "/providers/opencode-dark.svg",
     icon: "terminal",
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",

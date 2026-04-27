@@ -15,14 +15,11 @@ test("resolveAntigravityModelId maps the documented Antigravity aliases to upstr
     resolveAntigravityModelId("gemini-2.5-computer-use-preview-10-2025"),
     "rev19-uic3-1p"
   );
-  assert.equal(resolveAntigravityModelId("gemini-claude-sonnet-4-5"), "claude-sonnet-4-5");
-  assert.equal(
-    resolveAntigravityModelId("gemini-claude-sonnet-4-5-thinking"),
-    "claude-sonnet-4-5-thinking"
-  );
+  assert.equal(resolveAntigravityModelId("gemini-claude-sonnet-4-5"), "claude-sonnet-4-6");
+  assert.equal(resolveAntigravityModelId("gemini-claude-sonnet-4-5-thinking"), "claude-sonnet-4-6");
   assert.equal(
     resolveAntigravityModelId("gemini-claude-opus-4-5-thinking"),
-    "claude-opus-4-5-thinking"
+    "claude-opus-4-6-thinking"
   );
   assert.equal(resolveAntigravityModelId("unknown-model"), "unknown-model");
 });
@@ -31,6 +28,8 @@ test("toClientAntigravityModelId exposes client-visible aliases for known upstre
   assert.equal(toClientAntigravityModelId("gemini-3.1-pro-high"), "gemini-3-pro-preview");
   assert.equal(toClientAntigravityModelId("gemini-3-flash"), "gemini-3-flash-preview");
   assert.equal(toClientAntigravityModelId("gpt-oss-120b-medium"), "gpt-oss-120b-medium");
+  assert.equal(toClientAntigravityModelId("claude-sonnet-4-6"), "claude-sonnet-4-6");
+  assert.equal(toClientAntigravityModelId("claude-opus-4-6-thinking"), "claude-opus-4-6-thinking");
 });
 
 test("AntigravityExecutor.transformRequest resolves alias models before dispatching upstream", async () => {

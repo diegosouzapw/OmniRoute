@@ -4,6 +4,37 @@
 
 ---
 
+## [3.7.1] — 2026-04-26
+
+### ✨ New Features
+
+- **feat(providers):** Add GPT-5.5 support to the Codex provider — includes 1.05M context window, tool calling, vision, and reasoning capabilities with proper pricing entries across `cx` and `openai` providers. Refactors `splitCodexReasoningSuffix()` into a shared helper for cleaner effort-level parsing (#1617 — thanks @Zhaba1337228).
+- **feat(cli):** Add `omniroute reset-encrypted-columns` recovery command — nulls encrypted credential columns (`api_key`, `access_token`, `refresh_token`, `id_token`) in `provider_connections` while preserving provider metadata, giving users affected by #1622 a clean recovery path without losing configurations.
+- **feat(i18n):** Expand locale coverage with nine new language packs (Bengali, Farsi, Gujarati, Indonesian, Marathi, Swahili, Tamil, Telugu, Urdu), bringing total language support from 32 to 41 locales.
+
+### 🐛 Bug Fixes
+
+- **fix(rate-limit):** Add per-model rate limiting for GitHub Copilot provider — a 429 on one model (e.g. `gpt-5.1-codex-max`) no longer locks the entire connection, matching the existing Gemini per-model quota pattern (#1624 — thanks @slewis3600).
+- **fix(cli-tools):** Preserve existing OpenCode configuration (MCP servers, custom providers, comments) when saving OmniRoute settings — uses `jsonc-parser` for tree-preserving edits instead of destructive JSON roundtrip. Fix API key clipboard copy to use raw keys instead of masked placeholders. Add theme-aware OpenCode light/dark SVG logos (#1626 — thanks @JasonLandbridge).
+- **fix(cli-tools):** Fix OpenCode guide step 3 `{{baseUrl}}` double-brace placeholder to use ICU-style `{baseUrl}` across all 41 locales, restoring next-intl interpolation (#1626).
+- **fix(codex):** Make `wreq-js` native module import lazy and optional to prevent server crash on startup when the platform-specific binary is missing — affects pnpm installs, Docker Alpine, macOS ARM, and Windows (#1612, #1613, #1616).
+- **fix(i18n):** Add 14 missing translation keys (`logs.runningRequests`, `logs.model`, `logs.provider`, `logs.account`, `logs.elapsed`, `logs.count`, `logs.payloads`, etc.) for the Active Requests panel across all locales. Replace 83 placeholder values in usage/evals namespace. Add 5 missing health namespace keys for rate limit status.
+- **fix(encryption):** Prevent `STORAGE_ENCRYPTION_KEY` from being silently regenerated during `npm install -g` upgrades, which made all previously-encrypted provider credentials permanently unrecoverable due to AES-GCM auth-tag mismatch (#1622).
+- **fix(startup):** Add decrypt-probe diagnostic at server bootstrap — if `STORAGE_ENCRYPTION_KEY` doesn't match encrypted credentials in the database, a prominent warning is logged directing users to restore the key or use the new recovery command.
+- **fix(cli-tools):** Allow `null` API key values in `cliModelConfigSchema` to prevent 400 Bad Request errors when saving cloud-based CLI tool configurations. Fix error handling across all 10 ToolCard components to safely extract messages from structured error objects, preventing React Error #31 crashes.
+- **fix(docker):** Set `NPM_CONFIG_LEGACY_PEER_DEPS=true` in the Docker builder layer before `npm ci` and remove duplicate `postinstallSupport.mjs` COPY instruction — fixes container image build failures introduced in v3.7.0 (#1630 — thanks @rdself).
+- **fix(antigravity):** Hide deprecated Gemini-routed Claude 4.5 models from public catalogs and model lists. Legacy `gemini-claude-*` aliases now silently resolve to current Claude 4.6 equivalents. Replace dynamic reverse-alias generation with an explicit allowlist for predictable model visibility (#1631 — thanks @backryun).
+- **fix(types):** Add explicit type annotations to sync-env test helpers and dynamic import casts to satisfy `typecheck:noimplicit:core` CI gate.
+- **fix(reasoning):** Implement Reasoning Replay Cache — hybrid memory/SQLite persistence for `reasoning_content` in multi-turn tool-calling flows. Automatically captures reasoning from DeepSeek V4, Kimi K2, Qwen-Thinking, and GLM models and re-injects it on follow-up turns to prevent HTTP 400 errors from strict reasoning-content validation. Includes dashboard telemetry tab, REST API, and 21 unit tests (#1628 — thanks @JasonLandbridge).
+- **fix(postinstall):** Extend postinstall native module repair to cover `wreq-js` — detects missing platform-specific `.node` binaries inside `app/node_modules/wreq-js/rust/` and copies them from the root install. Fixes global `pnpm` installs on macOS arm64 where the standalone app directory only contained Linux binaries (#1634 — thanks @MarcosT96).
+- **fix(migration):** Prevent compat-renamed migration slots from shadowing new migrations at the same version number. After rewriting `028_provider_connection_max_concurrent` → `029`, the runner now verifies the old version slot is clear, ensuring `028_create_files_and_batches` runs on v3.6.x → v3.7.x upgrades. Adds `batches` table as a physical schema sentinel for upgrade recovery (#1637 — thanks @V8-Software).
+
+### 📝 Documentation
+
+- **docs(env):** Add `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` to `.env.example` with documentation for LM Studio and other local provider use cases (#1623).
+
+---
+
 ## [3.7.0] — 2026-04-26
 
 ### ✨ New Features
