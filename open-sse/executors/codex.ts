@@ -10,7 +10,41 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { websocket } from "wreq-js";
+import { createRequire } from "node:module";
+import { errorResponse } from "../utils/error.ts";
+
+const require = createRequire(import.meta.url);
+
+type WreqWebSocket = {
+  send: (data: string) => void;
+  close: (code?: number, reason?: string) => void;
+  onmessage?: (event: { data: string | Buffer | ArrayBuffer | Uint8Array }) => void;
+  onerror?: (event: { message?: string }) => void;
+  onclose?: () => void;
+};
+
+type WreqWebSocketFn = (
+  url: string,
+  options: { browser: string; os: string; headers: Record<string, string> }
+) => Promise<WreqWebSocket>;
+
+let codexWebSocketTransport: WreqWebSocketFn | null | undefined;
+
+function getCodexWebSocketTransport(): WreqWebSocketFn | null {
+  if (codexWebSocketTransport !== undefined) {
+    return codexWebSocketTransport;
+  }
+
+  try {
+    const loaded = require("wreq-js") as { websocket?: WreqWebSocketFn };
+    codexWebSocketTransport =
+      typeof loaded.websocket === "function" ? loaded.websocket : null;
+  } catch {
+    codexWebSocketTransport = null;
+  }
+
+  return codexWebSocketTransport;
+}
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -589,6 +623,19 @@ export class CodexExecutor extends BaseExecutor {
     const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
+    const websocket = getCodexWebSocketTransport();
+    if (!websocket) {
+      return {
+        response: errorResponse(
+          503,
+          "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform"
+        ),
+        url,
+        headers,
+        transformedBody: input.body,
+      };
+    }
+
     const transformedBody = (await this.transformRequest(
       input.model,
       input.body,
@@ -606,7 +653,7 @@ export class CodexExecutor extends BaseExecutor {
 
     const encoder = new TextEncoder();
     let closed = false;
-    let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+    let ws: WreqWebSocket | null = null;
     let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
 
     const closeUpstream = (reason: string) => {
