@@ -2050,6 +2050,7 @@ opencode
 - `call_logs` in SQLite stores summary metadata for the Request Logs table and analytics views
 - Detailed request/response payloads are written to `DATA_DIR/call_logs/` as one JSON artifact per request
 - Enable pipeline capture from Dashboard → Logs → Request Logs if you need detailed per-stage payloads
+- When pipeline capture is enabled, `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` skips stream chunks and `CALL_LOG_PIPELINE_MAX_SIZE_KB` controls the artifact cap in KB
 - `Export Logs` reads the artifact files on demand, while `Export All` includes the `call_logs/` directory alongside `storage.sqlite`
 - Set `APP_LOG_TO_FILE=true` if you also want application console logs in `logs/application/app.log`
 - Adjust `APP_LOG_MAX_FILE_SIZE`, `APP_LOG_RETENTION_DAYS`, `APP_LOG_MAX_FILES`, and `CALL_LOG_MAX_ENTRIES` as needed

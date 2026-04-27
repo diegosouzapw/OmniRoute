@@ -32,6 +32,7 @@ import {
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
@@ -1129,6 +1130,8 @@ export async function handleChatCore({
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  const capturePipelineStreamChunks =
+    detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
   const pipelineSessionId =
     (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
@@ -1310,7 +1313,7 @@ export async function handleChatCore({
   // Create request logger for this session: sourceFormat_targetFormat_model
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
     enabled: detailedLoggingEnabled,
-    captureStreamChunks: detailedLoggingEnabled,
+    captureStreamChunks: capturePipelineStreamChunks,
   });
 
   // 0. Log client raw request (before format conversion)
