@@ -22,12 +22,13 @@ type UsageSummary = {
 type KiroStreamState = {
   endDetected: boolean;
   finishEmitted: boolean;
+  doneEmitted: boolean;
   stopSeen: boolean;
   hasToolCalls: boolean;
   toolCallIndex: number;
   seenToolIds: Map<string, number>;
-  totalContentLength?: number;
-  contextUsagePercentage?: number;
+  totalContentLength: number;
+  contextUsagePercentage: number;
   hasContextUsage?: boolean;
   hasMeteringEvent?: boolean;
   usage?: UsageSummary;
@@ -102,6 +103,7 @@ class ByteQueue {
 const CRC32_TABLE = new Uint32Array(256);
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder();
+const KIRO_POST_STOP_USAGE_WAIT_MS = 250;
 for (let i = 0; i < 256; i++) {
   let c = i;
   for (let j = 0; j < 8; j++) {
@@ -150,12 +152,10 @@ function ensureKiroUsage(state: KiroStreamState) {
   if (state.usage) return;
 
   const estimatedOutputTokens =
-    state.totalContentLength && state.totalContentLength > 0
-      ? Math.max(1, Math.floor(state.totalContentLength / 4))
-      : 0;
+    state.totalContentLength > 0 ? Math.max(1, Math.floor(state.totalContentLength / 4)) : 0;
 
   const estimatedInputTokens =
-    state.contextUsagePercentage && state.contextUsagePercentage > 0
+    state.contextUsagePercentage > 0
       ? Math.floor((state.contextUsagePercentage * 200000) / 100)
       : 0;
 
@@ -246,19 +246,57 @@ export class KiroExecutor extends BaseExecutor {
   transformEventStreamToSSE(response: Response, model: string) {
     const buffer = new ByteQueue();
     let chunkIndex = 0;
-    const responseId = `chatcmpl-${Date.now()}`;
+    let postStopTimer: ReturnType<typeof setTimeout> | null = null;
+    const responseId = `chatcmpl-${Date.now()}-${uuidv4().slice(0, 8)}`;
     const created = Math.floor(Date.now() / 1000);
     const state: KiroStreamState = {
       endDetected: false,
       finishEmitted: false,
+      doneEmitted: false,
       stopSeen: false,
       hasToolCalls: false,
       toolCallIndex: 0,
       seenToolIds: new Map(),
+      totalContentLength: 0,
+      contextUsagePercentage: 0,
     };
 
-    const transformStream = new TransformStream({
-      async transform(chunk, controller) {
+    const clearPostStopTimer = () => {
+      if (!postStopTimer) return;
+      clearTimeout(postStopTimer);
+      postStopTimer = null;
+    };
+
+    const emitKiroFinal = (
+      controller: TransformStreamDefaultController<Uint8Array>,
+      terminate = false
+    ) => {
+      clearPostStopTimer();
+      if (!state.finishEmitted) {
+        state.finishEmitted = true;
+        ensureKiroUsage(state);
+        const finishChunk = buildKiroFinishChunk(state, responseId, created, model, true);
+        controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
+      }
+      if (!state.doneEmitted) {
+        state.doneEmitted = true;
+        controller.enqueue(TEXT_ENCODER.encode("data: [DONE]\n\n"));
+      }
+      if (terminate) {
+        controller.terminate();
+      }
+    };
+
+    const schedulePostStopFinish = (controller: TransformStreamDefaultController<Uint8Array>) => {
+      if (postStopTimer || state.finishEmitted) return;
+      postStopTimer = setTimeout(() => {
+        postStopTimer = null;
+        emitKiroFinal(controller, true);
+      }, KIRO_POST_STOP_USAGE_WAIT_MS);
+    };
+
+    const transformStream = new TransformStream<Uint8Array, Uint8Array>({
+      async transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>) {
         buffer.push(chunk);
 
         // Parse events from buffer
@@ -277,10 +315,6 @@ export class KiroExecutor extends BaseExecutor {
           if (!event) continue;
 
           const eventType = event.headers[":event-type"] || "";
-
-          // Track total content length for token estimation
-          if (!state.totalContentLength) state.totalContentLength = 0;
-          if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
 
           // Handle assistantResponseEvent
           if (eventType === "assistantResponseEvent") {
@@ -418,6 +452,7 @@ export class KiroExecutor extends BaseExecutor {
           // Handle messageStopEvent
           if (eventType === "messageStopEvent") {
             state.stopSeen = true;
+            schedulePostStopFinish(controller);
           }
 
           // Handle contextUsageEvent to extract contextUsagePercentage
@@ -484,16 +519,7 @@ export class KiroExecutor extends BaseExecutor {
       },
 
       flush(controller) {
-        // Emit finish chunk if not already sent
-        if (!state.finishEmitted) {
-          state.finishEmitted = true;
-          ensureKiroUsage(state);
-          const finishChunk = buildKiroFinishChunk(state, responseId, created, model, true);
-          controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
-        }
-
-        // Send final done message
-        controller.enqueue(TEXT_ENCODER.encode("data: [DONE]\n\n"));
+        emitKiroFinal(controller);
       },
     });
 

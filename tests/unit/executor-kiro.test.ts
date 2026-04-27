@@ -196,6 +196,32 @@ test("KiroExecutor.transformEventStreamToSSE parses fragmented frames and waits 
   assert.match(text, /\[DONE\]/);
 });
 
+test("KiroExecutor.transformEventStreamToSSE finalizes after messageStopEvent even if upstream stays open", async () => {
+  const executor = new KiroExecutor();
+  const response = new Response(
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(buildEventFrame("assistantResponseEvent", { content: "Done soon" }));
+        controller.enqueue(buildEventFrame("messageStopEvent", {}));
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/vnd.amazon.eventstream" },
+    }
+  );
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const text = await transformed.text();
+  const chunks = parseSSEJsonChunks(text);
+  const finishChunks = chunks.filter((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.match(text, /"content":"Done soon"/);
+  assert.equal(finishChunks.length, 1);
+  assert.equal(finishChunks[0].choices[0].finish_reason, "stop");
+  assert.match(text, /\[DONE\]/);
+});
+
 test("KiroExecutor.transformEventStreamToSSE deduplicates tool starts and handles malformed payload JSON", async () => {
   const executor = new KiroExecutor();
   const response = buildEventStreamResponse([
