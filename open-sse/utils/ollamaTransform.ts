@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "./cors.ts";
+import { CORS_HEADERS } from "./cors.ts";
 
 type PendingToolCall = {
   id?: string;
@@ -105,7 +105,6 @@ export function transformToOllama(response, model) {
   return new Response(response.body.pipeThrough(transform), {
     headers: {
       "Content-Type": "application/x-ndjson",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }

@@ -10,6 +10,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import { getCorsOrigin } from "../utils/cors.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -30,8 +31,10 @@ type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<Wreq
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
+let _websocketOverride: WebsocketFn | null | undefined;
 
-function getWreqWebsocket(): WebsocketFn | null {
+function getCodexWebSocketTransport(): WebsocketFn | null {
+  if (_websocketOverride !== undefined) return _websocketOverride;
   if (_wreqChecked) return _websocketFn;
   _wreqChecked = true;
   try {
@@ -41,6 +44,31 @@ function getWreqWebsocket(): WebsocketFn | null {
     _websocketFn = null;
   }
   return _websocketFn;
+}
+
+export function __setCodexWebSocketTransportForTesting(
+  websocket: WebsocketFn | null | undefined
+): void {
+  _websocketOverride = websocket;
+}
+
+function codexWebSocketUnavailableResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "wreq_unavailable",
+        message:
+          "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": getCorsOrigin(),
+      },
+    }
+  );
 }
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
@@ -489,14 +517,16 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
-export function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
-  const normalizedModel = getCodexUpstreamModel(model).trim().toLowerCase();
-  if (normalizedModel === "gpt-5.5") return true;
+export function isCodexResponsesWebSocketRequired(_model: string, credentials: unknown): boolean {
+  // OmniRoute is an HTTP→SSE gateway — WebSocket transport is unnecessary and
+  // breaks when upstream requests go through an HTTP proxy (403 on WS upgrade).
+  // Default to the standard HTTP Responses SSE endpoint for all Codex models.
+  // Users who need WebSocket can opt in via the provider codexTransport setting.
   const providerSpecificData =
     credentials && typeof credentials === "object"
       ? (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
       : null;
-  return providerSpecificData?.codexTransport === "websocket";
+  return !!(providerSpecificData?.codexTransport === "websocket" && getCodexWebSocketTransport());
 }
 
 function toStatusCode(value: unknown): number | null {
@@ -638,19 +668,6 @@ export class CodexExecutor extends BaseExecutor {
     const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
-    const websocket = getCodexWebSocketTransport();
-    if (!websocket) {
-      return {
-        response: errorResponse(
-          503,
-          "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform"
-        ),
-        url,
-        headers,
-        transformedBody: input.body,
-      };
-    }
-
     const transformedBody = (await this.transformRequest(
       input.model,
       input.body,
@@ -666,21 +683,10 @@ export class CodexExecutor extends BaseExecutor {
       ...transformedBody,
     });
 
-    const websocketFn = getWreqWebsocket();
+    const websocketFn = getCodexWebSocketTransport();
     if (!websocketFn) {
       return {
-        response: new Response(
-          JSON.stringify({
-            error: {
-              code: "wreq_unavailable",
-              message:
-                "wreq-js native module not available on this platform. " +
-                "The Codex WebSocket transport requires wreq-js with native binaries. " +
-                "Please reinstall with npm (not pnpm) or use HTTP transport instead.",
-            },
-          }),
-          { status: 503, headers: { "Content-Type": "application/json" } }
-        ),
+        response: codexWebSocketUnavailableResponse(),
         url,
         headers,
         transformedBody,
@@ -998,20 +1004,21 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
 
-    // Store: The Codex API defaults store to false when not specified.
-    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
-    // which requires store=true so that response items are persisted.
-    // If the client explicitly sets store, respect it. Otherwise default to true.
+    // Store: The Codex OAuth backend rejects store=true with
+    // "Store must be set to false". Default to false unless the provider
+    // explicitly opts in (e.g. API-key accounts that support persistence).
+    // Ref: sub2api openai_codex_transform.go line 75-80
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
       !Array.isArray(credentials.providerSpecificData)
         ? credentials.providerSpecificData.openaiStoreEnabled
         : undefined;
-    if (explicitStoreSetting === false) {
-      body.store = false;
-    } else if (body.store === undefined) {
+    if (explicitStoreSetting === true) {
       body.store = true;
+    } else {
+      // backend rejects store=true ("Store must be set to false"), so default to false.
+      body.store = false;
     }
 
     // Codex Responses only supports function tools with non-empty names.

@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleImageEdit } from "@omniroute/open-sse/handlers/imageGeneration.ts";
 import {
   getProviderCredentials,
@@ -31,7 +30,6 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "*",
     },
@@ -84,7 +82,10 @@ export async function POST(request: Request) {
   try {
     formData = await request.formData();
   } catch (err) {
-    log.warn("IMAGE", `Invalid multipart body: ${err instanceof Error ? err.message : String(err)}`);
+    log.warn(
+      "IMAGE",
+      `Invalid multipart body: ${err instanceof Error ? err.message : String(err)}`
+    );
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid multipart body");
   }
 
@@ -127,7 +128,10 @@ export async function POST(request: Request) {
 
   const credentials = await getProviderCredentials(parsed.provider, apiKey);
   if (!credentials) {
-    return errorResponse(HTTP_STATUS.UNAUTHORIZED, `No credentials for provider: ${parsed.provider}`);
+    return errorResponse(
+      HTTP_STATUS.UNAUTHORIZED,
+      `No credentials for provider: ${parsed.provider}`
+    );
   }
   if (credentials.allRateLimited) {
     return unavailableResponse(
@@ -163,10 +167,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const errorPayload = toJsonErrorPayload(
-    (result as any).error,
-    "Image edit provider error"
-  );
+  const errorPayload = toJsonErrorPayload((result as any).error, "Image edit provider error");
   return new Response(JSON.stringify(errorPayload), {
     status: (result as any).status,
     headers: { "Content-Type": "application/json" },

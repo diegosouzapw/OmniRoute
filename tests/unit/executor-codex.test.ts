@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   CodexExecutor,
+  __setCodexWebSocketTransportForTesting,
   encodeResponseSseEvent,
   getCodexModelScope,
   getCodexRateLimitKey,
@@ -19,6 +20,7 @@ import {
 
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+  __setCodexWebSocketTransportForTesting(undefined);
 });
 
 async function withEnv(entries, fn) {
@@ -62,7 +64,9 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(getCodexModelScope("gpt-5.3-codex"), "codex");
   assert.equal(getCodexModelScope("gpt-5.5-xhigh"), "codex");
   assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
+  assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
   assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), true);
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-medium", {}), true);
   assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-mini", {}), false);
   assert.equal(getCodexRateLimitKey("acct-1", "codex-spark-mini"), "acct-1:spark");
   assert.equal(quota.usage5h, 100);
@@ -108,6 +112,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
   assert.equal(standardHeaders.Version, "0.125.0");
+  assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
+  assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(standardHeaders["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
@@ -290,6 +296,25 @@ test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhig
 
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor.execute returns 503 when gpt-5.5 websocket transport is unavailable", async () => {
+  __setCodexWebSocketTransportForTesting(null);
+  const executor = new CodexExecutor();
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: { accessToken: "codex-token" },
+  });
+  const body = await result.response.json();
+
+  assert.equal(result.response.status, 503);
+  assert.equal(result.response.headers.get("Access-Control-Allow-Origin"), "*");
+  assert.equal(body.error.code, "wreq_unavailable");
+  assert.match(body.error.message, /WebSocket transport unavailable/);
+  assert.equal(result.transformedBody.model, "gpt-5.5");
 });
 
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {

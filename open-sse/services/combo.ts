@@ -255,7 +255,14 @@ async function validateResponseQuality(
     return { valid: false, reason: "empty content and no tool_calls in response" };
   }
 
-  return { valid: true };
+  return {
+    valid: true,
+    clonedResponse: new Response(text, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    }),
+  };
 }
 
 // In-memory atomic counter per combo for round-robin distribution
@@ -1628,7 +1635,7 @@ export async function handleComboChat({
           }
         }
 
-        return result;
+        return quality.clonedResponse ?? result;
       }
 
       // Extract error info from response

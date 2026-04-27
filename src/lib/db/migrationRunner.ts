@@ -156,6 +156,40 @@ function hasTable(db: Database.Database, tableName: string): boolean {
   return Boolean(row?.name);
 }
 
+function hasColumn(db: Database.Database, tableName: string, columnName: string): boolean {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
+  return columns.some((column) => column.name === columnName);
+}
+
+function ensureColumn(
+  db: Database.Database,
+  tableName: string,
+  columnName: string,
+  ddl: string
+): void {
+  if (!hasColumn(db, tableName, columnName)) {
+    db.exec(ddl);
+  }
+}
+
+function isApiKeyLifecycleMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "032";
+}
+
+function applyApiKeyLifecycleMigration(db: Database.Database): void {
+  ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
+  ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
+  ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
+  ensureColumn(db, "api_keys", "key_prefix", "ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
+  ensureColumn(db, "api_keys", "ip_allowlist", "ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
+  ensureColumn(db, "api_keys", "scopes", "ALTER TABLE api_keys ADD COLUMN scopes TEXT");
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
+  `);
+}
+
 function inferPhysicalSchemaBaseline(db: Database.Database): {
   version: string;
   description: string;
@@ -419,10 +453,13 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   let count = 0;
 
   for (const migration of pending) {
-    const sql = fs.readFileSync(migration.path, "utf-8");
-
     const applyMigration = db.transaction(() => {
-      db.exec(sql);
+      if (isApiKeyLifecycleMigration(migration)) {
+        applyApiKeyLifecycleMigration(db);
+      } else {
+        const sql = fs.readFileSync(migration.path, "utf-8");
+        db.exec(sql);
+      }
       db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
         migration.version,
         migration.name

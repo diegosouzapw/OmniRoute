@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { resolveDataDir } from "../dataPaths";
+import { getCallLogPipelineMaxSizeBytes } from "../logEnv";
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
@@ -9,6 +10,11 @@ const DATA_DIR = resolveDataDir({ isCloud });
 
 export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
 export const MAX_CALL_LOG_ARTIFACT_BYTES = 512 * 1024;
+
+const SIZE_LIMIT_EXCEEDED_REASON = "call_log_artifact_size_limit_exceeded";
+const OMITTED_FOR_SIZE_LIMIT = "[omitted: call log artifact size limit exceeded]";
+const STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT =
+  "[stream chunks omitted: call log artifact size limit exceeded]";
 
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
@@ -83,13 +89,13 @@ function truncateArtifactForStorage(artifact: CallLogArtifact): CallLogArtifact 
       ...pipeline,
       streamChunks: {
         provider: pipeline.streamChunks.provider?.length
-          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          ? [STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT]
           : undefined,
         openai: pipeline.streamChunks.openai?.length
-          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          ? [STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT]
           : undefined,
         client: pipeline.streamChunks.client?.length
-          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          ? [STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT]
           : undefined,
       },
     },
@@ -104,59 +110,77 @@ function omitOversizedPipeline(artifact: CallLogArtifact): CallLogArtifact {
     pipeline: {
       error: {
         _omniroute_truncated: true,
-        reason: "call_log_artifact_size_limit_exceeded",
+        reason: SIZE_LIMIT_EXCEEDED_REASON,
       },
     },
   };
 }
 
+function getArtifactMaxBytes(artifact: CallLogArtifact): number {
+  return artifact.pipeline ? getCallLogPipelineMaxSizeBytes() : MAX_CALL_LOG_ARTIFACT_BYTES;
+}
+
+function buildMinimalArtifactForSizeLimit(artifact: CallLogArtifact) {
+  return {
+    schemaVersion: artifact.schemaVersion,
+    summary: artifact.summary,
+    requestBody: OMITTED_FOR_SIZE_LIMIT,
+    responseBody: OMITTED_FOR_SIZE_LIMIT,
+    error: artifact.error ? OMITTED_FOR_SIZE_LIMIT : null,
+    pipeline: {
+      error: {
+        _omniroute_truncated: true,
+        reason: SIZE_LIMIT_EXCEEDED_REASON,
+      },
+    },
+  };
+}
+
+function serializeFinalSizeLimitFallback(artifact: CallLogArtifact, maxBytes: number): string {
+  const withSummary = JSON.stringify(buildMinimalArtifactForSizeLimit(artifact));
+  if (Buffer.byteLength(withSummary) <= maxBytes) {
+    return withSummary;
+  }
+
+  return JSON.stringify({
+    schemaVersion: artifact.schemaVersion,
+    _omniroute_truncated: true,
+    reason: SIZE_LIMIT_EXCEEDED_REASON,
+  });
+}
+
 function serializeArtifactForStorage(artifact: CallLogArtifact): string {
+  const maxBytes = getArtifactMaxBytes(artifact);
   const serialized = JSON.stringify(artifact, null, 2);
-  if (Buffer.byteLength(serialized) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+  if (Buffer.byteLength(serialized) <= maxBytes) {
     return serialized;
   }
 
   const truncated = JSON.stringify(truncateArtifactForStorage(artifact), null, 2);
-  if (Buffer.byteLength(truncated) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+  if (Buffer.byteLength(truncated) <= maxBytes) {
     return truncated;
   }
 
   const withoutPipeline = JSON.stringify(omitOversizedPipeline(artifact), null, 2);
-  if (Buffer.byteLength(withoutPipeline) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+  if (Buffer.byteLength(withoutPipeline) <= maxBytes) {
     return withoutPipeline;
   }
 
   const minimal = JSON.stringify(
     {
       ...omitOversizedPipeline(artifact),
-      requestBody: "[omitted: call log artifact size limit exceeded]",
-      responseBody: "[omitted: call log artifact size limit exceeded]",
-      error: artifact.error ? "[omitted: call log artifact size limit exceeded]" : null,
+      requestBody: OMITTED_FOR_SIZE_LIMIT,
+      responseBody: OMITTED_FOR_SIZE_LIMIT,
+      error: artifact.error ? OMITTED_FOR_SIZE_LIMIT : null,
     },
     null,
     2
   );
-  if (Buffer.byteLength(minimal) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+  if (Buffer.byteLength(minimal) <= maxBytes) {
     return minimal;
   }
 
-  return JSON.stringify(
-    {
-      schemaVersion: artifact.schemaVersion,
-      summary: artifact.summary,
-      requestBody: "[omitted: call log artifact size limit exceeded]",
-      responseBody: "[omitted: call log artifact size limit exceeded]",
-      error: artifact.error ? "[omitted: call log artifact size limit exceeded]" : null,
-      pipeline: {
-        error: {
-          _omniroute_truncated: true,
-          reason: "call_log_artifact_size_limit_exceeded",
-        },
-      },
-    },
-    null,
-    2
-  );
+  return serializeFinalSizeLimitFallback(artifact, maxBytes);
 }
 
 export function writeCallArtifact(

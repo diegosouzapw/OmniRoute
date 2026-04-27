@@ -402,9 +402,9 @@ describe("CORS — centralized configuration", () => {
     assert.ok(existsSync(full), "shared/utils/cors.ts should exist");
   });
 
-  it("should export CORS_HEADERS and CORS_ORIGIN", () => {
+  it("should export CORS_HEADERS without a wildcard origin", () => {
     const src = readSrc("shared/utils/cors.ts");
     assert.match(src, /CORS_HEADERS/);
-    assert.match(src, /CORS_ORIGIN/);
+    assert.doesNotMatch(src, /Access-Control-Allow-Origin/);
   });
 });

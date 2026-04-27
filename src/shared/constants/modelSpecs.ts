@@ -32,7 +32,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["gpt-5.5-xhigh", "gpt-5.5-high", "gpt-5.5-medium", "gpt-5.5-low", "gpt-5.5-none"],
   },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────

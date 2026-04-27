@@ -40,6 +40,12 @@ test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
   assert.equal(info.model, "gpt-5.5");
 });
 
+test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("gpt-5.5-medium", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5-medium");
+});
+
 test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
   const info = await getModelInfoCore("cx/gpt-5.5", {});
   assert.equal(info.provider, "codex");

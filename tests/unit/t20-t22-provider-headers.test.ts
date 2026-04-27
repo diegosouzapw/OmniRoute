@@ -14,7 +14,7 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 
-test("T20: gemini CLI fingerprint uses 0.31.0 and preserves darwin platform name", () => {
+test("T20: gemini CLI fingerprint uses 0.31.0 and normalizes darwin to macos", () => {
   assert.equal(GEMINI_CLI_VERSION, "0.31.0");
 
   const descriptor = Object.getOwnPropertyDescriptor(process, "platform");
@@ -22,7 +22,7 @@ test("T20: gemini CLI fingerprint uses 0.31.0 and preserves darwin platform name
   try {
     assert.match(
       geminiCLIUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.31\.0\/gemini-3-flash \(darwin; /
+      /^GeminiCLI\/0\.31\.0\/gemini-3-flash \(macos; /
     );
   } finally {
     if (descriptor) {
@@ -59,6 +59,7 @@ test("T20: codex config advertises current client headers and auto-review model"
   const codex = REGISTRY.codex;
   assert.equal(codex.headers.Version, "0.125.0");
   assert.equal(codex.headers["Openai-Beta"], "responses=experimental");
+  assert.equal(codex.headers["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(codex.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.ok(codex.models.some((model) => model.id === "codex-auto-review"));
 });

@@ -1277,6 +1277,30 @@ export async function markAccountUnavailable(
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
+
+    if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.unavailable,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Mode ${model} forbidden for this Grok account`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Mode-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 

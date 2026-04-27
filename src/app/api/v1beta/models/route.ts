@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
 import { getAllCustomModels, getSyncedAvailableModels } from "@/lib/db/models";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
@@ -10,7 +9,6 @@ import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "*",
     },

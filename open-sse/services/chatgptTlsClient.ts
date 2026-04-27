@@ -22,6 +22,13 @@ let exitHookInstalled = false;
 
 const CHATGPT_PROFILE = "firefox_148"; // matches the Firefox 150 UA we send
 const DEFAULT_TIMEOUT_MS = 60_000;
+// Grace period added to the binding's wire-level timeout before our JS-level
+// hard timeout fires. Under healthy operation `tls-client-node` honors
+// `timeoutMilliseconds` and rejects on its own; the JS-level race only wins
+// when the koffi-loaded native library is wedged (which the binding's own
+// timer can't escape). Keep the grace small so users don't wait noticeably
+// longer than the configured timeout when the binding is dead.
+const HARD_TIMEOUT_GRACE_MS = 10_000;
 
 function installExitHook(): void {
   if (exitHookInstalled) return;
@@ -42,6 +49,69 @@ function installExitHook(): void {
   process.once("SIGTERM", () => {
     void stop();
   });
+}
+
+/**
+ * Drop the cached client so the next `getClient()` call respawns it. Called
+ * when a request observes the native binding has wedged — releasing the
+ * reference lets a fresh TLSClient (and a fresh koffi load) take over without
+ * a process restart.
+ */
+function resetClientCache(): void {
+  clientPromise = null;
+}
+
+export class TlsClientHangError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TlsClientHangError";
+  }
+}
+
+/**
+ * Race a `client.request()` promise against (a) a JS-level hard timeout and
+ * (b) the caller's abort signal. The native binding's `timeoutMilliseconds`
+ * already covers the wire path; this guards the case where the koffi binding
+ * itself deadlocks (observed after sustained load), where neither the
+ * binding's own timer nor a post-call `signal.aborted` re-check can recover.
+ */
+async function raceWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  signal: AbortSignal | null | undefined
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let abortListener: (() => void) | null = null;
+  try {
+    const racers: Promise<T>[] = [
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(
+            new TlsClientHangError(
+              `tls-client-node call exceeded ${timeoutMs}ms — native binding likely deadlocked`
+            )
+          );
+        }, timeoutMs);
+      }),
+    ];
+    if (signal) {
+      racers.push(
+        new Promise<T>((_, reject) => {
+          if (signal.aborted) {
+            reject(makeAbortError(signal));
+            return;
+          }
+          abortListener = () => reject(makeAbortError(signal));
+          signal.addEventListener("abort", abortListener, { once: true });
+        })
+      );
+    }
+    return await Promise.race(racers);
+  } finally {
+    if (timer) clearTimeout(timer);
+    if (signal && abortListener) signal.removeEventListener("abort", abortListener);
+  }
 }
 
 async function getClient(): Promise<{
@@ -178,11 +248,26 @@ export async function tlsFetchChatGpt(
       url,
       requestOptions,
       options.streamEofSymbol,
-      options.signal ?? null
+      options.signal ?? null,
+      (options.timeoutMs ?? DEFAULT_TIMEOUT_MS) + HARD_TIMEOUT_GRACE_MS
     );
   }
 
-  const tlsResponse = await client.request(url, requestOptions);
+  let tlsResponse: TlsResponseLike;
+  try {
+    tlsResponse = await raceWithTimeout(
+      client.request(url, requestOptions),
+      (options.timeoutMs ?? DEFAULT_TIMEOUT_MS) + HARD_TIMEOUT_GRACE_MS,
+      options.signal ?? null
+    );
+  } catch (err) {
+    if (err instanceof TlsClientHangError) {
+      // The native binding is wedged — drop the singleton so the next
+      // request respawns a fresh client (and a fresh koffi load).
+      resetClientCache();
+    }
+    throw err;
+  }
   if (options.signal?.aborted) {
     throw makeAbortError(options.signal);
   }
@@ -220,7 +305,8 @@ async function tlsFetchStreaming(
   url: string,
   requestOptions: Record<string, unknown>,
   eofSymbol = "[DONE]",
-  signal: AbortSignal | null = null
+  signal: AbortSignal | null = null,
+  hardTimeoutMs: number = DEFAULT_TIMEOUT_MS + HARD_TIMEOUT_GRACE_MS
 ): Promise<TlsFetchResult> {
   const dir = await mkdtemp(join(tmpdir(), "cgpt-stream-"));
   const path = join(dir, `${randomUUID()}.sse`);
@@ -234,8 +320,24 @@ async function tlsFetchStreaming(
 
   // Kick off the request without awaiting — tls-client writes the body to
   // `path` chunk-by-chunk while the call runs. The Promise resolves when the
-  // request fully completes (full body written).
-  const requestPromise = client.request(url, streamOpts);
+  // request fully completes (full body written). Wrapping in raceWithTimeout
+  // guarantees this promise eventually settles even if the koffi binding
+  // wedges; on hang we reset the singleton so the next request respawns.
+  let resetOnHang = true;
+  const requestPromise = raceWithTimeout(
+    client.request(url, streamOpts),
+    hardTimeoutMs,
+    signal
+  ).catch((err: unknown) => {
+    if (resetOnHang && err instanceof TlsClientHangError) {
+      resetClientCache();
+      resetOnHang = false;
+    }
+    // Re-throw so downstream consumers (waitForContent, tailFile) observe
+    // the rejection and surface it instead of treating the stream as having
+    // ended cleanly.
+    throw err;
+  });
 
   // Wait for the file to exist AND have at least one byte. tls-client-node
   // creates the output file when the request starts, but the file can be

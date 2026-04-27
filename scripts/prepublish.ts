@@ -128,7 +128,9 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("npx next build", {
+const nextBuildBundlerFlag =
+  process.env.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
+execSync(`npx next build ${nextBuildBundlerFlag}`, {
   cwd: ROOT,
   stdio: "inherit",
   env: {

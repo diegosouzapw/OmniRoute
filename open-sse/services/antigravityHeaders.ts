@@ -42,6 +42,8 @@ function getPlatform(): string {
   switch (p) {
     case "win32":
       return "windows";
+    case "darwin":
+      return "macos";
     default:
       return p; // "linux", etc.
   }

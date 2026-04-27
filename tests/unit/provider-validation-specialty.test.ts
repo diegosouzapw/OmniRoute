@@ -221,7 +221,7 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
     calls.push({ url: target, init });
 
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ ok: true }), { status: 400 });
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
     if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
@@ -288,6 +288,10 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   const museSparkCall = calls.find((call) => call.url.includes("meta.ai/api/graphql"));
 
   assert.equal(grokCall?.init.headers.Cookie, "sso=grok-cookie");
+  const grokBody = JSON.parse(String(grokCall?.init.body || "{}"));
+  assert.equal(grokBody.modeId, "auto");
+  assert.equal("modelName" in grokBody, false);
+  assert.equal("modelMode" in grokBody, false);
   assert.equal(perplexityCall?.init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
   assert.equal(blackboxSessionCall?.init.headers.Cookie, "__Secure-authjs.session-token=bb-cookie");
   assert.equal(

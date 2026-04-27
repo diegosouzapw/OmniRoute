@@ -557,6 +557,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
   assert.equal(calls.length, 1);
   assert.equal(calls[0].headers.Accept, "application/json");
   assert.equal(calls[0].body.stream, true);
+  assert.equal(calls[0].body.stream_options, undefined);
   assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
 
   const payload = (await result.response.json()) as any;

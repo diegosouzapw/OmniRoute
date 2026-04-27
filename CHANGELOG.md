@@ -4,6 +4,32 @@
 
 ---
 
+## [3.7.2] — 2026-04-27
+
+### ✨ New Features
+
+- **feat(authz):** introduce centralized proxy-based authz pipeline and lifecycle policy (#1632)
+- **feat(logs):** configure call log pipeline artifacts (#1650)
+- **feat(network):** add guarded remote image fetch utility
+- **feat(codex):** enable native Codex websocket responses on beta-gated models (#1658)
+
+### 🐛 Bug Fixes
+
+- **fix(chatgpt-web):** bound tls-client native deadlocks so requests never hang forever (#1664)
+- **fix(codex):** default gpt-5.5 to HTTP transport instead of WebSocket (#1660)
+- **fix(codex):** [urgent] fix gpt-5.5 websocket transport and model labels (#1656)
+- **fix(grokweb):** update Request and Response Specifications (#1655)
+- **fix(blackbox-web):** set isPremium flag to true to enable premium model access (#1661)
+- **fix(core):** avoid OpenAI stream options for Anthropic-compatible providers (#1654)
+- **fix(electron):** resolve MCP server start failure on Windows (#1662)
+- **fix(electron):** make Windows smoke test non-blocking (continue-on-error), pre-create userData dir for Windows + stream logs in CI, and add --no-sandbox and sandbox env for CI smoke tests
+- **fix(codex):** fix `getWreqWebsocket` ReferenceError causing 502 on all Codex requests (#1652, #1653)
+- **fix(codex):** default `store` to `false` — Codex OAuth backend rejects `store=true` (#1635)
+- **fix(db):** add post-migration guards for missing `batches` table and `combos.sort_order` column on DB upgrades (#1648, #1657)
+- **fix(db):** renumber duplicate migration `032` to prevent collision
+
+---
+
 ## [3.7.1] — 2026-04-26
 
 ### ✨ New Features

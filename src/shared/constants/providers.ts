@@ -114,7 +114,6 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "GW",
     website: "https://grok.com",
     authHint: "Paste your sso= cookie value from grok.com",
-    passthroughModels: true,
   },
   "perplexity-web": {
     id: "perplexity-web",

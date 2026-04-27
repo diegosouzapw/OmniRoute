@@ -1,4 +1,4 @@
-import { CORS_ORIGIN, CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
@@ -38,9 +38,7 @@ export async function POST(request) {
     const ct = request.headers.get("content-type") ?? "";
     const cl = request.headers.get("content-length");
     if (cl && Number(cl) > 256 * 1024) {
-      console.error(
-        `[CHAT-ROUTE] large body content-type="${ct}" content-length=${cl}`
-      );
+      console.error(`[CHAT-ROUTE] large body content-type="${ct}" content-length=${cl}`);
     }
   }
 

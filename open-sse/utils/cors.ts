@@ -1,22 +1,13 @@
 /**
- * CORS configuration for open-sse handlers.
+ * Static CORS headers for open-sse handlers.
  *
- * Reads `CORS_ORIGIN` env var (default: "*") so that all handlers
- * use the same configurable origin. Equivalent to src/shared/utils/cors.ts
- * for the open-sse package boundary.
+ * `Access-Control-Allow-Origin` is set by the Next.js middleware
+ * (`src/server/cors/origins.ts`). Handlers in this package only need the
+ * methods/headers list; the middleware overlays the allowed origin per
+ * the central allowlist on the way out.
  */
-
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
-
 export const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": CORS_ORIGIN,
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, x-internal-test, accept",
 };
-
-/**
- * Returns just the origin header for merging into existing header objects.
- */
-export function getCorsOrigin(): string {
-  return CORS_ORIGIN;
-}

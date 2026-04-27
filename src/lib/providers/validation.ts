@@ -2352,14 +2352,14 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
           Origin: "https://grok.com",
           Pragma: "no-cache",
           Referer: "https://grok.com/",
-          "Sec-Ch-Ua": '"Google Chrome";v="136", "Chromium";v="136", "Not(A:Brand";v="24"',
+          "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
           "Sec-Ch-Ua-Mobile": "?0",
           "Sec-Ch-Ua-Platform": '"macOS"',
           "Sec-Fetch-Dest": "empty",
           "Sec-Fetch-Mode": "cors",
           "Sec-Fetch-Site": "same-origin",
           "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
           "x-statsig-id": btoa(statsigMsg),
           "x-xai-request-id": crypto.randomUUID(),
           traceparent: `00-${traceId}-${spanId}-00`,
@@ -2368,8 +2368,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       ),
       body: JSON.stringify({
         temporary: true,
-        modelName: "grok-4-1-thinking-1129",
-        modelMode: "MODEL_MODE_FAST",
+        modeId: "auto",
         message: "test",
         fileAttachments: [],
         imageAttachments: [],
@@ -2392,6 +2391,15 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       }),
     });
 
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    let errorDetail = "";
+    try {
+      errorDetail = (await response.text()).slice(0, 240);
+    } catch {}
+
     if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
@@ -2399,16 +2407,18 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       };
     }
 
-    // 200 or non-auth 4xx (e.g. 400, 429) means the cookie is accepted
-    if (response.ok || (response.status >= 400 && response.status < 500)) {
-      return { valid: true, error: null };
+    if (response.status === 429) {
+      return { valid: false, error: "Grok rate limited during validation (429)" };
     }
 
     if (response.status >= 500) {
       return { valid: false, error: `Grok unavailable (${response.status})` };
     }
 
-    return { valid: false, error: `Validation failed: ${response.status}` };
+    return {
+      valid: false,
+      error: `Grok validation failed (${response.status})${errorDetail ? `: ${errorDetail}` : ""}`,
+    };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -2504,7 +2514,7 @@ async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );
@@ -2534,7 +2544,7 @@ async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );

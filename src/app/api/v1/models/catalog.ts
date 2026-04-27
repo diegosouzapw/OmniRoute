@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import {
@@ -9,7 +8,6 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
@@ -142,39 +140,14 @@ function buildAliasMaps() {
  */
 export async function getUnifiedModelsResponse(
   request: Request,
-  corsHeaders: Record<string, string> = {
-    "Access-Control-Allow-Origin": CORS_ORIGIN,
-  }
+  corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    // Issue #100: Optionally require authentication for /models (security hardening)
-    // When enabled, unauthenticated requests get 401 with proper error response.
-    // Supports API key (Bearer token) for external clients and JWT cookie for dashboard.
     let settings: Record<string, any> = {};
     try {
       settings = await getSettings();
     } catch {}
-    if (settings.requireAuthForModels === true) {
-      if (!(await isAuthenticated(request))) {
-        return Response.json(
-          {
-            error: {
-              message: "Authentication required",
-              type: "invalid_request_error",
-              code: "invalid_api_key",
-            },
-          },
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              ...diagnosticHeaders,
-            },
-          }
-        );
-      }
-    }
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
 

@@ -49,7 +49,7 @@ test.after(async () => {
 test("handleChat waits for a short cooldown and retries once within the configured budget", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-cooldown-short",
-    rateLimitedUntil: new Date(Date.now() + 350).toISOString(),
+    rateLimitedUntil: new Date(Date.now() + 950).toISOString(),
     lastError: "short cooldown window",
     errorCode: 429,
   });

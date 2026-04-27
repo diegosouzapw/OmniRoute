@@ -38,9 +38,13 @@ test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", 
 test("T12: codex catalog includes GPT 5.5 entries", () => {
   const codexModels = new Map(REGISTRY.codex.models.map((m) => [m.id, m]));
   assert.ok(codexModels.has("gpt-5.5"), "missing codex/gpt-5.5");
+  assert.ok(codexModels.has("gpt-5.5-medium"), "missing codex/gpt-5.5-medium");
   assert.ok(codexModels.has("gpt-5.5-mini"), "missing codex/gpt-5.5-mini");
+  assert.equal(codexModels.get("gpt-5.5")?.name, "GPT 5.5");
+  assert.equal(codexModels.get("gpt-5.5-medium")?.name, "GPT 5.5 (Medium)");
   assert.equal(codexModels.get("gpt-5.5")?.contextLength, 1050000);
   assert.equal(codexModels.get("gpt-5.5")?.supportsXHighEffort, true);
+  assert.equal(codexModels.get("gpt-5.5-medium")?.targetFormat, "openai-responses");
   assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
 });
 
