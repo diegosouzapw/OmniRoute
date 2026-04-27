@@ -2877,14 +2877,14 @@ export async function handleChatCore({
     } else {
       try {
         responseBody = rawBody ? JSON.parse(rawBody) : {};
-      } catch {
+      } catch (err) {
         appendRequestLog({
           model,
           provider,
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-        const invalidJsonMessage = "Invalid JSON response from provider";
+        const invalidJsonMessage = `Invalid JSON response from provider (error: ${err instanceof Error ? err.message : String(err)}): ${rawBody.substring(0, 1000)}`;
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidJsonMessage,

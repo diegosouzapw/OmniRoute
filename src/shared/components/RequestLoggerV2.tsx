@@ -885,6 +885,7 @@ export default function RequestLoggerV2() {
           log={selectedLog}
           detail={detailData}
           loading={detailLoading}
+          debugEnabled={detailLoggingEnabled}
           onClose={closeDetail}
           onCopy={copyToClipboard}
         />
