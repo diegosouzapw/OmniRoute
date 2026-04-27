@@ -8,6 +8,7 @@ import {
   VISION_BRIDGE_DEFAULTS,
   VISION_BRIDGE_SETTINGS_KEYS,
   getVisionBridgeConfig,
+  isVisionBridgeForcedModel,
   type VisionBridgeSettings,
 } from "@/shared/constants/visionBridgeDefaults";
 
@@ -30,6 +31,12 @@ test("VISION_BRIDGE_SETTINGS_KEYS exports all expected keys", () => {
     "visionBridgeTimeout",
     "visionBridgeMaxImages",
   ]);
+});
+
+test("isVisionBridgeForcedModel does not blanket-force GPT-family models", () => {
+  assert.strictEqual(isVisionBridgeForcedModel("gpt-5.5"), false);
+  assert.strictEqual(isVisionBridgeForcedModel("codex/gpt-5.5"), false);
+  assert.strictEqual(isVisionBridgeForcedModel("openai/gpt-4o-mini"), false);
 });
 
 test("getVisionBridgeConfig returns defaults when no settings provided", () => {
