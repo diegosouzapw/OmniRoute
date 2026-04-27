@@ -5,6 +5,7 @@ import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import CacheEntriesTab from "./components/CacheEntriesTab";
+import ReasoningCacheTab from "./components/ReasoningCacheTab";
 
 interface SemanticCacheStats {
   memoryEntries: number;
@@ -63,7 +64,7 @@ interface CacheStats {
   config?: CacheConfig;
 }
 
-type CacheView = "prompt" | "semantic";
+type CacheView = "prompt" | "semantic" | "reasoning";
 
 function StatCard({
   icon,
@@ -469,6 +470,18 @@ export default function CachePage() {
         >
           {t("semanticCache")}
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveView("reasoning")}
+          aria-pressed={activeView === "reasoning"}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+            activeView === "reasoning"
+              ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
+              : "text-text-muted hover:text-text-main"
+          }`}
+        >
+          {t("reasoningCache")}
+        </button>
       </div>
 
       {loading && (
@@ -815,6 +828,14 @@ export default function CachePage() {
               </div>
               <CacheEntriesTab />
             </div>
+          </div>
+        </Card>
+      )}
+
+      {activeView === "reasoning" && (
+        <Card className="border border-border/30 bg-surface-raised/40 backdrop-blur-sm rounded-3xl overflow-hidden">
+          <div className="p-6">
+            <ReasoningCacheTab />
           </div>
         </Card>
       )}

@@ -90,7 +90,7 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
 
   const fetchApiKeys = async () => {
     try {
-      const res = await fetch("/api/keys");
+      const res = await fetch("/api/cli-tools/keys");
       if (res.ok) {
         const data = await res.json();
         setApiKeys(data.keys || []);

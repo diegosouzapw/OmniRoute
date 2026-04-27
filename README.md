@@ -420,9 +420,9 @@ Teams in non-English-speaking countries, especially in Latin America, Asia, and 
 
 **How OmniRoute solves it:**
 
-- **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
-- **RTL Support** — Right-to-left support for Arabic and Hebrew
-- **Multi-Language READMEs** — 30 complete documentation translations
+- **Dashboard i18n — 40+ Languages** — All 500+ keys translated including Arabic, Bengali, Bulgarian, Czech, Danish, German, Spanish, Persian, Finnish, French, Gujarati, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Marathi, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Swahili, Tamil, Telugu, Thai, Turkish, Ukrainian, Urdu, Vietnamese, Chinese, Filipino, English
+- **RTL Support** — Right-to-left support for Arabic, Persian, Hebrew, and Urdu
+- **Multi-Language READMEs** — 40+ complete documentation translations
 - **Language Selector** — Globe icon in header for real-time switching
 
 </details>
@@ -1511,7 +1511,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
 | 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
 | 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
-| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
+| 🌐 **i18n (40+ languages)**    | Full dashboard + docs language support with RTL coverage              |
 | 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
 | 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
 | 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |

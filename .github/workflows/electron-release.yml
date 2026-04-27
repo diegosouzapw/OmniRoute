@@ -133,6 +133,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:${{ matrix.target }}
 
+      - name: Smoke packaged Electron app
+        if: matrix.platform != 'linux'
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+        run: npm run electron:smoke:packaged
+
+      - name: Smoke packaged Electron app (Linux)
+        if: matrix.platform == 'linux'
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+        run: xvfb-run -a npm run electron:smoke:packaged
+
       - name: Collect installers
         shell: bash
         run: |

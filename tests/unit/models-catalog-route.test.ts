@@ -305,6 +305,9 @@ test("v1 models catalog exposes Antigravity client-visible preview aliases inste
   assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
   assert.ok(ids.has("antigravity/gemini-3-flash-preview"));
   assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
+  assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5"), false);
+  assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5-thinking"), false);
+  assert.equal(ids.has("antigravity/gemini-claude-opus-4-5-thinking"), false);
 });
 
 test("v1 models catalog uses provider-node prefixes for compatible provider custom models", async () => {

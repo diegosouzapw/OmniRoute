@@ -74,6 +74,7 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
+  { version: "028", tableName: "batches", description: "batches table" },
   { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
   { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
   { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
@@ -268,6 +269,25 @@ function reconcileRenumberedMigrations(
       `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
         `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
     );
+
+    // After the compat rewrite, verify the old version slot is now free.
+    // A residual row (from a failed prior run, manual intervention, or edge-case
+    // UPDATE conflict) at the old version would shadow a NEW migration file
+    // placed at that version number — e.g. 028_create_files_and_batches.sql
+    // would be skipped because getAppliedVersions() still sees version "028".
+    const residualRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+      .get(compatibility.fromVersion) as { version: string; name: string } | undefined;
+    if (residualRow) {
+      console.warn(
+        `[Migration] ⚠️  Residual row at version ${compatibility.fromVersion} ` +
+          `(name: "${residualRow.name}") still present after compat rewrite — ` +
+          `removing to unblock new migration at this version slot.`
+      );
+      db.prepare("DELETE FROM _omniroute_migrations WHERE version = ?").run(
+        compatibility.fromVersion
+      );
+    }
   }
 
   return repaired;

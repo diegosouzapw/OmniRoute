@@ -69,11 +69,15 @@ function buildEventFrame(eventType, payload) {
 }
 
 function buildEventStreamResponse(frames) {
+  return buildEventStreamResponseFromChunks(frames);
+}
+
+function buildEventStreamResponseFromChunks(chunks) {
   return new Response(
     new ReadableStream({
       start(controller) {
-        for (const frame of frames) {
-          controller.enqueue(frame);
+        for (const chunk of chunks) {
+          controller.enqueue(chunk);
         }
         controller.close();
       },
@@ -83,6 +87,15 @@ function buildEventStreamResponse(frames) {
       headers: { "Content-Type": "application/vnd.amazon.eventstream" },
     }
   );
+}
+
+function parseSSEJsonChunks(text) {
+  return text
+    .split("\n")
+    .filter((line) => line.startsWith("data: "))
+    .map((line) => line.slice(6).trim())
+    .filter((payload) => payload && payload !== "[DONE]")
+    .map((payload) => JSON.parse(payload));
 }
 
 test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () => {
@@ -147,6 +160,39 @@ test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage an
   assert.match(text, /"prompt_tokens":4/);
   assert.match(text, /"completion_tokens":6/);
   assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("KiroExecutor.transformEventStreamToSSE parses fragmented frames and waits for post-stop usage", async () => {
+  const executor = new KiroExecutor();
+  const bytes = concatArrays(
+    buildEventFrame("assistantResponseEvent", { content: "Hello fragmented" }),
+    buildEventFrame("messageStopEvent", {}),
+    buildEventFrame("metricsEvent", { inputTokens: 11, outputTokens: 13 }),
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 17 }),
+    buildEventFrame("meteringEvent", {})
+  );
+  const response = buildEventStreamResponseFromChunks([
+    bytes.subarray(0, 2),
+    bytes.subarray(2, 9),
+    bytes.subarray(9, 37),
+    bytes.subarray(37, 91),
+    bytes.subarray(91),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const text = await transformed.text();
+  const chunks = parseSSEJsonChunks(text);
+  const finishChunks = chunks.filter((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.match(text, /"content":"Hello fragmented"/);
+  assert.equal(finishChunks.length, 1);
+  assert.equal(finishChunks[0].choices[0].finish_reason, "stop");
+  assert.deepEqual(finishChunks[0].usage, {
+    prompt_tokens: 11,
+    completion_tokens: 13,
+    total_tokens: 24,
+  });
   assert.match(text, /\[DONE\]/);
 });
 

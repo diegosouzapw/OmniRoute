@@ -144,6 +144,36 @@ test("rate limit manager handles 429 limiter teardown and disable cleanup", asyn
   assert.equal(rateLimitManager.getRateLimitStatus("gemini", "conn-disable").active, false);
 });
 
+test("rate limit manager uses model-scoped limiter keys for GitHub Copilot (#1624)", async () => {
+  rateLimitManager.enableRateLimitProtection("conn-github");
+  rateLimitManager.updateFromHeaders(
+    "github",
+    "conn-github",
+    {
+      "x-ratelimit-limit-requests": "50",
+      "x-ratelimit-remaining-requests": "3",
+      "x-ratelimit-reset-requests": "15s",
+    },
+    200,
+    "gpt-5.1-codex-max"
+  );
+  await rateLimitManager.__flushLearnedLimitsForTests();
+
+  // GitHub should use model-scoped key: github:conn-github:gpt-5.1-codex-max
+  const allStatuses = rateLimitManager.getAllRateLimitStatus();
+  assert.ok(
+    allStatuses["github:conn-github:gpt-5.1-codex-max"],
+    "GitHub limiter key should be model-scoped (github:conn:model)"
+  );
+  // Verify the limiter state is model-scoped via test helper
+  const limiterState = await rateLimitManager.__getLimiterStateForTests(
+    "github",
+    "conn-github",
+    "gpt-5.1-codex-max"
+  );
+  assert.equal(limiterState?.key, "github:conn-github:gpt-5.1-codex-max");
+});
+
 test("rate limit manager parses retry hints from response bodies and locks models", async () => {
   rateLimitManager.enableRateLimitProtection("conn-body");
   rateLimitManager.updateFromResponseBody(

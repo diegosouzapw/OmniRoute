@@ -75,7 +75,12 @@ export default function CliproxyapiToolCard({ isExpanded, onToggle }) {
         await fetchStatus();
         if (action === "install" || action === "restart") await fetchUpdateInfo();
       } else {
-        setMessage({ type: "error", text: data.error || `${action} failed` });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            `${action} failed`,
+        });
       }
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Request failed" });

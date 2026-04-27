@@ -116,7 +116,11 @@ export default function AntigravityToolCard({
         setSudoPassword("");
         fetchStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedStart") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) || t("failedStart"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -142,7 +146,11 @@ export default function AntigravityToolCard({
         setSudoPassword("");
         fetchStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedStop") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) || t("failedStop"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -197,7 +205,10 @@ export default function AntigravityToolCard({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || t("failedSaveMappings"));
+        throw new Error(
+          (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedSaveMappings")
+        );
       }
 
       setMessage({ type: "success", text: t("mappingsSaved") });

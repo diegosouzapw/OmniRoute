@@ -140,6 +140,16 @@ const KIMI_CODING_SHARED = {
 const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
 
+const GPT_5_5_CONTEXT_LENGTH = 1050000;
+const GPT_5_5_CODEX_CAPABILITIES = {
+  targetFormat: "openai-responses",
+  toolCalling: true,
+  supportsReasoning: true,
+  supportsVision: true,
+  supportsXHighEffort: true,
+  contextLength: GPT_5_5_CONTEXT_LENGTH,
+} as const;
+
 const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   deepinfra: buildModels([
     "Qwen/Qwen3-Coder-480B-A35B-Instruct",
@@ -373,10 +383,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       { id: "codex-auto-review", name: "Codex Auto Review", targetFormat: "openai-responses" },
-      { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", targetFormat: "openai-responses" },
-      { id: "gpt-5.5-high", name: "GPT 5.5 (High)", targetFormat: "openai-responses" },
-      { id: "gpt-5.5", name: "GPT 5.5 (Medium)", targetFormat: "openai-responses" },
-      { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", targetFormat: "openai-responses" },
+      { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
+      { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
+      { id: "gpt-5.5", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
+      { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-mini", name: "GPT 5.5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
@@ -484,10 +494,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.2", name: "GPT-5.2" },
       { id: "gpt-5.2-codex", name: "GPT-5.2 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
-      { id: "gpt-5.4-nano", name: "GPT-5.4 Nano" },
-      { id: "gpt-5.4-mini", name: "GPT-5.4 Mini" },
-      { id: "gpt-5.4", name: "GPT-5.4" },
-      { id: "gpt-5.5", name: "GPT-5.5" },
+      { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", targetFormat: "openai-responses" },
+      { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
+      { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
+      { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },

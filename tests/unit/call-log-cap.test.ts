@@ -452,6 +452,95 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
   assert.equal((exported[0] as any).requestBody.payload.length, requestBody.payload.length);
 });
 
+test("saveCallLog truncates oversized call log artifacts for storage", async () => {
+  const hugeChunk = "x".repeat(600 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "truncated-artifact",
+    timestamp: "2026-03-31T10:05:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      streamChunks: {
+        provider: [hugeChunk],
+        openai: [hugeChunk],
+        client: [hugeChunk],
+      },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("truncated-artifact");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact.requestBody, { payload: "request" });
+  assert.deepEqual(artifact.responseBody, { output: "response" });
+  assert.equal(artifact.error, null);
+  assert.deepEqual(artifact.pipeline.streamChunks, {
+    provider: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+    openai: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+    client: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+  });
+});
+
+test("saveCallLog omits oversized non-stream pipeline payloads to enforce artifact cap", async () => {
+  const hugePayload = "x".repeat(600 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "truncated-pipeline-artifact",
+    timestamp: "2026-03-31T10:06:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      providerRequest: { body: hugePayload },
+      providerResponse: { body: hugePayload },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("truncated-pipeline-artifact");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact.requestBody, { payload: "request" });
+  assert.deepEqual(artifact.responseBody, { output: "response" });
+  assert.deepEqual(artifact.pipeline, {
+    error: {
+      _omniroute_truncated: true,
+      reason: "call_log_artifact_size_limit_exceeded",
+    },
+  });
+});
+
 test("saveCallLog logs and returns when sqlite persistence throws unexpectedly", async () => {
   const db = core.getDbInstance();
   const originalPrepare = db.prepare;

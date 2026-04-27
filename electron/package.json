@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -59,6 +59,13 @@
         "filter": [
           "**/*",
           "node_modules/**/*"
+        ]
+      },
+      {
+        "from": "../.next/electron-standalone/node_modules",
+        "to": "app/node_modules",
+        "filter": [
+          "**/*"
         ]
       },
       {

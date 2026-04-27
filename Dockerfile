@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:24.14.1-trixie-slim AS builder
+FROM node:24.15.0-trixie-slim AS builder
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
-FROM node:24.14.1-trixie-slim AS runner-base
+FROM node:24.15.0-trixie-slim AS runner-base
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive

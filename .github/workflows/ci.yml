@@ -63,7 +63,7 @@ jobs:
     needs: i18n-matrix
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6.2.0
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -167,6 +167,34 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run build:cli
       - run: npm run check:pack-artifact
+
+  electron-package-smoke:
+    name: Electron Package Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    env:
+      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - run: npm run build
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm install --no-audit --no-fund
+      - name: Pack Electron app
+        working-directory: electron
+        run: npm run pack
+      - name: Smoke packaged Electron app
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+        run: xvfb-run -a npm run electron:smoke:packaged
 
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/2)
@@ -446,6 +474,7 @@ jobs:
       - advanced-security
       - build
       - package-artifact
+      - electron-package-smoke
       - test-unit
       - node-24-compat
       - test-coverage
@@ -494,6 +523,7 @@ jobs:
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"

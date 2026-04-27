@@ -15,7 +15,7 @@ with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
-- **i18n**: next-intl with 30 languages
+- **i18n**: next-intl with 40+ languages
 - **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
 - **Schemas**: Zod v4 for all API / MCP input validation
 

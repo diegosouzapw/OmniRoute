@@ -293,6 +293,39 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
   assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
 });
 
+test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {
+  assert.equal(hasPerModelQuota("github"), true);
+  assert.equal(hasPerModelQuota("github", "gpt-5.1-codex-max"), true);
+  assert.equal(hasPerModelQuota("github", "gpt-5-mini"), true);
+});
+
+test("shouldMarkAccountExhaustedFrom429 skips connection-wide lockout for GitHub (#1624)", () => {
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5.1-codex-max"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5-mini"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("github", "claude-haiku-4.5"), false);
+});
+
+test("lockModelIfPerModelQuota locks individual GitHub models without poisoning the connection (#1624)", () => {
+  const connectionId = `github-${Date.now()}`;
+
+  // A 429 on a high-PRU model should lock ONLY that model
+  assert.equal(
+    lockModelIfPerModelQuota(
+      "github",
+      connectionId,
+      "gpt-5.1-codex-max",
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(isModelLocked("github", connectionId, "gpt-5.1-codex-max"), true);
+
+  // Other models on the same connection should remain unlocked
+  assert.equal(isModelLocked("github", connectionId, "gpt-5-mini"), false);
+  assert.equal(isModelLocked("github", connectionId, "claude-haiku-4.5"), false);
+});
+
 test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and reset window", () => {
   const originalNow = Date.now;
   let now = 1_700_000_000_000;
@@ -579,4 +612,120 @@ test("checkFallbackError preserves OAuth 429 daily quota semantics", () => {
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
   assert.equal(result.dailyQuotaExhausted, true);
   assert.ok(result.cooldownMs > 0);
+});
+
+// ModelScope daily quota lockout tests (commit 0456a1f5)
+test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exhausted reason", () => {
+  const originalNow = Date.now;
+  // Use a fixed local time (noon) to ensure predictable results
+  const testDate = new Date();
+  testDate.setHours(12, 0, 0, 0); // Set to noon today
+  const now = testDate.getTime();
+  Date.now = () => now;
+
+  try {
+    const provider = "modelscope";
+    const connectionId = "test-conn-modelscope-1";
+    const model = "qwen/Qwen2.5-Coder-32B-Instruct";
+
+    // Clear any existing state
+    clearModelLock(provider, connectionId, model);
+
+    const profile = {
+      baseCooldownMs: 125,
+      useUpstreamRetryHints: false,
+      maxBackoffSteps: 3,
+      failureThreshold: 60,
+      resetTimeoutMs: 5000,
+    };
+
+    // Calculate milliseconds until tomorrow 00:00 local time
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const expectedMsUntilTomorrow = tomorrow.getTime() - now;
+
+    // Account for timezone offset: function uses local time, test env may use UTC
+    const timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+
+    // Record failure with quota_exhausted reason
+    const result = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "quota_exhausted",
+      429,
+      0, // fallbackCooldownMs should be overridden to ms until tomorrow
+      profile
+    );
+
+    // Verify the cooldown is set to ms until tomorrow 0:00 (with tolerance)
+    // The cooldown should be close to expectedMsUntilTomorrow
+    const tolerance = 60 * 1000; // 1 minute tolerance
+    // Calculate difference between actual and expected values
+    const diff = Math.abs(result.cooldownMs - expectedMsUntilTomorrow);
+
+    // Allow ±5 minutes tolerance (300,000 ms)
+    assert.ok(
+      diff <= 300_000,
+      `cooldown should be ms until tomorrow 0:00 (expected ${expectedMsUntilTomorrow}ms, got ${result.cooldownMs}ms, diff ${diff}ms)`
+    );
+
+    // Verify model is locked
+    assert.equal(isModelLocked(provider, connectionId, model), true);
+
+    const lockInfo = getModelLockoutInfo(provider, connectionId, model);
+    assert.ok(lockInfo !== null, "lockInfo should not be null");
+    assert.ok(lockInfo.remainingMs > 0, "remaining time should be positive");
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("modelscope", "test-conn-modelscope-1", "qwen/Qwen2.5-Coder-32B-Instruct");
+  }
+});
+
+test("recordModelLockoutFailure uses regular backoff for non-quota reasons", () => {
+  const originalNow = Date.now;
+  const now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "modelscope";
+    const connectionId = "test-conn-modelscope-2";
+    const model = "qwen/Qwen2.5-Coder-32B-Instruct";
+
+    clearModelLock(provider, connectionId, model);
+
+    const profile = {
+      baseCooldownMs: 5000,
+      useUpstreamRetryHints: false,
+      maxBackoffSteps: 3,
+      failureThreshold: 60,
+      resetTimeoutMs: 5000,
+    };
+
+    // Record failure with rate_limited reason (not quota_exhausted)
+    const result = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+
+    // Verify the cooldown uses regular profile baseCooldownMs (5000ms)
+    assert.ok(
+      result.cooldownMs < 24 * 60 * 60 * 1000,
+      "cooldown should be less than 24h for non-quota reasons"
+    );
+    assert.equal(result.cooldownMs, 5000, "cooldown should use profile baseCooldownMs");
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("modelscope", "test-conn-modelscope-2", "qwen/Qwen2.5-Coder-32B-Instruct");
+  }
 });

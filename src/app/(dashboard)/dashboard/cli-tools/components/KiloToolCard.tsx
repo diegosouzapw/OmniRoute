@@ -104,7 +104,12 @@ export default function KiloToolCard({
         await fetchBackups();
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || t("failedRestoreBackup") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedRestoreBackup"),
+        });
       }
     } catch (e) {
       setMessage({ type: "error", text: e.message });
@@ -159,7 +164,10 @@ export default function KiloToolCard({
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failed") });
+        setMessage({
+          type: "error",
+          text: (typeof data.error === "string" ? data.error : data.error?.message) || t("failed"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -181,7 +189,10 @@ export default function KiloToolCard({
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failed") });
+        setMessage({
+          type: "error",
+          text: (typeof data.error === "string" ? data.error : data.error?.message) || t("failed"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
