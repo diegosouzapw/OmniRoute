@@ -638,19 +638,6 @@ export class CodexExecutor extends BaseExecutor {
     const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
-    const websocket = getCodexWebSocketTransport();
-    if (!websocket) {
-      return {
-        response: errorResponse(
-          503,
-          "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform"
-        ),
-        url,
-        headers,
-        transformedBody: input.body,
-      };
-    }
-
     const transformedBody = (await this.transformRequest(
       input.model,
       input.body,
