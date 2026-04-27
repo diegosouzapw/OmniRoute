@@ -46,6 +46,11 @@ COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
 COPY --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
 COPY --from=builder /app/node_modules/pino-pretty ./node_modules/pino-pretty
 COPY --from=builder /app/node_modules/split2 ./node_modules/split2
+# Migration SQL files are read via fs.readFileSync at runtime and are NOT
+# traced by Next.js standalone output — copy them explicitly.
+COPY --from=builder /app/src/lib/db/migrations ./migrations
+ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
+
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
 COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
