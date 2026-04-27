@@ -2293,9 +2293,7 @@ export async function handleChatCore({
     const failureMessage =
       error.name === "AbortError"
         ? "Request aborted"
-        : error.name === "BodyTimeoutError"
-          ? error.message
-          : formatProviderError(error, provider, model, failureStatus);
+        : formatProviderError(error, provider, model, failureStatus);
     appendRequestLog({
       model,
       provider,
@@ -2875,7 +2873,7 @@ export async function handleChatCore({
         try {
           const fallbackResult = await executeProviderRequest(nextModel, false);
           if (fallbackResult.response.ok) {
-            const fallbackRaw = await fallbackResult.response.text();
+            const fallbackRaw = await withBodyTimeout<string>(fallbackResult.response.text());
             try {
               responseBody = fallbackRaw ? JSON.parse(fallbackRaw) : {};
               providerUrl = fallbackResult.url;

@@ -39,23 +39,15 @@ export function withBodyTimeout<T>(
   timeoutMs: number = FETCH_BODY_TIMEOUT_MS
 ): Promise<T> {
   if (timeoutMs <= 0) return promise;
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
       const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
       err.name = "BodyTimeoutError";
       reject(err);
     }, timeoutMs);
-    promise.then(
-      (v) => {
-        clearTimeout(timer);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(timer);
-        reject(e);
-      }
-    );
   });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>;
 }
 
 export { COLORS, formatSSE };
