@@ -13,9 +13,13 @@ interface AuditEntry {
   timestamp: string;
   action: string;
   actor: string;
-  target: string | null;
-  details: any;
-  ip_address: string | null;
+  target?: string | null;
+  details?: unknown;
+  metadata?: unknown;
+  ip_address?: string | null;
+  resourceType?: string | null;
+  status?: string | null;
+  requestId?: string | null;
 }
 
 const PAGE_SIZE = 25;
@@ -28,6 +32,8 @@ export default function AuditLogTab() {
   const [actorFilter, setActorFilter] = useState("");
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
   const t = useTranslations("logs");
 
   const fetchEntries = useCallback(async () => {
@@ -42,10 +48,12 @@ export default function AuditLogTab() {
 
       const res = await fetch(`/api/compliance/audit-log?${params.toString()}`);
       if (!res.ok) throw new Error(t("failedFetchAuditLog"));
-      const data: AuditEntry[] = await res.json();
+      const data = (await res.json()) as AuditEntry[];
+      const total = Number(res.headers.get("x-total-count") || "0");
 
       setHasMore(data.length > PAGE_SIZE);
       setEntries(data.slice(0, PAGE_SIZE));
+      setTotalCount(Number.isFinite(total) ? total : 0);
     } catch (err: any) {
       setError(err.message || t("failedFetchAuditLog"));
     } finally {
@@ -58,8 +66,11 @@ export default function AuditLogTab() {
   }, [fetchEntries]);
 
   const handleSearch = () => {
+    if (offset === 0) {
+      fetchEntries();
+      return;
+    }
     setOffset(0);
-    fetchEntries();
   };
 
   const formatTimestamp = (ts: string) => {
@@ -71,6 +82,7 @@ export default function AuditLogTab() {
   };
 
   const actionBadgeColor = (action: string) => {
+    if (action === "provider.warning") return "bg-amber-500/15 text-amber-300 border-amber-500/20";
     if (action.includes("delete") || action.includes("remove"))
       return "bg-red-500/15 text-red-400 border-red-500/20";
     if (action.includes("create") || action.includes("add"))
@@ -82,13 +94,25 @@ export default function AuditLogTab() {
     return "bg-gray-500/15 text-gray-400 border-gray-500/20";
   };
 
+  const statusBadgeColor = (status?: string | null) => {
+    if (!status) return "bg-gray-500/15 text-gray-400 border-gray-500/20";
+    if (status === "success") return "bg-green-500/15 text-green-400 border-green-500/20";
+    if (status === "warning" || status === "blocked")
+      return "bg-amber-500/15 text-amber-300 border-amber-500/20";
+    if (status === "error" || status === "failed")
+      return "bg-red-500/15 text-red-400 border-red-500/20";
+    return "bg-blue-500/15 text-blue-400 border-blue-500/20";
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-[var(--color-text-main)]">{t("auditLog")}</h2>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">{t("auditLogDesc")}</p>
+          <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+            {t("totalEntries", { count: totalCount })}
+          </p>
         </div>
         <button
           onClick={fetchEntries}
@@ -100,7 +124,6 @@ export default function AuditLogTab() {
         </button>
       </div>
 
-      {/* Filters */}
       <div
         className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
         role="search"
@@ -142,7 +165,6 @@ export default function AuditLogTab() {
         </div>
       )}
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
         <table className="w-full text-sm" role="table" aria-label={t("tableAria")}>
           <thead>
@@ -154,23 +176,32 @@ export default function AuditLogTab() {
                 {t("action")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
+                {t("status")}
+              </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
                 {t("actor")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
                 {t("target")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
-                {t("details")}
+                {t("resourceType")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
                 {t("ipAddress")}
+              </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
+                {t("requestId")}
+              </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
+                {t("details")}
               </th>
             </tr>
           </thead>
           <tbody>
             {entries.length === 0 && !loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-muted)]">
+                <td colSpan={9} className="px-4 py-8 text-center text-[var(--color-text-muted)]">
                   {t("noEntries")}
                 </td>
               </tr>
@@ -187,18 +218,42 @@ export default function AuditLogTab() {
                     <span
                       className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${actionBadgeColor(entry.action)}`}
                     >
-                      {entry.action}
+                      <span className="inline-flex items-center gap-1">
+                        {entry.action === "provider.warning" && (
+                          <span className="material-symbols-outlined text-[14px]">warning</span>
+                        )}
+                        {entry.action}
+                      </span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${statusBadgeColor(entry.status)}`}
+                    >
+                      {entry.status || t("notAvailable")}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-main)]">{entry.actor}</td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[200px] truncate">
                     {entry.target || t("notAvailable")}
                   </td>
-                  <td className="px-4 py-3 text-[var(--color-text-muted)] max-w-[300px] truncate font-mono text-xs">
-                    {entry.details ? JSON.stringify(entry.details) : t("notAvailable")}
+                  <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
+                    {entry.resourceType || t("notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">
                     {entry.ip_address || t("notAvailable")}
+                  </td>
+                  <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">
+                    {entry.requestId || t("notAvailable")}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEntry(entry)}
+                      className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-main)] transition-colors hover:bg-[var(--color-bg-alt)]"
+                    >
+                      {t("viewDetails")}
+                    </button>
                   </td>
                 </tr>
               ))
@@ -207,7 +262,6 @@ export default function AuditLogTab() {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-[var(--color-text-muted)]">
           {t("showing", { count: entries.length, offset })}
@@ -229,6 +283,97 @@ export default function AuditLogTab() {
           </button>
         </div>
       </div>
+
+      {selectedEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-5">
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--color-text-main)]">
+                  {selectedEntry.action}
+                </h3>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                  {t("auditModalSubtitle", {
+                    actor: selectedEntry.actor || t("notAvailable"),
+                    target: selectedEntry.target || t("notAvailable"),
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedEntry(null)}
+                className="rounded-full border border-[var(--color-border)] p-2 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-alt)] hover:text-[var(--color-text-main)]"
+                aria-label={t("close")}
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-5">
+              {selectedEntry.action === "provider.warning" && (
+                <div className="mb-5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-[18px]">warning</span>
+                    <div>
+                      <p className="font-medium">{t("providerWarningTitle")}</p>
+                      <p className="mt-1 text-amber-200">{t("providerWarningDesc")}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-[var(--color-text-main)]">
+                    {t("eventMetadata")}
+                  </h4>
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--color-text-muted)]">{t("timestamp")}</dt>
+                      <dd className="text-[var(--color-text-main)]">
+                        {formatTimestamp(selectedEntry.timestamp)}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--color-text-muted)]">{t("status")}</dt>
+                      <dd className="text-[var(--color-text-main)]">
+                        {selectedEntry.status || t("notAvailable")}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--color-text-muted)]">{t("resourceType")}</dt>
+                      <dd className="text-[var(--color-text-main)]">
+                        {selectedEntry.resourceType || t("notAvailable")}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--color-text-muted)]">{t("requestId")}</dt>
+                      <dd className="font-mono text-[var(--color-text-main)]">
+                        {selectedEntry.requestId || t("notAvailable")}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--color-text-muted)]">{t("ipAddress")}</dt>
+                      <dd className="font-mono text-[var(--color-text-main)]">
+                        {selectedEntry.ip_address || t("notAvailable")}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-[var(--color-text-main)]">
+                    {t("eventPayload")}
+                  </h4>
+                  <pre className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs text-[var(--color-text-muted)]">
+                    {JSON.stringify(selectedEntry.metadata || selectedEntry.details || {}, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

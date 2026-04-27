@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
 
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
+  agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",
@@ -27,6 +28,7 @@ export const PROVIDER_ENDPOINTS = {
   "kimi-coding-apikey": "https://api.kimi.com/coding/v1/messages",
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
+  crof: "https://crof.ai/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",

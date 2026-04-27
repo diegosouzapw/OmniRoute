@@ -43,7 +43,7 @@ function waitFor(predicate, { timeoutMs = 3000, intervalMs = 10 } = {}) {
           clearInterval(timer);
           reject(new Error("Timed out waiting for condition"));
         }
-      } catch (error) {
+      } catch (error: any) {
         clearInterval(timer);
         reject(error);
       }
@@ -62,7 +62,7 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
     }
 
     if (url.pathname === "/v1/chat/completions" || url.pathname === "/v1/messages") {
-      const body = JSON.parse((await readRequestBody(req)) || "{}");
+      const body = JSON.parse(((await readRequestBody(req)) as any) || "{}");
       const firstMessage = Array.isArray(body.messages) ? body.messages[0] : null;
       const content = typeof firstMessage?.content === "string" ? firstMessage.content : body.model;
 

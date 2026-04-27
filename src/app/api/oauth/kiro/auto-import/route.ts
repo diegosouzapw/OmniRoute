@@ -18,6 +18,9 @@ export async function GET(request: Request) {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const targetProvider = searchParams.get("targetProvider") === "amazon-q" ? "amazon-q" : "kiro";
+    const providerLabel = targetProvider === "amazon-q" ? "Amazon Q" : "Kiro";
     const cachePath = join(homedir(), ".aws/sso/cache");
 
     // Try to read cache directory
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
     } catch (error) {
       return NextResponse.json({
         found: false,
-        error: "AWS SSO cache not found. Please login to Kiro IDE first.",
+        error: `AWS SSO cache not found. Please login to ${providerLabel} first.`,
       });
     }
 
@@ -36,14 +39,15 @@ export async function GET(request: Request) {
     let foundFile = null;
 
     // First try kiro-auth-token.json
-    const kiroTokenFile = "kiro-auth-token.json";
-    if (files.includes(kiroTokenFile)) {
+    const preferredTokenFile =
+      targetProvider === "amazon-q" ? "amazon-q-auth-token.json" : "kiro-auth-token.json";
+    if (files.includes(preferredTokenFile)) {
       try {
-        const content = await readFile(join(cachePath, kiroTokenFile), "utf-8");
+        const content = await readFile(join(cachePath, preferredTokenFile), "utf-8");
         const data = JSON.parse(content);
         if (data.refreshToken && data.refreshToken.startsWith("aorAAAAAG")) {
           refreshToken = data.refreshToken;
-          foundFile = kiroTokenFile;
+          foundFile = preferredTokenFile;
         }
       } catch (error) {
         // Continue to search other files
@@ -75,7 +79,7 @@ export async function GET(request: Request) {
     if (!refreshToken) {
       return NextResponse.json({
         found: false,
-        error: "Kiro token not found in AWS SSO cache. Please login to Kiro IDE first.",
+        error: `${providerLabel} token not found in AWS SSO cache. Please login to ${providerLabel} first.`,
       });
     }
 

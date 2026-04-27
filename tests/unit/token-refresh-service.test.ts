@@ -608,6 +608,7 @@ test("supportsTokenRefresh, isUnrecoverableRefreshError and formatProviderCreden
     },
     async () => {
       assert.equal(supportsTokenRefresh("claude"), true);
+      assert.equal(supportsTokenRefresh("amazon-q"), true);
       assert.equal(supportsTokenRefresh("custom-oauth-task-207"), true);
       assert.equal(supportsTokenRefresh("missing-provider"), false);
     }

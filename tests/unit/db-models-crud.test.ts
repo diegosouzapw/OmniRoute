@@ -19,7 +19,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -97,7 +97,7 @@ test("custom models can be added once and queried by provider", async () => {
   assert.equal(duplicate.id, created.id);
   assert.equal(providerModels.length, 1);
   assert.deepEqual(providerModels[0], created);
-  assert.equal(allModels.openrouter.length, 1);
+  assert.equal((allModels.openrouter as any).length, 1);
 });
 
 test("replaceCustomModels preserves compat fields and respects the empty-list guard", async () => {

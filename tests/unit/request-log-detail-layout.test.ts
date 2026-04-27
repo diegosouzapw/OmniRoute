@@ -6,6 +6,46 @@ import { renderToStaticMarkup } from "react-dom/server";
 const { default: RequestLoggerDetail } =
   await import("../../src/shared/components/RequestLoggerDetail.tsx");
 
+function renderDetailWithSourceFormat(sourceFormat: string) {
+  return renderToStaticMarkup(
+    React.createElement(RequestLoggerDetail, {
+      log: {
+        status: 200,
+        method: "POST",
+        path: "/v1/chat/completions",
+        timestamp: "2026-04-09T21:27:08.000Z",
+        duration: 2500,
+        provider: "openrouter",
+        sourceFormat,
+        model: "deepseek/deepseek-v4-pro",
+        requestedModel: "openrouter/deepseek/deepseek-v4-pro",
+        cacheSource: "upstream",
+        tokens: {
+          in: 10,
+          out: 2,
+          cacheRead: null,
+          cacheWrite: null,
+          reasoning: null,
+        },
+      },
+      detail: {
+        requestedModel: "openrouter/deepseek/deepseek-v4-pro",
+        cacheSource: "upstream",
+        tokens: {
+          in: 10,
+          out: 2,
+          cacheRead: null,
+          cacheWrite: null,
+          reasoning: null,
+        },
+      },
+      loading: false,
+      onClose: () => {},
+      onCopy: async () => true,
+    })
+  );
+}
+
 test("request log detail splits token badges into input and output groups", () => {
   const html = renderToStaticMarkup(
     React.createElement(RequestLoggerDetail, {
@@ -70,10 +110,19 @@ test("request log detail splits token badges into input and output groups", () =
   assert.equal(modelLabelIndex < requestedModelLabelIndex, true);
   assert.notEqual(html.indexOf(">Cache Source<"), -1);
   assert.notEqual(html.indexOf(">Semantic (OmniRoute)<"), -1);
+  assert.notEqual(html.indexOf(">OpenAI-Chat<"), -1);
 
   assert.match(
     html,
     /data-testid="token-group-input"[\s\S]*Total In: 21[\s\S]*818[\s\S]*Cache Read: 21[\s\S]*632[\s\S]*Cache Write: N\/A/
   );
   assert.match(html, /data-testid="token-group-output"[\s\S]*Total Out: 42[\s\S]*Reasoning: N\/A/);
+});
+
+test("request log detail labels OpenAI protocol variants explicitly", () => {
+  const chatHtml = renderDetailWithSourceFormat("openai");
+  const responsesHtml = renderDetailWithSourceFormat("openai-responses");
+
+  assert.notEqual(chatHtml.indexOf(">OpenAI-Chat<"), -1);
+  assert.notEqual(responsesHtml.indexOf(">OpenAI-Responses<"), -1);
 });

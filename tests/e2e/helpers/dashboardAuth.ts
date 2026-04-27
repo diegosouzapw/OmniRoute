@@ -47,7 +47,7 @@ async function getDashboardAuthState(page: Page) {
   return await page.evaluate(async () => {
     const safeJson = async (response: Response) => {
       try {
-        return await response.json();
+        return (await response.json()) as any;
       } catch {
         return null;
       }
@@ -111,7 +111,7 @@ export async function gotoDashboardRoute(
 
       await page.locator("body").waitFor({ state: "visible", timeout: timeoutMs });
       return;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await page.waitForTimeout(1000);
     }

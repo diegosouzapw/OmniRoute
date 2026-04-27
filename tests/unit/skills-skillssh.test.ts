@@ -121,7 +121,7 @@ test("searchSkillsSh throws on non-ok response", async () => {
 
   await assert.rejects(
     () => searchSkillsSh("fail"),
-    (err) => err.message.includes("skills.sh API error: 500")
+    (err) => (err as any).message.includes("skills.sh API error: 500")
   );
 });
 
@@ -145,7 +145,7 @@ test("fetchSkillMd throws on 404", async () => {
 
   await assert.rejects(
     () => fetchSkillMd("owner/repo", "missing-skill"),
-    (err) => err.message.includes("Failed to fetch SKILL.md: 404")
+    (err) => (err as any).message.includes("Failed to fetch SKILL.md: 404")
   );
 });
 
@@ -179,7 +179,7 @@ test("skillssh search route returns skills from the API", async () => {
 
   const req = new Request("http://localhost/api/skills/skillssh?q=docker&limit=10");
   const res = await searchRoute.GET(req);
-  const body = await res.json();
+  const body = (await res.json()) as any;
 
   assert.equal(res.status, 200);
   assert.equal(body.skills.length, 2);
@@ -192,7 +192,7 @@ test("skillssh search route returns 500 when upstream fails", async () => {
 
   const req = new Request("http://localhost/api/skills/skillssh?q=broken");
   const res = await searchRoute.GET(req);
-  const body = await res.json();
+  const body = (await res.json()) as any;
 
   assert.equal(res.status, 500);
   assert.ok(body.error.includes("skills.sh API error"));
@@ -223,7 +223,7 @@ test("skillssh install route registers a skill from skills.sh", async () => {
   });
 
   const res = await installRoute.POST(req);
-  const body = await res.json();
+  const body = (await res.json()) as any;
 
   assert.equal(res.status, 200);
   assert.equal(body.success, true);
@@ -269,7 +269,7 @@ test("skillssh install route returns 500 when SKILL.md fetch fails", async () =>
   });
 
   const res = await installRoute.POST(req);
-  const body = await res.json();
+  const body = (await res.json()) as any;
 
   assert.equal(res.status, 500);
   assert.ok(body.error.includes("Failed to fetch SKILL.md"));
@@ -295,7 +295,7 @@ test("skillssh install route defaults version to 1.0.0 when omitted", async () =
   });
 
   const res = await installRoute.POST(req);
-  const body = await res.json();
+  const body = (await res.json()) as any;
 
   assert.equal(res.status, 200);
   assert.equal(body.success, true);

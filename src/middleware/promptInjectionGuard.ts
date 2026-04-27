@@ -84,8 +84,12 @@ export function withInjectionGuard(handler: any, options: any = {}) {
           request.headers.set("X-Injection-Detections", String(result.detections.length));
         }
       }
-    } catch {
-      // Don't block on guard errors — fail open
+    } catch (error) {
+      console.error("[SECURITY] Injection guard error:", error);
+      return new Response(JSON.stringify({ error: "Security check failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     return handler(request, context);

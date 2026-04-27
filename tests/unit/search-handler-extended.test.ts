@@ -449,6 +449,76 @@ test("handleSearch builds SearchAPI requests and normalizes organic results", as
   }
 });
 
+test("handleSearch builds You.com requests with livecrawl and normalizes unified response sections", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+  let capturedHeaders;
+
+  globalThis.fetch = async (url, init = {}) => {
+    capturedUrl = String(url);
+    capturedHeaders = init.headers;
+
+    return new Response(
+      JSON.stringify({
+        results: {
+          web: [
+            {
+              title: "You.com result",
+              url: "https://you.example.com/page",
+              description: "Fallback description",
+              snippets: ["Primary snippet"],
+              page_age: "2026-04-23T10:00:00Z",
+              favicon_url: "https://you.example.com/favicon.ico",
+              thumbnail_url: "https://you.example.com/thumb.png",
+              markdown: "# Full page markdown",
+            },
+          ],
+          news: [],
+        },
+        metadata: { search_uuid: "uuid-1", latency: 0.5 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "you search",
+      provider: "youcom-search",
+      maxResults: 2,
+      searchType: "web",
+      country: "US",
+      language: "en",
+      timeRange: "week",
+      offset: 4,
+      domainFilter: ["docs.you.com"],
+      contentOptions: { full_page: true, format: "markdown" },
+      credentials: { apiKey: "you-key" },
+      log: null,
+    });
+
+    const url = new URL(capturedUrl);
+    assert.equal(url.origin + url.pathname, "https://ydc-index.io/v1/search");
+    assert.equal(url.searchParams.get("query"), "you search");
+    assert.equal(url.searchParams.get("count"), "2");
+    assert.equal(url.searchParams.get("freshness"), "week");
+    assert.equal(url.searchParams.get("offset"), "2");
+    assert.equal(url.searchParams.get("country"), "US");
+    assert.equal(url.searchParams.get("language"), "en");
+    assert.equal(url.searchParams.get("include_domains"), "docs.you.com");
+    assert.equal(url.searchParams.get("livecrawl"), "web");
+    assert.equal(url.searchParams.get("livecrawl_formats"), "markdown");
+    assert.equal(capturedHeaders["X-API-Key"], "you-key");
+    assert.equal(result.success, true);
+    assert.equal(result.data.provider, "youcom-search");
+    assert.equal(result.data.results[0].snippet, "Primary snippet");
+    assert.equal(result.data.results[0].content?.format, "markdown");
+    assert.equal(result.data.results[0].content?.text, "# Full page markdown");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleSearch builds SearXNG requests with custom baseUrl and no apiKey", async () => {
   const originalFetch = globalThis.fetch;
   let capturedUrl;

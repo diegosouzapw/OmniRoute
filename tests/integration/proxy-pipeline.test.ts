@@ -88,25 +88,25 @@ describe("Chat Pipeline — combo fallback support", () => {
     assert.match(src, /handleSingleModel.*handleSingleModelChat/s);
   });
 
-  it("should check model availability before attempting combo models", () => {
-    assert.match(src, /isModelAvailable/);
+  it("should preflight provider credentials before attempting combo models", () => {
+    assert.match(src, /getProviderCredentialsWithQuotaPreflight/);
   });
 });
 
 describe("Chat Pipeline — circuit breaker integration", () => {
   const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
 
-  it("should import CircuitBreakerOpenError", () => {
+  it("should import providerCircuitOpenResponse", () => {
     assert.ok(helpersSrc, "chatHelpers.ts should exist");
-    assert.match(helpersSrc, /CircuitBreakerOpenError/);
+    assert.match(helpersSrc, /providerCircuitOpenResponse/);
   });
 
-  it("should handle CircuitBreakerOpenError with retry-after", () => {
+  it("should handle circuit-open responses with retry-after", () => {
     assert.match(helpersSrc, /retryAfterMs/);
   });
 
-  it("should reject requests when circuit is open", () => {
-    assert.match(helpersSrc, /circuit breaker is open/i);
+  it("should reject requests when circuit is open via structured provider breaker response", () => {
+    assert.match(helpersSrc, /providerCircuitOpenResponse\(provider,\s*retryAfterSec\)/);
   });
 });
 

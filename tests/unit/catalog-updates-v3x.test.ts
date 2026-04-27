@@ -35,11 +35,9 @@ test("NVIDIA catalog includes the verified 2026 additions and GPT OSS 20B alias 
   const ids = new Set(getModelsByProviderId("nvidia").map((model) => model.id));
 
   assert.ok(ids.has("openai/gpt-oss-20b"));
-  assert.ok(ids.has("nvidia/llama-3.1-nemotron-ultra-253b-v1"));
   assert.ok(ids.has("nvidia/nemotron-3-super-120b-a12b"));
-  assert.ok(ids.has("nvidia/llama-3.3-nemotron-super-49b-v1.5"));
   assert.ok(ids.has("mistralai/mistral-large-3-675b-instruct-2512"));
-  assert.ok(ids.has("qwen/qwen3-coder-480b-a35b-instruct"));
+  assert.ok(ids.has("qwen/qwen3.5-397b-a17b"));
   assert.ok(ids.has("mistralai/devstral-2-123b-instruct-2512"));
 
   assert.deepEqual(resolveCanonicalProviderModel("nvidia", "gpt-oss-20b"), {

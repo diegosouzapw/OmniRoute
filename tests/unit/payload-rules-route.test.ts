@@ -59,7 +59,7 @@ test.after(async () => {
 
 test("payload rules route returns the neutral config by default", async () => {
   const response = await route.GET(new Request("http://localhost/api/settings/payload-rules"));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
@@ -85,9 +85,9 @@ test("payload rules route requires a dashboard session when management auth is e
     await makeManagementSessionRequest("http://localhost/api/settings/payload-rules")
   );
 
-  const unauthenticatedBody = await unauthenticated.json();
-  const invalidTokenBody = await invalidToken.json();
-  const authenticatedBody = await authenticated.json();
+  const unauthenticatedBody = (await unauthenticated.json()) as any;
+  const invalidTokenBody = (await invalidToken.json()) as any;
+  const authenticatedBody = (await authenticated.json()) as any;
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
@@ -140,7 +140,7 @@ test("payload rules route persists normalized config and hot reloads the runtime
       body: requestBody,
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const settings = await settingsDb.getSettings();
   const runtimeConfig = await payloadRulesService.getPayloadRulesConfig();
 
@@ -172,8 +172,8 @@ test("payload rules route rejects malformed and schema-invalid payloads", async 
     })
   );
 
-  const invalidJsonBody = await invalidJson.json();
-  const invalidSchemaBody = await invalidSchema.json();
+  const invalidJsonBody = (await invalidJson.json()) as any;
+  const invalidSchemaBody = (await invalidSchema.json()) as any;
   const runtimeConfig = await payloadRulesService.getPayloadRulesConfig();
 
   assert.equal(invalidJson.status, 400);

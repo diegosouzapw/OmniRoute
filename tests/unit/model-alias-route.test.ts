@@ -40,7 +40,7 @@ test("model alias route resolves a stored alias and emits diagnostics headers", 
       headers: { "x-request-id": "req-model-alias-1" },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("X-Request-Id"), "req-model-alias-1");
@@ -54,7 +54,7 @@ test("model alias route returns typed ambiguity errors for ambiguous aliases", a
   const response = await route.GET(
     await makeManagementSessionRequest("http://localhost/api/models/alias?alias=claude-sonnet-4-6")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 409);
   assert.equal(body.error.code, "MODEL_ALIAS_AMBIGUOUS");
@@ -75,8 +75,8 @@ test("model alias route requires a dashboard session when management auth is ena
     })
   );
 
-  const unauthenticatedBody = await unauthenticated.json();
-  const invalidTokenBody = await invalidToken.json();
+  const unauthenticatedBody = (await unauthenticated.json()) as any;
+  const invalidTokenBody = (await invalidToken.json()) as any;
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
@@ -91,7 +91,7 @@ test("api models catalog route reuses the unified catalog diagnostics headers", 
       headers: { "x-request-id": "req-model-catalog-1" },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("X-Request-Id"), "req-model-catalog-1");
@@ -106,7 +106,7 @@ test("v1 models catalog emits diagnostics headers alongside the OpenAI-compatibl
       headers: { "x-request-id": "req-v1-models-1" },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("X-Request-Id"), "req-v1-models-1");

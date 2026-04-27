@@ -47,7 +47,10 @@ test("ensurePersistentManagementPasswordHash migrates INITIAL_PASSWORD into a pe
   assert.equal(managementPassword.isBcryptHash(settings.password), true);
   assert.notEqual(settings.password, "bootstrap-secret");
   assert.equal(
-    await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
+    await managementPassword.verifyManagementPassword(
+      "bootstrap-secret",
+      (settings as any).password
+    ),
     true
   );
   assert.equal(settings.requireLogin, true);
@@ -71,7 +74,10 @@ test("ensurePersistentManagementPasswordHash migrates legacy plaintext settings 
   assert.equal(managementPassword.isBcryptHash(settings.password), true);
   assert.notEqual(settings.password, "legacy-password");
   assert.equal(
-    await managementPassword.verifyManagementPassword("legacy-password", settings.password),
+    await managementPassword.verifyManagementPassword(
+      "legacy-password" as any,
+      (settings as any).password
+    ),
     true
   );
 });

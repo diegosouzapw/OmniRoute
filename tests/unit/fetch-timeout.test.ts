@@ -64,9 +64,9 @@ test("fetchWithTimeout converts both pre-aborted and externally aborted requests
     }),
     (error) => {
       assert.equal(error instanceof mod.FetchTimeoutError, true);
-      assert.equal(error.timeoutMs, 9);
-      assert.equal(error.url, "https://example.test/pre-aborted");
-      assert.match(error.message, /timed out after 9ms/);
+      assert.equal((error as any).timeoutMs, 9);
+      (assert as any).equal((error as any).url, "https://example.test/pre-aborted");
+      (assert as any).match((error as any).message, /timed out after 9ms/);
       return true;
     }
   );
@@ -91,8 +91,8 @@ test("fetchWithTimeout converts both pre-aborted and externally aborted requests
     (error) => {
       assert.equal(fetchSawSignal, true);
       assert.equal(error instanceof mod.FetchTimeoutError, true);
-      assert.equal(error.timeoutMs, 15);
-      assert.equal(error.url, "https://example.test/external-abort");
+      assert.equal((error as any).timeoutMs, 15);
+      assert.equal((error as any).url, "https://example.test/external-abort");
       return true;
     }
   );

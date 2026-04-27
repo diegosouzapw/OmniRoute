@@ -1,5 +1,5 @@
 import { getCorsOrigin } from "./cors.ts";
-import { ERROR_TYPES, DEFAULT_ERROR_MESSAGES } from "../config/constants.ts";
+import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
@@ -10,17 +10,13 @@ import type { ModelCooldownErrorPayload } from "@/types";
  * @returns {object} Error response object
  */
 export function buildErrorBody(statusCode, message) {
-  const errorInfo =
-    ERROR_TYPES[statusCode] ||
-    (statusCode >= 500
-      ? { type: "server_error", code: "internal_server_error" }
-      : { type: "invalid_request_error", code: "" });
+  const errorInfo = getErrorInfo(statusCode);
 
   const friendlyMessage = normalizeUserFacingErrorMessage(message, statusCode);
 
   return {
     error: {
-      message: friendlyMessage || DEFAULT_ERROR_MESSAGES[statusCode] || "An error occurred",
+      message: friendlyMessage || getDefaultErrorMessage(statusCode),
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -80,7 +76,7 @@ export function normalizeUserFacingErrorMessage(message: unknown, statusCode?: n
   const cleanedMessage = stripTransportPrefixes(rawMessage);
 
   if (!cleanedMessage) {
-    return DEFAULT_ERROR_MESSAGES[statusCode || 500] || "Ocorreu um erro ao processar a chamada.";
+    return getDefaultErrorMessage(statusCode || 500);
   }
 
   const normalized = cleanedMessage.toLowerCase();
@@ -331,6 +327,33 @@ export function unavailableResponse(
       "Retry-After": String(retryAfterSec),
     },
   });
+}
+
+export function providerCircuitOpenResponse(
+  provider: string,
+  retryAfter?: string | number | Date | null
+) {
+  const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: `Provider ${provider} circuit breaker is open`,
+        type: "server_error",
+        code: "provider_circuit_open",
+        provider,
+        retry_after: retryAfterSec,
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": getCorsOrigin(),
+        "Retry-After": String(retryAfterSec),
+        "X-OmniRoute-Provider-Breaker": "open",
+      },
+    }
+  );
 }
 
 export function buildModelCooldownBody({

@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 const { checkFallbackError, getProviderProfile } =
   await import("../../open-sse/services/accountFallback.ts");
 
-const { PROVIDER_PROFILES, DEFAULT_API_LIMITS, COOLDOWN_MS, RateLimitReason } =
+const { BACKOFF_CONFIG, PROVIDER_PROFILES, DEFAULT_API_LIMITS, COOLDOWN_MS, RateLimitReason } =
   await import("../../open-sse/config/constants.ts");
 
 const { getProviderCategory } = await import("../../open-sse/config/providerRegistry.ts");
@@ -36,10 +36,13 @@ test("API profile has shorter transient cooldown", () => {
 
 // ─── Backoff Ceiling Tests (prevents infinite growth) ───────────────────────
 
-test("Exponential backoff is capped at transientMax for high backoff levels", () => {
-  // Level 20 → 5s * 2^20 = 5.2M ms, but capped at 60s
+test("Exponential backoff clamps to the configured maxBackoffLevel", () => {
   const result = checkFallbackError(502, "", 20, null, null);
-  assert.equal(result.cooldownMs, COOLDOWN_MS.transientMax);
+  assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);
+  assert.equal(
+    result.cooldownMs,
+    COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel)
+  );
 });
 
 test("API provider backoff level caps at profile maxBackoffLevel", () => {

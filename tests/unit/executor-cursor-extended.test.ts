@@ -197,7 +197,7 @@ test("CursorExecutor.transformProtobufToJSON aggregates text and split tool call
   ]);
 
   const response = executor.transformProtobufToJSON(buffer, "cursor-small", body);
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(payload.object, "chat.completion");
@@ -223,7 +223,7 @@ test("CursorExecutor.transformProtobufToJSON finalizes incomplete tool calls whe
     "cursor-small",
     { messages: [{ role: "user", content: "hi" }] }
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(payload.choices[0].finish_reason, "tool_calls");
   assert.equal(payload.choices[0].message.tool_calls[0].id, "call_2");
@@ -245,7 +245,7 @@ test("CursorExecutor.transformProtobufToJSON keeps prior content when an error f
     "cursor-small",
     { messages: [{ role: "user", content: "hi" }] }
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(payload.choices[0].message.content, "Partial answer");
@@ -259,7 +259,7 @@ test("CursorExecutor.transformProtobufToJSON decompresses gzip frames", async ()
     "cursor-small",
     { messages: [{ role: "user", content: "hi" }] }
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(payload.choices[0].message.content, "Compressed answer");
 });
@@ -329,7 +329,7 @@ test("CursorExecutor.transformProtobufToSSE returns a JSON error before any cont
     "cursor-small",
     { messages: [{ role: "user", content: "hi" }] }
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.equal(payload.error.type, "rate_limit_error");
@@ -407,7 +407,7 @@ test("CursorExecutor.transformProtobufToSSE converts JSON error frames into rate
     "cursor-small",
     { messages: [{ role: "user", content: "hi" }] }
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.equal(payload.error.type, "rate_limit_error");
@@ -435,7 +435,7 @@ test("CursorExecutor.execute returns transformed JSON for non-stream responses",
       providerSpecificData: { machineId: "machine-1" },
     },
   });
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(
     result.url,
@@ -494,7 +494,7 @@ test("CursorExecutor.execute maps non-200 upstream responses to OpenAI-style err
       providerSpecificData: { machineId: "machine-1" },
     },
   });
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.response.status, 403);
   assert.equal(payload.error.type, "invalid_request_error");
@@ -517,7 +517,7 @@ test("CursorExecutor.execute maps transport failures to connection_error and ref
       providerSpecificData: { machineId: "machine-1" },
     },
   });
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.response.status, 500);
   assert.equal(payload.error.type, "connection_error");

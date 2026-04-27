@@ -41,7 +41,7 @@ test("handleBypassRequest returns a canned JSON response for warmup bypasses", a
   assert.equal(result.success, true);
   assert.equal(result.response.headers.get("content-type"), "application/json");
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(payload.model, "gpt-5-mini");
   assert.equal(payload.choices[0].message.role, "assistant");
   assert.match(payload.choices[0].message.content, /clear terminal/i);
@@ -79,7 +79,7 @@ test("handleBypassRequest bypasses single-message count probes", async () => {
   );
 
   assert.ok(result);
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(payload.usage.total_tokens, 2);
   assert.equal(payload.choices[0].finish_reason, "stop");
 });

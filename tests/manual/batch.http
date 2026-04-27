@@ -1,0 +1,130 @@
+###
+# @name Upload a JSONL file for batch processing
+POST {{omniroute-address}}/v1/files
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="batch_input.jsonl"
+Content-Type: application/jsonl
+
+{"custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gpt-4o-mini", "messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello world!"}], "max_tokens": 50}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gemini/gemma-4-31b-it", "messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "What is 2+2?"}], "max_tokens": 50}}
+
+--boundary
+Content-Disposition: form-data; name="purpose"
+
+batch
+--boundary--
+
+> {%
+    client.global.set("file_id", response.body.id);
+%}
+
+###
+# @name Upload a JSONL file for batch processing - test embedding endpoint
+POST {{omniroute-address}}/v1/files
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="batch_input.jsonl"
+Content-Type: application/jsonl
+
+{"custom_id": "request-1", "method": "POST", "url": "/v1/embeddings", "body": {"model": "pinecone/llama-text-embed-v2", "input": "The food was delicious and the waiter was very attentive."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "The food was delicious and the waiter was very attentive."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "I had a terrible experience at the restaurant. The food was cold and the service was slow."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "Too bad! The food was cold and the service was slow."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "Best dining experience ever! The food was amazing and the waiter was super friendly."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "All you can eat buffet was a disaster. The food was stale and the staff was rude."}}
+{"custom_id": "request-2", "method": "POST", "url": "/v1/embeddings", "body": {"model": "mistral/mistral-embed", "input": "All your base are belong to us."}}
+
+--boundary
+Content-Disposition: form-data; name="purpose"
+
+batch
+--boundary--
+
+> {%
+    client.global.set("file_id", response.body.id);
+%}
+
+###
+# @name List all uploaded files
+GET {{omniroute-address}}/v1/files
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+> {%
+    client.global.set("file_id", response.body.data[0].id);
+%}
+
+###
+# @name Get file metadata of the uploaded file
+GET {{omniroute-address}}/v1/files/{{file_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Create a new batch job
+POST {{omniroute-address}}/v1/batches
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "input_file_id": "{{file_id}}",
+  "endpoint": "/v1/chat/completions",
+  "completion_window": "24h"
+}
+
+> {%
+    client.global.set("batch_id", response.body.id);
+%}
+
+###
+# @name List all batch jobs
+GET {{omniroute-address}}/v1/batches
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Get status of batch job
+GET {{omniroute-address}}/v1/batches/{{batch_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+> {%
+    if (response.body.output_file_id) {
+        client.global.set("output_file_id", response.body.output_file_id);
+    }
+    if (response.body.error_file_id) {
+        client.global.set("error_file_id", response.body.error_file_id);
+    }
+%}
+
+###
+# @name Cancel batch job
+POST {{omniroute-address}}/v1/batches/{{batch_id}}/cancel
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Get outputfile contents
+GET {{omniroute-address}}/v1/files/{{output_file_id}}/content
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Get outputfile metadata
+GET {{omniroute-address}}/v1/files/{{output_file_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Get errorfile contents
+GET {{omniroute-address}}/v1/files/{{error_file_id}}/content
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Get errorfile metadata
+GET {{omniroute-address}}/v1/files/{{error_file_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name Delete File
+DELETE {{omniroute-address}}/v1/files/{{file_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}

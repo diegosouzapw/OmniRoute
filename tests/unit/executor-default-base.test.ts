@@ -11,6 +11,7 @@ import {
 } from "../../open-sse/executors/base.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
+import { BEDROCK_DEFAULT_BASE_URL } from "../../open-sse/config/bedrock.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -161,6 +162,12 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const bailian = new DefaultExecutor("bailian-coding-plan");
   const heroku = new DefaultExecutor("heroku");
   const databricks = new DefaultExecutor("databricks");
+  const azureAi = new DefaultExecutor("azure-ai");
+  const watsonx = new DefaultExecutor("watsonx");
+  const oci = new DefaultExecutor("oci");
+  const sap = new DefaultExecutor("sap");
+  const modal = new DefaultExecutor("modal");
+  const reka = new DefaultExecutor("reka");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
 
@@ -186,6 +193,52 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
     }),
     "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints/chat/completions"
   );
+
+  assert.equal(
+    azureAi.buildUrl("DeepSeek-V3.1", true, 0, {
+      providerSpecificData: { baseUrl: "https://my-foundry.services.ai.azure.com" },
+    }),
+    "https://my-foundry.services.ai.azure.com/openai/v1/chat/completions"
+  );
+
+  assert.equal(
+    watsonx.buildUrl("ibm/granite-3-3-8b-instruct", true, 0, {
+      providerSpecificData: { baseUrl: "https://ca-tor.ml.cloud.ibm.com" },
+    }),
+    "https://ca-tor.ml.cloud.ibm.com/ml/gateway/v1/chat/completions"
+  );
+  assert.equal(
+    oci.buildUrl("openai.gpt-oss-20b", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://inference.generativeai.us-ashburn-1.oci.oraclecloud.com",
+      },
+    }),
+    "https://inference.generativeai.us-ashburn-1.oci.oraclecloud.com/openai/v1/chat/completions"
+  );
+  assert.equal(
+    sap.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://sap.example.com/v2/lm/deployments/demo-deployment",
+      },
+    }),
+    "https://sap.example.com/v2/lm/deployments/demo-deployment/chat/completions"
+  );
+  assert.equal(
+    modal.buildUrl("Qwen/Qwen3-4B-Thinking-2507-FP8", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://alice--demo.modal.run/v1",
+      },
+    }),
+    "https://alice--demo.modal.run/v1/chat/completions"
+  );
+  assert.equal(
+    reka.buildUrl("reka-core", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://api.reka.ai/v1",
+      },
+    }),
+    "https://api.reka.ai/v1/chat/completions"
+  );
   assert.equal(
     snowflake.buildUrl("llama3.3-70b", true, 0, {
       providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
@@ -209,11 +262,38 @@ test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers
 test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
+  const azureAi = new DefaultExecutor("azure-ai");
+  const oci = new DefaultExecutor("oci");
+  const sap = new DefaultExecutor("sap");
+  const modal = new DefaultExecutor("modal");
 
   const geminiApiKeyHeaders = gemini.buildHeaders({ apiKey: "gem-key" }, true);
   const geminiOAuthHeaders = gemini.buildHeaders({ accessToken: "gem-token" }, false);
   const claudeApiKeyHeaders = claude.buildHeaders({ apiKey: "claude-key" }, true);
   const claudeOAuthHeaders = claude.buildHeaders({ accessToken: "claude-token" }, false);
+  const azureAiHeaders = azureAi.buildHeaders({ apiKey: "azure-ai-key" }, true);
+  const ociHeaders = oci.buildHeaders(
+    {
+      apiKey: "oci-key",
+      projectId: "ocid1.generativeaiproject.oc1.us-chicago-1.example",
+    },
+    true
+  );
+  const sapHeaders = sap.buildHeaders(
+    {
+      apiKey: "sap-key",
+      providerSpecificData: {
+        resourceGroup: "shared",
+      },
+    },
+    true
+  );
+  const modalHeaders = modal.buildHeaders(
+    {
+      apiKey: "modal-key",
+    },
+    true
+  );
 
   assert.equal(geminiApiKeyHeaders["x-goog-api-key"], "gem-key");
   assert.equal(geminiApiKeyHeaders.Accept, "text/event-stream");
@@ -223,6 +303,13 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
   assert.equal(claudeApiKeyHeaders.Accept, "text/event-stream");
   assert.equal(claudeOAuthHeaders.Authorization, "Bearer claude-token");
   assert.equal(claudeOAuthHeaders["x-api-key"], undefined);
+  assert.equal(azureAiHeaders["api-key"], "azure-ai-key");
+  assert.equal(azureAiHeaders.Authorization, undefined);
+  assert.equal(ociHeaders.Authorization, "Bearer oci-key");
+  assert.equal(ociHeaders["OpenAI-Project"], "ocid1.generativeaiproject.oc1.us-chicago-1.example");
+  assert.equal(sapHeaders.Authorization, "Bearer sap-key");
+  assert.equal(sapHeaders["AI-Resource-Group"], "shared");
+  assert.equal(modalHeaders.Authorization, "Bearer modal-key");
 });
 
 test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compatible headers", () => {
@@ -243,6 +330,20 @@ test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compa
   assert.equal(anthropicHeaders["x-api-key"], "anth-key");
   assert.equal(anthropicHeaders["anthropic-version"], "2023-06-01");
   assert.equal(anthropicHeaders.Accept, "text/event-stream");
+});
+
+test("DefaultExecutor local OpenAI-style providers honor custom base URLs and skip empty bearer headers", () => {
+  const lmStudio = new DefaultExecutor("lm-studio");
+  const vllm = new DefaultExecutor("vllm");
+
+  const lmStudioUrl = lmStudio.buildUrl("local-model", true, 0, {
+    providerSpecificData: { baseUrl: "http://127.0.0.1:4321/v1" },
+  });
+  const vllmHeaders = vllm.buildHeaders({}, false);
+
+  assert.equal(lmStudioUrl, "http://127.0.0.1:4321/v1/chat/completions");
+  assert.equal(vllmHeaders.Authorization, undefined);
+  assert.equal(vllmHeaders.Accept, "application/json");
 });
 
 test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access tokens", () => {
@@ -358,9 +459,12 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       credentials: {
         apiKey: "cc-key",
         providerSpecificData: {
-          baseUrl: "https://cc.example.com/v1/messages?beta=true",
           ccSessionId: "session-1",
         },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
       },
       extendedContext: false,
     });
@@ -375,7 +479,6 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       credentials: {
         apiKey: "cc-key",
         providerSpecificData: {
-          baseUrl: "https://cc.example.com/v1/messages?beta=true",
           ccSessionId: "session-1",
           requestDefaults: { context1m: true },
         },
@@ -409,6 +512,76 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   assert.equal(calls[2].headers["anthropic-beta"], CONTEXT_1M_BETA_HEADER);
 });
 
+test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude models that support x-high effort", async () => {
+  const originalFetch = globalThis.fetch;
+  const requestBodies = [];
+
+  globalThis.fetch = async (_url, init = {}) => {
+    requestBodies.push(JSON.parse(String(init.body)));
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const claude = new DefaultExecutor("claude");
+    await claude.execute({
+      model: "claude-opus-4-7",
+      body: {
+        model: "claude-opus-4-7",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
+
+    await claude.execute({
+      model: "claude-haiku-4-5-20251001",
+      body: {
+        model: "claude-haiku-4-5-20251001",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.deepEqual((requestBodies[0] as any).thinking, { type: "adaptive" });
+  assert.deepEqual((requestBodies[0] as any).context_management, {
+    edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+  });
+  assert.deepEqual((requestBodies[0] as any).output_config, { effort: "high" });
+
+  assert.equal((requestBodies[1] as any).thinking, undefined);
+  assert.equal((requestBodies[1] as any).context_management, undefined);
+  assert.equal((requestBodies[1] as any).output_config, undefined);
+});
+
 test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {
   const executor = new DefaultExecutor("openai");
   const body = { model: "zai-org/GLM-5-FP8", messages: [{ role: "user", content: "hi" }] };
@@ -428,7 +601,7 @@ test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for 
   const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
 
   assert.notEqual(result, body);
-  assert.equal(result.tool_choice, "auto");
+  assert.equal((result as any).tool_choice, "auto");
 });
 
 test("DefaultExecutor.transformRequest applies GLMT preset defaults without overriding explicit values", () => {
@@ -440,9 +613,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const autoResult = executor.transformRequest("glm-5.1", autoBody, true, {});
 
   assert.notEqual(autoResult, autoBody);
-  assert.equal(autoResult.max_tokens, 65536);
-  assert.equal(autoResult.temperature, 0.2);
-  assert.deepEqual(autoResult.thinking, {
+  assert.equal((autoResult as any).max_tokens, 65536);
+  (assert as any).equal((autoResult as any).temperature, 0.2);
+  (assert as any).deepEqual((autoResult as any).thinking, {
     type: "enabled",
     budget_tokens: 24576,
   });
@@ -456,9 +629,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const explicitResult = executor.transformRequest("glm-5.1", explicitBody, true, {});
 
   assert.notEqual(explicitResult, explicitBody);
-  assert.equal(explicitResult.max_tokens, 4096);
-  assert.equal(explicitResult.temperature, 0.7);
-  assert.deepEqual(explicitResult.thinking, {
+  assert.equal((explicitResult as any).max_tokens, 4096);
+  assert.equal((explicitResult as any).temperature, 0.7);
+  assert.deepEqual((explicitResult as any).thinking, {
     type: "enabled",
     budget_tokens: 4095,
   });
@@ -621,8 +794,8 @@ test("BaseExecutor.execute returns response metadata and merges headers", async 
 
     assert.equal(result.url, "https://primary.example/v1/chat/completions");
     assert.equal(result.response.status, 200);
-    assert.equal(result.transformedBody.transformed, true);
-    assert.equal(result.transformedBody.model, "gpt-4.1");
+    (assert as any).equal((result.transformedBody as any).transformed, true);
+    assert.equal((result.transformedBody as any).model, "gpt-4.1");
     assert.equal(result.headers.Authorization, "Bearer override");
     assert.equal(result.headers["User-Agent"], "UpstreamAgent/2.0");
     assert.equal(result.headers["user-agent"], undefined);
@@ -788,4 +961,52 @@ test("BaseExecutor.execute clears the startup timeout after headers arrive", asy
     BaseExecutor.FETCH_START_TIMEOUT_MS = originalFetchStartTimeoutMs;
     globalThis.fetch = originalFetch;
   }
+});
+
+// Regression test for issue #1454: duplicate anthropic-version header when
+// Claude Code CLI headers are detected on the native `claude` provider.
+// The provider config seeds headers with Title-Case "Anthropic-Version" while
+// the Claude-Code patch injects lowercase "anthropic-version".  Before the fix,
+// both keys coexisted in the JS object and undici combined their values into
+// "2023-06-01, 2023-06-01", causing a 400 from Anthropic.
+test("DefaultExecutor.execute does not produce duplicate anthropic-version header when Claude Code CLI headers are present", async () => {
+  const executor = new DefaultExecutor("claude");
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders: Record<string, string> = {};
+
+  globalThis.fetch = async (_url, init = {}) => {
+    // Capture raw headers without normalisation so case-variant duplicate keys are visible.
+    capturedHeaders = (init.headers as Record<string, string>) || {};
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: { accessToken: "oauth-token" },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+        "anthropic-beta": "oauth-2025-04-20",
+      },
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Must be exactly one key — not multiple case variants that undici would combine
+  const versionKeys = Object.keys(capturedHeaders).filter(
+    (k) => k.toLowerCase() === "anthropic-version"
+  );
+  assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
+  assert.equal(capturedHeaders[versionKeys[0]], "2023-06-01");
 });

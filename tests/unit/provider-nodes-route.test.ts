@@ -49,7 +49,7 @@ test("provider nodes route lists stored nodes and exposes the CC feature flag", 
 
   process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
   const response = await providerNodesRoute.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.ccCompatibleProviderEnabled, true);
@@ -72,8 +72,8 @@ test("provider nodes route rejects malformed JSON and schema validation failures
     })
   );
 
-  const malformedBody = await malformed.json();
-  const invalidBody = await invalid.json();
+  const malformedBody = (await malformed.json()) as any;
+  const invalidBody = (await invalid.json()) as any;
 
   assert.equal(malformed.status, 400);
   assert.equal(malformedBody.error.message, "Invalid request");
@@ -98,7 +98,7 @@ test("provider nodes route creates OpenAI-compatible nodes with normalized defau
       modelsPath: "",
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 201);
   assert.match(body.node.id, new RegExp(`^${OPENAI_COMPATIBLE_PREFIX}chat-`));
@@ -120,7 +120,7 @@ test("provider nodes route creates Anthropics-compatible nodes and sanitizes mes
       modelsPath: "/models",
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 201);
   assert.match(body.node.id, new RegExp(`^${ANTHROPIC_COMPATIBLE_PREFIX}`));
@@ -141,7 +141,7 @@ test("provider nodes route blocks CC-compatible nodes when the feature flag is d
       baseUrl: "https://cc.example.com/v1/messages?beta=1",
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 403);
   assert.equal(body.error, "CC Compatible provider is disabled");
@@ -161,7 +161,7 @@ test("provider nodes route creates CC-compatible nodes with CC-specific URL norm
       modelsPath: "/models",
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 201);
   assert.match(body.node.id, new RegExp(`^${CLAUDE_CODE_COMPATIBLE_PREFIX}`));

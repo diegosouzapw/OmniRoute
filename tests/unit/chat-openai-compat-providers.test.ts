@@ -8,6 +8,7 @@ import { APIKEY_PROVIDERS } from "../../src/shared/constants/providers.ts";
 const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "deepinfra",
   "vercel-ai-gateway",
+  "qianfan",
   "lambda-ai",
   "sambanova",
   "nscale",

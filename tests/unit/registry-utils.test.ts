@@ -201,6 +201,7 @@ test("getAllVideoModels: returns video models with provider prefix", async () =>
   const models = getAllVideoModels();
   assert.ok(models.length >= 3, `Expected at least 3 video models, got ${models.length}`);
   assert.ok(models.some((m) => m.id === "comfyui/animatediff"));
+  assert.ok(models.some((m) => m.id === "runwayml/gen4.5"));
 });
 
 test("getAllMusicModels: returns music models with provider prefix", async () => {

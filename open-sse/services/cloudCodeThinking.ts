@@ -23,6 +23,9 @@ function stripGeminiThinkingConfig(value: unknown): unknown {
   return next;
 }
 
+/**
+ * @deprecated This function will be removed in v4.0, reasoning configuration processing has migrated to translateRequest
+ */
 export function shouldStripCloudCodeThinking(provider: string, model: string): boolean {
   if (!provider || !model) return false;
   const normalizedModel = normalizeCloudCodeModel(model);
@@ -33,6 +36,9 @@ export function shouldStripCloudCodeThinking(provider: string, model: string): b
   return CLOUD_CODE_REASONING_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(normalizedModel));
 }
 
+/**
+ * @deprecated This function will be removed in v4.0, reasoning configuration processing has migrated to translateRequest
+ */
 export function stripCloudCodeThinkingConfig(
   body: Record<string, unknown>
 ): Record<string, unknown> {

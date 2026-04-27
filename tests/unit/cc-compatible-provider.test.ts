@@ -117,15 +117,15 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
       { role: "user", text: "u2" },
     ]
   );
-  assert.equal(payload.messages[0].content.at(-1).cache_control, undefined);
-  assert.equal(payload.messages[1].content.at(-1).cache_control, undefined);
-  assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
+  assert.equal((payload.messages[0].content.at(-1) as any).cache_control, undefined);
+  assert.equal((payload.messages[1] as any).content.at(-1).cache_control, undefined);
+  assert.equal((payload.messages as any)[2].content.at(-1).cache_control, undefined);
   assert.equal(payload.system.length, 2);
-  assert.match(payload.system[0].text, /Claude Agent SDK/);
-  assert.equal(payload.system[0].cache_control, undefined);
-  assert.equal(payload.system[1].cache_control, undefined);
+  assert.match((payload as any).system[0].text, /Claude Agent SDK/);
+  (assert as any).equal((payload.system[0] as any).cache_control, undefined);
+  assert.equal((payload.system[1] as any).cache_control, undefined);
   assert.equal(payload.system[1].text, "sys");
-  assert.equal(payload.system[1].cache_control, undefined);
+  assert.equal((payload.system[1] as any).cache_control, undefined);
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_weather",
@@ -139,8 +139,8 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
     },
   });
   assert.deepEqual(payload.tool_choice, { type: "any" });
-  assert.equal(payload.context_management, undefined);
-  assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
+  assert.equal(payload.context_management, undefined as any);
+  assert.equal(JSON.parse((payload as any).metadata.user_id).session_id, "session-1");
 });
 
 test("buildClaudeCodeCompatibleRequest preserves xhigh for Claude models that support it", () => {
@@ -212,13 +212,15 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     preserveCacheControl: true,
   });
 
-  assert.deepEqual(payload.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
-  assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
-  assert.deepEqual(payload.messages[1].content[0].cache_control, {
+  assert.deepEqual((payload.system[0] as any).cache_control, { type: "ephemeral", ttl: "5m" });
+  (assert as any).deepEqual((payload.messages[0].content[0] as any).cache_control, {
+    type: "ephemeral",
+  });
+  assert.deepEqual((payload.messages[1].content[0] as any).cache_control, {
     type: "ephemeral",
     ttl: "10m",
   });
-  assert.equal(payload.messages[2].content[0].cache_control, undefined);
+  assert.equal((payload.messages[2].content[0] as any).cache_control, undefined);
   assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
 });
 
@@ -263,11 +265,11 @@ test("buildClaudeCodeCompatibleRequest does not supplement missing Claude cache 
     preserveCacheControl: true,
   });
 
-  assert.equal(payload.system[0].cache_control, undefined);
-  assert.equal(payload.messages[0].content[0].cache_control, undefined);
-  assert.equal(payload.messages[1].content[0].cache_control, undefined);
-  assert.equal(payload.messages[2].content[0].cache_control, undefined);
-  assert.equal(payload.system.at(-1).cache_control, undefined);
+  assert.equal((payload.system[0] as any).cache_control, undefined);
+  assert.equal((payload.messages[0].content[0] as any).cache_control, undefined);
+  assert.equal((payload.messages[1].content[0] as any).cache_control, undefined);
+  assert.equal((payload.messages[2].content[0] as any).cache_control, undefined);
+  assert.equal((payload.system.at(-1) as any).cache_control, undefined);
   assert.equal(payload.tools[0].cache_control, undefined);
 });
 
@@ -293,8 +295,8 @@ test("buildClaudeCodeCompatibleRequest keeps built-in system blocks untagged whe
     preserveCacheControl: true,
   });
 
-  assert.deepEqual(payload.system[0].cache_control, { type: "ephemeral" });
-  assert.deepEqual(payload.system[1].cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.deepEqual((payload.system[0] as any).cache_control, { type: "ephemeral" });
+  assert.deepEqual((payload.system[1] as any).cache_control, { type: "ephemeral", ttl: "1h" });
 });
 
 test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserve mode", () => {
@@ -321,12 +323,12 @@ test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserv
     preserveCacheControl: false,
   });
 
-  assert.equal(payload.system.length, 2);
-  assert.equal(payload.system[0].cache_control, undefined);
-  assert.equal(payload.system[1].cache_control, undefined);
-  assert.equal(payload.messages[0].content[0].cache_control, undefined);
-  assert.equal(payload.messages[1].content[0].cache_control, undefined);
-  assert.equal(payload.messages[2].content[0].cache_control, undefined);
+  (assert as any).equal(payload.system.length, 2);
+  assert.equal((payload as any).system[0].cache_control, undefined);
+  assert.equal((payload as any).system[1].cache_control, undefined);
+  assert.equal((payload as any).messages[0].content[0].cache_control, undefined);
+  assert.equal((payload as any).messages[1].content[0].cache_control, undefined);
+  assert.equal((payload.messages[2].content[0] as any).cache_control, undefined);
 });
 
 test("buildClaudeCodeCompatibleRequest falls back to a user turn when the source only has assistant/model text", () => {
@@ -557,7 +559,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
   assert.equal(calls[0].body.stream, true);
   assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
 
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "Hello from CC");
   assert.equal(payload.choices[0].finish_reason, "stop");
   assert.equal(payload.usage.prompt_tokens, 2007);
@@ -725,7 +727,7 @@ test("provider-nodes create route creates CC node with dedicated prefix when ena
   );
 
   assert.equal(response.status, 201);
-  const data = await response.json();
+  const data = (await response.json()) as any;
   assert.match(data.node.id, /^anthropic-compatible-cc-/);
   assert.equal(data.node.baseUrl, "https://proxy.example.com");
   assert.equal(data.node.chatPath, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
@@ -780,7 +782,7 @@ test("provider-nodes validate route rejects invalid JSON and schema errors", asy
   );
 
   assert.equal(invalidBodyResponse.status, 400);
-  const invalidBodyPayload = await invalidBodyResponse.json();
+  const invalidBodyPayload = (await invalidBodyResponse.json()) as any;
   assert.equal(invalidBodyPayload.error.message, "Invalid request");
   assert.equal(invalidBodyPayload.error.details.length >= 1, true);
 });
@@ -1053,7 +1055,7 @@ test("provider-nodes list route exposes CC flag state from server env", async ()
   const response = await providerNodesRoute.GET();
   assert.equal(response.status, 200);
 
-  const data = await response.json();
+  const data = (await response.json()) as any;
   assert.equal(data.ccCompatibleProviderEnabled, true);
 });
 

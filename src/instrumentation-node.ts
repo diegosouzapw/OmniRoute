@@ -13,7 +13,7 @@ function getRandomBytes(byteLength: number): Uint8Array {
 }
 
 function toBase64(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes));
+  return btoa(String.fromCodePoint(...bytes));
 }
 
 function toHex(bytes: Uint8Array): string {
@@ -130,6 +130,9 @@ export async function registerNodejs(): Promise<void> {
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
     );
+    const { initBatchProcessor } = await import("@omniroute/open-sse/services/batchProcessor");
+    initBatchProcessor();
+    console.log("[STARTUP] Batch processor started");
   }
 
   try {

@@ -148,11 +148,14 @@ export function prepareClaudeRequest(
 ): ClaudeRequestBody {
   // 1. System: remove all cache_control, add only to last block with ttl 1h
   // In passthrough mode, preserve existing cache_control markers
+  const supportsPromptCaching =
+    provider === "claude" || provider?.startsWith?.("anthropic-compatible-");
+
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {
     body.system = systemBlocks.map((block, i) => {
       const { cache_control, ...rest } = block;
-      if (i === systemBlocks.length - 1) {
+      if (i === systemBlocks.length - 1 && supportsPromptCaching) {
         return { ...rest, cache_control: { type: "ephemeral", ttl: "1h" } };
       }
       return rest;
@@ -217,7 +220,7 @@ export function prepareClaudeRequest(
     // - cache the second-to-last user turn for conversation reuse
     // - cache the last assistant turn so the next user turn can reuse it
     // Skip in passthrough mode to preserve client's cache_control markers
-    if (!preserveCacheControl) {
+    if (!preserveCacheControl && supportsPromptCaching) {
       const userMessageIndexes = filtered.reduce<number[]>((indexes, msg, index) => {
         if (msg?.role === "user") indexes.push(index);
         return indexes;
@@ -238,7 +241,12 @@ export function prepareClaudeRequest(
       if (msg.role === "assistant" && content.length > 0) {
         // Add cache_control to last block of first (from end) assistant with content
         // Skip in passthrough mode to preserve client's cache_control markers
-        if (!preserveCacheControl && !lastAssistantProcessed && markMessageCacheControl(msg)) {
+        if (
+          !preserveCacheControl &&
+          supportsPromptCaching &&
+          !lastAssistantProcessed &&
+          markMessageCacheControl(msg)
+        ) {
           lastAssistantProcessed = true;
         }
 
@@ -247,10 +255,16 @@ export function prepareClaudeRequest(
           let hasToolUse = false;
           let hasThinking = false;
 
-          // Always replace signature for all thinking blocks
+          // Convert thinking blocks to redacted_thinking and replace signature.
+          // When requests cross provider boundaries (e.g., combo fallback), the
+          // original thinking signature is invalid for the new provider, causing
+          // "Invalid signature in thinking block" 400 errors. redacted_thinking
+          // blocks are accepted without signature validation.
           for (const block of content) {
             if (block.type === "thinking" || block.type === "redacted_thinking") {
+              block.type = "redacted_thinking";
               block.signature = DEFAULT_THINKING_CLAUDE_SIGNATURE;
+              delete block.thinking;
               hasThinking = true;
             }
             if (block.type === "tool_use") hasToolUse = true;
@@ -277,10 +291,12 @@ export function prepareClaudeRequest(
       const { cache_control, ...rest } = tool;
       return rest;
     });
-    for (let i = body.tools.length - 1; i >= 0; i--) {
-      if (!body.tools[i].defer_loading) {
-        body.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
-        break;
+    if (supportsPromptCaching) {
+      for (let i = body.tools.length - 1; i >= 0; i--) {
+        if (!body.tools[i].defer_loading) {
+          body.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
+          break;
+        }
       }
     }
   }

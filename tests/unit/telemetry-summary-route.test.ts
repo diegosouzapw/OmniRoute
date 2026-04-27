@@ -25,7 +25,7 @@ test("telemetry summary route includes totalRequests alias plus session/quota mo
   const response = await GET(
     new Request("http://localhost:20128/api/telemetry/summary?windowMs=600000")
   );
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.ok(payload.totalRequests >= 1);

@@ -58,8 +58,8 @@ function crc32(buf: Uint8Array) {
  * Uses AWS CodeWhisperer streaming API with AWS EventStream binary format
  */
 export class KiroExecutor extends BaseExecutor {
-  constructor() {
-    super("kiro", PROVIDERS.kiro);
+  constructor(providerId = "kiro") {
+    super(providerId, PROVIDERS[providerId] || PROVIDERS.kiro);
   }
 
   buildHeaders(credentials: ProviderCredentials, stream = true) {

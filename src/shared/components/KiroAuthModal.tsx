@@ -10,7 +10,13 @@ import Input from "./Input";
  * Kiro Auth Method Selection Modal
  * Auto-detects token from AWS SSO cache or allows manual import
  */
-export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
+export default function KiroAuthModal({
+  isOpen,
+  providerId = "kiro",
+  providerLabel = "Kiro",
+  onMethodSelect,
+  onClose,
+}) {
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [idcStartUrl, setIdcStartUrl] = useState("");
   const [idcRegion, setIdcRegion] = useState("us-east-1");
@@ -30,7 +36,9 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
       setAutoDetected(false);
 
       try {
-        const res = await fetch("/api/oauth/kiro/auto-import");
+        const res = await fetch(
+          `/api/oauth/kiro/auto-import?targetProvider=${encodeURIComponent(providerId)}`
+        );
         const data = await res.json();
 
         if (data.found) {
@@ -47,7 +55,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
     };
 
     autoDetect();
-  }, [selectedMethod, isOpen]);
+  }, [providerId, selectedMethod, isOpen]);
 
   const handleMethodSelect = (method) => {
     setSelectedMethod(method);
@@ -69,11 +77,14 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
     setError(null);
 
     try {
-      const res = await fetch("/api/oauth/kiro/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken: refreshToken.trim() }),
-      });
+      const res = await fetch(
+        `/api/oauth/kiro/import?targetProvider=${encodeURIComponent(providerId)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken: refreshToken.trim() }),
+        }
+      );
 
       const data = await res.json();
 
@@ -103,7 +114,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} title="Connect Kiro" onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} title={`Connect ${providerLabel}`} onClose={onClose} size="lg">
       <div className="flex flex-col gap-4">
         {/* Method Selection */}
         {!selectedMethod && (
@@ -120,7 +131,8 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-1">AWS Builder ID</h3>
                   <p className="text-sm text-text-muted">
-                    Recommended for most users. Free AWS account required.
+                    Recommended for most users. Sign in with the AWS account linked to{" "}
+                    {providerLabel}.
                   </p>
                 </div>
               </div>
@@ -185,7 +197,9 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
                 <span className="material-symbols-outlined text-primary mt-0.5">file_upload</span>
                 <div className="flex-1">
                   <h3 className="font-semibold mb-1">Import Token</h3>
-                  <p className="text-sm text-text-muted">Paste refresh token from Kiro IDE.</p>
+                  <p className="text-sm text-text-muted">
+                    Paste a refresh token exported from {providerLabel}.
+                  </p>
                 </div>
               </div>
             </button>
@@ -310,7 +324,9 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Auto-detecting token...</h3>
-                <p className="text-sm text-text-muted">Reading from AWS SSO cache</p>
+                <p className="text-sm text-text-muted">
+                  Reading {providerLabel} credentials from AWS SSO cache
+                </p>
               </div>
             )}
 
@@ -325,7 +341,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
                         check_circle
                       </span>
                       <p className="text-sm text-green-800 dark:text-green-200">
-                        Token auto-detected from Kiro IDE successfully!
+                        Token auto-detected from {providerLabel} successfully!
                       </p>
                     </div>
                   </div>
@@ -339,7 +355,8 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
                         info
                       </span>
                       <p className="text-sm text-blue-800 dark:text-blue-200">
-                        Kiro IDE not detected. Please paste your refresh token manually.
+                        {providerLabel} token was not auto-detected. Please paste your refresh token
+                        manually.
                       </p>
                     </div>
                   </div>
@@ -386,6 +403,8 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 KiroAuthModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
+  providerId: PropTypes.string,
+  providerLabel: PropTypes.string,
   onMethodSelect: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { skillRegistry } from "@/lib/skills/registry";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const installManifestSchema = z.object({
   name: z.string().min(1).max(100),
@@ -19,6 +20,9 @@ const installManifestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const rawBody = await request.json();
     const validation = validateBody(installManifestSchema, rawBody);

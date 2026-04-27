@@ -153,7 +153,7 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
     true,
     {}
   );
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 422);
   assert.equal(payload.error.code, "missing_project_id");
@@ -231,7 +231,7 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
     { Authorization: "Bearer ag-token" },
     { request: {} }
   );
-  const payload = await result.response.json();
+  const payload = (await result.response.json()) as any;
 
   assert.equal(result.response.status, 200);
   assert.equal(payload.object, "chat.completion");
@@ -316,7 +316,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       credentials: { accessToken: "token", projectId: "project-1" },
       log: { debug() {}, warn() {} },
     });
-    const payload = await result.response.json();
+    const payload = (await result.response.json()) as any;
 
     assert.equal(calls.length, 2);
     assert.equal(result.response.status, 200);
@@ -358,7 +358,7 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
       credentials: { accessToken: "token", projectId: "project-1" },
       log: { debug() {}, warn() {} },
     });
-    const payload = await result.response.json();
+    const payload = (await result.response.json()) as any;
 
     assert.equal(result.response.status, 429);
     assert.equal(payload.retryAfterMs, 7_200_000);

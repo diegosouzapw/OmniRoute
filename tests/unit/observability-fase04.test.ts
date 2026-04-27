@@ -123,7 +123,7 @@ test("requestTimeout: withTimeout resolves before timeout", async () => {
 test("requestTimeout: withTimeout rejects on timeout", async () => {
   await assert.rejects(
     () => withTimeout(() => new Promise((r) => setTimeout(r, 500)), 10, "slow-op"),
-    (err) => err.name === "TimeoutError"
+    (err) => (err as any).name === "TimeoutError"
   );
 });
 

@@ -797,6 +797,9 @@ export const DEFAULT_PRICING = {
   },
 
   // OpenRouter
+  agentrouter: {
+    auto: { input: 2.0, output: 8.0 },
+  },
   openrouter: {
     auto: {
       input: 2.0,

@@ -53,7 +53,7 @@ test("GET /api/v1/db/health requires authentication", async () => {
 
   try {
     const response = await routeModule.GET(makeRequest("GET"));
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 401);
     assert.equal(body.error.message, "Authentication required");
@@ -72,13 +72,13 @@ test("GET /api/v1/db/health diagnoses without mutating database rows", async () 
   insertBrokenRows(db);
 
   const response = await routeModule.GET(makeRequest("GET", authKey.key));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.isHealthy, false);
   assert.equal(body.repairedCount, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 1);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 1);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 1);
 });
 
 test("POST /api/v1/db/health repairs broken rows for authenticated callers", async () => {
@@ -87,11 +87,11 @@ test("POST /api/v1/db/health repairs broken rows for authenticated callers", asy
   insertBrokenRows(db);
 
   const response = await routeModule.POST(makeRequest("POST", authKey.key));
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.isHealthy, false);
   assert.equal(body.repairedCount, 2);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get().count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 0);
 });

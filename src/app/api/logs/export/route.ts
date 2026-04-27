@@ -1,5 +1,6 @@
 import { getDbInstance } from "@/lib/db/core";
 import { exportCallLogsSince } from "@/lib/usage/callLogs";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 /**
  * GET /api/logs/export — export logs as JSON
@@ -7,6 +8,9 @@ import { exportCallLogsSince } from "@/lib/usage/callLogs";
  *               &type=call-logs|request-logs|proxy-logs (default call-logs)
  */
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const hours = Math.min(Math.max(parseInt(searchParams.get("hours") || "24") || 24, 1), 168);

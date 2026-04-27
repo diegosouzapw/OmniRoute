@@ -37,7 +37,7 @@ function dropFts5Artifacts() {
         "DROP TRIGGER IF EXISTS memory_fts_au;" +
         "DROP TABLE IF EXISTS memory_fts;"
     );
-  } catch (_) {
+  } catch (_: any) {
     /* ignore if already dropped or DB not yet initialized */
   }
 }

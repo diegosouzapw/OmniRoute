@@ -91,7 +91,7 @@ test("combo failover skips the cooled provider target on the next request", asyn
       },
     })
   );
-  const firstBody = await firstResponse.json();
+  const firstBody = (await firstResponse.json()) as any;
 
   const secondResponse = await handleChat(
     buildRequest({
@@ -102,7 +102,7 @@ test("combo failover skips the cooled provider target on the next request", asyn
       },
     })
   );
-  const secondBody = await secondResponse.json();
+  const secondBody = (await secondResponse.json()) as any;
 
   assert.equal(firstResponse.status, 200);
   assert.equal(secondResponse.status, 200);

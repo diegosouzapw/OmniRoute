@@ -34,7 +34,7 @@ test("T19: picks the last non-empty message content from Responses output", () =
     FORMATS.OPENAI
   );
 
-  assert.equal(translated.choices[0].message.content, "Resposta final");
+  assert.equal((translated as any).choices[0].message.content, "Resposta final");
 });
 
 test("T19: falls back to last message block when all message texts are empty", () => {
@@ -61,6 +61,6 @@ test("T19: falls back to last message block when all message texts are empty", (
     FORMATS.OPENAI
   );
 
-  assert.equal(translated.choices[0].message.content, "");
-  assert.equal(translated.choices[0].finish_reason, "stop");
+  assert.equal((translated as any).choices[0].message.content, "");
+  (assert as any).equal((translated as any).choices[0].finish_reason, "stop");
 });

@@ -2,7 +2,7 @@
  * SSE Logger — Thin wrapper around the shared Pino logger
  * for backward compatibility with existing SSE code.
  *
- * Migrated from console.log to structured Pino logging.
+ * Migrated from direct console logging to structured Pino logging.
  */
 import { createLogger, logger as rootLogger } from "@/shared/utils/logger";
 

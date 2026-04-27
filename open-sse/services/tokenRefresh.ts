@@ -774,6 +774,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
       return await refreshGitHubToken(credentials.refreshToken, log, proxyConfig);
 
     case "kiro":
+    case "amazon-q":
       return await refreshKiroToken(
         credentials.refreshToken,
         credentials.providerSpecificData,
@@ -807,6 +808,7 @@ export function supportsTokenRefresh(provider) {
     "qoder",
     "github",
     "kiro",
+    "amazon-q",
     "cline",
     "kimi-coding",
   ]);

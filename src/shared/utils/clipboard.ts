@@ -11,13 +11,10 @@
  * @returns true if copy succeeded, false otherwise
  */
 export async function copyToClipboard(text: string): Promise<boolean> {
-  // Method 1: Clipboard API (requires HTTPS / secure context)
-  if (
-    typeof navigator !== "undefined" &&
-    navigator.clipboard &&
-    typeof window !== "undefined" &&
-    window.isSecureContext
-  ) {
+  // Method 1: Clipboard API
+  // Works on HTTPS, localhost (treated as secure context), and some browsers
+  // even on HTTP. Try unconditionally — the catch handles failures.
+  if (typeof navigator !== "undefined" && navigator.clipboard) {
     try {
       await navigator.clipboard.writeText(text);
       return true;

@@ -7,9 +7,13 @@ import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 import { createComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos - Get all combos
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const combos = await getCombos();
     return NextResponse.json({ combos });
@@ -21,6 +25,9 @@ export async function GET() {
 
 // POST /api/combos - Create new combo
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
 

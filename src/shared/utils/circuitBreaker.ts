@@ -180,6 +180,7 @@ export class CircuitBreaker {
       state: this.state,
       failureCount: this.failureCount,
       lastFailureTime: this.lastFailureTime,
+      retryAfterMs: this.getRetryAfterMs(),
     };
   }
 

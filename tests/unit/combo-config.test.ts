@@ -13,7 +13,9 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.notEqual(first, second);
   assert.equal(first.strategy, "priority");
   assert.equal(first.maxRetries, 1);
-  assert.equal(first.timeoutMs, 600000);
+  assert.equal(first.retryDelayMs, 2000);
+  assert.ok(!("timeoutMs" in first));
+  assert.ok(!("healthCheckEnabled" in first));
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
@@ -27,7 +29,6 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
     {
       config: {
         maxRetries: 4,
-        timeoutMs: 45000,
       },
     },
     {
@@ -47,12 +48,12 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
 
   assert.equal(result.strategy, "round-robin");
   assert.equal(result.retryDelayMs, 500);
-  assert.equal(result.timeoutMs, 45000);
   assert.equal(result.maxRetries, 4);
-  assert.equal(result.healthCheckEnabled, true);
+  assert.ok(!("timeoutMs" in result));
+  assert.ok(!("healthCheckEnabled" in result));
 });
 
-test("resolveComboConfig ignores null and undefined overrides", () => {
+test("resolveComboConfig ignores null, undefined, and legacy resilience overrides", () => {
   const result = resolveComboConfig(
     {
       config: {
@@ -75,7 +76,7 @@ test("resolveComboConfig ignores null and undefined overrides", () => {
     "openai"
   );
 
-  assert.equal(result.timeoutMs, 600000);
+  assert.ok(!("timeoutMs" in result));
   assert.equal(result.queueTimeoutMs, 15000);
   assert.equal(result.concurrencyPerModel, 9);
   assert.equal(result.trackMetrics, false);

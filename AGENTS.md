@@ -3,10 +3,10 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **100+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
 ## Stack
 
@@ -213,7 +213,7 @@ Zod schemas, and unit tests aligned when editing.
 
 - **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
 - **OAuth** (8): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline
-- **API Key** (91): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
+- **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
   HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
   Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
@@ -224,7 +224,10 @@ Zod schemas, and unit tests aligned when editing.
   Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate,
   Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai,
   Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase,
-  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), and more.
+  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI,
+  AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo,
+  Amazon Q, Empower, Poe, and many more.
+- **Self-Hosted** (8+): LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga
 - **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
 
 Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.
@@ -303,12 +306,14 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-25 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
+29 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
-**Core tools** (18): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
+**Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
 set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
+best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
+
+**Cache tools** (2): cache_stats, cache_flush.
 
 **Memory tools** (3): memory_search, memory_add, memory_clear.
 

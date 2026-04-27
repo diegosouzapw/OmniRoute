@@ -8,7 +8,7 @@
  * (stores plaintext for development convenience).
  */
 
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync, createHash } from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
@@ -16,6 +16,7 @@ const KEY_LENGTH = 32;
 const PREFIX = "enc:v1:";
 
 let _derivedKey: Buffer | null = null;
+let _legacyDerivedKey: Buffer | null = null;
 
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
@@ -44,8 +45,8 @@ function getKey(): Buffer | null {
     return null;
   }
 
-  // Fixed salt derived from app name — deterministic so same key always produces same derived key
-  const salt = "omniroute-field-encryption-v1";
+  // Dynamic salt derived from key hash to prevent rainbow table attacks, while remaining deterministic
+  const salt = createHash("sha256").update(secret).digest().slice(0, 16);
   try {
     _derivedKey = scryptSync(secret, salt, KEY_LENGTH);
   } catch (err: unknown) {
@@ -57,6 +58,25 @@ function getKey(): Buffer | null {
     return null;
   }
   return _derivedKey;
+}
+
+/**
+ * Derive legacy 256-bit key from the env secret using the old static salt.
+ * Used exclusively for fallback decryption.
+ */
+function getLegacyKey(): Buffer | null {
+  if (_legacyDerivedKey !== null) return _legacyDerivedKey;
+
+  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+  if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
+
+  const legacySalt = "omniroute-field-encryption-v1";
+  try {
+    _legacyDerivedKey = scryptSync(secret, legacySalt, KEY_LENGTH);
+  } catch {
+    return null;
+  }
+  return _legacyDerivedKey;
 }
 
 /** Check if encryption is enabled. */
@@ -72,7 +92,12 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
   if (!plaintext || typeof plaintext !== "string") return plaintext;
 
   const key = getKey();
-  if (!key) return plaintext; // passthrough mode
+  if (!key) {
+    console.warn(
+      "[Encryption] STORAGE_ENCRYPTION_KEY not set. Storing plaintext (passthrough mode)."
+    );
+    return plaintext; // passthrough mode
+  }
 
   // Already encrypted — don't double-encrypt
   if (plaintext.startsWith(PREFIX)) return plaintext;
@@ -110,31 +135,59 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     console.warn(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 
   const body = ciphertext.slice(PREFIX.length);
   const parts = body.split(":");
   if (parts.length !== 3) {
     console.error("[Encryption] Malformed encrypted value");
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending malformed encrypted tokens to providers
+    return null;
   }
 
   const [ivHex, encryptedHex, authTagHex] = parts;
 
-  try {
-    const iv = Buffer.from(ivHex, "hex");
-    const authTag = Buffer.from(authTagHex, "hex");
-    const decipher = createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(authTag);
+  const tryDecryptWithKey = (candidateKey: Buffer): string | null => {
+    try {
+      const iv = Buffer.from(ivHex, "hex");
+      const authTag = Buffer.from(authTagHex, "hex");
+      const decipher = createDecipheriv(ALGORITHM, candidateKey, iv);
+      decipher.setAuthTag(authTag);
 
-    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
+      let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+      decrypted += decipher.final("utf8");
+      return decrypted;
+    } catch {
+      return null;
+    }
+  };
+
+  try {
+    const decrypted = tryDecryptWithKey(key);
+    if (decrypted !== null) {
+      return decrypted;
+    }
+
+    const legacyKey = getLegacyKey();
+    if (legacyKey) {
+      const legacyDecrypted = tryDecryptWithKey(legacyKey);
+      if (legacyDecrypted !== null) {
+        return legacyDecrypted;
+      }
+    }
+
+    console.error(
+      `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
+        `Auth tag validation likely failed.`
+    );
+    return null;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[Encryption] Decryption failed:", message);
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 }
 

@@ -280,14 +280,22 @@ function installUpdate() {
 // ── Content Security Policy (#15) ──────────────────────────
 function setupContentSecurityPolicy() {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const scriptSrc = isDev
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+      : "script-src 'self' 'unsafe-inline'";
     const csp = [
       "default-src 'self'",
       `connect-src 'self' http://localhost:* ws://localhost:* https://*.omniroute.online https://*.omniroute.dev`,
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "media-src 'self'",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
     ].join("; ");
 
     callback({

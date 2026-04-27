@@ -284,6 +284,7 @@ test("OAuth test config covers all expected providers", () => {
     "gemini-cli",
     "antigravity",
     "github",
+    "gitlab-duo",
     "qoder",
     "qwen",
     "cursor",
@@ -291,6 +292,7 @@ test("OAuth test config covers all expected providers", () => {
     "kilocode",
     "cline",
     "kiro",
+    "amazon-q",
   ];
 
   // Reimport of OAUTH_TEST_CONFIG keys (verify by name)
@@ -301,6 +303,7 @@ test("OAuth test config covers all expected providers", () => {
     "gemini-cli",
     "antigravity",
     "github",
+    "gitlab-duo",
     "qoder",
     "qwen",
     "cursor",
@@ -308,6 +311,7 @@ test("OAuth test config covers all expected providers", () => {
     "kilocode",
     "cline",
     "kiro",
+    "amazon-q",
   ];
 
   for (const provider of expected) {
@@ -323,16 +327,18 @@ test("Refreshable OAuth providers are correctly identified", () => {
     "codex",
     "gemini-cli",
     "antigravity",
+    "gitlab-duo",
     "qoder",
     "qwen",
     "kimi-coding",
     "cline",
     "kiro",
+    "amazon-q",
   ];
   const nonRefreshable = ["claude", "github", "cursor", "kilocode"];
 
   // Verify these two sets are mutually exclusive and cover all providers
   const allProviders = [...refreshable, ...nonRefreshable];
-  assert.equal(allProviders.length, 12);
-  assert.equal(new Set(allProviders).size, 12);
+  assert.equal(allProviders.length, 14);
+  assert.equal(new Set(allProviders).size, 14);
 });

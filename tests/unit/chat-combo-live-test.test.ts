@@ -9,11 +9,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
 const { generateSignature, invalidateBySignature, setCachedResponse } =
   await import("../../src/lib/semanticCache.ts");
-const { clearModelUnavailability, resetAllAvailability, setModelUnavailable } =
-  await import("../../src/domain/modelAvailability.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
@@ -28,7 +27,6 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  resetAllAvailability();
   resetAllCircuitBreakers();
 }
 
@@ -79,26 +77,19 @@ test.beforeEach(async () => {
 test.afterEach(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
-  resetAllAvailability();
   resetAllCircuitBreakers();
 });
 
 test.after(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
-  resetAllAvailability();
   resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("combo live test bypasses local cooldown and breaker state to perform a real upstream request", async () => {
+test("combo live test bypasses connection cooldown and breaker state to perform a real upstream request", async () => {
   const created = await seedSuppressedConnection();
-
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "test cooldown");
-  const breaker = getCircuitBreaker("openai");
-  breaker.state = STATE.OPEN;
-  breaker.lastFailureTime = Date.now();
 
   const fetchCalls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -120,7 +111,10 @@ test("combo live test bypasses local cooldown and breaker state to perform a rea
   assert.equal(blockedByCooldown.status, 503);
   assert.equal(fetchCalls.length, 0);
 
-  clearModelUnavailability("openai", "gpt-4o-mini");
+  const breaker = getCircuitBreaker("openai");
+  breaker.state = STATE.OPEN;
+  breaker.lastFailureTime = Date.now();
+  breaker.resetTimeout = 60_000;
 
   const blockedByBreaker = await chatRoute.POST(makeRequest());
   assert.equal(blockedByBreaker.status, 503);
@@ -129,7 +123,7 @@ test("combo live test bypasses local cooldown and breaker state to perform a rea
   const liveResponse = await chatRoute.POST(
     makeRequest({ "X-Internal-Test": "combo-health-check" })
   );
-  const liveBody = await liveResponse.json();
+  const liveBody = (await liveResponse.json()) as any;
 
   assert.equal(liveResponse.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -137,7 +131,7 @@ test("combo live test bypasses local cooldown and breaker state to perform a rea
   assert.equal(fetchCalls[0].init.headers.Authorization, "Bearer sk-live-test");
   assert.equal(liveBody.choices[0].message.content, "OK");
 
-  const updated = await providersDb.getProviderConnectionById(created.id);
+  const updated = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(updated.testStatus, "active");
 });
 
@@ -181,7 +175,7 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
 
   try {
     const cachedResponse = await chatRoute.POST(makeRequest());
-    const cachedBody = await cachedResponse.json();
+    const cachedBody = (await cachedResponse.json()) as any;
 
     assert.equal(cachedResponse.status, 200);
     assert.equal(fetchCalls.length, 0);
@@ -194,7 +188,7 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
         "X-Request-Id": "combo-test-cache-bypass",
       })
     );
-    const liveBody = await liveResponse.json();
+    const liveBody = (await liveResponse.json()) as any;
 
     assert.equal(liveResponse.status, 200);
     assert.equal(fetchCalls.length, 1);
@@ -203,4 +197,34 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
   } finally {
     invalidateBySignature(signature);
   }
+});
+
+test("combo live test does not use cooldown-aware request retry on upstream failures", async () => {
+  await seedHealthyConnection();
+  await settingsDb.updateSettings({
+    requestRetry: 3,
+    maxRetryIntervalSec: 5,
+  });
+
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return Response.json(
+      {
+        error: {
+          message: "upstream unavailable",
+        },
+      },
+      { status: 503 }
+    );
+  };
+
+  const liveResponse = await chatRoute.POST(
+    makeRequest({ "X-Internal-Test": "combo-health-check" })
+  );
+  const liveBody = (await liveResponse.json()) as any;
+
+  assert.equal(liveResponse.status, 503);
+  assert.equal(fetchCalls, 1);
+  assert.match(liveBody.error.message, /upstream unavailable/i);
 });

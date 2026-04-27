@@ -24,8 +24,7 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const { getComboMetrics, recordComboRequest, resetAllComboMetrics } =
   await import("../../open-sse/services/comboMetrics.ts");
-const { getCircuitBreaker, resetAllCircuitBreakers } =
-  await import("../../src/shared/utils/circuitBreaker.ts");
+const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { acquire: acquireSemaphore, resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
@@ -52,6 +51,24 @@ function errorResponse(status: number, message: string = `Error ${status}`) {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+function providerBreakerOpenResponse() {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Provider circuit breaker is open",
+        code: "provider_circuit_open",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-provider-breaker": "open",
+      },
+    }
+  );
 }
 
 function streamResponse(chunks: any[]) {
@@ -83,7 +100,7 @@ function capabilityEntry(limitContext: any) {
   };
 }
 
-function getComboTargetBreakerKey(comboName: string, index: number, stepInput: any) {
+function getComboTargetExecutionKey(comboName: string, index: number, stepInput: any) {
   const step = normalizeComboStep(stepInput, { comboName, index });
   if (!step) throw new Error(`Failed to normalize combo step for ${comboName}#${index}`);
   return `combo:${comboName}:${step.id}`;
@@ -96,7 +113,7 @@ async function cleanupTestDataDir() {
       core.resetDbInstance();
       fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       return;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
@@ -605,7 +622,7 @@ test("handleComboChat preserves the first failure status but surfaces the last e
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 500);
   assert.equal(payload.error.message, "fail:model-b");
@@ -740,6 +757,52 @@ test("shouldFallbackComboBadRequest only flags known provider-scoped 400 pattern
   assert.equal(shouldFallbackComboBadRequest(429, "prohibited_content"), false);
   assert.equal(shouldFallbackComboBadRequest(400, null), false);
   assert.equal(shouldFallbackComboBadRequest(400, "generic bad request"), false);
+  // Chinese transient errors (ModelScope/Qwen)
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "[400]: 抱歉，服务遇到了一点小状况，请您稍后重试。"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "服务遇到了一点小状况"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "请稍后重试"), true);
+  // Model not supported errors
+  assert.equal(
+    shouldFallbackComboBadRequest(
+      400,
+      "Model id : XiaomiMiMo/MiMo-V2-Flash , has no provider supported"
+    ),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "no provider supported"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "model not found"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "model not available"), true);
+  // Function calling format errors
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "function.arguments parameter must be in JSON format"),
+    true
+  );
+  assert.equal(
+    shouldFallbackComboBadRequest(
+      400,
+      '[400]: <400> InternalError.Algo.InvalidParameter: The "function.arguments" parameter of the code model must be in JSON format.'
+    ),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "tool arguments invalid format"), true);
+  // Input length range errors
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "Range of input length should be [1, 98304]"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "input length should be"), true);
+  // Content moderation errors (should fallback to next model)
+  assert.equal(
+    shouldFallbackComboBadRequest(400, "抱歉，您的内容包含敏感内容，请检查后重试"),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "内容存在敏感信息，无法响应"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "无法响应该请求"), true);
+  // Generic "please check" should NOT match (was too broad before)
+  assert.equal(shouldFallbackComboBadRequest(400, "请检查您的参数"), false);
 });
 
 test("handleComboChat accepts binary and Responses-style 200 bodies but falls through malformed success payloads", async () => {
@@ -919,7 +982,7 @@ test("handleComboChat returns the earliest retry-after when all priority targets
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 429);
   assert.match(payload.error.message, /limited:model-b/);
@@ -950,7 +1013,7 @@ test("handleComboChat returns 404 model_not_found when a combo has no executable
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 404);
   assert.equal(payload.error.code, "model_not_found");
@@ -983,7 +1046,7 @@ test("handleComboChat round-robin returns 404 when no models are configured", as
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 404);
   assert.equal(payload.error.code, "model_not_found");
@@ -992,7 +1055,7 @@ test("handleComboChat round-robin returns 404 when no models are configured", as
 
 test("handleComboChat round-robin falls through semaphore timeouts and malformed success payloads", async () => {
   const release = await acquireSemaphore(
-    getComboTargetBreakerKey("rr-timeout-fallback", 0, "model-a"),
+    getComboTargetExecutionKey("rr-timeout-fallback", 0, "model-a"),
     {
       maxConcurrency: 1,
       timeoutMs: 100,
@@ -1074,7 +1137,7 @@ test("handleComboChat round-robin surfaces retry-after metadata after exhausting
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 429);
   assert.match(payload.error.message, /rr-limited:model-b/);
@@ -1159,7 +1222,7 @@ test("handleComboChat round-robin falls through provider-scoped 400s and returns
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 400);
   assert.equal(payload.error.message, "rr-final-fail");
   assert.deepEqual(calls, ["model-a", "model-b"]);
@@ -1325,43 +1388,41 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
 
-test("handleComboChat returns the circuit-breaker unavailable response when all breakers are open", async () => {
-  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
-    const breaker = getCircuitBreaker(
-      getComboTargetBreakerKey("all-breakers-open", index, modelStr),
-      {
-        failureThreshold: 1,
-        resetTimeout: 60000,
-      }
-    );
-    breaker._onFailure();
-  }
-
+test("handleComboChat falls through targets that return provider circuit breaker open responses", async () => {
+  const calls = [];
+  const log = createLog();
   const result = await handleComboChat({
     body: {},
     combo: {
-      name: "all-breakers-open",
+      name: "provider-breaker-open",
       strategy: "priority",
       models: ["openai/model-a", "openai/model-b"],
     },
-    handleSingleModel: async () => {
-      throw new Error("handleSingleModel should not run when all breakers are open");
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/model-a") {
+        return providerBreakerOpenResponse();
+      }
+      return okResponse();
     },
     isModelAvailable: async () => true,
-    log: createLog(),
+    log,
     settings: null,
     relayOptions: null as any,
     allCombos: null,
     relayOptions: null,
   });
 
-  assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /circuit breakers open/);
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.ok(
+    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
+  );
 });
 
 test("handleComboChat auto strategy honors LKGP after filtering to tool-capable models", async () => {
@@ -1633,7 +1694,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["claude/claude-sonnet-4-6"]);
   assert.match(
@@ -1748,44 +1809,42 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
     ],
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
 
-test("handleComboChat round-robin returns circuit-breaker unavailable when every model is open", async () => {
-  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
-    const breaker = getCircuitBreaker(
-      getComboTargetBreakerKey("rr-breakers-open", index, modelStr),
-      {
-        failureThreshold: 1,
-        resetTimeout: 60000,
-      }
-    );
-    breaker._onFailure();
-  }
-
+test("handleComboChat round-robin skips targets that return provider circuit breaker open responses", async () => {
+  const calls = [];
+  const log = createLog();
   const result = await handleComboChat({
     body: {},
     combo: {
-      name: "rr-breakers-open",
+      name: "rr-provider-breaker-open",
       strategy: "round-robin",
       models: ["openai/model-a", "openai/model-b"],
       config: { maxRetries: 0 },
     },
-    handleSingleModel: async () => {
-      throw new Error("round-robin should not execute when all breakers are open");
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/model-a") {
+        return providerBreakerOpenResponse();
+      }
+      return okResponse();
     },
     isModelAvailable: async () => true,
-    log: createLog(),
+    log,
     settings: null,
     relayOptions: null as any,
     allCombos: null,
     relayOptions: null,
   });
 
-  assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /circuit breakers open/);
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.ok(
+    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
+  );
 });
 
 test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {
@@ -1888,7 +1947,7 @@ test("handleComboChat falls back to next model when first model returns all-acco
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   // First model returns 503 with "unavailable" → combo should try model-b next
   // If the fix is not applied, combo would abort here and return 503 immediately
   assert.equal(result.ok, true);
@@ -1929,7 +1988,7 @@ test("handleComboChat round-robin falls back when all-accounts-rate-limited 503 
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["model-a", "model-b"]);
   assert.equal(payload.choices[0].message.content, "ok");
@@ -1963,7 +2022,7 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   // Without the fix, combo would abort (still 503). With the fix, it's still 503 because
   // the signal check filters out non-JSON or non-"unavailable" responses.
   assert.equal(result.status, 503);

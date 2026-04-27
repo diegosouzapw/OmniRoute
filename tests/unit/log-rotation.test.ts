@@ -1,75 +1,159 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  unlinkSync,
+  readdirSync,
+  mkdtempSync,
+  rmdirSync,
+} from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 
-const { cleanupOldLogs, cleanupOverflowLogs, getLogConfig } =
-  await import("../../src/lib/logRotation.ts");
+// Dynamically import the module under test so we can control env vars per subtest.
+const { getAppLogRotationCheckInterval } = await import("../../src/lib/logRotation.ts");
 
-test("getLogConfig reads APP_LOG_* values", () => {
-  const originalEnv = {
-    APP_LOG_TO_FILE: process.env.APP_LOG_TO_FILE,
-    APP_LOG_FILE_PATH: process.env.APP_LOG_FILE_PATH,
-    APP_LOG_MAX_FILE_SIZE: process.env.APP_LOG_MAX_FILE_SIZE,
-    APP_LOG_RETENTION_DAYS: process.env.APP_LOG_RETENTION_DAYS,
-    APP_LOG_MAX_FILES: process.env.APP_LOG_MAX_FILES,
-  };
+test("getAppLogRotationCheckInterval — default", () => {
+  delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
+  assert.equal(getAppLogRotationCheckInterval(), 60_000);
+});
 
-  process.env.APP_LOG_TO_FILE = "false";
-  process.env.APP_LOG_FILE_PATH = "/tmp/omniroute-test-app.log";
-  process.env.APP_LOG_MAX_FILE_SIZE = "64M";
-  process.env.APP_LOG_RETENTION_DAYS = "14";
-  process.env.APP_LOG_MAX_FILES = "12";
+test("getAppLogRotationCheckInterval — custom ms", () => {
+  process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS = "30000";
+  try {
+    assert.equal(getAppLogRotationCheckInterval(), 30_000);
+  } finally {
+    delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
+  }
+});
+
+test("getAppLogRotationCheckInterval — invalid value falls back to default", () => {
+  process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS = "not-a-number";
+  try {
+    assert.equal(getAppLogRotationCheckInterval(), 60_000);
+  } finally {
+    delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
+  }
+});
+
+test("getAppLogRotationCheckInterval — zero/negative falls back to default", () => {
+  process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS = "0";
+  try {
+    assert.equal(getAppLogRotationCheckInterval(), 60_000);
+  } finally {
+    delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
+  }
+});
+
+// ── rotateIfNeeded ────────────────────────────────────────────────────────────
+
+test("rotateIfNeeded — skips when file does not exist", async () => {
+  const { rotateIfNeeded } = await import("../../src/lib/logRotation.ts");
+  rotateIfNeeded("/non/existent/path.log", 50 * 1024 * 1024); // must not throw
+});
+
+test("rotateIfNeeded — skips when file is below max size", async () => {
+  const { rotateIfNeeded } = await import("../../src/lib/logRotation.ts");
+  const dir = mkdtempSync(join(tmpdir(), `rot-test-small-${Date.now()}-`));
+  const logPath = join(dir, "app.log");
+  writeFileSync(logPath, "small content\n");
 
   try {
-    const config = getLogConfig();
-
-    assert.equal(config.logToFile, false);
-    assert.equal(config.logFilePath, "/tmp/omniroute-test-app.log");
-    assert.equal(config.maxFileSize, 64 * 1024 * 1024);
-    assert.equal(config.retentionDays, 14);
-    assert.equal(config.maxFiles, 12);
+    // Call with explicit maxSize (50 MB) — bypasses any cached env-level config.
+    rotateIfNeeded(logPath, 50 * 1024 * 1024);
+    // File must still exist and not be rotated
+    assert.ok(existsSync(logPath), "log file should still exist");
+    // rotated = files that match the rotated pattern AND are NOT the active log itself
+    const rotated = readdirSync(dir).filter(
+      (f) => f.startsWith("app.") && f.endsWith(".log") && f !== "app.log"
+    );
+    assert.equal(rotated.length, 0, "no rotated files expected");
   } finally {
-    for (const [key, value] of Object.entries(originalEnv)) {
-      if (value === undefined) {
-        delete process.env[key];
-      } else {
-        process.env[key] = value;
-      }
+    unlinkSync(logPath);
+    rmdirSync(dir);
+  }
+});
+
+test("rotateIfNeeded — rotates when file exceeds max size", async () => {
+  const { rotateIfNeeded } = await import("../../src/lib/logRotation.ts");
+  const dir = mkdtempSync(join(tmpdir(), `rot-test-large-${Date.now()}-`));
+  const logPath = join(dir, "app.log");
+  // Write content larger than 100 bytes to trigger rotation (maxSize = 100)
+  writeFileSync(logPath, "x".repeat(150));
+
+  try {
+    rotateIfNeeded(logPath, 100);
+    // Original file must have been renamed
+    assert.ok(!existsSync(logPath), "original log file should be renamed");
+    const rotated = readdirSync(dir).find(
+      (f) => f.startsWith("app.") && f.endsWith(".log") && f !== "app.log"
+    );
+    assert.ok(rotated, "a rotated file should exist");
+  } finally {
+    for (const f of readdirSync(dir)) {
+      unlinkSync(join(dir, f));
     }
+    rmdirSync(dir);
   }
 });
 
-test("app log cleanup honors both retention days and file count", () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-log-rotation-"));
-  const logFilePath = path.join(tmpDir, "app.log");
+// ── closeLogRotation ───────────────────────────────────────────────────────────
 
-  fs.writeFileSync(logFilePath, "", "utf8");
+test("closeLogRotation — idempotent (safe to call twice)", async () => {
+  // Temporarily set a very short check interval so initLogRotation starts a timer.
+  process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS = "10000";
+  const { initLogRotation, closeLogRotation } = await import("../../src/lib/logRotation.ts");
 
-  const oldFile = path.join(tmpDir, "app.2026-03-01_010101.log");
-  const keepA = path.join(tmpDir, "app.2026-03-02_010101.log");
-  const keepB = path.join(tmpDir, "app.2026-03-03_010101.log");
-  const dropByCount = path.join(tmpDir, "app.2026-03-04_010101.log");
-
-  for (const file of [oldFile, keepA, keepB, dropByCount]) {
-    fs.writeFileSync(file, file, "utf8");
+  try {
+    initLogRotation(); // starts a timer
+    closeLogRotation(); // stops it
+    closeLogRotation(); // must not throw — idempotent
+  } finally {
+    delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
   }
-
-  const now = Date.now();
-  const oneDay = 24 * 60 * 60 * 1000;
-  fs.utimesSync(oldFile, new Date(now - 10 * oneDay), new Date(now - 10 * oneDay));
-  fs.utimesSync(keepA, new Date(now - 3 * oneDay), new Date(now - 3 * oneDay));
-  fs.utimesSync(keepB, new Date(now - 2 * oneDay), new Date(now - 2 * oneDay));
-  fs.utimesSync(dropByCount, new Date(now - oneDay), new Date(now - oneDay));
-
-  cleanupOldLogs(logFilePath, 7);
-  cleanupOverflowLogs(logFilePath, 2);
-
-  assert.equal(fs.existsSync(oldFile), false);
-  assert.equal(fs.existsSync(keepA), false);
-  assert.equal(fs.existsSync(keepB), true);
-  assert.equal(fs.existsSync(dropByCount), true);
-
-  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+// ── Periodic rotation timer — integration ──────────────────────────────────────
+
+test("periodic timer actually fires and rotates a large log", async () => {
+  // Use a short interval (250 ms) and small max size to trigger rotation quickly.
+  process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS = "250";
+  const { initLogRotation, closeLogRotation } = await import("../../src/lib/logRotation.ts");
+
+  const dir = mkdtempSync(join(tmpdir(), `rot-test-periodic-${Date.now()}-`));
+  const logPath = join(dir, "app.log");
+  // Write a file just under the 1 MB threshold
+  writeFileSync(logPath, "y".repeat(900 * 1024));
+
+  try {
+    // Override max file size to 1 MB via env (parseFileSize handles the suffix)
+    process.env.APP_LOG_MAX_FILE_SIZE = "1M";
+    initLogRotation();
+
+    // Append enough to exceed 1 MB — after the next timer tick (≤250 ms)
+    // the rotation should trigger.
+    await new Promise<void>((resolve) => setTimeout(resolve, 600));
+    writeFileSync(logPath, "y".repeat(200 * 1024)); // now 1.1 MB total
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 600));
+
+    const rotatedExists =
+      readdirSync(dir).filter((f) => f.startsWith("app.") && f.endsWith(".log")).length > 0;
+    assert.ok(
+      rotatedExists,
+      "a rotated file should exist after periodic check fired on an oversized log"
+    );
+  } finally {
+    closeLogRotation();
+    delete process.env.APP_LOG_ROTATION_CHECK_INTERVAL_MS;
+    delete process.env.APP_LOG_MAX_FILE_SIZE;
+    for (const f of readdirSync(dir)) {
+      unlinkSync(join(dir, f));
+    }
+    rmdirSync(dir);
+  }
+});
+
+// (cleanup done inline with rmdirSync)

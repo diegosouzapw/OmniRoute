@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSettings } from "@/lib/db/settings";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
+
+const POPULAR_BY_PROVIDER = {
+  skillsmp: ["web-search", "file-reader", "sql-assistant", "devops-helper", "docs-assistant"],
+  skillssh: ["git", "terminal", "postgres", "kubernetes", "playwright"],
+} as const;
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
@@ -8,7 +14,21 @@ export async function GET(request: Request) {
   }
   try {
     const { searchParams } = new URL(request.url);
-    const q = searchParams.get("q") || "";
+    const q = searchParams.get("q")?.trim() || "";
+    const provider = await getSkillsProviderSetting();
+
+    // Return popular skills when query is empty
+    if (!q) {
+      const popularList = POPULAR_BY_PROVIDER[provider];
+      const skills = popularList.map((name) => ({
+        name,
+        description: `Popular skill: ${name}`,
+        installCount: 0,
+      }));
+      return NextResponse.json({ skills });
+    }
+
+    // Search SkillsMP for non-empty queries
     const settings = await getSettings();
     const apiKey = (settings as Record<string, unknown>).skillsmpApiKey;
 

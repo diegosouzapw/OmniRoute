@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildCodexAuthFile, CodexAuthFileError } from "@/lib/oauth/utils/codexAuthFile";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof CodexAuthFileError) {
@@ -17,6 +18,9 @@ function toErrorResponse(error: unknown) {
 }
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(_request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const built = await buildCodexAuthFile(id);

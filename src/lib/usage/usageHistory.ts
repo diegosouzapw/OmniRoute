@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
 import {
   getLoggedInputTokens,
@@ -18,6 +19,22 @@ import {
 } from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
+type PendingRequestMetadata = {
+  clientEndpoint?: string | null;
+  clientRequest?: unknown;
+  providerRequest?: unknown;
+  providerUrl?: string | null;
+};
+type PendingRequestDetail = {
+  model: string;
+  provider: string;
+  connectionId: string | null;
+  startedAt: number;
+  clientEndpoint?: string | null;
+  clientRequest?: unknown;
+  providerRequest?: unknown;
+  providerUrl?: string | null;
+};
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -50,14 +67,80 @@ function stdDev(values: number[], avg: number): number {
   return Math.sqrt(Math.max(0, variance));
 }
 
+const MAX_PREVIEW_DEPTH = 6;
+const MAX_PREVIEW_STRING = 1200;
+const MAX_PREVIEW_ARRAY_ITEMS = 12;
+const MAX_PREVIEW_OBJECT_KEYS = 24;
+
+function truncatePendingPreview(value: unknown, depth = 0): unknown {
+  if (depth >= MAX_PREVIEW_DEPTH) {
+    return "[TRUNCATED_DEPTH]";
+  }
+
+  if (typeof value === "string") {
+    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+  }
+
+  if (Array.isArray(value)) {
+    const preview = value
+      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
+      .map((item) => truncatePendingPreview(item, depth + 1));
+    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
+      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
+    }
+    return preview;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const entries = Object.entries(value as JsonRecord);
+  const truncatedEntries = entries
+    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
+    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
+  const preview = Object.fromEntries(truncatedEntries);
+
+  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
+    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
+  }
+
+  return preview;
+}
+
+function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
+  if (!metadata) return {};
+
+  const normalized: PendingRequestMetadata = {};
+
+  if (metadata.clientEndpoint !== undefined) {
+    normalized.clientEndpoint = toStringOrNull(metadata.clientEndpoint) || null;
+  }
+  if (metadata.providerUrl !== undefined) {
+    normalized.providerUrl = toStringOrNull(metadata.providerUrl) || null;
+  }
+  if (metadata.clientRequest !== undefined) {
+    normalized.clientRequest = truncatePendingPreview(protectPayloadForLog(metadata.clientRequest));
+  }
+  if (metadata.providerRequest !== undefined) {
+    normalized.providerRequest = truncatePendingPreview(
+      protectPayloadForLog(metadata.providerRequest)
+    );
+  }
+
+  return normalized;
+}
+
 // ──────────────── Pending Requests (in-memory) ────────────────
 
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
+  details: Record<string, Record<string, PendingRequestDetail>>;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
+  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
 };
 
 /**
@@ -67,9 +150,11 @@ export function trackPendingRequest(
   model: string,
   provider: string,
   connectionId: string | null,
-  started: boolean
+  started: boolean,
+  metadata?: PendingRequestMetadata
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
+  const normalizedMetadata = normalizePendingMetadata(metadata);
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
   if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
@@ -84,6 +169,12 @@ export function trackPendingRequest(
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
       pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
     }
+    if (!Object.prototype.hasOwnProperty.call(pendingRequests.details, connectionId)) {
+      pendingRequests.details[connectionId] = Object.create(null) as Record<
+        string,
+        PendingRequestDetail
+      >;
+    }
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
     }
@@ -91,7 +182,40 @@ export function trackPendingRequest(
       0,
       pendingRequests.byAccount[connectionId][modelKey] + (started ? 1 : -1)
     );
+
+    const nextCount = pendingRequests.byAccount[connectionId][modelKey];
+    if (started && nextCount > 0) {
+      if (!pendingRequests.details[connectionId][modelKey]) {
+        pendingRequests.details[connectionId][modelKey] = {
+          model,
+          provider,
+          connectionId,
+          startedAt: Date.now(),
+          ...normalizedMetadata,
+        };
+      } else {
+        Object.assign(pendingRequests.details[connectionId][modelKey], normalizedMetadata);
+      }
+    } else if (!started && nextCount === 0) {
+      delete pendingRequests.details[connectionId][modelKey];
+      if (Object.keys(pendingRequests.details[connectionId]).length === 0) {
+        delete pendingRequests.details[connectionId];
+      }
+    }
   }
+}
+
+export function updatePendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  const existing = pendingRequests.details[connectionId]?.[modelKey];
+  if (!existing) return;
+  Object.assign(existing, normalizePendingMetadata(metadata));
 }
 
 /**

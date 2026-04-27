@@ -8,6 +8,8 @@
  * @module lib/evals/evalRunner
  */
 
+import { getCustomEvalSuite, listCustomEvalSuites } from "@/lib/db/evals";
+
 /**
  * @typedef {Object} EvalCase
  * @property {string} id - Unique case ID
@@ -58,7 +60,7 @@ export function registerSuite(suite: any) {
  * @returns {EvalSuite | null}
  */
 export function getSuite(suiteId: string) {
-  return suites.get(suiteId) || null;
+  return suites.get(suiteId) || getCustomEvalSuite(suiteId) || null;
 }
 
 /**
@@ -67,19 +69,40 @@ export function getSuite(suiteId: string) {
  * @returns {Array<{ id: string, name: string, caseCount: number }>}
  */
 export function listSuites() {
-  return Array.from(suites.values()).map((s) => ({
+  const builtInSuites = Array.from(suites.values()).map((s) => ({
     id: s.id,
     name: s.name,
     description: s.description || "",
+    source: "built-in",
     caseCount: s.cases.length,
     cases: s.cases.map((c) => ({
       id: c.id,
       name: c.name,
       model: c.model,
       input: c.input,
+      expected: c.expected,
       tags: c.tags || [],
     })),
   }));
+
+  const customSuites = listCustomEvalSuites().map((suite) => ({
+    id: suite.id,
+    name: suite.name,
+    description: suite.description || "",
+    source: "custom",
+    caseCount: suite.cases.length,
+    updatedAt: suite.updatedAt,
+    cases: suite.cases.map((c) => ({
+      id: c.id,
+      name: c.name,
+      model: c.model,
+      input: c.input,
+      expected: c.expected,
+      tags: c.tags || [],
+    })),
+  }));
+
+  return [...builtInSuites, ...customSuites];
 }
 
 /**
@@ -95,6 +118,8 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
   try {
     let passed = false;
     const details: Record<string, any> = {};
+    details.actualSnippet =
+      typeof actualOutput === "string" ? actualOutput.slice(0, 240) : String(actualOutput ?? "");
 
     switch (evalCase.expected.strategy) {
       case "exact":
@@ -159,17 +184,33 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
  *
  * @param {string} suiteId
  * @param {Record<string, string>} outputs - Map of caseId → actualOutput
+ * @param {Record<string, { durationMs?: number, error?: string }>} [caseMetrics]
  * @returns {{ suiteId: string, suiteName: string, results: EvalResult[], summary: { total: number, passed: number, failed: number, passRate: number } }}
  */
-export function runSuite(suiteId: string, outputs: Record<string, string>) {
-  const suite = suites.get(suiteId);
+export function runSuite(
+  suiteId: string,
+  outputs: Record<string, string>,
+  caseMetrics: Record<string, { durationMs?: number; error?: string }> = {}
+) {
+  const suite = getSuite(suiteId);
   if (!suite) {
     throw new Error(`Suite not found: ${suiteId}`);
   }
 
   const results = suite.cases.map((c) => {
     const output = outputs[c.id] || "";
-    return evaluateCase(c, output);
+    const result = evaluateCase(c, output);
+    const metrics = caseMetrics[c.id];
+
+    if (metrics && Number.isFinite(Number(metrics.durationMs))) {
+      result.durationMs = Math.max(0, Math.round(Number(metrics.durationMs)));
+    }
+
+    if (metrics?.error && !result.error) {
+      result.error = metrics.error;
+    }
+
+    return result;
   });
 
   const passed = results.filter((r) => r.passed).length;

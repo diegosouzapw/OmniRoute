@@ -125,7 +125,7 @@ test("combo builder options route aggregates providers, connections, models and 
   });
 
   const response = await route.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.schemaVersion, 2);
@@ -212,7 +212,7 @@ test("combo builder options route exposes compatible provider nodes with node me
   await modelsDb.addCustomModel("openai-compatible-demo", "gpt-custom", "GPT Custom");
 
   const response = await route.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const provider = body.providers.find((entry) => entry.providerId === "openai-compatible-demo");
 
   assert.equal(response.status, 200);

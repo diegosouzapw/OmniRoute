@@ -161,7 +161,7 @@ test("QoderExecutor: missing tokens return an authentication error response", as
 
   assert.equal(url, "https://dashscope.aliyuncs.com");
   assert.equal(response.status, 401);
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
   assert.equal(payload.error.code, "token_required");
 });
 
@@ -202,9 +202,9 @@ test("QoderExecutor: non-stream calls target DashScope and map alias models", as
     });
 
     assert.equal(url, "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
-    assert.equal(transformedBody.model, "coder-model");
+    assert.equal((transformedBody as any).model, "coder-model");
     assert.equal(response.status, 200);
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
     assert.equal(payload.object, "chat.completion");
     assert.equal(payload.choices[0].message.role, "assistant");
     assert.equal(payload.choices[0].message.content, "OK");

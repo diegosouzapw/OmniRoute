@@ -51,3 +51,43 @@ Content-Type: application/json
 }
 
 ###
+# @name Omniroute - Codex image via /v1/images/generations (DALL-E shim)
+# Translates a DALL-E-style request into a /responses call with the
+# image_generation hosted tool. Use with OpenWebUI's image generation feature.
+POST {{omniroute-address}}/v1/images/generations
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "codex/gpt-5.4",
+  "prompt": "A happy red kitten, highly detailed fur, studio lighting",
+  "n": 1,
+  "size": "1024x1024",
+  "response_format": "b64_json"
+}
+
+###
+# @name Omniroute - Codex hosted image_generation (Responses API)
+# Requires a Codex provider connection authenticated via ChatGPT OAuth.
+# Expect SSE stream to include `response.output_item.done` with
+# `item.type === "image_generation_call"` and a base64 PNG in `item.result`.
+POST {{omniroute-address}}/v1/responses
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gpt-5.3-codex",
+  "instructions": "Generate an image when the user asks for one.",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        { "type": "input_text", "text": "Draw a happy red kitten as a PNG." }
+      ]
+    }
+  ],
+  "tools": [{ "type": "image_generation", "output_format": "png" }],
+  "stream": true
+}
+
+###

@@ -593,6 +593,80 @@ test(
 );
 
 test(
+  "provider connection max_concurrent column is healed even if migration 029 was already recorded",
+  serial,
+  async () => {
+    const dataDir = makeTempDir("omniroute-db-missing-max-concurrent-");
+    const sqliteFile = path.join(dataDir, "storage.sqlite");
+    const seedDb = new Database(sqliteFile);
+    const now = new Date().toISOString();
+
+    seedDb.exec(`
+      CREATE TABLE provider_connections (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        auth_type TEXT,
+        name TEXT,
+        priority INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      INSERT INTO _omniroute_migrations (version, name) VALUES ('001', 'initial_schema');
+      INSERT INTO _omniroute_migrations (version, name) VALUES ('029', 'webhooks_templates');
+    `);
+    seedDb
+      .prepare(
+        "INSERT INTO provider_connections (id, provider, auth_type, name, priority, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      )
+      .run("missing-max-openai", "openai", "apikey", "Missing max", 0, 1, now, now);
+    seedDb.close();
+
+    try {
+      await withEnv({ DATA_DIR: dataDir }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+        const db = core.getDbInstance();
+
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
+            .get("max_concurrent")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
+            .get("idx_pc_max_concurrent")
+        );
+
+        db.prepare(
+          "INSERT INTO provider_connections (id, provider, auth_type, name, priority, is_active, max_concurrent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).run("healed-openai", "openai", "apikey", "Healed", 0, 1, 2, now, now);
+
+        assert.deepEqual(
+          db
+            .prepare(
+              "SELECT max_concurrent AS maxConcurrent FROM provider_connections WHERE id = ?"
+            )
+            .get("healed-openai"),
+          { maxConcurrent: 2 }
+        );
+
+        core.resetDbInstance();
+      });
+    } finally {
+      removePath(dataDir);
+    }
+  }
+);
+
+test(
   "legacy call_logs schemas are upgraded before combo target indexes are created",
   serial,
   async () => {

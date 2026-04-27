@@ -19,7 +19,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -53,7 +53,7 @@ function insertMemory({ id, apiKeyId = "key-a", sessionId = "session-a", content
 
 function getContent(id) {
   const db = core.getDbInstance();
-  return db.prepare("SELECT content FROM memories WHERE id = ?").get(id)?.content ?? null;
+  return (db.prepare("SELECT content FROM memories WHERE id = ?").get(id) as any).content ?? null;
 }
 
 test.beforeEach(async () => {

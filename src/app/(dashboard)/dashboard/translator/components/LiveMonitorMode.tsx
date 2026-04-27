@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Badge } from "@/shared/components";
 import { FORMAT_META } from "../exampleTemplates";
 
@@ -14,6 +14,17 @@ import { FORMAT_META } from "../exampleTemplates";
 export default function LiveMonitorMode() {
   const t = useTranslations("translator");
   const tc = useTranslations("common");
+  const translateOrFallback = useCallback(
+    (key: string, fallback: string, values?: Record<string, unknown>) => {
+      try {
+        const translated = t(key, values);
+        return translated === key || translated === `translator.${key}` ? fallback : translated;
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -48,6 +59,9 @@ export default function LiveMonitorMode() {
   // Stats
   const successCount = events.filter((e) => e.status === "success").length;
   const errorCount = events.filter((e) => e.status === "error").length;
+  const comboCount = events.filter((e) => e.isComboRouted).length;
+  const uniqueEndpoints = new Set(events.map((e) => e.routeEndpoint || e.endpoint).filter(Boolean))
+    .size;
   const avgLatency =
     events.length > 0
       ? Math.round(events.reduce((sum, e) => sum + (e.latency || 0), 0) / events.length)
@@ -75,7 +89,7 @@ export default function LiveMonitorMode() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <StatCard
           icon="translate"
           label={t("totalTranslations")}
@@ -89,6 +103,18 @@ export default function LiveMonitorMode() {
           label={t("avgLatency")}
           value={formatLatency(avgLatency)}
           color="purple"
+        />
+        <StatCard
+          icon="hub"
+          label={translateOrFallback("comboRouted", "Combo-routed")}
+          value={comboCount}
+          color="amber"
+        />
+        <StatCard
+          icon="lan"
+          label={translateOrFallback("uniqueEndpoints", "Unique endpoints")}
+          value={uniqueEndpoints}
+          color="cyan"
         />
       </div>
 
@@ -165,8 +191,8 @@ export default function LiveMonitorMode() {
                 <thead>
                   <tr className="text-left text-xs text-text-muted border-b border-border">
                     <th className="pb-2 pr-4">{t("time")}</th>
+                    <th className="pb-2 pr-4">{translateOrFallback("routeDetails", "Route")}</th>
                     <th className="pb-2 pr-4">{t("source")}</th>
-                    <th className="pb-2 pr-4"></th>
                     <th className="pb-2 pr-4">{t("target")}</th>
                     <th className="pb-2 pr-4">{t("model")}</th>
                     <th className="pb-2 pr-4">{t("status")}</th>
@@ -194,18 +220,36 @@ export default function LiveMonitorMode() {
                             ? new Date(event.timestamp).toLocaleTimeString()
                             : notAvailable}
                         </td>
+                        <td className="py-2 pr-4 min-w-[220px]">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge variant="default" size="sm">
+                                {event.routeProvider || event.provider || notAvailable}
+                              </Badge>
+                              {event.routeCombo ? (
+                                <Badge variant="primary" size="sm">
+                                  {translateOrFallback("comboBadge", "Combo")}: {event.routeCombo}
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-text-muted">
+                              <span>
+                                {translateOrFallback("routeEndpointLabel", "Endpoint")}:{" "}
+                                {event.routeEndpoint || event.endpoint || notAvailable}
+                              </span>
+                              {event.routeConnectionShortId ? (
+                                <span>
+                                  {translateOrFallback("routeConnectionLabel", "Conn")}:{" "}
+                                  <span className="font-mono">{event.routeConnectionShortId}</span>
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </td>
                         <td className="py-2 pr-4">
                           <Badge variant="default" size="sm">
                             {srcMeta.label}
                           </Badge>
-                        </td>
-                        <td className="py-2 pr-4 text-text-muted">
-                          <span
-                            className="material-symbols-outlined text-[14px]"
-                            aria-hidden="true"
-                          >
-                            arrow_forward
-                          </span>
                         </td>
                         <td className="py-2 pr-4">
                           <Badge variant="primary" size="sm">
@@ -243,12 +287,22 @@ export default function LiveMonitorMode() {
 }
 
 function StatCard({ icon, label, value, color }) {
+  const colorMap = {
+    blue: { shell: "bg-blue-500/10", icon: "text-blue-500" },
+    green: { shell: "bg-green-500/10", icon: "text-green-500" },
+    red: { shell: "bg-red-500/10", icon: "text-red-500" },
+    purple: { shell: "bg-purple-500/10", icon: "text-purple-500" },
+    amber: { shell: "bg-amber-500/10", icon: "text-amber-500" },
+    cyan: { shell: "bg-cyan-500/10", icon: "text-cyan-500" },
+  };
+  const resolved = colorMap[color as keyof typeof colorMap] || colorMap.blue;
+
   return (
     <Card>
       <div className="p-4 flex items-center gap-3">
-        <div className={`flex items-center justify-center w-10 h-10 rounded-lg bg-${color}-500/10`}>
+        <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${resolved.shell}`}>
           <span
-            className={`material-symbols-outlined text-[22px] text-${color}-500`}
+            className={`material-symbols-outlined text-[22px] ${resolved.icon}`}
             aria-hidden="true"
           >
             {icon}

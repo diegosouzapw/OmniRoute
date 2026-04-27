@@ -7,7 +7,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,6 +32,17 @@ function assertRouteMethods(relPath, methods) {
   for (const method of methods) {
     assert.match(src, new RegExp(`export\\s+async\\s+function\\s+${method}\\s*\\(`));
   }
+}
+
+function listProjectFiles(relPath) {
+  const full = join(ROOT, relPath);
+  if (!existsSync(full)) return [];
+
+  return readdirSync(full, { withFileTypes: true }).flatMap((entry) => {
+    const childRelPath = `${relPath}/${entry.name}`;
+    if (entry.isDirectory()) return listProjectFiles(childRelPath);
+    return childRelPath;
+  });
 }
 
 // ─── Pipeline Wiring ─────────────────────────────────
@@ -59,6 +70,11 @@ describe("Pipeline Wiring — server-init.ts", () => {
   it("should log server.start audit event", () => {
     assert.match(src, /server\.start/);
   });
+
+  it("should use the structured startup logger instead of direct console calls", () => {
+    assert.match(src, /createLogger\("server-init"\)/);
+    assert.doesNotMatch(src, /console\.(log|warn|error|info|debug)\(/);
+  });
 });
 
 describe("Pipeline Wiring — instrumentation-node.ts", () => {
@@ -84,8 +100,8 @@ describe("Pipeline Wiring — sse chat handler", () => {
     assert.match(src, /getCircuitBreaker|CircuitBreakerOpenError/);
   });
 
-  it("should import model availability integration", () => {
-    assert.match(src, /isModelAvailable|setModelUnavailable/);
+  it("should use credential preflight instead of global model quarantine gates", () => {
+    assert.match(src, /getProviderCredentialsWithQuotaPreflight/);
   });
 
   it("should import request telemetry integration", () => {
@@ -100,6 +116,14 @@ describe("Pipeline Wiring — sse chat handler", () => {
     assert.ok(coreSrc, "open-sse/handlers/chatCore.ts should exist");
     assert.match(coreSrc, /calculateCost/);
     assert.match(coreSrc, /recordCost/);
+  });
+
+  it("should not track backup artifacts in the active src/sse shim", () => {
+    const trackedArtifactNames = listProjectFiles("src/sse").filter((file) =>
+      /\.(orig|bak|backup)$/i.test(file)
+    );
+
+    assert.deepEqual(trackedArtifactNames, []);
   });
 });
 
@@ -129,7 +153,6 @@ describe("Pipeline Wiring — middleware proxy", () => {
 describe("API Routes — existence check", () => {
   const routes = [
     "src/app/api/cache/stats/route.ts",
-    "src/app/api/models/availability/route.ts",
     "src/app/api/telemetry/summary/route.ts",
     "src/app/api/usage/budget/route.ts",
     "src/app/api/usage/quota/route.ts",
@@ -150,10 +173,6 @@ describe("API Routes — existence check", () => {
 describe("API Routes — export HTTP methods", () => {
   it("/api/cache/stats should export GET and DELETE", () => {
     assertRouteMethods("src/app/api/cache/stats/route.ts", ["GET", "DELETE"]);
-  });
-
-  it("/api/models/availability should export GET and POST", () => {
-    assertRouteMethods("src/app/api/models/availability/route.ts", ["GET", "POST"]);
   });
 
   it("/api/telemetry/summary should export GET", () => {
@@ -186,6 +205,86 @@ describe("API Routes — export HTTP methods", () => {
 
   it("/api/policies should export GET and POST", () => {
     assertRouteMethods("src/app/api/policies/route.ts", ["GET", "POST"]);
+  });
+});
+
+describe("API Routes — dashboard and tool consumers", () => {
+  it("keeps model-combo mapping APIs wired through routing settings", () => {
+    const settingsPage = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+    const modelRoutingSection = readProjectFile("src/shared/components/ModelRoutingSection.tsx");
+
+    assert.ok(settingsPage, "settings page should exist");
+    assert.ok(modelRoutingSection, "ModelRoutingSection should exist");
+    assert.match(settingsPage, /ModelRoutingSection/);
+    assert.match(modelRoutingSection, /fetch\("\/api\/model-combo-mappings"\)/);
+    assert.match(modelRoutingSection, /fetch\(`\/api\/model-combo-mappings\/\$\{editingId\}`/);
+    assert.match(modelRoutingSection, /method:\s*"DELETE"/);
+    assertRouteMethods("src/app/api/model-combo-mappings/route.ts", ["GET", "POST"]);
+    assertRouteMethods("src/app/api/model-combo-mappings/[id]/route.ts", ["GET", "PUT", "DELETE"]);
+  });
+
+  it("keeps log APIs wired through the consolidated logs dashboard", () => {
+    const logsPage = readProjectFile("src/app/(dashboard)/dashboard/logs/page.tsx");
+    const requestLogger = readProjectFile("src/shared/components/RequestLoggerV2.tsx");
+    const proxyLogger = readProjectFile("src/shared/components/ProxyLogger.tsx");
+    const consoleLogger = readProjectFile("src/shared/components/ConsoleLogViewer.tsx");
+    const activeRequests = readProjectFile("src/shared/components/ActiveRequestsPanel.tsx");
+
+    assert.ok(logsPage, "logs page should exist");
+    assert.ok(requestLogger, "RequestLoggerV2 should exist");
+    assert.ok(proxyLogger, "ProxyLogger should exist");
+    assert.ok(consoleLogger, "ConsoleLogViewer should exist");
+    assert.ok(activeRequests, "ActiveRequestsPanel should exist");
+    assert.match(logsPage, /RequestLoggerV2/);
+    assert.match(logsPage, /ProxyLogger/);
+    assert.match(logsPage, /ConsoleLogViewer/);
+    assert.match(logsPage, /ActiveRequestsPanel/);
+    assert.match(logsPage, /AuditLogTab/);
+    assert.match(logsPage, /\/api\/logs\/export/);
+    assert.match(requestLogger, /\/api\/usage\/call-logs/);
+    assert.match(requestLogger, /\/api\/logs\/detail/);
+    assert.match(proxyLogger, /\/api\/usage\/proxy-logs/);
+    assert.match(consoleLogger, /\/api\/logs\/console/);
+    assert.match(activeRequests, /\/api\/logs\/active/);
+    assertRouteMethods("src/app/api/logs/active/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/logs/console/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/logs/detail/route.ts", ["GET", "POST"]);
+    assertRouteMethods("src/app/api/logs/export/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/usage/proxy-logs/route.ts", ["GET", "DELETE"]);
+    assertRouteMethods("src/app/api/usage/call-logs/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/usage/call-logs/[id]/route.ts", ["GET"]);
+  });
+
+  it("keeps usage quota wired through A2A and MCP tools", () => {
+    const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
+    const mcpAdvancedTools = readProjectFile("open-sse/mcp-server/tools/advancedTools.ts");
+    const mcpServer = readProjectFile("open-sse/mcp-server/server.ts");
+
+    assert.ok(quotaSkill, "quotaManagement skill should exist");
+    assert.ok(mcpAdvancedTools, "advanced MCP tools should exist");
+    assert.ok(mcpServer, "MCP server should exist");
+    assert.match(quotaSkill, /\/api\/usage\/quota/);
+    assert.match(mcpAdvancedTools, /\/api\/usage\/quota/);
+    assert.match(mcpServer, /\/api\/usage\/quota/);
+    assertRouteMethods("src/app/api/usage/quota/route.ts", ["GET"]);
+  });
+
+  it("keeps legacy usage history and raw request-log APIs explicitly classified", () => {
+    const usageStats = readProjectFile("src/shared/components/UsageStats.tsx");
+    const apiReference = readProjectFile("docs/API_REFERENCE.md");
+    const openApi = readProjectFile("docs/openapi.yaml");
+
+    assert.ok(usageStats, "UsageStats compatibility component should exist");
+    assert.ok(apiReference, "API reference should exist");
+    assert.ok(openApi, "OpenAPI document should exist");
+    assert.match(usageStats, /\/api\/usage\/history/);
+    assert.match(apiReference, /\/api\/usage\/history/);
+    assert.match(apiReference, /\/api\/usage\/request-logs/);
+    assert.match(openApi, /\/api\/usage\/history:/);
+    assert.match(openApi, /\/api\/usage\/request-logs:/);
+    assertRouteMethods("src/app/api/usage/history/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/usage/request-logs/route.ts", ["GET"]);
+    assertRouteMethods("src/app/api/usage/logs/route.ts", ["GET"]);
   });
 });
 
@@ -318,10 +417,18 @@ describe("Page Integration — logs page wiring", () => {
 
 describe("Page Integration — settings page wiring", () => {
   const src = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+  const memorySkillsTab = readProjectFile(
+    "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx"
+  );
 
   it("should include resilience tab in advanced settings", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/settings/page.tsx should exist");
     assert.match(src, /ResilienceTab/);
+  });
+
+  it("should not label the active skills settings card as a placeholder", () => {
+    assert.ok(memorySkillsTab, "MemorySkillsTab should exist");
+    assert.doesNotMatch(memorySkillsTab, /Skills Settings \(placeholder\)/);
   });
 });
 

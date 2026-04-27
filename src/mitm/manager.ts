@@ -1,29 +1,29 @@
-import { spawn } from "child_process";
+import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
-import { resolveDataDir } from "@/lib/dataPaths";
-import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig";
-import { generateCert } from "./cert/generate";
-import { installCert } from "./cert/install";
+import { resolveMitmDataDir } from "./dataDir.ts";
+import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig.ts";
+import { generateCert } from "./cert/generate.ts";
+import { installCert } from "./cert/install.ts";
 
 // Store server process
-let serverProcess = null;
-let serverPid = null;
+let serverProcess: ChildProcess | null = null;
+let serverPid: number | null = null;
 
 // Module-scoped password cache (not exposed on globalThis).
 // Cleared automatically when the MITM proxy is stopped.
-let _cachedPassword = null;
-export function getCachedPassword() {
+let _cachedPassword: string | null = null;
+export function getCachedPassword(): string | null {
   return _cachedPassword;
 }
-export function setCachedPassword(pwd) {
+export function setCachedPassword(pwd: string | null | undefined): void {
   _cachedPassword = pwd || null;
 }
-export function clearCachedPassword() {
+export function clearCachedPassword(): void {
   _cachedPassword = null;
 }
 
-const PID_FILE = path.join(resolveDataDir(), "mitm", ".mitm.pid");
+const PID_FILE = path.join(resolveMitmDataDir(), "mitm", ".mitm.pid");
 const MITM_SERVER_URL = new URL("./server.cjs", import.meta.url);
 const urlPath =
   process.platform === "win32" && MITM_SERVER_URL.pathname.startsWith("/")
@@ -34,7 +34,7 @@ const cwdPath = path.join(process.cwd(), "src", "mitm", "server.cjs");
 const MITM_SERVER_PATH = fs.existsSync(cwdPath) ? cwdPath : urlPath;
 
 // Check if a PID is alive
-function isProcessAlive(pid) {
+function isProcessAlive(pid: number): boolean {
   try {
     process.kill(pid, 0);
     return true;
@@ -46,7 +46,12 @@ function isProcessAlive(pid) {
 /**
  * Get MITM status
  */
-export async function getMitmStatus() {
+export async function getMitmStatus(): Promise<{
+  running: boolean;
+  pid: number | null;
+  dnsConfigured: boolean;
+  certExists: boolean;
+}> {
   // Check in-memory process first, then fallback to PID file
   let running = serverProcess !== null && !serverProcess.killed;
   let pid = serverPid;
@@ -78,7 +83,7 @@ export async function getMitmStatus() {
   }
 
   // Check cert
-  const certDir = path.join(resolveDataDir(), "mitm");
+  const certDir = path.join(resolveMitmDataDir(), "mitm");
   const certExists = fs.existsSync(path.join(certDir, "server.crt"));
 
   return { running, pid, dnsConfigured, certExists };
@@ -89,14 +94,17 @@ export async function getMitmStatus() {
  * @param {string} apiKey - OmniRoute API key
  * @param {string} sudoPassword - Sudo password for DNS/cert operations
  */
-export async function startMitm(apiKey, sudoPassword) {
+export async function startMitm(
+  apiKey: string,
+  sudoPassword: string
+): Promise<{ running: true; pid: number | null }> {
   // Check if already running
   if (serverProcess && !serverProcess.killed) {
     throw new Error("MITM proxy is already running");
   }
 
   // 1. Generate SSL certificate if not exists
-  const certPath = path.join(resolveDataDir(), "mitm", "server.crt");
+  const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
     console.log("Generating SSL certificate...");
     await generateCert();
@@ -121,21 +129,24 @@ export async function startMitm(apiKey, sudoPassword) {
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  serverPid = serverProcess.pid;
+  const proc = serverProcess;
+  serverPid = proc.pid ?? null;
 
   // Save PID to file
-  fs.writeFileSync(PID_FILE, String(serverPid));
+  if (serverPid !== null) {
+    fs.writeFileSync(PID_FILE, String(serverPid));
+  }
 
   // Log server output
-  serverProcess.stdout.on("data", (data) => {
+  proc.stdout?.on("data", (data) => {
     console.log(`[MITM Server] ${data.toString().trim()}`);
   });
 
-  serverProcess.stderr.on("data", (data) => {
+  proc.stderr?.on("data", (data) => {
     console.error(`[MITM Server Error] ${data.toString().trim()}`);
   });
 
-  serverProcess.on("exit", (code) => {
+  proc.on("exit", (code) => {
     console.log(`MITM server exited with code ${code}`);
     serverProcess = null;
     serverPid = null;
@@ -149,7 +160,7 @@ export async function startMitm(apiKey, sudoPassword) {
   });
 
   // Wait and verify server actually started
-  const started = await new Promise((resolve) => {
+  const started = await new Promise<boolean>((resolve) => {
     let resolved = false;
     const timeout = setTimeout(() => {
       if (!resolved) {
@@ -158,7 +169,7 @@ export async function startMitm(apiKey, sudoPassword) {
       }
     }, 2000);
 
-    serverProcess.on("exit", (code) => {
+    proc.on("exit", () => {
       clearTimeout(timeout);
       if (!resolved) {
         resolved = true;
@@ -167,7 +178,7 @@ export async function startMitm(apiKey, sudoPassword) {
     });
 
     // Check stderr for error messages
-    serverProcess.stderr.on("data", (data) => {
+    proc.stderr?.on("data", (data) => {
       const msg = data.toString().trim();
       if (msg.includes("Port") && msg.includes("already in use")) {
         clearTimeout(timeout);
@@ -193,7 +204,7 @@ export async function startMitm(apiKey, sudoPassword) {
  * Stop MITM proxy
  * @param {string} sudoPassword - Sudo password for DNS cleanup
  */
-export async function stopMitm(sudoPassword) {
+export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {

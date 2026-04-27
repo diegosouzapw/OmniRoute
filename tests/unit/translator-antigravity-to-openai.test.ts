@@ -182,7 +182,7 @@ test("Antigravity -> OpenAI lowers schema types recursively", () => {
     false
   );
 
-  assert.deepEqual(result.tools[0].function.parameters, {
+  assert.deepEqual((result.tools[0].function as any).parameters, {
     type: "object",
     properties: {
       items: {

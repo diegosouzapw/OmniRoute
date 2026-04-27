@@ -2,100 +2,30 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { FREE_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
-
-const ENDPOINT_ROWS = [
-  { path: "/v1/chat/completions", method: "POST", noteKey: "endpointChatNote" },
-  { path: "/v1/responses", method: "POST", noteKey: "endpointResponsesNote" },
-  { path: "/v1/models", method: "GET", noteKey: "endpointModelsNote" },
-  { path: "/v1/embeddings", method: "POST", noteKey: "endpointEmbeddingsNote" },
-  { path: "/v1/audio/transcriptions", method: "POST", noteKey: "endpointAudioNote" },
-  { path: "/v1/audio/speech", method: "POST", noteKey: "endpointSpeechNote" },
-  { path: "/v1/images/generations", method: "POST", noteKey: "endpointImagesNote" },
-  { path: "/chat/completions", method: "POST", noteKey: "endpointRewriteChatNote" },
-  { path: "/responses", method: "POST", noteKey: "endpointRewriteResponsesNote" },
-  { path: "/models", method: "GET", noteKey: "endpointRewriteModelsNote" },
-] as const;
-
-const MANAGEMENT_ENDPOINT_ROWS = [
-  { path: "/api/v1/management/proxies", method: "GET", noteKey: "mgmtProxiesListNote" },
-  { path: "/api/v1/management/proxies", method: "POST", noteKey: "mgmtProxiesCreateNote" },
-  {
-    path: "/api/v1/management/proxies/health",
-    method: "GET",
-    noteKey: "mgmtProxiesHealthNote",
-  },
-  {
-    path: "/api/v1/management/proxies/bulk-assign",
-    method: "PUT",
-    noteKey: "mgmtProxiesBulkAssignNote",
-  },
-  {
-    path: "/api/v1/management/proxies/assignments",
-    method: "GET",
-    noteKey: "mgmtAssignmentsListNote",
-  },
-  {
-    path: "/api/v1/management/proxies/assignments",
-    method: "PUT",
-    noteKey: "mgmtAssignmentsUpdateNote",
-  },
-  {
-    path: "/api/settings/proxies/migrate",
-    method: "POST",
-    noteKey: "mgmtLegacyMigrationNote",
-  },
-] as const;
-
-const FEATURE_ITEMS = [
-  { icon: "hub", titleKey: "featureRoutingTitle", textKey: "featureRoutingText" },
-  { icon: "layers", titleKey: "featureCombosTitle", textKey: "featureCombosText" },
-  { icon: "bar_chart", titleKey: "featureUsageTitle", textKey: "featureUsageText" },
-  { icon: "analytics", titleKey: "featureAnalyticsTitle", textKey: "featureAnalyticsText" },
-  { icon: "health_and_safety", titleKey: "featureHealthTitle", textKey: "featureHealthText" },
-  { icon: "terminal", titleKey: "featureCliTitle", textKey: "featureCliText" },
-  { icon: "shield", titleKey: "featureSecurityTitle", textKey: "featureSecurityText" },
-  { icon: "cloud_sync", titleKey: "featureCloudSyncTitle", textKey: "featureCloudSyncText" },
-] as const;
-
-const USE_CASE_ITEMS = [
-  { titleKey: "useCaseSingleEndpointTitle", textKey: "useCaseSingleEndpointText" },
-  { titleKey: "useCaseFallbackTitle", textKey: "useCaseFallbackText" },
-  { titleKey: "useCaseUsageVisibilityTitle", textKey: "useCaseUsageVisibilityText" },
-] as const;
-
-const TROUBLESHOOTING_KEYS = [
-  "troubleshootingModelRouting",
-  "troubleshootingAmbiguousModels",
-  "troubleshootingCodexFamily",
-  "troubleshootingTestConnection",
-  "troubleshootingCircuitBreaker",
-  "troubleshootingOAuth",
-] as const;
-
-const TOC_ITEMS = [
-  { href: "#quick-start", labelKey: "quickStart" },
-  { href: "#features", labelKey: "features" },
-  { href: "#supported-providers", labelKey: "supportedProvidersToc" },
-  { href: "#use-cases", labelKey: "commonUseCases" },
-  { href: "#client-compatibility", labelKey: "clientCompatibility" },
-  { href: "#protocols", labelKey: "protocolsToc" },
-  { href: "#api-reference", labelKey: "apiReference" },
-  { href: "#management-api", labelKey: "managementApiReference" },
-  { href: "#model-prefixes", labelKey: "modelPrefixes" },
-  { href: "#troubleshooting", labelKey: "troubleshooting" },
-] as const;
+import {
+  DOCS_ENDPOINT_ROWS,
+  DOCS_FEATURE_ITEMS,
+  DOCS_MANAGEMENT_ENDPOINT_ROWS,
+  DOCS_MCP_TOOL_GROUPS,
+  DOCS_TOC_ITEMS,
+  DOCS_TROUBLESHOOTING_KEYS,
+  DOCS_USE_CASE_ITEMS,
+} from "./content";
 
 function ProviderTable({
   title,
   providers,
   colorDot,
+  maxHeight,
 }: {
   title: string;
   providers: Record<string, any>;
   colorDot: string;
+  maxHeight?: string;
 }) {
   const t = useTranslations("docs");
   const entries = Object.values(providers) as any[];
+  const isLargeList = entries.length > 20;
 
   return (
     <div className="rounded-lg border border-border bg-bg p-4">
@@ -106,16 +36,17 @@ function ProviderTable({
           {t("providersCount", { count: entries.length })}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+      <div
+        className={`${isLargeList ? "grid grid-cols-2 sm:grid-cols-3 gap-1.5" : "grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1"} text-sm`}
+        style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
+      >
         {entries.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0"
+            className={`flex items-center ${isLargeList ? "gap-1.5 py-1 px-2 rounded-md bg-bg-subtle border border-border/30" : "justify-between py-1.5 border-b border-border/40 last:border-0"}`}
           >
-            <span className="font-medium">{p.name}</span>
-            <code className="text-xs text-text-muted px-1.5 py-0.5 rounded bg-bg-subtle">
-              {p.alias}/
-            </code>
+            <code className="text-xs text-text-muted shrink-0">{p.alias}/</code>
+            <span className={`${isLargeList ? "text-xs truncate" : "font-medium"}`}>{p.name}</span>
           </div>
         ))}
       </div>
@@ -131,29 +62,35 @@ export default function DocsPage() {
     Object.keys(OAUTH_PROVIDERS).length +
     Object.keys(APIKEY_PROVIDERS).length;
 
-  const endpointRows = ENDPOINT_ROWS.map((row) => ({
+  const endpointRows = DOCS_ENDPOINT_ROWS.map((row) => ({
     ...row,
     note: t(row.noteKey),
   }));
-  const managementEndpointRows = MANAGEMENT_ENDPOINT_ROWS.map((row) => ({
+  const managementEndpointRows = DOCS_MANAGEMENT_ENDPOINT_ROWS.map((row) => ({
     ...row,
     note: t(row.noteKey),
   }));
 
-  const featureItems = FEATURE_ITEMS.map((item) => ({
+  const featureItems = DOCS_FEATURE_ITEMS.map((item) => ({
     ...item,
     title: t(item.titleKey),
     text: t(item.textKey),
   }));
 
-  const useCases = USE_CASE_ITEMS.map((item) => ({
+  const useCases = DOCS_USE_CASE_ITEMS.map((item) => ({
     ...item,
     title: t(item.titleKey),
     text: t(item.textKey),
   }));
 
-  const troubleshootingItems = TROUBLESHOOTING_KEYS.map((key) => t(key));
-  const tocItems = TOC_ITEMS.map((item) => ({ ...item, label: t(item.labelKey) }));
+  const troubleshootingItems = DOCS_TROUBLESHOOTING_KEYS.map((key) => t(key));
+  const tocItems = DOCS_TOC_ITEMS.map((item) => ({ ...item, label: t(item.labelKey) }));
+  const mcpToolGroups = DOCS_MCP_TOOL_GROUPS.map((group) => ({
+    ...group,
+    title: t(group.titleKey),
+    text: t(group.textKey),
+  }));
+  const totalMcpTools = DOCS_MCP_TOOL_GROUPS.reduce((sum, group) => sum + group.tools.length, 0);
 
   const providerPrefixRows = [
     ...Object.values(FREE_PROVIDERS).map((p) => ({ ...p, type: "free" as const })),
@@ -305,7 +242,7 @@ export default function DocsPage() {
               {t("manageProviders")}
             </Link>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <ProviderTable
               title={t("providerTypeFree")}
               providers={FREE_PROVIDERS}
@@ -316,10 +253,13 @@ export default function DocsPage() {
               providers={OAUTH_PROVIDERS}
               colorDot="bg-blue-500"
             />
+          </div>
+          <div className="mt-3">
             <ProviderTable
               title={t("providerTypeApiKey")}
               providers={APIKEY_PROVIDERS}
               colorDot="bg-amber-500"
+              maxHeight="400px"
             />
           </div>
         </section>
@@ -401,6 +341,30 @@ export default function DocsPage() {
                 <li>{t("fullStreaming")}</li>
               </ul>
             </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientWindsurfTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientWindsurfBullet1")}</li>
+                <li>{t("clientWindsurfBullet2")}</li>
+                <li>{t("clientWindsurfBullet3")}</li>
+              </ul>
+            </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientClineTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientClineBullet1")}</li>
+                <li>{t("clientClineBullet2")}</li>
+                <li>{t("clientClineBullet3")}</li>
+              </ul>
+            </article>
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("clientKimiTitle")}</h3>
+              <ul className="mt-2 text-text-muted space-y-1">
+                <li>{t("clientKimiBullet1")}</li>
+                <li>{t("clientKimiBullet2")}</li>
+                <li>{t("clientKimiBullet3")}</li>
+              </ul>
+            </article>
           </div>
         </section>
 
@@ -408,7 +372,7 @@ export default function DocsPage() {
           <h2 className="text-xl font-semibold">{t("protocolsTitle")}</h2>
           <p className="text-sm text-text-muted mt-2">{t("protocolsDescription")}</p>
 
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
             <article className="rounded-lg border border-border p-4 bg-bg">
               <h3 className="font-semibold">{t("protocolMcpTitle")}</h3>
               <p className="text-text-muted mt-1">{t("protocolMcpDesc")}</p>
@@ -435,6 +399,20 @@ export default function DocsPage() {
 POST /a2a  (JSON-RPC: message/send | message/stream)`}</code>
               </pre>
             </article>
+
+            <article className="rounded-lg border border-border p-4 bg-bg">
+              <h3 className="font-semibold">{t("protocolAcpTitle")}</h3>
+              <p className="text-text-muted mt-1">{t("protocolAcpDesc")}</p>
+              <ol className="mt-3 list-decimal list-inside space-y-1 text-text-muted">
+                <li>{t("protocolAcpStep1")}</li>
+                <li>{t("protocolAcpStep2")}</li>
+                <li>{t("protocolAcpStep3")}</li>
+              </ol>
+              <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
+                <code>{`Dashboard -> Agents
+Dashboard -> CLI Tools`}</code>
+              </pre>
+            </article>
           </div>
 
           <div className="mt-4 rounded-lg border border-border p-4 bg-bg">
@@ -444,6 +422,39 @@ POST /a2a  (JSON-RPC: message/send | message/stream)`}</code>
               <li>{t("protocolTroubleshooting2")}</li>
               <li>{t("protocolTroubleshooting3")}</li>
             </ul>
+          </div>
+        </section>
+
+        <section id="mcp-tools" className="rounded-2xl border border-border bg-bg-subtle p-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-semibold">{t("mcpToolsTitle")}</h2>
+              <p className="mt-2 text-sm text-text-muted">
+                {t("mcpToolsDescription", { count: totalMcpTools })}
+              </p>
+            </div>
+            <div className="rounded-full border border-border bg-bg px-3 py-1 text-xs text-text-muted">
+              {t("mcpToolsCount", { count: totalMcpTools })}
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {mcpToolGroups.map((group) => (
+              <article key={group.titleKey} className="rounded-lg border border-border bg-bg p-4">
+                <h3 className="font-semibold">{group.title}</h3>
+                <p className="mt-1 text-sm text-text-muted">{group.text}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {group.tools.map((tool) => (
+                    <code
+                      key={tool}
+                      className="rounded-md border border-border/70 bg-bg-subtle px-2 py-1 text-xs text-text-muted"
+                    >
+                      {tool}
+                    </code>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 

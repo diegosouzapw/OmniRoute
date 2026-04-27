@@ -39,8 +39,8 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
   await assert.rejects(
     async () => proxiesDb.deleteProxyById(created.id),
     (error) => {
-      assert.equal(error.status, 409);
-      assert.equal(error.code, "proxy_in_use");
+      assert.equal((error as any).status, 409);
+      (assert as any).equal((error as any).code, "proxy_in_use");
       return true;
     }
   );
@@ -56,7 +56,7 @@ test("registry assignment takes precedence over legacy proxy config", async () =
     apiKey: "sk-test",
   });
 
-  await settingsDb.setProxyForLevel("key", conn.id, {
+  await settingsDb.setProxyForLevel("key", (conn as any).id, {
     type: "http",
     host: "legacy-key.local",
     port: 8080,
@@ -76,9 +76,9 @@ test("registry assignment takes precedence over legacy proxy config", async () =
   });
 
   await proxiesDb.assignProxyToScope("provider", "openai", providerProxy.id);
-  await proxiesDb.assignProxyToScope("account", conn.id, accountProxy.id);
+  await proxiesDb.assignProxyToScope("account", (conn as any).id, accountProxy.id);
 
-  const resolved = await settingsDb.resolveProxyForConnection(conn.id);
+  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id);
   assert.equal(resolved.level, "account");
   assert.equal(resolved.source, "registry");
   assert.equal(resolved.proxy.host, "account.local");
@@ -104,7 +104,7 @@ test("legacy proxy config migration imports global/provider/key assignments", as
     host: "provider-legacy.local",
     port: 443,
   });
-  await settingsDb.setProxyForLevel("key", conn.id, {
+  await settingsDb.setProxyForLevel("key", (conn as any).id, {
     type: "http",
     host: "account-legacy.local",
     port: 8082,
@@ -114,7 +114,7 @@ test("legacy proxy config migration imports global/provider/key assignments", as
   assert.equal(result.skipped, false);
   assert.equal(result.migrated >= 3, true);
 
-  const resolved = await settingsDb.resolveProxyForConnection(conn.id);
+  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id);
   assert.equal(resolved.level, "account");
   assert.equal(resolved.source, "registry");
   assert.equal(resolved.proxy.host, "account-legacy.local");

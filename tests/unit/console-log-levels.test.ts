@@ -44,7 +44,7 @@ test("console log API normalizes numeric pino levels correctly", async () => {
   const response = await route.GET(
     new Request("http://localhost/api/logs/console?level=info&limit=10")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(
@@ -89,7 +89,7 @@ test("console log API filters by component, time window, and result limit", asyn
   const response = await route.GET(
     new Request("http://localhost/api/logs/console?level=warn&component=router&limit=1")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.length, 1);
@@ -111,7 +111,7 @@ test("console log API returns an empty list for a missing file and surfaces read
   try {
     const brokenResponse = await route.GET(new Request("http://localhost/api/logs/console"));
     assert.equal(brokenResponse.status, 500);
-    const payload = await brokenResponse.json();
+    const payload = (await brokenResponse.json()) as any;
     assert.equal(typeof payload.error, "string");
     assert.equal(payload.error.length > 0, true);
   } finally {

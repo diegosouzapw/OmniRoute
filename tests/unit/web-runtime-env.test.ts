@@ -67,7 +67,7 @@ test("getWebRuntimeEnv throws sanitized messages without leaking secret values",
 
   assert.throws(
     () => getWebRuntimeEnv(env),
-    (error) => {
+    (error: any) => {
       assert.match(error.message, /API_KEY_SECRET/);
       assert.doesNotMatch(error.message, /short-secret/);
       return true;

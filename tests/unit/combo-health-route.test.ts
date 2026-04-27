@@ -113,7 +113,7 @@ test("combo health route exposes step-level target health for structured combos"
   const response = await route.GET(
     new Request(`http://localhost/api/usage/combo-health?range=24h&comboId=${combo.id}`)
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.combos.length, 1);
@@ -234,7 +234,7 @@ test("combo health route prefers historical call log target metrics over volatil
   const response = await route.GET(
     new Request(`http://localhost/api/usage/combo-health?range=24h&comboId=${combo.id}`)
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.combos.length, 1);

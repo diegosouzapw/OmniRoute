@@ -2,29 +2,60 @@ import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { updateComboDefaultsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+
+const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
+  "timeoutMs",
+  "healthCheckEnabled",
+  "healthCheckTimeoutMs",
+]);
+
+function sanitizeComboRuntimeConfig(config?: Record<string, any> | null) {
+  if (!config || typeof config !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(config).filter(
+      ([key, value]) =>
+        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+    )
+  );
+}
+
+function sanitizeProviderOverrides(overrides?: Record<string, any> | null) {
+  if (!overrides || typeof overrides !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(overrides).map(([providerId, config]) => [
+      providerId,
+      sanitizeComboRuntimeConfig(config),
+    ])
+  );
+}
 
 /**
  * GET /api/settings/combo-defaults
  * Returns the current combo global defaults and provider overrides
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const settings: any = await getSettings();
+    const comboDefaults = sanitizeComboRuntimeConfig(settings.comboDefaults);
+    const providerOverrides = sanitizeProviderOverrides(settings.providerOverrides);
     return NextResponse.json({
-      comboDefaults: settings.comboDefaults || {
-        strategy: "priority",
-        maxRetries: 1,
-        retryDelayMs: 2000,
-        timeoutMs: 120000,
-        healthCheckEnabled: true,
-        healthCheckTimeoutMs: 3000,
-        handoffThreshold: 0.85,
-        handoffModel: "",
-        maxMessagesForSummary: 30,
-        maxComboDepth: 3,
-        trackMetrics: true,
-      },
-      providerOverrides: settings.providerOverrides || {},
+      comboDefaults:
+        Object.keys(comboDefaults).length > 0
+          ? comboDefaults
+          : {
+              strategy: "priority",
+              maxRetries: 1,
+              retryDelayMs: 2000,
+              handoffThreshold: 0.85,
+              handoffModel: "",
+              maxMessagesForSummary: 30,
+              maxComboDepth: 3,
+              trackMetrics: true,
+            },
+      providerOverrides,
     });
   } catch (error) {
     console.log("Error fetching combo defaults:", error);
@@ -37,7 +68,9 @@ export async function GET() {
  * Update combo global defaults and/or provider overrides
  * Body: { comboDefaults?: {...}, providerOverrides?: {...} }
  */
-export async function PATCH(request) {
+export async function PATCH(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();
@@ -63,16 +96,16 @@ export async function PATCH(request) {
     const updates: Record<string, any> = {};
 
     if (body.comboDefaults) {
-      updates.comboDefaults = body.comboDefaults;
+      updates.comboDefaults = sanitizeComboRuntimeConfig(body.comboDefaults);
     }
     if (body.providerOverrides) {
-      updates.providerOverrides = body.providerOverrides;
+      updates.providerOverrides = sanitizeProviderOverrides(body.providerOverrides);
     }
 
     const settings: any = await updateSettings(updates);
     return NextResponse.json({
-      comboDefaults: settings.comboDefaults || {},
-      providerOverrides: settings.providerOverrides || {},
+      comboDefaults: sanitizeComboRuntimeConfig(settings.comboDefaults),
+      providerOverrides: sanitizeProviderOverrides(settings.providerOverrides),
     });
   } catch (error) {
     console.log("Error updating combo defaults:", error);

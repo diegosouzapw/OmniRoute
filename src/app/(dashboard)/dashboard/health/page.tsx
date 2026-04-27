@@ -32,6 +32,18 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function formatRelativeTime(timestamp) {
+  if (!timestamp || !Number.isFinite(timestamp)) return null;
+  const diffMs = Math.max(0, Date.now() - timestamp);
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "<1m";
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d`;
+}
+
 const CB_STYLES = {
   CLOSED: { bg: "bg-green-500/10", text: "text-green-500", labelKey: "healthy" },
   OPEN: { bg: "bg-red-500/10", text: "text-red-500", labelKey: "down" },
@@ -177,6 +189,7 @@ export default function HealthPage() {
     providerHealth,
     providerSummary,
     rateLimitStatus,
+    learnedLimits,
     lockouts,
     sessions,
     quotaMonitor,
@@ -809,6 +822,9 @@ export default function HealthPage() {
                               {cb.failures === 1
                                 ? t("failures", { count: cb.failures })
                                 : t("failuresPlural", { count: cb.failures })}
+                              {Number(cb.retryAfterMs) > 0 && (
+                                <span className="ml-2">· retry in {fmtMs(cb.retryAfterMs)}</span>
+                              )}
                               {cb.lastFailure && (
                                 <span className="ml-2">
                                   · {t("lastFailure")}:{" "}
@@ -926,17 +942,41 @@ export default function HealthPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {entries.map(
                   ({ key, displayName, providerInfo, connectionId, model, status }: any) => {
+                    const learned = learnedLimits?.[key] || null;
                     const isActive = (status.queued || 0) + (status.running || 0) > 0;
                     const isQueued = (status.queued || 0) > 0;
+                    const learnedLimit =
+                      typeof learned?.limit === "number" && learned.limit > 0
+                        ? learned.limit
+                        : null;
+                    const learnedRemaining =
+                      typeof learned?.remaining === "number" ? learned.remaining : null;
+                    const learnedMinTime =
+                      typeof learned?.minTime === "number" && learned.minTime > 0
+                        ? learned.minTime
+                        : null;
+                    const learnedLastUpdated =
+                      typeof learned?.lastUpdated === "number" ? learned.lastUpdated : null;
+                    const lowRemaining =
+                      learnedLimit != null &&
+                      learnedRemaining != null &&
+                      learnedRemaining / learnedLimit <= 0.1;
+                    const exhausted = learnedRemaining != null && learnedRemaining <= 0;
+                    const quotaProgress =
+                      learnedLimit != null && learnedRemaining != null
+                        ? Math.max(0, Math.min(100, (learnedRemaining / learnedLimit) * 100))
+                        : null;
                     return (
                       <div
                         key={key}
                         className={`rounded-lg p-3 border transition-colors ${
-                          isQueued
-                            ? "bg-amber-500/5 border-amber-500/20"
-                            : isActive
-                              ? "bg-blue-500/5 border-blue-500/15"
-                              : "bg-surface/30 border-white/5"
+                          exhausted
+                            ? "bg-red-500/5 border-red-500/20"
+                            : isQueued || lowRemaining
+                              ? "bg-amber-500/5 border-amber-500/20"
+                              : isActive
+                                ? "bg-blue-500/5 border-blue-500/15"
+                                : "bg-surface/30 border-white/5"
                         }`}
                         title={key}
                       >
@@ -967,16 +1007,49 @@ export default function HealthPage() {
                           </div>
                           <span
                             className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              isQueued
-                                ? "bg-amber-500/15 text-amber-400"
-                                : isActive
-                                  ? "bg-blue-500/15 text-blue-400"
-                                  : "bg-green-500/10 text-green-400"
+                              exhausted
+                                ? "bg-red-500/15 text-red-400"
+                                : isQueued || lowRemaining
+                                  ? "bg-amber-500/15 text-amber-400"
+                                  : isActive
+                                    ? "bg-blue-500/15 text-blue-400"
+                                    : "bg-green-500/10 text-green-400"
                             }`}
                           >
-                            {isQueued ? t("queued") : isActive ? tc("active") : t("ok")}
+                            {exhausted
+                              ? t("limitExhausted")
+                              : isQueued || lowRemaining
+                                ? t("queued")
+                                : isActive
+                                  ? tc("active")
+                                  : t("ok")}
                           </span>
                         </div>
+                        {quotaProgress != null && (
+                          <div className="mb-3">
+                            <div className="mb-1 flex items-center justify-between text-[11px] text-text-muted">
+                              <span>{t("learnedFromHeaders")}</span>
+                              <span>
+                                {t("remainingOfLimit", {
+                                  remaining: learnedRemaining,
+                                  limit: learnedLimit,
+                                })}
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-surface/70">
+                              <div
+                                className={`h-full rounded-full ${
+                                  exhausted
+                                    ? "bg-red-500"
+                                    : lowRemaining
+                                      ? "bg-amber-500"
+                                      : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${quotaProgress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-center gap-3 text-[11px] text-text-muted">
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">schedule</span>
@@ -989,6 +1062,20 @@ export default function HealthPage() {
                             {t("runningCount", { count: status.running || 0 })}
                           </span>
                         </div>
+                        {(learnedMinTime != null || learnedLastUpdated != null) && (
+                          <div className="mt-3 space-y-1 text-[11px] text-text-muted">
+                            {learnedMinTime != null && (
+                              <p>{t("throttleStatus", { value: `${learnedMinTime}ms/req` })}</p>
+                            )}
+                            {learnedLastUpdated != null && (
+                              <p>
+                                {t("lastHeaderUpdate", {
+                                  age: formatRelativeTime(learnedLastUpdated) || t("notAvailable"),
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   }

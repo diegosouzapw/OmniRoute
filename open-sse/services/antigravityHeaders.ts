@@ -16,7 +16,7 @@ import {
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
-const GEMINI_CLI_VERSION = "1.0.0";
+const GEMINI_CLI_VERSION = "0.31.0";
 const GEMINI_SDK_VERSION = "1.41.0";
 const NODE_VERSION = "v22.19.0";
 const LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/9.15.1";
@@ -42,8 +42,6 @@ function getPlatform(): string {
   switch (p) {
     case "win32":
       return "windows";
-    case "darwin":
-      return "macos";
     default:
       return p; // "linux", etc.
   }

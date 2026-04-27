@@ -84,6 +84,55 @@ export function buildPrecisionComboModelStep({
   };
 }
 
+type ComboBuilderProviderIdentity = {
+  providerId?: unknown;
+  alias?: unknown;
+  prefix?: unknown;
+};
+
+export function resolveComboBuilderProviderId(
+  providerIdOrAlias: unknown,
+  providers: ComboBuilderProviderIdentity[] = []
+): string | null {
+  const normalizedProviderId = toTrimmedString(providerIdOrAlias);
+  if (!normalizedProviderId) return null;
+
+  const matchedProvider = providers.find((provider) => {
+    const providerId = toTrimmedString(provider.providerId);
+    const alias = toTrimmedString(provider.alias);
+    const prefix = toTrimmedString(provider.prefix);
+    return (
+      providerId === normalizedProviderId ||
+      alias === normalizedProviderId ||
+      prefix === normalizedProviderId
+    );
+  });
+
+  return toTrimmedString(matchedProvider?.providerId) || null;
+}
+
+export function buildManualComboModelStep({
+  value,
+  providers = [],
+  weight = 0,
+}: {
+  value: unknown;
+  providers?: ComboBuilderProviderIdentity[];
+  weight?: number;
+}): ComboModelStep | null {
+  const parsed = parseQualifiedModel(value);
+  if (!parsed) return null;
+
+  const providerId = resolveComboBuilderProviderId(parsed.providerId, providers);
+  if (!providerId) return null;
+
+  return buildPrecisionComboModelStep({
+    providerId,
+    modelId: parsed.modelId,
+    weight,
+  });
+}
+
 export function getExactModelStepSignature(entry: unknown): string | null {
   if (!isRecord(entry) || entry.kind === "combo-ref") return null;
   const modelValue = toTrimmedString(entry.model);

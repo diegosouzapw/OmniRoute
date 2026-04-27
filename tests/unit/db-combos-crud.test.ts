@@ -19,7 +19,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -58,7 +58,7 @@ test("createCombo stores default strategy and supports lookup by id and name", a
       weight: 0,
     },
   ]);
-  assert.deepEqual(await combosDb.getComboById(combo.id), combo);
+  assert.deepEqual(await combosDb.getComboById((combo as any).id), combo);
   assert.deepEqual(await combosDb.getComboByName("Priority Combo"), combo);
 });
 
@@ -91,7 +91,7 @@ test("updateCombo merges fields while preserving immutable data", async () => {
     config: { retries: 1 },
   });
 
-  const updated = await combosDb.updateCombo(combo.id, {
+  const updated = await combosDb.updateCombo((combo as any).id, {
     strategy: "round-robin",
     config: { retries: 3, timeoutMs: 2000 },
     isHidden: true,
@@ -103,7 +103,7 @@ test("updateCombo merges fields while preserving immutable data", async () => {
   assert.deepEqual(updated.config, { retries: 3, timeoutMs: 2000 });
   assert.equal(updated.strategy, "round-robin");
   assert.equal(updated.isHidden, true);
-  assert.deepEqual(await combosDb.getComboById(combo.id), updated);
+  assert.deepEqual(await combosDb.getComboById((combo as any).id), updated);
 });
 
 test("reorderCombos persists manual combo ordering in sqlite", async () => {
@@ -130,9 +130,9 @@ test("reorderCombos persists manual combo ordering in sqlite", async () => {
     reordered.map((combo) => combo.sortOrder),
     [1, 2, 3]
   );
-  assert.equal((await combosDb.getComboById(charlie.id))?.sortOrder, 1);
-  assert.equal((await combosDb.getComboById(alpha.id))?.sortOrder, 2);
-  assert.equal((await combosDb.getComboById(bravo.id))?.sortOrder, 3);
+  assert.equal((await combosDb.getComboById((charlie as any).id))?.sortOrder, 1);
+  assert.equal((await combosDb.getComboById((alpha as any).id))?.sortOrder, 2);
+  assert.equal((await combosDb.getComboById((bravo as any).id))?.sortOrder, 3);
 });
 
 test("deleteCombo reports missing ids and removes existing rows", async () => {
@@ -142,8 +142,8 @@ test("deleteCombo reports missing ids and removes existing rows", async () => {
   });
 
   assert.equal(await combosDb.deleteCombo("missing-combo"), false);
-  assert.equal(await combosDb.deleteCombo(combo.id), true);
-  assert.equal(await combosDb.getComboById(combo.id), null);
+  assert.equal(await combosDb.deleteCombo((combo as any).id), true);
+  assert.equal(await combosDb.getComboById((combo as any).id), null);
 });
 
 test("getCombos upgrades legacy persisted entries to version 2 and resolves combo refs", async () => {

@@ -30,7 +30,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -107,9 +107,9 @@ test("saveRequestDetailLog persists protected payloads and compacted stream summ
     token: "[REDACTED]",
   });
   assert.deepEqual(row.translated_request, { message: "hello" });
-  assert.equal(row.provider_response.id, "resp_123");
-  assert.equal(row.provider_response.output_text, "Hello world");
-  assert.deepEqual(row.provider_response._omniroute_stream, {
+  assert.equal((row.provider_response as any).id, "resp_123");
+  assert.equal((row as any).provider_response.output_text, "Hello world");
+  assert.deepEqual((row as any).provider_response._omniroute_stream, {
     format: "sse-json",
     stage: "provider-response",
     eventCount: 1,

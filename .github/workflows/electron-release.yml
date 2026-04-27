@@ -88,6 +88,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NPM_CONFIG_LEGACY_PEER_DEPS: true
+
+      - name: Sanitize Windows home directory
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # The default USERPROFILE contains junction points (Application Data)
+          # that cause EPERM errors during Next.js standalone build glob scans.
+          # Create a clean temp profile directory to avoid this.
+          mkdir -p "$RUNNER_TEMP/home"
+          echo "USERPROFILE=$RUNNER_TEMP/home" >> $GITHUB_ENV
 
       - name: Build Next.js standalone
         env:

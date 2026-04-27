@@ -37,7 +37,7 @@ test("Claude -> OpenAI maps system blocks, parameters, tool declarations and too
     role: "user",
     content: "Hello",
   });
-  assert.equal(result.tools.length, 1);
+  assert.equal((result.tools as any).length, 1);
   assert.deepEqual(result.tools[0], {
     type: "function",
     function: {
@@ -163,6 +163,92 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
     role: "user",
     content: "Thanks",
   });
+});
+
+test("Claude -> OpenAI maps output_config.effort to reasoning_effort", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "high" },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("Claude -> OpenAI normalizes output_config.effort casing", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "MEDIUM" },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "medium");
+});
+
+test("Claude -> OpenAI prefers output_config.effort over thinking.budget_tokens", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "low" },
+      thinking: { type: "enabled", budget_tokens: 131072 },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "low");
+});
+
+test("Claude -> OpenAI maps thinking.budget_tokens to reasoning_effort buckets", () => {
+  const buckets: Array<{ budget: number; expected: string }> = [
+    { budget: 512, expected: "low" },
+    { budget: 1024, expected: "low" },
+    { budget: 8192, expected: "medium" },
+    { budget: 10240, expected: "medium" },
+    { budget: 65536, expected: "high" },
+    { budget: 131072, expected: "max" },
+  ];
+
+  for (const { budget, expected } of buckets) {
+    const result = claudeToOpenAIRequest(
+      "gpt-5",
+      {
+        messages: [{ role: "user", content: "hi" }],
+        thinking: { type: "enabled", budget_tokens: budget },
+      },
+      false
+    );
+    assert.equal(result.reasoning_effort, expected, `budget ${budget} should map to ${expected}`);
+  }
+});
+
+test("Claude -> OpenAI ignores disabled thinking and leaves reasoning_effort unset", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      thinking: { type: "enabled", budget_tokens: 0 },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, undefined);
+});
+
+test("Claude -> OpenAI leaves reasoning_effort unset when no thinking/output_config present", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    { messages: [{ role: "user", content: "hi" }] },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, undefined);
 });
 
 test("Claude -> OpenAI handles redacted thinking, empty arrays and unknown blocks defensively", () => {

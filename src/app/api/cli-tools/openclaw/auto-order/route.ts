@@ -5,12 +5,16 @@
  */
 
 import { NextResponse } from "next/server";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getComboModelProvider } from "@/lib/combos/steps";
 import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     // Fetch current health and combos to determine best provider ordering
     const [healthRes, combosRes] = await Promise.allSettled([

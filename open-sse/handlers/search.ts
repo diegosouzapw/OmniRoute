@@ -3,9 +3,9 @@ import { randomUUID } from "crypto";
  * Search Handler
  *
  * Handles POST /v1/search requests.
- * Routes to 9 search providers with automatic failover:
+ * Routes to 10 search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
- *   google-pse-search, linkup-search, searchapi-search, searxng-search
+ *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search
  *
  * Request format:
  * {
@@ -271,6 +271,12 @@ interface SearchRequestParams {
   timeRange?: string;
   offset?: number;
   domainFilter?: string[];
+  contentOptions?: {
+    snippet?: boolean;
+    full_page?: boolean;
+    format?: string;
+    max_characters?: number;
+  };
   providerOptions?: Record<string, unknown>;
   providerSpecificData?: Record<string, unknown>;
 }
@@ -498,6 +504,52 @@ function buildSearchApiRequest(
   };
 }
 
+function buildYouComRequest(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  const apiKey = params.token;
+  if (!apiKey) {
+    throw new Error("You.com Search requires an API key");
+  }
+
+  const { includes, excludes } = parseDomainFilter(params.domainFilter);
+  const qp = new URLSearchParams({
+    query: params.query,
+    count: String(Math.min(params.maxResults, 100)),
+  });
+
+  if (params.timeRange && params.timeRange !== "any") {
+    qp.set("freshness", params.timeRange);
+  }
+  if (typeof params.offset === "number" && params.offset > 0 && params.maxResults > 0) {
+    qp.set("offset", String(Math.min(Math.floor(params.offset / params.maxResults), 9)));
+  }
+  if (params.country) qp.set("country", params.country);
+  if (params.language) qp.set("language", params.language);
+  if (includes.length) qp.set("include_domains", includes.join(","));
+  if (excludes.length) qp.set("exclude_domains", excludes.join(","));
+
+  if (params.contentOptions?.full_page) {
+    qp.set("livecrawl", params.searchType === "news" ? "news" : "web");
+    qp.append(
+      "livecrawl_formats",
+      params.contentOptions.format === "markdown" ? "markdown" : "html"
+    );
+  }
+
+  return {
+    url: `${resolveSearchBaseUrl(config, params)}?${qp}`,
+    init: {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "X-API-Key": apiKey,
+      },
+    },
+  };
+}
+
 function buildSearxngRequest(
   config: SearchProviderConfig,
   params: SearchRequestParams
@@ -537,6 +589,7 @@ function buildRequest(
   if (config.id === "google-pse-search") return buildGooglePseRequest(config, params);
   if (config.id === "linkup-search") return buildLinkupRequest(config, params);
   if (config.id === "searchapi-search") return buildSearchApiRequest(config, params);
+  if (config.id === "youcom-search") return buildYouComRequest(config, params);
   if (config.id === "searxng-search") return buildSearxngRequest(config, params);
   // Fallback for future providers: POST with bearer auth
   return {
@@ -744,6 +797,56 @@ function normalizeSearchApiResponse(
   };
 }
 
+function normalizeYouComResponse(
+  data: any,
+  _query: string,
+  searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const resultsContainer =
+    data?.results && typeof data.results === "object" ? data.results : undefined;
+  const section =
+    searchType === "news" ? resultsContainer?.news || [] : resultsContainer?.web || [];
+  const items = Array.isArray(section) ? section : [];
+
+  const results = items.map((item: any, idx: number) => {
+    const firstSnippet = Array.isArray(item.snippets)
+      ? item.snippets.find((value: unknown) => typeof value === "string")
+      : null;
+    const livecrawlText =
+      typeof item.markdown === "string"
+        ? item.markdown
+        : typeof item.html === "string"
+          ? item.html
+          : undefined;
+    const livecrawlFormat = typeof item.markdown === "string" ? "markdown" : "html";
+
+    return makeResult(
+      "youcom-search",
+      {
+        title: item.title,
+        url: item.url,
+        snippet:
+          typeof firstSnippet === "string"
+            ? firstSnippet
+            : typeof item.description === "string"
+              ? item.description
+              : "",
+        published_at: item.page_age,
+        favicon_url: item.favicon_url,
+        image_url: item.thumbnail_url,
+        source_type: searchType,
+        full_text: livecrawlText,
+        text_format: livecrawlText ? livecrawlFormat : undefined,
+      },
+      idx,
+      now
+    );
+  });
+
+  return { results, totalResults: results.length };
+}
+
 function normalizeSearxngResponse(
   data: any,
   _query: string,
@@ -789,6 +892,7 @@ function normalizeResponse(
     return normalizeGooglePseResponse(data, query, searchType);
   if (providerId === "linkup-search") return normalizeLinkupResponse(data, query, searchType);
   if (providerId === "searchapi-search") return normalizeSearchApiResponse(data, query, searchType);
+  if (providerId === "youcom-search") return normalizeYouComResponse(data, query, searchType);
   if (providerId === "searxng-search") return normalizeSearxngResponse(data, query, searchType);
   return { results: [], totalResults: null };
 }
@@ -806,6 +910,7 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     timeRange,
     offset,
     domainFilter,
+    contentOptions,
     providerOptions,
     credentials,
     alternateProvider,
@@ -842,6 +947,7 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     timeRange,
     offset,
     domainFilter,
+    contentOptions,
     providerOptions,
   };
 

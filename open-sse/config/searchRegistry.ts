@@ -155,6 +155,22 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     cacheTTLMs: 5 * 60 * 1000,
   },
 
+  "youcom-search": {
+    id: "youcom-search",
+    name: "You.com Search",
+    baseUrl: "https://ydc-index.io/v1/search",
+    method: "GET",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    costPerQuery: 0.005,
+    freeMonthlyQuota: 0,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 100,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
   "searxng-search": {
     id: "searxng-search",
     name: "SearXNG Search",

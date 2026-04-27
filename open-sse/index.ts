@@ -50,6 +50,9 @@ export {
   isAccountUnavailable,
   getUnavailableUntil,
   filterAvailableAccounts,
+  isProviderInCooldown,
+  getProviderCooldownRemainingMs,
+  getProvidersInCooldown,
 } from "./services/accountFallback.ts";
 
 export {

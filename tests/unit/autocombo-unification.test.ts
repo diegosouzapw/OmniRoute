@@ -128,29 +128,40 @@ test("sidebar visibility excludes the removed auto-combo item", async () => {
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo", "home"]), ["home"]);
 });
 
-test("intelligent routing helpers normalize config and health state", () => {
+test("intelligent routing helpers normalize config and build provider scores", () => {
   const normalizedConfig = intelligentRouting.normalizeIntelligentRoutingConfig({
     candidatePool: ["openai", "anthropic"],
     explorationRate: "0.25",
+    modePack: "",
+    routerStrategy: "",
     weights: { quota: 0.4 },
   });
 
   assert.deepEqual(normalizedConfig.candidatePool, ["openai", "anthropic"]);
   assert.equal(normalizedConfig.explorationRate, 0.25);
+  assert.equal(normalizedConfig.modePack, "ship-fast");
+  assert.equal(normalizedConfig.routerStrategy, "rules");
   assert.equal(normalizedConfig.weights.quota, 0.4);
   assert.equal(
     normalizedConfig.weights.health,
     intelligentRouting.DEFAULT_INTELLIGENT_WEIGHTS.health
   );
 
-  const healthState = intelligentRouting.extractIntelligentHealthState({
-    circuitBreakers: [
-      { provider: "openai", state: "OPEN", lastFailure: "2026-04-12T12:00:00Z" },
-      { provider: "anthropic", state: "OPEN", lastFailure: "2026-04-12T12:01:00Z" },
-      { provider: "google", state: "CLOSED" },
-    ],
+  const providerScores = intelligentRouting.buildIntelligentProviderScores({
+    config: normalizedConfig,
   });
 
-  assert.equal(healthState.incidentMode, true);
-  assert.equal(healthState.exclusions.length, 2);
+  assert.equal(providerScores.length, 2);
+  assert.deepEqual(
+    providerScores.map((entry) => ({
+      provider: entry.provider,
+      model: entry.model,
+      score: entry.score,
+      quotaWeight: entry.factors.quota,
+    })),
+    [
+      { provider: "openai", model: "auto", score: 0.5, quotaWeight: 0.4 },
+      { provider: "anthropic", model: "auto", score: 0.5, quotaWeight: 0.4 },
+    ]
+  );
 });

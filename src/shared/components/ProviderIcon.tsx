@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ProviderIcon — Renders a provider logo using @lobehub/icons with PNG fallback.
+ * ProviderIcon — Renders a provider logo using @lobehub/icons with static asset fallbacks.
  *
  * Strategy (#529):
- * 1. Try @lobehub/icons ProviderIcon (130+ providers, React components)
+ * 1. Try @lobehub/icons direct icon components (no @lobehub/ui peer runtime)
  * 2. Fall back to /providers/{id}.png (existing static assets)
  * 3. Fall back to /providers/{id}.svg (SVG assets)
  * 4. Fall back to a generic AI icon
@@ -14,71 +14,10 @@
  *   <ProviderIcon providerId="anthropic" size={28} type="color" />
  */
 
-import { memo, useState, Component, type ReactNode } from "react";
+import { createElement, memo, useState } from "react";
 import Image from "next/image";
-import { ProviderIcon as LobehubProviderIcon } from "@lobehub/icons";
 
-const LOBEHUB_PROVIDER_MAP: Record<string, string> = {
-  openai: "openai",
-  anthropic: "anthropic",
-  claude: "anthropic",
-  gemini: "google",
-  "gemini-cli": "gemini",
-  google: "google",
-  "google-pse-search": "google",
-  deepseek: "deepseek",
-  groq: "groq",
-  mistral: "mistral",
-  codestral: "mistral",
-  cohere: "cohere",
-  perplexity: "perplexity",
-  "perplexity-search": "perplexity",
-  "perplexity-web": "perplexity",
-  xai: "xai",
-  grok: "xai",
-  "grok-web": "xai",
-  together: "together",
-  fireworks: "fireworks",
-  "fireworks-ai": "fireworks",
-  cerebras: "cerebras",
-  huggingface: "huggingface",
-  "hugging-face": "huggingface",
-  openrouter: "openrouter",
-  "open-router": "openrouter",
-  ollama: "ollama",
-  "ollama-cloud": "ollama",
-  minimax: "minimax",
-  "minimax-cn": "minimax",
-  qwen: "qwen",
-  alibaba: "qwen",
-  moonshot: "moonshot",
-  kimi: "moonshot",
-  "kimi-coding": "kimi",
-  "kimi-coding-apikey": "kimi",
-  baidu: "baidu",
-  ernie: "baidu",
-  spark: "iflytek",
-  "zhipu-ai": "zhipu",
-  zhipu: "zhipu",
-  glm: "zhipu",
-  glmt: "zhipu",
-  lmsys: "lmsys",
-  "stability-ai": "stability",
-  stability: "stability",
-  replicate: "replicate",
-  ai21: "ai21",
-  nvidia: "nvidia",
-  cloudflare: "cloudflare",
-  "cloudflare-ai": "cloudflare",
-  "aws-bedrock": "bedrock",
-  bedrock: "bedrock",
-  azure: "azure",
-  "azure-openai": "azure",
-  copilot: "githubcopilot",
-  "github-copilot": "githubcopilot",
-  github: "github",
-  mistralai: "mistral",
-};
+import { getLobeProviderIcon } from "./lobeProviderIcons";
 
 interface ProviderIconProps {
   providerId: string;
@@ -86,30 +25,6 @@ interface ProviderIconProps {
   type?: "mono" | "color";
   className?: string;
   style?: React.CSSProperties;
-}
-
-/** Error boundary to catch Lobehub component render errors gracefully. */
-class LobehubErrorBoundary extends Component<
-  { children: ReactNode; onError: () => void },
-  { hasError: boolean }
-> {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch() {
-    this.props.onError();
-  }
-
-  render() {
-    if (this.state.hasError) return null;
-    return this.props.children;
-  }
 }
 
 function GenericProviderIcon({ size }: { size: number }) {
@@ -185,6 +100,35 @@ const KNOWN_PNGS = new Set([
   "together",
   "xai",
   "zeroclaw",
+  "aws-polly",
+  "blackbox-web",
+  "cliproxyapi",
+  "databricks",
+  "empower",
+  "gigachat",
+  "gitlab-duo",
+  "gitlab",
+  "heroku",
+  "linkup-search",
+  "llamagate",
+  "maritalk",
+  "modal",
+  "nanogpt",
+  "nscale",
+  "oci",
+  "ovhcloud",
+  "piapi",
+  "poe",
+  "predibase",
+  "qoder",
+  "recraft",
+  "reka",
+  "runwayml",
+  "triton",
+  "venice",
+  "voyage-ai",
+  "wandb",
+  "youcom-search",
 ]);
 const KNOWN_SVGS = new Set([
   "apikey",
@@ -206,6 +150,7 @@ const KNOWN_SVGS = new Set([
   "opencode",
   "playht",
   "puter",
+  "qianfan",
   "scaleway",
   "sdwebui",
   "synthetic",
@@ -222,23 +167,27 @@ const ProviderIcon = memo(function ProviderIcon({
   style,
 }: ProviderIconProps) {
   const normalizedId = providerId.toLowerCase();
-  const lobehubId = LOBEHUB_PROVIDER_MAP[normalizedId] ?? null;
+  const lobeIcon = getLobeProviderIcon(normalizedId, type);
   const hasPng = KNOWN_PNGS.has(normalizedId);
   const hasSvg = KNOWN_SVGS.has(normalizedId);
 
-  const [useLobehub, setUseLobehub] = useState(lobehubId !== null);
-  const [usePng, setUsePng] = useState(hasPng);
-  const [useSvg, setUseSvg] = useState(!hasPng && hasSvg);
+  const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});
+  const pngKey = `${normalizedId}:png`;
+  const svgKey = `${normalizedId}:svg`;
+  const usePng = !lobeIcon && hasPng && !failedAssets[pngKey];
+  const useSvg = !lobeIcon && hasSvg && !failedAssets[svgKey] && (!hasPng || failedAssets[pngKey]);
 
-  if (useLobehub && lobehubId) {
+  if (lobeIcon) {
     return (
       <span
         className={className}
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
-        <LobehubErrorBoundary onError={() => setUseLobehub(false)}>
-          <LobehubProviderIcon provider={lobehubId} size={size} type={type} />
-        </LobehubErrorBoundary>
+        {createElement(lobeIcon, {
+          "aria-label": providerId,
+          size,
+          style: { flex: "none" },
+        })}
       </span>
     );
   }
@@ -256,8 +205,7 @@ const ProviderIcon = memo(function ProviderIcon({
           height={size}
           style={{ objectFit: "contain" }}
           onError={() => {
-            setUsePng(false);
-            setUseSvg(hasSvg);
+            setFailedAssets((current) => ({ ...current, [pngKey]: true }));
           }}
           unoptimized
         />
@@ -277,7 +225,7 @@ const ProviderIcon = memo(function ProviderIcon({
           width={size}
           height={size}
           style={{ objectFit: "contain" }}
-          onError={() => setUseSvg(false)}
+          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
           unoptimized
         />
       </span>

@@ -20,7 +20,10 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { createProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
-import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import {
+  normalizeProviderSpecificData,
+  sanitizeProviderSpecificDataForResponse,
+} from "@/lib/providers/requestDefaults";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 
@@ -40,10 +43,7 @@ export async function GET(request: Request) {
       refreshToken: undefined,
       idToken: undefined,
       providerSpecificData: c.providerSpecificData
-        ? {
-            ...c.providerSpecificData,
-            consoleApiKey: undefined,
-          }
+        ? sanitizeProviderSpecificDataForResponse(c.providerSpecificData)
         : undefined,
     }));
 
@@ -105,12 +105,7 @@ export async function POST(request: Request) {
       }
 
       const existingConnections = await getProviderConnections({ provider });
-      if (!allowMultipleCompatibleConnections && existingConnections.length > 0) {
-        return NextResponse.json(
-          { error: "Only one connection is allowed for this OpenAI Compatible node" },
-          { status: 400 }
-        );
-      }
+      // Allow multiple connections for compatible nodes exactly like first-party providers
 
       providerSpecificData = {
         ...(providerSpecificData || {}),
@@ -135,12 +130,7 @@ export async function POST(request: Request) {
       }
 
       const existingConnections = await getProviderConnections({ provider });
-      if (!allowMultipleCompatibleConnections && existingConnections.length > 0) {
-        return NextResponse.json(
-          { error: "Only one connection is allowed for this Anthropic Compatible node" },
-          { status: 400 }
-        );
-      }
+      // Allow multiple connections for compatible nodes exactly like first-party providers
 
       providerSpecificData = {
         ...(providerSpecificData || {}),
@@ -173,7 +163,9 @@ export async function POST(request: Request) {
     const result: Record<string, any> = { ...newConnection };
     delete result.apiKey;
     if (result.providerSpecificData) {
-      delete result.providerSpecificData.consoleApiKey;
+      result.providerSpecificData = sanitizeProviderSpecificDataForResponse(
+        result.providerSpecificData
+      );
     }
 
     // Auto sync to Cloud if enabled

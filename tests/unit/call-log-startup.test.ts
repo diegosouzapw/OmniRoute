@@ -15,7 +15,7 @@ async function removeTestDataDir() {
       core.resetDbInstance();
       fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       return;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }

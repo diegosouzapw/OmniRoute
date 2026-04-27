@@ -1,19 +1,38 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".next";
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
+    root: projectRoot,
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
     },
   },
   output: "standalone",
+  // OmniRoute is a proxy for AI APIs — request bodies routinely include
+  // multi-MB payloads (vision models, image edits, base64-encoded files,
+  // long chat histories with embedded images). Next.js's Server Action
+  // handler intercepts POSTs with multipart/form-data or
+  // x-www-form-urlencoded content-types and enforces a 1 MB cap that
+  // surfaces as a 413 with a confusing "Server Actions" hint, even on
+  // pure route handlers. 50 MB matches what most upstream LLM providers
+  // accept for image-bearing requests; tune via env if a deployment needs
+  // more.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
+    },
+  },
+  outputFileTracingRoot: projectRoot,
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.
@@ -28,16 +47,21 @@ const nextConfig = {
       "./playwright-report/**/*",
       "./app.__qa_backup/**/*",
       "./tests/**/*",
+      "./logs/**/*",
     ],
   },
   serverExternalPackages: [
     "pino",
     "pino-pretty",
     "thread-stream",
+    "pino-abstract-transport",
     "better-sqlite3",
     "keytar",
     "wreq-js",
     "zod",
+    "tls-client-node",
+    "koffi",
+    "tough-cookie",
     "child_process",
     "fs",
     "path",
@@ -50,8 +74,9 @@ const nextConfig = {
     "stream",
     "buffer",
     "util",
+    "process",
   ],
-  transpilePackages: ["@omniroute/open-sse"],
+  transpilePackages: ["@omniroute/open-sse", "@lobehub/icons"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
@@ -95,6 +120,7 @@ const nextConfig = {
         "zod",
         "pino",
         "pino-pretty",
+        "pino-abstract-transport",
         "child_process",
         "fs",
         "path",
@@ -107,6 +133,7 @@ const nextConfig = {
         "stream",
         "buffer",
         "util",
+        "process",
       ]);
 
       const prev = config.externals ?? [];
@@ -141,6 +168,7 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+        process: false,
       };
     }
     return config;

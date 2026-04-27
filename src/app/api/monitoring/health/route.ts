@@ -13,7 +13,8 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 export async function GET() {
   try {
     const { getAllCircuitBreakerStatuses } = await import("@/shared/utils/circuitBreaker");
-    const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
+    const { getAllRateLimitStatus, getLearnedLimits } =
+      await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
     const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
     const { getQuotaMonitorSummary, getQuotaMonitorSnapshots } =
@@ -25,6 +26,7 @@ export async function GET() {
     const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();
     const rateLimitStatus = getAllRateLimitStatus();
+    const learnedLimits = getLearnedLimits();
     const lockouts = getAllModelLockouts();
     const quotaMonitorSummary = getQuotaMonitorSummary();
     const quotaMonitorMonitors = getQuotaMonitorSnapshots();
@@ -38,6 +40,7 @@ export async function GET() {
       connections,
       circuitBreakers,
       rateLimitStatus,
+      learnedLimits,
       lockouts,
       localProviders: getAllHealthStatuses(),
       inflightRequests: getInflightCount(),

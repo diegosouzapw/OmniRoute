@@ -50,7 +50,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (err) {
+    } catch (err: any) {
       if ((err?.code === "EBUSY" || err?.code === "EPERM") && attempt < 9) {
         await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
       } else {
@@ -140,7 +140,7 @@ test(
     const row = reopenedDb
       .prepare("SELECT COUNT(*) AS cnt FROM provider_connections WHERE id = ?")
       .get("restore-test-conn");
-    assert.equal(row.cnt, 1);
+    assert.equal((row as any).cnt, 1);
   }
 );
 
@@ -164,7 +164,7 @@ test("closeDbInstance checkpoints WAL changes into the primary SQLite file", asy
     const row = snapshotDb
       .prepare("SELECT name FROM provider_connections WHERE id = ?")
       .get("checkpoint-test-conn");
-    assert.equal(row?.name, "checkpoint-test");
+    (assert as any).equal((row as any).name, "checkpoint-test");
   } finally {
     snapshotDb.close();
   }
@@ -273,13 +273,13 @@ test("provider connection persists rateLimitProtection across reopen", async () 
     apiKey: "sk-test",
   });
 
-  await providersDb.updateProviderConnection(created.id, { rateLimitProtection: true });
+  await providersDb.updateProviderConnection((created as any).id, { rateLimitProtection: true });
 
-  const firstRead = await providersDb.getProviderConnectionById(created.id);
+  const firstRead = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(firstRead.rateLimitProtection, true);
 
   core.resetDbInstance();
-  const secondRead = await providersDb.getProviderConnectionById(created.id);
+  const secondRead = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(secondRead.rateLimitProtection, true);
 });
 
@@ -336,7 +336,7 @@ test('provider connection migration adds "group" column for existing databases',
 
   const reopened = core.getDbInstance();
   const columns = reopened.prepare("PRAGMA table_info(provider_connections)").all();
-  const names = new Set(columns.map((column) => column.name));
+  const names = new Set(columns.map((column) => (column as any).name));
   assert.equal(names.has("group"), true);
 });
 
@@ -358,13 +358,13 @@ test("resolveProxyForConnection applies combo proxy for object/string model entr
     models: ["openai/gpt-5", { model: "cc/claude-sonnet-4-5-20250929", weight: 100 }],
   });
 
-  await settingsDb.setProxyForLevel("combo", combo.id, {
+  await settingsDb.setProxyForLevel("combo", (combo as any).id, {
     type: "http",
     host: "127.0.0.1",
     port: "8080",
   });
 
-  const resolved = await settingsDb.resolveProxyForConnection(conn.id);
+  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id);
   assert.equal(resolved.level, "combo");
   assert.equal(resolved.levelId, combo.id);
 });
@@ -464,7 +464,7 @@ test("proxy settings route blocks socks5 with backend flag disabled", async () =
     });
 
     const response = await proxySettingsRoute.PUT(request);
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
     assert.equal(response.status, 400);
     assert.match(payload.error.message, /SOCKS5 proxy is disabled/i);
   });
@@ -488,7 +488,7 @@ test("proxy settings route accepts socks5 with backend flag enabled", async () =
     });
 
     const response = await proxySettingsRoute.PUT(request);
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
     assert.equal(response.status, 200);
     assert.equal(payload.global.type, "socks5");
   });
@@ -509,7 +509,7 @@ test("proxy test route rejects socks5 when backend flag is disabled", async () =
     });
 
     const response = await proxyTestRoute.POST(request);
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 400);
     assert.match(payload.error.message, /SOCKS5 proxy is disabled/i);
@@ -531,7 +531,7 @@ test("proxy test route runs socks5 test when backend flag is enabled", async () 
     });
 
     const response = await proxyTestRoute.POST(request);
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.notEqual(response.status, 400);
     assert.equal(payload.success, false);
@@ -549,7 +549,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
       body: "{",
     })
   );
-  const invalidJsonBody = await invalidJsonResponse.json();
+  const invalidJsonBody = (await invalidJsonResponse.json()) as any;
   assert.equal(invalidJsonResponse.status, 400);
   assert.equal(invalidJsonBody.error.message, "Invalid JSON body");
 
@@ -560,7 +560,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
       body: JSON.stringify({ proxy: { port: "8080" } }),
     })
   );
-  const invalidBody = await invalidBodyResponse.json();
+  const invalidBody = (await invalidBodyResponse.json()) as any;
   assert.equal(invalidBodyResponse.status, 400);
   assert.equal(invalidBody.error.message, "Invalid request");
 
@@ -577,7 +577,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
       }),
     })
   );
-  const socks4Body = await socks4Response.json();
+  const socks4Body = (await socks4Response.json()) as any;
   assert.equal(socks4Response.status, 400);
   assert.match(socks4Body.error.message, /proxy\.type must be http or https/i);
 
@@ -594,7 +594,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
       }),
     })
   );
-  const unsupportedBody = await unsupportedResponse.json();
+  const unsupportedBody = (await unsupportedResponse.json()) as any;
   assert.equal(unsupportedResponse.status, 400);
   assert.match(unsupportedBody.error.message, /proxy\.type must be http or https/i);
 });
@@ -615,7 +615,7 @@ test("proxy test route handles invalid proxy ports and uses stored proxy config 
       }),
     })
   );
-  const invalidPortBody = await invalidPortResponse.json();
+  const invalidPortBody = (await invalidPortResponse.json()) as any;
   assert.equal(invalidPortResponse.status, 400);
   assert.match(invalidPortBody.error.message, /invalid proxy port/i);
 
@@ -641,7 +641,7 @@ test("proxy test route handles invalid proxy ports and uses stored proxy config 
       }),
     })
   );
-  const proxyIdBody = await proxyIdResponse.json();
+  const proxyIdBody = (await proxyIdResponse.json()) as any;
   assert.notEqual(proxyIdResponse.status, 400);
   assert.equal(proxyIdBody.success, false);
   assert.equal(proxyIdBody.proxyUrl, "http://127.0.0.1:1");

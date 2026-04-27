@@ -106,7 +106,7 @@ test("handleComboChat filters priority targets by metadata.tags using any-match 
     log: createLog(),
   });
 
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(attempts.length, 1);
   assert.equal(attempts[0].model, "fireworks/gpt-4o-mini");

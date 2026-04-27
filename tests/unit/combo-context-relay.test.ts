@@ -13,12 +13,10 @@ const handoffDb = await import("../../src/lib/db/contextHandoffs.ts");
 const { registerCodexConnection } = await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { clearSessions, touchSession } = await import("../../open-sse/services/sessionManager.ts");
 const { resetAllComboMetrics } = await import("../../open-sse/services/comboMetrics.ts");
-const { resetAllCircuitBreakers, getCircuitBreaker } =
-  await import("../../src/shared/utils/circuitBreaker.ts");
+const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
-const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -37,6 +35,24 @@ function okResponse(body = { choices: [{ message: { content: "ok" } }] }) {
     status: 200,
     headers: { "content-type": "application/json" },
   });
+}
+
+function providerBreakerOpenResponse() {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Provider circuit breaker is open",
+        code: "provider_circuit_open",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-provider-breaker": "open",
+      },
+    }
+  );
 }
 
 function buildQuotaResponse(usedPercent, resetAfterSeconds = 3600) {
@@ -161,23 +177,13 @@ test("handleComboChat context-relay skips unavailable models and falls through t
   assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
 });
 
-test("handleComboChat context-relay skips models with an open circuit breaker", async () => {
+test("handleComboChat context-relay skips targets that report an open provider circuit breaker", async () => {
   const combo = {
     name: "relay-breaker",
     strategy: "context-relay",
     models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
     config: { maxRetries: 0 },
   };
-  const firstStep = normalizeComboStep(combo.models[0], {
-    comboName: combo.name,
-    index: 0,
-  });
-  const breaker = getCircuitBreaker(`combo:${combo.name}:${firstStep.id}`, {
-    failureThreshold: 1,
-    resetTimeout: 60000,
-  });
-  breaker._onFailure();
-
   const log = createLog();
   const calls = [];
 
@@ -188,6 +194,9 @@ test("handleComboChat context-relay skips models with an open circuit breaker", 
     combo,
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
+      if (modelStr === "codex/gpt-5.4") {
+        return providerBreakerOpenResponse();
+      }
       return okResponse();
     },
     isModelAvailable: async () => true,
@@ -197,8 +206,10 @@ test("handleComboChat context-relay skips models with an open circuit breaker", 
   });
 
   assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
-  assert.ok(log.entries.some((entry) => entry.msg.includes("circuit breaker OPEN")));
+  assert.deepEqual(calls, ["codex/gpt-5.4", "openai/gpt-4o-mini"]);
+  assert.ok(
+    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
+  );
 });
 
 test("handleComboChat context-relay persists a handoff when codex quota reaches the warning threshold", async () => {

@@ -130,8 +130,8 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   for (const mod of loadedModules) {
-    if (typeof mod.stopPeriodicSync === "function") {
-      mod.stopPeriodicSync();
+    if (typeof (mod as any).stopPeriodicSync === "function") {
+      (mod as any).stopPeriodicSync();
     }
   }
   loadedModules.clear();

@@ -14,10 +14,17 @@ function normalizeText(value: string | null | undefined): string {
 export function normalizeModelCatalogSource(source?: string | null): ModelCatalogSource {
   const normalized = normalizeText(source);
 
-  if (normalized === "api-sync" || normalized === "synced") return "api-sync";
+  if (
+    normalized === "api-sync" ||
+    normalized === "synced" ||
+    normalized === "auto-sync" ||
+    normalized === "imported"
+  ) {
+    return "api-sync";
+  }
   if (normalized === "fallback") return "fallback";
   if (normalized === "alias") return "alias";
-  if (normalized === "custom" || normalized === "manual" || normalized === "imported") {
+  if (normalized === "custom" || normalized === "manual") {
     return "custom";
   }
 

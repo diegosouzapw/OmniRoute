@@ -42,7 +42,7 @@ test("public login bootstrap route exposes the metadata the login page consumes"
   });
 
   const response = await route.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
@@ -63,7 +63,7 @@ test("public login bootstrap route reports env-provided bootstrap password metad
   });
 
   const response = await route.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
@@ -83,7 +83,7 @@ test("public login bootstrap route reports stored password metadata and disabled
   });
 
   const response = await route.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
@@ -103,7 +103,7 @@ test("public login bootstrap route POST rejects invalid JSON bodies", async () =
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.message, "Invalid request");
@@ -118,7 +118,7 @@ test("public login bootstrap route POST rejects empty updates", async () => {
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.message, "Invalid request");
@@ -133,7 +133,7 @@ test("public login bootstrap route POST updates requireLogin without forcing pas
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
@@ -151,7 +151,7 @@ test("public login bootstrap route POST hashes and stores passwords", async () =
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
@@ -176,7 +176,7 @@ test("login bootstrap route POST rejects unauthenticated writes after setup is c
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 401);
@@ -196,7 +196,7 @@ test("public login bootstrap route POST returns 500 when hashing fails", async (
   });
 
   const response = await route.POST(request);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 500);
   assert.deepEqual(body, { error: "hash failed" });

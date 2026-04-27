@@ -14,7 +14,7 @@ test("handleModeration requires input", async () => {
     body: { model: "openai/omni-moderation-latest" },
     credentials: { apiKey: "sk-test" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "input is required");
@@ -25,7 +25,7 @@ test("handleModeration rejects unknown moderation models", async () => {
     body: { model: "mystery/moderation", input: "hello" },
     credentials: { apiKey: "sk-test" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(payload.error.message, /No moderation provider found/);
@@ -36,7 +36,7 @@ test("handleModeration requires credentials for the resolved provider", async ()
     body: { input: "hello" },
     credentials: null,
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(payload.error.message, "No credentials for moderation provider: openai");
@@ -104,7 +104,7 @@ test("handleModeration returns a 500 when the upstream request throws", async ()
     body: { model: "openai/text-moderation-latest", input: "check this" },
     credentials: { apiKey: "sk-test" },
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
 
   assert.equal(response.status, 500);
   assert.match(payload.error.message, /Moderation request failed: socket closed/);

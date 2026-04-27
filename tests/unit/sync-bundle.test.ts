@@ -82,7 +82,7 @@ test("config sync bundle is deterministic, strips auth settings, and ignores vol
   assert.equal(first.bundle.providerConnections[0].apiKey, "sk-live-secret");
   assert.equal(first.bundle.modelAliases["smart-default"], "openai/gpt-4o-mini");
 
-  await providersDb.updateProviderConnection(connection.id, {
+  await providersDb.updateProviderConnection((connection as any).id, {
     lastError: "temporary upstream failure",
     lastErrorAt: "2026-04-14T12:00:00.000Z",
     rateLimitedUntil: "2026-04-14T12:30:00.000Z",
@@ -91,7 +91,7 @@ test("config sync bundle is deterministic, strips auth settings, and ignores vol
   const afterVolatileChange = await syncBundle.buildConfigSyncEnvelope();
   assert.equal(afterVolatileChange.version, first.version);
 
-  await providersDb.updateProviderConnection(connection.id, {
+  await providersDb.updateProviderConnection((connection as any).id, {
     defaultModel: "gpt-4.1-mini",
   });
 

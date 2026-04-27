@@ -36,8 +36,8 @@ test("contract: /api/v1 and /api/v1/models return consistent model IDs", async (
   assert.equal(v1Response.status, 200);
   assert.equal(v1ModelsResponse.status, 200);
 
-  const v1Body = await v1Response.json();
-  const v1ModelsBody = await v1ModelsResponse.json();
+  const v1Body = (await v1Response.json()) as any;
+  const v1ModelsBody = (await v1ModelsResponse.json()) as any;
 
   assert.equal(v1Body.object, "list");
   assert.equal(v1ModelsBody.object, "list");
@@ -55,7 +55,7 @@ test("contract: /api/v1/models returns OpenAI-compatible model shape", async () 
   const response = await getV1Models(new Request(`${BASE_URL}/api/v1/models`, { method: "GET" }));
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.object, "list");
   assert.ok(Array.isArray(body.data));
@@ -75,7 +75,7 @@ test("contract: /api/v1/embeddings GET returns embedding model listing shape", a
   const response = await getEmbeddings();
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.object, "list");
   assert.ok(Array.isArray(body.data));
@@ -93,7 +93,7 @@ test("contract: /api/v1/images/generations GET returns image model listing shape
   const response = await getImageModels();
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.object, "list");
   assert.ok(Array.isArray(body.data));
@@ -118,7 +118,7 @@ test("contract: /api/v1/messages/count_tokens returns 400 on invalid JSON", asyn
   );
 
   assert.equal(response.status, 400);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.ok(body.error, "error payload should exist");
   assert.ok(
     typeof body.error === "string" || typeof body.error === "object",
@@ -138,7 +138,7 @@ test("contract: /api/v1/messages/count_tokens rejects empty messages payload", a
   );
 
   assert.equal(response.status, 400);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.ok(body.error, "error payload should exist");
   assert.ok(
     typeof body.error === "string" || typeof body.error === "object",
@@ -168,6 +168,6 @@ test("contract: /api/v1/messages/count_tokens computes token estimate from text 
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.input_tokens, 3);
 });

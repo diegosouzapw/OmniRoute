@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import {
   getCliRuntimeStatus,
   CLI_TOOL_IDS,
@@ -99,7 +100,10 @@ async function checkToolConfigStatus(toolId: string): Promise<string> {
  * Returns runtime + config status for all CLI tools in one batch call.
  * Used by the CLI Tools page to show status badges in collapsed state.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const statuses = {};
 

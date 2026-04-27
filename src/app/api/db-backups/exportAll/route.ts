@@ -4,7 +4,7 @@ import { CALL_LOGS_DIR } from "@/lib/usage/callLogArtifacts";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       // Create ZIP using tar (available on all Linux/macOS, and the archiver npm package is not installed)
       // We'll use Node.js built-in zlib to create a simple tar.gz instead
       const tarPath = zipPath.replace(".zip", ".tar.gz");
-      execSync(`tar -czf "${tarPath}" -C "${path.dirname(tempDir)}" "${path.basename(tempDir)}"`, {
+      execFileSync("tar", ["-czf", tarPath, "-C", path.dirname(tempDir), path.basename(tempDir)], {
         timeout: 30000,
       });
 

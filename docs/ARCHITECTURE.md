@@ -11,7 +11,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (100+ providers, 16 executors)
+- OpenAI-compatible API surface for CLI/tools (160+ providers, 16 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
@@ -42,7 +42,7 @@ Core capabilities:
 - Circuit breaker pattern for provider resilience
 - Anti-thundering herd protection with mutex locking
 - Signature-based request deduplication cache
-- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Domain layer: cost rules, fallback policy, lockout policy
 - Context Relay: session handoff summaries for account rotation continuity
 - Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
 - Policy engine for centralized request evaluation (lockout → budget → fallback)
@@ -51,8 +51,8 @@ Core capabilities:
 - Correlation ID (X-Request-Id) for end-to-end tracing
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
-- Resilience UI dashboard with real-time circuit breaker status
-- MCP Server (25 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- Health dashboard with real-time provider circuit breaker status
+- MCP Server (29 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -205,10 +205,9 @@ Management domains:
 - System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
 - Sessions: `src/app/api/sessions` (GET)
 - Rate limits: `src/app/api/rate-limits` (GET)
-- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
-- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Resilience: `src/app/api/resilience` (GET/PATCH) — request queue, connection cooldown, provider breaker, wait-for-cooldown config
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset provider breakers
 - Cache stats: `src/app/api/cache/stats` (GET/DELETE)
-- Model availability: `src/app/api/models/availability` (GET/POST)
 - Telemetry: `src/app/api/telemetry/summary` (GET)
 - Budget: `src/app/api/usage/budget` (GET/POST)
 - Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
@@ -265,7 +264,6 @@ Services (business logic):
 
 Domain layer modules:
 
-- Model availability: `src/lib/domain/modelAvailability.ts`
 - Cost rules/budgets: `src/lib/domain/costRules.ts`
 - Fallback policy: `src/lib/domain/fallbackPolicy.ts`
 - Combo resolver: `src/lib/domain/comboResolver.ts`
@@ -794,7 +792,7 @@ legacy compatibility. The current runtime contract uses:
 
 ## 1) Account/Provider Availability
 
-- provider account cooldown on transient/rate/auth errors
+- connection cooldown on retryable upstream failures
 - account fallback before failing request
 - combo model fallback when current model/provider path is exhausted
 
@@ -876,7 +874,7 @@ Environment variables actively used by code:
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
 6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
 7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+8. Settings page is organized into 7 tabs: General, Appearance, AI, Security, Routing, Resilience, Advanced. The Resilience page only configures request queue, connection cooldown, provider breaker, and wait-for-cooldown behavior; live breaker runtime state is shown on the Health page.
 9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
 10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
 11. **Node.js runtime policy detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime falls outside the supported secure Node.js lines.

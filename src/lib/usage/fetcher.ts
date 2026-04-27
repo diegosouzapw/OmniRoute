@@ -51,6 +51,7 @@ export async function getUsageForProvider(connection) {
     case "qoder":
       return await getQoderUsage(accessToken);
     case "kiro":
+    case "amazon-q":
       return await getKiroUsage(accessToken);
     default:
       return { message: `Usage API not implemented for ${provider}` };

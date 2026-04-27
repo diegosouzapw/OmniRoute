@@ -404,6 +404,7 @@ Recognized pattern: `{PROVIDER_ID}_API_KEY`
 | `COHERE_API_KEY`     | Cohere              |
 | `NVIDIA_API_KEY`     | NVIDIA NIM          |
 | `NEBIUS_API_KEY`     | Nebius (embeddings) |
+| `QIANFAN_API_KEY`    | Baidu Qianfan       |
 
 > [!TIP]
 > Keys set via the Dashboard are stored encrypted in SQLite and take precedence over environment variables.

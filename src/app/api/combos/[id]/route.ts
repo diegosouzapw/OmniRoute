@@ -14,9 +14,13 @@ import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const combo = await getComboById(id);
@@ -34,6 +38,9 @@ export async function GET(request, { params }) {
 
 // PUT /api/combos/[id] - Update combo
 export async function PUT(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -116,6 +123,9 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/combos/[id] - Delete combo
 export async function DELETE(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const success = await deleteCombo(id);

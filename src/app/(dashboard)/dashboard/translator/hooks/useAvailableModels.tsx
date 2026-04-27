@@ -11,6 +11,7 @@ const FORMAT_MODEL_PREFIXES = {
   "openai-responses": ["gpt-", "o1-", "o3-", "o4-"],
   claude: ["claude-"],
   gemini: ["gemini-"],
+  "gemini-cli": ["gemini-"],
 };
 
 /**

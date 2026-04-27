@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAllCircuitBreakerStatuses } from "@/shared/utils/circuitBreaker";
 import { getLockedIdentifiers, forceUnlock } from "@/domain/lockoutPolicy";
 import { policyActionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 export async function GET() {
   try {
-    const circuitBreakers = getAllCircuitBreakerStatuses();
     const lockedIdentifiers = getLockedIdentifiers();
-    return NextResponse.json({ circuitBreakers, lockedIdentifiers });
+    return NextResponse.json({ lockedIdentifiers });
   } catch (error) {
     console.error("Error loading policies:", error);
     return NextResponse.json({ error: "Failed to load policies" }, { status: 500 });

@@ -3,8 +3,11 @@ import { proxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const proxyId = searchParams.get("proxyId");
@@ -31,6 +34,8 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody: unknown;
   try {
     rawBody = await request.json();

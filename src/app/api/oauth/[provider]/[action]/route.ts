@@ -87,8 +87,14 @@ export async function GET(
 
       // Request device code (through proxy if configured)
       let deviceData;
-      if (provider === "github" || provider === "kiro" || provider === "kilocode") {
-        // GitHub, Kiro, and KiloCode don't use PKCE for device code
+      if (
+        provider === "github" ||
+        provider === "kiro" ||
+        provider === "amazon-q" ||
+        provider === "kimi-coding" ||
+        provider === "kilocode"
+      ) {
+        // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
         deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
       } else {
         // Qwen and other providers use PKCE
@@ -324,11 +330,11 @@ export async function POST(
       // Poll for token (through proxy if configured)
       let result;
       if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
-        // For providers that don't use PKCE (like GitHub, Kiro, Kimi Coding), don't pass codeVerifier
+        // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
         result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
-      } else if (provider === "kiro") {
+      } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
         result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, extraData)

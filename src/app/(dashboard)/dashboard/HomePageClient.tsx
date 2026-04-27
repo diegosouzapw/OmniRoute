@@ -636,7 +636,7 @@ export default function HomePageClient({ machineId }) {
                 <p className="text-text-muted mt-0.5">
                   {t.rich("step4Desc", {
                     logs: (chunks) => (
-                      <Link href="/dashboard/usage" className="text-primary hover:underline">
+                      <Link href="/dashboard/logs" className="text-primary hover:underline">
                         {chunks}
                       </Link>
                     ),

@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { getPricing, updatePricing, resetPricing, resetAllPricing } from "@/lib/localDb";
+import {
+  getPricing,
+  getPricingWithSources,
+  updatePricing,
+  resetPricing,
+  resetAllPricing,
+} from "@/lib/localDb";
 import { updatePricingSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -7,8 +13,13 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * GET /api/pricing
  * Get current pricing configuration (merged user + defaults)
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const includeSources = new URL(request.url).searchParams.get("includeSources") === "1";
+    if (includeSources) {
+      return NextResponse.json(await getPricingWithSources());
+    }
+
     const pricing = await getPricing();
     return NextResponse.json(pricing);
   } catch (error) {

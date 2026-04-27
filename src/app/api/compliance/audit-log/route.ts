@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { countAuditLog, getAuditLog } from "@/lib/compliance/index";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,9 @@ function parsePagination(value: string | null, fallback: number, min: number, ma
 }
 
 export async function GET(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const filters = {

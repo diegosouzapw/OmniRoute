@@ -139,7 +139,7 @@ console.log(`  Stream: ${body.stream || false}`);
 
       console.log(`\n\n✅ Received ${chunkCount} chunks`);
     } else {
-      const responseData = await response.json();
+      const responseData = (await response.json()) as any;
       console.log("\n📦 Response:");
       console.log(JSON.stringify(responseData, null, 2));
     }

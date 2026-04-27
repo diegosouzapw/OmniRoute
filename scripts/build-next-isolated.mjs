@@ -23,6 +23,11 @@ export function getTransientBuildPaths(rootDir = projectRoot, env = process.env)
       sourcePath: path.join(rootDir, "app"),
       backupPath: path.join(backupRoot, "app"),
     },
+    {
+      label: "local Wine prefix",
+      sourcePath: path.join(rootDir, ".tmp", "wine32"),
+      backupPath: path.join(backupRoot, "wine32"),
+    },
   ];
 
   if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
@@ -72,7 +77,7 @@ export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
 function runNextBuild() {
   return new Promise((resolve) => {
     const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
-    const child = spawn(process.execPath, [nextBin, "build"], {
+    const child = spawn(process.execPath, [nextBin, "build", resolveNextBuildBundlerFlag()], {
       cwd: projectRoot,
       stdio: "inherit",
       env: resolveNextBuildEnv(process.env),
@@ -95,6 +100,10 @@ function runNextBuild() {
       resolve({ code: code ?? 1, signal: null });
     });
   });
+}
+
+export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
+  return baseEnv.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
@@ -125,6 +134,41 @@ export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = f
       `[build-next-isolated] Pruned standalone artifact: ${path.relative(rootDir, targetPath)}`
     );
   }
+}
+
+export async function syncStandaloneNativeAssets(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  const nativeAssetDirs = [
+    {
+      label: "wreq-js native runtime",
+      sourcePath: path.join(rootDir, "node_modules", "wreq-js", "rust"),
+      destinationPath: path.join(rootDir, ".next", "standalone", "node_modules", "wreq-js", "rust"),
+    },
+  ];
+
+  let changed = false;
+
+  for (const entry of nativeAssetDirs) {
+    if (!(await exists(entry.sourcePath))) continue;
+
+    await fsImpl.mkdir(path.dirname(entry.destinationPath), { recursive: true });
+    await fsImpl.cp(entry.sourcePath, entry.destinationPath, {
+      recursive: true,
+      force: true,
+    });
+    log.log(
+      `[build-next-isolated] Copied native standalone asset: ${path.relative(
+        rootDir,
+        entry.destinationPath
+      )}`
+    );
+    changed = true;
+  }
+
+  return changed;
 }
 
 export async function main() {
@@ -164,6 +208,15 @@ export async function main() {
         console.warn(
           "[build-next-isolated] Non-fatal error pruning standalone artifacts:",
           pruneErr
+        );
+      }
+
+      try {
+        await syncStandaloneNativeAssets(projectRoot);
+      } catch (nativeAssetErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error copying native standalone assets:",
+          nativeAssetErr
         );
       }
     }

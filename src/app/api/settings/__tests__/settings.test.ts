@@ -29,6 +29,7 @@ describe("PATCH /api/settings", () => {
     (getSettings as any).mockResolvedValue({
       debugMode: false,
       hiddenSidebarItems: [],
+      comboConfigMode: "guided",
     });
     // Mock updateSettings to merge updates into the original
     (updateSettings as any).mockImplementation(async (updates: Record<string, unknown>) => {
@@ -60,5 +61,16 @@ describe("PATCH /api/settings", () => {
     expect(updateSettings).toHaveBeenCalledOnce();
     const calledWith = (updateSettings as any).mock.calls[0][0];
     expect(calledWith.hiddenSidebarItems).toEqual([]);
+  });
+
+  it("updates comboConfigMode via PATCH", async () => {
+    const req = createPatchRequest({ comboConfigMode: "expert" });
+    const res = await PATCH(req as any);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.comboConfigMode).toBe("expert");
+    expect(updateSettings).toHaveBeenCalledOnce();
+    const calledWith = (updateSettings as any).mock.calls[0][0];
+    expect(calledWith.comboConfigMode).toBe("expert");
   });
 });

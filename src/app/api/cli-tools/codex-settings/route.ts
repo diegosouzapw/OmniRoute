@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import {
   ensureCliConfigWriteAllowed,
   getCliConfigPaths,
@@ -38,24 +39,54 @@ const parseToml = (content: string) => {
     // Key = value
     const kvMatch = trimmed.match(/^([^=]+)\s*=\s*(.+)$/);
     if (kvMatch) {
-      const key = kvMatch[1].trim();
-      let value = kvMatch[2].trim();
-      // Remove quotes
+      let key = kvMatch[1].trim();
+      const rawValue = kvMatch[2].trim();
+      // Strip quotes from key (TOML quoted keys like "gpt-5.3-codex")
       if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
+        (key.startsWith('"') && key.endsWith('"')) ||
+        (key.startsWith("'") && key.endsWith("'"))
       ) {
-        value = value.slice(1, -1);
+        key = key.slice(1, -1);
       }
+      // Parse value preserving TOML types (integers, floats, booleans)
+      let parsedValue: string | number | boolean = rawValue;
+      if (rawValue === "true") {
+        parsedValue = true;
+      } else if (rawValue === "false") {
+        parsedValue = false;
+      } else if (
+        (rawValue.startsWith('"') && rawValue.endsWith('"')) ||
+        (rawValue.startsWith("'") && rawValue.endsWith("'"))
+      ) {
+        // Quoted string — strip quotes, keep as string
+        parsedValue = rawValue.slice(1, -1);
+      } else if (/^-?\d+$/.test(rawValue)) {
+        // Integer literal (unquoted)
+        parsedValue = parseInt(rawValue, 10);
+      } else if (/^-?\d+\.\d+$/.test(rawValue)) {
+        // Float literal (unquoted)
+        parsedValue = parseFloat(rawValue);
+      }
+      // Arrays and other complex values stay as raw strings
       if (currentSection === "_root") {
-        result._root[key] = value;
+        result._root[key] = parsedValue;
       } else {
-        result._sections[currentSection][key] = value;
+        result._sections[currentSection][key] = parsedValue;
       }
     }
   });
 
   return result;
+};
+
+// Format a TOML value: arrays and booleans stay unquoted, strings get quoted
+const formatTomlValue = (value: unknown): string => {
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "number") return String(value);
+  // Preserve pre-formatted TOML arrays (e.g. ["a", "b"])
+  if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) return value;
+  if (typeof value === "string") return `"${value}"`;
+  return `"${value}"`;
 };
 
 // Convert parsed object back to TOML string
@@ -64,7 +95,7 @@ const toToml = (parsed: Record<string, any>) => {
 
   // Root level keys
   Object.entries(parsed._root).forEach(([key, value]) => {
-    lines.push(`${key} = "${value}"`);
+    lines.push(`${key} = ${formatTomlValue(value)}`);
   });
 
   // Sections
@@ -73,7 +104,7 @@ const toToml = (parsed: Record<string, any>) => {
     lines.push(`[${section}]`);
     Object.entries(values).forEach(([key, value]) => {
       const formattedKey = key.includes(".") ? `"${key}"` : key;
-      lines.push(`${formattedKey} = "${value}"`);
+      lines.push(`${formattedKey} = ${formatTomlValue(value)}`);
     });
   });
 
@@ -103,7 +134,10 @@ const hasOmniRouteConfig = (config: string | null) => {
 };
 
 // GET - Check codex CLI and read current settings
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const runtime = await getCliRuntimeStatus("codex");
 
@@ -144,6 +178,9 @@ export async function GET() {
 
 // POST - Update OmniRoute settings (merge with existing config)
 export async function POST(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -284,7 +321,10 @@ export async function POST(request: Request) {
 }
 
 // DELETE - Remove OmniRoute settings only (keep other settings)
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {

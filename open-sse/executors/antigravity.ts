@@ -15,6 +15,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
@@ -104,6 +105,21 @@ function cleanModelName(model: string): string {
     clean = `${clean}-low`;
   }
   return clean;
+}
+
+function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | null): T {
+  if (!toolNameMap?.size || !payload || typeof payload !== "object") {
+    return payload;
+  }
+
+  const copy = Array.isArray(payload) ? ([...payload] as T) : ({ ...(payload as object) } as T);
+  Object.defineProperty(copy, "_toolNameMap", {
+    value: toolNameMap,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
+  return copy;
 }
 
 export class AntigravityExecutor extends BaseExecutor {
@@ -490,6 +506,17 @@ export class AntigravityExecutor extends BaseExecutor {
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
       let transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+      let requestToolNameMap: Map<string, string> | null = null;
+
+      if (transformedBody instanceof Response) {
+        return { response: transformedBody, url, headers, transformedBody: body };
+      }
+
+      if (transformedBody && typeof transformedBody === "object") {
+        const cloaked = cloakAntigravityToolPayload(transformedBody as Record<string, unknown>);
+        transformedBody = cloaked.body;
+        requestToolNameMap = cloaked.toolNameMap;
+      }
 
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
@@ -592,9 +619,17 @@ export class AntigravityExecutor extends BaseExecutor {
                       } catch {
                         /**/
                       }
-                      return collected;
+                      return {
+                        ...collected,
+                        transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                      };
                     }
-                    return { response: creditsResp, url, headers, transformedBody: creditsBody };
+                    return {
+                      response: creditsResp,
+                      url,
+                      headers,
+                      transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                    };
                   }
 
                   // Credit retry also 429'd
@@ -690,7 +725,12 @@ export class AntigravityExecutor extends BaseExecutor {
               status: response.status,
               headers: response.headers,
             });
-            return { response: modifiedResponse, url, headers, transformedBody };
+            return {
+              response: modifiedResponse,
+              url,
+              headers,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
           } catch (err) {
             log?.warn?.("RETRY", `Failed to embed retryAfterMs: ${err}`);
             // Fall back to original response
@@ -727,7 +767,10 @@ export class AntigravityExecutor extends BaseExecutor {
           } catch {
             /* balance cache is best-effort */
           }
-          return collected;
+          return {
+            ...collected,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
         }
 
         // Streaming path: wrap the response body in a pass-through TransformStream
@@ -735,18 +778,45 @@ export class AntigravityExecutor extends BaseExecutor {
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
           let sseBuffer = "";
+          const decoder = new TextDecoder(); // Singleton for correct streaming decode
+          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
+
           const passThrough = new TransformStream({
             transform(chunk, controller) {
               controller.enqueue(chunk);
               // Accumulate text to scan for remainingCredits
               try {
-                const text = new TextDecoder().decode(chunk, { stream: true });
+                const text = decoder.decode(chunk, { stream: true });
                 sseBuffer += text;
+                // Limit buffer size to prevent unbounded growth
+                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                  const lastNewline = sseBuffer.lastIndexOf(
+                    "\n",
+                    sseBuffer.length - MAX_BUFFER_SIZE
+                  );
+                  if (lastNewline !== -1) {
+                    sseBuffer = sseBuffer.slice(lastNewline + 1);
+                  } else {
+                    // No newline found in discard region — buffer contains an incomplete SSE line.
+                    // Discard it entirely to avoid returning malformed data; the remainingCredits
+                    // parser won't find valid data in a truncated line anyway.
+                    sseBuffer = "";
+                  }
+                }
               } catch {
                 /* decoding best-effort */
               }
             },
             flush() {
+              // Final decode for any remaining bytes
+              try {
+                const text = decoder.decode(); // Flush pending bytes
+                sseBuffer += text;
+              } catch {
+                /* decoding best-effort */
+              }
+
               // Parse the accumulated SSE data for remainingCredits
               try {
                 const lines = sseBuffer.split("\n");
@@ -784,10 +854,20 @@ export class AntigravityExecutor extends BaseExecutor {
             statusText: response.statusText,
             headers: response.headers,
           });
-          return { response: tappedResponse, url, headers, transformedBody };
+          return {
+            response: tappedResponse,
+            url,
+            headers,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
         }
 
-        return { response, url, headers, transformedBody };
+        return {
+          response,
+          url,
+          headers,
+          transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+        };
       } catch (error) {
         lastError = error;
         if (urlIndex + 1 < fallbackCount) {

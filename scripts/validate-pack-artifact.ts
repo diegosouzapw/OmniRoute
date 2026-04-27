@@ -18,13 +18,27 @@ const ROOT: string = join(__dirname, "..");
 const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runPackDryRun(): any {
-  const output = execFileSync(npmCommand, ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+  const npmExecPath = process.env.npm_execpath;
+  const command = npmExecPath ? process.execPath : npmCommand;
+  const args = [
+    ...(npmExecPath ? [npmExecPath] : []),
+    "pack",
+    "--dry-run",
+    "--json",
+    "--ignore-scripts",
+  ];
+
+  const output = execFileSync(command, args, {
     cwd: ROOT,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  const parsed = JSON.parse(output);
+  const jsonStart = output.indexOf("[");
+  const jsonEnd = output.lastIndexOf("]");
+  const jsonPayload =
+    jsonStart >= 0 && jsonEnd > jsonStart ? output.slice(jsonStart, jsonEnd + 1) : output;
+  const parsed = JSON.parse(jsonPayload);
   const packReport = Array.isArray(parsed) ? parsed[0] : null;
 
   if (!packReport || !Array.isArray(packReport.files)) {

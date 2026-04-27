@@ -60,7 +60,7 @@ test("compliance audit route keeps array payloads and exposes total count with s
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("x-total-count"), "1");
   assert.equal(response.headers.get("x-page-limit"), "10");
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
   assert.equal(Array.isArray(payload), true);
   assert.equal(payload.length, 1);
   assert.equal(payload[0].action, "provider.validation.ssrf_blocked");

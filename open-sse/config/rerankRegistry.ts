@@ -45,6 +45,37 @@ export const RERANK_PROVIDERS = {
     authHeader: "bearer",
     models: [{ id: "accounts/fireworks/models/nomic-rerank-v1", name: "Nomic Rerank v1" }],
   },
+
+  "voyage-ai": {
+    id: "voyage-ai",
+    baseUrl: "https://api.voyageai.com/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "rerank-2.5", name: "Rerank 2.5" },
+      { id: "rerank-2.5-lite", name: "Rerank 2.5 Lite" },
+      { id: "rerank-2", name: "Rerank 2" },
+      { id: "rerank-2-lite", name: "Rerank 2 Lite" },
+      { id: "rerank-1", name: "Rerank 1" },
+      { id: "rerank-lite-1", name: "Rerank Lite 1" },
+    ],
+  },
+
+  "jina-ai": {
+    id: "jina-ai",
+    baseUrl: "https://api.jina.ai/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "jina-reranker-v3", name: "Jina Reranker v3" },
+      { id: "jina-reranker-m0", name: "Jina Reranker m0" },
+      {
+        id: "jina-reranker-v2-base-multilingual",
+        name: "Jina Reranker v2 Base Multilingual",
+      },
+      { id: "jina-colbert-v2", name: "Jina ColBERT v2" },
+    ],
+  },
 };
 
 /**

@@ -146,6 +146,7 @@ const SCHEMA_SQL = `
     rate_limit_protection INTEGER DEFAULT 0,
     last_used_at TEXT,
     "group" TEXT,
+    max_concurrent INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -446,6 +447,13 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
       console.log('[DB] Added provider_connections."group" column');
     }
+    if (!columnNames.has("max_concurrent")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
+      console.log("[DB] Added provider_connections.max_concurrent column");
+    }
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify provider_connections schema:", message);
@@ -1168,6 +1176,12 @@ export function getDbInstance(): SqliteDatabase {
     db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
       "020",
       "combo_sort_order"
+    );
+  }
+  if (hasColumn(db, "provider_connections", "max_concurrent")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "029",
+      "provider_connection_max_concurrent"
     );
   }
   if (hasColumn(db, "call_logs", "request_type")) {

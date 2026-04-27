@@ -6,6 +6,7 @@
  * at runtime (see: https://github.com/vercel/next.js/issues/12557).
  */
 import { z } from "zod";
+import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
 export const updateSettingsSchema = z.object({
@@ -29,6 +30,7 @@ export const updateSettingsSchema = z.object({
   hideHealthCheckLogs: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   // Routing settings (#134)
   fallbackStrategy: z
     .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])
@@ -76,7 +78,7 @@ export const updateSettingsSchema = z.object({
   skillsProvider: z.enum(["skillsmp", "skillssh"]).optional(),
   // models.dev sync settings
   modelsDevSyncEnabled: z.boolean().optional(),
-  modelsDevSyncInterval: z.number().int().min(3600).max(604800).optional(),
+  modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
   // Global random routing (without combo requirement)
   globalRandomRoutingEnabled: z.boolean().optional(),
   globalRandomRoutingMode: z.enum(["strict", "weighted"]).optional(),
@@ -85,4 +87,13 @@ export const updateSettingsSchema = z.object({
   globalRandomRoutingBlockedModels: z.array(z.string().min(1).max(300)).max(2000).optional(),
   globalRandomRoutingExcludeCombos: z.boolean().optional(),
   globalRandomRoutingWeights: z.record(z.string().min(1).max(300), z.number().min(0)).optional(),
+  // Vision Bridge settings
+  visionBridgeEnabled: z.boolean().optional(),
+  visionBridgeModel: z.string().max(200).optional(),
+  visionBridgePrompt: z.string().max(5000).optional(),
+  visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
+  visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
+  // Missing settings
+  lkgpEnabled: z.boolean().optional(),
+  backgroundDegradation: z.unknown().optional(),
 });

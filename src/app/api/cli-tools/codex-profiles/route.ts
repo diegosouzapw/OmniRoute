@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "@/shared/services/cliRuntime";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { codexProfileIdSchema, codexProfileNameSchema } from "@/shared/validation/schemas";
@@ -52,7 +53,10 @@ function extractAuthLabel(authJson) {
 }
 
 // GET - List all saved profiles
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     await ensureProfilesDir();
 
@@ -94,6 +98,9 @@ export async function GET() {
 
 // POST - Save current config as a named profile
 export async function POST(request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -180,6 +187,9 @@ export async function POST(request) {
 
 // PUT - Activate a saved profile (restore its config + auth)
 export async function PUT(request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -251,6 +261,9 @@ export async function PUT(request) {
 
 // DELETE - Remove a saved profile
 export async function DELETE(request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();

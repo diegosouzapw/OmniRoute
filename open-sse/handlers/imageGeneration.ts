@@ -18,6 +18,13 @@ import { randomUUID } from "crypto";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
+import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
+import { ChatGptWebExecutor } from "../executors/chatgpt-web.ts";
+import {
+  getChatGptImage,
+  findChatGptImageBySha256,
+} from "../services/chatgptImageCache.ts";
+import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usageDb";
 import {
   submitComfyWorkflow,
@@ -112,7 +119,14 @@ const FAL_PRESET_SIZES = {
  * @param {object} options.log - Logger
  * @param {string} [options.resolvedProvider] - Pre-resolved provider ID (from route layer custom model resolution)
  */
-export async function handleImageGeneration({ body, credentials, log, resolvedProvider = null }) {
+export async function handleImageGeneration({
+  body,
+  credentials,
+  log,
+  resolvedProvider = null,
+  signal = null,
+  clientHeaders = null,
+}) {
   let provider, model;
 
   if (resolvedProvider) {
@@ -256,6 +270,18 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
     });
   }
 
+  if (providerConfig.format === "chatgpt-web") {
+    return handleChatGptWebImageGeneration({
+      model,
+      provider,
+      body,
+      credentials,
+      log,
+      signal,
+      clientHeaders,
+    });
+  }
+
   if (providerConfig.format === "nanobanana") {
     return handleNanoBananaImageGeneration({
       model,
@@ -273,6 +299,17 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
 
   if (providerConfig.format === "comfyui") {
     return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
+  }
+
+  if (providerConfig.format === "codex-responses") {
+    return handleCodexImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
   }
 
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
@@ -523,6 +560,370 @@ async function handleOpenAIImageGeneration({
   }).catch(() => {});
 
   return result;
+}
+
+const CHATGPT_WEB_IMAGE_MARKDOWN_RE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
+const CHATGPT_WEB_IMAGE_ID_RE = /\/v1\/chatgpt-web\/image\/([a-f0-9]{16,64})(?=[?\s"'<>)]|$)/i;
+
+function extractMarkdownImageUrls(text: string): string[] {
+  const urls: string[] = [];
+  // String.prototype.matchAll consumes a fresh iterator and ignores the
+  // regex's lastIndex, so no manual reset is required.
+  for (const match of text.matchAll(CHATGPT_WEB_IMAGE_MARKDOWN_RE)) {
+    if (match[1]) urls.push(match[1]);
+  }
+  return urls;
+}
+
+function buildChatGptWebImagePrompt(body): string {
+  const prompt = String(body.prompt || "").trim();
+  const details: string[] = [`Create an image for this prompt: ${prompt}`];
+  if (typeof body.size === "string" && body.size.trim()) {
+    details.push(`Requested size: ${body.size.trim()}.`);
+  }
+  if (typeof body.quality === "string" && body.quality.trim()) {
+    details.push(`Requested quality: ${body.quality.trim()}.`);
+  }
+  if (typeof body.style === "string" && body.style.trim()) {
+    details.push(`Requested style: ${body.style.trim()}.`);
+  }
+  return details.join("\n");
+}
+
+async function handleChatGptWebImageGeneration({
+  model,
+  provider,
+  body,
+  credentials,
+  log,
+  signal,
+  clientHeaders,
+}) {
+  const startTime = Date.now();
+  const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+  if (!prompt) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: "Prompt is required for ChatGPT Web image generation",
+    });
+  }
+
+  if (!credentials?.apiKey) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 401,
+      startTime,
+      error: "ChatGPT Web credentials missing session cookie",
+    });
+  }
+
+  // Each image is one chatgpt.com chat turn (~30s). Cap at 4 (matches OpenAI's
+  // own limit for image-1 / dall-e-3) so a stray n=1000 doesn't pin the
+  // executor for hours before the upstream HTTP timeout fires.
+  const CHATGPT_WEB_IMAGE_N_MAX = 4;
+  const rawCount =
+    Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  if (rawCount > CHATGPT_WEB_IMAGE_N_MAX) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: `ChatGPT Web image generation supports n=1..${CHATGPT_WEB_IMAGE_N_MAX} (got ${rawCount}); each n is a separate ~30s chat turn.`,
+    });
+  }
+  const requestedCount = rawCount;
+  if (log && requestedCount > 1) {
+    log.warn(
+      "IMAGE",
+      `ChatGPT Web returns one image per chat turn; requested n=${requestedCount} will run sequentially`
+    );
+  }
+
+  const wantsBase64 = body.response_format === "b64_json";
+  const images: Array<{ url?: string; b64_json?: string }> = [];
+  const requestBody = {
+    model,
+    prompt: prompt.slice(0, 500),
+    size: body.size || undefined,
+    quality: body.quality || undefined,
+  };
+
+  for (let i = 0; i < requestedCount; i++) {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model,
+      body: {
+        messages: [{ role: "user", content: buildChatGptWebImagePrompt(body) }],
+      },
+      stream: false,
+      credentials,
+      signal,
+      log,
+      clientHeaders,
+    });
+
+    const responseText = await result.response.text();
+    if (result.response.status >= 400) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: result.response.status,
+        startTime,
+        error: responseText,
+        requestBody,
+      });
+    }
+
+    let content = "";
+    try {
+      const json = JSON.parse(responseText);
+      content = String(json?.choices?.[0]?.message?.content || "");
+    } catch {
+      content = responseText;
+    }
+
+    const urls = extractMarkdownImageUrls(content);
+    if (urls.length === 0) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error: `ChatGPT Web completed without returning image markdown: ${content.slice(0, 300)}`,
+        requestBody,
+      });
+    }
+
+    for (const url of urls) {
+      if (!wantsBase64) {
+        images.push({ url });
+        continue;
+      }
+      const id = url.match(CHATGPT_WEB_IMAGE_ID_RE)?.[1];
+      const cached = id ? getChatGptImage(id) : null;
+      if (!cached) {
+        return saveImageErrorResult({
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error: "ChatGPT Web image bytes expired before b64_json conversion",
+          requestBody,
+        });
+      }
+      images.push({ b64_json: cached.bytes.toString("base64") });
+    }
+  }
+
+  return saveImageSuccessResult({
+    provider,
+    model,
+    startTime,
+    requestBody,
+    responseBody: { images_count: images.length },
+    images,
+  });
+}
+
+/**
+ * Handle a multipart /v1/images/edits request for chatgpt-web. Open WebUI
+ * uploads the prior image's bytes; we hash them and look up our cache.
+ *
+ * The hash match is reliable because Open WebUI's image-gen pipeline
+ * downloads our /v1/chatgpt-web/image/<id> URL byte-for-byte and re-serves
+ * those exact bytes through its own file store. When the user asks to edit
+ * the image, OWUI uploads the same bytes back to us via multipart — same
+ * hash, we find the conversation context, and drive the executor with a
+ * synthetic chat thread that triggers continuation mode.
+ *
+ * No-match cases (cache evicted by TTL, or the user uploaded a foreign
+ * image) get a clear 400. We can't actually edit an image we don't have a
+ * conversation context for — chatgpt.com's image_gen tool needs the
+ * original conversation node, and we don't have a path to upload bytes
+ * directly.
+ */
+export async function handleImageEdit({
+  provider,
+  model,
+  body,
+  imageBytes,
+  credentials,
+  log,
+  signal = null,
+  clientHeaders = null,
+}: {
+  provider: string;
+  model: string;
+  body: Record<string, any>;
+  imageBytes: Buffer;
+  imageMime?: string; // accepted for symmetry with route layer; not used
+  credentials: any;
+  log: any;
+  signal?: AbortSignal | null;
+  clientHeaders?: Record<string, string> | null;
+}) {
+  const startTime = Date.now();
+  const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+  if (!prompt) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: "Prompt is required for image edit",
+    });
+  }
+
+  if (!credentials?.apiKey) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 401,
+      startTime,
+      error: "ChatGPT Web credentials missing session cookie",
+    });
+  }
+
+  const imageHash = createHash("sha256").update(imageBytes).digest("hex");
+  const cached = findChatGptImageBySha256(imageHash);
+
+  const wantsBase64 = body.response_format === "b64_json";
+  const requestBody = {
+    model,
+    prompt: prompt.slice(0, 500),
+    size: body.size || undefined,
+    image_hash: imageHash.slice(0, 16),
+    image_bytes: imageBytes.length,
+    cached_match: Boolean(cached?.entry.context),
+  };
+
+  if (!cached?.entry.context) {
+    // chatgpt-web's image_gen tool can only edit an image when we continue
+    // the original conversation node. If we never generated this image (or
+    // its 30-minute TTL elapsed), there's no node to continue. Return a
+    // clear, actionable error — much better than silently spawning an
+    // unrelated image and confusing the user.
+    log?.warn?.(
+      "IMAGE",
+      `chatgpt-web edit: no cached match for sha256=${imageHash.slice(0, 16)} (bytes=${imageBytes.length}); returning 400`
+    );
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error:
+        "chatgpt-web image edit only works for images recently generated through this OmniRoute instance " +
+        "(cache window: 30 minutes). Re-generate the image and try the edit immediately, or disable image-edit " +
+        "in your client to use plain chat-completion edit prompts instead.",
+      requestBody,
+    });
+  }
+
+  // Build a synthetic chat thread that surfaces the cached image URL on
+  // the assistant turn. The executor's parseOpenAIMessages picks up the
+  // URL, findCachedImageContext resolves it to {conversationId,
+  // parentMessageId}, and looksLikeImageEditRequest fires on the user
+  // prompt — together producing a continuation request that actually
+  // edits the saved image.
+  //
+  // The synthetic user prompt is anchored with both an edit verb AND an
+  // image-gen verb so the executor's heuristics fire regardless of what
+  // wording the caller used ("now make it brighter", "tweak this", ...):
+  //   - looksLikeImageEditRequest: matches "edit" + "image" within 120 chars
+  //   - looksLikeImageGenRequest:  matches "generate" + "image" within 40 chars
+  // Either match alone would set forImageGen, but covering both is cheap
+  // insurance for prompts that don't fit common phrasings.
+  const messages: Array<{ role: string; content: string }> = [
+    {
+      role: "assistant",
+      // The base URL is irrelevant — only the path is parsed by
+      // CACHED_IMAGE_URL_RE in the executor's findCachedImageContext.
+      content: `![image](http://internal/v1/chatgpt-web/image/${cached.id})`,
+    },
+    {
+      role: "user",
+      content: `Edit the image and generate the new image: ${prompt}`,
+    },
+  ];
+
+  const executor = new ChatGptWebExecutor();
+  const result = await executor.execute({
+    model,
+    body: { messages },
+    stream: false,
+    credentials,
+    signal,
+    log,
+    clientHeaders,
+  });
+
+  const responseText = await result.response.text();
+  if (result.response.status >= 400) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: result.response.status,
+      startTime,
+      error: responseText,
+      requestBody,
+    });
+  }
+
+  let content = "";
+  try {
+    const json = JSON.parse(responseText);
+    content = String(json?.choices?.[0]?.message?.content || "");
+  } catch {
+    content = responseText;
+  }
+
+  const urls = extractMarkdownImageUrls(content);
+  if (urls.length === 0) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 502,
+      startTime,
+      error: `ChatGPT Web edit completed without returning image markdown: ${content.slice(0, 300)}`,
+      requestBody,
+    });
+  }
+
+  const images: Array<{ url?: string; b64_json?: string }> = [];
+  for (const url of urls) {
+    if (!wantsBase64) {
+      images.push({ url });
+      continue;
+    }
+    const id = url.match(CHATGPT_WEB_IMAGE_ID_RE)?.[1];
+    const cachedNew = id ? getChatGptImage(id) : null;
+    if (!cachedNew) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error: "ChatGPT Web image bytes expired before b64_json conversion",
+        requestBody,
+      });
+    }
+    images.push({ b64_json: cachedNew.bytes.toString("base64") });
+  }
+
+  return saveImageSuccessResult({
+    provider,
+    model,
+    startTime,
+    requestBody,
+    responseBody: { images_count: images.length, edit_match: Boolean(cached?.entry.context) },
+    images,
+  });
 }
 
 async function handleFalAIImageGeneration({
@@ -1319,6 +1720,220 @@ function firstString(...values) {
 
 function isHttpUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
+}
+
+/**
+ * Codex image generation — translate DALL-E-style /v1/images/generations
+ * request into a /v1/responses call with the `image_generation` hosted tool,
+ * parse the SSE stream, and return the base64 PNG in OpenAI image response shape.
+ *
+ * Requires ChatGPT OAuth credentials (Codex provider connection). The hosted
+ * image_generation tool is only served upstream under ChatGPT auth; API-key
+ * users will receive a 400 from OpenAI.
+ */
+export function extractImageGenerationCalls(
+  sseText: string
+): Array<{ b64: string; revisedPrompt: string | null }> {
+  const results: Array<{ b64: string; revisedPrompt: string | null }> = [];
+  const lines = String(sseText || "").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    let evt: Record<string, unknown>;
+    try {
+      evt = JSON.parse(payload) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+    if (evt?.type !== "response.output_item.done") continue;
+    const item = evt.item as Record<string, unknown> | undefined;
+    if (!item || item.type !== "image_generation_call") continue;
+    const result = typeof item.result === "string" ? item.result : "";
+    if (!result) continue;
+    const revisedPrompt = typeof item.revised_prompt === "string" ? item.revised_prompt : null;
+    results.push({ b64: result, revisedPrompt });
+  }
+  return results;
+}
+
+// The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
+// for `quality`. DALL-E clients often send "standard" / "hd". Map legacy values
+// so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
+function mapDalleQualityToImageTool(value: string): string {
+  const normalized = value.toLowerCase();
+  if (normalized === "standard") return "medium";
+  if (normalized === "hd") return "high";
+  return normalized;
+}
+
+async function handleCodexImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const prompt = typeof body.prompt === "string" ? body.prompt : "";
+  if (!prompt.trim()) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error: "Prompt is required for Codex image generation",
+    });
+  }
+
+  const requestedCount =
+    Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  if (log && requestedCount > 1) {
+    log.warn(
+      "IMAGE",
+      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will run sequentially`
+    );
+  }
+
+  const token = credentials?.accessToken || credentials?.apiKey;
+  if (!token) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 401,
+      startTime,
+      error: "Codex credentials missing accessToken — reconnect the Codex provider",
+    });
+  }
+
+  const workspaceId =
+    credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+      ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
+      : undefined;
+
+  // Forward size/quality from the DALL-E-style body into the hosted tool so
+  // OpenWebUI's size/quality selectors actually take effect. Everything else
+  // (model, n, background, moderation, output_compression) is left to the
+  // Codex backend's defaults — today that's `gpt-image-2`.
+  const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
+  if (typeof body.size === "string" && body.size.trim()) {
+    toolConfig.size = body.size.trim();
+  }
+  if (typeof body.quality === "string" && body.quality.trim()) {
+    toolConfig.quality = mapDalleQualityToImageTool(body.quality.trim());
+  }
+
+  const upstreamBody: Record<string, unknown> = {
+    model,
+    instructions:
+      "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
+    input: [
+      {
+        role: "user",
+        content: [{ type: "input_text", text: prompt }],
+      },
+    ],
+    tools: [toolConfig],
+    stream: true,
+    store: false,
+  };
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+    Authorization: `Bearer ${token}`,
+    Version: getCodexClientVersion(),
+    "User-Agent": getCodexUserAgent(),
+    originator: "codex_cli_rs",
+  };
+  if (typeof workspaceId === "string" && workspaceId) {
+    headers["chatgpt-account-id"] = workspaceId;
+    headers["session_id"] = workspaceId;
+  }
+
+  if (log) {
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (codex-responses) | prompt: "${prompt.slice(0, 60)}..."`
+    );
+  }
+
+  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
+  for (let i = 0; i < requestedCount; i++) {
+    let response: Response;
+    try {
+      response = await fetch(providerConfig.baseUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(upstreamBody),
+      });
+    } catch (err) {
+      if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error: `Image provider error: ${(err as Error).message}`,
+        requestBody: upstreamBody,
+      });
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      if (log)
+        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: response.status,
+        startTime,
+        error: errorText,
+        requestBody: upstreamBody,
+      });
+    }
+
+    const rawSSE = await response.text();
+    const items = extractImageGenerationCalls(rawSSE);
+    if (items.length === 0) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error:
+          "Codex completed without producing an image_generation_call — the model may have declined the tool",
+        requestBody: upstreamBody,
+      });
+    }
+    for (const item of items) {
+      collected.push({
+        b64_json: item.b64,
+        ...(item.revisedPrompt ? { revised_prompt: item.revisedPrompt } : {}),
+      });
+    }
+  }
+
+  const wantsUrl = body.response_format !== "b64_json";
+  const data = wantsUrl
+    ? collected.map((item) => ({
+        url: `data:image/png;base64,${item.b64_json}`,
+        ...(item.revised_prompt ? { revised_prompt: item.revised_prompt } : {}),
+      }))
+    : collected;
+
+  return saveImageSuccessResult({
+    provider,
+    model,
+    startTime,
+    requestBody: upstreamBody,
+    responseBody: { images_count: data.length },
+    images: data,
+  });
 }
 
 function saveImageSuccessResult({

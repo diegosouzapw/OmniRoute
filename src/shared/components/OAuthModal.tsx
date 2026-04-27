@@ -42,6 +42,8 @@ export default function OAuthModal({
   const [polling, setPolling] = useState(false);
   const popupRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
+  const deviceVerificationUrl =
+    deviceData?.verification_uri_complete || deviceData?.verification_uri || "";
 
   // State for client-only values to avoid hydration mismatch
   const [isLocalhost, setIsLocalhost] = useState(false);
@@ -200,6 +202,7 @@ export default function OAuthModal({
         provider === "github" ||
         provider === "qwen" ||
         provider === "kiro" ||
+        provider === "amazon-q" ||
         provider === "kimi-coding" ||
         provider === "kilocode"
       ) {
@@ -225,7 +228,7 @@ export default function OAuthModal({
 
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
         const extraData =
-          provider === "kiro"
+          provider === "kiro" || provider === "amazon-q"
             ? { _clientId: data._clientId, _clientSecret: data._clientSecret }
             : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
@@ -603,12 +606,12 @@ export default function OAuthModal({
               <div className="bg-sidebar p-4 rounded-lg mb-4">
                 <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm break-all">{deviceData.verification_uri}</code>
+                  <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
                   <Button
                     size="sm"
                     variant="ghost"
                     icon={copied === "verify_url" ? "check" : "content_copy"}
-                    onClick={() => copy(deviceData.verification_uri, "verify_url")}
+                    onClick={() => copy(deviceVerificationUrl, "verify_url")}
                   />
                 </div>
               </div>

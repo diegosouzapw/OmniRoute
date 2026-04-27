@@ -529,6 +529,28 @@ export interface SyncedAvailableModel {
 }
 
 /**
+ * Get synced available models for a specific provider connection.
+ */
+export async function getSyncedAvailableModelsForConnection(
+  providerId: string,
+  connectionId: string
+): Promise<SyncedAvailableModel[]> {
+  const db = getDbInstance();
+  const key = `${providerId}:${connectionId}`;
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
+    .get(key);
+  const value = getKeyValue(row).value;
+  if (!value) return [];
+  try {
+    const models = JSON.parse(value);
+    return Array.isArray(models) ? models : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Get all synced available models for a provider, unioned across all connections.
  */
 export async function getSyncedAvailableModels(

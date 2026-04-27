@@ -7,14 +7,13 @@
  */
 import { copyFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-
-const SYNC_HELPER_PATH = join(process.cwd(), "scripts/sync-env.mjs");
+// @ts-expect-error - .mjs without types
+import { getEnvSyncPlan, syncEnv } from "../../../../../../scripts/sync-env.mjs";
 
 async function loadSyncHelpers() {
-  return import(pathToFileURL(SYNC_HELPER_PATH).href);
+  return { getEnvSyncPlan, syncEnv };
 }
 
 function createEnvBackup() {

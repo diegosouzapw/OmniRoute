@@ -5,6 +5,7 @@ import { getComboByName, getCombos } from "@/lib/localDb";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 function buildComboTestResult(target, partial = {}) {
   return {
@@ -106,6 +107,9 @@ async function testComboTarget(target, baseInternalUrl) {
  * and only reports success when the model returns usable text content.
  */
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();

@@ -11,6 +11,7 @@
 
 import { NextResponse } from "next/server";
 import { discoverZedCredentials, isZedInstalled } from "@/lib/zed-oauth/keychain-reader";
+import { partitionZedCredentials } from "@/lib/zed-oauth/importUtils";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProviderConnection } from "@/lib/db/providers";
 
@@ -51,8 +52,14 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
     // Discover credentials from keychain
     console.log("[Zed Import] Discovering Zed credentials from keychain...");
     const credentials = await discoverZedCredentials();
+    const { importable, skipped, duplicatesDropped } = partitionZedCredentials(credentials);
 
-    if (credentials.length === 0) {
+    if (importable.length === 0) {
+      if (credentials.length > 0) {
+        console.warn(
+          `[Zed Import] Found ${credentials.length} keychain credential(s), but none mapped to supported OmniRoute providers`
+        );
+      }
       return NextResponse.json({
         success: true,
         count: 0,
@@ -64,9 +71,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
 
     // Save to database using OmniRoute's provider schema
     let savedCount = 0;
-    for (const cred of credentials) {
-      if (!cred.token) continue;
-
+    for (const cred of importable) {
       try {
         await createProviderConnection({
           provider: cred.provider,
@@ -81,18 +86,24 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
       }
     }
 
-    const credentialSummary = credentials.map((cred) => ({
+    if (skipped.length > 0 || duplicatesDropped > 0) {
+      console.log(
+        `[Zed Import] Skipped ${skipped.length} unsupported credential(s) and dropped ${duplicatesDropped} duplicate credential(s)`
+      );
+    }
+
+    const credentialSummary = importable.map((cred) => ({
       provider: cred.provider,
       service: cred.service,
       account: cred.account,
       hasToken: Boolean(cred.token),
     }));
 
-    const importedProviders = credentials.map((c) => c.provider);
+    const importedProviders = importable.map((c) => c.provider);
     const uniqueProviders = [...new Set(importedProviders)];
 
     console.log(
-      `[Zed Import] Discovered ${credentials.length} credentials and successfully saved ${savedCount} for ${uniqueProviders.length} providers`
+      `[Zed Import] Discovered ${credentials.length} credentials, imported ${importable.length} supported credential(s), and successfully saved ${savedCount} for ${uniqueProviders.length} providers`
     );
 
     return NextResponse.json({

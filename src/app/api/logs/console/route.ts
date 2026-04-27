@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const LEVEL_ORDER: Record<string, number> = {
   trace: 5,
@@ -45,6 +46,9 @@ function parseLevel(raw: string | number): string {
 }
 
 export async function GET(req: NextRequest) {
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(req.url);
     const levelFilter = searchParams.get("level") || "all";

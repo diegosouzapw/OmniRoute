@@ -16,7 +16,6 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { resolveDataDir } from "../../src/lib/dataPaths";
 
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = [
@@ -41,27 +40,23 @@ function credGlobals(): CredGlobals {
   return globalThis as CredGlobals;
 }
 
-/**
- * Resolves the path to provider-credentials.json using the application's
- * data directory. Delegates to resolveDataDir() which handles DATA_DIR env,
- * platform-specific defaults, and fallback logic.
- *
- * previous: Priority: DATA_DIR env → ./data (project root)
- */
 function resolveCredentialsPath(): string {
+  let resolveDataDir: (options?: { isCloud?: boolean }) => string;
+
+  try {
+    resolveDataDir = require("@/lib/dataPaths").resolveDataDir;
+  } catch (err) {
+    const fallbackDataDir = process.env.DATA_DIR || join(process.cwd(), "data");
+    console.warn(
+      `[CREDENTIALS] Could not load dataPaths module, using fallback: ${fallbackDataDir}`
+    );
+    return join(fallbackDataDir, "provider-credentials.json");
+  }
+
   return join(resolveDataDir(), "provider-credentials.json");
 }
 
-/**
- * Load and merge external credentials into the PROVIDERS object.
- * Uses TTL-based caching (60s) so credential file changes are picked up
- * without requiring a server restart.
- *
- * @param {object} providers - The PROVIDERS object from constants.js
- * @returns {object} The same PROVIDERS object (mutated in place)
- */
 export function loadProviderCredentials<T extends Record<string, unknown>>(providers: T): T {
-  // Return cached result if within TTL
   if (cachedProviders && Date.now() - lastLoadTime < CONFIG_TTL_MS) {
     return cachedProviders as T;
   }

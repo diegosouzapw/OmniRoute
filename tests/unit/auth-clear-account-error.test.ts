@@ -45,9 +45,9 @@ test("clearAccountError clears stale provider error metadata after recovery", as
   assert.equal(credentials.errorCode, "refresh_failed");
   assert.equal(credentials.lastErrorType, "token_refresh_failed");
   assert.equal(credentials.lastErrorSource, "oauth");
-  await auth.clearAccountError(created.id, credentials);
+  await auth.clearAccountError((created as any).id, credentials);
 
-  const updated = await providersDb.getProviderConnectionById(created.id);
+  const updated = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.lastError, undefined);
   assert.equal(updated.lastErrorType, undefined);
@@ -68,7 +68,7 @@ test("clearAccountError is a no-op when the connection is already clean", async 
     testStatus: "active",
   });
 
-  await auth.clearAccountError(created.id, {
+  await auth.clearAccountError((created as any).id, {
     connectionId: created.id,
     testStatus: "active",
     lastError: null,
@@ -78,7 +78,7 @@ test("clearAccountError is a no-op when the connection is already clean", async 
     lastErrorSource: null,
   });
 
-  const updated = await providersDb.getProviderConnectionById(created.id);
+  const updated = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.backoffLevel, 0);
   assert.equal(updated.lastError, undefined);
@@ -114,7 +114,7 @@ test("clearRecoveredProviderState ignores empty payloads and clears recoverable 
     rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
   });
 
-  const updated = await providersDb.getProviderConnectionById(created.id);
+  const updated = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.lastError, undefined);
   assert.equal(updated.lastErrorType, undefined);

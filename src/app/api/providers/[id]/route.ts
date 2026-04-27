@@ -14,7 +14,14 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import {
+  normalizeProviderSpecificData,
+  sanitizeProviderSpecificDataForResponse,
+} from "@/lib/providers/requestDefaults";
+import {
+  buildClaudeExtraUsageStateClearUpdate,
+  isClaudeExtraUsageBlockEnabled,
+} from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 function normalizeCodexLimitPolicy(
@@ -61,7 +68,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     delete result.refreshToken;
     delete result.idToken;
     if (result.providerSpecificData) {
-      delete result.providerSpecificData.consoleApiKey;
+      result.providerSpecificData = sanitizeProviderSpecificDataForResponse(
+        result.providerSpecificData
+      );
     }
 
     return NextResponse.json({ connection: result });
@@ -161,6 +170,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
       updateData.providerSpecificData =
         normalizeProviderSpecificData(existing.provider, mergedPsd) || {};
+
+      if (!isClaudeExtraUsageBlockEnabled(existing.provider, updateData.providerSpecificData)) {
+        const clearExtraUsageUpdate = buildClaudeExtraUsageStateClearUpdate({
+          provider: existing.provider,
+          testStatus: existing.testStatus,
+          lastError: existing.lastError,
+          lastErrorAt: existing.lastErrorAt,
+          lastErrorType: existing.lastErrorType,
+          lastErrorSource: existing.lastErrorSource,
+          errorCode: existing.errorCode,
+          rateLimitedUntil: existing.rateLimitedUntil,
+          backoffLevel: existing.backoffLevel,
+        });
+        if (clearExtraUsageUpdate) {
+          Object.assign(updateData, clearExtraUsageUpdate);
+        }
+      }
     }
 
     const updated = await updateProviderConnection(id, updateData);
@@ -172,7 +198,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     delete result.refreshToken;
     delete result.idToken;
     if (result.providerSpecificData) {
-      delete result.providerSpecificData.consoleApiKey;
+      result.providerSpecificData = sanitizeProviderSpecificDataForResponse(
+        result.providerSpecificData
+      );
     }
 
     // Auto sync to Cloud if enabled
@@ -223,13 +251,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 
     // Clean up synced available models for this connection
-    if (connection.provider === "gemini") {
-      try {
-        const { deleteSyncedAvailableModelsForConnection } = await import("@/lib/db/models");
-        await deleteSyncedAvailableModelsForConnection("gemini", id);
-      } catch (e) {
-        console.error("Failed to clean up synced models for deleted gemini connection:", e);
-      }
+    try {
+      const { deleteSyncedAvailableModelsForConnection } = await import("@/lib/db/models");
+      await deleteSyncedAvailableModelsForConnection(connection.provider, id);
+    } catch (e) {
+      console.error(
+        `Failed to clean up synced models for deleted ${connection.provider} connection:`,
+        e
+      );
     }
 
     // Auto sync to Cloud if enabled

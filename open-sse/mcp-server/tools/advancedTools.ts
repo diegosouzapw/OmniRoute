@@ -1,5 +1,5 @@
 /**
- * OmniRoute MCP Advanced Tools — 11 intelligence tools that differentiate
+ * OmniRoute MCP Advanced Tools — 13 intelligence tools that differentiate
  * OmniRoute from all other AI gateways.
  *
  * Tools:
@@ -14,6 +14,8 @@
  *   9. omniroute_get_session_snapshot — Full session state snapshot
  *  10. omniroute_db_health_check   — Diagnose and repair DB state drift
  *  11. omniroute_sync_pricing      — Sync provider pricing from external source
+ *  12. omniroute_cache_stats       — Cache statistics and hit rates
+ *  13. omniroute_cache_flush       — Flush/invalidate cache entries
  */
 
 import { logToolCall } from "../audit.ts";
@@ -112,97 +114,121 @@ interface BudgetGuardState {
 let activeBudgetGuard: BudgetGuardState | null = null;
 
 type ResilienceProfileConfig = {
-  profiles: {
+  requestQueue: {
+    requestsPerMinute: number;
+    minTimeBetweenRequestsMs: number;
+    concurrentRequests: number;
+  };
+  connectionCooldown: {
     oauth: {
-      transientCooldown: number;
-      rateLimitCooldown: number;
-      maxBackoffLevel: number;
-      circuitBreakerThreshold: number;
-      circuitBreakerReset: number;
+      baseCooldownMs: number;
+      useUpstreamRetryHints: boolean;
+      maxBackoffSteps: number;
     };
     apikey: {
-      transientCooldown: number;
-      rateLimitCooldown: number;
-      maxBackoffLevel: number;
-      circuitBreakerThreshold: number;
-      circuitBreakerReset: number;
+      baseCooldownMs: number;
+      useUpstreamRetryHints: boolean;
+      maxBackoffSteps: number;
     };
   };
-  defaults: {
-    requestsPerMinute: number;
-    minTimeBetweenRequests: number;
-    concurrentRequests: number;
+  providerBreaker: {
+    oauth: {
+      failureThreshold: number;
+      resetTimeoutMs: number;
+    };
+    apikey: {
+      failureThreshold: number;
+      resetTimeoutMs: number;
+    };
   };
 };
 
 const RESILIENCE_PROFILES = {
   aggressive: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 180,
+      minTimeBetweenRequestsMs: 100,
+      concurrentRequests: 16,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 3000,
-        rateLimitCooldown: 30000,
-        maxBackoffLevel: 4,
-        circuitBreakerThreshold: 2,
-        circuitBreakerReset: 30000,
+        baseCooldownMs: 30000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 4,
       },
       apikey: {
-        transientCooldown: 2000,
-        rateLimitCooldown: 0,
-        maxBackoffLevel: 3,
-        circuitBreakerThreshold: 3,
-        circuitBreakerReset: 15000,
+        baseCooldownMs: 2000,
+        useUpstreamRetryHints: true,
+        maxBackoffSteps: 3,
       },
     },
-    defaults: {
-      requestsPerMinute: 180,
-      minTimeBetweenRequests: 100,
-      concurrentRequests: 16,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 2,
+        resetTimeoutMs: 30000,
+      },
+      apikey: {
+        failureThreshold: 3,
+        resetTimeoutMs: 15000,
+      },
     },
   },
   balanced: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 100,
+      minTimeBetweenRequestsMs: 200,
+      concurrentRequests: 10,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 5000,
-        rateLimitCooldown: 60000,
-        maxBackoffLevel: 8,
-        circuitBreakerThreshold: 3,
-        circuitBreakerReset: 60000,
+        baseCooldownMs: 60000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 8,
       },
       apikey: {
-        transientCooldown: 3000,
-        rateLimitCooldown: 0,
-        maxBackoffLevel: 5,
-        circuitBreakerThreshold: 5,
-        circuitBreakerReset: 30000,
+        baseCooldownMs: 3000,
+        useUpstreamRetryHints: true,
+        maxBackoffSteps: 5,
       },
     },
-    defaults: {
-      requestsPerMinute: 100,
-      minTimeBetweenRequests: 200,
-      concurrentRequests: 10,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 3,
+        resetTimeoutMs: 60000,
+      },
+      apikey: {
+        failureThreshold: 5,
+        resetTimeoutMs: 30000,
+      },
     },
   },
   conservative: {
-    profiles: {
+    requestQueue: {
+      requestsPerMinute: 60,
+      minTimeBetweenRequestsMs: 350,
+      concurrentRequests: 6,
+    },
+    connectionCooldown: {
       oauth: {
-        transientCooldown: 8000,
-        rateLimitCooldown: 120000,
-        maxBackoffLevel: 10,
-        circuitBreakerThreshold: 8,
-        circuitBreakerReset: 120000,
+        baseCooldownMs: 120000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 10,
       },
       apikey: {
-        transientCooldown: 5000,
-        rateLimitCooldown: 30000,
-        maxBackoffLevel: 8,
-        circuitBreakerThreshold: 8,
-        circuitBreakerReset: 60000,
+        baseCooldownMs: 30000,
+        useUpstreamRetryHints: false,
+        maxBackoffSteps: 8,
       },
     },
-    defaults: {
-      requestsPerMinute: 60,
-      minTimeBetweenRequests: 350,
-      concurrentRequests: 6,
+    providerBreaker: {
+      oauth: {
+        failureThreshold: 8,
+        resetTimeoutMs: 120000,
+      },
+      apikey: {
+        failureThreshold: 8,
+        resetTimeoutMs: 60000,
+      },
     },
   },
 } satisfies Record<"aggressive" | "balanced" | "conservative", ResilienceProfileConfig>;
@@ -460,13 +486,10 @@ export async function handleSetResilienceProfile(args: {
       };
     }
 
-    // Apply to OmniRoute via API (contract: PATCH + { profiles, defaults })
+    // Apply to OmniRoute via API using the plan-aligned resilience structure.
     await apiFetch("/api/resilience", {
       method: "PATCH",
-      body: JSON.stringify({
-        profiles: settings.profiles,
-        defaults: settings.defaults,
-      }),
+      body: JSON.stringify(settings),
     });
 
     const result = { applied: true, profile: args.profile, settings };
@@ -891,6 +914,92 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_db_health_check", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleCacheStats() {
+  const start = Date.now();
+  try {
+    const raw = toRecord(await apiFetch("/api/cache"));
+    const semanticCache = toRecord(raw.semanticCache);
+    const promptCache = raw.promptCache ? toRecord(raw.promptCache) : null;
+    const idempotency = toRecord(raw.idempotency);
+    const config = raw.config ? toRecord(raw.config) : null;
+
+    const result = {
+      semanticCache: {
+        memoryEntries: toNumber(semanticCache.memoryEntries, 0),
+        dbEntries: toNumber(semanticCache.dbEntries, 0),
+        hits: toNumber(semanticCache.hits, 0),
+        misses: toNumber(semanticCache.misses, 0),
+        hitRate: toString(semanticCache.hitRate, "0%"),
+        tokensSaved: toNumber(semanticCache.tokensSaved, 0),
+      },
+      promptCache: promptCache
+        ? {
+            totalRequests: toNumber(promptCache.totalRequests, 0),
+            requestsWithCacheControl: toNumber(promptCache.requestsWithCacheControl, 0),
+            totalInputTokens: toNumber(promptCache.totalInputTokens, 0),
+            totalCachedTokens: toNumber(promptCache.totalCachedTokens, 0),
+            totalCacheCreationTokens: toNumber(promptCache.totalCacheCreationTokens, 0),
+            tokensSaved: toNumber(promptCache.tokensSaved, 0),
+            estimatedCostSaved: toNumber(promptCache.estimatedCostSaved, 0),
+          }
+        : null,
+      idempotency: {
+        activeKeys: toNumber(idempotency.activeKeys, 0),
+        windowMs: toNumber(idempotency.windowMs, 0),
+      },
+      config: config
+        ? {
+            semanticCacheEnabled: toBoolean(config.semanticCacheEnabled, true),
+          }
+        : undefined,
+    };
+
+    await logToolCall("omniroute_cache_stats", {}, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_cache_stats", {}, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleCacheFlush(args: { signature?: string; model?: string }) {
+  const start = Date.now();
+  try {
+    const params = new URLSearchParams();
+    let scope = "all";
+
+    if (args.signature) {
+      params.set("signature", args.signature);
+      scope = "signature";
+    } else if (args.model) {
+      params.set("model", args.model);
+      scope = "model";
+    }
+
+    const query = params.toString();
+    const path = query ? `/api/cache?${query}` : "/api/cache";
+    const raw = toRecord(
+      await apiFetch(path, {
+        method: "DELETE",
+      })
+    );
+
+    const result = {
+      ok: toBoolean(raw.ok, true),
+      invalidated: toNumber(raw.invalidated ?? raw.cleared, 0),
+      scope,
+    };
+
+    await logToolCall("omniroute_cache_flush", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_cache_flush", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

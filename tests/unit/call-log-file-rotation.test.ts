@@ -33,7 +33,7 @@ async function resetTestDataDir() {
       const db = core.getDbInstance();
       db.prepare("DELETE FROM call_logs").run();
       return;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
@@ -176,7 +176,7 @@ test("call log file rotation honors both retention days and file count", () => {
 
   const db = core.getDbInstance();
   assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("old-log").cnt,
+    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("old-log") as any).cnt,
     0
   );
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, oldRelPath)), false);
@@ -184,8 +184,8 @@ test("call log file rotation honors both retention days and file count", () => {
   const keepARow = db
     .prepare("SELECT detail_state, artifact_relpath FROM call_logs WHERE id = ?")
     .get("keep-a");
-  assert.equal(keepARow.detail_state, "missing");
-  assert.equal(keepARow.artifact_relpath, null);
+  assert.equal((keepARow as any).detail_state, "missing");
+  (assert as any).equal((keepARow as any).artifact_relpath, null);
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepARelPath)), false);
 
   assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepBRelPath)), true);

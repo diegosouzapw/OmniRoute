@@ -69,20 +69,20 @@ test("migration backfills Codex request defaults, preserves existing providerSpe
 
   assert.equal(firstRun.migrated, true);
   assert.deepEqual(firstRun.updatedConnectionIds.sort(), [first.id, second.id].sort());
-  assert.deepEqual(byId.get(first.id).providerSpecificData.requestDefaults, {
+  assert.deepEqual((byId.get(first.id).providerSpecificData as any).requestDefaults, {
     reasoningEffort: "medium",
     serviceTier: "priority",
   });
-  assert.deepEqual(byId.get(second.id).providerSpecificData.requestDefaults, {
+  assert.deepEqual((byId.get(second.id) as any).providerSpecificData.requestDefaults, {
     reasoningEffort: "high",
     serviceTier: "priority",
   });
-  assert.deepEqual(byId.get(untouched.id).providerSpecificData.requestDefaults, {
+  assert.deepEqual((byId.get(untouched.id) as any).providerSpecificData.requestDefaults, {
     reasoningEffort: "low",
     serviceTier: "priority",
   });
-  assert.equal(byId.get(first.id).providerSpecificData.tag, "team-a");
-  assert.deepEqual(byId.get(first.id).providerSpecificData.codexLimitPolicy, {
+  assert.equal((byId.get((first as any).id).providerSpecificData as any).tag, "team-a");
+  assert.deepEqual((byId as any).get(first.id).providerSpecificData.codexLimitPolicy, {
     use5h: false,
     useWeekly: true,
   });
@@ -110,26 +110,26 @@ test("provider connection persistence normalizes request defaults without droppi
     },
   });
 
-  assert.deepEqual(created.providerSpecificData.requestDefaults, {
+  (assert as any).deepEqual((created.providerSpecificData as any).requestDefaults, {
     reasoningEffort: "high",
     serviceTier: "priority",
     customFlag: "keep-me",
   });
-  assert.equal(created.providerSpecificData.openaiStoreEnabled, true);
-  assert.equal(created.providerSpecificData.workspaceId, "ws-normalize");
-  assert.equal(created.providerSpecificData.tag, "team-z");
+  assert.equal((created.providerSpecificData as any).openaiStoreEnabled, true);
+  assert.equal((created.providerSpecificData as any).workspaceId, "ws-normalize");
+  assert.equal((created.providerSpecificData as any).tag, "team-z");
 
-  const updated = await providersDb.updateProviderConnection(created.id, {
+  const updated = await providersDb.updateProviderConnection((created as any).id, {
     providerSpecificData: {
       ...created.providerSpecificData,
       requestDefaults: { reasoningEffort: "medium" },
     },
   });
 
-  assert.deepEqual(updated.providerSpecificData.requestDefaults, {
+  assert.deepEqual((updated.providerSpecificData as any).requestDefaults, {
     reasoningEffort: "medium",
   });
-  assert.equal(updated.providerSpecificData.openaiStoreEnabled, true);
-  assert.equal(updated.providerSpecificData.workspaceId, "ws-normalize");
-  assert.equal(updated.providerSpecificData.tag, "team-z");
+  assert.equal((updated.providerSpecificData as any).openaiStoreEnabled, true);
+  assert.equal((updated.providerSpecificData as any).workspaceId, "ws-normalize");
+  assert.equal((updated.providerSpecificData as any).tag, "team-z");
 });

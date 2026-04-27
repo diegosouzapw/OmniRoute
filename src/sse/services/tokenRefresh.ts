@@ -106,6 +106,15 @@ export async function updateProviderCredentials(connectionId: string, newCredent
     if (newCredentials.providerSpecificData) {
       updates.providerSpecificData = newCredentials.providerSpecificData;
     }
+    // Cookie/session providers (chatgpt-web, ...) refresh by rotating the
+    // stored apiKey blob — propagate that here too so DB credentials don't
+    // go stale after Set-Cookie rotation.
+    if (newCredentials.apiKey) {
+      updates.apiKey = newCredentials.apiKey;
+    }
+    if (newCredentials.testStatus) {
+      updates.testStatus = newCredentials.testStatus;
+    }
 
     const result = await updateProviderConnection(connectionId, updates);
     log.info("TOKEN_REFRESH", "Credentials updated in localDb", {

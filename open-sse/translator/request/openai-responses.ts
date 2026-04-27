@@ -55,12 +55,14 @@ export function openaiResponsesToOpenAIRequest(
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
       const toolType = toString(tool.type);
-      // Allow: function tools, tools already in Chat format (have .function property), and CLI subagent tools
+      // Allow: function tools, tools already in Chat format (have .function property), CLI subagent tools,
+      // and namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
       if (
         toolType &&
         toolType !== "function" &&
         toolType !== "custom" &&
         toolType !== "command" &&
+        toolType !== "namespace" &&
         !tool.function
       ) {
         throw unsupportedFeature(

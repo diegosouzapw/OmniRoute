@@ -167,3 +167,19 @@ test("extractFacts: does not throw on empty inputs", () => {
   assert.doesNotThrow(() => extractFacts("I prefer vim.", "key-123", ""));
   assert.doesNotThrow(() => extractFacts(null, "key-123", "session-456"));
 });
+
+test("extractFactsFromText scans only the bounded tail of very large text", () => {
+  const text =
+    "I prefer prefix-only-editor. " + "x".repeat(70 * 1024) + " I prefer tail-only-editor.";
+  const facts = extractFactsFromText(text);
+  const contents = facts.map((fact) => fact.content.toLowerCase());
+
+  assert.equal(
+    contents.some((content) => content.includes("prefix-only-editor")),
+    false
+  );
+  assert.equal(
+    contents.some((content) => content.includes("tail-only-editor")),
+    true
+  );
+});

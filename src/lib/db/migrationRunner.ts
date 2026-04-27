@@ -65,6 +65,12 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "025",
     toName: "call_logs_summary_storage",
   },
+  {
+    fromVersion: "028",
+    fromName: "provider_connection_max_concurrent",
+    toVersion: "029",
+    toName: "provider_connection_max_concurrent",
+  },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [

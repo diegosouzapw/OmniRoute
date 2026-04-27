@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { skillRegistry } from "@/lib/skills/registry";
 import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
 import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const POPULAR_BY_PROVIDER = {
   skillsmp: ["web-search", "file-reader", "sql-assistant", "devops-helper", "docs-assistant"],
@@ -9,6 +10,9 @@ const POPULAR_BY_PROVIDER = {
 } as const;
 
 export async function GET(request?: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     await skillRegistry.loadFromDatabase();
     const provider = await getSkillsProviderSetting();

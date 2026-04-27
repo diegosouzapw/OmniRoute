@@ -6,6 +6,11 @@ export async function createChatPipelineHarness(prefix) {
   const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `omniroute-${prefix}-`));
   process.env.DATA_DIR = testDataDir;
   process.env.REQUIRE_API_KEY = "false";
+  // Disable dashboard auth so direct route handler calls don't get 401
+  // (CI sets JWT_SECRET + INITIAL_PASSWORD, causing isAuthRequired() → true)
+  process.env.DASHBOARD_PASSWORD = "";
+  process.env.INITIAL_PASSWORD = "";
+  delete process.env.JWT_SECRET;
   // FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
   if (!process.env.API_KEY_SECRET) {
     process.env.API_KEY_SECRET = "test-harness-secret-" + Date.now();
@@ -33,8 +38,6 @@ export async function createChatPipelineHarness(prefix) {
   const { initTranslators } = await import("../../open-sse/translator/index.ts");
   const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
   const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
-  const { resetAllAvailability, setModelUnavailable } =
-    await import("../../src/domain/modelAvailability.ts");
   const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
   const originalFetch = globalThis.fetch;
@@ -209,7 +212,6 @@ export async function createChatPipelineHarness(prefix) {
     clearInflight();
     idempotencyLayerModule.clearIdempotency();
     semanticCacheModule.clearCache();
-    resetAllAvailability();
     resetAllCircuitBreakers();
     apiKeysDb.resetApiKeyState();
     readCacheDb.invalidateDbCache();
@@ -229,7 +231,6 @@ export async function createChatPipelineHarness(prefix) {
     idempotencyLayerModule.clearIdempotency();
     semanticCacheModule.clearCache();
     clearSkillState();
-    resetAllAvailability();
     resetAllCircuitBreakers();
     core.resetDbInstance();
     fs.rmSync(testDataDir, { recursive: true, force: true });
@@ -292,7 +293,6 @@ export async function createChatPipelineHarness(prefix) {
     semanticCacheModule,
     seedApiKey,
     seedConnection,
-    setModelUnavailable,
     settingsDb,
     skillByIdRouteModule,
     skillExecutor,

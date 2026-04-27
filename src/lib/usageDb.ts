@@ -20,6 +20,7 @@ import "./usage/migrations";
 // Re-export everything for backward compatibility
 export {
   trackPendingRequest,
+  updatePendingRequest,
   getUsageDb,
   saveRequestUsage,
   getUsageHistory,

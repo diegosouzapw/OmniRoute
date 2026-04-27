@@ -14,12 +14,15 @@ import {
   updateModelAliasesSchema,
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 /**
  * GET /api/settings/model-aliases
  * Returns the full alias map, separated into built-in and custom.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     return NextResponse.json({
       builtIn: getBuiltInAliases(),
@@ -37,7 +40,9 @@ export async function GET() {
  * Update the custom aliases map.
  * Body: { aliases: { "old-model": "new-model", ... } }
  */
-export async function PUT(request) {
+export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();
@@ -73,7 +78,9 @@ export async function PUT(request) {
  * Add a single custom alias.
  * Body: { from: "old-model", to: "new-model" }
  */
-export async function POST(request) {
+export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();
@@ -109,7 +116,9 @@ export async function POST(request) {
  * Remove a custom alias.
  * Body: { from: "old-model" }
  */
-export async function DELETE(request) {
+export async function DELETE(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let rawBody;
   try {
     rawBody = await request.json();

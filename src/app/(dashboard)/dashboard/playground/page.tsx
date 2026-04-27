@@ -12,6 +12,9 @@ const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 const SearchPlayground = dynamic(() => import("./SearchPlayground"), {
   ssr: false,
 });
+const ChatPlayground = dynamic(() => import("./ChatPlayground"), {
+  ssr: false,
+});
 
 interface ModelInfo {
   id: string;
@@ -187,6 +190,7 @@ export default function PlaygroundPage() {
   // Get translated endpoint options
   const endpointOptions = useMemo(
     () => [
+      { value: "conversational", label: "Chat (Conversational)" },
       { value: "chat", label: t("endpointOptions.chat") },
       { value: "responses", label: t("endpointOptions.responses") },
       { value: "images", label: t("endpointOptions.images") },
@@ -223,6 +227,7 @@ export default function PlaygroundPage() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]); // base64 URIs for vision
 
   const isSearchEndpoint = selectedEndpoint === "search";
+  const isConversationalEndpoint = selectedEndpoint === "conversational";
   const isTranscriptionEndpoint = selectedEndpoint === "transcription";
   const isChatEndpoint = selectedEndpoint === "chat";
   const isImageEndpoint = selectedEndpoint === "images";
@@ -504,7 +509,7 @@ export default function PlaygroundPage() {
           </div>
 
           {/* Provider — hidden in search mode */}
-          {!isSearchEndpoint && (
+          {!isSearchEndpoint && !isConversationalEndpoint && (
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 {t("provider")}
@@ -519,7 +524,7 @@ export default function PlaygroundPage() {
           )}
 
           {/* Model — hidden in search mode */}
-          {!isSearchEndpoint && (
+          {!isSearchEndpoint && !isConversationalEndpoint && (
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 {t("model")}
@@ -534,7 +539,7 @@ export default function PlaygroundPage() {
           )}
 
           {/* Account/Key — always shown when provider is selected */}
-          {!isSearchEndpoint && (
+          {!isSearchEndpoint && !isConversationalEndpoint && (
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 {t("accountKey")}
@@ -561,7 +566,7 @@ export default function PlaygroundPage() {
           )}
 
           {/* Send Button — hidden in search mode (SearchPlayground has its own) */}
-          {!isSearchEndpoint && (
+          {!isSearchEndpoint && !isConversationalEndpoint && (
             <div className="shrink-0">
               {loading ? (
                 <Button icon="stop" variant="secondary" onClick={handleCancel}>
@@ -584,9 +589,27 @@ export default function PlaygroundPage() {
         </div>
       </Card>
 
-      {/* Search mode — isolated sub-component */}
+      {/* Isolated sub-components */}
       {isSearchEndpoint ? (
         <SearchPlayground />
+      ) : isConversationalEndpoint ? (
+        <ChatPlayground
+          selectedProvider={selectedProvider}
+          selectedModel={selectedModel}
+          selectedConnection={selectedConnection}
+          models={models}
+          providers={providers}
+          providerConnections={providerConnections}
+          onProviderChange={handleProviderChange}
+          onModelChange={handleModelChange}
+          onConnectionChange={setSelectedConnection}
+          noAccountsString={t("noAccounts")}
+          autoAccountsString={
+            providerConnections.length > 0
+              ? t("autoAccounts", { count: providerConnections.length })
+              : ""
+          }
+        />
       ) : (
         <>
           {/* File Upload Zone — shown for transcription and vision models */}
