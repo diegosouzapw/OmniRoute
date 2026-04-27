@@ -497,7 +497,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
-      { id: "gpt-5.5", name: "GPT-5.5", targetFormat: "openai-responses" },
+      { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
