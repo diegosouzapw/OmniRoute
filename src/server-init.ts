@@ -5,6 +5,7 @@ import { enforceSecrets } from "./shared/utils/secretsValidator";
 import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/compliance/index";
 import { initConsoleInterceptor } from "./lib/consoleInterceptor";
 import { startBudgetResetJob } from "./lib/jobs/budgetResetJob";
+import { startReasoningCacheCleanupJob } from "./lib/jobs/reasoningCacheCleanupJob";
 import { getSettings } from "./lib/db/settings";
 import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
 import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
@@ -84,6 +85,7 @@ async function startServer() {
     startupLog.info("Builtin skill handlers registered");
     await initializeCloudSync();
     startBudgetResetJob();
+    startReasoningCacheCleanupJob();
     startRuntimeConfigHotReload();
     startupLog.info("Server started with cloud sync initialized");
 

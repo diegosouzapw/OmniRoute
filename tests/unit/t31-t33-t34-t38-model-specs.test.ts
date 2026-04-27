@@ -22,6 +22,9 @@ test("T31: antigravity static catalog exposes client-visible Gemini preview IDs"
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
   assert.ok(staticIds.includes("gemini-3-pro-preview"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
+  assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
 test("T31: legacy Gemini aliases resolve to Gemini 3.1 IDs", () => {
@@ -42,6 +45,8 @@ test("T33: thinkingLevel string is converted into numeric thinkingBudget", () =>
 });
 
 test("T34: max output tokens are capped by model spec", () => {
+  assert.equal(capMaxOutputTokens("gpt-5.5", 200000), 128000);
+  assert.equal(capMaxOutputTokens("gpt-5.5-xhigh", 200000), 128000);
   assert.equal(capMaxOutputTokens("gemini-3-flash", 131072), 65536);
   assert.equal(capMaxOutputTokens("gemini-3-flash"), 65536);
   assert.equal(capMaxOutputTokens("gemini-3.1-pro-high", 131072), 65535);
@@ -49,6 +54,9 @@ test("T34: max output tokens are capped by model spec", () => {
 });
 
 test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup", () => {
+  assert.equal(getModelSpec("gpt-5.5").contextWindow, 1050000);
+  assert.equal(getModelSpec("gpt-5.5-high").maxOutputTokens, 128000);
+  assert.equal(getModelSpec("gpt-5.5-mini").contextWindow, 400000);
   assert.equal(typeof MODEL_SPECS["gemini-3.1-pro-high"], "object");
   assert.equal(getModelSpec("gemini-3-pro-high").maxOutputTokens, 65535);
   assert.equal(getModelSpec("gemini-3-pro-preview").maxOutputTokens, 65535);

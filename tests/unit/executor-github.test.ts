@@ -68,7 +68,68 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
   assert.equal(headers["user-agent"], "GitHubCopilotChat/0.38.0");
   assert.equal(headers["x-github-api-version"], "2025-04-01");
   assert.equal(headers["openai-intent"], "conversation-panel");
+  assert.equal(headers["X-Initiator"], "user");
   assert.ok(headers["x-request-id"]);
+});
+
+test("GithubExecutor.buildHeaders forwards valid client x-initiator and falls back for invalid values", () => {
+  const executor = new GithubExecutor();
+
+  const agentHeaders = executor.buildHeaders({ accessToken: "gh-access-token" }, true, {
+    "x-initiator": "agent",
+  });
+  assert.equal(agentHeaders["X-Initiator"], "agent");
+
+  const invalidHeaders = executor.buildHeaders({ accessToken: "gh-access-token" }, true, {
+    "x-initiator": "automation",
+  });
+  assert.equal(invalidHeaders["X-Initiator"], "user");
+
+  const mixedCaseHeaders = executor.buildHeaders({ accessToken: "gh-access-token" }, true, {
+    "X-InItIaToR": "agent",
+  });
+  assert.equal(mixedCaseHeaders["X-Initiator"], "agent");
+});
+
+test("GithubExecutor.execute forwards client x-initiator headers without shared state", async () => {
+  const executor = new GithubExecutor();
+  const originalFetch = globalThis.fetch;
+  const seenInitiators: string[] = [];
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    seenInitiators.push((init.headers as Record<string, string>)["X-Initiator"]);
+    return new Response(JSON.stringify({ choices: [] }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+      clientHeaders: { "x-initiator": "agent" },
+    });
+    await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+      clientHeaders: { "x-initiator": "user" },
+    });
+
+    assert.deepEqual(seenInitiators, ["agent", "user"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("GithubExecutor.refreshCredentials returns Copilot token directly when available", async () => {
@@ -108,7 +169,7 @@ test("GithubExecutor.refreshCredentials falls back to GitHub OAuth refresh befor
   const originalFetch = globalThis.fetch;
   const calls = [];
 
-  globalThis.fetch = async (url, options = {}) => {
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
     calls.push(String(url));
 
     if (String(url).includes("/copilot_internal/v2/token") && calls.length === 1) {
@@ -127,7 +188,7 @@ test("GithubExecutor.refreshCredentials falls back to GitHub OAuth refresh befor
     }
 
     if (String(url).includes("/copilot_internal/v2/token")) {
-      assert.equal(options.headers.Authorization, "token new-gh-token");
+      assert.equal((options.headers as Record<string, string>).Authorization, "token new-gh-token");
       return new Response(
         JSON.stringify({
           token: "new-copilot-token",
@@ -189,7 +250,7 @@ test("GithubExecutor.needsRefresh checks missing and expiring Copilot tokens", (
   );
 });
 
-test("GithubExecutor.execute strips terminal [DONE] frames from SSE responses", async () => {
+test("GithubExecutor.execute preserves complete SSE responses including terminal [DONE] frames", async () => {
   const executor = new GithubExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -217,7 +278,7 @@ test("GithubExecutor.execute strips terminal [DONE] frames from SSE responses", 
     const text = await result.response.text();
 
     assert.match(text, /"chunk":"one"/);
-    assert.doesNotMatch(text, /\[DONE\]/);
+    assert.match(text, /\[DONE\]/);
   } finally {
     globalThis.fetch = originalFetch;
   }

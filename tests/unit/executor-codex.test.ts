@@ -7,6 +7,8 @@ import {
   getCodexModelScope,
   getCodexRateLimitKey,
   getCodexResetTime,
+  getCodexUpstreamModel,
+  isCodexResponsesWebSocketRequired,
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
@@ -58,6 +60,10 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
 
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex"), "codex");
+  assert.equal(getCodexModelScope("gpt-5.5-xhigh"), "codex");
+  assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), true);
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-mini", {}), false);
   assert.equal(getCodexRateLimitKey("acct-1", "codex-spark-mini"), "acct-1:spark");
   assert.equal(quota.usage5h, 100);
   assert.equal(quota.limit7d, 5000);
@@ -276,8 +282,8 @@ test("CodexExecutor.transformRequest lets model suffix beat connection reasoning
 test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhigh reasoning", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
-    "gpt-5.5",
-    { model: "gpt-5.5", input: [], reasoning_effort: "xhigh" },
+    "gpt-5.5-xhigh",
+    { model: "gpt-5.5-xhigh", input: [] },
     false,
     {}
   );

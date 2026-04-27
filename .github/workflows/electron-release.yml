@@ -88,6 +88,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NPM_CONFIG_LEGACY_PEER_DEPS: true
+
+      - name: Sanitize Windows home directory
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # The default USERPROFILE contains junction points (Application Data)
+          # that cause EPERM errors during Next.js standalone build glob scans.
+          # Create a clean temp profile directory to avoid this.
+          mkdir -p "$RUNNER_TEMP/home"
+          echo "USERPROFILE=$RUNNER_TEMP/home" >> $GITHUB_ENV
 
       - name: Build Next.js standalone
         env:
@@ -120,6 +132,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:${{ matrix.target }}
+
+      - name: Smoke packaged Electron app
+        if: matrix.platform != 'linux'
+        # Windows CI: requestSingleInstanceLock() fails due to USERPROFILE
+        # sanitization needed for the build step. Smoke is best-effort there.
+        continue-on-error: ${{ matrix.platform == 'windows' }}
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
+        run: npm run electron:smoke:packaged
+
+      - name: Smoke packaged Electron app (Linux)
+        if: matrix.platform == 'linux'
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
+        run: xvfb-run -a npm run electron:smoke:packaged
 
       - name: Collect installers
         shell: bash

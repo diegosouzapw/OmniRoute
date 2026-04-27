@@ -1,4 +1,4 @@
-FROM node:24.14.1-trixie-slim AS builder
+FROM node:24.15.0-trixie-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
@@ -9,13 +9,13 @@ COPY package*.json ./
 COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
 COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
-FROM node:24.14.1-trixie-slim AS runner-base
+FROM node:24.15.0-trixie-slim AS runner-base
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="omniroute" \

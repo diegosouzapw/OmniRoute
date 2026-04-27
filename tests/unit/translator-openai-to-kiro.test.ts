@@ -110,6 +110,90 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal(context.tools[0].toolSpecification.name, "read_file");
 });
 
+test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empty input", () => {
+  const invalidResult = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Call a tool" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_invalid",
+              type: "function",
+              function: { name: "read_file", arguments: "{not-json" },
+            },
+          ],
+        },
+        { role: "user", content: "continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual(
+    (invalidResult.conversationState.history[1] as any).assistantResponseMessage.toolUses[0].input,
+    {}
+  );
+
+  const emptyResult = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Call a tool" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_empty",
+              type: "function",
+              function: { name: "read_file", arguments: "" },
+            },
+          ],
+        },
+        { role: "user", content: "continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual(
+    (emptyResult.conversationState.history[1] as any).assistantResponseMessage.toolUses[0].input,
+    {}
+  );
+
+  const toolUseResult = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Call a tool" },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "call_tool_use",
+              name: "read_file",
+              input: "{not-json",
+            },
+          ],
+        },
+        { role: "user", content: "continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual(
+    (toolUseResult.conversationState.history[1] as any).assistantResponseMessage.toolUses[0].input,
+    {}
+  );
+});
+
 test("OpenAI -> Kiro derives a stable conversationId for the same first history turn", () => {
   const first = buildSamplePayload();
   const second = buildSamplePayload();

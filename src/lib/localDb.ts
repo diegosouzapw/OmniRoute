@@ -321,3 +321,16 @@ export {
   getAllPersistedCreditBalances,
   persistCreditBalance,
 } from "./db/creditBalance";
+
+export {
+  // Reasoning Replay Cache (#1628)
+  setReasoningCache,
+  getReasoningCache,
+  deleteReasoningCache,
+  cleanupExpiredReasoning,
+  getReasoningCacheStats,
+  getReasoningCacheEntries,
+  clearAllReasoningCache,
+} from "./db/reasoningCache";
+
+export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";

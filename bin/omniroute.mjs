@@ -4,12 +4,13 @@
  * OmniRoute CLI — Smart AI Router with Auto Fallback
  *
  * Usage:
- *   omniroute              Start the server (default port 20128)
- *   omniroute --port 3000  Start on custom port
- *   omniroute --no-open    Start without opening browser
- *   omniroute --mcp        Start MCP server (stdio transport for IDEs)
- *   omniroute --help       Show help
- *   omniroute --version    Show version
+ *   omniroute                          Start the server (default port 20128)
+ *   omniroute --port 3000              Start on custom port
+ *   omniroute --no-open                Start without opening browser
+ *   omniroute --mcp                    Start MCP server (stdio transport for IDEs)
+ *   omniroute reset-encrypted-columns  Reset broken encrypted credentials
+ *   omniroute --help                   Show help
+ *   omniroute --version                Show version
  */
 
 import { spawn } from "node:child_process";
@@ -82,6 +83,7 @@ if (args.includes("--help") || args.includes("-h")) {
     omniroute --port <port>   Use custom API port (default: 20128)
     omniroute --no-open       Don't open browser automatically
     omniroute --mcp           Start MCP server (stdio transport for IDEs)
+    omniroute reset-encrypted-columns  Reset encrypted credentials (recovery)
     omniroute --help          Show this help
     omniroute --version       Show version
 
@@ -113,6 +115,103 @@ if (args.includes("--version") || args.includes("-v")) {
     console.log(version);
   } catch {
     console.log("unknown");
+  }
+  process.exit(0);
+}
+
+// ── reset-encrypted-columns subcommand ──────────────────────────────────────
+// Recovery tool for users who lost STORAGE_ENCRYPTION_KEY after upgrade (#1622)
+if (args.includes("reset-encrypted-columns")) {
+  const dataDir = (() => {
+    const configured = process.env.DATA_DIR?.trim();
+    if (configured) return configured;
+    if (platform() === "win32") {
+      const appData = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
+      return join(appData, "omniroute");
+    }
+    const xdg = process.env.XDG_CONFIG_HOME?.trim();
+    if (xdg) return join(xdg, "omniroute");
+    return join(homedir(), ".omniroute");
+  })();
+
+  const dbPath = join(dataDir, "storage.sqlite");
+
+  if (!existsSync(dbPath)) {
+    console.log(`\x1b[33m⚠ No database found at ${dbPath}\x1b[0m`);
+    process.exit(0);
+  }
+
+  const force = args.includes("--force");
+  if (!force) {
+    console.log(`
+  \x1b[1m\x1b[33m⚠ WARNING: This will erase all encrypted credentials\x1b[0m
+
+  This command will NULL out the following columns in provider_connections:
+    • api_key
+    • access_token
+    • refresh_token
+    • id_token
+
+  Provider metadata (name, provider_id, settings) will be preserved.
+  You will need to re-authenticate all providers after this operation.
+
+  Database: ${dbPath}
+
+  \x1b[1mTo confirm, run:\x1b[0m
+    omniroute reset-encrypted-columns --force
+    `);
+    process.exit(0);
+  }
+
+  try {
+    const { createRequire } = await import("node:module");
+    const require = createRequire(import.meta.url);
+    const Database = require("better-sqlite3");
+    const db = new Database(dbPath);
+
+    const countResult = db
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM provider_connections
+         WHERE api_key LIKE 'enc:v1:%'
+            OR access_token LIKE 'enc:v1:%'
+            OR refresh_token LIKE 'enc:v1:%'
+            OR id_token LIKE 'enc:v1:%'`
+      )
+      .get();
+
+    const affected = countResult?.cnt ?? 0;
+
+    if (affected === 0) {
+      console.log("\x1b[32m✔ No encrypted credentials found — nothing to reset.\x1b[0m");
+      db.close();
+      process.exit(0);
+    }
+
+    const result = db
+      .prepare(
+        `UPDATE provider_connections
+            SET api_key = NULL,
+                access_token = NULL,
+                refresh_token = NULL,
+                id_token = NULL
+          WHERE api_key LIKE 'enc:v1:%'
+             OR access_token LIKE 'enc:v1:%'
+             OR refresh_token LIKE 'enc:v1:%'
+             OR id_token LIKE 'enc:v1:%'`
+      )
+      .run();
+
+    db.close();
+
+    console.log(
+      `\x1b[32m✔ Reset ${result.changes} provider connection(s).\x1b[0m\n` +
+        `  Re-authenticate your providers in the dashboard or re-add API keys.\n`
+    );
+  } catch (err) {
+    console.error(
+      `\x1b[31m✖ Failed to reset encrypted columns:\x1b[0m ${err.message || err}`
+    );
+    process.exit(1);
   }
   process.exit(0);
 }

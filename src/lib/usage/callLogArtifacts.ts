@@ -8,6 +8,7 @@ const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 const DATA_DIR = resolveDataDir({ isCloud });
 
 export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
+export const MAX_CALL_LOG_ARTIFACT_BYTES = 512 * 1024;
 
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
@@ -72,6 +73,92 @@ function computeArtifactChecksum(serialized: string): string {
   return hash.toString(16).padStart(8, "0");
 }
 
+function truncateArtifactForStorage(artifact: CallLogArtifact): CallLogArtifact {
+  const pipeline = artifact.pipeline;
+  if (!pipeline?.streamChunks) return artifact;
+
+  return {
+    ...artifact,
+    pipeline: {
+      ...pipeline,
+      streamChunks: {
+        provider: pipeline.streamChunks.provider?.length
+          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          : undefined,
+        openai: pipeline.streamChunks.openai?.length
+          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          : undefined,
+        client: pipeline.streamChunks.client?.length
+          ? ["[stream chunks omitted: call log artifact size limit exceeded]"]
+          : undefined,
+      },
+    },
+  };
+}
+
+function omitOversizedPipeline(artifact: CallLogArtifact): CallLogArtifact {
+  if (!artifact.pipeline) return artifact;
+
+  return {
+    ...artifact,
+    pipeline: {
+      error: {
+        _omniroute_truncated: true,
+        reason: "call_log_artifact_size_limit_exceeded",
+      },
+    },
+  };
+}
+
+function serializeArtifactForStorage(artifact: CallLogArtifact): string {
+  const serialized = JSON.stringify(artifact, null, 2);
+  if (Buffer.byteLength(serialized) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+    return serialized;
+  }
+
+  const truncated = JSON.stringify(truncateArtifactForStorage(artifact), null, 2);
+  if (Buffer.byteLength(truncated) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+    return truncated;
+  }
+
+  const withoutPipeline = JSON.stringify(omitOversizedPipeline(artifact), null, 2);
+  if (Buffer.byteLength(withoutPipeline) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+    return withoutPipeline;
+  }
+
+  const minimal = JSON.stringify(
+    {
+      ...omitOversizedPipeline(artifact),
+      requestBody: "[omitted: call log artifact size limit exceeded]",
+      responseBody: "[omitted: call log artifact size limit exceeded]",
+      error: artifact.error ? "[omitted: call log artifact size limit exceeded]" : null,
+    },
+    null,
+    2
+  );
+  if (Buffer.byteLength(minimal) <= MAX_CALL_LOG_ARTIFACT_BYTES) {
+    return minimal;
+  }
+
+  return JSON.stringify(
+    {
+      schemaVersion: artifact.schemaVersion,
+      summary: artifact.summary,
+      requestBody: "[omitted: call log artifact size limit exceeded]",
+      responseBody: "[omitted: call log artifact size limit exceeded]",
+      error: artifact.error ? "[omitted: call log artifact size limit exceeded]" : null,
+      pipeline: {
+        error: {
+          _omniroute_truncated: true,
+          reason: "call_log_artifact_size_limit_exceeded",
+        },
+      },
+    },
+    null,
+    2
+  );
+}
+
 export function writeCallArtifact(
   artifact: CallLogArtifact,
   relativePath = buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
@@ -82,7 +169,7 @@ export function writeCallArtifact(
   const tmpPath = `${absPath}.${process.pid}.${Date.now()}.tmp`;
 
   try {
-    const serialized = JSON.stringify(artifact, null, 2);
+    const serialized = serializeArtifactForStorage(artifact);
     const sizeBytes = Buffer.byteLength(serialized);
     // Keep the legacy field name for storage compatibility, but use a non-cryptographic checksum
     // so artifact bookkeeping is not treated as password hashing by static analysis.

@@ -102,6 +102,12 @@ test("canonical model capability resolver merges models.dev data and keeps stati
     modelCapabilities.capThinkingBudget("antigravity/gemini-3.1-pro-high", 40000),
     32768
   );
+
+  const codexGpt55 = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.5");
+  assert.equal(codexGpt55.contextWindow, 1050000);
+  assert.equal(codexGpt55.maxOutputTokens, 128000);
+  assert.equal(codexGpt55.supportsThinking, true);
+  assert.equal(codexGpt55.supportsVision, true);
 });
 
 test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {

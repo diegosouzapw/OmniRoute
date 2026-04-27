@@ -1708,7 +1708,7 @@ export const cliSettingsEnvSchema = z.object({
 
 export const cliModelConfigSchema = z.object({
   baseUrl: z.string().trim().min(1, "baseUrl and model are required"),
-  apiKey: z.string().optional(),
+  apiKey: z.string().nullable().optional(),
   model: z.string().trim().min(1, "baseUrl and model are required"),
   reasoningEffort: z.enum(["none", "low", "medium", "high", "xhigh"]).optional(),
   wireApi: z.enum(["chat", "responses"]).optional(),
@@ -1729,6 +1729,7 @@ export const guideSettingsSaveSchema = z
     apiKey: z.string().optional(),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
+    modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
   })
   .refine((data) => !!data.model || !!data.models?.length, {
     message: "Model is required",

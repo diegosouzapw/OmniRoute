@@ -953,3 +953,22 @@ test("createRequestLogger skips disabled logs and caps retained stream chunk byt
     "[stream chunk log truncated after 5 bytes]",
   ]);
 });
+
+test("createRequestLogger caps retained stream chunk item count", async () => {
+  const logger = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: true,
+    captureStreamChunks: true,
+    maxStreamChunkBytes: 1024,
+    maxStreamChunkItems: 2,
+  });
+
+  logger.appendProviderChunk("one");
+  logger.appendProviderChunk("two");
+  logger.appendProviderChunk("three");
+
+  const payloads = logger.getPipelinePayloads();
+  assert.deepEqual(payloads.streamChunks.provider, [
+    "one",
+    "[stream chunk log truncated after 2 chunks]",
+  ]);
+});

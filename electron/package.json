@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -30,7 +30,8 @@
     "electron-builder": "^26.8.1"
   },
   "overrides": {
-    "@xmldom/xmldom": "^0.9.10"
+    "@xmldom/xmldom": "^0.9.10",
+    "plist": "^4.0.0"
   },
   "build": {
     "appId": "online.omniroute.desktop",
@@ -58,6 +59,13 @@
         "filter": [
           "**/*",
           "node_modules/**/*"
+        ]
+      },
+      {
+        "from": "../.next/electron-standalone/node_modules",
+        "to": "app/node_modules",
+        "filter": [
+          "**/*"
         ]
       },
       {

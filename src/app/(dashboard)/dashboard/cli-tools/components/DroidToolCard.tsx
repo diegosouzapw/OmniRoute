@@ -150,7 +150,12 @@ export default function DroidToolCard({
         setMessage({ type: "success", text: t("settingsApplied") });
         checkDroidStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedApplySettings") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedApplySettings"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -171,7 +176,12 @@ export default function DroidToolCard({
         setSelectedApiKeyId("");
         checkDroidStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedResetSettings") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedResetSettings"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -211,7 +221,12 @@ export default function DroidToolCard({
         checkDroidStatus();
         fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedRestore") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedRestore"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });

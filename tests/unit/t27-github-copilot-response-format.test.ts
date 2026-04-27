@@ -53,7 +53,7 @@ test("T27: non-Claude models keep response_format untouched", () => {
   assert.deepEqual(transformed.response_format, { type: "json_object" });
 });
 
-test("T27: SSE [DONE] guard applies only in streaming mode", async () => {
+test("T27: GitHub executor preserves SSE frames and only materializes non-streaming bodies", async () => {
   const executor = new GithubExecutor();
   const originalExecute = BaseExecutor.prototype.execute;
 
@@ -66,6 +66,8 @@ test("T27: SSE [DONE] guard applies only in streaming mode", async () => {
       }
     ),
     url: "https://api.githubcopilot.com/chat/completions",
+    headers: {},
+    transformedBody: {},
   });
 
   try {
@@ -76,7 +78,7 @@ test("T27: SSE [DONE] guard applies only in streaming mode", async () => {
       credentials: { accessToken: "token" },
     });
     const streamingText = await streamingResult.response.text();
-    assert.equal(streamingText.includes("data: [DONE]"), false);
+    assert.equal(streamingText.includes("data: [DONE]"), true);
     assert.equal(streamingText.includes("data: tail"), true);
 
     const nonStreamingResult = await executor.execute({
@@ -102,6 +104,8 @@ test("T27: streaming error responses keep their original body readable", async (
       headers: { "content-type": "text/plain; charset=utf-8" },
     }),
     url: "https://api.githubcopilot.com/chat/completions",
+    headers: {},
+    transformedBody: {},
   });
 
   try {
@@ -120,8 +124,8 @@ test("T27: streaming error responses keep their original body readable", async (
 });
 
 test("T27: requests use copilotToken from providerSpecificData when available", async () => {
-  globalThis.fetch = async (_url, init = {}) => {
-    assert.equal(init.headers.Authorization, "Bearer copilot_test");
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer copilot_test");
     return new Response(
       JSON.stringify({
         choices: [
@@ -157,7 +161,14 @@ test("T27: non-stream execute materializes provider responses before returning",
   const originalExecute = BaseExecutor.prototype.execute;
 
   class WeirdResponse {
-    constructor(body, init = {}) {
+    _body: string;
+    status: number;
+    statusText: string;
+    headers: Headers;
+    bodyUsed: boolean;
+    body: Record<string, unknown>;
+
+    constructor(body: string, init: ResponseInit = {}) {
       this._body = body;
       this.status = init.status || 200;
       this.statusText = init.statusText || "OK";
@@ -181,6 +192,8 @@ test("T27: non-stream execute materializes provider responses before returning",
       headers: { "content-type": "application/json" },
     }),
     url: "https://api.githubcopilot.com/chat/completions",
+    headers: {},
+    transformedBody: {},
   });
 
   try {
