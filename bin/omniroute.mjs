@@ -16,7 +16,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
 import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
@@ -218,7 +218,7 @@ if (args.includes("reset-encrypted-columns")) {
 
 if (args.includes("--mcp")) {
   try {
-    const { startMcpCli } = await import(join(ROOT, "bin", "mcp-server.mjs"));
+    const { startMcpCli } = await import(pathToFileURL(join(ROOT, "bin", "mcp-server.mjs")).href);
     await startMcpCli(ROOT);
   } catch (err) {
     console.error("\x1b[31m✖ Failed to start MCP server:\x1b[0m", err.message || err);
