@@ -1543,7 +1543,7 @@ export const SEARCH_PROVIDERS = {
     color: "#1A237E",
     textIcon: "SX",
     website: "https://docs.searxng.org",
-    authHint: "Set your SearXNG base URL. API key is optional for public/self-hosted instances.",
+    authHint: "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
 };
 

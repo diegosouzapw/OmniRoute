@@ -2195,17 +2195,21 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       headers: { Accept: "application/json", "X-API-Key": apiKey },
     },
   }),
-  "searxng-search": (_apiKey, providerSpecificData = {}) => {
+  "searxng-search": (apiKey, providerSpecificData = {}) => {
     const baseUrl =
       typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
         ? providerSpecificData.baseUrl.trim().replace(/\/+$/, "")
         : "http://localhost:8888/search";
     const searchUrl = baseUrl.endsWith("/search") ? baseUrl : `${baseUrl}/search`;
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
     return {
       url: `${searchUrl}?q=test&format=json`,
       init: {
         method: "GET",
-        headers: { Accept: "application/json" },
+        headers,
       },
     };
   },

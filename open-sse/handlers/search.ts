@@ -568,11 +568,16 @@ function buildSearxngRequest(
   const page = toSearchPageNumber(params.offset, params.maxResults);
   if (page) qp.set("pageno", String(page));
 
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (params.token) {
+    headers["Authorization"] = `Bearer ${params.token}`;
+  }
+
   return {
     url: `${url}?${qp}`,
     init: {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers,
     },
   };
 }
