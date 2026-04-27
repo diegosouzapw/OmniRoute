@@ -309,6 +309,7 @@ test("CodexExecutor.execute returns 503 when gpt-5.5 websocket transport is unav
   const body = await result.response.json();
 
   assert.equal(result.response.status, 503);
+  assert.equal(result.response.headers.get("Access-Control-Allow-Origin"), "*");
   assert.equal(body.error.code, "wreq_unavailable");
   assert.match(body.error.message, /WebSocket transport unavailable/);
   assert.equal(result.transformedBody.model, "gpt-5.5");

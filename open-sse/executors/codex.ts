@@ -10,6 +10,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import { getCorsOrigin } from "../utils/cors.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -60,7 +61,13 @@ function codexWebSocketUnavailableResponse(): Response {
           "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform",
       },
     }),
-    { status: 503, headers: { "Content-Type": "application/json" } }
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": getCorsOrigin(),
+      },
+    }
   );
 }
 
