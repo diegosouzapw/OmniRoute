@@ -840,7 +840,7 @@ async function handleSingleModelChat(
         const match = errorStr.match(/today's quota for model ([^,]+)/);
         const limitedModel = match ? match[1].trim() : model;
 
-        // 锁定该 connection 的该模型直到第二天 0 点
+        // Lock this model on this connection until tomorrow 00:00
         const lockResult = recordModelLockoutFailure(
           provider,
           credentials.connectionId,
@@ -864,10 +864,10 @@ async function handleSingleModelChat(
         dailyQuotaExhausted = true;
       }
 
-      // 7. Mark account as quota-exhausted on 429 response (非日限额错误)
+      // 7. Mark account as quota-exhausted on 429 response (non-daily-quota errors)
       // For providers that route quota/cooldown at model scope, a 429 on one model
       // does not mean the whole connection is exhausted.
-      // 日限额错误已经单独处理，这里只处理普通 rate_limit
+      // Daily quota errors are handled above; only process regular rate_limit here
       if (!dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
         if (

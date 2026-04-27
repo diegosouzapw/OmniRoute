@@ -639,13 +639,13 @@ test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exha
       resetTimeoutMs: 5000,
     };
 
-    // 计算到本地时间第二天 0:00 的毫秒数
+    // Calculate milliseconds until tomorrow 00:00 local time
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
     const expectedMsUntilTomorrow = tomorrow.getTime() - now;
 
-    // 考虑时区偏移：函数使用本地时间，测试环境可能使用 UTC
+    // Account for timezone offset: function uses local time, test env may use UTC
     const timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
 
     // Record failure with quota_exhausted reason
@@ -662,10 +662,10 @@ test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exha
     // Verify the cooldown is set to ms until tomorrow 0:00 (with tolerance)
     // The cooldown should be close to expectedMsUntilTomorrow
     const tolerance = 60 * 1000; // 1 minute tolerance
-    // 计算实际值与预期值的差异
+    // Calculate difference between actual and expected values
     const diff = Math.abs(result.cooldownMs - expectedMsUntilTomorrow);
 
-    // 允许 ±5 分钟的误差（300,000 ms）
+    // Allow ±5 minutes tolerance (300,000 ms)
     assert.ok(
       diff <= 300_000,
       `cooldown should be ms until tomorrow 0:00 (expected ${expectedMsUntilTomorrow}ms, got ${result.cooldownMs}ms, diff ${diff}ms)`
