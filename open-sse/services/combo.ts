@@ -20,6 +20,7 @@ import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuf
 import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
+import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
@@ -68,16 +69,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
-  // Context overflow — model-specific, may succeed on a model with larger context window
-  /context overflow/i,
-  /context length exceeded/i,
-  /prompt too large/i,
-  /token limit/i,
-  /too many tokens/i,
-  /exceeds? context/i,
-  /maximum context/i,
-  /input too long/i,
-  /messages? exceed/i,
+  CONTEXT_OVERFLOW_REGEX,
   // Model not supported/found — permanent model-level error, try next combo target
   /no provider supported/i,
   /model not found/i,
@@ -85,18 +77,18 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported model/i,
   /model.*has no provider/i,
   // Function calling format error — model doesn't support this capability
-  /function\.?arguments.*(must be|should be|必须).*(json|JSON)/i,
+  /function\.?arguments.*(must be|should be|\u5fc5\u987b).*(json|JSON)/i,
   /tool.*arguments.*invalid/i,
   /function.*parameter.*(invalid|format)/i,
   // Input length range error — model-specific context limit
   /range of input length/i,
   /input length should be/i,
   // Transient 400 errors from upstream — should fallback to next combo target
-  /服务遇到了一点小状况/i, // ModelScope/Qwen transient error
-  /抱歉.*?敏感内容.*?请检查/i, // ModelScope/Qwen content moderation with context
-  /内容.*?敏感.*?(?:无法|过滤)/i, // Content sensitivity block
-  /无法响应.*?请求/i, // "unable to respond to request"
-  /稍后重试/i, // "retry later" in Chinese
+  /\u670d\u52a1\u9047\u5230\u4e86\u4e00\u70b9\u5c0f\u72b6\u51b5/i, // ModelScope/Qwen transient error
+  /\u62b1\u6b49.*?\u654f\u611f\u5185\u5bb9.*?\u8bf7\u68c0\u67e5/i, // ModelScope/Qwen content moderation with context
+  /\u5185\u5bb9.*?\u654f\u611f.*?(?:\u65e0\u6cd5|\u8fc7\u6ee4)/i, // Content sensitivity block
+  /\u65e0\u6cd5\u54cd\u5e94.*?\u8bf7\u6c42/i, // "unable to respond to request"
+  /\u7a0d\u540e\u91cd\u8bd5/i, // "retry later" in Chinese
   /temporary.*error/i,
   /transient.*error/i,
   /service.*unavailable/i,
@@ -104,7 +96,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   // Rate limit errors — some providers return 400 instead of 429
   /\brate.?-?limit.?(?:exceeded|reached|hit)/i,
   /too many requests/i,
-  /请求过于频繁/i, // Chinese rate limit message
+  /\u8bf7\u6c42\u8fc7\u4e8e\u9891\u7e41/i, // Chinese rate limit message
   // Tool call function name errors — model-specific, try next combo target
   /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
   /function.*name.*(?:blank|empty|missing)/i,

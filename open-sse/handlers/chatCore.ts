@@ -837,6 +837,33 @@ function attachLogMeta(
 const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
 const PROXY_CONFIG_CACHE_TTL = 10_000;
 
+/**
+ * Module-level cache for all combos data (shared across all requests).
+ * Uses cached promises to prevent thundering herd — all concurrent callers
+ * wait for the same underlying DB query while it's in flight.
+ */
+let _combosPromise: Promise<unknown[]> | null = null;
+let _combosCacheTs = 0;
+const COMBOS_CACHE_TTL = 10_000;
+
+async function getCombosCached(): Promise<unknown[]> {
+  const now = Date.now();
+  if (_combosPromise && now - _combosCacheTs < COMBOS_CACHE_TTL) {
+    return _combosPromise;
+  }
+  _combosCacheTs = now;
+  _combosPromise = (async () => {
+    const { getCombos } = await import("@/lib/localDb");
+    return getCombos();
+  })();
+  return _combosPromise;
+}
+
+export function clearCombosCache() {
+  _combosPromise = null;
+  _combosCacheTs = 0;
+}
+
 export function clearUpstreamProxyConfigCache(providerId?: string) {
   if (providerId) {
     _proxyConfigCache.delete(providerId);
@@ -1514,7 +1541,8 @@ export async function handleChatCore({
           comboConfig = await getComboByName(comboName.substring(6));
         }
         if (comboConfig) {
-          const targets = await resolveComboTargets(comboConfig, null);
+>           const allCombosData = await getCombosCached();
+          const targets = resolveComboTargets(comboConfig, allCombosData);
           const limits = targets.map((t: { modelStr?: string }) => {
             const parsed = parseModel(t.modelStr);
             return getTokenLimit(parsed.provider, parsed.model);
