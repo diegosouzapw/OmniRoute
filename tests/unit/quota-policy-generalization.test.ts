@@ -18,7 +18,7 @@ test("resolveQuotaLimitPolicy keeps codex legacy defaults when generic policy is
 
   assert.equal(policy.enabled, true);
   assert.deepEqual(policy.windows, ["session"]);
-  assert.equal(policy.thresholdPercent, 90);
+  assert.equal(policy.thresholdPercent, 99);
 });
 
 test("resolveQuotaLimitPolicy enforces codex weekly window when weekly toggle is enabled", () => {

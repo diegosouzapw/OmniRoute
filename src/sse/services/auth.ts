@@ -6,7 +6,12 @@ import {
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
-import { getQuotaCache, getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
+import {
+  DEFAULT_QUOTA_THRESHOLD_PERCENT,
+  getQuotaCache,
+  getQuotaWindowStatus,
+  isAccountQuotaExhausted,
+} from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -82,7 +87,6 @@ interface CooldownInspectionState {
   retryableModelCooldownMs: number | null;
 }
 
-const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
 const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
@@ -168,7 +172,7 @@ interface QuotaCacheView {
   >;
 }
 
-function normalizeQuotaThreshold(value: unknown, fallback = CODEX_QUOTA_THRESHOLD_PERCENT): number {
+function normalizeQuotaThreshold(value: unknown, fallback = DEFAULT_QUOTA_THRESHOLD_PERCENT): number {
   const parsed = toNumber(value, fallback);
   return Math.min(MAX_QUOTA_THRESHOLD_PERCENT, Math.max(MIN_QUOTA_THRESHOLD_PERCENT, parsed));
 }

@@ -264,7 +264,7 @@ test("resolveQuotaLimitPolicy normalizes Codex windows, thresholds, and defaults
   });
   assert.deepEqual(defaults, {
     enabled: true,
-    thresholdPercent: 90,
+    thresholdPercent: 99,
     windows: ["session", "weekly"],
   });
   assert.deepEqual(generic, {
