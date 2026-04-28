@@ -17,6 +17,7 @@ type OAuthModalProps = {
   onSuccess?: () => void;
   onClose: () => void;
   idcConfig?: unknown;
+  reauthConnection?: null | { id?: string };
 };
 
 /**
@@ -31,6 +32,7 @@ export default function OAuthModal({
   onSuccess,
   onClose,
   idcConfig,
+  reauthConnection,
 }: OAuthModalProps) {
   const t = useTranslations("oauthModal");
   const [step, setStep] = useState("waiting"); // waiting | input | success | error
@@ -93,6 +95,7 @@ export default function OAuthModal({
           body: JSON.stringify({
             code,
             redirectUri: authData.redirectUri,
+            connectionId: reauthConnection?.id,
             codeVerifier: authData.codeVerifier,
             ...(normalizedState ? { state: normalizedState } : {}),
           }),
@@ -141,7 +144,7 @@ export default function OAuthModal({
         setStep("error");
       }
     },
-    [authData, provider, onSuccess]
+    [authData, provider, onSuccess, reauthConnection]
   );
 
   // Poll for device code token
@@ -157,7 +160,12 @@ export default function OAuthModal({
           const res = await fetch(`/api/oauth/${provider}/poll`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceCode, codeVerifier, extraData }),
+            body: JSON.stringify({
+              deviceCode,
+              connectionId: reauthConnection?.id,
+              codeVerifier,
+              extraData,
+            }),
           });
 
           const data = await res.json();
@@ -188,7 +196,7 @@ export default function OAuthModal({
       setStep("error");
       setPolling(false);
     },
-    [provider, onSuccess]
+    [provider, onSuccess, reauthConnection]
   );
 
   // Start OAuth flow
@@ -271,7 +279,7 @@ export default function OAuthModal({
               const pollRes = await fetch(`/api/oauth/codex/poll-callback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ connectionId: reauthConnection?.id }),
               });
               const pollData = await pollRes.json();
 
@@ -371,7 +379,7 @@ export default function OAuthModal({
       setError(err.message);
       setStep("error");
     }
-  }, [provider, isLocalhost, isTrueLocalhost, startPolling, onSuccess]);
+  }, [provider, isLocalhost, isTrueLocalhost, startPolling, onSuccess, reauthConnection]);
 
   // Reset guard when modal closes
   useEffect(() => {

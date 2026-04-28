@@ -234,7 +234,7 @@ export async function POST(
     }
 
     if (action === "exchange") {
-      const { code, redirectUri, codeVerifier, state } = body;
+      const { code, redirectUri, connectionId, codeVerifier, state } = body;
       const normalizedState = typeof state === "string" && state.length > 0 ? state : undefined;
       const providerData = getProvider(provider);
 
@@ -278,6 +278,7 @@ export async function POST(
       if (tokenData.email) {
         const existing = await getProviderConnections({ provider });
         const match = existing.find((c: any) => {
+          if (c.id && safeEqual(connectionId, c.id)) return true;
           // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
           if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
           // For Codex, also check workspaceId to avoid overwriting different workspace connections
@@ -322,7 +323,7 @@ export async function POST(
     }
 
     if (action === "poll") {
-      const { deviceCode, codeVerifier, extraData } = body;
+      const { deviceCode, connectionId, codeVerifier, extraData } = body;
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
@@ -364,6 +365,7 @@ export async function POST(
         if (result.tokens.email) {
           const existing = await getProviderConnections({ provider });
           const match = existing.find((c: any) => {
+            if (c.id && safeEqual(connectionId, c.id)) return true;
             // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-8/9)
             if (!safeEqual(c.email, result.tokens.email) || c.authType !== "oauth") return false;
             // For Codex, also check workspaceId to avoid overwriting different workspace connections
@@ -418,6 +420,8 @@ export async function POST(
     }
 
     if (action === "poll-callback") {
+      const { connectionId } = body;
+
       // Poll for Codex callback server result
       if (provider !== "codex") {
         return NextResponse.json(
@@ -489,6 +493,7 @@ export async function POST(
         if (tokenData.email) {
           const existing = await getProviderConnections({ provider });
           const match = existing.find((c: any) => {
+            if (c.id && safeEqual(connectionId, c.id)) return true;
             // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
             if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
             // For Codex, also check workspaceId to avoid overwriting different workspace connections

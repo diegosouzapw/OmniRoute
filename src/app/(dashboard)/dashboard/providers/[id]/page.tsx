@@ -969,7 +969,8 @@ export default function ProviderDetailPage() {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [providerNode, setProviderNode] = useState(null);
-  const [showOAuthModal, setShowOAuthModal] = useState(false);
+  const [showOAuthModal, _setShowOAuthModal] = useState(false);
+  const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
@@ -1020,6 +1021,11 @@ export default function ProviderDetailPage() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
+
+  const setShowOAuthModal = (show: boolean, connectionRow?: ConnectionRowConnection) => {
+    _setShowOAuthModal(show);
+    setReauthConnection(show && connectionRow ? connectionRow : null);
+  };
 
   const providerInfo = resolveDashboardProviderInfo(providerId, {
     providerNode,
@@ -2928,7 +2934,9 @@ export default function ProviderDetailPage() {
                         }}
                         onDelete={() => handleDelete(conn.id)}
                         onReauth={
-                          conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
+                          conn.authType === "oauth"
+                            ? () => setShowOAuthModal(true, conn)
+                            : undefined
                         }
                         onRefreshToken={
                           conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
@@ -3048,7 +3056,7 @@ export default function ProviderDetailPage() {
                               onDelete={() => handleDelete(conn.id)}
                               onReauth={
                                 conn.authType === "oauth"
-                                  ? () => setShowOAuthModal(true)
+                                  ? () => setShowOAuthModal(true, conn)
                                   : undefined
                               }
                               onRefreshToken={
@@ -3183,6 +3191,7 @@ export default function ProviderDetailPage() {
         (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             providerInfo={{ ...providerInfo, id: providerId }}
             onSuccess={handleOAuthSuccess}
             onClose={() => {
@@ -3192,6 +3201,7 @@ export default function ProviderDetailPage() {
         ) : providerId === "cursor" ? (
           <CursorAuthModal
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             onSuccess={handleOAuthSuccess}
             onClose={() => {
               setShowOAuthModal(false);
@@ -3200,6 +3210,7 @@ export default function ProviderDetailPage() {
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             provider={providerId}
             providerInfo={providerInfo}
             onSuccess={handleOAuthSuccess}
