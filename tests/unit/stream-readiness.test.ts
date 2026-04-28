@@ -66,6 +66,12 @@ test("hasUsefulStreamContent detects text, reasoning, and tool deltas", () => {
     ),
     true
   );
+  assert.equal(
+    hasUsefulStreamContent(
+      `data: ${JSON.stringify({ response: { candidates: [{ content: { parts: [{ text: "hello" }] } }] } })}\n\n`
+    ),
+    true
+  );
 });
 
 test("ensureStreamReadiness preserves buffered chunks when stream starts", async () => {

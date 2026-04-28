@@ -5,9 +5,15 @@ const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
 
 const originalFetch = globalThis.fetch;
+const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  if (originalCreditsMode === undefined) {
+    delete process.env.ANTIGRAVITY_CREDITS;
+  } else {
+    process.env.ANTIGRAVITY_CREDITS = originalCreditsMode;
+  }
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
@@ -290,7 +296,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
             "gemini-unlimited": {
               quotaInfo: {},
             },
-            "gemini-open": {
+            "gemini-3.1-pro-high": {
               quotaInfo: { remainingFraction: 1 },
             },
             "internal-model": {
@@ -312,10 +318,10 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-open"]);
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-3.1-pro-high"]);
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
-  assert.equal(usage.quotas["gemini-open"].total, 0);
-  assert.equal(usage.quotas["gemini-open"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
+  assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
   assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
   assert.equal(
@@ -405,6 +411,56 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\//);
   assert.equal(usage.plan, "Business");
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
+});
+
+test("usage service manual Antigravity refresh bypasses usage TTL caches", async () => {
+  process.env.ANTIGRAVITY_CREDITS = "retry";
+  let probeCalls = 0;
+  let modelCalls = 0;
+
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes("loadCodeAssist")) {
+      return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), { status: 200 });
+    }
+
+    if (urlStr.includes("streamGenerateContent")) {
+      probeCalls++;
+      return new Response(
+        `data: ${JSON.stringify({ remainingCredits: [{ creditType: "GOOGLE_ONE_AI", creditAmount: String(100 - probeCalls) }] })}\n\n`,
+        { status: 200, headers: { "Content-Type": "text/event-stream" } }
+      );
+    }
+
+    if (urlStr.includes("fetchAvailableModels")) {
+      modelCalls++;
+      return new Response(
+        JSON.stringify({
+          models: {
+            "claude-sonnet-4-6": {
+              quotaInfo: { remainingFraction: 1 },
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  const connection = {
+    id: "ag-manual-refresh-service-test",
+    provider: "antigravity",
+    accessToken: "ag-manual-service-token",
+    projectId: "ag-project",
+  };
+
+  await usageService.getUsageForProvider(connection, { forceRefresh: true });
+  await usageService.getUsageForProvider(connection, { forceRefresh: true });
+
+  assert.equal(probeCalls, 2);
+  assert.equal(modelCalls, 2);
 });
 
 test("usage service covers Antigravity tier fallbacks and non-403 upstream failures", async () => {

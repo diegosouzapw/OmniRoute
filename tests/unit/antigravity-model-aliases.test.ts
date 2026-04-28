@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  isUserCallableAntigravityModelId,
   resolveAntigravityModelId,
   toClientAntigravityModelId,
 } from "../../open-sse/config/antigravityModelAliases.ts";
@@ -30,6 +31,15 @@ test("toClientAntigravityModelId exposes client-visible aliases for known upstre
   assert.equal(toClientAntigravityModelId("gpt-oss-120b-medium"), "gpt-oss-120b-medium");
   assert.equal(toClientAntigravityModelId("claude-sonnet-4-6"), "claude-sonnet-4-6");
   assert.equal(toClientAntigravityModelId("claude-opus-4-6-thinking"), "claude-opus-4-6-thinking");
+});
+
+test("isUserCallableAntigravityModelId only allows public chat-capable model IDs", () => {
+  assert.equal(isUserCallableAntigravityModelId("gemini-3-pro-preview"), true);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), true);
+  assert.equal(isUserCallableAntigravityModelId("claude-sonnet-4-6"), true);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3-flash-agent"), false);
+  assert.equal(isUserCallableAntigravityModelId("tab_flash_lite_preview"), false);
+  assert.equal(isUserCallableAntigravityModelId("unknown-model"), false);
 });
 
 test("AntigravityExecutor.transformRequest resolves alias models before dispatching upstream", async () => {

@@ -50,6 +50,9 @@ function hasUsefulValue(value: unknown): boolean {
     "function_call_output",
     "output",
     "content_block",
+    "response",
+    "choices",
+    "candidates",
     "parts",
   ]) {
     if (hasUsefulValue(value[key])) return true;
@@ -72,9 +75,7 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
     if (hasUsefulValue(payload)) return true;
   }
 
-  return (
-    hasUsefulValue(payload.choices) || hasUsefulValue(payload.candidates) || hasUsefulValue(payload)
-  );
+  return hasUsefulValue(payload);
 }
 
 export function hasUsefulStreamContent(text: string): boolean {

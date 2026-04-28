@@ -48,6 +48,7 @@ import {
 import {
   ANTIGRAVITY_PUBLIC_MODELS,
   getClientVisibleAntigravityModelName,
+  isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
@@ -63,6 +64,8 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 
 type JsonRecord = Record<string, unknown>;
+
+const antigravityDiscoveryInflight = new Map<string, Promise<Array<{ id: string; name: string }>>>();
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -173,6 +176,10 @@ function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; 
     .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
+function filterUserCallableAntigravityModels(models: Array<{ id: string; name: string }>) {
+  return models.filter((model) => isUserCallableAntigravityModelId(model.id));
+}
+
 function mapAntigravityModelForClient(model: { id: string; name: string }): {
   id: string;
   name: string;
@@ -182,6 +189,58 @@ function mapAntigravityModelForClient(model: { id: string; name: string }): {
     id: clientId,
     name: getClientVisibleAntigravityModelName(clientId, model.name),
   };
+}
+
+async function fetchAntigravityDiscoveryModelsCached(
+  accessToken: string,
+  connectionId: string,
+  proxy: unknown
+): Promise<Array<{ id: string; name: string }>> {
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}`;
+  const inflight = antigravityDiscoveryInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    await resolveAntigravityVersion();
+
+    for (const discoveryUrl of getAntigravityModelsDiscoveryUrls()) {
+      try {
+        const response = await safeOutboundFetch(discoveryUrl, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "POST",
+          headers: getAntigravityHeaders("models", accessToken),
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.warn(
+            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+          );
+          continue;
+        }
+
+        const models = filterUserCallableAntigravityModels(
+          normalizeAntigravityModelsResponse(await response.json())
+        ).map(mapAntigravityModelForClient);
+        if (models.length > 0) {
+          return models;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
+      }
+    }
+
+    return [];
+  })().finally(() => {
+    antigravityDiscoveryInflight.delete(cacheKey);
+  });
+
+  antigravityDiscoveryInflight.set(cacheKey, promise);
+  return promise;
 }
 
 function normalizeDataRobotCatalogResponse(data: unknown): Array<{ id: string; name: string }> {
@@ -1561,7 +1620,6 @@ export async function GET(
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
       const staticModels = STATIC_MODEL_PROVIDERS.antigravity();
-      const discoveryUrls = getAntigravityModelsDiscoveryUrls();
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1578,37 +1636,9 @@ export async function GET(
         });
       }
 
-      await resolveAntigravityVersion();
-
-      for (const discoveryUrl of discoveryUrls) {
-        try {
-          const response = await safeOutboundFetch(discoveryUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "POST",
-            headers: getAntigravityHeaders("models", accessToken),
-            body: JSON.stringify({}),
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.warn(
-              `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
-            );
-            continue;
-          }
-
-          const remoteModels = normalizeAntigravityModelsResponse(await response.json()).map(
-            mapAntigravityModelForClient
-          );
-          if (remoteModels.length > 0) {
-            return buildApiDiscoveryResponse(remoteModels);
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
-        }
+      const remoteModels = await fetchAntigravityDiscoveryModelsCached(accessToken, connectionId, proxy);
+      if (remoteModels.length > 0) {
+        return buildApiDiscoveryResponse(remoteModels);
       }
 
       const fallback = buildDiscoveryFallbackResponse();
