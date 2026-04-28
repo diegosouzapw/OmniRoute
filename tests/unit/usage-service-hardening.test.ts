@@ -463,6 +463,24 @@ test("usage service manual Antigravity refresh bypasses usage TTL caches", async
   assert.equal(modelCalls, 2);
 });
 
+test("usage service handles missing Antigravity access tokens without probing upstream", async () => {
+  let fetchCalls = 0;
+
+  globalThis.fetch = async () => {
+    fetchCalls++;
+    return new Response("unexpected", { status: 500 });
+  };
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "antigravity",
+    accessToken: undefined,
+  });
+
+  assert.equal(fetchCalls, 0);
+  assert.equal(usage.plan, "Free");
+  assert.match(usage.message, /Antigravity access token not available/i);
+});
+
 test("usage service covers Antigravity tier fallbacks and non-403 upstream failures", async () => {
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {

@@ -68,6 +68,12 @@ test("hasUsefulStreamContent detects text, reasoning, and tool deltas", () => {
   );
   assert.equal(
     hasUsefulStreamContent(
+      `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "hello" })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasUsefulStreamContent(
       `data: ${JSON.stringify({ response: { candidates: [{ content: { parts: [{ text: "hello" }] } }] } })}\n\n`
     ),
     true

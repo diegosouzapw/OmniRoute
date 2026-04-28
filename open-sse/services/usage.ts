@@ -1226,6 +1226,8 @@ async function fetchAntigravityAvailableModelsCached(
   projectId?: string | null,
   options: AntigravityUsageOptions = {}
 ): Promise<unknown> {
+  if (!accessToken) throw new Error("Access token is required");
+
   const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
   const cached = _antigravityAvailableModelsCache.get(cacheKey);
   if (!options.forceRefresh && cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS) {
@@ -1355,6 +1357,8 @@ async function probeAntigravityCreditBalance(
   projectId?: string | null,
   options: AntigravityUsageOptions = {}
 ): Promise<number | null> {
+  if (!accessToken) return null;
+
   const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId || accountId);
   const cached = _antigravityCreditProbeCache.get(cacheKey);
   if (!options.forceRefresh && cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS) {
@@ -1479,6 +1483,10 @@ async function getAntigravityUsage(
   connectionId?,
   options: AntigravityUsageOptions = {}
 ) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Antigravity access token not available." };
+  }
+
   try {
     const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
     const projectId = connectionProjectId || subscriptionInfo?.cloudaicompanionProject || null;

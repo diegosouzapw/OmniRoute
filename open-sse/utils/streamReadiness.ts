@@ -63,18 +63,6 @@ function hasUsefulValue(value: unknown): boolean {
 
 function hasUsefulJsonPayload(payload: unknown): boolean {
   if (!isRecord(payload)) return false;
-
-  const type = typeof payload.type === "string" ? payload.type : "";
-  if (
-    type.includes("delta") ||
-    type.includes("tool") ||
-    type.includes("function") ||
-    type.includes("content_block") ||
-    type.includes("output_item")
-  ) {
-    if (hasUsefulValue(payload)) return true;
-  }
-
   return hasUsefulValue(payload);
 }
 
