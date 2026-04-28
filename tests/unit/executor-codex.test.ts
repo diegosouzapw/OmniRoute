@@ -24,7 +24,7 @@ test.afterEach(() => {
   __setCodexWebSocketTransportForTesting(undefined);
 });
 
-async function withEnv(entries, fn) {
+async function withEnv(entries: Record<string, string | undefined>, fn: () => any) {
   const previous = new Map();
 
   for (const [key, value] of Object.entries(entries)) {
@@ -274,7 +274,7 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
 
   assert.equal(result._omnirouteResponsesStore, undefined);
   assert.equal(result.store, true);
-  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.previous_response_id, "resp_prev_123");
 });
 
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
@@ -379,7 +379,7 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
     // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false
     // and the executor falls back to HTTP via super.execute()
     assert.equal(result.response.status, 200);
-    assert.equal(result.transformedBody.model, "gpt-5.5");
+    assert.equal((result.transformedBody as any).model, "gpt-5.5");
   } finally {
     globalThis.fetch = originalFetch;
   }

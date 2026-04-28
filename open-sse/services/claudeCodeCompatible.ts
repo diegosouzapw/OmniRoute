@@ -249,7 +249,6 @@ export function buildClaudeCodeCompatibleRequest({
     messages: normalizedMessages,
     systemBlocks: effectiveClaudeBody?.system as Record<string, unknown>[] | undefined,
     preserveCacheControl,
-    injectDefaultSkeleton: !effectiveClaudeBody,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
@@ -550,12 +549,10 @@ function buildClaudeCodeCompatibleSystemBlocks({
   messages,
   systemBlocks,
   preserveCacheControl,
-  injectDefaultSkeleton,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
   preserveCacheControl: boolean;
-  injectDefaultSkeleton: boolean;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
@@ -570,9 +567,12 @@ function buildClaudeCodeCompatibleSystemBlocks({
     return preparedBlock;
   });
 
-  if (!injectDefaultSkeleton) {
-    return preparedCustomSystemBlocks;
-  }
+  const hasDefaultSystemBlock = preparedCustomSystemBlocks.some(
+    (block) =>
+      block.type === "text" && block.text === CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS[0].text
+  );
+
+  if (hasDefaultSystemBlock) return preparedCustomSystemBlocks;
 
   return [
     ...CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS.map((block) => ({ ...block })),

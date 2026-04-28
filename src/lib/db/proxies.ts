@@ -192,6 +192,32 @@ export async function createProxy(payload: ProxyPayload) {
   return getProxyById(id, { includeSecrets: false });
 }
 
+/**
+ * Upsert a proxy by host+port.
+ * If a proxy with the same host and port already exists, update it.
+ * Otherwise, create a new one. Used by the bulk import feature.
+ */
+export async function upsertProxy(payload: ProxyPayload): Promise<{
+  proxy: ProxyRegistryRecord | null;
+  action: "created" | "updated";
+}> {
+  const db = getDbInstance();
+  const host = (payload.host || "").trim();
+  const port = Number(payload.port);
+
+  const existing = db
+    .prepare("SELECT id FROM proxy_registry WHERE host = ? AND port = ? LIMIT 1")
+    .get(host, port) as { id?: string } | undefined;
+
+  if (existing?.id) {
+    const updated = await updateProxy(existing.id, payload);
+    return { proxy: updated, action: "updated" };
+  }
+
+  const created = await createProxy(payload);
+  return { proxy: created, action: "created" };
+}
+
 export async function updateProxy(id: string, payload: Partial<ProxyPayload>) {
   const db = getDbInstance();
   const existing = await getProxyById(id, { includeSecrets: true });

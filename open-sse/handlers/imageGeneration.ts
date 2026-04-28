@@ -99,6 +99,21 @@ const STABILITY_EDIT_ENDPOINTS = {
 
 const STABILITY_CONTROL_MODELS = new Set(["sketch", "structure", "style", "style-transfer"]);
 
+function appendOptionalFormValue(formData, key, value) {
+  if (value === undefined || value === null || value === "") return;
+  formData.append(key, String(value));
+}
+
+function appendImageFormValue(formData, key, source, filename) {
+  formData.append(
+    key,
+    new Blob([source.buffer], {
+      type: source.contentType || "application/octet-stream",
+    }),
+    filename
+  );
+}
+
 const FAL_PRESET_SIZES = {
   "1024x1024": "square_hd",
   "512x512": "square",
@@ -1054,52 +1069,107 @@ async function handleStabilityAIImageGeneration({
         ? normalizeRequestedImageFormat(body, "png", ["png", "webp"])
         : normalizeRequestedImageFormat(body, "png"),
   };
+  const formData = new FormData();
 
-  if (body.prompt) upstreamBody.prompt = body.prompt;
-  if (body.negative_prompt) upstreamBody.negative_prompt = body.negative_prompt;
-  if (body.seed !== undefined) upstreamBody.seed = body.seed;
+  appendOptionalFormValue(formData, "output_format", upstreamBody.output_format);
+  if (body.prompt) {
+    upstreamBody.prompt = body.prompt;
+    appendOptionalFormValue(formData, "prompt", body.prompt);
+  }
+  if (body.negative_prompt) {
+    upstreamBody.negative_prompt = body.negative_prompt;
+    appendOptionalFormValue(formData, "negative_prompt", body.negative_prompt);
+  }
+  if (body.seed !== undefined) {
+    upstreamBody.seed = body.seed;
+    appendOptionalFormValue(formData, "seed", body.seed);
+  }
 
   try {
     if (STABILITY_GENERATION_ENDPOINTS[model]) {
       if (model.startsWith("sd3.5")) {
         upstreamBody.model = model;
+        appendOptionalFormValue(formData, "model", model);
       }
 
       if (imageUrl) {
+        const imageSource = await resolveImageSource(imageUrl);
         upstreamBody.mode = "image-to-image";
-        upstreamBody.image = (await resolveImageSource(imageUrl)).base64;
-        if (body.strength !== undefined) upstreamBody.strength = body.strength;
+        appendOptionalFormValue(formData, "mode", "image-to-image");
+        upstreamBody.image = imageSource.base64;
+        appendImageFormValue(formData, "image", imageSource, "image");
+        if (body.strength !== undefined) {
+          upstreamBody.strength = body.strength;
+          appendOptionalFormValue(formData, "strength", body.strength);
+        }
       } else {
         upstreamBody.mode = "text-to-image";
+        appendOptionalFormValue(formData, "mode", "text-to-image");
       }
 
       if (!model.startsWith("sd3.5") || !imageUrl) {
-        upstreamBody.aspect_ratio = body.aspect_ratio || mapImageSize(body.size);
+        const aspectRatio = body.aspect_ratio || mapImageSize(body.size);
+        upstreamBody.aspect_ratio = aspectRatio;
+        appendOptionalFormValue(formData, "aspect_ratio", aspectRatio);
       }
 
-      if (body.style_preset) upstreamBody.style_preset = body.style_preset;
+      if (body.style_preset) {
+        upstreamBody.style_preset = body.style_preset;
+        appendOptionalFormValue(formData, "style_preset", body.style_preset);
+      }
     } else {
       if (imageUrl) {
-        upstreamBody.image = (await resolveImageSource(imageUrl)).base64;
+        const imageSource = await resolveImageSource(imageUrl);
+        upstreamBody.image = imageSource.base64;
+        appendImageFormValue(formData, "image", imageSource, "image");
       }
 
       if (maskUrl && shouldIncludeStabilityMask(model)) {
-        upstreamBody.mask = (await resolveImageSource(maskUrl)).base64;
+        const maskSource = await resolveImageSource(maskUrl);
+        upstreamBody.mask = maskSource.base64;
+        appendImageFormValue(formData, "mask", maskSource, "mask");
       }
 
-      if (body.search_prompt) upstreamBody.search_prompt = body.search_prompt;
-      if (body.grow_mask !== undefined) upstreamBody.grow_mask = body.grow_mask;
-      if (body.control_strength !== undefined)
+      if (body.search_prompt) {
+        upstreamBody.search_prompt = body.search_prompt;
+        appendOptionalFormValue(formData, "search_prompt", body.search_prompt);
+      }
+      if (body.grow_mask !== undefined) {
+        upstreamBody.grow_mask = body.grow_mask;
+        appendOptionalFormValue(formData, "grow_mask", body.grow_mask);
+      }
+      if (body.control_strength !== undefined) {
         upstreamBody.control_strength = body.control_strength;
-      if (body.creativity !== undefined) upstreamBody.creativity = body.creativity;
-      if (body.left !== undefined) upstreamBody.left = body.left;
-      if (body.right !== undefined) upstreamBody.right = body.right;
-      if (body.up !== undefined) upstreamBody.up = body.up;
-      if (body.down !== undefined) upstreamBody.down = body.down;
-      if (body.style_preset) upstreamBody.style_preset = body.style_preset;
+        appendOptionalFormValue(formData, "control_strength", body.control_strength);
+      }
+      if (body.creativity !== undefined) {
+        upstreamBody.creativity = body.creativity;
+        appendOptionalFormValue(formData, "creativity", body.creativity);
+      }
+      if (body.left !== undefined) {
+        upstreamBody.left = body.left;
+        appendOptionalFormValue(formData, "left", body.left);
+      }
+      if (body.right !== undefined) {
+        upstreamBody.right = body.right;
+        appendOptionalFormValue(formData, "right", body.right);
+      }
+      if (body.up !== undefined) {
+        upstreamBody.up = body.up;
+        appendOptionalFormValue(formData, "up", body.up);
+      }
+      if (body.down !== undefined) {
+        upstreamBody.down = body.down;
+        appendOptionalFormValue(formData, "down", body.down);
+      }
+      if (body.style_preset) {
+        upstreamBody.style_preset = body.style_preset;
+        appendOptionalFormValue(formData, "style_preset", body.style_preset);
+      }
 
       if (STABILITY_CONTROL_MODELS.has(model) && !upstreamBody.prompt) {
         upstreamBody.prompt = body.prompt || "";
+        appendOptionalFormValue(formData, "prompt", body.prompt || "");
       }
     }
 
@@ -1111,11 +1181,10 @@ async function handleStabilityAIImageGeneration({
     const response = await fetch(`${providerConfig.baseUrl.replace(/\/$/, "")}${endpoint}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(upstreamBody),
+      body: formData,
     });
 
     if (!response.ok) {

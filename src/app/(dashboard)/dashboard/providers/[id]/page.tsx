@@ -3525,12 +3525,12 @@ function ModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? t("testingModel")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : t("testModel")
             }
           >
             {testingModel ? (
@@ -3911,12 +3911,12 @@ function PassthroughModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? t("testingModel")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : t("testModel")
             }
           >
             {testingModel ? (
@@ -5772,6 +5772,7 @@ function AddApiKeyModal({
       }
 
       let isValid = false;
+      let validationError: string | null = null;
       try {
         setValidating(true);
         setValidationResult(null);
@@ -5789,6 +5790,9 @@ function AddApiKeyModal({
         });
         const data = await res.json();
         isValid = !!data.valid;
+        if (!isValid && data.error) {
+          validationError = data.error;
+        }
         setValidationResult(isValid ? "success" : "failed");
       } catch {
         setValidationResult("failed");
@@ -5797,8 +5801,13 @@ function AddApiKeyModal({
       }
 
       if (!isValid) {
-        setSaveError(t("apiKeyValidationFailed"));
-        return;
+        if (apiKeyOptional && !formData.apiKey) {
+          // Bypass validation block for local/optional providers when no key is provided
+          console.debug("Validation failed but apiKey is optional; proceeding to save.");
+        } else {
+          setSaveError(validationError || t("apiKeyValidationFailed"));
+          return;
+        }
       }
 
       const providerSpecificData: Record<string, unknown> = {};

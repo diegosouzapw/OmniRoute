@@ -302,7 +302,40 @@ ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && 
 curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
 ```
 
-### 17. Preserve release branch
+## Phase 4: Release Monitoring & Artifact Validation
+
+> After triggering the official release, actively monitor the CI pipelines until all artifacts are successfully generated. If any pipeline fails, stop and apply the necessary corrections before continuing.
+
+### 18. Monitor CI Pipelines
+
+Wait for and verify the successful completion of the following automated jobs:
+
+1. **Docker Hub Publish**
+2. **Electron Build**
+3. **NPM Registry Publish** (Check with `npm info omniroute version`)
+
+```bash
+# Monitor Docker Hub workflow
+gh run list --repo diegosouzapw/OmniRoute --workflow docker-publish.yml --limit 1
+gh run watch <RUN_ID>
+
+# Monitor Electron build
+gh run list --repo diegosouzapw/OmniRoute --workflow electron-release.yml --limit 1
+gh run watch <RUN_ID>
+
+# Verify NPM version
+npm info omniroute version
+```
+
+### 19. Handle Failures (If Any)
+
+If a workflow fails:
+
+- Use `gh run view <RUN_ID> --log-failed` to identify the error.
+- Apply the fix on the `main` branch.
+- If necessary, re-trigger the workflow using `gh workflow run <workflow_name.yml> --repo diegosouzapw/OmniRoute --ref v2.x.y`
+
+### 20. Preserve release branch
 
 ```bash
 # Branch is kept for historical purposes. Do not delete.

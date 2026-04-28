@@ -734,7 +734,8 @@
     "logoPreview": "Logo Preview",
     "themeCustom": "Theme Custom",
     "hideHealthLogsDesc": "Hide Health Logs Desc",
-    "faviconPreview": "Favicon Preview"
+    "faviconPreview": "Favicon Preview",
+    "changelog": "Changelog"
   },
   "themesPage": {
     "title": "Temas",

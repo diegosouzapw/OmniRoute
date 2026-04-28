@@ -217,6 +217,20 @@ function applyApiKeyLifecycleMigration(db: Database.Database): void {
   `);
 }
 
+function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "007";
+}
+
+function applySearchRequestTypeMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "call_logs",
+    "request_type",
+    "ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL"
+  );
+  db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);");
+}
+
 function inferPhysicalSchemaBaseline(db: Database.Database): {
   version: string;
   description: string;
@@ -483,6 +497,8 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
     const applyMigration = db.transaction(() => {
       if (isApiKeyLifecycleMigration(migration)) {
         applyApiKeyLifecycleMigration(db);
+      } else if (isSearchRequestTypeMigration(migration)) {
+        applySearchRequestTypeMigration(db);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);

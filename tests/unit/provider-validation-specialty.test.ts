@@ -799,7 +799,7 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
 
   assert.equal(deepgram.error, "Validation failed: 500");
   assert.equal(assembly.valid, true);
-  assert.equal(banana.valid, true);
+  assert.equal(banana.error, "Validation failed: 400");
   assert.equal(eleven.error, "Invalid API key");
   assert.equal(inworld.error, "inworld offline");
   assert.equal(bailian.error, "Validation failed: 500");

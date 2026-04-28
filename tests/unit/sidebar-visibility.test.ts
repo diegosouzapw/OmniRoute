@@ -52,6 +52,29 @@ test("sidebar visibility drops stale audit entries from saved settings", () => {
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["audit", "logs"]), ["logs"]);
 });
 
+test("help sidebar exposes changelog after docs and issues", () => {
+  const helpSection = sidebarVisibility.SIDEBAR_SECTIONS.find((section) => section.id === "help");
+
+  assert.ok(helpSection, "expected help sidebar section to exist");
+  assert.deepEqual(
+    helpSection.items.map((item) => ({
+      id: item.id,
+      href: item.href,
+      i18nKey: item.i18nKey,
+    })),
+    [
+      { id: "docs", href: "/docs", i18nKey: "docs" },
+      {
+        id: "issues",
+        href: "https://github.com/diegosouzapw/OmniRoute/issues",
+        i18nKey: "issues",
+      },
+      { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog" },
+    ]
+  );
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("changelog"), true);
+});
+
 test("legacy dashboard routes redirect to their consolidated surfaces", async () => {
   const autoComboPage = await readFile(
     join(repoRoot, "src/app/(dashboard)/dashboard/auto-combo/page.tsx"),

@@ -149,6 +149,7 @@ export {
   getProxyById,
   createProxy,
   updateProxy,
+  upsertProxy,
   deleteProxyById,
   getProxyAssignments,
   getProxyWhereUsed,

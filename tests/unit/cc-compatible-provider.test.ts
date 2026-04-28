@@ -212,7 +212,9 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     preserveCacheControl: true,
   });
 
-  assert.deepEqual((payload.system[0] as any).cache_control, { type: "ephemeral", ttl: "5m" });
+  assert.match((payload.system[0] as any).text, /Claude Agent SDK/);
+  assert.equal((payload.system[0] as any).cache_control, undefined);
+  assert.deepEqual((payload.system[1] as any).cache_control, { type: "ephemeral", ttl: "5m" });
   (assert as any).deepEqual((payload.messages[0].content[0] as any).cache_control, {
     type: "ephemeral",
   });
@@ -295,8 +297,10 @@ test("buildClaudeCodeCompatibleRequest keeps built-in system blocks untagged whe
     preserveCacheControl: true,
   });
 
-  assert.deepEqual((payload.system[0] as any).cache_control, { type: "ephemeral" });
-  assert.deepEqual((payload.system[1] as any).cache_control, { type: "ephemeral", ttl: "1h" });
+  assert.match((payload.system[0] as any).text, /Claude Agent SDK/);
+  assert.equal((payload.system[0] as any).cache_control, undefined);
+  assert.deepEqual((payload.system[1] as any).cache_control, { type: "ephemeral" });
+  assert.deepEqual((payload.system[2] as any).cache_control, { type: "ephemeral", ttl: "1h" });
 });
 
 test("buildClaudeCodeCompatibleRequest does not add cache markers in non-preserve mode", () => {
@@ -670,7 +674,9 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0].body.system[0].cache_control, {
+  assert.match(calls[0].body.system[0].text, /Claude Agent SDK/);
+  assert.equal(calls[0].body.system[0].cache_control, undefined);
+  assert.deepEqual(calls[0].body.system[1].cache_control, {
     type: "ephemeral",
     ttl: "5m",
   });

@@ -1157,6 +1157,15 @@ export const updateProxyRegistrySchema = createProxyRegistrySchema.partial().ext
   id: z.string().trim().min(1, "id is required"),
 });
 
+export const bulkImportProxiesSchema = z
+  .object({
+    items: z
+      .array(createProxyRegistrySchema)
+      .min(1, "At least one proxy is required")
+      .max(100, "Maximum 100 proxies per import"),
+  })
+  .strict();
+
 export const proxyAssignmentSchema = z
   .object({
     scope: z.enum(["global", "provider", "account", "combo", "key"]),

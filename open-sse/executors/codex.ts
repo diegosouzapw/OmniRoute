@@ -362,12 +362,16 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
-  // Always strip previous_response_id — the /codex/responses endpoint does not
-  // persist responses, so any reference to a previous response would cause a 404.
-  // The official Codex CLI sets previous_response_id to None for HTTP transport.
-  // Ref: codex-rs codex-api/src/common.rs:187 — previous_response_id: None
-  // Ref: CLIProxyAPI codex_executor.go:115 — sjson.DeleteBytes(body, "previous_response_id")
-  delete body.previous_response_id;
+  const hasInput = Array.isArray(body.input) && body.input.length > 0;
+
+  // Always strip previous_response_id IF we have input.
+  // The /codex/responses endpoint does not persist responses, so any reference
+  // to a previous response would cause a 404. However, if input is missing (e.g. Cursor
+  // trying to continue generation), stripping it leaves the payload empty causing a 400 Schema error.
+  // We leave it intact so Codex returns 404, which correctly triggers Cursor's fallback to resend history.
+  if (hasInput) {
+    delete body.previous_response_id;
+  }
 
   if (!Array.isArray(body.input)) return;
 
@@ -1144,9 +1148,13 @@ export class CodexExecutor extends BaseExecutor {
 
     // Delete session_id and conversation_id from the body.
     // These are often injected by OmniRoute's fallback logic for store=true,
-    // but the upstream Codex API strictly rejects them as unsupported parameters.
+    // but the upstream Codex API strictly rejects them as unsupported parameters
+    // UNLESS the request lacks input entirely (where they are required to avoid a 400 Schema Error).
     delete body.session_id;
-    delete body.conversation_id;
+    const hasInput = Array.isArray(body.input) && body.input.length > 0;
+    if (hasInput) {
+      delete body.conversation_id;
+    }
 
     if (nativeCodexPassthrough) {
       return body;

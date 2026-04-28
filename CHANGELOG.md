@@ -4,6 +4,37 @@
 
 ---
 
+## [3.7.4] — 2026-04-28
+
+### ✨ New Features
+
+- **feat(proxy):** implement bulk proxy import via pipe-delimited parser with update-or-create (upsert) logic and real-time preview table
+- **feat(pwa):** add fullscreen installable PWA with manifest, service worker, and cross-platform app icons (#1728)
+
+### 🔒 Security
+
+- **security:** replace insecure `Math.random` with `crypto.getRandomValues` for fallback UUID generation to resolve CodeQL CWE-338 finding (#182)
+
+### 🐛 Bug Fixes
+
+- **fix(db):** reconcile legacy `create_reasoning_cache` migration tracking to prevent version shadowing on `032` and resolve startup warnings (#1734)
+- **fix(db):** intercept `007` migration to use idempotent `IF NOT EXISTS` logic via `PRAGMA table_info`, preventing syntax crashes on fresh installs (#1733)
+- **fix(cc-compatible):** preserve Claude Code system skeleton to prevent request rejection by strict compatible upstream providers (#1740)
+
+- **fix(providers):** add API key validation for image-only providers and fix Stability AI requests to use `multipart/form-data` instead of JSON (#1726)
+- **fix(codex):** preserve `previous_response_id` and `conversation_id` fields when input array is empty to prevent schema validation errors (#1729)
+- **fix(searxng):** bypass UI validation block when `apiKeyOptional` is true and fix typing errors in provider dashboard to allow saving search providers without credentials (#1721)
+- **fix(proxy):** disable HTTP keep-alive and pipelining in Undici proxy dispatcher to prevent "Socket hang up" rotation failures
+- **stream:** correctly identify `thought` and `error` blocks in Antigravity/Gemini SSE streams to prevent premature 502 timeouts (#1725, #1705)
+
+### 🛠️ Maintenance
+
+- **workflow:** add phase 4 release monitoring instructions to `/generate-release` workflow
+- **test:** fix typescript compilation errors in unit tests to keep CI typecheck pipeline fully green
+- **test:** update responses store expectations for empty input arrays
+
+---
+
 ## [3.7.3] — 2026-04-28
 
 ### 🐛 Bug Fixes

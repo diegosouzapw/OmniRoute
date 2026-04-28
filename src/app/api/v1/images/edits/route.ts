@@ -1,10 +1,5 @@
 import { handleImageEdit } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
-} from "@/sse/services/auth";
+import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { parseImageModel, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -99,18 +94,11 @@ export async function POST(request: Request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing required field: image");
   }
 
-  const apiKey = extractApiKey(request);
-  if (!isValidApiKey(apiKey)) {
-    const policyError = enforceApiKeyPolicy(apiKey);
-    if (policyError) {
-      return new Response(JSON.stringify(policyError.body), {
-        status: policyError.status,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  }
-
   const fullModel = model || "cgpt-web/gpt-5.3-instant";
+
+  const policy = await enforceApiKeyPolicy(request, fullModel);
+  if (policy.rejection) return policy.rejection;
+
   const parsed = parseImageModel(fullModel);
   const providerConfig = getImageProvider(parsed.provider);
   if (!providerConfig) {
@@ -126,7 +114,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const credentials = await getProviderCredentials(parsed.provider, apiKey);
+  const allowedConnections =
+    policy.apiKeyInfo?.allowedConnections && policy.apiKeyInfo.allowedConnections.length > 0
+      ? policy.apiKeyInfo.allowedConnections
+      : null;
+  const credentials = await getProviderCredentials(
+    parsed.provider,
+    null,
+    allowedConnections,
+    fullModel
+  );
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.UNAUTHORIZED,
