@@ -63,9 +63,9 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
 
   assert.equal(headers.Authorization, "Bearer copilot-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["editor-version"], "vscode/1.110.0");
-  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.38.0");
-  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.38.0");
+  assert.equal(headers["editor-version"], "vscode/1.117.0");
+  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.45.1");
+  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.45.1");
   assert.equal(headers["x-github-api-version"], "2025-04-01");
   assert.equal(headers["openai-intent"], "conversation-panel");
   assert.equal(headers["X-Initiator"], "user");

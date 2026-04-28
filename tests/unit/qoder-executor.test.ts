@@ -173,8 +173,8 @@ test("QoderExecutor: non-stream calls target DashScope and map alias models", as
     assert.equal(options.method, "POST");
     assert.equal(options.headers.Authorization, "Bearer pat_test");
     assert.equal(options.headers["x-dashscope-authtype"], "qwen-oauth");
-    assert.equal(options.headers["user-agent"], "QwenCode/0.11.1 (linux; x64)");
-    assert.equal(options.headers["x-dashscope-useragent"], "QwenCode/0.11.1 (linux; x64)");
+    assert.equal(options.headers["user-agent"], "QwenCode/0.15.3 (linux; x64)");
+    assert.equal(options.headers["x-dashscope-useragent"], "QwenCode/0.15.3 (linux; x64)");
     const parsedBody = JSON.parse(String(options.body));
     assert.equal(parsedBody.model, "coder-model");
     return new Response(

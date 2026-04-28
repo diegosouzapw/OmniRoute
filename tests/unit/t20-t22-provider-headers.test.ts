@@ -14,15 +14,15 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 
-test("T20: gemini CLI fingerprint uses 0.31.0 and normalizes darwin to macos", () => {
-  assert.equal(GEMINI_CLI_VERSION, "0.31.0");
+test("T20: gemini CLI fingerprint uses 0.39.1 and normalizes darwin to macos", () => {
+  assert.equal(GEMINI_CLI_VERSION, "0.39.1");
 
   const descriptor = Object.getOwnPropertyDescriptor(process, "platform");
   Object.defineProperty(process, "platform", { value: "darwin" });
   try {
     assert.match(
       geminiCLIUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.31\.0\/gemini-3-flash \(macos; /
+      /^GeminiCLI\/0\.39\.1\/gemini-3-flash \(macos; /
     );
   } finally {
     if (descriptor) {
@@ -41,9 +41,9 @@ test("T25: anthropic API-key config includes the full Anthropic beta header set"
 
 test("T22: github headers include updated editor/plugin versions and required fields", () => {
   const github = REGISTRY.github;
-  assert.equal(github.headers["editor-version"], "vscode/1.110.0");
-  assert.equal(github.headers["editor-plugin-version"], "copilot-chat/0.38.0");
-  assert.equal(github.headers["user-agent"], "GitHubCopilotChat/0.38.0");
+  assert.equal(github.headers["editor-version"], "vscode/1.117.0");
+  assert.equal(github.headers["editor-plugin-version"], "copilot-chat/0.45.1");
+  assert.equal(github.headers["user-agent"], "GitHubCopilotChat/0.45.1");
   assert.equal(github.headers["x-github-api-version"], "2025-04-01");
   assert.equal(github.headers["x-vscode-user-agent-library-version"], "electron-fetch");
   assert.equal(github.headers["X-Initiator"], "user");

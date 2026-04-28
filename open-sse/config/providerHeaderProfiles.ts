@@ -1,17 +1,17 @@
 import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
 
 export const GITHUB_COPILOT_API_VERSION = "2025-04-01";
-export const GITHUB_COPILOT_EDITOR_VERSION = "vscode/1.110.0";
-export const GITHUB_COPILOT_CHAT_PLUGIN_VERSION = "copilot-chat/0.38.0";
-export const GITHUB_COPILOT_CHAT_USER_AGENT = "GitHubCopilotChat/0.38.0";
-export const GITHUB_COPILOT_REFRESH_PLUGIN_VERSION = "copilot/1.300.0";
+export const GITHUB_COPILOT_EDITOR_VERSION = "vscode/1.117.0";
+export const GITHUB_COPILOT_CHAT_PLUGIN_VERSION = "copilot-chat/0.45.1";
+export const GITHUB_COPILOT_CHAT_USER_AGENT = "GitHubCopilotChat/0.45.1";
+export const GITHUB_COPILOT_REFRESH_PLUGIN_VERSION = "copilot/1.388.0";
 export const GITHUB_COPILOT_REFRESH_USER_AGENT = "GithubCopilot/1.0";
 export const GITHUB_COPILOT_INTEGRATION_ID = "vscode-chat";
 export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-panel";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
 export const GITHUB_COPILOT_USER_AGENT_LIBRARY = "electron-fetch";
 
-export const QWEN_CLI_USER_AGENT = "QwenCode/0.12.3 (linux; x64)";
+export const QWEN_CLI_USER_AGENT = "QwenCode/0.15.3 (linux; x64)";
 export const QWEN_STAINLESS_ARCH = "x64";
 export const QWEN_STAINLESS_LANG = "js";
 export const QWEN_STAINLESS_OS = "Linux";
@@ -23,7 +23,7 @@ export const QWEN_ACCEPT_LANGUAGE = "*";
 export const QWEN_SEC_FETCH_MODE = "cors";
 
 export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
-export const QODER_DASHSCOPE_COMPAT_USER_AGENT = "QwenCode/0.11.1 (linux; x64)";
+export const QODER_DASHSCOPE_COMPAT_USER_AGENT = "QwenCode/0.15.3 (linux; x64)";
 
 export const KIRO_SDK_USER_AGENT = "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0";
 export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";

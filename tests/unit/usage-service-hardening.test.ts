@@ -44,9 +44,9 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(freeUsage.quotas.chat.remaining, 20);
   assert.equal(freeUsage.quotas.completions.remainingPercentage, 80);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
-  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.38.0");
-  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.110.0");
-  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.38.0");
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.45.1");
+  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.117.0");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.45.1");
   assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2025-04-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
@@ -317,7 +317,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(usage.quotas["gemini-open"].total, 0);
   assert.equal(usage.quotas["gemini-open"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
-  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
   assert.equal(
     loadCodeAssistCall?.init.headers["X-Goog-Api-Client"],
     "google-cloud-sdk vscode_cloudshelleditor/0.1"

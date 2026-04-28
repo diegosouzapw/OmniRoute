@@ -33,8 +33,8 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
   "interleaved-thinking-2025-05-14",
   "effort-2025-11-24",
 ].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.113";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.113 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.121";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.121 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
