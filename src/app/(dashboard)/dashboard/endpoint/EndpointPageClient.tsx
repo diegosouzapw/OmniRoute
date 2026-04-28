@@ -103,6 +103,8 @@ export default function APIPageClient({ machineId }) {
   const [tailscaleInstallBusy, setTailscaleInstallBusy] = useState(false);
   const [tailscaleInstallLog, setTailscaleInstallLog] = useState<string[]>([]);
   const [tailscalePassword, setTailscalePassword] = useState("");
+  const [showCloudflaredTunnel, setShowCloudflaredTunnel] = useState(true);
+  const [showTailscaleFunnel, setShowTailscaleFunnel] = useState(true);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -308,6 +310,8 @@ export default function APIPageClient({ machineId }) {
         if (data.machineId) {
           setResolvedMachineId(data.machineId);
         }
+        setShowCloudflaredTunnel(data.hideEndpointCloudflaredTunnel !== true);
+        setShowTailscaleFunnel(data.hideEndpointTailscaleFunnel !== true);
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
@@ -989,236 +993,242 @@ export default function APIPageClient({ machineId }) {
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
-                  </h3>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
-                  >
-                    {cloudflaredPhaseMeta[cloudflaredPhase].label}
-                  </span>
+        {showCloudflaredTunnel && (
+          <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
+                    >
+                      {cloudflaredPhaseMeta[cloudflaredPhase].label}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {cloudflaredStatus?.supported !== false && (
-                <Button
-                  size="sm"
-                  variant={cloudflaredStatus?.running ? "secondary" : "primary"}
-                  icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
-                  onClick={() =>
-                    handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
-                  }
-                  loading={cloudflaredBusy}
-                  className={
-                    cloudflaredStatus?.running
-                      ? "border-border/70! text-text-muted! hover:text-text!"
-                      : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
-                  }
-                >
-                  {cloudflaredActionLabel}
-                </Button>
-              )}
-            </div>
-
-            {cloudflaredNotice && (
-              <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                  cloudflaredNotice.type === "success"
-                    ? "border-green-500/30 bg-green-500/10 text-green-400"
-                    : cloudflaredNotice.type === "info"
-                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                      : "border-red-500/30 bg-red-500/10 text-red-400"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {cloudflaredNotice.type === "success"
-                    ? "check_circle"
-                    : cloudflaredNotice.type === "info"
-                      ? "info"
-                      : "error"}
-                </span>
-                <span className="flex-1">{cloudflaredNotice.message}</span>
-                <button
-                  onClick={() => setCloudflaredNotice(null)}
-                  className="rounded p-0.5 transition-colors hover:bg-white/10"
-                >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={cloudflaredStatus?.apiUrl || ""}
-                readOnly
-                placeholder="https://*.trycloudflare.com/v1"
-                className="flex-1 min-w-0 font-mono text-sm"
-              />
-              <Button
-                variant="secondary"
-                icon={copied === "cloudflared_url" ? "check" : "content_copy"}
-                onClick={() =>
-                  cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
-                }
-                disabled={!cloudflaredStatus?.apiUrl}
-                className="shrink-0 self-start sm:self-auto"
-              >
-                {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
-              </Button>
-            </div>
-            {cloudflaredStatus?.lastError && (
-              <p className="text-xs text-red-400">
-                {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
-                  error: cloudflaredStatus.lastError,
-                })}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-border/70 bg-surface/40 p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
-                  </h3>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
-                  >
-                    {tailscalePhaseMeta[tailscalePhase].label}
-                  </span>
-                </div>
-              </div>
-
-              {tailscaleStatus?.supported !== false && (
-                <Button
-                  size="sm"
-                  variant={tailscaleStatus?.running ? "secondary" : "primary"}
-                  icon={tailscaleStatus?.running ? "vpn_lock_off" : "vpn_lock"}
-                  onClick={() => {
-                    if (tailscaleStatus?.running) {
-                      void handleTailscaleDisable();
-                    } else if (!tailscaleStatus?.installed) {
-                      setShowTailscaleInstallModal(true);
-                    } else {
-                      void handleTailscaleEnable();
+                {cloudflaredStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={cloudflaredStatus?.running ? "secondary" : "primary"}
+                    icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
+                    onClick={() =>
+                      handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
                     }
-                  }}
-                  loading={tailscaleBusy}
-                  className={
-                    tailscaleStatus?.running
-                      ? "border-border/70! text-text-muted! hover:text-text!"
-                      : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
-                  }
-                >
-                  {tailscaleActionLabel}
-                </Button>
-              )}
-            </div>
-
-            {tailscaleNotice && (
-              <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                  tailscaleNotice.type === "success"
-                    ? "border-green-500/30 bg-green-500/10 text-green-400"
-                    : tailscaleNotice.type === "info"
-                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                      : "border-red-500/30 bg-red-500/10 text-red-400"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {tailscaleNotice.type === "success"
-                    ? "check_circle"
-                    : tailscaleNotice.type === "info"
-                      ? "info"
-                      : "error"}
-                </span>
-                <span className="flex-1">{tailscaleNotice.message}</span>
-                <button
-                  onClick={() => setTailscaleNotice(null)}
-                  className="rounded p-0.5 transition-colors hover:bg-white/10"
-                >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
-            {tailscaleStatus?.phase === "needs_login" && (
-              <p className="text-xs text-blue-400">
-                {translateOrFallback(
-                  "tailscaleNeedsLoginHint",
-                  "Authenticate this machine with Tailscale, then enable Funnel."
+                    loading={cloudflaredBusy}
+                    className={
+                      cloudflaredStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
+                    }
+                  >
+                    {cloudflaredActionLabel}
+                  </Button>
                 )}
-              </p>
-            )}
-            {/* Sudo password input — shown when Tailscale is installed but not running (needs sudo to start daemon) */}
-            {tailscaleStatus?.installed &&
-              !tailscaleStatus?.running &&
-              tailscaleStatus?.platform !== "win32" && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs text-text-muted">
-                    {translateOrFallback(
-                      "tailscaleSudoLabel",
-                      "Sudo Password (required on macOS/Linux)"
-                    )}
-                  </label>
-                  <Input
-                    type="password"
-                    value={tailscalePassword}
-                    onChange={(event) => setTailscalePassword(event.target.value)}
-                    placeholder={translateOrFallback(
-                      "tailscaleSudoPlaceholder",
-                      "Enter sudo password"
-                    )}
-                    disabled={tailscaleBusy}
-                    className="font-mono text-sm"
-                  />
+              </div>
+
+              {cloudflaredNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    cloudflaredNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : cloudflaredNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {cloudflaredNotice.type === "success"
+                      ? "check_circle"
+                      : cloudflaredNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{cloudflaredNotice.message}</span>
+                  <button
+                    onClick={() => setCloudflaredNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
                 </div>
               )}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={tailscaleStatus?.apiUrl || ""}
-                readOnly
-                placeholder="https://your-device.tailnet.ts.net/v1"
-                className="flex-1 min-w-0 font-mono text-sm"
-              />
-              <Button
-                variant="secondary"
-                icon={copied === "tailscale_url" ? "check" : "content_copy"}
-                onClick={() =>
-                  tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
-                }
-                disabled={!tailscaleStatus?.apiUrl}
-                className="shrink-0 self-start sm:self-auto"
-              >
-                {copied === "tailscale_url" ? tc("copied") : tc("copy")}
-              </Button>
+
+              <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={cloudflaredStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://*.trycloudflare.com/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "cloudflared_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
+                  }
+                  disabled={!cloudflaredStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {cloudflaredStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                    error: cloudflaredStatus.lastError,
+                  })}
+                </p>
+              )}
             </div>
-            {tailscaleStatus?.binaryPath && (
-              <p className="text-xs text-text-muted">
-                {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
-                  path: tailscaleStatus.binaryPath,
-                })}
-              </p>
-            )}
-            {tailscaleStatus?.lastError && (
-              <p className="text-xs text-red-400">
-                {translateOrFallback("tailscaleLastError", "Last error: {error}", {
-                  error: tailscaleStatus.lastError,
-                })}
-              </p>
-            )}
           </div>
-        </div>
+        )}
+
+        {showTailscaleFunnel && (
+          <div
+            className={`${showCloudflaredTunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
+                    >
+                      {tailscalePhaseMeta[tailscalePhase].label}
+                    </span>
+                  </div>
+                </div>
+
+                {tailscaleStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={tailscaleStatus?.running ? "secondary" : "primary"}
+                    icon={tailscaleStatus?.running ? "vpn_lock_off" : "vpn_lock"}
+                    onClick={() => {
+                      if (tailscaleStatus?.running) {
+                        void handleTailscaleDisable();
+                      } else if (!tailscaleStatus?.installed) {
+                        setShowTailscaleInstallModal(true);
+                      } else {
+                        void handleTailscaleEnable();
+                      }
+                    }}
+                    loading={tailscaleBusy}
+                    className={
+                      tailscaleStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+                    }
+                  >
+                    {tailscaleActionLabel}
+                  </Button>
+                )}
+              </div>
+
+              {tailscaleNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    tailscaleNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : tailscaleNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {tailscaleNotice.type === "success"
+                      ? "check_circle"
+                      : tailscaleNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{tailscaleNotice.message}</span>
+                  <button
+                    onClick={() => setTailscaleNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
+              {tailscaleStatus?.phase === "needs_login" && (
+                <p className="text-xs text-blue-400">
+                  {translateOrFallback(
+                    "tailscaleNeedsLoginHint",
+                    "Authenticate this machine with Tailscale, then enable Funnel."
+                  )}
+                </p>
+              )}
+              {/* Sudo password input — shown when Tailscale is installed but not running (needs sudo to start daemon) */}
+              {tailscaleStatus?.installed &&
+                !tailscaleStatus?.running &&
+                tailscaleStatus?.platform !== "win32" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-text-muted">
+                      {translateOrFallback(
+                        "tailscaleSudoLabel",
+                        "Sudo Password (required on macOS/Linux)"
+                      )}
+                    </label>
+                    <Input
+                      type="password"
+                      value={tailscalePassword}
+                      onChange={(event) => setTailscalePassword(event.target.value)}
+                      placeholder={translateOrFallback(
+                        "tailscaleSudoPlaceholder",
+                        "Enter sudo password"
+                      )}
+                      disabled={tailscaleBusy}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={tailscaleStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://your-device.tailnet.ts.net/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "tailscale_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
+                  }
+                  disabled={!tailscaleStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "tailscale_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {tailscaleStatus?.binaryPath && (
+                <p className="text-xs text-text-muted">
+                  {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
+                    path: tailscaleStatus.binaryPath,
+                  })}
+                </p>
+              )}
+              {tailscaleStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("tailscaleLastError", "Last error: {error}", {
+                    error: tailscaleStatus.lastError,
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card>

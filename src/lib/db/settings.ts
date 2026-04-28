@@ -54,6 +54,8 @@ export async function getSettings() {
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
     hiddenSidebarItems: [],
+    hideEndpointCloudflaredTunnel: false,
+    hideEndpointTailscaleFunnel: false,
     comboConfigMode: "guided",
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,

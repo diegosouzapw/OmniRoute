@@ -20,6 +20,8 @@ export interface Settings {
   maxRetryIntervalSec: number;
   jwtSecret?: string;
   hideHealthCheckLogs?: boolean;
+  hideEndpointCloudflaredTunnel?: boolean;
+  hideEndpointTailscaleFunnel?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
 }
