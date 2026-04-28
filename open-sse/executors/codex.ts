@@ -227,6 +227,7 @@ export function getCodexDualWindowCooldownMs(
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
+const CODEX_CHAT_DEFAULT_INSTRUCTIONS = "You are a ChatGPT agent.";
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
@@ -994,9 +995,9 @@ export class CodexExecutor extends BaseExecutor {
         body.instructions = "Follow the developer instructions in the conversation.";
       }
     } else {
-      // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
-      // prompt was provided by the client, BUT only if tools are requested.
-      // Injecting tool instructions on bare requests causes Harmony leaks (#1686).
+      // Translated: keep the full Codex tool instructions only for tool-capable
+      // requests. Bare chat requests still need a neutral instructions value
+      // because the Codex Responses backend rejects requests without it.
       const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
       if (
         !body.instructions ||
@@ -1005,7 +1006,7 @@ export class CodexExecutor extends BaseExecutor {
         if (hasTools) {
           body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
         } else {
-          delete body.instructions;
+          body.instructions = CODEX_CHAT_DEFAULT_INSTRUCTIONS;
         }
       }
     }

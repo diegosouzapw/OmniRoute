@@ -200,6 +200,37 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   assert.equal(result.stream_options, undefined);
 });
 
+test("CodexExecutor.transformRequest sends neutral instructions for bare chat requests", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    model: "gpt-5.5-medium",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: "Calculate 79530+41475, and reply with the result only.",
+          },
+        ],
+      },
+    ],
+    instructions: "",
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-medium", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.instructions, "You are a ChatGPT agent.");
+  assert.equal(result.stream, true);
+  assert.equal(result.model, "gpt-5.5");
+  assert.equal(result.input.length, 1);
+  assert.equal(result.tools, undefined);
+});
+
 test("CodexExecutor.transformRequest preserves compact requests and native passthrough semantics", () => {
   const executor = new CodexExecutor();
   const body = {
