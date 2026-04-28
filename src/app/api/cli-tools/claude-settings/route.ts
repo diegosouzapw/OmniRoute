@@ -10,6 +10,7 @@ import {
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { normalizeClaudeBaseUrl } from "@/shared/services/claudeCliConfig";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliSettingsEnvSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
           env.ANTHROPIC_AUTH_TOKEN = keyRecord.key as string;
         }
       } catch {
-        // Non-critical: fall back to whatever value was in env (e.g. sk_omniroute)
+        // Non-critical: fall back to whatever value was already provided in env.
       }
     }
 
@@ -146,11 +147,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Normalize ANTHROPIC_BASE_URL to ensure /v1 suffix
+    // Claude Code gateway mode expects the unified root endpoint, not a forced /v1 suffix.
     if (env.ANTHROPIC_BASE_URL) {
-      env.ANTHROPIC_BASE_URL = env.ANTHROPIC_BASE_URL.endsWith("/v1")
-        ? env.ANTHROPIC_BASE_URL
-        : `${env.ANTHROPIC_BASE_URL}/v1`;
+      env.ANTHROPIC_BASE_URL = normalizeClaudeBaseUrl(env.ANTHROPIC_BASE_URL);
     }
 
     // Merge new env with existing settings
@@ -186,6 +185,7 @@ export async function POST(request: Request) {
 const RESET_ENV_KEYS = [
   "ANTHROPIC_BASE_URL",
   "ANTHROPIC_AUTH_TOKEN",
+  "ANTHROPIC_API_KEY",
   "ANTHROPIC_DEFAULT_OPUS_MODEL",
   "ANTHROPIC_DEFAULT_SONNET_MODEL",
   "ANTHROPIC_DEFAULT_HAIKU_MODEL",
