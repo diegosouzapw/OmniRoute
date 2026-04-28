@@ -1574,6 +1574,7 @@ export async function handleComboChat({
       if (result.ok) {
         const quality = await validateResponseQuality(result, clientRequestedStream, log);
         if (!quality.valid) {
+          const qualityFailureReason = `Upstream response failed quality validation: ${quality.reason}`;
           log.warn(
             "COMBO",
             `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
@@ -1586,6 +1587,8 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+          lastError = qualityFailureReason;
+          if (!lastStatus) lastStatus = 502;
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
@@ -1955,6 +1958,7 @@ async function handleRoundRobinCombo({
         if (result.ok) {
           const quality = await validateResponseQuality(result, clientRequestedStream, log);
           if (!quality.valid) {
+            const qualityFailureReason = `Upstream response failed quality validation: ${quality.reason}`;
             log.warn(
               "COMBO-RR",
               `${modelStr} returned 200 but failed quality check: ${quality.reason}`
@@ -1967,6 +1971,8 @@ async function handleRoundRobinCombo({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
+            lastError = qualityFailureReason;
+            if (!lastStatus) lastStatus = 502;
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }

@@ -1922,6 +1922,60 @@ test("handleComboChat round-robin recovers from provider-scoped 400s when a late
   assert.deepEqual(calls, ["model-a", "model-b"]);
 });
 
+test("handleComboChat single-target quality failure returns explicit quality error instead of ALL_ACCOUNTS_INACTIVE", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "single-target-quality-failure",
+      strategy: "priority",
+      models: ["openai/model-a"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async () =>
+      new Response('{"choices":[{"message":{"content":"unterminated"}}', {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+  assert.equal(result.status, 502);
+  assert.match(payload.error.message, /quality validation/i);
+  assert.notEqual(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+});
+
+test("handleComboChat round-robin single-target quality failure returns explicit quality error instead of ALL_ACCOUNTS_INACTIVE", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "rr-single-target-quality-failure",
+      strategy: "round-robin",
+      models: ["openai/model-a"],
+      config: { maxRetries: 0, retryDelayMs: 1, concurrencyPerModel: 1, queueTimeoutMs: 5 },
+    },
+    handleSingleModel: async () =>
+      new Response('{"choices":[{"message":{"content":"unterminated"}}', {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+  assert.equal(result.status, 502);
+  assert.match(payload.error.message, /quality validation/i);
+  assert.notEqual(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+});
+
 test("handleComboChat falls back to next model when first model returns all-accounts-rate-limited 503", async () => {
   const calls: any[] = [];
 
