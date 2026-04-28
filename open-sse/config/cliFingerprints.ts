@@ -15,6 +15,7 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   getQwenOauthHeaders,
 } from "./providerHeaderProfiles.ts";
+import { normalizeCliCompatProviderId } from "@/shared/utils/cliCompat";
 
 export interface CliFingerprint {
   /** Ordered list of header names (case-sensitive). Unlisted headers are appended. */
@@ -22,7 +23,7 @@ export interface CliFingerprint {
   /** Ordered list of top-level JSON body fields. Unlisted fields are appended. */
   bodyFieldOrder: string[];
   /** User-Agent string to inject (overrides default) */
-  userAgent?: string;
+  userAgent?: string | (() => string);
   /** Extra headers to add */
   extraHeaders?: Record<string, string>;
 }
@@ -54,7 +55,9 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "n",
       "stop",
     ],
-    userAgent: "codex-cli",
+    // Codex builds mode-specific client headers in its executor/config. The CLI fingerprint must
+    // only preserve ordering here; overriding User-Agent with a generic value would erase the
+    // executor-provided version or user override.
   },
   claude: {
     headerOrder: [
@@ -172,8 +175,16 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "Accept",
       "Accept-Encoding",
     ],
-    bodyFieldOrder: ["project", "model", "userAgent", "requestType", "requestId", "request"],
-    userAgent: getAntigravityUserAgent(),
+    bodyFieldOrder: [
+      "project",
+      "model",
+      "userAgent",
+      "requestType",
+      "requestId",
+      "enabledCreditTypes",
+      "request",
+    ],
+    userAgent: getAntigravityUserAgent,
   },
   qwen: {
     headerOrder: [
@@ -286,9 +297,10 @@ export function applyFingerprint(
   headers: Record<string, string>,
   body: unknown
 ): { headers: Record<string, string>; bodyString: string } {
+  const normalizedProvider = normalizeCliCompatProviderId(provider || "");
   const fingerprintKey = isClaudeCodeCompatible(provider)
     ? "claude-code-compatible"
-    : provider?.toLowerCase();
+    : normalizedProvider;
   const fingerprint = CLI_FINGERPRINTS[fingerprintKey];
 
   if (!fingerprint) {
@@ -297,7 +309,8 @@ export function applyFingerprint(
 
   // Apply user agent override
   if (fingerprint.userAgent) {
-    headers["User-Agent"] = fingerprint.userAgent;
+    headers["User-Agent"] =
+      typeof fingerprint.userAgent === "function" ? fingerprint.userAgent() : fingerprint.userAgent;
   }
 
   // Apply extra headers
@@ -331,7 +344,11 @@ let _cliCompatProviders: Set<string> = new Set();
  * Called from the settings API when cliCompatProviders is updated.
  */
 export function setCliCompatProviders(providers: string[]): void {
-  _cliCompatProviders = new Set((providers || []).map((p) => p.toLowerCase()));
+  _cliCompatProviders = new Set(
+    (providers || [])
+      .map((p) => normalizeCliCompatProviderId(p))
+      .filter((provider) => provider in CLI_FINGERPRINTS)
+  );
 }
 
 /**
@@ -351,7 +368,8 @@ export function isCliCompatEnabled(provider: string): boolean {
   const key = provider?.toLowerCase().replace(/[^a-z0-9]/g, "_");
 
   // 1. Check runtime cache (set via Settings UI)
-  if (_cliCompatProviders.has(provider?.toLowerCase())) return true;
+  const normalizedProvider = normalizeCliCompatProviderId(provider || "");
+  if (_cliCompatProviders.has(normalizedProvider)) return true;
 
   // 2. Check environment variable: CLI_COMPAT_<PROVIDER>=1
   const envKey = `CLI_COMPAT_${key?.toUpperCase()}`;

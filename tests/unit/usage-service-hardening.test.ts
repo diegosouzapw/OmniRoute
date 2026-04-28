@@ -1034,8 +1034,8 @@ test("usage service parses Cursor team quotas and clamps on-demand ratio", async
   assert.equal(calls.length, 3);
   for (const call of calls) {
     assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
-    assert.equal(call.init.headers["User-Agent"], "Cursor/3.1.0");
-    assert.equal(call.init.headers["x-cursor-client-version"], "3.1.0");
+    assert.equal(call.init.headers["User-Agent"], "Cursor/3.2.14");
+    assert.equal(call.init.headers["x-cursor-client-version"], "3.2.14");
   }
 
   assert.equal(usage.plan, "Cursor Team");
@@ -1149,9 +1149,9 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
   assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
     Authorization: "Bearer cursor-token",
     Accept: "application/json",
-    "User-Agent": "Cursor/3.1.0",
-    "x-cursor-client-version": "3.1.0",
-    "x-cursor-user-agent": "Cursor/3.1.0",
+    "User-Agent": "Cursor/3.2.14",
+    "x-cursor-client-version": "3.2.14",
+    "x-cursor-user-agent": "Cursor/3.2.14",
   });
   assert.equal(
     __testing.getCursorMonthlyRequestLimit(

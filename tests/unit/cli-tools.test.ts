@@ -2,9 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
-const { CLI_COMPAT_PROVIDER_IDS } =
+const {
+  CLI_COMPAT_PROVIDER_IDS,
+  CLI_COMPAT_OMITTED_PROVIDER_IDS,
+  CLI_COMPAT_TOGGLE_IDS,
+  IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS,
+  normalizeCliCompatProviderId,
+} =
   await import("../../src/shared/constants/cliCompatProviders.ts");
 const { CLI_TOOL_IDS } = await import("../../src/shared/services/cliRuntime.ts");
+const { applyFingerprint, isCliCompatEnabled, setCliCompatProviders } = await import(
+  "../../open-sse/config/cliFingerprints.ts"
+);
 
 test("Amp CLI is registered as a guide-based CLI tool with shorthand mapping guidance", () => {
   const amp = CLI_TOOLS.amp;
@@ -36,4 +45,72 @@ test("Hermes quick-config is registered as a guide-based CLI tool", () => {
   assert.ok(Array.isArray(hermes.guideSteps));
   assert.ok(String(hermes.codeBlock?.code || "").includes('"baseURL": "{{baseUrl}}"'));
   assert.ok(CLI_TOOL_IDS.includes("hermes"));
+});
+
+test("CLI fingerprint toggles only expose implemented fingerprints and functional legacy aliases", () => {
+  const implemented = new Set<string>(IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS);
+
+  for (const providerId of CLI_COMPAT_PROVIDER_IDS) {
+    assert.equal(
+      implemented.has(providerId),
+      true,
+      `${providerId} should have an implemented fingerprint`
+    );
+  }
+
+  for (const toggleId of CLI_COMPAT_TOGGLE_IDS) {
+    const providerId = normalizeCliCompatProviderId(toggleId);
+    assert.equal(
+      implemented.has(providerId),
+      true,
+      `${toggleId} should map to an implemented fingerprint provider`
+    );
+  }
+
+  for (const providerId of IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS) {
+    assert.equal(CLI_COMPAT_PROVIDER_IDS.includes(providerId), true);
+  }
+
+  for (const providerId of CLI_COMPAT_OMITTED_PROVIDER_IDS) {
+    assert.equal(CLI_COMPAT_PROVIDER_IDS.includes(providerId), false);
+    assert.equal((CLI_COMPAT_TOGGLE_IDS as readonly string[]).includes(providerId), false);
+  }
+
+  assert.equal(CLI_COMPAT_TOGGLE_IDS.includes("copilot"), true);
+  assert.equal((CLI_COMPAT_TOGGLE_IDS as readonly string[]).includes("github"), false);
+});
+
+test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilot alias", () => {
+  const codex = applyFingerprint(
+    "codex",
+    {
+      Authorization: "Bearer token",
+      "User-Agent": "codex-cli/0.125.0 (Windows 10.0.26100; x64)",
+    },
+    { model: "gpt-5.5", messages: [], stream: true }
+  );
+
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
+  assert.deepEqual(Object.keys(JSON.parse(codex.bodyString)), ["model", "messages", "stream"]);
+
+  const copilot = applyFingerprint(
+    "copilot",
+    { Authorization: "Bearer token", Accept: "application/json" },
+    { model: "gpt-4o", messages: [] }
+  );
+
+  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/0.45.1");
+});
+
+test("CLI fingerprint keeps legacy Copilot settings functional without exposing duplicate UI toggles", () => {
+  assert.equal(normalizeCliCompatProviderId("copilot"), "github");
+  assert.equal(normalizeCliCompatProviderId("GitHub"), "github");
+
+  try {
+    setCliCompatProviders(["copilot"]);
+    assert.equal(isCliCompatEnabled("github"), true);
+    assert.equal(isCliCompatEnabled("copilot"), true);
+  } finally {
+    setCliCompatProviders([]);
+  }
 });

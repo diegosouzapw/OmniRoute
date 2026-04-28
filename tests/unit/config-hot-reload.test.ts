@@ -73,7 +73,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
   });
 
   await settingsDb.updateSettings({
-    cliCompatProviders: ["OpenAI", "claude"],
+    cliCompatProviders: ["OpenAI", "claude", "copilot"],
     modelAliases: JSON.stringify({ "team-default": "openai/gpt-4o-mini" }),
     backgroundDegradation: {
       enabled: true,
@@ -92,7 +92,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
     antigravitySignatureCacheMode: "bypass",
   });
 
-  assert.deepEqual(getCliCompatProviders().sort(), ["claude", "openai"]);
+  assert.deepEqual(getCliCompatProviders().sort(), ["claude", "github"]);
   assert.deepEqual(getCustomAliases(), { "team-default": "openai/gpt-4o-mini" });
   assert.equal(getBackgroundDegradationConfig().enabled, true);
   assert.equal(getBackgroundDegradationConfig().degradationMap["gpt-4o"], "gpt-4o-mini");
@@ -136,7 +136,7 @@ test("hot-reload watcher picks up external sqlite changes via polling fallback",
   await waitFor(
     () =>
       getCliCompatProviders().includes("github") &&
-      getCliCompatProviders().includes("openai") &&
+      !getCliCompatProviders().includes("openai") &&
       getGeminiThoughtSignatureMode() === "bypass-strict"
   );
 });

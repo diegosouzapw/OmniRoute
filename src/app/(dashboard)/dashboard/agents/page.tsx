@@ -6,7 +6,12 @@ import { Card, Button, Input } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { useTranslations } from "next-intl";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { CLI_COMPAT_PROVIDER_IDS } from "@/shared/constants/cliCompatProviders";
+import { CLI_TOOLS } from "@/shared/constants/cliTools";
+import {
+  CLI_COMPAT_PROVIDER_IDS,
+  CLI_COMPAT_TOGGLE_IDS,
+  normalizeCliCompatProviderId,
+} from "@/shared/constants/cliCompatProviders";
 
 interface AgentInfo {
   id: string;
@@ -105,6 +110,14 @@ export default function AgentsPage() {
       console.error("Failed to update setting:", err);
     }
   };
+
+  const normalizedCliCompatProviders = Array.from(
+    new Set(
+      (settings.cliCompatProviders || [])
+        .map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        .filter((providerId: string) => CLI_COMPAT_PROVIDER_IDS.includes(providerId))
+    )
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -307,19 +320,19 @@ export default function AgentsPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-text-muted">{ts("cliFingerprintDesc")}</p>
           <div className="flex flex-wrap gap-2">
-            {CLI_COMPAT_PROVIDER_IDS.map((providerId) => {
-              const providerMeta = Object.values(AI_PROVIDERS).find(
-                (p: any) => p.id === providerId
-              ) as any;
-              const isEnabled = (settings.cliCompatProviders || []).includes(providerId);
-              const displayName = providerMeta?.name || providerId;
+            {CLI_COMPAT_TOGGLE_IDS.map((toggleId) => {
+              const providerId = normalizeCliCompatProviderId(toggleId);
+              const providerMeta = Object.values(AI_PROVIDERS).find((p: any) => p.id === providerId) as any;
+              const toolMeta = CLI_TOOLS[toggleId as keyof typeof CLI_TOOLS] as any;
+              const isEnabled = normalizedCliCompatProviders.includes(providerId);
+              const displayName = toolMeta?.name || providerMeta?.name || toggleId;
               const icon = providerMeta?.icon || "terminal";
               const color = providerMeta?.color || "#888";
               return (
                 <button
-                  key={providerId}
+                  key={toggleId}
                   onClick={() => {
-                    const current: string[] = settings.cliCompatProviders || [];
+                    const current = normalizedCliCompatProviders;
                     const updated = current.includes(providerId)
                       ? current.filter((p) => p !== providerId)
                       : [...current, providerId];
@@ -347,11 +360,11 @@ export default function AgentsPage() {
               );
             })}
           </div>
-          {(settings.cliCompatProviders || []).length > 0 && (
+          {normalizedCliCompatProviders.length > 0 && (
             <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">verified</span>
               {ts("cliFingerprintEnabled", {
-                count: (settings.cliCompatProviders || []).length,
+                count: normalizedCliCompatProviders.length,
               })}
             </p>
           )}

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const FALLBACK_VERSION = "3.1.15";
+const FALLBACK_VERSION = "3.2.14";
 const Database = (await import("better-sqlite3")).default;
 
 const { getCursorVersion, resetCursorVersionCache } =

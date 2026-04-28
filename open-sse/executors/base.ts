@@ -466,7 +466,7 @@ export class BaseExecutor {
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
 
-          const ccVersion = "2.1.114";
+          const ccVersion = "2.1.121";
           // Fix #1638: Use a stable fingerprint instead of message-derived one.
           // The original computeFingerprint() hashed first-user-message chars, which
           // changes every conversation turn. This mutated the system[] prefix on each

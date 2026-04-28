@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
+import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
@@ -367,17 +368,17 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       }
     );
   };
-  globalThis.setTimeout = (callback) => {
+  globalThis.setTimeout = ((callback) => {
     callback();
     return 0;
-  };
+  }) as typeof setTimeout;
 
   try {
     const result = await executor.execute({
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: false,
-      credentials: { accessToken: "token", projectId: "project-1" },
+      credentials: { accessToken: "token", projectId: "project-1" } as any,
       log: { debug() {}, warn() {} },
     });
     const payload = (await result.response.json()) as any;
@@ -419,7 +420,7 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: true,
-      credentials: { accessToken: "token", projectId: "project-1" },
+      credentials: { accessToken: "token", projectId: "project-1" } as any,
       log: { debug() {}, warn() {} },
     });
     const payload = (await result.response.json()) as any;
@@ -427,6 +428,51 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
     assert.equal(result.response.status, 429);
     assert.equal(payload.retryAfterMs, 7_200_000);
   } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  setCliCompatProviders(["antigravity"]);
+
+  globalThis.fetch = async (_url, init) => {
+    const headers = init?.headers as Record<string, string>;
+    const parsedBody = JSON.parse(String(init?.body));
+
+    assert.equal(headers["User-Agent"], "antigravity/2026.04.17-test darwin/arm64");
+    assert.deepEqual(Object.keys(parsedBody), [
+      "project",
+      "model",
+      "userAgent",
+      "requestType",
+      "requestId",
+      "enabledCreditTypes",
+      "request",
+    ]);
+
+    return new Response('data: {"response":{"candidates":[{"content":{"parts":[{"text":"OK"}]},"finishReason":"STOP"}]}}\n\n', {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    });
+  };
+
+  try {
+    const result = await withEnv("ANTIGRAVITY_CREDITS", "always", () =>
+      executor.execute({
+        model: "antigravity/gemini-2.5-flash",
+        body: { request: { contents: [] } },
+        stream: false,
+        credentials: { accessToken: "token", projectId: "project-1" } as any,
+        log: { debug() {}, warn() {}, info() {} },
+      })
+    );
+
+    assert.equal(result.response.status, 200);
+  } finally {
+    setCliCompatProviders([]);
     globalThis.fetch = originalFetch;
   }
 });
