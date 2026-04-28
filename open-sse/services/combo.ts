@@ -278,6 +278,13 @@ function getTargetProvider(modelStr: string, providerId?: string | null): string
   return providerId || parsed.provider || parsed.providerAlias || "unknown";
 }
 
+function isStreamReadinessTimeoutErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "STREAM_READINESS_TIMEOUT";
+}
+
 function toRecordedTarget(target: ResolvedComboTarget) {
   return {
     executionKey: target.executionKey,
@@ -1671,6 +1678,8 @@ export async function handleComboChat({
       }
 
       const providerBreakerOpen = isProviderBreakerOpenResponse(result, errorBody);
+      const isStreamReadinessTimeout =
+        result.status === 504 && isStreamReadinessTimeoutErrorBody(errorBody);
 
       if (providerBreakerOpen) {
         lastError = errorText || String(result.status);
@@ -1712,7 +1721,8 @@ export async function handleComboChat({
       }
 
       // Check if this is a transient error worth retrying on same model
-      const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
+      const isTransient =
+        !isStreamReadinessTimeout && [408, 429, 500, 502, 503, 504].includes(result.status);
       if (retry < maxRetries && isTransient) {
         continue; // Retry same model
       }
@@ -1992,6 +2002,8 @@ async function handleRoundRobinCombo({
           );
           break;
         }
+        const isStreamReadinessTimeout =
+          result.status === 504 && isStreamReadinessTimeoutErrorBody(errorBody);
 
         const { shouldFallback, cooldownMs } = checkFallbackError(
           result.status,
@@ -2042,7 +2054,8 @@ async function handleRoundRobinCombo({
         }
 
         // Transient error → retry same model
-        const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
+        const isTransient =
+          !isStreamReadinessTimeout && [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient) {
           continue;
         }

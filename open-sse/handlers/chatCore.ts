@@ -7,6 +7,7 @@ import {
   createPassthroughStreamWithLogger,
   COLORS,
 } from "../utils/stream.ts";
+import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
@@ -24,7 +25,12 @@ import {
   parseUpstreamError,
   formatProviderError,
 } from "../utils/error.ts";
-import { COOLDOWN_MS, HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
+import {
+  COOLDOWN_MS,
+  HTTP_STATUS,
+  PROVIDER_MAX_TOKENS,
+  STREAM_IDLE_TIMEOUT_MS,
+} from "../config/constants.ts";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -3190,6 +3196,48 @@ export async function handleChatCore({
   }
 
   // Streaming response
+  const streamReadiness = await ensureStreamReadiness(providerResponse, {
+    timeoutMs: STREAM_IDLE_TIMEOUT_MS,
+    provider,
+    model,
+    log,
+  });
+  if (streamReadiness.ok === false) {
+    const { response: failureResponse, reason } = streamReadiness;
+    const failure = {
+      status: failureResponse.status,
+      message: reason,
+      code: "stream_readiness_timeout",
+      type: "stream_timeout",
+    };
+    trackPendingRequest(model, provider, connectionId, false);
+    appendRequestLog({
+      model,
+      provider,
+      connectionId,
+      status: `FAILED ${failureResponse.status}`,
+    }).catch(() => {});
+    persistAttemptLogs({
+      status: failureResponse.status,
+      error: reason,
+      providerRequest: finalBody || translatedBody,
+      clientResponse: buildErrorBody(failureResponse.status, reason),
+      claudeCacheMeta: claudePromptCacheLogMeta,
+      cacheSource: "upstream",
+    });
+    persistFailureUsage(failureResponse.status, "stream_readiness_timeout");
+    // Do NOT call onStreamFailure — a stream stall is an upstream issue,
+    // not an account/quota failure. Marking the account unavailable here
+    // would lock out legitimate accounts when the upstream hangs.
+    return {
+      success: false,
+      status: failureResponse.status,
+      error: reason,
+      errorType: "stream_readiness_timeout",
+      response: failureResponse,
+    };
+  }
+  providerResponse = streamReadiness.response;
 
   // Notify success - caller can clear error status if needed
   if (onRequestSuccess) {

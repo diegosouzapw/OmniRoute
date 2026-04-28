@@ -763,6 +763,12 @@ async function handleSingleModelChat(
         return result.response;
       }
 
+      if (result.errorType === "stream_readiness_timeout") {
+        // Stream readiness timeout is an upstream stall, not an account/quota failure.
+        // Do NOT mark the account as unavailable or trip the circuit breaker.
+        return result.response;
+      }
+
       // Emergency fallback for budget exhaustion (402 / billing / quota keywords):
       // reroute to a free model (default provider/model: nvidia + openai/gpt-oss-120b) exactly once.
       if (!runtimeOptions.emergencyFallbackTried) {

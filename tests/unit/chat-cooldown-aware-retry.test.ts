@@ -3,8 +3,11 @@ import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
+process.env.STREAM_IDLE_TIMEOUT_MS = "50";
+
 const harness = await createChatPipelineHarness("chat-cooldown-aware-retry");
 const auth = await import("../../src/sse/services/auth.ts");
+const { getProviderConnectionById } = await import("../../src/lib/db/providers.ts");
 const {
   BaseExecutor,
   buildOpenAIResponse,
@@ -14,6 +17,7 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
+const textEncoder = new TextEncoder();
 const originalRetryConfig = {
   maxAttempts: BaseExecutor.RETRY_CONFIG.maxAttempts,
   delayMs: BaseExecutor.RETRY_CONFIG.delayMs,
@@ -28,6 +32,21 @@ function buildRequestWithSignal(body, signal) {
     },
     body: JSON.stringify(body),
   });
+}
+
+function buildZombieSseResponse() {
+  return new Response(
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(textEncoder.encode(": keepalive\n\n"));
+        controller.enqueue(textEncoder.encode(`data: ${JSON.stringify({ type: "ping" })}\n\n`));
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
 }
 
 test.beforeEach(async () => {
@@ -220,6 +239,46 @@ test("handleChat returns model_cooldown when every credential for the requested 
   assert.equal(body.error.model, "gemini-2.5-pro");
   assert.ok(body.error.reset_seconds >= 1);
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
+});
+
+test("handleChat returns stream readiness timeout without entering cooldown-aware retry or account lockout", async () => {
+  const connection = await seedConnection("openai", {
+    apiKey: "sk-openai-stream-readiness-timeout",
+  });
+  await settingsDb.updateSettings({
+    requestRetry: 1,
+    maxRetryIntervalSec: 10,
+  });
+
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return buildZombieSseResponse();
+  };
+
+  const startedAt = Date.now();
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: true,
+        messages: [{ role: "user", content: "trigger zombie stream" }],
+      },
+    })
+  );
+  const elapsedMs = Date.now() - startedAt;
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 504);
+  assert.equal(fetchCalls, 1);
+  assert.ok(elapsedMs < 1000, `should not wait for cooldown retry, got ${elapsedMs}ms`);
+  assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
+
+  const refreshedConnection = (await getProviderConnectionById((connection as any).id)) as any;
+  assert.equal(refreshedConnection.testStatus, "active");
+  assert.ok(refreshedConnection.rateLimitedUntil == null);
+  assert.ok(refreshedConnection.errorCode == null);
+  assert.equal(refreshedConnection.backoffLevel, 0);
 });
 
 test("handleChat aborts the pending cooldown wait when the client disconnects", async () => {
