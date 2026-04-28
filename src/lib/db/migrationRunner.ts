@@ -92,6 +92,12 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "029",
     toName: "provider_connection_max_concurrent",
   },
+  {
+    fromVersion: "032",
+    fromName: "create_reasoning_cache",
+    toVersion: "033",
+    toName: "create_reasoning_cache",
+  },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
