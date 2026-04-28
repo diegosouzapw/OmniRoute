@@ -95,39 +95,12 @@ test("moderations route clears stale provider error metadata on success", async 
   }
 });
 
-test("moderations route covers CORS, API key auth, validation, and missing credential branches", async () => {
+test("moderations route covers CORS, validation, and missing credential branches", async () => {
   await resetStorage();
 
   const optionsResponse = await moderationRoute.OPTIONS();
   assert.equal(optionsResponse.status, 200);
   assert.equal(optionsResponse.headers.get("Access-Control-Allow-Methods"), "POST, OPTIONS");
-
-  await withEnv("REQUIRE_API_KEY", "true", async () => {
-    const missingKeyResponse = await moderationRoute.POST(
-      new Request("http://localhost/v1/moderations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: "hello" }),
-      })
-    );
-
-    assert.equal(missingKeyResponse.status, 401);
-    assert.match(await missingKeyResponse.text(), /Missing API key/i);
-
-    const invalidKeyResponse = await moderationRoute.POST(
-      new Request("http://localhost/v1/moderations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer invalid-test-key",
-        },
-        body: JSON.stringify({ input: "hello" }),
-      })
-    );
-
-    assert.equal(invalidKeyResponse.status, 401);
-    assert.match(await invalidKeyResponse.text(), /Invalid API key/i);
-  });
 
   const invalidJsonResponse = await moderationRoute.POST(
     new Request("http://localhost/v1/moderations", {

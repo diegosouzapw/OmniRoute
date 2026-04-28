@@ -660,7 +660,8 @@ test("embeddings route covers options, custom-model listing and defensive POST b
   const validationFailureBody = (await validationFailure.json()) as any;
   const invalidModelBody = (await invalidModel.json()) as any;
 
-  assert.equal(optionsHeaders["access-control-allow-origin"], "*");
+  assert.equal(optionsHeaders["access-control-allow-origin"], undefined);
+  assert.match(optionsHeaders["access-control-allow-methods"] || "", /OPTIONS/);
   assert.equal(getResponse.status, 200);
   assert.equal(
     getBody.data.some((model) => model.id === "custom-embedder/text-embed-1"),
@@ -677,27 +678,7 @@ test("embeddings route covers options, custom-model listing and defensive POST b
   );
 });
 
-test("embeddings route enforces caller auth, missing credentials and provider rate limits", async () => {
-  process.env.REQUIRE_API_KEY = "true";
-
-  const missingKey = await embeddingsRoute.POST(
-    makeRequest("http://localhost/v1/embeddings", {
-      method: "POST",
-      body: { model: "openai/text-embedding-3-small", input: "hello" },
-    })
-  );
-
-  const invalidKey = await embeddingsRoute.POST(
-    new Request("http://localhost/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: "Bearer sk-invalid",
-      },
-      body: JSON.stringify({ model: "openai/text-embedding-3-small", input: "hello" }),
-    })
-  );
-
+test("embeddings route surfaces missing-credentials and provider-rate-limit errors", async () => {
   const validApiKey = await apiKeysDb.createApiKey("caller", MACHINE_ID);
   const missingCredentials = await embeddingsRoute.POST(
     new Request("http://localhost/v1/embeddings", {
@@ -726,15 +707,9 @@ test("embeddings route enforces caller auth, missing credentials and provider ra
     })
   );
 
-  const missingKeyBody = (await missingKey.json()) as any;
-  const invalidKeyBody = (await invalidKey.json()) as any;
   const missingCredentialsBody = (await missingCredentials.json()) as any;
   const allRateLimitedBody = (await allRateLimited.json()) as any;
 
-  assert.equal(missingKey.status, 401);
-  assert.equal(missingKeyBody.error.message, "Missing API key");
-  assert.equal(invalidKey.status, 401);
-  assert.equal(invalidKeyBody.error.message, "Invalid API key");
   assert.equal(missingCredentials.status, 400);
   assert.match(missingCredentialsBody.error.message, /No credentials for embedding provider/);
   assert.equal(allRateLimited.status, 429);

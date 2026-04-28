@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const auth = await import("../../src/sse/services/auth.ts");
+const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -186,6 +187,35 @@ test("markAccountUnavailable marks 403 connections as banned without adding cool
   assert.equal(result.cooldownMs, 0);
   assert.equal(after.testStatus, "banned");
   assert.ok(!after.rateLimitedUntil);
+});
+
+test("markAccountUnavailable keeps Grok Web alias 403 errors mode-local", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "grok-web",
+    authType: "cookie",
+    apiKey: "sso=grok-cookie",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    (conn as any).id,
+    403,
+    "forbidden",
+    "gw",
+    "heavy"
+  );
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
+  const lockout = accountFallback.getModelLockoutInfo("gw", (conn as any).id, "heavy");
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(after.testStatus, "active");
+  assert.equal(after.lastErrorType, "forbidden");
+  assert.ok(!after.rateLimitedUntil);
+  assert.equal(lockout?.reason, "forbidden");
 });
 
 test("markAccountUnavailable keeps project-route 403 errors non-terminal", async () => {

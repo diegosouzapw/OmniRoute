@@ -1,7 +1,9 @@
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+
 export const AZURE_AI_DEFAULT_BASE_URL = "https://example-resource.services.ai.azure.com/openai/v1";
 
 function normalizeBaseUrl(value: string | null | undefined): string {
-  return (value || "").trim().replace(/\/+$/, "");
+  return stripTrailingSlashes((value || "").trim());
 }
 
 export function normalizeAzureAiBaseUrl(value: string | null | undefined): string {
@@ -31,7 +33,7 @@ export function normalizeAzureAiBaseUrl(value: string | null | undefined): strin
   ) {
     if (!parsed.pathname || parsed.pathname === "/") {
       parsed.pathname = "/openai/v1";
-      return parsed.toString().replace(/\/+$/, "");
+      return stripTrailingSlashes(parsed.toString());
     }
   }
 

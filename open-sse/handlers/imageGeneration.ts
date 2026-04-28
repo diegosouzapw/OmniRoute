@@ -20,10 +20,7 @@ import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { ChatGptWebExecutor } from "../executors/chatgpt-web.ts";
-import {
-  getChatGptImage,
-  findChatGptImageBySha256,
-} from "../services/chatgptImageCache.ts";
+import { getChatGptImage, findChatGptImageBySha256 } from "../services/chatgptImageCache.ts";
 import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usageDb";
 import {
@@ -32,6 +29,7 @@ import {
   fetchComfyOutput,
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
+import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 
 const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "black-forest-labs/FLUX.1-redux",
@@ -625,8 +623,7 @@ async function handleChatGptWebImageGeneration({
   // own limit for image-1 / dall-e-3) so a stray n=1000 doesn't pin the
   // executor for hours before the upstream HTTP timeout fires.
   const CHATGPT_WEB_IMAGE_N_MAX = 4;
-  const rawCount =
-    Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  const rawCount = Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
   if (rawCount > CHATGPT_WEB_IMAGE_N_MAX) {
     return saveImageErrorResult({
       provider,
@@ -1547,15 +1544,11 @@ async function resolveImageSource(source) {
   }
 
   if (isHttpUrl(trimmed)) {
-    const response = await fetch(trimmed);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image source (${response.status})`);
-    }
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const remoteImage = await fetchRemoteImage(trimmed);
     return {
-      buffer,
-      base64: buffer.toString("base64"),
-      contentType: response.headers.get("content-type") || "application/octet-stream",
+      buffer: remoteImage.buffer,
+      base64: remoteImage.buffer.toString("base64"),
+      contentType: remoteImage.contentType,
     };
   }
 
@@ -2437,12 +2430,8 @@ async function normalizeNanoBananaTaskResult(taskData, body, log) {
 
     if (urlCandidates.length > 0) {
       const firstUrl = urlCandidates[0];
-      const resp = await fetch(firstUrl);
-      if (!resp.ok) {
-        throw new Error(`Failed to fetch NanoBanana result image URL (${resp.status})`);
-      }
-      const arrayBuffer = await resp.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      const remoteImage = await fetchRemoteImage(firstUrl);
+      const base64 = remoteImage.buffer.toString("base64");
       return [{ b64_json: base64, revised_prompt: body.prompt }];
     }
   }

@@ -25,6 +25,9 @@ test("T28: antigravity static catalog exposes client-visible Gemini preview IDs"
   assert.ok(staticIds.includes("gemini-3-flash-preview"));
   assert.ok(!staticIds.includes("gemini-3-pro-high"));
   assert.ok(!staticIds.includes("gemini-3.1-pro-high"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
+  assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
 test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {

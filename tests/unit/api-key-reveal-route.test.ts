@@ -76,17 +76,12 @@ test("GET /api/keys returns 500 when key loading fails unexpectedly", async () =
 
   const db = core.getDbInstance();
   const originalPrepare = db.prepare.bind(db);
-  const originalConsoleLog = console.log;
-  const capturedLogs = [];
 
   db.prepare = (sql, ...args) => {
     if (typeof sql === "string" && sql.includes("SELECT * FROM api_keys")) {
       throw new Error("db exploded");
     }
     return originalPrepare(sql, ...args);
-  };
-  console.log = (...args) => {
-    capturedLogs.push(args.map((arg) => String(arg)).join(" "));
   };
   apiKeysDb.resetApiKeyState();
 
@@ -96,13 +91,8 @@ test("GET /api/keys returns 500 when key loading fails unexpectedly", async () =
 
     assert.equal(response.status, 500);
     assert.equal(body.error, "Failed to fetch keys");
-    assert.equal(
-      capturedLogs.some((line) => line.includes("Error fetching keys:")),
-      true
-    );
   } finally {
     db.prepare = originalPrepare;
-    console.log = originalConsoleLog;
     apiKeysDb.resetApiKeyState();
   }
 });

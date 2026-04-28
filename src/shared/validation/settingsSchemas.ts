@@ -43,7 +43,6 @@ export const updateSettingsSchema = z.object({
   cloudUrl: z.string().max(500).optional(),
   baseUrl: z.string().max(500).optional(),
   setupComplete: z.boolean().optional(),
-  requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
   debugMode: z.boolean().optional(),
@@ -108,4 +107,5 @@ export const updateSettingsSchema = z.object({
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
   backgroundDegradation: z.unknown().optional(),
+  bruteForceProtection: z.boolean().optional(),
 });

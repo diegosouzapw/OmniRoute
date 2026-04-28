@@ -1,11 +1,5 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
-import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
-} from "@/sse/services/auth";
+import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
   parseSpeechModel,
   getSpeechProvider,
@@ -25,7 +19,6 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "*",
     },
@@ -37,13 +30,6 @@ export async function OPTIONS() {
  * OpenAI TTS API compatible. Returns audio stream.
  */
 export async function POST(request) {
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-  }
-
   let rawBody;
   try {
     rawBody = await request.json();

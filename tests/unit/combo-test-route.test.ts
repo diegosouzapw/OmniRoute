@@ -6,15 +6,19 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-test-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-test-route-secret";
 
 const core = await import("../../src/lib/db/core.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const runtimePorts = await import("../../src/lib/runtime/ports.ts");
 const route = await import("../../src/app/api/combos/test/route.ts");
 
 const originalFetch = globalThis.fetch;
 
 async function resetStorage() {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -33,6 +37,10 @@ function makeRequest(comboName = "strict-live-test") {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ comboName }),
   });
+}
+
+function expectedInternalUrl(pathname: string): string {
+  return `http://127.0.0.1:${runtimePorts.getRuntimePorts().apiPort}${pathname}`;
 }
 
 test.beforeEach(async () => {
@@ -125,7 +133,7 @@ test("combo test route marks a model healthy only when it returns assistant text
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].url, "http://localhost/v1/chat/completions");
+  assert.equal(fetchCalls[0].url, expectedInternalUrl("/v1/chat/completions"));
   assert.equal(fetchCalls[0].init.headers["X-Internal-Test"], "combo-health-check");
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-No-Cache"], "true");
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
@@ -362,7 +370,7 @@ test("combo test route preserves structured step metadata for repeated model/acc
   assert.equal(body.resolvedByTarget.connectionId, "conn-openai-a");
 });
 
-test("combo test route rejects empty combos and respects forwarded base URLs", async () => {
+test("combo test route rejects empty combos and ignores forwarded origins for internal probes", async () => {
   await createTestCombo([]);
 
   const emptyResponse = await route.POST(makeRequest());
@@ -372,6 +380,7 @@ test("combo test route rejects empty combos and respects forwarded base URLs", a
 
   await resetStorage();
   await createTestCombo(["provider/forwarded"]);
+  const internalKey = await apiKeysDb.createApiKey("combo-internal", "machine-combo-internal");
 
   const fetchCalls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -392,7 +401,7 @@ test("combo test route rejects empty combos and respects forwarded base URLs", a
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-forwarded-host": "router.example.com",
+        "x-forwarded-host": "attacker.example.com",
         "x-forwarded-proto": "https",
       },
       body: JSON.stringify({ comboName: "strict-live-test" }),
@@ -401,7 +410,10 @@ test("combo test route rejects empty combos and respects forwarded base URLs", a
 
   assert.equal(forwardedResponse.status, 200);
   assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].url, "https://router.example.com/v1/chat/completions");
+  assert.equal(fetchCalls[0].url, expectedInternalUrl("/v1/chat/completions"));
+  assert.equal(fetchCalls[0].init.headers.Authorization, `Bearer ${internalKey.key}`);
+  assert.equal(new URL(fetchCalls[0].url).hostname, "127.0.0.1");
+  assert.notEqual(new URL(fetchCalls[0].url).hostname, "attacker.example.com");
 });
 
 test("combo test route handles upstream timeouts and non-JSON error bodies", async () => {

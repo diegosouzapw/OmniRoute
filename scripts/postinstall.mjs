@@ -4,20 +4,25 @@
  * OmniRoute — Postinstall Native Module Fix
  *
  * The npm package ships with a Next.js standalone build that includes
- * better-sqlite3 compiled for the build platform (Linux x64) inside
- * app/node_modules/. However, npm also installs better-sqlite3 as a
- * top-level dependency (in the root node_modules/), correctly compiled
- * for the user's platform.
+ * native modules compiled for the build platform (Linux x64) inside
+ * app/node_modules/. However, npm also installs these as top-level
+ * dependencies (in the root node_modules/), correctly compiled for
+ * the user's platform.
  *
- * This script copies the correctly-built native binary from the root
+ * This script copies the correctly-built native binaries from the root
  * into the standalone app directory — no rebuild or build tools needed.
+ *
+ * Modules repaired:
+ *   - better-sqlite3 (SQLite bindings)
+ *   - wreq-js (TLS client for OAuth providers)
  *
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/129
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/321
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/426
+ * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
  */
 
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -174,6 +179,97 @@ async function fixBetterSqliteBinary() {
   console.warn("");
 }
 
+/**
+ * Fix wreq-js native binary for the standalone app directory.
+ *
+ * wreq-js ships platform-specific .node binaries under rust/.
+ * The standalone build may only contain Linux binaries from the CI.
+ * This copies the correct platform binary from the root install.
+ *
+ * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
+ */
+async function fixWreqJsBinary() {
+  const appWreqDir = join(ROOT, "app", "node_modules", "wreq-js", "rust");
+  const rootWreqDir = join(ROOT, "node_modules", "wreq-js", "rust");
+
+  if (!existsSync(join(ROOT, "app", "node_modules", "wreq-js"))) {
+    return;
+  }
+
+  const binaryName = `wreq-js.${process.platform}-${process.arch}.node`;
+  const appBinaryPath = join(appWreqDir, binaryName);
+  const rootBinaryPath = join(rootWreqDir, binaryName);
+
+  // Check if the platform binary already exists and loads
+  if (existsSync(appBinaryPath)) {
+    try {
+      process.dlopen({ exports: {} }, appBinaryPath);
+      return; // Already working
+    } catch (err) {
+      console.warn(`  ⚠️  wreq-js binary exists but failed to load: ${err.message}`);
+    }
+  }
+
+  console.log(`\n  🔧 Fixing wreq-js binary for ${process.platform}-${process.arch}...`);
+
+  // Strategy 1: Copy from root node_modules
+  if (existsSync(rootBinaryPath)) {
+    try {
+      mkdirSync(appWreqDir, { recursive: true });
+      copyFileSync(rootBinaryPath, appBinaryPath);
+      process.dlopen({ exports: {} }, appBinaryPath);
+      console.log("  ✅ wreq-js native module fixed successfully!\n");
+      return;
+    } catch (err) {
+      console.warn(`  ⚠️  Copied wreq-js binary failed to load: ${err.message}`);
+    }
+  }
+
+  // Strategy 2: Copy entire rust/ directory from root (gets all platform binaries)
+  if (existsSync(rootWreqDir)) {
+    try {
+      mkdirSync(appWreqDir, { recursive: true });
+      const files = readdirSync(rootWreqDir);
+      for (const file of files) {
+        if (file.endsWith(".node")) {
+          copyFileSync(join(rootWreqDir, file), join(appWreqDir, file));
+        }
+      }
+      if (existsSync(appBinaryPath)) {
+        process.dlopen({ exports: {} }, appBinaryPath);
+        console.log("  ✅ wreq-js native module fixed (full copy) successfully!\n");
+        return;
+      }
+    } catch (err) {
+      console.warn(`  ⚠️  wreq-js full copy failed: ${err.message}`);
+    }
+  }
+
+  // Strategy 3: Rebuild wreq-js inside app/
+  console.log("  📥 Attempting npm rebuild wreq-js...");
+  try {
+    const { execSync } = await import("node:child_process");
+    execSync("npm rebuild wreq-js", {
+      cwd: join(ROOT, "app"),
+      stdio: "inherit",
+      timeout: 120_000,
+    });
+    if (existsSync(appBinaryPath)) {
+      process.dlopen({ exports: {} }, appBinaryPath);
+      console.log("  ✅ wreq-js native module rebuilt successfully!\n");
+      return;
+    }
+  } catch (err) {
+    console.warn(`  ⚠️  wreq-js rebuild failed: ${err.message}`);
+  }
+
+  console.warn(
+    `\n  ⚠️  Could not fix wreq-js native module for ${process.platform}-${process.arch}.`
+  );
+  console.warn("     OAuth-based providers (Codex, Cursor, etc.) may not work.");
+  console.warn(`     Manual fix: cd ${join(ROOT, "app")} && npm install wreq-js --no-save\n`);
+}
+
 async function ensureSwcHelpers() {
   if (!hasStandaloneAppBundle(ROOT)) {
     return;
@@ -215,5 +311,6 @@ async function syncProjectEnv() {
 }
 
 await fixBetterSqliteBinary();
+await fixWreqJsBinary();
 await ensureSwcHelpers();
 await syncProjectEnv();

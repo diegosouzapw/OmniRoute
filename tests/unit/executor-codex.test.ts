@@ -3,10 +3,13 @@ import assert from "node:assert/strict";
 
 import {
   CodexExecutor,
+  __setCodexWebSocketTransportForTesting,
   encodeResponseSseEvent,
   getCodexModelScope,
   getCodexRateLimitKey,
   getCodexResetTime,
+  getCodexUpstreamModel,
+  isCodexResponsesWebSocketRequired,
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
@@ -17,6 +20,7 @@ import {
 
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+  __setCodexWebSocketTransportForTesting(undefined);
 });
 
 async function withEnv(entries, fn) {
@@ -58,6 +62,35 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
 
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex"), "codex");
+  assert.equal(getCodexModelScope("gpt-5.5-xhigh"), "codex");
+  assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
+  assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
+  // With mock WS transport + codexTransport=websocket, gpt-5.5 models require WS
+  __setCodexWebSocketTransportForTesting(
+    async () => ({ send() {}, close() {}, onmessage: null, onerror: null, onclose: null }) as any
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-medium", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-mini", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  // Without codexTransport setting, defaults to HTTP (false)
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), false);
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-medium", {}), false);
+  __setCodexWebSocketTransportForTesting(undefined);
   assert.equal(getCodexRateLimitKey("acct-1", "codex-spark-mini"), "acct-1:spark");
   assert.equal(quota.usage5h, 100);
   assert.equal(quota.limit7d, 5000);
@@ -102,6 +135,8 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
   assert.equal(standardHeaders.Version, "0.125.0");
+  assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
+  assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(standardHeaders["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
@@ -139,6 +174,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   const body = {
     model: "gpt-5-mini",
     messages: [{ role: "user", content: "hello" }],
+    tools: [{ type: "function", function: { name: "test_tool" } }],
     prompt: "legacy",
     stream_options: { include_usage: true },
     instructions: "",
@@ -153,7 +189,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   });
 
   assert.equal(result.stream, true);
-  assert.equal(result.store, true);
+  assert.equal(result.store, false);
   assert.equal(result.instructions.length > 0, true);
   assert.equal(result.reasoning.effort, "high");
   assert.equal(result.service_tier, "priority");
@@ -182,7 +218,7 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.stream, undefined);
   assert.equal(result.service_tier, "priority");
   assert.equal(result.reasoning.effort, "medium");
-  assert.equal(result.store, true);
+  assert.equal(result.store, false);
   assert.equal(result.instructions, "keep this");
 });
 
@@ -276,14 +312,45 @@ test("CodexExecutor.transformRequest lets model suffix beat connection reasoning
 test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhigh reasoning", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
-    "gpt-5.5",
-    { model: "gpt-5.5", input: [], reasoning_effort: "xhigh" },
+    "gpt-5.5-xhigh",
+    { model: "gpt-5.5-xhigh", input: [] },
     false,
     {}
   );
 
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor.execute falls back to HTTP when websocket transport is unavailable", async () => {
+  __setCodexWebSocketTransportForTesting(null);
+  const executor = new CodexExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ id: "resp_http_fallback", object: "response" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
+  try {
+    const result = await executor.execute({
+      model: "gpt-5.5-xhigh",
+      body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { codexTransport: "websocket" },
+      },
+    });
+
+    // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false
+    // and the executor falls back to HTTP via super.execute()
+    assert.equal(result.response.status, 200);
+    assert.equal(result.transformedBody.model, "gpt-5.5");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {

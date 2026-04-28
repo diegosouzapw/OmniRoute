@@ -9,7 +9,11 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
-import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import {
+  getOpenAICompatibleType,
+  getTargetFormat,
+  isClaudeCodeCompatible,
+} from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 import { buildDataRobotChatUrl } from "../config/datarobot.ts";
 import { buildAzureAiChatUrl } from "../config/azureAi.ts";
@@ -343,19 +347,30 @@ export class DefaultExecutor extends BaseExecutor {
    */
   transformRequest(model, body, stream, credentials) {
     void model;
-    void credentials;
-    const withDefaults = applyProviderRequestDefaults(body, this.config.requestDefaults);
+    let withDefaults = applyProviderRequestDefaults(body, this.config.requestDefaults);
 
-    if (stream && this.config.format === "openai") {
-      if (typeof withDefaults === "object" && withDefaults !== null) {
-        withDefaults.stream_options = {
-          ...(withDefaults.stream_options || {}),
-          include_usage: true,
+    if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
+      if (this.provider?.startsWith?.("anthropic-compatible-")) {
+        if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
+          const withoutStreamOptions = { ...withDefaults };
+          delete withoutStreamOptions.stream_options;
+          withDefaults = withoutStreamOptions;
+        }
+      } else if (
+        stream &&
+        getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai"
+      ) {
+        withDefaults = {
+          ...withDefaults,
+          stream_options: {
+            ...(withDefaults.stream_options || {}),
+            include_usage: true,
+          },
         };
       }
     }
 
-    if (this.provider === "qwen" && typeof body === "object" && body !== null) {
+    if (this.provider === "qwen" && typeof withDefaults === "object" && withDefaults !== null) {
       return sanitizeQwenThinkingToolChoice(withDefaults, "QwenExecutor");
     }
     return withDefaults;

@@ -30,7 +30,6 @@ interface LearnedLimitEntry {
 interface LimiterUpdateSettings {
   maxConcurrent?: number | null;
   minTime: number;
-  maxWait?: number | null;
   reservoir?: number | null;
   reservoirRefreshAmount?: number | null;
   reservoirRefreshInterval?: number | null;
@@ -76,7 +75,6 @@ function buildLimiterDefaults() {
     reservoir: currentRequestQueueSettings.requestsPerMinute,
     reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
     reservoirRefreshInterval: 60 * 1000,
-    maxWait: currentRequestQueueSettings.maxWaitMs,
   };
 }
 
@@ -85,7 +83,6 @@ function updateAllLimiterSettings() {
     limiter.updateSettings({
       maxConcurrent: currentRequestQueueSettings.concurrentRequests,
       minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
-      maxWait: currentRequestQueueSettings.maxWaitMs,
       reservoir: currentRequestQueueSettings.requestsPerMinute,
       reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
       reservoirRefreshInterval: 60 * 1000,
@@ -236,9 +233,9 @@ function getLimiterKey(provider, connectionId, model = null) {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
   }
-  // Gemini AI Studio has per-model quotas — use model-scoped limiter keys
-  // so a 429 on one model doesn't pause requests for other models.
-  if (provider === "gemini" && model) {
+  // Gemini AI Studio and GitHub Copilot have per-model quotas — use model-scoped
+  // limiter keys so a 429 on one model doesn't pause requests for other models.
+  if ((provider === "gemini" || provider === "github") && model) {
     return `${provider}:${connectionId}:${model}`;
   }
   return `${provider}:${connectionId}`;
@@ -285,7 +282,21 @@ export async function withRateLimit(provider, connectionId, model, fn) {
   }
 
   const limiter = getLimiter(provider, connectionId, model);
-  return limiter.schedule(fn);
+  const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
+  const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
+  try {
+    return await limiter.schedule(scheduleOpts, fn);
+  } catch (err) {
+    // Bottleneck throws when a job exceeds its expiration timeout.
+    // Surface as a clear rate-limit timeout so callers can fallback.
+    if (err?.message?.includes("This job timed out")) {
+      const key = getLimiterKey(provider, connectionId, model);
+      console.log(
+        `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
+      );
+    }
+    throw err;
+  }
 }
 
 // ─── Header Parsing ──────────────────────────────────────────────────────────

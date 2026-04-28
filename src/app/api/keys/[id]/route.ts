@@ -10,6 +10,7 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { updateKeyPermissionsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import * as log from "@/sse/utils/logger";
 
 // GET /api/keys/[id] - Get single API key
 export async function GET(request, { params }) {
@@ -31,7 +32,7 @@ export async function GET(request, { params }) {
       key: keyValue ? keyValue.slice(0, 8) + "****" + keyValue.slice(-4) : null,
     });
   } catch (error) {
-    console.log("Error fetching key:", error);
+    log.error("keys", "Error fetching key", error);
     return NextResponse.json({ error: "Failed to fetch key" }, { status: 500 });
   }
 }
@@ -103,7 +104,7 @@ export async function PATCH(request, { params }) {
       ...(accessSchedule !== undefined && { accessSchedule }),
     });
   } catch (error) {
-    console.log("Error updating key permissions:", error);
+    log.error("keys", "Error updating key permissions", error);
     return NextResponse.json({ error: "Failed to update permissions" }, { status: 500 });
   }
 }
@@ -126,7 +127,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: "Key deleted successfully" });
   } catch (error) {
-    console.log("Error deleting key:", error);
+    log.error("keys", "Error deleting key", error);
     return NextResponse.json({ error: "Failed to delete key" }, { status: 500 });
   }
 }
@@ -142,6 +143,6 @@ async function syncKeysToCloudIfEnabled() {
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {
-    console.log("Error syncing keys to cloud:", error);
+    log.error("keys", "Error syncing keys to cloud", error);
   }
 }

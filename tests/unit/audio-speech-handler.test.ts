@@ -62,7 +62,7 @@ test("handleAudioSpeech proxies OpenAI-compatible providers with defaults", asyn
     });
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-type"), "audio/opus");
-    assert.ok(response.headers.get("access-control-allow-origin"));
+    assert.match(response.headers.get("access-control-allow-methods") || "", /OPTIONS/);
   } finally {
     globalThis.fetch = originalFetch;
   }

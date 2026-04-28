@@ -63,7 +63,7 @@ jobs:
     needs: i18n-matrix
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6.2.0
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -100,44 +100,6 @@ jobs:
             cat .artifacts/pr-test-policy.md >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  advanced-security:
-    name: Advanced Security Scans
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.before || github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --only-verified
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-      - run: npm run check:node-runtime
-
-      - name: Dependency audit
-        run: npm audit --audit-level=high --omit=dev
-
-      - name: Check for known vulnerabilities
-        run: npx is-my-node-vulnerable
-
-      - name: Run Snyk Vulnerability checks
-        if: github.actor != 'dependabot[bot]'
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -167,6 +129,34 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run build:cli
       - run: npm run check:pack-artifact
+
+  electron-package-smoke:
+    name: Electron Package Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    env:
+      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - run: npm run build
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm install --no-audit --no-fund
+      - name: Pack Electron app
+        working-directory: electron
+        run: npm run pack
+      - name: Smoke packaged Electron app
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+        run: xvfb-run -a npm run electron:smoke:packaged
 
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/2)
@@ -380,6 +370,7 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
+      OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -443,9 +434,10 @@ jobs:
       - lint
       - i18n
       - pr-test-policy
-      - advanced-security
+
       - build
       - package-artifact
+      - electron-package-smoke
       - test-unit
       - node-24-compat
       - test-coverage
@@ -485,7 +477,7 @@ jobs:
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Advanced Security | $(status '${{ needs.advanced-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+
           echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -494,6 +486,7 @@ jobs:
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"

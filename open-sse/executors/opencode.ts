@@ -62,4 +62,22 @@ export class OpencodeExecutor extends BaseExecutor {
 
     return headers;
   }
+
+  transformRequest(
+    model: string,
+    body: any,
+    stream: boolean,
+    credentials: ProviderCredentials
+  ): any {
+    const modifiedBody = super.transformRequest(model, body, stream, credentials);
+    if (
+      modifiedBody &&
+      typeof modifiedBody === "object" &&
+      Array.isArray(modifiedBody.tools) &&
+      modifiedBody.tools.length > 128
+    ) {
+      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    }
+    return modifiedBody;
+  }
 }

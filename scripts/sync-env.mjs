@@ -14,8 +14,12 @@
 
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, join, resolve } from "node:path";
+import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 const CRYPTO_SECRETS = {
   JWT_SECRET: () => randomBytes(64).toString("hex"),
@@ -23,6 +27,64 @@ const CRYPTO_SECRETS = {
   STORAGE_ENCRYPTION_KEY: () => randomBytes(32).toString("hex"),
   MACHINE_ID_SALT: () => `omniroute-${randomBytes(8).toString("hex")}`,
 };
+
+/**
+ * Keys that MUST NOT be regenerated when existing encrypted data exists in the DB.
+ * Generating a new key would make all previously-encrypted credentials unrecoverable.
+ * @see https://github.com/diegosouzapw/OmniRoute/issues/1622
+ */
+const ENCRYPTION_BOUND_KEYS = new Set(["STORAGE_ENCRYPTION_KEY"]);
+
+// ── Resolve DATA_DIR (mirrors bootstrap-env.mjs / dataPaths.ts) ─────────────
+function resolveDataDir(env = process.env) {
+  const configured = env.DATA_DIR?.trim();
+  if (configured) return resolve(configured);
+
+  if (process.platform === "win32") {
+    const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
+    return join(appData, "omniroute");
+  }
+
+  const xdg = env.XDG_CONFIG_HOME?.trim();
+  if (xdg) return join(resolve(xdg), "omniroute");
+
+  return join(homedir(), ".omniroute");
+}
+
+/**
+ * Check whether the SQLite database already contains credentials encrypted
+ * under a previous STORAGE_ENCRYPTION_KEY. If so, generating a new key would
+ * make them permanently unrecoverable (AES-GCM auth-tag mismatch).
+ */
+function hasEncryptedCredentials(dataDir) {
+  const dbPath = join(dataDir, "storage.sqlite");
+  if (!existsSync(dbPath)) return false;
+
+  try {
+    const Database = require("better-sqlite3");
+    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    try {
+      const row = db
+        .prepare(
+          `SELECT 1
+             FROM provider_connections
+            WHERE access_token LIKE 'enc:v1:%'
+               OR refresh_token LIKE 'enc:v1:%'
+               OR api_key LIKE 'enc:v1:%'
+               OR id_token LIKE 'enc:v1:%'
+            LIMIT 1`
+        )
+        .get();
+      return !!row;
+    } finally {
+      db.close();
+    }
+  } catch {
+    // If we can't open the DB (e.g. missing better-sqlite3 during install),
+    // err on the side of caution: don't block secret generation.
+    return false;
+  }
+}
 
 export function parseEnvFile(filePath) {
   if (!existsSync(filePath)) return new Map();
@@ -111,10 +173,34 @@ export function getEnvSyncPlan({ rootDir, scope = "full" } = {}) {
   const currentEntries = parseEnvFile(envPath);
   const missingEntries = [];
 
+  // Check once whether encrypted data exists — avoids repeated DB opens
+  let _encryptedDataExists;
+  function encryptedDataExists() {
+    if (_encryptedDataExists === undefined) {
+      try {
+        _encryptedDataExists = hasEncryptedCredentials(resolveDataDir());
+      } catch {
+        _encryptedDataExists = false;
+      }
+    }
+    return _encryptedDataExists;
+  }
+
   for (const [key, defaultValue] of exampleEntries) {
     if (currentEntries.has(key)) continue;
 
     if (CRYPTO_SECRETS[key] && !defaultValue) {
+      // Guard: never generate a new encryption key if the DB already has
+      // credentials encrypted under the previous key (#1622)
+      if (ENCRYPTION_BOUND_KEYS.has(key) && encryptedDataExists()) {
+        missingEntries.push({
+          key,
+          value: "",
+          generated: false,
+          blocked: true,
+        });
+        continue;
+      }
       missingEntries.push({ key, value: CRYPTO_SECRETS[key](), generated: true });
       continue;
     }
@@ -154,7 +240,26 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
 
       let content = readFileSync(envPath, "utf8");
       let generated = 0;
+
+      // Check once whether encrypted data exists — avoids repeated DB opens
+      let dbHasEncrypted;
+      try {
+        dbHasEncrypted = hasEncryptedCredentials(resolveDataDir());
+      } catch {
+        dbHasEncrypted = false;
+      }
+
       for (const [key, generator] of Object.entries(CRYPTO_SECRETS)) {
+        // Guard: never generate a new encryption key if the DB already has
+        // credentials encrypted under the previous key (#1622)
+        if (ENCRYPTION_BOUND_KEYS.has(key) && dbHasEncrypted) {
+          log(
+            `⚠️  ${key} NOT generated — encrypted credentials exist in DB. ` +
+              `Restore your previous key via ~/.omniroute/server.env, ~/.omniroute/.env, ` +
+              `or the STORAGE_ENCRYPTION_KEY environment variable.`
+          );
+          continue;
+        }
         const nextContent = replaceBlankSecret(content, key, generator());
         if (nextContent !== content) {
           content = nextContent;
@@ -194,6 +299,14 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
   ];
 
   for (const entry of missingEntries) {
+    if (entry.blocked) {
+      log(
+        `⚠️  ${entry.key} NOT generated — encrypted credentials exist in DB. ` +
+          `Restore your previous key via ~/.omniroute/server.env, ~/.omniroute/.env, ` +
+          `or the STORAGE_ENCRYPTION_KEY environment variable.`
+      );
+      continue;
+    }
     appendLines.push(`${entry.key}=${entry.value}`);
     log(
       `${entry.generated ? "✨" : "📦"} ${entry.key}${entry.generated ? " (auto-generated)" : ""}`

@@ -206,6 +206,16 @@ function pickMiniMaxRepresentativeModel(
   return pool.reduce((best, current) => (getTotal(current) > getTotal(best) ? current : best));
 }
 
+function createMiniMaxQuotaFromCount(
+  total: number,
+  count: number,
+  resetAt: string | null,
+  countMeansRemaining: boolean
+): UsageQuota {
+  const used = countMeansRemaining ? Math.max(total - count, 0) : count;
+  return createQuotaFromUsage(used, total, resetAt);
+}
+
 function getMiniMaxAuthErrorMessage(message: string): string {
   const normalized = message.toLowerCase();
   if (
@@ -319,11 +329,12 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
         return { message: "MiniMax connected. No text quota data was returned." };
       }
 
+      const countMeansRemaining = usageUrl.includes("/coding_plan/remains");
       const quotas: Record<string, UsageQuota> = {};
       const sessionModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxSessionTotal);
       if (sessionModel) {
         const total = getMiniMaxSessionTotal(sessionModel);
-        const remain = Math.max(
+        const count = Math.max(
           0,
           toNumber(
             getFieldValue(
@@ -334,9 +345,9 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
             0
           )
         );
-        quotas["session (5h)"] = createQuotaFromUsage(
-          Math.max(total - remain, 0),
+        quotas["session (5h)"] = createMiniMaxQuotaFromCount(
           total,
+          count,
           getMiniMaxQuotaResetAt(
             sessionModel,
             capturedAtMs,
@@ -344,23 +355,24 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
             "remainsTime",
             "end_time",
             "endTime"
-          )
+          ),
+          countMeansRemaining
         );
       }
 
       const weeklyModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxWeeklyTotal);
       if (weeklyModel && getMiniMaxWeeklyTotal(weeklyModel) > 0) {
         const total = getMiniMaxWeeklyTotal(weeklyModel);
-        const remain = Math.max(
+        const count = Math.max(
           0,
           toNumber(
             getFieldValue(weeklyModel, "current_weekly_usage_count", "currentWeeklyUsageCount"),
             0
           )
         );
-        quotas["weekly (7d)"] = createQuotaFromUsage(
-          Math.max(total - remain, 0),
+        quotas["weekly (7d)"] = createMiniMaxQuotaFromCount(
           total,
+          count,
           getMiniMaxQuotaResetAt(
             weeklyModel,
             capturedAtMs,
@@ -368,7 +380,8 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
             "weeklyRemainsTime",
             "weekly_end_time",
             "weeklyEndTime"
-          )
+          ),
+          countMeansRemaining
         );
       }
 

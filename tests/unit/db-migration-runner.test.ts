@@ -203,6 +203,90 @@ test("runMigrations skips versions that are already tracked as applied", serial,
   }
 });
 
+test(
+  "runMigrations applies api key lifecycle migration idempotently when columns already exist",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL,
+        revoked_at TEXT
+      );
+    `);
+
+      const appliedCount = withMockedMigrationFs(
+        {
+          "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT;",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(appliedCount, 1);
+      const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
+      const names = new Set(columns.map((column) => column.name));
+      for (const expected of [
+        "revoked_at",
+        "expires_at",
+        "last_used_at",
+        "key_prefix",
+        "ip_allowlist",
+        "scopes",
+      ]) {
+        assert.equal(names.has(expected), true, `${expected} should exist`);
+      }
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        { version: "032", name: "apikey_lifecycle" }
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations applies api key lifecycle hardening by version even if filename suffix changes",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL
+      );
+    `);
+
+      const appliedCount = withMockedMigrationFs(
+        {
+          "032_renamed_lifecycle_patch.sql": "ALTER TABLE api_keys ADD COLUMN should_not_run TEXT;",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(appliedCount, 1);
+      const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
+      const names = new Set(columns.map((column) => column.name));
+      assert.equal(names.has("revoked_at"), true);
+      assert.equal(names.has("expires_at"), true);
+      assert.equal(names.has("should_not_run"), false);
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        { version: "032", name: "renamed_lifecycle_patch" }
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
 test("getMigrationStatus reports applied and pending migrations", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const db = createDb();

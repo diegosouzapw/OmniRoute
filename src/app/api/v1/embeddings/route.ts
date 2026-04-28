@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import {
   getProviderCredentials,
@@ -30,7 +29,6 @@ import { getAllCustomModels, getProviderNodes } from "@/lib/localDb";
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "*",
     },
@@ -231,18 +229,6 @@ export async function POST(request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
-
-  // Optional API key validation
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);

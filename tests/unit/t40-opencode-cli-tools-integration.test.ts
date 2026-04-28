@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 import path from "node:path";
 
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
@@ -74,6 +75,10 @@ test("T40: OpenCode config document uses current provider schema", () => {
     baseUrl: "http://localhost:20128/v1/",
     apiKey: "sk_test_opencode",
     models: ["cc/claude-sonnet-4-20250514", "gg/gemini-2.5-pro"],
+    modelLabels: {
+      "cc/claude-sonnet-4-20250514": "Claude Sonnet 4.5",
+      "gg/gemini-2.5-pro": "Gemini 2.5 Pro",
+    },
   });
 
   assert.equal(configDocument.$schema, "https://opencode.ai/config.json");
@@ -85,6 +90,14 @@ test("T40: OpenCode config document uses current provider schema", () => {
     "cc/claude-sonnet-4-20250514",
     "gg/gemini-2.5-pro",
   ]);
+  assert.equal(
+    configDocument.provider.omniroute.models["cc/claude-sonnet-4-20250514"].name,
+    "Claude Sonnet 4.5"
+  );
+  assert.equal(
+    configDocument.provider.omniroute.models["gg/gemini-2.5-pro"].name,
+    "Gemini 2.5 Pro"
+  );
   assert.equal(configDocument.providers, undefined);
 });
 
@@ -93,10 +106,71 @@ test("T40: OpenCode explicit multi-model selection overrides fallback defaults",
     baseUrl: "http://localhost:20128/v1/",
     apiKey: "sk_test_opencode",
     models: ["custom/provider-a", "custom/provider-b"],
+    modelLabels: {
+      "custom/provider-a": "Provider A",
+      "custom/provider-b": "Provider B",
+    },
   });
 
   assert.deepEqual(Object.keys(providerConfig.models), ["custom/provider-a", "custom/provider-b"]);
   assert.equal(providerConfig.models["claude-sonnet-4-5-thinking"], undefined);
+  assert.equal(providerConfig.models["custom/provider-a"].name, "Provider A");
+  assert.equal(providerConfig.models["custom/provider-b"].name, "Provider B");
+});
+
+test("T40: OpenCode merge preserves unrelated config and updates only provider.omniroute", () => {
+  const mergedConfig = mergeOpenCodeConfig(
+    {
+      $schema: "https://opencode.ai/config.json",
+      provider: {
+        custom: { name: "Custom Provider" },
+        omniroute: {
+          name: "Old OmniRoute",
+          options: { baseURL: "http://old-host/v1", apiKey: "old-key" },
+        },
+      },
+      mcpServers: {
+        github: { command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
+      },
+    },
+    {
+      baseUrl: "http://localhost:20128/v1",
+      apiKey: "sk_test_opencode",
+      models: ["cx/gpt-5.4"],
+      modelLabels: { "cx/gpt-5.4": "GPT-5.4" },
+    }
+  );
+
+  assert.deepEqual(mergedConfig.provider.custom, { name: "Custom Provider" });
+  assert.deepEqual(mergedConfig.mcpServers, {
+    github: { command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
+  });
+  assert.deepEqual(mergedConfig.provider.omniroute.models, {
+    "cx/gpt-5.4": { name: "GPT-5.4" },
+  });
+});
+
+test("T40: OpenCode tool card references theme-aware brand assets", () => {
+  const opencode = CLI_TOOLS.opencode;
+  assert.equal(opencode.image, undefined);
+  assert.equal(opencode.imageLight, "/providers/opencode-light.svg");
+  assert.equal(opencode.imageDark, "/providers/opencode-dark.svg");
+});
+
+test("T40: OpenCode light/dark provider assets are valid SVG files", async () => {
+  const light = await fs.readFile(
+    path.join(process.cwd(), "public/providers/opencode-light.svg"),
+    "utf-8"
+  );
+  const dark = await fs.readFile(
+    path.join(process.cwd(), "public/providers/opencode-dark.svg"),
+    "utf-8"
+  );
+
+  assert.match(light, /^<svg[\s>]/);
+  assert.match(dark, /^<svg[\s>]/);
+  assert.doesNotMatch(light, /<html/i);
+  assert.doesNotMatch(dark, /<html/i);
 });
 
 test("T40: Windsurf card documents current official limitations honestly", () => {

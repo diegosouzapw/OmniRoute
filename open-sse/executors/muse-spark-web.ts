@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   BaseExecutor,
   mergeAbortSignals,
@@ -12,11 +14,22 @@ import {
 } from "@/lib/providers/webCookieAuth";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
-const META_AI_DEFAULT_COOKIE = "abra_sess";
-const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+// Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
+// `abra_sess` was replaced by `ecto_1_sess`. `normalizeSessionCookieHeader`
+// only uses this constant when the user pastes a bare cookie value with no
+// `name=` prefix; full cookie lines (with any cookie names) pass through
+// untouched, so users who paste their entire DevTools cookie line still work.
+const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
+// Persisted-query id and friendly name for the current send-message
+// operation. The previous Abra mutation (doc_id 078dfdff...) was retired
+// when Meta removed the RewriteOptionsInput type from the schema; it now
+// fails server-side validation with `Unknown type "RewriteOptionsInput"`.
+// The new operation is a Subscription rather than a Mutation, but Meta's
+// GraphQL endpoint still accepts it over POST and streams the response.
+const META_AI_SEND_MESSAGE_DOC_ID = "29ae946c82d1f301196c6ca2226400b5";
 const META_AI_ROOT_BRANCH_PATH = "0";
 const META_AI_ENTRY_POINT = "KADABRA__CHAT__UNIFIED_INPUT_BAR";
-const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_FRIENDLY_NAME = "useEctoSendMessageSubscription";
 const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
 const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
@@ -78,8 +91,31 @@ function extractMessageText(content: unknown): string {
     .trim();
 }
 
-function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
-  const extracted: Array<{ role: string; content: string }> = [];
+type NormalizedMessage = { role: string; content: string };
+
+type ParsedHistory = {
+  /** Whole history folded into one string (used when starting a new conversation). */
+  foldedPrompt: string;
+  /** Just the last user turn — sent on its own when we're continuing a cached conversation. */
+  latestUserContent: string;
+  /**
+   * Index in `normalized` of the most recent assistant turn, or -1 if none.
+   * Used to slice the prefix that anchors the continuation cache key (so two
+   * separate chats with identical assistant responses but different
+   * preceding history don't collide).
+   */
+  lastAssistantIndex: number;
+  /**
+   * The role+content of every non-empty message after normalization, in
+   * order. The continuation-cache key hashes the prefix of this list ending
+   * at the last assistant message, so the key is unique to a specific
+   * (history → response) pair rather than just the response text alone.
+   */
+  normalized: NormalizedMessage[];
+};
+
+function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedHistory {
+  const extracted: NormalizedMessage[] = [];
 
   for (const message of messages) {
     let role = String(message.role || "user");
@@ -91,7 +127,12 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
   }
 
   if (extracted.length === 0) {
-    return "";
+    return {
+      foldedPrompt: "",
+      latestUserContent: "",
+      lastAssistantIndex: -1,
+      normalized: [],
+    };
   }
 
   let lastUserIndex = -1;
@@ -102,7 +143,15 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
     }
   }
 
-  return extracted
+  let lastAssistantIndex = -1;
+  for (let i = extracted.length - 1; i >= 0; i--) {
+    if (extracted[i].role === "assistant") {
+      lastAssistantIndex = i;
+      break;
+    }
+  }
+
+  const foldedPrompt = extracted
     .map((message, index) => {
       if (index === lastUserIndex) {
         return message.content;
@@ -111,6 +160,10 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
     })
     .join("\n\n")
     .trim();
+
+  const latestUserContent = lastUserIndex >= 0 ? extracted[lastUserIndex].content : "";
+
+  return { foldedPrompt, latestUserContent, lastAssistantIndex, normalized: extracted };
 }
 
 function estimateTokens(text: string): number {
@@ -195,8 +248,101 @@ function getMuseSparkModelInfo(model: string): MuseSparkModelInfo {
   return MODEL_MAP[model] || MODEL_MAP["muse-spark"];
 }
 
-function buildMetaAiRequestBody(prompt: string, model: string) {
-  const conversationId = generateMetaConversationId();
+// ─── Conversation continuity cache ──────────────────────────────────────────
+// The default behavior of /v1/chat/completions is stateless: the caller passes
+// the full message history each turn. Without continuation, every turn would
+// open a brand-new meta.ai conversation containing the OpenAI history folded
+// into a single user prompt — three real chat turns become three separate
+// conversations in the user's meta.ai history, each polluted with the prior
+// turns rendered as "user: …" / "assistant: …" text.
+//
+// To present a clean single growing conversation in meta.ai, we cache the
+// conversationId we created on the previous turn keyed by a hash of the
+// (connectionId, model, normalized history through the last assistant turn).
+// On the next turn, if the incoming OpenAI history's prefix-up-to-the-last-
+// assistant-turn matches a cached entry, we reuse the cached conversationId,
+// set isNewConversation=false, and send only the latest user turn — Meta
+// appends to the existing conversation tree.
+//
+// Hashing the *full prefix* (not just the assistant text) is important: two
+// independent chats from the same connection that happen to land on identical
+// assistant text (e.g. a generic refusal or greeting) would otherwise collide
+// and route the next turn into the wrong meta.ai conversation, mixing chat
+// state across logical sessions. The differing preceding history makes the
+// hashes distinct.
+//
+// TTL is 30 minutes (Meta's web client also expires idle conversations on a
+// similar window). Cache cap is generous — entries are tiny (~250 B) so 5000
+// entries is ~1.25 MB, plenty of headroom for multi-user setups.
+
+type CachedConversation = {
+  conversationId: string;
+  branchPath: string;
+  expiresAt: number;
+};
+
+const MUSE_CONV_CACHE_MAX = 5000;
+const MUSE_CONV_CACHE_TTL_MS = 30 * 60 * 1000;
+const conversationCache = new Map<string, CachedConversation>();
+
+/**
+ * Canonical-stringify a normalized message list so the same logical history
+ * always produces the same hash. Uses ASCII Group Separator / Record
+ * Separator characters as field delimiters so they can't appear inside
+ * normal message content.
+ */
+function canonicalizeNormalizedHistory(messages: NormalizedMessage[]): string {
+  return messages.map((m) => `${m.role}\x1e${m.content}`).join("\x1f");
+}
+
+function makeConversationCacheKey(
+  connectionId: string,
+  model: string,
+  normalizedPrefix: NormalizedMessage[]
+): string {
+  return createHash("sha256")
+    .update(`${connectionId}\x1f${model}\x1f${canonicalizeNormalizedHistory(normalizedPrefix)}`)
+    .digest("hex");
+}
+
+function lookupCachedConversation(key: string): CachedConversation | null {
+  const entry = conversationCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    conversationCache.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function rememberConversation(
+  key: string,
+  context: { conversationId: string; branchPath: string }
+): void {
+  if (conversationCache.size >= MUSE_CONV_CACHE_MAX && !conversationCache.has(key)) {
+    // Map iteration is insertion order, so the first key is the oldest.
+    const oldest = conversationCache.keys().next().value;
+    if (oldest) conversationCache.delete(oldest);
+  }
+  conversationCache.set(key, {
+    conversationId: context.conversationId,
+    branchPath: context.branchPath,
+    expiresAt: Date.now() + MUSE_CONV_CACHE_TTL_MS,
+  });
+}
+
+/** Test hook — exported for unit tests; not wired to runtime callers. */
+export function __resetMuseSparkConversationCacheForTesting(): void {
+  conversationCache.clear();
+}
+
+type ConversationContext = {
+  conversationId: string;
+  branchPath: string;
+  isNewConversation: boolean;
+};
+
+function buildMetaAiRequestBody(prompt: string, model: string, conversation: ConversationContext) {
   const userUniqueMessageId = generateNumericMessageId();
 
   return {
@@ -210,14 +356,14 @@ function buildMetaAiRequestBody(prompt: string, model: string) {
         typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC",
       clippyIp: null,
       content: prompt,
-      conversationId,
+      conversationId: conversation.conversationId,
       conversationStarterId: null,
-      currentBranchPath: META_AI_ROOT_BRANCH_PATH,
+      currentBranchPath: conversation.branchPath,
       developerOverridesForMessage: null,
       devicePixelRatio: 1,
       entryPoint: META_AI_ENTRY_POINT,
       imagineOperationRequest: null,
-      isNewConversation: true,
+      isNewConversation: conversation.isNewConversation,
       mentions: null,
       mode: getMuseSparkModelInfo(model).mode,
       promptEditType: null,
@@ -225,10 +371,14 @@ function buildMetaAiRequestBody(prompt: string, model: string) {
       promptType: null,
       qplJoinId: null,
       requestedToolCall: null,
-      rewriteOptions: null,
+      // `rewriteOptions` was removed from Meta's GraphQL schema (the
+      // RewriteOptionsInput type is gone), so sending it — even as null —
+      // makes the server reject the persisted query with
+      // `Unknown type "RewriteOptionsInput"`. Omit it entirely; GraphQL
+      // input fields are nullable-by-omission by default.
       turnId: crypto.randomUUID(),
       userAgent: META_AI_USER_AGENT,
-      userEventId: generateMetaEventId(conversationId),
+      userEventId: generateMetaEventId(conversation.conversationId),
       userLocale: normalizeMetaLocale(),
       userMessageId: crypto.randomUUID(),
       userUniqueMessageId,
@@ -819,6 +969,203 @@ function buildMetaAiHeaders(cookieHeader: string): Record<string, string> {
   };
 }
 
+type MuseSparkExecuteResult = {
+  response: Response;
+  url: string;
+  headers: Record<string, string>;
+  transformedBody: unknown;
+};
+
+function resultWithResponse(
+  response: Response,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  return {
+    response,
+    url: META_AI_GRAPHQL_API,
+    headers,
+    transformedBody,
+  };
+}
+
+function errorResult(
+  status: number,
+  message: string,
+  code: string,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  return resultWithResponse(buildErrorResponse(status, message, code), headers, transformedBody);
+}
+
+function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null {
+  const messages = (body as Record<string, unknown>).messages;
+  if (!messages || !Array.isArray(messages) || messages.length === 0) return null;
+  return messages as Array<Record<string, unknown>>;
+}
+
+function getContinuationCacheKey(
+  parsedHistory: ParsedHistory,
+  credentials: ExecuteInput["credentials"],
+  model: string
+): string | null {
+  if (
+    parsedHistory.lastAssistantIndex < 0 ||
+    !credentials.connectionId ||
+    parsedHistory.latestUserContent.length === 0
+  ) {
+    return null;
+  }
+
+  return makeConversationCacheKey(
+    credentials.connectionId,
+    model,
+    parsedHistory.normalized.slice(0, parsedHistory.lastAssistantIndex + 1)
+  );
+}
+
+function getConversationContext(cached: CachedConversation | null): ConversationContext {
+  if (!cached) {
+    return {
+      conversationId: generateMetaConversationId(),
+      branchPath: META_AI_ROOT_BRANCH_PATH,
+      isNewConversation: true,
+    };
+  }
+
+  return {
+    conversationId: cached.conversationId,
+    branchPath: cached.branchPath,
+    isNewConversation: false,
+  };
+}
+
+function evictContinuationIfNeeded(
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): void {
+  if (cached && cacheKey) {
+    conversationCache.delete(cacheKey);
+  }
+}
+
+async function postMetaAiRequest(
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  signal: AbortSignal,
+  log: ExecuteInput["log"]
+): Promise<{ ok: true; response: Response } | { ok: false; result: MuseSparkExecuteResult }> {
+  try {
+    const response = await fetch(META_AI_GRAPHQL_API, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(transformedBody),
+      signal,
+    });
+    return { ok: true, response };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
+    return {
+      ok: false,
+      result: errorResult(
+        502,
+        `Meta AI connection failed: ${message}`,
+        "meta_ai_fetch_failed",
+        headers,
+        transformedBody
+      ),
+    };
+  }
+}
+
+function buildHttpErrorResult(
+  upstreamResponse: Response,
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): MuseSparkExecuteResult {
+  evictContinuationIfNeeded(cached, cacheKey);
+
+  let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
+  if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
+    message = "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
+  } else if (upstreamResponse.status === 429) {
+    message = "Meta AI rate limited the session. Wait a moment and retry.";
+  }
+
+  return errorResult(
+    upstreamResponse.status,
+    message,
+    `HTTP_${upstreamResponse.status}`,
+    headers,
+    transformedBody
+  );
+}
+
+function buildParsedErrorResult(
+  parsed: ParsedMetaAiResponse,
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): MuseSparkExecuteResult {
+  evictContinuationIfNeeded(cached, cacheKey);
+  return errorResult(
+    parsed.status,
+    parsed.errorMessage || "Meta AI returned an unknown error",
+    parsed.errorCode || "meta_ai_unknown_error",
+    headers,
+    transformedBody
+  );
+}
+
+function rememberAssistantTurn(
+  parsed: ParsedMetaAiResponse,
+  credentials: ExecuteInput["credentials"],
+  model: string,
+  parsedHistory: ParsedHistory,
+  conversationContext: ConversationContext
+): void {
+  if (!parsed.content || !credentials.connectionId) return;
+
+  const writePrefix: NormalizedMessage[] = [
+    ...parsedHistory.normalized,
+    { role: "assistant", content: parsed.content },
+  ];
+  rememberConversation(makeConversationCacheKey(credentials.connectionId, model, writePrefix), {
+    conversationId: conversationContext.conversationId,
+    branchPath: conversationContext.branchPath,
+  });
+}
+
+function buildSuccessResult(
+  parsed: ParsedMetaAiResponse,
+  stream: boolean,
+  model: string,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
+  const created = Math.floor(Date.now() / 1000);
+  const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
+  const reasoningDeltas = parsed.reasoningDeltas;
+  const response = stream
+    ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "X-Accel-Buffering": "no",
+        },
+      })
+    : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created);
+
+  return resultWithResponse(response, headers, transformedBody);
+}
+
 export class MuseSparkWebExecutor extends BaseExecutor {
   constructor() {
     super("muse-spark-web", { id: "muse-spark-web", baseUrl: META_AI_GRAPHQL_API });
@@ -833,34 +1180,37 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
-      | Array<Record<string, unknown>>
-      | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return {
-        response: buildErrorResponse(400, "Missing or empty messages array", "invalid_request"),
-        url: META_AI_GRAPHQL_API,
-        headers: {},
-        transformedBody: body,
-      };
+    const messages = getOpenAiMessages(body);
+    if (!messages) {
+      return errorResult(400, "Missing or empty messages array", "invalid_request", {}, body);
     }
 
-    const prompt = parseOpenAIMessages(messages);
-    if (!prompt) {
-      return {
-        response: buildErrorResponse(
-          400,
-          "Empty query after processing messages",
-          "invalid_request"
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers: {},
-        transformedBody: body,
-      };
+    const parsedHistory = parseOpenAIMessages(messages);
+    if (!parsedHistory.foldedPrompt) {
+      return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
     }
+
+    // Look up a prior meta.ai conversation we created for this caller +
+    // model + chat thread. The lookup key is the connection + model + the
+    // SHA-256 of the normalized history prefix ending at the last assistant
+    // turn — that prefix is exactly what we hashed when we cached on the
+    // previous turn, so a real continuation hits and two parallel chats
+    // with coincidentally-identical assistant text do not.
+    //
+    // We also require `latestUserContent` to be non-empty before using a
+    // cached entry: if the incoming history has no `user` role (e.g. an
+    // assistant-prefill payload), the cache-hit path would otherwise POST
+    // empty content with `isNewConversation: false`, an avoidable upstream
+    // failure. Falling through to the fresh-conversation path uses the
+    // folded history instead, which contains real content.
+    const continuationCacheKey = getContinuationCacheKey(parsedHistory, credentials, model);
+    const cached = continuationCacheKey ? lookupCachedConversation(continuationCacheKey) : null;
+    const conversationContext = getConversationContext(cached);
+
+    const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
 
     const modelInfo = getMuseSparkModelInfo(model);
-    const transformedBody = buildMetaAiRequestBody(prompt, model);
+    const transformedBody = buildMetaAiRequestBody(prompt, model, conversationContext);
     const cookieHeader = selectMetaAiCookieHeader(credentials);
     const headers = buildMetaAiHeaders(cookieHeader);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
@@ -868,96 +1218,37 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
-    let upstreamResponse: Response;
-    try {
-      upstreamResponse = await fetch(META_AI_GRAPHQL_API, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(transformedBody),
-        signal: combinedSignal,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
-      return {
-        response: buildErrorResponse(
-          502,
-          `Meta AI connection failed: ${message}`,
-          "meta_ai_fetch_failed"
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers,
-        transformedBody,
-      };
-    }
+    const fetchResult = await postMetaAiRequest(headers, transformedBody, combinedSignal, log);
+    if (!fetchResult.ok) return fetchResult.result;
 
+    const upstreamResponse = fetchResult.response;
     if (!upstreamResponse.ok) {
-      let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
-      if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
-        message = "Meta AI auth failed — your meta.ai abra_sess cookie may be missing or expired.";
-      } else if (upstreamResponse.status === 429) {
-        message = "Meta AI rate limited the session. Wait a moment and retry.";
-      }
-
-      return {
-        response: buildErrorResponse(
-          upstreamResponse.status,
-          message,
-          `HTTP_${upstreamResponse.status}`
-        ),
-        url: META_AI_GRAPHQL_API,
+      return buildHttpErrorResult(
+        upstreamResponse,
         headers,
         transformedBody,
-      };
+        cached,
+        continuationCacheKey
+      );
     }
 
     if (!upstreamResponse.body) {
-      return {
-        response: buildErrorResponse(
-          502,
-          "Meta AI returned an empty response body",
-          "meta_ai_empty_body"
-        ),
-        url: META_AI_GRAPHQL_API,
+      return errorResult(
+        502,
+        "Meta AI returned an empty response body",
+        "meta_ai_empty_body",
         headers,
-        transformedBody,
-      };
+        transformedBody
+      );
     }
 
     const responseText = await readTextResponse(upstreamResponse.body, signal);
     const parsed = parseMetaAiResponseText(responseText, modelInfo.isThinking);
     if (parsed.status !== 200 || parsed.errorMessage) {
-      return {
-        response: buildErrorResponse(
-          parsed.status,
-          parsed.errorMessage || "Meta AI returned an unknown error",
-          parsed.errorCode
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers,
-        transformedBody,
-      };
+      return buildParsedErrorResult(parsed, headers, transformedBody, cached, continuationCacheKey);
     }
 
-    const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
-    const created = Math.floor(Date.now() / 1000);
-    const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
-    const reasoningDeltas = parsed.reasoningDeltas;
-
-    return {
-      response: stream
-        ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
-            status: 200,
-            headers: {
-              "Content-Type": "text/event-stream",
-              "Cache-Control": "no-cache",
-              "X-Accel-Buffering": "no",
-            },
-          })
-        : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created),
-      url: META_AI_GRAPHQL_API,
-      headers,
-      transformedBody,
-    };
+    rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
+    return buildSuccessResult(parsed, stream, model, headers, transformedBody);
   }
 }

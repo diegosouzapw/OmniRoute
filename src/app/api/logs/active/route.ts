@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getProviderConnections } from "@/lib/localDb";
-import { getPendingRequests } from "@/lib/usage/usageHistory";
+import { getPendingRequests, clearPendingRequests } from "@/lib/usage/usageHistory";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -44,4 +44,12 @@ export async function GET(request: Request) {
     console.log("Error loading active requests:", error);
     return NextResponse.json({ error: "Failed to load active requests" }, { status: 500 });
   }
+}
+
+export async function DELETE(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  clearPendingRequests();
+  return NextResponse.json({ success: true, message: "Pending request counts cleared" });
 }

@@ -51,7 +51,9 @@ const BLOCKED_REQUEST_HEADERS = new Set([
 ]);
 
 function getContextId(context: { apiKeyId: string }) {
-  return createHash("sha256")
+  // Not a password hash — SHA-256 is used here only to derive a short, stable
+  // filesystem-safe key from the API key identifier for workspace isolation.
+  return createHash("sha256") // lgtm[js/insufficient-password-hash]
     .update(context.apiKeyId || "anonymous")
     .digest("hex")
     .slice(0, 24);

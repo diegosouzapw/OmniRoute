@@ -48,7 +48,7 @@ export function buildModelSyncInternalHeaders(): Record<string, string> {
   return { [MODEL_SYNC_INTERNAL_AUTH_HEADER]: getInternalAuthToken() };
 }
 
-export function isModelSyncInternalRequest(request: Request): boolean {
+export function isModelSyncInternalRequest(request: { headers: Headers }): boolean {
   if (!internalAuthToken && globalState.__omnirouteModelSyncInternalAuthToken) {
     internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken;
   }

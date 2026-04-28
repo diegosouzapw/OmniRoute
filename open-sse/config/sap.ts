@@ -1,8 +1,10 @@
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+
 export const SAP_DEFAULT_BASE_URL =
   "https://example-aicore.cfapps.eu10.hana.ondemand.com/v2/lm/deployments/example-deployment";
 
 function normalizeBaseUrl(value: string | null | undefined): string {
-  return (value || "").trim().replace(/\/+$/, "");
+  return stripTrailingSlashes((value || "").trim());
 }
 
 function sanitizeUrl(value: string): string {
@@ -10,7 +12,7 @@ function sanitizeUrl(value: string): string {
     const parsed = new URL(value);
     parsed.search = "";
     parsed.hash = "";
-    return parsed.toString().replace(/\/+$/, "");
+    return stripTrailingSlashes(parsed.toString());
   } catch {
     return value;
   }

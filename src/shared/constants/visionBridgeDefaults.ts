@@ -2,12 +2,16 @@
  * Vision Bridge default configuration values.
  */
 
-const NORMALIZED_GPT_MODEL_PATTERN = /^gpt-/i;
+const FORCED_VISION_BRIDGE_MODELS = new Set<string>([
+  // Fallback list for models whose metadata is known to overstate native vision support.
+]);
 
 export function isVisionBridgeForcedModel(model: string | null | undefined): boolean {
   if (!model) return false;
-  const normalizedModel = model.includes("/") ? model.split("/").pop() || model : model;
-  return NORMALIZED_GPT_MODEL_PATTERN.test(normalizedModel);
+  const normalizedModel = (model.includes("/") ? model.split("/").pop() || model : model)
+    .trim()
+    .toLowerCase();
+  return FORCED_VISION_BRIDGE_MODELS.has(normalizedModel);
 }
 
 export const VISION_BRIDGE_DEFAULTS = {

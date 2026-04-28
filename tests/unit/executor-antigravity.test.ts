@@ -244,6 +244,70 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
   });
 });
 
+test("AntigravityExecutor.collectStreamToResponse parses fragmented SSE lines incrementally", async () => {
+  const executor = new AntigravityExecutor();
+  const encoder = new TextEncoder();
+  const streamText = [
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [{ content: { parts: [{ text: "Frag" }] } }],
+      },
+    })}\n\n`,
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: { parts: [{ text: "mented" }] },
+            finishReason: "STOP",
+          },
+        ],
+        usageMetadata: {
+          promptTokenCount: 9,
+          candidatesTokenCount: 4,
+          totalTokenCount: 13,
+        },
+      },
+    })}\n\n`,
+  ].join("");
+  const response = new Response(
+    new ReadableStream({
+      start(controller) {
+        for (const chunk of [
+          streamText.slice(0, 6),
+          streamText.slice(6, 31),
+          streamText.slice(31, 79),
+          streamText.slice(79, 143),
+          streamText.slice(143),
+        ]) {
+          controller.enqueue(encoder.encode(chunk));
+        }
+        controller.close();
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await executor.collectStreamToResponse(
+    response,
+    "gemini-2.5-flash",
+    "https://example.com",
+    { Authorization: "Bearer ag-token" },
+    { request: {} }
+  );
+  const payload = (await result.response.json()) as any;
+
+  assert.equal(payload.choices[0].message.content, "Fragmented");
+  assert.equal(payload.choices[0].finish_reason, "stop");
+  assert.deepEqual(payload.usage, {
+    prompt_tokens: 9,
+    completion_tokens: 4,
+    total_tokens: 13,
+  });
+});
+
 test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;

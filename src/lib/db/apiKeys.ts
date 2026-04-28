@@ -42,6 +42,11 @@ interface ApiKeyMetadata {
   maxRequestsPerMinute: number | null;
   // T08: Per-key max concurrent sticky sessions (0 = unlimited)
   maxSessions: number;
+  // Phase 3 lifecycle/policy fields
+  revokedAt: string | null;
+  expiresAt: string | null;
+  ipAllowlist: string[];
+  scopes: string[];
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -97,11 +102,31 @@ interface ApiKeyView extends JsonRecord {
 // LRU cache for API key validation (valid keys only)
 const _keyValidationCache = new Map<string, { valid: boolean; timestamp: number }>();
 const _keyMetadataCache = new Map<string, CacheEntry<ApiKeyMetadata>>();
+const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
+const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
 
 // Compiled regex cache for wildcard patterns
 const _regexCache = new Map<string, RegExp>();
+
+const API_KEY_COLUMN_FALLBACKS = [
+  { name: "allowed_models", definition: "allowed_models TEXT" },
+  { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
+  { name: "allowed_connections", definition: "allowed_connections TEXT" },
+  { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
+  { name: "is_active", definition: "is_active INTEGER NOT NULL DEFAULT 1" },
+  { name: "access_schedule", definition: "access_schedule TEXT" },
+  { name: "max_requests_per_day", definition: "max_requests_per_day INTEGER" },
+  { name: "max_requests_per_minute", definition: "max_requests_per_minute INTEGER" },
+  { name: "max_sessions", definition: "max_sessions INTEGER NOT NULL DEFAULT 0" },
+  { name: "revoked_at", definition: "revoked_at TEXT" },
+  { name: "expires_at", definition: "expires_at TEXT" },
+  { name: "last_used_at", definition: "last_used_at TEXT" },
+  { name: "key_prefix", definition: "key_prefix TEXT" },
+  { name: "ip_allowlist", definition: "ip_allowlist TEXT" },
+  { name: "scopes", definition: "scopes TEXT" },
+] as const;
 
 // Cache for model permission checks
 const _modelPermissionCache = new Map<string, { allowed: boolean; timestamp: number }>();
@@ -121,10 +146,29 @@ function invalidateCaches() {
   _keyValidationCache.clear();
   _keyMetadataCache.clear();
   _modelPermissionCache.clear();
+  _lastUsedUpdateCache.clear();
 }
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
+}
+
+function isConfiguredEnvApiKey(key: string): boolean {
+  const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
+  return Boolean(envKey && key === envKey);
+}
+
+function markApiKeyUsed(db: ApiKeysDbLike, id: unknown, now: number): void {
+  if (typeof id !== "string" || id.trim() === "") return;
+
+  const lastUpdate = _lastUsedUpdateCache.get(id);
+  if (lastUpdate && now - lastUpdate < LAST_USED_UPDATE_TTL) return;
+
+  db.prepare("UPDATE api_keys SET last_used_at = @lastUsedAt WHERE id = @id").run({
+    id,
+    lastUsedAt: new Date(now).toISOString(),
+  });
+  _lastUsedUpdateCache.set(id, now);
 }
 
 /**
@@ -160,6 +204,16 @@ function getWildcardRegex(pattern: string): RegExp {
   return regex;
 }
 
+function ensureApiKeyColumn(
+  db: ApiKeysDbLike,
+  columnNames: Set<string>,
+  column: (typeof API_KEY_COLUMN_FALLBACKS)[number]
+): void {
+  if (columnNames.has(column.name)) return;
+  db.exec(`ALTER TABLE api_keys ADD COLUMN ${column.definition}`);
+  console.log(`[DB] Added api_keys.${column.name} column`);
+}
+
 // Ensure api_keys extension columns exist (memoized)
 function ensureApiKeysColumns(db: ApiKeysDbLike) {
   if (_schemaChecked) return;
@@ -167,42 +221,8 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
   try {
     const columns = db.prepare<ApiKeyRow>("PRAGMA table_info(api_keys)").all();
     const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
-    if (!columnNames.has("allowed_models")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN allowed_models TEXT");
-      console.log("[DB] Added api_keys.allowed_models column");
-    }
-    if (!columnNames.has("no_log")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN no_log INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.no_log column");
-    }
-    if (!columnNames.has("allowed_connections")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN allowed_connections TEXT");
-      console.log("[DB] Added api_keys.allowed_connections column");
-    }
-    if (!columnNames.has("auto_resolve")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN auto_resolve INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.auto_resolve column");
-    }
-    if (!columnNames.has("is_active")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1");
-      console.log("[DB] Added api_keys.is_active column");
-    }
-    if (!columnNames.has("access_schedule")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN access_schedule TEXT");
-      console.log("[DB] Added api_keys.access_schedule column");
-    }
-    if (!columnNames.has("max_requests_per_day")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_requests_per_day INTEGER");
-      console.log("[DB] Added api_keys.max_requests_per_day column");
-    }
-    if (!columnNames.has("max_requests_per_minute")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_requests_per_minute INTEGER");
-      console.log("[DB] Added api_keys.max_requests_per_minute column");
-    }
-    // T08: max concurrent sticky sessions per key (0 = unlimited)
-    if (!columnNames.has("max_sessions")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_sessions INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.max_sessions column");
+    for (const column of API_KEY_COLUMN_FALLBACKS) {
+      ensureApiKeyColumn(db, columnNames, column);
     }
     _schemaChecked = true;
   } catch (error) {
@@ -227,12 +247,14 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   ) {
     _stmtGetAllKeys = db.prepare<ApiKeyRow>("SELECT * FROM api_keys ORDER BY created_at");
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
-    _stmtValidateKey = db.prepare<JsonRecord>("SELECT 1 FROM api_keys WHERE key = ?");
+    _stmtValidateKey = db.prepare<JsonRecord>(
+      "SELECT id, expires_at, revoked_at, is_active FROM api_keys WHERE key = ?"
+    );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions FROM api_keys WHERE key = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, revoked_at, expires_at, ip_allowlist, scopes FROM api_keys WHERE key = ?"
     );
     _stmtInsertKey = db.prepare(
-      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     _stmtDeleteKey = db.prepare("DELETE FROM api_keys WHERE id = ?");
   }
@@ -373,6 +395,24 @@ function parseAllowedConnections(value: unknown): string[] {
   }
 }
 
+function parseStringList(value: unknown): string[] {
+  if (!value || typeof value !== "string" || value.trim() === "") return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseNullableTimestamp(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
 export async function createApiKey(name: string, machineId: string) {
   if (!machineId) {
     throw new Error("machineId is required");
@@ -403,7 +443,8 @@ export async function createApiKey(name: string, machineId: string) {
     apiKey.machineId,
     "[]",
     0,
-    apiKey.createdAt
+    apiKey.createdAt,
+    apiKey.key.slice(0, 12)
   );
   setNoLog(apiKey.id, false);
 
@@ -566,15 +607,66 @@ export async function deleteApiKey(id: string) {
 }
 
 /**
- * Validate API key with caching for performance
- * Cached valid keys reduce DB hits on every request
+ * Revoke an API key by id. Logical, not destructive: the row stays so it can
+ * be audited, but validateApiKey() rejects it immediately after caches expire
+ * (or sooner because invalidateCaches() runs here).
+ */
+export async function revokeApiKey(id: string): Promise<boolean> {
+  const db = getDbInstance() as ApiKeysDbLike;
+  getPreparedStatements(db);
+
+  const result = db
+    .prepare(
+      "UPDATE api_keys SET revoked_at = COALESCE(revoked_at, @ts), is_active = 0 WHERE id = @id"
+    )
+    .run({ id, ts: new Date().toISOString() });
+
+  if ((result.changes ?? 0) === 0) return false;
+
+  invalidateCaches();
+  backupDbFile("pre-write");
+  return true;
+}
+
+/**
+ * Set or clear the expiry of an API key. Pass null to remove the expiry.
+ */
+export async function setApiKeyExpiry(id: string, expiresAt: string | null): Promise<boolean> {
+  const db = getDbInstance() as ApiKeysDbLike;
+  getPreparedStatements(db);
+
+  const result = db
+    .prepare("UPDATE api_keys SET expires_at = @expiresAt WHERE id = @id")
+    .run({ id, expiresAt });
+
+  if ((result.changes ?? 0) === 0) return false;
+
+  invalidateCaches();
+  backupDbFile("pre-write");
+  return true;
+}
+
+/**
+ * Validate API key with lifecycle gates and caching.
+ *
+ * A key is valid only when ALL of the following are true:
+ *   - the row exists,
+ *   - is_active = 1,
+ *   - revoked_at IS NULL,
+ *   - expires_at IS NULL OR expires_at > now.
+ *
+ * Cache TTL is short (CACHE_TTL) and the metadata cache is also invalidated
+ * by revokeApiKey/updateApiKeyPermissions/deleteApiKey, so a revoke takes
+ * effect within at most CACHE_TTL even without an explicit clear in the
+ * caller.
  */
 export async function validateApiKey(key: string | null | undefined) {
   if (!key || typeof key !== "string") return false;
 
+  if (isConfiguredEnvApiKey(key)) return true;
+
   const now = Date.now();
 
-  // Check cache first
   const cached = _keyValidationCache.get(key);
   if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.valid;
@@ -582,16 +674,27 @@ export async function validateApiKey(key: string | null | undefined) {
 
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
-  const row = stmt.validateKey.get(key);
-  const valid = !!row;
+  const row = stmt.validateKey.get(key) as JsonRecord | undefined;
 
-  // Only cache valid keys to prevent cache pollution
-  if (valid) {
-    evictIfNeeded(_keyValidationCache);
-    _keyValidationCache.set(key, { valid: true, timestamp: now });
+  if (!row) return false;
+
+  const isActive = parseIsActive(row.is_active ?? row.isActive);
+  if (!isActive) return false;
+
+  const revokedAt = row.revoked_at ?? row.revokedAt;
+  if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
+
+  const expiresAt = row.expires_at ?? row.expiresAt;
+  if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
+    const expiresMs = Date.parse(expiresAt);
+    if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
   }
 
-  return valid;
+  evictIfNeeded(_keyValidationCache);
+  _keyValidationCache.set(key, { valid: true, timestamp: now });
+  markApiKeyUsed(db, row.id, now);
+
+  return true;
 }
 
 /**
@@ -605,8 +708,7 @@ export async function getApiKeyMetadata(
   const now = Date.now();
 
   // persistent env-var key support (persistent passthrough keys) (#1350)
-  const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
-  if (envKey && key === envKey) {
+  if (isConfiguredEnvApiKey(key)) {
     return {
       id: "env-key",
       name: "Environment Key",
@@ -620,6 +722,10 @@ export async function getApiKeyMetadata(
       maxRequestsPerDay: null,
       maxRequestsPerMinute: null,
       maxSessions: 0,
+      revokedAt: null,
+      expiresAt: null,
+      ipAllowlist: [],
+      scopes: [],
     };
   }
 
@@ -662,6 +768,10 @@ export async function getApiKeyMetadata(
     maxRequestsPerMinute: typeof rawMaxRPM === "number" && rawMaxRPM > 0 ? rawMaxRPM : null,
     // T08: max concurrent sessions; 0 = unlimited (default & backward-compatible)
     maxSessions: typeof rawMaxSessions === "number" && rawMaxSessions > 0 ? rawMaxSessions : 0,
+    revokedAt: parseNullableTimestamp(record.revoked_at ?? (record as JsonRecord).revokedAt),
+    expiresAt: parseNullableTimestamp(record.expires_at ?? (record as JsonRecord).expiresAt),
+    ipAllowlist: parseStringList(record.ip_allowlist ?? (record as JsonRecord).ipAllowlist),
+    scopes: parseStringList((record as JsonRecord).scopes),
   };
 
   if (!metadata.id) {
@@ -766,6 +876,7 @@ function clearPreparedStatementCache() {
  */
 export function clearApiKeyCaches() {
   invalidateCaches();
+  _lastUsedUpdateCache.clear();
   _modelPermissionCache.clear();
   _regexCache.clear();
 }

@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "./cors.ts";
+import { CORS_HEADERS } from "./cors.ts";
 import { detectFormat } from "../services/provider.ts";
 import { translateResponse, initState } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -124,7 +124,6 @@ function createNonStreamingResponse(sourceFormat, model) {
       response: new Response(JSON.stringify(openaiResponse), {
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": getCorsOrigin(),
         },
       }),
     };
@@ -158,7 +157,6 @@ function createNonStreamingResponse(sourceFormat, model) {
     response: new Response(JSON.stringify(finalResponse), {
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
       },
     }),
   };
@@ -206,7 +204,6 @@ function createStreamingResponse(sourceFormat, model) {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
       },
     }),
   };
