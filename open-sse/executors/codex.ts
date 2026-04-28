@@ -5,7 +5,10 @@ import {
   setUserAgentHeader,
   type ExecuteInput,
 } from "./base.ts";
-import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
+import {
+  CODEX_CHAT_DEFAULT_INSTRUCTIONS,
+  CODEX_DEFAULT_INSTRUCTIONS,
+} from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
@@ -227,7 +230,6 @@ export function getCodexDualWindowCooldownMs(
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
-const CODEX_CHAT_DEFAULT_INSTRUCTIONS = "You are a ChatGPT agent.";
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 

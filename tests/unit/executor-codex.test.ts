@@ -17,6 +17,7 @@ import {
   setThinkingBudgetConfig,
   ThinkingMode,
 } from "../../open-sse/services/thinkingBudget.ts";
+import { CODEX_CHAT_DEFAULT_INSTRUCTIONS } from "../../open-sse/config/codexInstructions.ts";
 
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
@@ -224,7 +225,7 @@ test("CodexExecutor.transformRequest sends neutral instructions for bare chat re
     requestEndpointPath: "/responses",
   });
 
-  assert.equal(result.instructions, "You are a ChatGPT agent.");
+  assert.equal(result.instructions, CODEX_CHAT_DEFAULT_INSTRUCTIONS);
   assert.equal(result.stream, true);
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.input.length, 1);
